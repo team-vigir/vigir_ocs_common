@@ -24,12 +24,12 @@ Main3DView::Main3DView( QWidget* parent )
  : QWidget( parent )
 {
   // Create a new label for this widget.
-  QLabel* robot_model_label = new QLabel( "rviz/RobotModel" );
+  //QLabel* robot_model_label = new QLabel( "rviz/RobotModel" );
   
   // Construct and lay out render panel.
   render_panel_ = new rviz::RenderPanel();
   QVBoxLayout* main_layout = new QVBoxLayout;
-  main_layout->addWidget( robot_model_label );
+  //main_layout->addWidget( robot_model_label );
   main_layout->addWidget( render_panel_ );
 
   // Set the top-level layout for this MyViz widget.
@@ -64,7 +64,7 @@ Main3DView::Main3DView( QWidget* parent )
   // Add support for selection
   move_camera_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
 
-  manager_->getToolManager()->setCurrentTool(selection_);
+  manager_->getToolManager()->setCurrentTool(interactive_markers_);
 }
 
 // Destructor.

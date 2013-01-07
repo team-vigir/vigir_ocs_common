@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 
   QApplication app( argc, argv );
 
-  RawSensorData* raw_sensor_data = new CameraViewer();
+  RawSensorData* raw_sensor_data = new RawSensorData();
   raw_sensor_data->show();
 
   app.exec();

@@ -13,6 +13,7 @@
 #define RAW_SENSOR_DATA_H
 
 #include <QWidget>
+#include <QTableWidget>	
 
 namespace rviz
 {
@@ -34,7 +35,7 @@ public:
 //private Q_SLOTS:
 
 private:
-	updateTable();
+	void updateTable();
 
   rviz::VisualizationManager* manager_;
   rviz::RenderPanel* render_panel_;
