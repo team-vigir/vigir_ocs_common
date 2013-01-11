@@ -1,101 +1,46 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vigir_ocs_integration_test)
 
-## Find catkin and system dependencies
-
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs)
-
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-
-## Uncomment if the package has a setup.py
-# catkin_python_setup()
-
-## Declare ROS messages and services
-
-## Generate messages in the 'msg' folder
-# add_message_files(
-#   DIRECTORY msg
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
-
-## Generate services in the 'srv' folder
-# add_service_files(
-#   DIRECTORY srv
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
-
-## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-# #  std_msgs  # Or other packages containing msgs
-# )
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs vigir_ocs_camera_viewer vigir_ocs_robot_model vigir_ocs_main_3d_view vigir_ocs_point_cloud_viewer vigir_ocs_raw_sensor_data)
 
 ## Declare things to be passed to other projects
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES ${PROJECT_NAME}
-#  CATKIN_DEPENDS # catkin-pkg1 catkin-pkg2
-#  DEPENDS Boost # other-3rd-party-libraries
+catkin_package()
+
+## This plugin includes Qt widgets, so we must include Qt like so:
+find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
+include(${QT_USE_FILE})
+
+## I prefer the Qt signals and slots to avoid defining "emit", "slots",
+## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
+add_definitions(-DQT_NO_KEYWORDS)
+
+## Here we specify which header files need to be run through "moc",
+## Qt's meta-object compiler.
+qt4_wrap_cpp(MOC_FILES
+  ../vigir_ocs_camera_viewer/src/camera_viewer.h
+  ../vigir_ocs_robot_model/src/robot_model.h
+  ../vigir_ocs_main_3d_view/src/main_3d_view.h
+  ../vigir_ocs_point_cloud_viewer/src/point_cloud_viewer.h
+  ../vigir_ocs_raw_sensor_data/src/raw_sensor_data.h
+)
+## Here we specify the list of source files, including the output of
+## the previous command which is stored in ``${MOC_FILES}``.
+set(SOURCE_FILES
+#  src/camera_viewer.cpp
+  src/main.cpp
+  ../vigir_ocs_camera_viewer/src/camera_viewer.cpp
+  ../vigir_ocs_robot_model/src/robot_model.cpp
+  ../vigir_ocs_main_3d_view/src/main_3d_view.cpp
+  ../vigir_ocs_point_cloud_viewer/src/point_cloud_viewer.cpp
+  ../vigir_ocs_raw_sensor_data/src/raw_sensor_data.cpp
+  ${MOC_FILES}
 )
 
-## Specify additional locations of header files
-# include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} ../vigir_ocs_camera_viewer/src ../vigir_ocs_robot_model/src ../vigir_ocs_main_3d_view/src ../vigir_ocs_point_cloud_viewer/src ../vigir_ocs_raw_sensor_data/src)
 
-## Declare a cpp library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/vigir_ocs_integration_test.cpp
-# )
+add_executable(integration_test ${SOURCE_FILES})
+target_link_libraries(integration_test ${catkin_LIBRARIES} ${QT_LIBRARIES} /opt/ros/groovy/lib/librviz.so)
 
-## Declare a cpp executable
-# add_executable(${PROJECT_NAME}_node src/vigir_ocs_integration_test_node.cpp)
 
-## Add dependencies to the executable
-# add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME})
-
-## Specify libraries to link the executable against
-# target_link_libraries(${PROJECT_NAME}_node
-#   ${catkin_LIBRARIES} ${Boost_LIBRARIES}
-# )
-
-## Mark executable scripts (Python etc.) for installation
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
-## Mark executables and/or libraries for installation
-# install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
-## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
-# )
-
-## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
-
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_vigir_ocs_integration_test.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
-
-## Add any nosetest based python tests
-# catkin_add_nosetests(test)

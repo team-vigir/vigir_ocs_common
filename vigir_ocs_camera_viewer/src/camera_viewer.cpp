@@ -23,7 +23,7 @@ CameraViewer::CameraViewer( QWidget* parent )
   : QWidget( parent )
 {
   // Create a new label for this widget.
-  QLabel* image_label = new QLabel( "rviz/Image" );
+  QLabel* image_label = new QLabel( "rviz/Image, topic /multisense_sl/left/image_raw" );
   
   // Construct and lay out render panel.
   render_panel_ = new rviz::RenderPanel();
@@ -50,12 +50,12 @@ CameraViewer::CameraViewer( QWidget* parent )
   // Create a camera/image display.
   // can be both a camera or an image, the difference is that the camera 
   // camera_viewer_ = manager_->createDisplay( "rviz/Image", "Camera image", true );
-  camera_viewer_ = manager_->createDisplay( "rviz/Camera", "Camera image", true );
+  camera_viewer_ = manager_->createDisplay( "rviz/Image", "Camera image", true );
   ROS_ASSERT( camera_viewer_ != NULL );
 
   // Set image topic
   //camera_viewer_->subProp( "Image Topic" )->setValue( "/right_eye/image_raw" );
-  camera_viewer_->subProp( "Image Topic" )->setValue( "/left_eye/image_raw" );
+  camera_viewer_->subProp( "Image Topic" )->setValue( "/multisense_sl/left/image_raw" );
 }
 
 // Destructor.

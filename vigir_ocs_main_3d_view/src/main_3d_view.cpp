@@ -58,13 +58,24 @@ Main3DView::Main3DView( QWidget* parent )
   manager_->setFixedFrame("/pelvis");
 
   // Add support for interactive markers
-  interactive_markers_ = manager_->getToolManager()->addTool( "rviz/Interact" );
+  interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/Interact" );
   // Add support for selection
-  selection_ = manager_->getToolManager()->addTool( "rviz/Select" );
+  selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
   // Add support for selection
-  move_camera_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
+  move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
 
-  manager_->getToolManager()->setCurrentTool(interactive_markers_);
+	// Make the interaction tool the currently selected one
+  manager_->getToolManager()->setCurrentTool(interactive_markers_tool_);
+
+	// Add interactive markers Stefan's markers and IK implementation
+	interactive_marker_[0] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 1", true );
+	interactive_marker_[0]->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/update" );
+	interactive_marker_[1] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 2", true );
+	interactive_marker_[1]->subProp( "Update Topic" )->setValue( "/l_leg_pose_marker/update" );
+	interactive_marker_[2] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 3", true );
+	interactive_marker_[2]->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/update" );
+	interactive_marker_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
+	interactive_marker_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
 }
 
 // Destructor.

@@ -39,9 +39,10 @@ private:
   rviz::VisualizationManager* manager_;
   rviz::RenderPanel* render_panel_;
   rviz::Display* robot_model_;
-  rviz::Tool* interactive_markers_;
-  rviz::Tool* selection_;
-  rviz::Tool* move_camera_;
+  rviz::Display* interactive_marker_[4];
+  rviz::Tool* interactive_markers_tool_;
+  rviz::Tool* selection_tool_;
+  rviz::Tool* move_camera_tool_;
 
 };
 #endif // MAIN_3D_VIEW_H
