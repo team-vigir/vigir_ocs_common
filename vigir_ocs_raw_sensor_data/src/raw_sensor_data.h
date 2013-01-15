@@ -14,6 +14,9 @@
 
 #include <QWidget>
 #include <QTableWidget>	
+#include <sensor_msgs/JointState.h>
+#include <ros/subscriber.h>
+//#include <nodelet/nodelet.h>
 
 namespace rviz
 {
@@ -31,15 +34,18 @@ public:
   RawSensorData( QWidget* parent = 0 );
   virtual ~RawSensorData();
 
+	void updateTable( const sensor_msgs::JointStateConstPtr& joint_states );
+	
 // TODO: create slots for possible UI stuff
 //private Q_SLOTS:
 
 private:
-	void updateTable();
 
   rviz::VisualizationManager* manager_;
   rviz::RenderPanel* render_panel_;
   rviz::Display* robot_model_;
+  
+  ros::Subscriber joint_states_;
 
   QTableWidget* table;
 };

@@ -5,12 +5,13 @@
  * 
  * Based on librviz_tutorials.
  * 
- * Latest changes (12/17/2012):
- * - added QTableWidget
  */
 
 #include <QLabel>
 #include <QVBoxLayout>
+#include <QString>
+
+#include <ros/ros.h>
 
 #include "rviz/visualization_manager.h"
 #include "rviz/render_panel.h"
@@ -34,7 +35,7 @@ RawSensorData::RawSensorData( QWidget* parent )
   main_layout->addWidget( table );
 
   // Set the top-level layout for this MyViz widget.
-  setLayout( main_layout );
+  setLayout( main_layout );		
 
   // Make signal/slot connections.
   //connect( collision_checkbox, SIGNAL( valueChanged( int )), this, SLOT( setCollision( bool )));
@@ -56,18 +57,22 @@ RawSensorData::RawSensorData( QWidget* parent )
 
   // Set topic that will be used as 0,0,0 -> reference for all the other transforms
   // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
-  manager_->getFrameManager()->setFixedFrame("/pelvis");
+  manager_->getFrameManager()->setFixedFrame( "/pelvis" );
 	
 	// Set table row count 1 and column count 3
-	table->setRowCount(1);
-	table->setColumnCount(3);
+	table->setRowCount(100);
+	table->setColumnCount(4);
 
 	table->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
 
 	// Set Header Label Texts Here
-	table->setHorizontalHeaderLabels(QString("Link;Position;Orientation").split(";"));	
+	table->setHorizontalHeaderLabels(QString( "Name;Position;Velocity;Effort" ).split( ";" ));	
 
-	// Need to initialize update thread
+	// We first subscribe to the JointState messages
+	ros::NodeHandle nh;
+	joint_states_ = nh.subscribe<sensor_msgs::JointState>( "joint_states", 2, &RawSensorData::updateTable, this );
+	
+	ros::spinOnce();
 }
 
 // Destructor.
@@ -78,18 +83,18 @@ RawSensorData::~RawSensorData()
   delete table;
 }
 
-void RawSensorData::updateTable()
+void RawSensorData::updateTable( const sensor_msgs::JointState::ConstPtr& joint_states )
 {
-	// Need to retrieve names of links from RobotModelDisplay or somewhere else... maybe one of the managers?
-	//   RobotModelDisplay contains an object of Robot (private, no set/get), which is used for rendering (line 99: robot_model_display.cpp)
-	//   That object does have all the links, but I don't have access to it
-	
+	std::cout << "updating table:" << std::endl;
+	table->setRowCount(joint_states->name.size());
 	// Add Table items here
-	//for( int i = 0; i < links.size(); i++ )
-	//{
-	//table->setItem(i,0,new QTableWidgetItem("Link name"));
-	//table->setItem(i,1,new QTableWidgetItem("Position"));
-	//table->setItem(i,2,new QTableWidgetItem("Orientation"));
-	//}
+	for( int i = 0; i < joint_states->name.size(); i++ )
+  {
+		table->setItem(i,0,new QTableWidgetItem(QString(joint_states->name[i].c_str())));
+		table->setItem(i,1,new QTableWidgetItem(QString::number(joint_states->position[i])));
+		table->setItem(i,2,new QTableWidgetItem(QString::number(joint_states->velocity[i])));
+		table->setItem(i,2,new QTableWidgetItem(QString::number(joint_states->effort[i])));
+		std::cout << "  joint name: " << joint_states->name[i] << std::endl;
+	}
 }
 
