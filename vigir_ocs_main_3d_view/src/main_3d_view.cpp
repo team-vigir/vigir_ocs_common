@@ -76,6 +76,20 @@ Main3DView::Main3DView( QWidget* parent )
 	interactive_marker_[2]->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/update" );
 	interactive_marker_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
 	interactive_marker_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
+	
+	// Create a LaserScan display.
+  laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", true );
+  ROS_ASSERT( laser_scan_ != NULL );
+  
+  // Create a MarkerArray display.
+  marker_array_ = manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
+  ROS_ASSERT( marker_array_ != NULL );
+  
+	marker_array_->subProp( "Marker Topic" )->setValue( "/occupied_cells_vis_array" );
+  
+	laser_scan_->subProp( "Topic" )->setValue( "/scan" );
+	laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
+	laser_scan_->subProp( "Decay Time" )->setValue( 1 );
 }
 
 // Destructor.

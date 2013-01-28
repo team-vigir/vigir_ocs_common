@@ -43,6 +43,8 @@ private:
   rviz::Tool* interactive_markers_tool_;
   rviz::Tool* selection_tool_;
   rviz::Tool* move_camera_tool_;
+  rviz::Display* marker_array_;
+  rviz::Display* laser_scan_;
 
 };
 #endif // MAIN_3D_VIEW_H
