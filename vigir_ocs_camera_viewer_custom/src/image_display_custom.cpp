@@ -74,10 +74,10 @@ void ImageDisplayCustom::onInitialize()
     static uint32_t count = 0;
     std::stringstream ss;
     ss << "ImageDisplayCustom" << count++;
-    img_scene_manager_ = Ogre::Root::getSingleton().createSceneManager(Ogre::ST_GENERIC, ss.str());
+    //img_scene_manager_ = Ogre::Root::getSingleton().createSceneManager(Ogre::ST_GENERIC, ss.str());
   }
 
-  img_scene_node_ = img_scene_manager_->getRootSceneNode()->createChildSceneNode();
+  //img_scene_node_ = img_scene_manager_->getRootSceneNode()->createChildSceneNode();
 
   {
     static int count = 0;
@@ -105,10 +105,10 @@ void ImageDisplayCustom::onInitialize()
     aabInf.setInfinite();
     screen_rect_->setBoundingBox(aabInf);
     screen_rect_->setMaterial(material_->getName());
-    img_scene_node_->attachObject(screen_rect_);
+    scene_node_->attachObject(screen_rect_);
   }
   
-  {
+  /*{
     static int count = 0;
     std::stringstream ss;
     ss << "ImageDisplayObject" << count++;
@@ -135,29 +135,30 @@ void ImageDisplayCustom::onInitialize()
     aabInf.setInfinite();
     screen_rect_->setBoundingBox(aabInf);
     screen_rect_->setMaterial(material_->getName());
-    img_scene_node_->attachObject(screen_rect_);
+    scene_node_->attachObject(screen_rect_);
   }
+  */
 
-  render_panel_ = new RenderPanel();
-  render_panel_->getRenderWindow()->setAutoUpdated(false);
-  render_panel_->getRenderWindow()->setActive( false );
+  //render_panel_ = new RenderPanel();
+  //render_panel_->getRenderWindow()->setAutoUpdated(false);
+  //render_panel_->getRenderWindow()->setActive( false );
 
-  render_panel_->resize( 640, 480 );
-  render_panel_->initialize(img_scene_manager_, context_);
+  //render_panel_->resize( 640, 480 );
+  //render_panel_->initialize(scene_manager_, context_);
 
-  setAssociatedWidget( render_panel_ );
+  //setAssociatedWidget( render_panel_ );
 
-  render_panel_->setAutoRender(false);
-  render_panel_->setOverlaysEnabled(false);
-  render_panel_->getCamera()->setNearClipDistance( 0.01f );
+  //render_panel_->setAutoRender(false);
+  //render_panel_->setOverlaysEnabled(false);
+  //render_panel_->getCamera()->setNearClipDistance( 0.01f );
 }
 
 ImageDisplayCustom::~ImageDisplayCustom()
 {
   ImageDisplayBase::unsubscribe();
-  delete render_panel_;
+  //delete render_panel_;
   delete screen_rect_;
-  img_scene_node_->getParentSceneNode()->removeAndDestroyChild( img_scene_node_->getName() );
+  scene_node_->getParentSceneNode()->removeAndDestroyChild( scene_node_->getName() );
 }
 
 void ImageDisplayCustom::onEnable()
@@ -231,6 +232,11 @@ void ImageDisplayCustom::reset()
 void ImageDisplayCustom::processMessage(const sensor_msgs::Image::ConstPtr& msg)
 {
   texture_.addMessage(msg);
+}
+
+void ImageDisplayCustom::setRenderPanel( RenderPanel* rp )
+{
+    render_panel_ = rp;
 }
 
 } // namespace rviz
