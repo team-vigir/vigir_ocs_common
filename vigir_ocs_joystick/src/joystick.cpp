@@ -55,14 +55,14 @@ Joystick::Joystick( QWidget* parent )
   connect( backward, SIGNAL( released() ), this, SLOT( backwardReleased() ) );
 
 	// Initialize publisher  
-  vel_pub_ = n_.advertise<geometry_msgs::Twist>("atlas/cmd_vel", 1);
+  vel_pub_ = n_.advertise<geometry_msgs::Twist>( "atlas/cmd_vel", 1 );
 
 	// Initialize velocity variables
   ros::NodeHandle n_private("~");
-  n_private.param("walk_vel", walk_vel, 0.5);
-  n_private.param("run_vel", run_vel, 1.0);
-  n_private.param("yaw_rate", yaw_rate, 1.0);
-  n_private.param("yaw_run_rate", yaw_rate_run, 1.5);
+  n_private.param( "walk_vel", walk_vel, 0.5 );
+  n_private.param( "run_vel", run_vel, 1.0 );
+  n_private.param( "yaw_rate", yaw_rate, 1.0 );
+  n_private.param( "yaw_run_rate", yaw_rate_run, 1.5 );
 }
 
 // Destructor.
@@ -74,48 +74,48 @@ Joystick::~Joystick()
 void Joystick::turnLeftPressed()
 {
 	cmd.angular.z = yaw_rate;
-	vel_pub_.publish(cmd);
+	vel_pub_.publish( cmd );
 }
 
 void Joystick::turnLeftReleased()
 {
 	cmd.angular.z = 0.0;
-	vel_pub_.publish(cmd);
+	vel_pub_.publish( cmd );
 }
 
 void Joystick::turnRightPressed()
 {
 	cmd.angular.z = -yaw_rate;
-	vel_pub_.publish(cmd);
+	vel_pub_.publish( cmd );
 }
 
 void Joystick::turnRightReleased()
 {
 	cmd.angular.z = 0.0;
-	vel_pub_.publish(cmd);
+	vel_pub_.publish( cmd );
 }
 
 void Joystick::forwardPressed()
 {
 	cmd.linear.x = run_vel;
-	vel_pub_.publish(cmd);
+	vel_pub_.publish( cmd );
 }
 
 void Joystick::forwardReleased()
 {
 	cmd.linear.x = 0.0;
-	vel_pub_.publish(cmd);
+	vel_pub_.publish( cmd );
 }
 
 void Joystick::backwardPressed()
 {
 	cmd.linear.x = -run_vel;
-	vel_pub_.publish(cmd);
+	vel_pub_.publish( cmd );
 }
 
 void Joystick::backwardReleased()
 {
 	cmd.linear.x = 0.0;
-	vel_pub_.publish(cmd);
+	vel_pub_.publish( cmd );
 }
 

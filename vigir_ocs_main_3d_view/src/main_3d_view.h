@@ -31,20 +31,32 @@ public:
   Main3DView( QWidget* parent = 0 );
   virtual ~Main3DView();
 
-// TODO: create slots for possible UI stuff
-//private Q_SLOTS:
-//  setCollision( bool );
+public Q_SLOTS:
+  // displays
+  void robotModelToggled( bool );
+  void pointCloudToggled( bool );
+  void laserScanToggled( bool );
+  void markerArrayToggled( bool );
+  // tools
+  void cameraToggled( bool );
+  void selectToggled( bool );
+  void markerToggled( bool );
+  void vectorToggled( bool );
 
 private:
   rviz::VisualizationManager* manager_;
   rviz::RenderPanel* render_panel_;
+
   rviz::Display* robot_model_;
   rviz::Display* interactive_marker_[4];
+  rviz::Display* marker_array_;
+  rviz::Display* laser_scan_;
+  rviz::Display* point_cloud_viewer_;
+
   rviz::Tool* interactive_markers_tool_;
   rviz::Tool* selection_tool_;
   rviz::Tool* move_camera_tool_;
-  rviz::Display* marker_array_;
-  rviz::Display* laser_scan_;
+  rviz::Tool* set_goal_tool_;
 
 };
 #endif // MAIN_3D_VIEW_H

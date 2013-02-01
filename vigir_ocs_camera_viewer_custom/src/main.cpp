@@ -8,7 +8,7 @@
 //#include "image_display_custom.h"
 //extern "C" void rvizPluginInit(rviz::TypeRegistry* reg)
 //{
-//	reg->registerDisplay<AxesDisplay>("rviz::ImageDisplayCustom");
+//	reg->registerDisplay<ImageDisplayCustom>("rviz::ImageDisplayCustom");
 
 
 int main(int argc, char **argv)

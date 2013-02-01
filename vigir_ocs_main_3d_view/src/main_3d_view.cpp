@@ -11,6 +11,7 @@
 
 #include <QLabel>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 
 #include "rviz/visualization_manager.h"
 #include "rviz/render_panel.h"
@@ -61,11 +62,14 @@ Main3DView::Main3DView( QWidget* parent )
   interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/Interact" );
   // Add support for selection
   selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
-  // Add support for selection
+  // Add support for camera movement
   move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
+  // Add support for goal specification/vector navigation
+  set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
 
 	// Make the interaction tool the currently selected one
-  manager_->getToolManager()->setCurrentTool(interactive_markers_tool_);
+  //manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
+  manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
 
 	// Add interactive markers Stefan's markers and IK implementation
 	interactive_marker_[0] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 1", true );
@@ -81,15 +85,22 @@ Main3DView::Main3DView( QWidget* parent )
   laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", true );
   ROS_ASSERT( laser_scan_ != NULL );
   
+	laser_scan_->subProp( "Topic" )->setValue( "/scan" );
+	laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
+	laser_scan_->subProp( "Decay Time" )->setValue( 1 );
+  
   // Create a MarkerArray display.
   marker_array_ = manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
   ROS_ASSERT( marker_array_ != NULL );
   
 	marker_array_->subProp( "Marker Topic" )->setValue( "/occupied_cells_vis_array" );
-  
-	laser_scan_->subProp( "Topic" )->setValue( "/scan" );
-	laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
-	laser_scan_->subProp( "Decay Time" )->setValue( 1 );
+
+  // Create a point cloud display.
+  point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud", "Point cloud", true );
+  ROS_ASSERT( point_cloud_viewer_ != NULL );
+
+    // Set image topic
+    point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
 }
 
 // Destructor.
@@ -98,3 +109,46 @@ Main3DView::~Main3DView()
   delete manager_;
 }
 
+void Main3DView::robotModelToggled( bool selected )
+{
+    robot_model_->setEnabled( selected );
+}
+
+void Main3DView::pointCloudToggled( bool selected )
+{
+    point_cloud_viewer_->setEnabled( selected );
+}
+
+void Main3DView::laserScanToggled( bool selected )
+{
+    laser_scan_->setEnabled( selected );
+}
+
+void Main3DView::markerArrayToggled( bool selected )
+{
+    marker_array_->setEnabled( selected );
+}
+
+void Main3DView::cameraToggled( bool selected )
+{
+    if(selected)
+        manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+}
+
+void Main3DView::selectToggled( bool selected )
+{
+    if(selected)
+        manager_->getToolManager()->setCurrentTool( selection_tool_ );
+}
+
+void Main3DView::markerToggled( bool selected )
+{
+    if(selected)
+        manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
+}
+
+void Main3DView::vectorToggled( bool selected )
+{
+    if(selected)
+        manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
+}

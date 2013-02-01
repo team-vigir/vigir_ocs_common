@@ -37,27 +37,24 @@ RawSensorData::RawSensorData( QWidget* parent )
   // Set the top-level layout for this MyViz widget.
   setLayout( main_layout );		
 
-  // Make signal/slot connections.
-  //connect( collision_checkbox, SIGNAL( valueChanged( int )), this, SLOT( setCollision( bool )));
-
   // Next we initialize the main RViz classes.
   //
   // The VisualizationManager is the container for Display objects,
   // holds the main Ogre scene, holds the ViewController, etc.  It is
   // very central and we will probably need one in every usage of
   // librviz.
-  //manager_ = new rviz::VisualizationManager( render_panel_ );
-  //render_panel_->initialize( manager_->getSceneManager(), manager_ );
-  //manager_->initialize();
-  //manager_->startUpdate();
+  manager_ = new rviz::VisualizationManager( render_panel_ );
+  render_panel_->initialize( manager_->getSceneManager(), manager_ );
+  manager_->initialize();
+  manager_->startUpdate();
 
   // Create a RobotModel display.
-  //robot_model_ = manager_->createDisplay( "rviz/RobotModel", "Robot model", true );
-  //ROS_ASSERT( robot_model_ != NULL );
+  robot_model_ = manager_->createDisplay( "rviz/RobotModel", "Robot model", true );
+  ROS_ASSERT( robot_model_ != NULL );
 
   // Set topic that will be used as 0,0,0 -> reference for all the other transforms
   // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
-  //manager_->getFrameManager()->setFixedFrame( "/pelvis" );
+  manager_->getFrameManager()->setFixedFrame( "/pelvis" );
 	
 	// Set table row count 1 and column count 3
 	table->setRowCount(100);
@@ -92,7 +89,7 @@ void RawSensorData::updateTable( const sensor_msgs::JointState::ConstPtr& joint_
 		table->setItem(i,0,new QTableWidgetItem(QString(joint_states->name[i].c_str())));
 		table->setItem(i,1,new QTableWidgetItem(QString::number(joint_states->position[i])));
 		table->setItem(i,2,new QTableWidgetItem(QString::number(joint_states->velocity[i])));
-		table->setItem(i,2,new QTableWidgetItem(QString::number(joint_states->effort[i])));
+		table->setItem(i,3,new QTableWidgetItem(QString::number(joint_states->effort[i])));
 		std::cout << "  joint name: " << joint_states->name[i] << std::endl;
 	}
 }
