@@ -1,4 +1,4 @@
-/* 
+/*
  * CameraViewerCustom class implementation.
  * 
  * Author: Felipe Bacim.
@@ -15,6 +15,7 @@
 #include "rviz/render_panel.h"
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
+#include "rviz/tool_manager.h"
 #include "camera_viewer_custom.h"
 #include "image_display_custom.h"
 
@@ -23,12 +24,12 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
   : QWidget( parent )
 {
   // Create a new label for this widget.
-  QLabel* image_label = new QLabel( "rviz/ImageCustom, topic /multisense_sl/left/image_raw" );
+  //QLabel* image_label = new QLabel( "rviz/ImageCustom, topic /multisense_sl/left/image_raw" );
   
   // Construct and lay out render panel.
   render_panel_ = new rviz::RenderPanel();
   QVBoxLayout* main_layout = new QVBoxLayout;
-  main_layout->addWidget( image_label );
+  //main_layout->addWidget( image_label );
   main_layout->addWidget( render_panel_ );
 
   // Set the top-level layout for this MyViz widget.
@@ -49,13 +50,22 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
 
   // Create a camera/image display.
   // can be both a camera or an image, the difference is that the camera has 3D content with it
-  // camera_viewer_ = manager_->createDisplay( "rviz/Camera", "Camera image", true );
-  // camera_viewer_ = manager_->createDisplay( "rviz/ImageCustom", "Camera image", true ); // this would use the plugin instead of manually adding the display object to the manager
-  camera_viewer_ = new rviz::ImageDisplayCustom();
+  //camera_viewer_ = manager_->createDisplay( "rviz/Camera", "Camera image", true );
+  //camera_viewer_ = manager_->createDisplay( "vigir_ocs_rviz_plugins/ImageDisplayCustom", "Camera image", true ); // this would use the plugin instead of manually adding the display object to the manager
+  camera_viewer_ = new rviz::ImageDisplayCustom(); // -> need to make this class failsafe when render_panel_ is null so that I can use the createDisplay function and a signal to set the render panel
   ((rviz::ImageDisplayCustom*)camera_viewer_)->setRenderPanel( render_panel_ );
   manager_->addDisplay( camera_viewer_, true );//manager_->createDisplay( "rviz/ImageCustom", "Camera image", true );
   camera_viewer_->setName( "Camera Image" );
   ROS_ASSERT( camera_viewer_ != NULL );
+
+  // Add support for selection
+  //selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
+  selection_tool_ = manager_->getToolManager()->addTool( "rviz/SelectionToolCustom" );
+
+  manager_->getToolManager()->setCurrentTool( selection_tool_ );
+
+  // connect the selection tool select signal to this
+  QObject::connect(selection_tool_, SIGNAL(select(int,int,int,int)), this, SLOT(select(int,int,int,int)));
 
   // Set image topic
   //camera_viewer_->subProp( "Image Topic" )->setValue( "/right_eye/image_raw" );
@@ -68,3 +78,7 @@ CameraViewerCustom::~CameraViewerCustom()
   delete manager_;
 }
 
+void CameraViewerCustom::select( int x1, int y1, int x2, int y2 )
+{
+  ((rviz::ImageDisplayCustom*)camera_viewer_)->selectionProcessed( x1, y1, x2, y2 );
+}

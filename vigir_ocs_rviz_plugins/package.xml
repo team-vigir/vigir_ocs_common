@@ -1,25 +1,32 @@
 <?xml version="1.0"?>
 <package>
-  <name>vigir_ocs_camera_viewer_custom</name>
+  <name>vigir_ocs_rviz_plugins</name>
   <version>0.1.0</version>
-  <description>The OCS Camera Viewer Custom display package</description>
+  <description>The OCS rviz plugins package</description>
   <maintainer email="fbacim@vt.edu">Felipe Bacim</maintainer>
   <license>TORC</license>
   <author email="fbacim@vt.edu">Felipe Bacim</author>
 
   <buildtool_depend>catkin</buildtool_depend>
+  
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>pluginlib</build_depend>
-  <build_depend>vigir_perception_msgs</build_depend>
+  <build_depend>class_loader</build_depend>
+  <build_depend>rviz</build_depend>
+  
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>pluginlib</run_depend>
-  <run_depend>vigir_perception_msgs</run_depend>
+  <run_depend>class_loader</run_depend>
+  <run_depend>rviz</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
+      <!--<rosdoc config="${prefix}/rosdoc.yaml"/>-->
+      <rviz plugin="${prefix}/image_display_custom_plugin_description.xml"/>
+      <rviz plugin="${prefix}/selection_tool_custom_plugin_description.xml"/>
   </export>
 </package>

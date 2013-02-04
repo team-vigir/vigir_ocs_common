@@ -19,19 +19,19 @@ add_definitions(-DQT_NO_KEYWORDS)
 ## Here we specify which header files need to be run through "moc",
 ## Qt's meta-object compiler.
 qt4_wrap_cpp(MOC_FILES
-  src/image_display_custom.h
   src/camera_viewer_custom.h
+  ../vigir_ocs_rviz_plugins/vigir_ocs_plugin_image_display_custom/src/image_display_custom.h
 )
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.
 set(SOURCE_FILES
-  src/image_display_custom.cpp
   src/camera_viewer_custom.cpp
+  ../vigir_ocs_rviz_plugins/vigir_ocs_plugin_image_display_custom/src/image_display_custom.cpp
   src/main.cpp
   ${MOC_FILES}
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} ../vigir_ocs_rviz_plugins/vigir_ocs_plugin_image_display_custom/src /opt/vigir/vigir_perception/vigir_perception_msgs/msg_gen/cpp/include)
 
 add_executable(camera_viewer_custom ${SOURCE_FILES})
 target_link_libraries(camera_viewer_custom ${catkin_LIBRARIES} ${QT_LIBRARIES} /opt/ros/groovy/lib/librviz.so)

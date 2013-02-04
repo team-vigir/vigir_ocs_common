@@ -1,0 +1,16 @@
+<library path="libvigir_ocs_plugin_selection_tool_custom">
+  <class name="rviz/SelectionToolCustom"
+         type="rviz::SelectionToolCustom"
+         base_class_type="rviz::Tool">
+    <description>
+      Customized image display plugin that renders the image directly into the main widget.
+    </description>
+  </class>
+  <!--<class name="rviz_plugin_tutorials/PlantFlag"
+         type="rviz_plugin_tutorials::PlantFlagTool"
+         base_class_type="rviz::Tool">
+    <description>
+      Tool for planting flags on the ground plane in rviz.
+    </description>
+  </class>-->
+</library>

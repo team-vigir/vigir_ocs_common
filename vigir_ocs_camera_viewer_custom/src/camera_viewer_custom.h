@@ -19,6 +19,7 @@ class Display;
 class RenderPanel;
 class VisualizationManager;
 class FrameManager;
+class Tool;
 }
 
 // Class "CameraViewerCustom" implements the QWidget that can be added to any QT application.
@@ -30,11 +31,14 @@ public:
   virtual ~CameraViewerCustom();
 
 // TODO: create slots for possible UI stuff
-//private Q_SLOTS:
+private Q_SLOTS:
+  void select( int, int, int, int );
 
 private:
   rviz::VisualizationManager* manager_;
   rviz::RenderPanel* render_panel_;
   rviz::Display* camera_viewer_;
+
+  rviz::Tool* selection_tool_;
 };
 #endif // CAMERA_VIEWER_H

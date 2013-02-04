@@ -1,15 +1,5 @@
-/* 
- * ImageDisplayCustom class definition.
- * 
- * Author: Felipe Bacim.
- * 
- * Based on librviz_tutorials.
- * 
- * Latest changes (12/04/2012):
- *
- */
 /*
- * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2008, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,63 +27,59 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef RVIZ_IMAGE_DISPLAY_CUSTOM_H
-#define RVIZ_IMAGE_DISPLAY_CUSTOM_H
+#ifndef RVIZ_SELECTION_TOOL_H
+#define RVIZ_SELECTION_TOOL_H
 
 #include <QObject>
 
-#include <OGRE/OgreMaterial.h>
-#include <OGRE/OgreRenderTargetListener.h>
+#include "rviz/tool.h"
+#include "rviz/selection/forwards.h"
 
-#include "rviz/image/image_display_base.h"
-#include "rviz/image/ros_image_texture.h"
-#include "rviz/render_panel.h"
+#include <vector>
 
 namespace Ogre
 {
-class SceneNode;
-class Rectangle2D;
+class Viewport;
 }
 
 namespace rviz
 {
+class MoveTool;
 
-class ImageDisplayCustom: public ImageDisplayBase
+class SelectionToolCustom : public Tool
 {
 Q_OBJECT
 public:
-  ImageDisplayCustom();
-  virtual ~ImageDisplayCustom();
+  SelectionToolCustom();
+  virtual ~SelectionToolCustom();
 
-  // Overrides from Display
   virtual void onInitialize();
-  virtual void update( float wall_dt, float ros_dt );
-  virtual void reset();
 
-  void setRenderPanel( RenderPanel* rp );
+  virtual void activate();
+  virtual void deactivate();
 
-protected:
-  // overrides from Display
-  virtual void onEnable();
-  virtual void onDisable();
+  virtual int processMouseEvent( ViewportMouseEvent& event );
+  virtual int processKeyEvent( QKeyEvent* event, RenderPanel* panel );
 
-  /* This is called by incomingMessage(). */
-  virtual void processMessage(const sensor_msgs::Image::ConstPtr& msg);
+  virtual void update(float wall_dt, float ros_dt);
+  
+Q_SIGNALS:
+	void select( int, int, int, int );
 
 private:
-  void clear();
-  void updateStatus();
 
-  //Ogre::SceneManager* img_scene_manager_;
-  //Ogre::SceneNode* img_scene_node_;
-  Ogre::Rectangle2D* screen_rect_;
-  Ogre::MaterialPtr material_;
+  MoveTool* move_tool_;
 
-  ROSImageTexture texture_;
+  bool selecting_;
+  int sel_start_x_;
+  int sel_start_y_;
 
-  RenderPanel* render_panel_;
+  M_Picked highlight_;
+
+  bool moving_;
 };
 
-} // namespace rviz
+}
 
 #endif
+
