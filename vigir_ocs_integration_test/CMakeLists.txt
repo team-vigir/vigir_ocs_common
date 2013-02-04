@@ -3,7 +3,7 @@ project(vigir_ocs_integration_test)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs vigir_ocs_camera_viewer vigir_ocs_robot_model vigir_ocs_main_3d_view vigir_ocs_point_cloud_viewer vigir_ocs_raw_sensor_data)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs)
 
 ## Declare things to be passed to other projects
 catkin_package()

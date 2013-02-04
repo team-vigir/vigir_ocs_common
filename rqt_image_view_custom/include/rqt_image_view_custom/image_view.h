@@ -35,8 +35,6 @@
 
 #include <rqt_gui_cpp/plugin.h>
 
-#include <ui_image_view.h>
-
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/Image.h>
 
