@@ -78,9 +78,6 @@ protected slots:
 
 protected:
 
-  virtual QList<QString> getTopicList(const QSet<QString>& message_types, const QList<QString>& transports);
-
-  virtual void selectTopic(const QString& topic);
 
 protected slots:
 

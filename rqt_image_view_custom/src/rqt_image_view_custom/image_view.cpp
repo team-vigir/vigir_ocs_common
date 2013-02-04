@@ -80,46 +80,6 @@ void ImageView0::updateTopicList()
 {
 }
 
-QList<QString> ImageView0::getTopicList(const QSet<QString>& message_types, const QList<QString>& transports)
-{
-  ros::master::V_TopicInfo topic_info;
-  ros::master::getTopics(topic_info);
-
-  QSet<QString> all_topics;
-  for (ros::master::V_TopicInfo::const_iterator it = topic_info.begin(); it != topic_info.end(); it++)
-  {
-    all_topics.insert(it->name.c_str());
-  }
-
-  QList<QString> topics;
-  for (ros::master::V_TopicInfo::const_iterator it = topic_info.begin(); it != topic_info.end(); it++)
-  {
-    if (message_types.contains(it->datatype.c_str()))
-    {
-      QString topic = it->name.c_str();
-
-      // add raw topic
-      topics.append(topic);
-      //qDebug("ImageView0::getTopicList() raw topic '%s'", topic.toStdString().c_str());
-      
-      // add transport specific sub-topics
-      for (QList<QString>::const_iterator jt = transports.begin(); jt != transports.end(); jt++)
-      {
-        if (all_topics.contains(topic + "/" + *jt))
-        {
-          QString sub = topic + " " + *jt;
-          topics.append(sub);
-          //qDebug("ImageView0::getTopicList() transport specific sub-topic '%s'", sub.toStdString().c_str());
-        }
-      }
-    }
-  }
-  return topics;
-}
-
-void ImageView0::selectTopic(const QString& topic)
-{
-}
 
 void ImageView0::onTopicChanged(int index)
 {
