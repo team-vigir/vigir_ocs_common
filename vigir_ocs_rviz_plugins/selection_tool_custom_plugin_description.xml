@@ -3,7 +3,7 @@
          type="rviz::SelectionToolCustom"
          base_class_type="rviz::Tool">
     <description>
-      Customized image display plugin that renders the image directly into the main widget.
+      Customized tool plugin for selections.
     </description>
   </class>
   <!--<class name="rviz_plugin_tutorials/PlantFlag"
