@@ -197,5 +197,5 @@ int SelectionToolCustom::processKeyEvent( QKeyEvent* event, RenderPanel* panel )
 
 } // end namespace rviz
 
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS( rviz::SelectionToolCustom, rviz::Tool )
+//#include <pluginlib/class_list_macros.h>
+//PLUGINLIB_EXPORT_CLASS( rviz::SelectionToolCustom, rviz::Tool )

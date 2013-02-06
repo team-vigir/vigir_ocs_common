@@ -318,6 +318,6 @@ void ImageDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
 
 } // namespace rviz
 
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS( rviz::ImageDisplayCustom, rviz::Display )
+//#include <pluginlib/class_list_macros.h>
+//PLUGINLIB_EXPORT_CLASS( rviz::ImageDisplayCustom, rviz::Display )
 
