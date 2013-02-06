@@ -85,7 +85,7 @@ Main3DView::Main3DView( QWidget* parent )
   laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", true );
   ROS_ASSERT( laser_scan_ != NULL );
   
-	laser_scan_->subProp( "Topic" )->setValue( "/scan" );
+	laser_scan_->subProp( "Topic" )->setValue( "/multisense_sl/laser/scan" );
 	laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
 	laser_scan_->subProp( "Decay Time" )->setValue( 1 );
   

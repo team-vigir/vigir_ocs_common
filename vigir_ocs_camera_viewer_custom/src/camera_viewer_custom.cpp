@@ -69,7 +69,7 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
 
   // Set image topic
   //camera_viewer_->subProp( "Image Topic" )->setValue( "/right_eye/image_raw" );
-  camera_viewer_->subProp( "Image Topic" )->setValue( "/multisense_sl/left/image_raw" );
+  camera_viewer_->subProp( "Image Topic" )->setValue( "/multisense_sl/camera/left/image_raw" );
 }
 
 // Destructor.
