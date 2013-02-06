@@ -127,6 +127,7 @@ void ImageDisplayCustom::onInitialize()
   
   // We first subscribe to the JointState messages
 	cropped_image_ = n_.subscribe<sensor_msgs::Image>( "/l_image_cropped/image_raw", 5, &ImageDisplayCustom::processCroppedImage, this );
+  pos_pub_ = n_.advertise<vigir_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, false );
 	
 	//ros::NodeHandle nh_out (nh, "camera");
   //it_out_.reset(new image_transport::ImageTransport(nh_out));
@@ -276,18 +277,18 @@ void ImageDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
 	// Initialize publisher
 	// since creating a publisher takes time (on separate threads)
 	// we need to enable latching so that the message is not lost
-	pos_pub_ = n_.advertise<vigir_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, true );
+
 	
 	// Spin once to register advertise
-	ros::spinOnce();
+  //ros::spinOnce();
 
 	// publish message
 	cmd.binning_x = 4;
   cmd.binning_y = 4;
-  cmd.roi.width = texture_.getWidth()/2;
-  cmd.roi.height = texture_.getHeight()/2;
-  cmd.roi.x_offset = texture_.getWidth()/4;
-  cmd.roi.y_offset = texture_.getHeight()/4;
+  cmd.roi.width = std::abs(x1-x2);
+  cmd.roi.height = std::abs(y1-y2);
+  cmd.roi.x_offset = std::min(x1, x2);
+  cmd.roi.y_offset = std::min(y1, y2);
 
 	pos_pub_.publish( cmd );
   
