@@ -24,7 +24,7 @@ PointCloudViewer::PointCloudViewer( QWidget* parent )
   : QWidget( parent )
 {
   // Create a new label for this widget.
-  QLabel* image_label = new QLabel( "rviz/PointCloud" );
+  QLabel* image_label = new QLabel( "rviz/PointCloud2" );
   
   // Construct and lay out render panel.
   render_panel_ = new rviz::RenderPanel();
@@ -49,11 +49,18 @@ PointCloudViewer::PointCloudViewer( QWidget* parent )
   manager_->startUpdate();
 
   // Create a point cloud display.
-  point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud", "Point cloud", true );
+  point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point cloud", true );
   ROS_ASSERT( point_cloud_viewer_ != NULL );
 
   // Set image topic
   point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
+  point_cloud_viewer_->subProp( "Topic" )->setValue( "/scan_cloud_filtered" );
+  point_cloud_viewer_->subProp( "Size (m)" )->setValue( 0.1 );
+  point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
+
+  // Set topic that will be used as 0,0,0 -> reference for all the other transforms
+  // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
+  manager_->getFrameManager()->setFixedFrame("/pelvis");
 }
 
 // Destructor.
