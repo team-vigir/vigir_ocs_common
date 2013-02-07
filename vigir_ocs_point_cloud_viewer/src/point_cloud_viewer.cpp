@@ -49,14 +49,13 @@ PointCloudViewer::PointCloudViewer( QWidget* parent )
   manager_->startUpdate();
 
   // Create a point cloud display.
-  point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point cloud", true );
+  point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", true );
   ROS_ASSERT( point_cloud_viewer_ != NULL );
 
   // Set image topic
   point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
-  point_cloud_viewer_->subProp( "Topic" )->setValue( "/scan_cloud_filtered" );
-  point_cloud_viewer_->subProp( "Size (m)" )->setValue( 0.1 );
-  point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
+  point_cloud_viewer_->subProp( "Topic" )->setValue( "/multisense_sl/camera/points2" );
+  point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
 
   // Set topic that will be used as 0,0,0 -> reference for all the other transforms
   // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
