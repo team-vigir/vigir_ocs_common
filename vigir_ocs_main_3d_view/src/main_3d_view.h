@@ -34,7 +34,8 @@ public:
 public Q_SLOTS:
   // displays
   void robotModelToggled( bool );
-  void pointCloudToggled( bool );
+  void lidarPointCloudToggled( bool );
+  void stereoPointCloudToggled( bool );
   void laserScanToggled( bool );
   void markerArrayToggled( bool );
   // tools
@@ -51,7 +52,8 @@ private:
   rviz::Display* interactive_marker_[4];
   rviz::Display* marker_array_;
   rviz::Display* laser_scan_;
-  rviz::Display* point_cloud_viewer_;
+  rviz::Display* lidar_point_cloud_viewer_;
+  rviz::Display* stereo_point_cloud_viewer_;
 
   rviz::Tool* interactive_markers_tool_;
   rviz::Tool* selection_tool_;

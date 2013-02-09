@@ -82,7 +82,7 @@ Main3DView::Main3DView( QWidget* parent )
     interactive_marker_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
 
     // Create a LaserScan display.
-    laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", true );
+    laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
     ROS_ASSERT( laser_scan_ != NULL );
 
     laser_scan_->subProp( "Topic" )->setValue( "/multisense_sl/laser/scan" );
@@ -96,17 +96,21 @@ Main3DView::Main3DView( QWidget* parent )
     marker_array_->subProp( "Marker Topic" )->setValue( "/occupied_cells_vis_array" );
 
     // Create a point cloud display.
-    point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", true );
-    ROS_ASSERT( point_cloud_viewer_ != NULL );
+    stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
+    ROS_ASSERT( stereo_point_cloud_viewer_ != NULL );
+    stereo_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
+    stereo_point_cloud_viewer_->subProp( "Topic" )->setValue( "/multisense_sl/camera/points2" );
+    stereo_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
 
-    // Set image topic
-    point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
-    point_cloud_viewer_->subProp( "Topic" )->setValue( "/multisense_sl/camera/points2" );
-    point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+    lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", true );
+    ROS_ASSERT( lidar_point_cloud_viewer_ != NULL );
+    lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
+    lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/scan_cloud_filtered" );
+    lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
 
     // Set topic that will be used as 0,0,0 -> reference for all the other transforms
     // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
-    manager_->getFrameManager()->setFixedFrame("/pelvis");
+    manager_->getFrameManager()->setFixedFrame("/world");
 }
 
 // Destructor.
@@ -120,9 +124,14 @@ void Main3DView::robotModelToggled( bool selected )
     robot_model_->setEnabled( selected );
 }
 
-void Main3DView::pointCloudToggled( bool selected )
+void Main3DView::lidarPointCloudToggled( bool selected )
 {
-    point_cloud_viewer_->setEnabled( selected );
+    lidar_point_cloud_viewer_->setEnabled( selected );
+}
+
+void Main3DView::stereoPointCloudToggled( bool selected )
+{
+    stereo_point_cloud_viewer_->setEnabled( selected );
 }
 
 void Main3DView::laserScanToggled( bool selected )

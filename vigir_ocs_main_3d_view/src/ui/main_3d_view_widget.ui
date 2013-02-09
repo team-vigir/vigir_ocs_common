@@ -55,12 +55,22 @@
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="point_cloud">
+          <widget class="QCheckBox" name="lidar_point_cloud">
            <property name="text">
-            <string>Point Cloud</string>
+            <string>LIDAR Point Cloud</string>
            </property>
            <property name="checked">
             <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="stereo_point_cloud">
+           <property name="text">
+            <string>Stereo Point Cloud</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
            </property>
           </widget>
          </item>
@@ -70,7 +80,7 @@
             <string>Laser Scan</string>
            </property>
            <property name="checked">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
           </widget>
          </item>
@@ -151,13 +161,14 @@
    <container>1</container>
    <slots>
     <slot>robotModelToggled(bool)</slot>
-    <slot>pointCloudToggled(bool)</slot>
+    <slot>lidarPointCloudToggled(bool)</slot>
     <slot>laserScanToggled(bool)</slot>
     <slot>markerArrayToggled(bool)</slot>
     <slot>cameraToggled(bool)</slot>
     <slot>selectToggled(bool)</slot>
     <slot>markerToggled(bool)</slot>
     <slot>vectorToggled(bool)</slot>
+    <slot>stereoPointCloudToggled(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -180,10 +191,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>point_cloud</sender>
+   <sender>lidar_point_cloud</sender>
    <signal>toggled(bool)</signal>
    <receiver>main_3d_view_</receiver>
-   <slot>pointCloudToggled(bool)</slot>
+   <slot>lidarPointCloudToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>669</x>
@@ -291,5 +302,25 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>stereo_point_cloud</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>main_3d_view_</receiver>
+   <slot>stereoPointCloudToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>669</x>
+     <y>109</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>271</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>lidarPointCloudToggled()</slot>
+  <slot>stereoPointCloudToggled()</slot>
+ </slots>
 </ui>
