@@ -110,7 +110,7 @@ Main3DView::Main3DView( QWidget* parent )
 
     // Set topic that will be used as 0,0,0 -> reference for all the other transforms
     // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
-    manager_->getFrameManager()->setFixedFrame("/world");
+    manager_->getFrameManager()->setFixedFrame("/pelvis");
 }
 
 // Destructor.
