@@ -88,32 +88,53 @@ protected:
   virtual void onEnable();
   virtual void onDisable();
 
-  /* This is called by incomingMessage(). */
+  // This is called by incomingMessage(). 
   virtual void processMessage(const sensor_msgs::Image::ConstPtr& msg);
   virtual void processCroppedImage(const sensor_msgs::Image::ConstPtr& msg);
 
 private:
   void clear();
   void updateStatus();
-
-  //Ogre::SceneManager* img_scene_manager_;
-  //Ogre::SceneNode* img_scene_node_;
+	
+	// variables that define the full image rendering surface
   Ogre::Rectangle2D* screen_rect_;
-  Ogre::Rectangle2D* screen_rect_selection_;
   Ogre::MaterialPtr material_;
-  Ogre::MaterialPtr material_selection_;
-
   ROSImageTexture texture_;
+  
+  // variables that define the cropped image rendering surface
+  Ogre::Rectangle2D* screen_rect_selection_;
+  Ogre::MaterialPtr material_selection_;
   ROSImageTexture texture_selection_;
+  
+  // variables that define the rectangle that highlights selection
+  Ogre::Rectangle2D* screen_rect_highlight_;
+  Ogre::MaterialPtr material_highlight_;
 
+	// reference to the main window render panel
   RenderPanel* render_panel_;
 
-	//image_transport::ImageTransport* it_out_;
+	// ros publishers and subscribers
 	ros::NodeHandle n_;
-	ros::Publisher pos_pub_;
-  //image_transport::CameraPublisher pub_;
-	
+	ros::Publisher img_req_pub_crop_;
+	ros::Publisher img_req_pub_full_;
 	ros::Subscriber cropped_image_;
+
+	// full image info	
+	int full_image_width_;
+	int full_image_height_;
+	int full_image_binning_;
+	
+	// crop image info
+	float crop_x_offset_;
+	float crop_y_offset_;
+	float crop_width_;
+	float crop_height_;
+	
+	// define *window* dimensions of the full image rendering surface -> necessary to calculate selection
+	int rect_dim_x1_;
+	int rect_dim_x2_;
+	int rect_dim_y1_;
+	int rect_dim_y2_;
 };
 
 } // namespace rviz

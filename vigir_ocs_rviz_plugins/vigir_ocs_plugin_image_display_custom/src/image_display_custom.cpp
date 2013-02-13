@@ -67,6 +67,10 @@ namespace rviz
 ImageDisplayCustom::ImageDisplayCustom()
   : ImageDisplayBase()
   , texture_()
+  , texture_selection_()
+	, full_image_width_(1024) // default parameters for atlas robot
+	, full_image_height_(544)
+	, full_image_binning_(8)
 {
 }
 
@@ -82,14 +86,15 @@ void ImageDisplayCustom::onInitialize()
   //img_scene_node_ = img_scene_manager_->getRootSceneNode()->createChildSceneNode();
   
   screen_rect_selection_ = NULL;
+  screen_rect_highlight_ = NULL;
 
   {
-    static int count = 0;
+	  static int count = 0;
     std::stringstream ss;
     ss << "ImageDisplayObject" << count++;
 
     screen_rect_ = new Ogre::Rectangle2D(true);
-    screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 1);
+    screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 3);
     screen_rect_->setCorners(-1.0f, 1.0f, 1.0f, -1.0f);
 
     ss << "Material";
@@ -109,29 +114,27 @@ void ImageDisplayCustom::onInitialize()
     aabInf.setInfinite();
     screen_rect_->setBoundingBox(aabInf);
     screen_rect_->setMaterial(material_->getName());
+		//std::cout << "Material name (full): " << material_->getName() << std::endl;
     scene_node_->attachObject(screen_rect_);
   }
   
-  //render_panel_ = new RenderPanel();
-  //render_panel_->getRenderWindow()->setAutoUpdated(false);
-  //render_panel_->getRenderWindow()->setActive( false );
-
-  //render_panel_->resize( 640, 480 );
-  //render_panel_->initialize(scene_manager_, context_);
-
-  //setAssociatedWidget( render_panel_ );
-
-  //render_panel_->setAutoRender(false);
-  //render_panel_->setOverlaysEnabled(false);
-  //render_panel_->getCamera()->setNearClipDistance( 0.01f );
+  // first create a publisher to set the parameters of the full image
+  img_req_pub_full_ = n_.advertise<vigir_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, true );
   
-  // We first subscribe to the JointState messages
-	cropped_image_ = n_.subscribe<sensor_msgs::Image>( "/l_image_cropped/image_raw", 5, &ImageDisplayCustom::processCroppedImage, this );
-  pos_pub_ = n_.advertise<vigir_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, false );
+  // publish image request for full image - TO DO: MAKE THESE CONFIGURABLE WITH A SLOT FOR UI INTEGRATION
+	vigir_perception_msgs::DownSampledImageRequest cmd;
+	cmd.binning_x = full_image_binning_;
+  cmd.binning_y = full_image_binning_;
+  cmd.roi.width = full_image_width_;
+  cmd.roi.height = full_image_height_;
+  cmd.roi.x_offset = 0;
+  cmd.roi.y_offset = 0;
+	img_req_pub_full_.publish( cmd );
 	
-	//ros::NodeHandle nh_out (nh, "camera");
-  //it_out_.reset(new image_transport::ImageTransport(nh_out));
-	//pub_ = it_out_->advertiseCamera("image_raw",  1, connect_cb, connect_cb, connect_cb_info, connect_cb_info);
+  // also create a publisher to set parameters of cropped image
+  img_req_pub_crop_ = n_.advertise<vigir_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, false );
+  // then, subscribe to the resulting cropped image
+	cropped_image_ = n_.subscribe<sensor_msgs::Image>( "/l_image_cropped/image_raw", 5, &ImageDisplayCustom::processCroppedImage, this );
 }
 
 ImageDisplayCustom::~ImageDisplayCustom()
@@ -139,6 +142,7 @@ ImageDisplayCustom::~ImageDisplayCustom()
   ImageDisplayBase::unsubscribe();
   //delete render_panel_;
   delete screen_rect_;
+  delete screen_rect_selection_;
   scene_node_->getParentSceneNode()->removeAndDestroyChild( scene_node_->getName() );
 }
 
@@ -158,6 +162,7 @@ void ImageDisplayCustom::onDisable()
 void ImageDisplayCustom::clear()
 {
   texture_.clear();
+  texture_selection_.clear();
 
   if( render_panel_->getCamera() )
   {
@@ -178,25 +183,60 @@ void ImageDisplayCustom::update( float wall_dt, float ros_dt )
 
     float img_width = texture_.getWidth();
     float img_height = texture_.getHeight();
-
+    
     if ( img_width != 0 && img_height != 0 && win_width !=0 && win_height != 0 )
     {
       float img_aspect = img_width / img_height;
       float win_aspect = win_width / win_height;
+      
+      // calculate size of 3 pixels in scene CS for selection highlight
+      float padding_x = 3.0f*2.0f/win_width;
+      float padding_y = 3.0f*2.0f/win_height;
 
       if ( img_aspect > win_aspect )
       {
         screen_rect_->setCorners(-1.0f, 1.0f * win_aspect/img_aspect, 1.0f, -1.0f * win_aspect/img_aspect, false);
+        // calculate full image rectangle dimensions in window coordinates
+        rect_dim_x1_ = 0;
+        rect_dim_x2_ = win_width;
+        rect_dim_y1_ = (win_height - (win_height * win_aspect/img_aspect)) / 2.0f;
+        rect_dim_y2_ = win_height - rect_dim_y1_;
+        
+		  	// calculate selection rectangle position
+				if(screen_rect_selection_ != NULL)
+				{
+					// full image size: -1.0f, 1.0f * win_aspect/img_aspect, 1.0f, -1.0f * win_aspect/img_aspect
+					float x1 = ((2.0f * crop_x_offset_) / full_image_width_) - 1.0f;
+					float x2 = ((2.0f * (crop_x_offset_+crop_width_)) / full_image_width_) - 1.0f;
+					float y1 = -(((2.0f * win_aspect/img_aspect) * crop_y_offset_) / full_image_height_) + ((1.0f * win_aspect/img_aspect));
+					float y2 = -(((2.0f * win_aspect/img_aspect) * (crop_y_offset_+crop_height_)) / full_image_height_) + ((1.0f * win_aspect/img_aspect));
+					screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
+					screen_rect_highlight_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
+					//std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
+				}
       }
       else
       {
         screen_rect_->setCorners(-1.0f * img_aspect/win_aspect, 1.0f, 1.0f * img_aspect/win_aspect, -1.0f, false);
+        // calculate full image rectangle dimensions in window coordinates
+        rect_dim_x1_ = (win_width - (win_width * img_aspect/win_aspect)) / 2.0f;
+        rect_dim_x2_ = win_width - rect_dim_x1_;
+        rect_dim_y1_ = 0;
+        rect_dim_y2_ = win_height;
+        
+		  	// calculate selection rectangle position
+				if(screen_rect_selection_ != NULL)
+				{
+					// full image size: -1.0f, 1.0f * win_aspect/img_aspect, 1.0f, -1.0f * win_aspect/img_aspect
+					float x1 = (((2.0f * img_aspect/win_aspect) * crop_x_offset_) / full_image_width_) - (1.0f * img_aspect/win_aspect);
+					float x2 = (((2.0f * img_aspect/win_aspect) * (crop_x_offset_+crop_width_)) / full_image_width_) - (1.0f * img_aspect/win_aspect);
+					float y1 = -((2.0f * crop_y_offset_) / full_image_height_) + 1.0f;
+					float y2 = -((2.0f * (crop_y_offset_+crop_height_)) / full_image_height_) + 1.0f;
+					screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
+					screen_rect_highlight_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
+					//std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
+				}
       }
-    }
-    
-    if(screen_rect_selection_ != NULL)
-    {
-    	screen_rect_selection_->setCorners(-0.5, 0.5, 0.5, -0.5, false);
     }
 
     render_panel_->getRenderWindow()->update();
@@ -219,14 +259,6 @@ void ImageDisplayCustom::reset()
 void ImageDisplayCustom::processMessage(const sensor_msgs::Image::ConstPtr& msg)
 {
   texture_.addMessage(msg);
-   /*
-  sensor_msgs::ImagePtr image_out;
-  sensor_msgs::CameraInfoPtr camera_info_out;
-  pub_.publish(image_out, camera_info_out);
-	
-	image_out = msg;
-	camera_info_out = texture_
-	pub_.publish(image_out, camera_info_out);*/
 }
 
 void ImageDisplayCustom::processCroppedImage(const sensor_msgs::Image::ConstPtr& msg)
@@ -242,10 +274,13 @@ void ImageDisplayCustom::setRenderPanel( RenderPanel* rp )
 void ImageDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
 {
 	std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
-
+	//std::cout << "   full image rect: " << rect_dim_x1_ << ", " << rect_dim_y1_ << " -> " << rect_dim_x2_ << ", " << rect_dim_y2_ << std::endl;
+	//std::cout << "   window dimensions: " << render_panel_->width() << ", " << render_panel_->height() << std::endl;
+	
+	// create the selection rectangle if it doesn't exist yet
 	if( screen_rect_selection_ == NULL)
 	{
-    static int count = 0;
+		static int count = 1;
     std::stringstream ss;
     ss << "ImageDisplayObject" << count++;
 		screen_rect_selection_ = new Ogre::Rectangle2D(true);
@@ -269,52 +304,69 @@ void ImageDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
 		aabInf.setInfinite();
 		screen_rect_selection_->setBoundingBox(aabInf);
 		screen_rect_selection_->setMaterial(material_selection_->getName());
+		//std::cout << "Material name (cropped): " << material_selection_->getName() << std::endl;
 		scene_node_->attachObject(screen_rect_selection_);
   }
   
-	vigir_perception_msgs::DownSampledImageRequest cmd;
+  // create the selection rectangle if it doesn't exist yet
+	if( screen_rect_highlight_ == NULL)
+	{
+		static int count = 2;
+    std::stringstream ss;
+    ss << "ImageDisplayObject" << count++;
+		screen_rect_highlight_ = new Ogre::Rectangle2D(true);
+		screen_rect_highlight_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 2);
+		screen_rect_highlight_->setCorners(-1.0f, 1.0f, 1.0f, -1.0f);
 
-	// Initialize publisher
-	// since creating a publisher takes time (on separate threads)
-	// we need to enable latching so that the message is not lost
+    ss << "Material";
+		material_highlight_ = Ogre::MaterialManager::getSingleton().create( ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
+		material_highlight_->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
+		material_highlight_->setDepthWriteEnabled(false);
+		material_highlight_->setReceiveShadows(false);
+		material_highlight_->setDepthCheckEnabled(false);
+		material_highlight_->getTechnique(0)->setLightingEnabled(false);
+		material_highlight_->setDiffuse(1.0,1.0,0.0,0.5);
 
+		material_highlight_->setCullingMode(Ogre::CULL_NONE);
+		Ogre::AxisAlignedBox aabInf;
+		aabInf.setInfinite();
+		screen_rect_highlight_->setBoundingBox(aabInf);
+		screen_rect_highlight_->setMaterial(material_highlight_->getName());
+		//std::cout << "Material name (highlight): " << material_highlight_->getName() << std::endl;
+		scene_node_->attachObject(screen_rect_highlight_);
+  }
+  
+  // make sure selection is within image rect coordinates
+  float minx = std::min(x1, x2);
+  float _x1 = (minx < rect_dim_x1_ ? rect_dim_x1_ : (minx > rect_dim_x2_ ? rect_dim_x2_ : minx));
+  float maxx = std::max(x1, x2);
+  float _x2 = (maxx < rect_dim_x1_ ? rect_dim_x1_ : (maxx > rect_dim_x2_ ? rect_dim_x2_ : maxx));
+  float miny = std::min(y1, y2);
+  float _y1 = (miny < rect_dim_y1_ ? rect_dim_y1_ : (miny > rect_dim_y2_ ? rect_dim_y2_ : miny));
+  float maxy = std::max(y1, y2);
+  float _y2 = (maxy < rect_dim_y1_ ? rect_dim_y1_ : (maxy > rect_dim_y2_ ? rect_dim_y2_ : maxy));
+  //std::cout << "   corrected window: " << _x1 << ", " << _y1 << " -> " << _x2 << ", " << _y2 << std::endl;
+  
+	// calculate image selection box dimensions -> texture coordinates
+  crop_x_offset_ = (_x1-rect_dim_x1_) * full_image_width_ / (rect_dim_x2_-rect_dim_x1_);
+	crop_y_offset_ = (_y1-rect_dim_y1_) * full_image_height_ / (rect_dim_y2_-rect_dim_y1_);
+  // and size
+	crop_width_  = ((_x2-_x1) * full_image_width_) / (rect_dim_x2_-rect_dim_x1_);
+	crop_height_ = ((_y2-_y1) * full_image_height_) / (rect_dim_y2_-rect_dim_y1_);
 	
-	// Spin once to register advertise
-  //ros::spinOnce();
+	// create image request message
+	vigir_perception_msgs::DownSampledImageRequest cmd;
+	cmd.binning_x = 0;
+  cmd.binning_y = 0;
+  cmd.roi.width = crop_width_;
+  cmd.roi.height = crop_height_;
+  cmd.roi.x_offset = crop_x_offset_;
+  cmd.roi.y_offset = crop_y_offset_;
 
-	// publish message
-	cmd.binning_x = 4;
-  cmd.binning_y = 4;
-  cmd.roi.width = std::abs(x1-x2);
-  cmd.roi.height = std::abs(y1-y2);
-  cmd.roi.x_offset = std::min(x1, x2);
-  cmd.roi.y_offset = std::min(y1, y2);
+	// publish image request for cropped image 
+	img_req_pub_crop_.publish( cmd );
 
-	pos_pub_.publish( cmd );
-  
-  /*float win_width = render_panel_->width();
-  float win_height = render_panel_->height();
-
-  float img_width = texture_.getWidth();
-  float img_height = texture_.getHeight();
-  
-  std::cout << "Window dimensions: " << win_width << ", " << win_height << std::endl;
-  std::cout << "Image dimensions: " << img_width << ", " << img_height << std::endl;
-
-  if ( img_width != 0 && img_height != 0 && win_width !=0 && win_height != 0 )
-  {
-    float img_aspect = img_width / img_height;
-    float win_aspect = win_width / win_height;
-
-    if ( img_aspect > win_aspect )
-    {
-      screen_rect_selection_->setCorners(-1.0f, 1.0f * win_aspect/img_aspect, 1.0f, -1.0f * win_aspect/img_aspect, false);
-    }
-    else
-    {
-      screen_rect_selection_->setCorners(-1.0f * img_aspect/win_aspect, 1.0f, 1.0f * img_aspect/win_aspect, -1.0f, false);
-    }
-  }*/
+	std::cout << "   image selection rect: " << crop_x_offset_ << ", " << crop_y_offset_ << " -> " << (crop_x_offset_+crop_width_) << ", " << (crop_y_offset_+crop_height_) << std::endl;
 }
 
 } // namespace rviz

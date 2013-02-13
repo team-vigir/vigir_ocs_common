@@ -68,8 +68,8 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
   QObject::connect(selection_tool_, SIGNAL(select(int,int,int,int)), this, SLOT(select(int,int,int,int)));
 
   // Set image topic
-  //camera_viewer_->subProp( "Image Topic" )->setValue( "/right_eye/image_raw" );
-  camera_viewer_->subProp( "Image Topic" )->setValue( "/multisense_sl/camera/left/image_raw" );
+  //camera_viewer_->subProp( "Image Topic" )->setValue( "/multisense_sl/camera/left/image_raw" );
+  camera_viewer_->subProp( "Image Topic" )->setValue( "/l_image_full/image_raw" );
 }
 
 // Destructor.
