@@ -129,6 +129,7 @@ private:
 	float crop_y_offset_;
 	float crop_width_;
 	float crop_height_;
+    float crop_binning_;
 	
 	// define *window* dimensions of the full image rendering surface -> necessary to calculate selection
 	int rect_dim_x1_;

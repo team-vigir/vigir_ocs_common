@@ -356,8 +356,8 @@ void ImageDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
 	
 	// create image request message
 	vigir_perception_msgs::DownSampledImageRequest cmd;
-	cmd.binning_x = 0;
-  cmd.binning_y = 0;
+    cmd.binning_x = crop_binning_;
+  cmd.binning_y = crop_binning_;
   cmd.roi.width = crop_width_;
   cmd.roi.height = crop_height_;
   cmd.roi.x_offset = crop_x_offset_;
