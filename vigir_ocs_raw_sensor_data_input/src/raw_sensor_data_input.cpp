@@ -69,7 +69,7 @@ RawSensorDataInput::RawSensorDataInput( QWidget* parent )
 	table->setHorizontalHeaderLabels(QString( "Name;Current Position;Velocity;Effort;Desired Position" ).split( ";" ));	
 
 	// We first subscribe to the JointState messages
-	joint_states_ = n_.subscribe<sensor_msgs::JointState>( "joint_states", 2, &RawSensorDataInput::updateTable, this );
+    joint_states_ = n_.subscribe<sensor_msgs::JointState>( "atlas/joint_states", 2, &RawSensorDataInput::updateTable, this );
 
 	// Spin once to register subscribe	
 	ros::spinOnce();
@@ -86,9 +86,9 @@ void RawSensorDataInput::positionChanged( int row, int column )
 {
 	if( column == 4 ) // desired position column
 	{
-		topic = "/";
+        topic = "/atlas/pos_cmd/";
 		topic += joint_list_[row].c_str();
-		topic += "_position_controller/command";
+        //topic += "_position_controller/command";
 		
 		std::cout << topic << std::endl;;
 		
@@ -126,10 +126,10 @@ void RawSensorDataInput::updateTable( const sensor_msgs::JointState::ConstPtr& j
 	for( int i = 0; i < joint_states->name.size(); i++ )
   {
 		table->setItem( i, 0, new QTableWidgetItem( QString( joint_states->name[i].c_str() ) ) );
-		table->setItem( i, 1, new QTableWidgetItem( QString::number( joint_states->position[i] ) ) );
+        table->setItem( i, 1, new QTableWidgetItem( QString::number( joint_states->position[i] ) ) );
 		table->setItem( i, 2, new QTableWidgetItem( QString::number( joint_states->velocity[i] ) ) );
 		table->setItem( i, 3, new QTableWidgetItem( QString::number( joint_states->effort[i] ) ) );
-		//std::cout << "  joint name: " << joint_states->name[i] << std::endl;
+        //std::cout << "  joint name: " << joint_states->name[i] << std::endl;
 		joint_list_.push_back( joint_states->name[i] );
 	}
 }

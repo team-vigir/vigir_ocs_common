@@ -67,7 +67,7 @@ RawSensorData::RawSensorData( QWidget* parent )
 
 	// We first subscribe to the JointState messages
 	ros::NodeHandle nh;
-	joint_states_ = nh.subscribe<sensor_msgs::JointState>( "joint_states", 2, &RawSensorData::updateTable, this );
+    joint_states_ = nh.subscribe<sensor_msgs::JointState>( "/atlas/joint_states", 2, &RawSensorData::updateTable, this );
 	
 	ros::spinOnce();
 }
@@ -81,7 +81,7 @@ RawSensorData::~RawSensorData()
 
 void RawSensorData::updateTable( const sensor_msgs::JointState::ConstPtr& joint_states )
 {
-	std::cout << "updating table:" << std::endl;
+    //std::cout << "updating table:" << std::endl;
 	table->setRowCount(joint_states->name.size());
 	// Add Table items here
 	for( int i = 0; i < joint_states->name.size(); i++ )
@@ -90,7 +90,7 @@ void RawSensorData::updateTable( const sensor_msgs::JointState::ConstPtr& joint_
 		table->setItem(i,1,new QTableWidgetItem(QString::number(joint_states->position[i])));
 		table->setItem(i,2,new QTableWidgetItem(QString::number(joint_states->velocity[i])));
 		table->setItem(i,3,new QTableWidgetItem(QString::number(joint_states->effort[i])));
-		std::cout << "  joint name: " << joint_states->name[i] << std::endl;
+        //std::cout << "  joint name: " << joint_states->name[i] << std::endl;
 	}
 }
 
