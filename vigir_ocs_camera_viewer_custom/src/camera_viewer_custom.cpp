@@ -51,11 +51,11 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
   // Create a camera/image display.
   // can be both a camera or an image, the difference is that the camera has 3D content with it
   //camera_viewer_ = manager_->createDisplay( "rviz/Camera", "Camera image", true );
-  //camera_viewer_ = manager_->createDisplay( "rviz/ImageDisplayCustom", "Camera image", true ); // this would use the plugin instead of manually adding the display object to the manager
-  camera_viewer_ = new rviz::ImageDisplayCustom(); // -> need to make this class failsafe when render_panel_ is null so that I can use the createDisplay function and a signal to set the render panel
+  camera_viewer_ = manager_->createDisplay( "rviz/ImageDisplayCustom", "Camera image", true ); // this would use the plugin instead of manually adding the display object to the manager
+  //camera_viewer_ = new rviz::ImageDisplayCustom(); // -> need to make this class failsafe when render_panel_ is null so that I can use the createDisplay function and a signal to set the render panel
   ((rviz::ImageDisplayCustom*)camera_viewer_)->setRenderPanel( render_panel_ );
-  manager_->addDisplay( camera_viewer_, true );//manager_->createDisplay( "rviz/ImageCustom", "Camera image", true );
-  camera_viewer_->setName( "Camera Image" );
+  //manager_->addDisplay( camera_viewer_, true );//manager_->createDisplay( "rviz/ImageCustom", "Camera image", true );
+  //camera_viewer_->setName( "Camera Image" );
   ROS_ASSERT( camera_viewer_ != NULL );
 
   // Add support for selection

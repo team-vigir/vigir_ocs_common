@@ -68,9 +68,10 @@ ImageDisplayCustom::ImageDisplayCustom()
   : ImageDisplayBase()
   , texture_()
   , texture_selection_()
-	, full_image_width_(1024) // default parameters for atlas robot
-	, full_image_height_(544)
-	, full_image_binning_(8)
+  , full_image_width_(1024) // default parameters for atlas robot
+  , full_image_height_(544)
+  , full_image_binning_(8)
+  , render_panel_(NULL)
 {
 }
 
@@ -149,12 +150,14 @@ ImageDisplayCustom::~ImageDisplayCustom()
 void ImageDisplayCustom::onEnable()
 {
   ImageDisplayBase::subscribe();
-  render_panel_->getRenderWindow()->setActive(true);
+  if(render_panel_)
+    render_panel_->getRenderWindow()->setActive(true);
 }
 
 void ImageDisplayCustom::onDisable()
 {
-  render_panel_->getRenderWindow()->setActive(false);
+  if(render_panel_)
+    render_panel_->getRenderWindow()->setActive(false);
   ImageDisplayBase::unsubscribe();
   clear();
 }
@@ -164,88 +167,94 @@ void ImageDisplayCustom::clear()
   texture_.clear();
   texture_selection_.clear();
 
-  if( render_panel_->getCamera() )
+  if(render_panel_)
   {
-    render_panel_->getCamera()->setPosition(Ogre::Vector3(999999, 999999, 999999));
+      if( render_panel_->getCamera() )
+      {
+        render_panel_->getCamera()->setPosition(Ogre::Vector3(999999, 999999, 999999));
+      }
   }
 }
 
 void ImageDisplayCustom::update( float wall_dt, float ros_dt )
 {
-  try
+  if(render_panel_)
   {
-    texture_.update();
-    texture_selection_.update();
-
-    //make sure the aspect ratio of the image is preserved
-    float win_width = render_panel_->width();
-    float win_height = render_panel_->height();
-
-    float img_width = texture_.getWidth();
-    float img_height = texture_.getHeight();
-    
-    if ( img_width != 0 && img_height != 0 && win_width !=0 && win_height != 0 )
-    {
-      float img_aspect = img_width / img_height;
-      float win_aspect = win_width / win_height;
-      
-      // calculate size of 3 pixels in scene CS for selection highlight
-      float padding_x = 3.0f*2.0f/win_width;
-      float padding_y = 3.0f*2.0f/win_height;
-
-      if ( img_aspect > win_aspect )
+      try
       {
-        screen_rect_->setCorners(-1.0f, 1.0f * win_aspect/img_aspect, 1.0f, -1.0f * win_aspect/img_aspect, false);
-        // calculate full image rectangle dimensions in window coordinates
-        rect_dim_x1_ = 0;
-        rect_dim_x2_ = win_width;
-        rect_dim_y1_ = (win_height - (win_height * win_aspect/img_aspect)) / 2.0f;
-        rect_dim_y2_ = win_height - rect_dim_y1_;
-        
-		  	// calculate selection rectangle position
-				if(screen_rect_selection_ != NULL)
-				{
-					// full image size: -1.0f, 1.0f * win_aspect/img_aspect, 1.0f, -1.0f * win_aspect/img_aspect
-					float x1 = ((2.0f * crop_x_offset_) / full_image_width_) - 1.0f;
-					float x2 = ((2.0f * (crop_x_offset_+crop_width_)) / full_image_width_) - 1.0f;
-					float y1 = -(((2.0f * win_aspect/img_aspect) * crop_y_offset_) / full_image_height_) + ((1.0f * win_aspect/img_aspect));
-					float y2 = -(((2.0f * win_aspect/img_aspect) * (crop_y_offset_+crop_height_)) / full_image_height_) + ((1.0f * win_aspect/img_aspect));
-					screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
-					screen_rect_highlight_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
-					//std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
-				}
-      }
-      else
-      {
-        screen_rect_->setCorners(-1.0f * img_aspect/win_aspect, 1.0f, 1.0f * img_aspect/win_aspect, -1.0f, false);
-        // calculate full image rectangle dimensions in window coordinates
-        rect_dim_x1_ = (win_width - (win_width * img_aspect/win_aspect)) / 2.0f;
-        rect_dim_x2_ = win_width - rect_dim_x1_;
-        rect_dim_y1_ = 0;
-        rect_dim_y2_ = win_height;
-        
-		  	// calculate selection rectangle position
-				if(screen_rect_selection_ != NULL)
-				{
-					// full image size: -1.0f, 1.0f * win_aspect/img_aspect, 1.0f, -1.0f * win_aspect/img_aspect
-					float x1 = (((2.0f * img_aspect/win_aspect) * crop_x_offset_) / full_image_width_) - (1.0f * img_aspect/win_aspect);
-					float x2 = (((2.0f * img_aspect/win_aspect) * (crop_x_offset_+crop_width_)) / full_image_width_) - (1.0f * img_aspect/win_aspect);
-					float y1 = -((2.0f * crop_y_offset_) / full_image_height_) + 1.0f;
-					float y2 = -((2.0f * (crop_y_offset_+crop_height_)) / full_image_height_) + 1.0f;
-					screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
-					screen_rect_highlight_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
-					//std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
-				}
-      }
-    }
+        texture_.update();
+        texture_selection_.update();
 
-    render_panel_->getRenderWindow()->update();
-    
-    //std::cout << "CUSTOM UPDATE LOOP" << std::endl;
-  }
-  catch( UnsupportedImageEncoding& e )
-  {
-    setStatus(StatusProperty::Error, "Image", e.what());
+        //make sure the aspect ratio of the image is preserved
+        float win_width = render_panel_->width();
+        float win_height = render_panel_->height();
+
+        float img_width = texture_.getWidth();
+        float img_height = texture_.getHeight();
+
+        if ( img_width != 0 && img_height != 0 && win_width !=0 && win_height != 0 )
+        {
+          float img_aspect = img_width / img_height;
+          float win_aspect = win_width / win_height;
+
+          // calculate size of 3 pixels in scene CS for selection highlight
+          float padding_x = 3.0f*2.0f/win_width;
+          float padding_y = 3.0f*2.0f/win_height;
+
+          if ( img_aspect > win_aspect )
+          {
+            screen_rect_->setCorners(-1.0f, 1.0f * win_aspect/img_aspect, 1.0f, -1.0f * win_aspect/img_aspect, false);
+            // calculate full image rectangle dimensions in window coordinates
+            rect_dim_x1_ = 0;
+            rect_dim_x2_ = win_width;
+            rect_dim_y1_ = (win_height - (win_height * win_aspect/img_aspect)) / 2.0f;
+            rect_dim_y2_ = win_height - rect_dim_y1_;
+
+                // calculate selection rectangle position
+                    if(screen_rect_selection_ != NULL)
+                    {
+                        // full image size: -1.0f, 1.0f * win_aspect/img_aspect, 1.0f, -1.0f * win_aspect/img_aspect
+                        float x1 = ((2.0f * crop_x_offset_) / full_image_width_) - 1.0f;
+                        float x2 = ((2.0f * (crop_x_offset_+crop_width_)) / full_image_width_) - 1.0f;
+                        float y1 = -(((2.0f * win_aspect/img_aspect) * crop_y_offset_) / full_image_height_) + ((1.0f * win_aspect/img_aspect));
+                        float y2 = -(((2.0f * win_aspect/img_aspect) * (crop_y_offset_+crop_height_)) / full_image_height_) + ((1.0f * win_aspect/img_aspect));
+                        screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
+                        screen_rect_highlight_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
+                        //std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
+                    }
+          }
+          else
+          {
+            screen_rect_->setCorners(-1.0f * img_aspect/win_aspect, 1.0f, 1.0f * img_aspect/win_aspect, -1.0f, false);
+            // calculate full image rectangle dimensions in window coordinates
+            rect_dim_x1_ = (win_width - (win_width * img_aspect/win_aspect)) / 2.0f;
+            rect_dim_x2_ = win_width - rect_dim_x1_;
+            rect_dim_y1_ = 0;
+            rect_dim_y2_ = win_height;
+
+                // calculate selection rectangle position
+                    if(screen_rect_selection_ != NULL)
+                    {
+                        // full image size: -1.0f, 1.0f * win_aspect/img_aspect, 1.0f, -1.0f * win_aspect/img_aspect
+                        float x1 = (((2.0f * img_aspect/win_aspect) * crop_x_offset_) / full_image_width_) - (1.0f * img_aspect/win_aspect);
+                        float x2 = (((2.0f * img_aspect/win_aspect) * (crop_x_offset_+crop_width_)) / full_image_width_) - (1.0f * img_aspect/win_aspect);
+                        float y1 = -((2.0f * crop_y_offset_) / full_image_height_) + 1.0f;
+                        float y2 = -((2.0f * (crop_y_offset_+crop_height_)) / full_image_height_) + 1.0f;
+                        screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
+                        screen_rect_highlight_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
+                        //std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
+                    }
+          }
+        }
+
+        render_panel_->getRenderWindow()->update();
+
+        //std::cout << "CUSTOM UPDATE LOOP" << std::endl;
+      }
+      catch( UnsupportedImageEncoding& e )
+      {
+        setStatus(StatusProperty::Error, "Image", e.what());
+      }
   }
 }
 
