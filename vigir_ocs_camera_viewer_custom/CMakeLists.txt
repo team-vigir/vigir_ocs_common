@@ -3,7 +3,7 @@ project(vigir_ocs_camera_viewer_custom)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs pluginlib vigir_ocs_rviz_plugins)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs pluginlib vigir_ocs_rviz_plugins)# vigir_perception_msgs)
 
 ## Declare things to be passed to other projects
 catkin_package()
@@ -33,5 +33,5 @@ include_directories(include ${catkin_INCLUDE_DIRS} /opt/vigir/vigir_perception/v
 
 add_executable(camera_viewer_custom ${SOURCE_FILES})
 target_link_libraries(camera_viewer_custom ${catkin_LIBRARIES} ${QT_LIBRARIES} /opt/ros/groovy/lib/librviz.so)
-
+#add_dependencies(camera_viewer_custom vigir_perception_msgs_gencpp)
 
