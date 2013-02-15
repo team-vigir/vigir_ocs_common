@@ -119,6 +119,65 @@ void ImageDisplayCustom::onInitialize()
         scene_node_->attachObject(screen_rect_);
     }
 
+    // create the selection rectangle if it doesn't exist yet
+    if( screen_rect_selection_ == NULL)
+    {
+        static int count = 1;
+        std::stringstream ss;
+        ss << "ImageDisplayObject" << count++;
+        screen_rect_selection_ = new Ogre::Rectangle2D(true);
+        screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 1);
+        screen_rect_selection_->setCorners(0, 0, 0, 0);
+
+        ss << "Material";
+        material_selection_ = Ogre::MaterialManager::getSingleton().create( ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
+        material_selection_->setSceneBlending( Ogre::SBT_REPLACE );
+        material_selection_->setDepthWriteEnabled(false);
+        material_selection_->setReceiveShadows(false);
+        material_selection_->setDepthCheckEnabled(false);
+
+        material_selection_->getTechnique(0)->setLightingEnabled(false);
+        Ogre::TextureUnitState* tu = material_selection_->getTechnique(0)->getPass(0)->createTextureUnitState();
+        tu->setTextureName(texture_selection_.getTexture()->getName());
+        tu->setTextureFiltering( Ogre::TFO_NONE );
+
+        material_selection_->setCullingMode(Ogre::CULL_NONE);
+        Ogre::AxisAlignedBox aabInf;
+        aabInf.setInfinite();
+        screen_rect_selection_->setBoundingBox(aabInf);
+        screen_rect_selection_->setMaterial(material_selection_->getName());
+        //std::cout << "Material name (cropped): " << material_selection_->getName() << std::endl;
+        scene_node_->attachObject(screen_rect_selection_);
+    }
+
+    // create the selection rectangle if it doesn't exist yet
+    if( screen_rect_highlight_ == NULL)
+    {
+        static int count = 2;
+        std::stringstream ss;
+        ss << "ImageDisplayObject" << count++;
+        screen_rect_highlight_ = new Ogre::Rectangle2D(true);
+        screen_rect_highlight_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 2);
+        screen_rect_highlight_->setCorners(0, 0, 0, 0);
+
+        ss << "Material";
+        material_highlight_ = Ogre::MaterialManager::getSingleton().create( ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
+        material_highlight_->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
+        material_highlight_->setDepthWriteEnabled(false);
+        material_highlight_->setReceiveShadows(false);
+        material_highlight_->setDepthCheckEnabled(false);
+        material_highlight_->getTechnique(0)->setLightingEnabled(false);
+        material_highlight_->setDiffuse(1.0,1.0,0.0,0.5);
+
+        material_highlight_->setCullingMode(Ogre::CULL_NONE);
+        Ogre::AxisAlignedBox aabInf;
+        aabInf.setInfinite();
+        screen_rect_highlight_->setBoundingBox(aabInf);
+        screen_rect_highlight_->setMaterial(material_highlight_->getName());
+        //std::cout << "Material name (highlight): " << material_highlight_->getName() << std::endl;
+        scene_node_->attachObject(screen_rect_highlight_);
+    }
+
     // first create a publisher to set the parameters of the full image
     img_req_pub_full_ = n_.advertise<vigir_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, true );
 
@@ -129,6 +188,10 @@ void ImageDisplayCustom::onInitialize()
     img_req_pub_crop_ = n_.advertise<vigir_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, false );
     // then, subscribe to the resulting cropped image
     cropped_image_ = n_.subscribe<sensor_msgs::Image>( "/l_image_cropped/image_raw", 5, &ImageDisplayCustom::processCroppedImage, this );
+
+    // finally, we need to subscribe to requests so that multiple clients have everything updated
+    img_req_sub_crop_ = n_.subscribe<vigir_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, &ImageDisplayCustom::processCropImageRequest, this );
+    img_req_sub_full_ = n_.subscribe<vigir_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &ImageDisplayCustom::processFullImageRequest, this );
 }
 
 ImageDisplayCustom::~ImageDisplayCustom()
@@ -268,6 +331,24 @@ void ImageDisplayCustom::processCroppedImage(const sensor_msgs::Image::ConstPtr&
     texture_selection_.addMessage(msg);
 }
 
+void ImageDisplayCustom::processFullImageRequest(const vigir_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+{
+    full_image_binning_ = msg->binning_x;
+    full_image_width_ = msg->roi.width;
+    full_image_height_ = msg->roi.height;
+    publish_frequency_ = msg->publish_frequency;
+}
+
+void ImageDisplayCustom::processCropImageRequest(const vigir_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+{
+    crop_binning_ = msg->binning_x;
+    crop_width_ = msg->roi.width;
+    crop_height_ = msg->roi.height;
+    crop_x_offset_ = msg->roi.x_offset;
+    crop_y_offset_ = msg->roi.y_offset;
+    publish_frequency_ = msg->publish_frequency;
+}
+
 void ImageDisplayCustom::setRenderPanel( RenderPanel* rp )
 {
     render_panel_ = rp;
@@ -278,65 +359,6 @@ void ImageDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
     std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
     //std::cout << "   full image rect: " << rect_dim_x1_ << ", " << rect_dim_y1_ << " -> " << rect_dim_x2_ << ", " << rect_dim_y2_ << std::endl;
     //std::cout << "   window dimensions: " << render_panel_->width() << ", " << render_panel_->height() << std::endl;
-
-    // create the selection rectangle if it doesn't exist yet
-    if( screen_rect_selection_ == NULL)
-    {
-        static int count = 1;
-        std::stringstream ss;
-        ss << "ImageDisplayObject" << count++;
-        screen_rect_selection_ = new Ogre::Rectangle2D(true);
-        screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 1);
-        screen_rect_selection_->setCorners(-1.0f, 1.0f, 1.0f, -1.0f);
-
-        ss << "Material";
-        material_selection_ = Ogre::MaterialManager::getSingleton().create( ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
-        material_selection_->setSceneBlending( Ogre::SBT_REPLACE );
-        material_selection_->setDepthWriteEnabled(false);
-        material_selection_->setReceiveShadows(false);
-        material_selection_->setDepthCheckEnabled(false);
-
-        material_selection_->getTechnique(0)->setLightingEnabled(false);
-        Ogre::TextureUnitState* tu = material_selection_->getTechnique(0)->getPass(0)->createTextureUnitState();
-        tu->setTextureName(texture_selection_.getTexture()->getName());
-        tu->setTextureFiltering( Ogre::TFO_NONE );
-
-        material_selection_->setCullingMode(Ogre::CULL_NONE);
-        Ogre::AxisAlignedBox aabInf;
-        aabInf.setInfinite();
-        screen_rect_selection_->setBoundingBox(aabInf);
-        screen_rect_selection_->setMaterial(material_selection_->getName());
-        //std::cout << "Material name (cropped): " << material_selection_->getName() << std::endl;
-        scene_node_->attachObject(screen_rect_selection_);
-    }
-
-    // create the selection rectangle if it doesn't exist yet
-    if( screen_rect_highlight_ == NULL)
-    {
-        static int count = 2;
-        std::stringstream ss;
-        ss << "ImageDisplayObject" << count++;
-        screen_rect_highlight_ = new Ogre::Rectangle2D(true);
-        screen_rect_highlight_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 2);
-        screen_rect_highlight_->setCorners(-1.0f, 1.0f, 1.0f, -1.0f);
-
-        ss << "Material";
-        material_highlight_ = Ogre::MaterialManager::getSingleton().create( ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
-        material_highlight_->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
-        material_highlight_->setDepthWriteEnabled(false);
-        material_highlight_->setReceiveShadows(false);
-        material_highlight_->setDepthCheckEnabled(false);
-        material_highlight_->getTechnique(0)->setLightingEnabled(false);
-        material_highlight_->setDiffuse(1.0,1.0,0.0,0.5);
-
-        material_highlight_->setCullingMode(Ogre::CULL_NONE);
-        Ogre::AxisAlignedBox aabInf;
-        aabInf.setInfinite();
-        screen_rect_highlight_->setBoundingBox(aabInf);
-        screen_rect_highlight_->setMaterial(material_highlight_->getName());
-        //std::cout << "Material name (highlight): " << material_highlight_->getName() << std::endl;
-        scene_node_->attachObject(screen_rect_highlight_);
-    }
 
     // make sure selection is within image rect coordinates
     float minx = std::min(x1, x2);

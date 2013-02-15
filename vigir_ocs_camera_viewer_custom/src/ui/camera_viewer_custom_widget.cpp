@@ -15,29 +15,8 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // mouseClicked = false;
-//     button = this->findChild<QRadioButton *>("radioButton_9");
-//     dynamicButton = this->findChild<QRadioButton *>("radioButton_7");
-//     staticButton = this->findChild<QRadioButton *>("radioButton_8");
-//     frameBox = this->findChild<QSpinBox *>("spinBox_3");
-//     timeBox = this->findChild<QSpinBox *>("spinBox");
-     camera = this->findChild<QComboBox *>("comboBox_7");
-//     label1 = this->findChild<QLabel *>("label");
-//     label2 = this->findChild<QLabel *>("label_2");
-
-
-//     picture = this->findChild<QWidget *>("widget");
-
-//     drawHelper* helper = new drawHelper(picture);
-//     helper->resize(picture->size());
-//     helper->show();
-     connect(camera, SIGNAL(currentIndexChanged(int)), this, SLOT(alterDisplay(int)));
-
-//     connect(button, SIGNAL(clicked()), this, SLOT(enableSpin()));
-//    // connect(button, SIGNAL(clicked()), this, SLOT(changeValue()));
-//     connect(dynamicButton, SIGNAL(clicked()), this, SLOT(disableSpin()));
-//     connect(staticButton, SIGNAL(clicked()), this, SLOT(disableSpin()));
-
+    QComboBox *camera = this->findChild<QComboBox *>("comboBox_7");
+    connect(camera, SIGNAL(currentIndexChanged(int)), this, SLOT(alterDisplay(int)));
 }
 
 CameraViewerCustomWidget::~CameraViewerCustomWidget()
@@ -45,13 +24,6 @@ CameraViewerCustomWidget::~CameraViewerCustomWidget()
     delete ui;
 }
 
-/*
-
-void paintWindow()
-{
-    std::cout<<"hits";
-}
-*/
 void CameraViewerCustomWidget::alterDisplay(int num)
 {
     QGroupBox* groupBox = this->findChild<QGroupBox *>("Orientation_3");
@@ -72,31 +44,3 @@ void CameraViewerCustomWidget::alterDisplay(int num)
 
     }
 }
-/*
-void CameraViewerCustomWidget::enableSpin()
-{
-    if(button->isChecked())
-    {
-//        frameBox->setEnabled(true);
-//        timeBox->setEnabled(true);
-//        label1->setEnabled(true);
-//        label2->setEnabled(true);
-
-
-    }
-}
-
-void CameraViewerCustomWidget::disableSpin()
-{
-//    timeBox->setEnabled(false);
-//    frameBox->setEnabled(false);
-//    label1->setEnabled(false);
-//    label2->setEnabled(false);
-
-}*/
-
-
-
-
-
-

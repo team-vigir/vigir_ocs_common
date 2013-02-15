@@ -25,28 +25,9 @@ public:
     
 private:
     Ui::CameraViewerCustomWidget*ui;
-    /*QRadioButton *button;
-    QRadioButton *dynamicButton;
-    QRadioButton *staticButton;
-    QSpinBox * frameBox;
-    QSpinBox * timeBox;*/
 
-    QComboBox *camera;
-  //  QWidget* picture;
-
-//    QPoint initialPoint;
-//    QPoint finalPoint;
-  //  bool mouseClicked;
-
-/*public slots:
-    void enableSpin();
-    void disableSpin();*/
+public Q_SLOTS:
     void alterDisplay(int);
-   // void changeValue();
-
-protected:
-//    void QWidget::mouseReleaseEvent(QMouseEvent *mouse);
-//    void QWidget::mousePressEvent(QMouseEvent *mouse);
 
 };
 

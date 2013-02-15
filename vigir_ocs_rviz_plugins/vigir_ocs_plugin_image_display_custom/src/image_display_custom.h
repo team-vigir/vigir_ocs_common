@@ -1,10 +1,10 @@
 /* 
  * ImageDisplayCustom class definition.
- * 
+ *
  * Author: Felipe Bacim.
- * 
+ *
  * Based on librviz_tutorials.
- * 
+ *
  * Latest changes (12/04/2012):
  *
  */
@@ -54,6 +54,7 @@
 #include <ros/ros.h>
 
 #include <image_transport/image_transport.h>
+#include <vigir_perception_msgs/DownSampledImageRequest.h>
 
 class QMouseEvent;
 
@@ -69,93 +70,99 @@ namespace rviz
 
 class ImageDisplayCustom: public rviz::ImageDisplayBase
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-  ImageDisplayCustom();
-  virtual ~ImageDisplayCustom();
+    ImageDisplayCustom();
+    virtual ~ImageDisplayCustom();
 
-  // Overrides from Display
-  virtual void onInitialize();
-  virtual void update( float wall_dt, float ros_dt );
-  virtual void reset();
+    // Overrides from Display
+    virtual void onInitialize();
+    virtual void update( float wall_dt, float ros_dt );
+    virtual void reset();
 
-	// need to change these to be slots
-  virtual void setRenderPanel( RenderPanel* rp );
-  virtual void selectionProcessed( int x1, int y1, int x2, int y2 );
+    // need to change these to be slots
+    virtual void setRenderPanel( RenderPanel* rp );
+    virtual void selectionProcessed( int x1, int y1, int x2, int y2 );
 
 public Q_SLOTS:
-  void changeFullImageResolution( int );
-  void changeCropImageResolution( int );
-  void changeCameraSpeed( int );
+    void changeFullImageResolution( int );
+    void changeCropImageResolution( int );
+    void changeCameraSpeed( int );
 
 protected:
-  // overrides from Display
-  virtual void onEnable();
-  virtual void onDisable();
+    // overrides from Display
+    virtual void onEnable();
+    virtual void onDisable();
 
-  // This is called by incomingMessage(). 
-  virtual void processMessage(const sensor_msgs::Image::ConstPtr& msg);
-  virtual void processCroppedImage(const sensor_msgs::Image::ConstPtr& msg);
+    // This is called by incomingMessage().
+    virtual void processMessage(const sensor_msgs::Image::ConstPtr& msg);
+    virtual void processCroppedImage(const sensor_msgs::Image::ConstPtr& msg);
+
+    // The two functions that update our local variables for
+    void processFullImageRequest(const vigir_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
+    void processCropImageRequest(const vigir_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
 
 private:
-  enum
-  {
-      IMAGE_RESOLUTION_FULL = 0,
-      IMAGE_RESOLUTION_2 = 1,
-      IMAGE_RESOLUTION_4 = 2,
-      IMAGE_RESOLUTION_8 = 3,
-      IMAGE_RESOLUTION_16 = 4
-  } DECIMATE_OPTIONS;
+    enum
+    {
+        IMAGE_RESOLUTION_FULL = 0,
+        IMAGE_RESOLUTION_2 = 1,
+        IMAGE_RESOLUTION_4 = 2,
+        IMAGE_RESOLUTION_8 = 3,
+        IMAGE_RESOLUTION_16 = 4
+    } DECIMATE_OPTIONS;
 
-  void clear();
-  void updateStatus();
+    void clear();
+    void updateStatus();
 
-  void publishCropImageRequest();
-  void publishFullImageRequest();
-	
-	// variables that define the full image rendering surface
-  Ogre::Rectangle2D* screen_rect_;
-  Ogre::MaterialPtr material_;
-  ROSImageTexture texture_;
-  
-  // variables that define the cropped image rendering surface
-  Ogre::Rectangle2D* screen_rect_selection_;
-  Ogre::MaterialPtr material_selection_;
-  ROSImageTexture texture_selection_;
-  
-  // variables that define the rectangle that highlights selection
-  Ogre::Rectangle2D* screen_rect_highlight_;
-  Ogre::MaterialPtr material_highlight_;
+    void publishCropImageRequest();
+    void publishFullImageRequest();
 
-	// reference to the main window render panel
-  RenderPanel* render_panel_;
+    // variables that define the full image rendering surface
+    Ogre::Rectangle2D* screen_rect_;
+    Ogre::MaterialPtr material_;
+    ROSImageTexture texture_;
 
-	// ros publishers and subscribers
-	ros::NodeHandle n_;
-	ros::Publisher img_req_pub_crop_;
-	ros::Publisher img_req_pub_full_;
-	ros::Subscriber cropped_image_;
+    // variables that define the cropped image rendering surface
+    Ogre::Rectangle2D* screen_rect_selection_;
+    Ogre::MaterialPtr material_selection_;
+    ROSImageTexture texture_selection_;
 
-	// full image info	
-	int full_image_width_;
-	int full_image_height_;
-	int full_image_binning_;
-	
-	// crop image info
-	float crop_x_offset_;
-	float crop_y_offset_;
-	float crop_width_;
-	float crop_height_;
+    // variables that define the rectangle that highlights selection
+    Ogre::Rectangle2D* screen_rect_highlight_;
+    Ogre::MaterialPtr material_highlight_;
+
+    // reference to the main window render panel
+    RenderPanel* render_panel_;
+
+    // ros publishers and subscribers
+    ros::NodeHandle n_;
+    ros::Publisher img_req_pub_crop_;
+    ros::Publisher img_req_pub_full_;
+    ros::Subscriber cropped_image_;
+    ros::Subscriber img_req_sub_crop_;
+    ros::Subscriber img_req_sub_full_;
+
+    // full image info
+    int full_image_width_;
+    int full_image_height_;
+    int full_image_binning_;
+
+    // crop image info
+    float crop_x_offset_;
+    float crop_y_offset_;
+    float crop_width_;
+    float crop_height_;
     float crop_binning_;
 
     // fps for both full and cropped images
     float publish_frequency_;
-	
-	// define *window* dimensions of the full image rendering surface -> necessary to calculate selection
-	int rect_dim_x1_;
-	int rect_dim_x2_;
-	int rect_dim_y1_;
-	int rect_dim_y2_;
+
+    // define *window* dimensions of the full image rendering surface -> necessary to calculate selection
+    int rect_dim_x1_;
+    int rect_dim_x2_;
+    int rect_dim_y1_;
+    int rect_dim_y2_;
 };
 
 } // namespace rviz
