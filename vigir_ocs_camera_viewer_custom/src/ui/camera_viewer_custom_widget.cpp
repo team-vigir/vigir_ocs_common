@@ -3,7 +3,6 @@
 #include "stdio.h"
 #include <iostream>
 #include <QPainter>
-#include "drawhelper.h"
 
 
 //QPainter painter;
