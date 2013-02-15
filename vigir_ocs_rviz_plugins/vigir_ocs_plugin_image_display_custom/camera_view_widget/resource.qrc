@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/new/prefix1">
-        <file>mockup_video.jpg</file>
-    </qresource>
-</RCC>

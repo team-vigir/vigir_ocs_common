@@ -83,6 +83,11 @@ public:
   virtual void setRenderPanel( RenderPanel* rp );
   virtual void selectionProcessed( int x1, int y1, int x2, int y2 );
 
+public Q_SLOTS:
+  void changeFullImageResolution( int );
+  void changeCropImageResolution( int );
+  void changeCameraSpeed( int );
+
 protected:
   // overrides from Display
   virtual void onEnable();
@@ -93,8 +98,20 @@ protected:
   virtual void processCroppedImage(const sensor_msgs::Image::ConstPtr& msg);
 
 private:
+  enum
+  {
+      IMAGE_RESOLUTION_FULL = 0,
+      IMAGE_RESOLUTION_2 = 1,
+      IMAGE_RESOLUTION_4 = 2,
+      IMAGE_RESOLUTION_8 = 3,
+      IMAGE_RESOLUTION_16 = 4
+  } DECIMATE_OPTIONS;
+
   void clear();
   void updateStatus();
+
+  void publishCropImageRequest();
+  void publishFullImageRequest();
 	
 	// variables that define the full image rendering surface
   Ogre::Rectangle2D* screen_rect_;
@@ -130,6 +147,9 @@ private:
 	float crop_width_;
 	float crop_height_;
     float crop_binning_;
+
+    // fps for both full and cropped images
+    float publish_frequency_;
 	
 	// define *window* dimensions of the full image rendering surface -> necessary to calculate selection
 	int rect_dim_x1_;

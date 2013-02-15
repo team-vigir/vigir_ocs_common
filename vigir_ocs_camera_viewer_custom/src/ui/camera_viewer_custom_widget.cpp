@@ -1,5 +1,5 @@
-#include "camera_view_widget.h"
-#include "ui_camera_view_widget.h"
+#include "camera_viewer_custom_widget.h"
+#include "ui_camera_viewer_custom_widget.h"
 #include "stdio.h"
 #include <iostream>
 #include <QPainter>
@@ -10,9 +10,9 @@
 //QWidget* picture;
 //QLabel* label1;
 //QLabel* label2;
-Camera_View_Widget::Camera_View_Widget(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::Camera_View_Widget)
+CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::CameraViewerCustomWidget)
 {
     ui->setupUi(this);
 
@@ -22,7 +22,7 @@ Camera_View_Widget::Camera_View_Widget(QWidget *parent) :
 //     staticButton = this->findChild<QRadioButton *>("radioButton_8");
 //     frameBox = this->findChild<QSpinBox *>("spinBox_3");
 //     timeBox = this->findChild<QSpinBox *>("spinBox");
-//     camera = this->findChild<QComboBox *>("comboBox_7");
+     camera = this->findChild<QComboBox *>("comboBox_7");
 //     label1 = this->findChild<QLabel *>("label");
 //     label2 = this->findChild<QLabel *>("label_2");
 
@@ -32,7 +32,7 @@ Camera_View_Widget::Camera_View_Widget(QWidget *parent) :
 //     drawHelper* helper = new drawHelper(picture);
 //     helper->resize(picture->size());
 //     helper->show();
-//     connect(camera, SIGNAL(currentIndexChanged(int)), this, SLOT(alterDisplay(int)));
+     connect(camera, SIGNAL(currentIndexChanged(int)), this, SLOT(alterDisplay(int)));
 
 //     connect(button, SIGNAL(clicked()), this, SLOT(enableSpin()));
 //    // connect(button, SIGNAL(clicked()), this, SLOT(changeValue()));
@@ -41,19 +41,19 @@ Camera_View_Widget::Camera_View_Widget(QWidget *parent) :
 
 }
 
-Camera_View_Widget::~Camera_View_Widget()
+CameraViewerCustomWidget::~CameraViewerCustomWidget()
 {
     delete ui;
 }
 
-
+/*
 
 void paintWindow()
 {
     std::cout<<"hits";
 }
-
-void Camera_View_Widget::alterDisplay(int num)
+*/
+void CameraViewerCustomWidget::alterDisplay(int num)
 {
     QGroupBox* groupBox = this->findChild<QGroupBox *>("Orientation_3");
     if(num== 0 || num == 1)
@@ -73,8 +73,8 @@ void Camera_View_Widget::alterDisplay(int num)
 
     }
 }
-
-void Camera_View_Widget::enableSpin()
+/*
+void CameraViewerCustomWidget::enableSpin()
 {
     if(button->isChecked())
     {
@@ -87,14 +87,14 @@ void Camera_View_Widget::enableSpin()
     }
 }
 
-void Camera_View_Widget::disableSpin()
+void CameraViewerCustomWidget::disableSpin()
 {
 //    timeBox->setEnabled(false);
 //    frameBox->setEnabled(false);
 //    label1->setEnabled(false);
 //    label2->setEnabled(false);
 
-}
+}*/
 
 
 

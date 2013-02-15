@@ -1,5 +1,6 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef CameraViewerCustomWidget_H
+#define CameraViewerCustomWidget_H
+
 
 #include <QMainWindow>
 #include <QWidget>
@@ -11,25 +12,24 @@
 
 
 namespace Ui {
-class MainWindow;
+class CameraViewerCustomWidget;
 }
 
-class MainWindow : public QMainWindow
+class CameraViewerCustomWidget : public QWidget
 {
     Q_OBJECT
     
 public:
-    explicit MainWindow(QWidget *parent = 0);
-
-    ~MainWindow();
+    explicit CameraViewerCustomWidget(QWidget *parent = 0);
+    ~CameraViewerCustomWidget();
     
 private:
-    Ui::MainWindow *ui;
-    QRadioButton *button;
+    Ui::CameraViewerCustomWidget*ui;
+    /*QRadioButton *button;
     QRadioButton *dynamicButton;
     QRadioButton *staticButton;
     QSpinBox * frameBox;
-    QSpinBox * timeBox;
+    QSpinBox * timeBox;*/
 
     QComboBox *camera;
   //  QWidget* picture;
@@ -38,9 +38,9 @@ private:
 //    QPoint finalPoint;
   //  bool mouseClicked;
 
-public slots:
+/*public slots:
     void enableSpin();
-    void disableSpin();
+    void disableSpin();*/
     void alterDisplay(int);
    // void changeValue();
 
@@ -50,4 +50,4 @@ protected:
 
 };
 
-#endif // MAINWINDOW_H
+#endif // CameraViewerCustomWidget_H

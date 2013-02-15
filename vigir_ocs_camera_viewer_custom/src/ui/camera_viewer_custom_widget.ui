@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Camera_View_Widget</class>
- <widget class="QMainWindow" name="Camera_View_Widget">
+ <class>CameraViewerCustomWidget</class>
+ <widget class="QWidget" name="CameraViewerCustomWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,9 +11,17 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Camera_View_Widget</string>
+   <string>CameraViewerCustomWidget</string>
   </property>
-  <widget class="QWidget" name="centralWidget">
+  <widget class="QWidget" name="centralWidget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>783</width>
+     <height>571</height>
+    </rect>
+   </property>
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
@@ -94,7 +102,17 @@
          <widget class="QComboBox" name="comboBox_8">
           <item>
            <property name="text">
+            <string>Selected Area - Very High</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
             <string>Selected Area - High</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Selected Area - Medium</string>
            </property>
           </item>
           <item>
@@ -102,13 +120,23 @@
             <string>Selected Area - Low</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>Selected Area - Very Low</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item row="1" column="0">
          <widget class="QComboBox" name="comboBox_9">
           <property name="currentIndex">
-           <number>1</number>
+           <number>4</number>
           </property>
+          <item>
+           <property name="text">
+            <string>Feed - Very High</string>
+           </property>
+          </item>
           <item>
            <property name="text">
             <string>Feed - High</string>
@@ -116,7 +144,17 @@
           </item>
           <item>
            <property name="text">
+            <string>Feed - Medium</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
             <string>Feed - Low</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Feed - Very Low</string>
            </property>
           </item>
          </widget>
@@ -178,14 +216,33 @@
          <enum>QLayout::SetDefaultConstraint</enum>
         </property>
         <item row="1" column="0">
-         <widget class="QComboBox" name="comboBox"/>
+         <widget class="QComboBox" name="comboBox">
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <item>
+           <property name="text">
+            <string>Max FPS</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Medium FPS</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Low FPS</string>
+           </property>
+          </item>
+         </widget>
         </item>
        </layout>
       </widget>
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="widget" native="true">
+   <widget class="CameraViewerCustom" name="widget" native="true">
     <property name="geometry">
      <rect>
       <x>0</x>
@@ -201,7 +258,7 @@
      <bool>false</bool>
     </property>
     <property name="styleSheet">
-     <string notr="true">border-image: url(:/new/prefix1/mockup_video.jpg);</string>
+     <string notr="true"/>
     </property>
    </widget>
   </widget>
@@ -216,16 +273,106 @@
    </property>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>4</width>
+     <height>13</height>
+    </rect>
+   </property>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QStatusBar" name="statusBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>3</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>CameraViewerCustom</class>
+   <extends>QWidget</extends>
+   <header>camera_viewer_custom.h</header>
+   <container>1</container>
+   <slots>
+    <slot>changeCameraSpeed(int)</slot>
+    <slot>changeCropImageResolution(int)</slot>
+    <slot>changeFullImageResolution(int)</slot>
+    <slot>changeCameraTopic(int)</slot>
+   </slots>
+  </customwidget>
+ </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>comboBox_7</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>widget</receiver>
+   <slot>changeCameraTopic(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>682</x>
+     <y>70</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>290</x>
+     <y>285</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>comboBox_8</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>widget</receiver>
+   <slot>changeCropImageResolution(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>682</x>
+     <y>147</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>290</x>
+     <y>285</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>comboBox_9</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>widget</receiver>
+   <slot>changeFullImageResolution(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>682</x>
+     <y>180</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>290</x>
+     <y>285</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>comboBox</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>widget</receiver>
+   <slot>changeCameraSpeed(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>682</x>
+     <y>256</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>290</x>
+     <y>285</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

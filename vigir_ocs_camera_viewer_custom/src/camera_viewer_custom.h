@@ -30,7 +30,17 @@ public:
   CameraViewerCustom( QWidget* parent = 0 );
   virtual ~CameraViewerCustom();
 
-// TODO: create slots for possible UI stuff
+Q_SIGNALS:
+  void setFullImageResolution( int );
+  void setCropImageResolution( int );
+  void setCameraSpeed( int );
+
+public Q_SLOTS:
+  void changeCameraTopic( int );
+  void changeFullImageResolution( int );
+  void changeCropImageResolution( int );
+  void changeCameraSpeed( int );
+
 private Q_SLOTS:
   void select( int, int, int, int );
 

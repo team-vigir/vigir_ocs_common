@@ -18,20 +18,42 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 ## Here we specify which header files need to be run through "moc",
 ## Qt's meta-object compiler.
-qt4_wrap_cpp(MOC_FILES
+qt4_wrap_cpp(MOC_FILES_WIDGET
   src/camera_viewer_custom.h
 )
+
+qt4_wrap_cpp(MOC_FILES
+  src/camera_viewer_custom.h
+  src/ui/camera_viewer_custom_widget.h
+)
+
+## Here we add QtCreator ui files
+qt4_wrap_ui(UIC_FILES
+  src/ui/camera_viewer_custom_widget.ui
+)
+
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.
+set(SOURCE_FILES_WIDGET
+  src/camera_viewer_custom.cpp
+  src/main_widget.cpp
+  ${MOC_FILES_WIDGET}
+)
+
 set(SOURCE_FILES
   src/camera_viewer_custom.cpp
+  src/ui/camera_viewer_custom_widget.cpp
   src/main.cpp
   ${MOC_FILES}
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS} /opt/vigir/vigir_perception/vigir_perception_msgs/msg_gen/cpp/include)
+include_directories(include ${catkin_INCLUDE_DIRS} ../build/vigir_ocs_camera_viewer_custom src /opt/vigir/vigir_perception/vigir_perception_msgs/msg_gen/cpp/include)
 
-add_executable(camera_viewer_custom ${SOURCE_FILES})
+add_executable(camera_viewer_custom ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(camera_viewer_custom ${catkin_LIBRARIES} ${QT_LIBRARIES} /opt/ros/groovy/lib/librviz.so)
+
+add_executable(camera_viewer_custom_widget ${SOURCE_FILES_WIDGET})
+target_link_libraries(camera_viewer_custom_widget ${catkin_LIBRARIES} ${QT_LIBRARIES} /opt/ros/groovy/lib/librviz.so)
+
 #add_dependencies(camera_viewer_custom vigir_perception_msgs_gencpp)
 

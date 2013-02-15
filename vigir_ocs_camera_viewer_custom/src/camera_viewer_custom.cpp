@@ -70,6 +70,10 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
   // Set image topic
   //camera_viewer_->subProp( "Image Topic" )->setValue( "/multisense_sl/camera/left/image_raw" );
   camera_viewer_->subProp( "Image Topic" )->setValue( "/l_image_full/image_raw" );
+
+  QObject::connect(this, SIGNAL(setFullImageResolution(int)), camera_viewer_, SLOT(changeFullImageResolution(int)));
+  QObject::connect(this, SIGNAL(setCropImageResolution(int)), camera_viewer_, SLOT(changeCropImageResolution(int)));
+  QObject::connect(this, SIGNAL(setCameraSpeed(int)), camera_viewer_, SLOT(changeCameraSpeed(int)));
 }
 
 // Destructor.
@@ -81,4 +85,33 @@ CameraViewerCustom::~CameraViewerCustom()
 void CameraViewerCustom::select( int x1, int y1, int x2, int y2 )
 {
   ((rviz::ImageDisplayCustom*)camera_viewer_)->selectionProcessed( x1, y1, x2, y2 );
+}
+
+
+void CameraViewerCustom::changeCameraTopic( int t )
+{
+    std::cout << "Camera topic changed:" << t << std::endl;
+    //switch( t )
+    //{
+    //    case 0:
+    //
+    //}
+}
+
+
+void CameraViewerCustom::changeFullImageResolution( int t )
+{
+    Q_EMIT setFullImageResolution( t );
+}
+
+
+void CameraViewerCustom::changeCropImageResolution( int t )
+{
+    Q_EMIT setCropImageResolution( t );
+}
+
+
+void CameraViewerCustom::changeCameraSpeed( int t )
+{
+    Q_EMIT setCameraSpeed( t );
 }
