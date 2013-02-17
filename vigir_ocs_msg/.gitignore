@@ -1,0 +1,8 @@
+build
+devel
+bin
+lib
+src
+msg_gen
+srv_gen
+qtcreator-build
