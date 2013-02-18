@@ -71,6 +71,12 @@ ImageDisplayCustom::ImageDisplayCustom()
     , full_image_width_(1024) // default parameters for atlas robot
     , full_image_height_(544)
     , full_image_binning_(8)
+    , crop_x_offset_(0)
+    , crop_y_offset_(0)
+    , crop_width_(0)
+    , crop_height_(0)
+    , crop_binning_(0)
+    , publish_frequency_(15.0f)
     , render_panel_(NULL)
 {
 }
@@ -89,6 +95,7 @@ void ImageDisplayCustom::onInitialize()
     screen_rect_selection_ = NULL;
     screen_rect_highlight_ = NULL;
 
+    // full image quad
     {
         static int count = 0;
         std::stringstream ss;
@@ -119,8 +126,7 @@ void ImageDisplayCustom::onInitialize()
         scene_node_->attachObject(screen_rect_);
     }
 
-    // create the selection rectangle if it doesn't exist yet
-    if( screen_rect_selection_ == NULL)
+    // selected area image quad
     {
         static int count = 1;
         std::stringstream ss;
@@ -150,8 +156,7 @@ void ImageDisplayCustom::onInitialize()
         scene_node_->attachObject(screen_rect_selection_);
     }
 
-    // create the selection rectangle if it doesn't exist yet
-    if( screen_rect_highlight_ == NULL)
+    // selected area highlight
     {
         static int count = 2;
         std::stringstream ss;
@@ -456,9 +461,12 @@ void ImageDisplayCustom::changeCropImageResolution( int t )
 
 void ImageDisplayCustom::changeCameraSpeed( int t )
 {
-    std::cout << "Camera speed changed:" << t << std::endl;
+    std::cout << "Camera speed changed:" << (15.0f/(float)pow(3,t)) << std::endl;
 
-    publish_frequency_ = pow(10,t);//1.0f/(float)pow(2,t);
+    if(t != 3)
+        publish_frequency_ = 15.0f/(float)pow(3,t); // 15 or whatever the max fps is
+    else
+        publish_frequency_ = 0.0f;
 
     publishFullImageRequest();
     publishCropImageRequest();
@@ -475,7 +483,10 @@ void ImageDisplayCustom::publishCropImageRequest()
     cmd.roi.height = crop_height_;
     cmd.roi.x_offset = crop_x_offset_;
     cmd.roi.y_offset = crop_y_offset_;
-    cmd.mode = 1;
+    if(publish_frequency_ == 0.0f)
+        cmd.mode = 0;
+    else
+        cmd.mode = 1;
     cmd.publish_frequency = publish_frequency_;
 
     // publish image request for cropped image
@@ -492,7 +503,10 @@ void ImageDisplayCustom::publishFullImageRequest()
     cmd.roi.height = full_image_height_;
     cmd.roi.x_offset = 0;
     cmd.roi.y_offset = 0;
-    cmd.mode = 1;
+    if(publish_frequency_ == 0.0f)
+        cmd.mode = 0;
+    else
+        cmd.mode = 1;
     cmd.publish_frequency = publish_frequency_;
 
     // publish image request for full image

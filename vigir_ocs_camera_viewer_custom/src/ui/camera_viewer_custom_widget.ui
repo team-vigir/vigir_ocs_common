@@ -25,10 +25,10 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>566</x>
+      <x>552</x>
       <y>0</y>
-      <width>217</width>
-      <height>468</height>
+      <width>251</width>
+      <height>531</height>
      </rect>
     </property>
     <property name="title">
@@ -162,28 +162,6 @@
        </layout>
       </widget>
      </item>
-     <item row="3" column="0">
-      <widget class="QGroupBox" name="Orientation_3">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="title">
-        <string>Head Pitch (deg)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <widget class="QSlider" name="horizontalSlider">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
      <item row="4" column="0">
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
@@ -195,9 +173,76 @@
        <layout class="QGridLayout" name="gridLayout_5">
         <item row="0" column="0">
          <widget class="QSlider" name="horizontalSlider_2">
+          <property name="maximum">
+           <number>1440</number>
+          </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
+          <property name="tickPosition">
+           <enum>QSlider::TicksBelow</enum>
+          </property>
+          <property name="tickInterval">
+           <number>288</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QWidget" name="widget_3" native="true">
+          <widget class="QLabel" name="label_7">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>66</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_8">
+           <property name="geometry">
+            <rect>
+             <x>90</x>
+             <y>0</y>
+             <width>66</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>720</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_9">
+           <property name="geometry">
+            <rect>
+             <x>160</x>
+             <y>0</y>
+             <width>66</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>1440</string>
+           </property>
+          </widget>
          </widget>
         </item>
        </layout>
@@ -235,6 +280,112 @@
             <string>Low FPS</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>Zero FPS</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QGroupBox" name="Orientation_3">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="title">
+        <string>Head Pitch (deg)</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <widget class="QSlider" name="horizontalSlider">
+          <property name="minimum">
+           <number>-40</number>
+          </property>
+          <property name="maximum">
+           <number>70</number>
+          </property>
+          <property name="value">
+           <number>-40</number>
+          </property>
+          <property name="tracking">
+           <bool>true</bool>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="invertedAppearance">
+           <bool>false</bool>
+          </property>
+          <property name="tickPosition">
+           <enum>QSlider::TicksBelow</enum>
+          </property>
+          <property name="tickInterval">
+           <number>22</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QWidget" name="widget_2" native="true">
+          <widget class="QLabel" name="label">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>66</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>-40</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_2">
+           <property name="geometry">
+            <rect>
+             <x>90</x>
+             <y>0</y>
+             <width>66</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>55</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_3">
+           <property name="geometry">
+            <rect>
+             <x>180</x>
+             <y>0</y>
+             <width>66</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>70</string>
+           </property>
+          </widget>
          </widget>
         </item>
        </layout>
@@ -247,7 +398,7 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>581</width>
+      <width>551</width>
       <height>571</height>
      </rect>
     </property>
