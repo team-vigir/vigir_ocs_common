@@ -1,0 +1,9 @@
+<library path="libvigir_ocs_rviz_plugin_selection_3d_tool_custom">
+  <class name="rviz/Selection3DToolCustom"
+         type="rviz::Selection3DToolCustom"
+         base_class_type="rviz::Tool">
+    <description>
+      Customized tool plugin for 3d selections.
+    </description>
+  </class>
+</library>

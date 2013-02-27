@@ -60,7 +60,7 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
 
   // Add support for selection
   //selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
-  selection_tool_ = manager_->getToolManager()->addTool( "rviz/SelectionToolCustom" );
+  selection_tool_ = manager_->getToolManager()->addTool( "rviz/ImageSelectionToolCustom" );
 
   manager_->getToolManager()->setCurrentTool( selection_tool_ );
 

@@ -27,6 +27,8 @@
   <export>
       <!--<rosdoc config="${prefix}/rosdoc.yaml"/>-->
       <rviz plugin="${prefix}/image_display_custom_plugin_description.xml"/>
-      <rviz plugin="${prefix}/selection_tool_custom_plugin_description.xml"/>
+      <rviz plugin="${prefix}/template_display_custom_plugin_description.xml"/>
+      <rviz plugin="${prefix}/image_selection_tool_custom_plugin_description.xml"/>
+      <rviz plugin="${prefix}/selection_3d_tool_custom_plugin_description.xml"/>
   </export>
 </package>

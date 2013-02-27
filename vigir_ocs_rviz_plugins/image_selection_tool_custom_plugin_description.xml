@@ -1,0 +1,9 @@
+<library path="libvigir_ocs_rviz_plugin_image_selection_tool_custom">
+  <class name="rviz/ImageSelectionToolCustom"
+         type="rviz::ImageSelectionToolCustom"
+         base_class_type="rviz::Tool">
+    <description>
+      Customized tool plugin for selections.
+    </description>
+  </class>
+</library>

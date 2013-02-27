@@ -1,0 +1,12 @@
+<library path="lib/libvigir_ocs_rqt_image_viewer_custom">
+  <class name="vigir_ocs_rqt_image_viewer_custom/ImageViewerCustom" type="vigir_ocs_rqt_image_viewer_custom::ImageViewerCustom" base_class_type="rqt_gui_cpp::Plugin">
+    <description>
+      A GUI plugin version of the image viewer custom widget.
+    </description>
+    <qtgui>
+      <label>Image Viewer Custom</label>
+      <icon type="theme">image-x-generic</icon>
+      <statustip>A GUI plugin version of image viewer custom</statustip>
+    </qtgui>
+  </class>
+</library>

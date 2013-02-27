@@ -66,6 +66,8 @@ Main3DView::Main3DView( QWidget* parent )
     move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
     // Add support for goal specification/vector navigation
     set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
+    // Add support for 3d selection
+    selection_3d_tool_ = manager_->getToolManager()->addTool( "rviz/Selection3DToolCustom" );
 
     // Make the interaction tool the currently selected one
     //manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
@@ -107,6 +109,8 @@ Main3DView::Main3DView( QWidget* parent )
     lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
     lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/scan_cloud_filtered" );
     lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+    
+		template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );;
 
     // Set topic that will be used as 0,0,0 -> reference for all the other transforms
     // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0

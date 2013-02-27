@@ -54,11 +54,13 @@ private:
   rviz::Display* laser_scan_;
   rviz::Display* lidar_point_cloud_viewer_;
   rviz::Display* stereo_point_cloud_viewer_;
+  rviz::Display* template_display_;
 
   rviz::Tool* interactive_markers_tool_;
   rviz::Tool* selection_tool_;
   rviz::Tool* move_camera_tool_;
   rviz::Tool* set_goal_tool_;
+  rviz::Tool* selection_3d_tool_;
 
 };
 #endif // MAIN_3D_VIEW_H

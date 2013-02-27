@@ -19,6 +19,12 @@
    </item>
    <item>
     <widget class="QWidget" name="ui_control" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="minimumSize">
       <size>
        <width>250</width>
@@ -135,6 +141,16 @@
        </widget>
       </item>
       <item>
+       <widget class="TemplateLoaderWidget" name="template_widget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>205</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="verticalSpacer">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
@@ -170,6 +186,12 @@
     <slot>vectorToggled(bool)</slot>
     <slot>stereoPointCloudToggled(bool)</slot>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>TemplateLoaderWidget</class>
+   <extends>QWidget</extends>
+   <header>ui/template_loader_widget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

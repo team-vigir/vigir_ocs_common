@@ -13,436 +13,222 @@
   <property name="windowTitle">
    <string>CameraViewerCustomWidget</string>
   </property>
-  <widget class="QWidget" name="centralWidget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>783</width>
-     <height>571</height>
-    </rect>
-   </property>
-   <widget class="QGroupBox" name="groupBox">
-    <property name="geometry">
-     <rect>
-      <x>552</x>
-      <y>0</y>
-      <width>251</width>
-      <height>531</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string/>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-    </property>
-    <layout class="QGridLayout" name="gridLayout_6">
-     <property name="sizeConstraint">
-      <enum>QLayout::SetFixedSize</enum>
+  <layout class="QHBoxLayout" name="horizontalLayout_3">
+   <item>
+    <widget class="CameraViewerCustom" name="widget" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
      </property>
-     <item row="0" column="0">
-      <widget class="QGroupBox" name="Selection_3">
-       <property name="title">
-        <string>Camera Selection</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-       </property>
-       <layout class="QGridLayout" name="gridLayout">
-        <property name="sizeConstraint">
-         <enum>QLayout::SetFixedSize</enum>
+     <property name="mouseTracking">
+      <bool>false</bool>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widget_2" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>250</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>250</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QGroupBox" name="Selection_3">
+        <property name="title">
+         <string>Camera Selection</string>
         </property>
-        <item row="0" column="0">
-         <widget class="QComboBox" name="comboBox_7">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="insertPolicy">
-           <enum>QComboBox::InsertAtTop</enum>
-          </property>
-          <item>
-           <property name="text">
-            <string>Head Camera - Left</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Head Camera - Right</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Hand Camera - Left</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Hand Camera - Right</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QGroupBox" name="groupBox_6">
-       <property name="title">
-        <string>Resolutions</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <property name="sizeConstraint">
-         <enum>QLayout::SetMinimumSize</enum>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
         </property>
-        <item row="0" column="0">
-         <widget class="QComboBox" name="comboBox_8">
-          <item>
-           <property name="text">
-            <string>Selected Area - Very High</string>
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetFixedSize</enum>
+         </property>
+         <item>
+          <widget class="QComboBox" name="comboBox_7">
+           <property name="enabled">
+            <bool>true</bool>
            </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Selected Area - High</string>
+           <property name="insertPolicy">
+            <enum>QComboBox::InsertAtTop</enum>
            </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Selected Area - Medium</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Selected Area - Low</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Selected Area - Very Low</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QComboBox" name="comboBox_9">
-          <property name="currentIndex">
-           <number>4</number>
-          </property>
-          <item>
-           <property name="text">
-            <string>Feed - Very High</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Feed - High</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Feed - Medium</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Feed - Low</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Feed - Very Low</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QGroupBox" name="groupBox_2">
-       <property name="title">
-        <string>Spindle Speed (deg/s)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_5">
-        <item row="0" column="0">
-         <widget class="QSlider" name="horizontalSlider_2">
-          <property name="maximum">
-           <number>1440</number>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="tickPosition">
-           <enum>QSlider::TicksBelow</enum>
-          </property>
-          <property name="tickInterval">
-           <number>288</number>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QWidget" name="widget_3" native="true">
-          <widget class="QLabel" name="label_7">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>66</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>0</string>
-           </property>
+           <item>
+            <property name="text">
+             <string>Head Camera - Left</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Head Camera - Right</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Hand Camera - Left</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Hand Camera - Right</string>
+            </property>
+           </item>
           </widget>
-          <widget class="QLabel" name="label_8">
-           <property name="geometry">
-            <rect>
-             <x>90</x>
-             <y>0</y>
-             <width>66</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>720</string>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_9">
-           <property name="geometry">
-            <rect>
-             <x>160</x>
-             <y>0</y>
-             <width>66</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>1440</string>
-           </property>
-          </widget>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QGroupBox" name="Mode_3">
-       <property name="title">
-        <string>Camera Speed</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <property name="sizeConstraint">
-         <enum>QLayout::SetDefaultConstraint</enum>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_6">
+        <property name="title">
+         <string>Resolutions</string>
         </property>
-        <item row="1" column="0">
-         <widget class="QComboBox" name="comboBox">
-          <property name="currentIndex">
-           <number>0</number>
-          </property>
-          <item>
-           <property name="text">
-            <string>Max FPS</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Medium FPS</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Low FPS</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Zero FPS</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QGroupBox" name="Orientation_3">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="title">
-        <string>Head Pitch (deg)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <widget class="QSlider" name="horizontalSlider">
-          <property name="minimum">
-           <number>-40</number>
-          </property>
-          <property name="maximum">
-           <number>70</number>
-          </property>
-          <property name="value">
-           <number>-40</number>
-          </property>
-          <property name="tracking">
-           <bool>true</bool>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="invertedAppearance">
-           <bool>false</bool>
-          </property>
-          <property name="tickPosition">
-           <enum>QSlider::TicksBelow</enum>
-          </property>
-          <property name="tickInterval">
-           <number>22</number>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QWidget" name="widget_2" native="true">
-          <widget class="QLabel" name="label">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>66</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>-40</string>
-           </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetMinimumSize</enum>
+         </property>
+         <item row="0" column="0">
+          <widget class="QComboBox" name="comboBox_8">
+           <item>
+            <property name="text">
+             <string>Selected Area - Very High</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Selected Area - High</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Selected Area - Medium</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Selected Area - Low</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Selected Area - Very Low</string>
+            </property>
+           </item>
           </widget>
-          <widget class="QLabel" name="label_2">
-           <property name="geometry">
-            <rect>
-             <x>90</x>
-             <y>0</y>
-             <width>66</width>
-             <height>17</height>
-            </rect>
+         </item>
+         <item row="1" column="0">
+          <widget class="QComboBox" name="comboBox_9">
+           <property name="currentIndex">
+            <number>4</number>
            </property>
-           <property name="font">
-            <font>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>55</string>
-           </property>
+           <item>
+            <property name="text">
+             <string>Feed - Very High</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Feed - High</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Feed - Medium</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Feed - Low</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Feed - Very Low</string>
+            </property>
+           </item>
           </widget>
-          <widget class="QLabel" name="label_3">
-           <property name="geometry">
-            <rect>
-             <x>180</x>
-             <y>0</y>
-             <width>66</width>
-             <height>17</height>
-            </rect>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="Mode_3">
+        <property name="title">
+         <string>Camera Speed</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetDefaultConstraint</enum>
+         </property>
+         <item>
+          <widget class="QComboBox" name="comboBox">
+           <property name="currentIndex">
+            <number>0</number>
            </property>
-           <property name="font">
-            <font>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>70</string>
-           </property>
+           <item>
+            <property name="text">
+             <string>Max FPS</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Medium FPS</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Low FPS</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Zero FPS</string>
+            </property>
+           </item>
           </widget>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="CameraViewerCustom" name="widget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>551</width>
-      <height>571</height>
-     </rect>
-    </property>
-    <property name="mouseTracking">
-     <bool>false</bool>
-    </property>
-    <property name="autoFillBackground">
-     <bool>false</bool>
-    </property>
-    <property name="styleSheet">
-     <string notr="true"/>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>800</width>
-     <height>25</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>4</width>
-     <height>13</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QStatusBar" name="statusBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>3</width>
-     <height>22</height>
-    </rect>
-   </property>
-  </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>321</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -464,12 +250,28 @@
   <connection>
    <sender>comboBox_7</sender>
    <signal>currentIndexChanged(int)</signal>
-   <receiver>widget</receiver>
-   <slot>changeCameraTopic(int)</slot>
+   <receiver>CameraViewerCustomWidget</receiver>
+   <slot>alterDisplay(int)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>682</x>
      <y>70</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>comboBox</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>widget</receiver>
+   <slot>changeCameraSpeed(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>682</x>
+     <y>256</y>
     </hint>
     <hint type="destinationlabel">
      <x>290</x>
@@ -510,34 +312,18 @@
    </hints>
   </connection>
   <connection>
-   <sender>comboBox</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>widget</receiver>
-   <slot>changeCameraSpeed(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>682</x>
-     <y>256</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>290</x>
-     <y>285</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>comboBox_7</sender>
    <signal>currentIndexChanged(int)</signal>
-   <receiver>CameraViewerCustomWidget</receiver>
-   <slot>alterDisplay(int)</slot>
+   <receiver>widget</receiver>
+   <slot>changeCameraTopic(int)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>682</x>
      <y>70</y>
     </hint>
     <hint type="destinationlabel">
-     <x>399</x>
-     <y>299</y>
+     <x>290</x>
+     <y>285</y>
     </hint>
    </hints>
   </connection>

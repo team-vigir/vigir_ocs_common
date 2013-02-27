@@ -1,0 +1,6 @@
+/**
+\mainpage
+\htmlinclude manifest.html
+
+\b vigir_ocs_rqt_image_viewer_custom creates an rqt plugin for the vigir_ocs_image_viewer_custom.
+*/

@@ -1,4 +1,4 @@
-<library path="libvigir_ocs_plugin_image_display_custom">
+<library path="libvigir_ocs_rviz_plugin_image_display_custom">
   <class name="rviz/ImageDisplayCustom"
          type="rviz::ImageDisplayCustom"
          base_class_type="rviz::Display">
@@ -6,11 +6,4 @@
       Customized image display plugin that renders the image directly into the main widget.
     </description>
   </class>
-  <!--<class name="rviz_plugin_tutorials/PlantFlag"
-         type="rviz_plugin_tutorials::PlantFlagTool"
-         base_class_type="rviz::Tool">
-    <description>
-      Tool for planting flags on the ground plane in rviz.
-    </description>
-  </class>-->
 </library>

@@ -3,7 +3,7 @@ project(vigir_ocs_rviz_plugins)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs pluginlib class_loader rviz)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz pluginlib class_loader)
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
@@ -15,14 +15,21 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 catkin_package(
   LIBRARIES
-    vigir_ocs_plugin_image_display_custom
-    vigir_ocs_plugin_selection_tool_custom
+    vigir_ocs_rviz_plugin_image_display_custom
+    vigir_ocs_rviz_plugin_template_display_custom
+    vigir_ocs_rviz_plugin_image_selection_tool_custom
+    vigir_ocs_rviz_plugin_selection_3d_tool_custom
   INCLUDE_DIRS
-    vigir_ocs_plugin_image_display_custom/src
-    vigir_ocs_plugin_selection_tool_custom/src  )
+    vigir_ocs_rviz_plugin_image_display_custom/src
+    vigir_ocs_rviz_plugin_template_display_custom/src
+    vigir_ocs_rviz_plugin_image_selection_tool_custom/src
+    vigir_ocs_rviz_plugin_selection_3d_tool_custom/src  )
 
-include_directories(vigir_ocs_plugin_image_display_custom/src
-	vigir_ocs_plugin_selection_tool_custom/src
+include_directories(
+	vigir_ocs_rviz_plugin_image_display_custom/src
+  vigir_ocs_rviz_plugin_template_display_custom/src
+	vigir_ocs_rviz_plugin_image_selection_tool_custom/src
+  vigir_ocs_rviz_plugin_selection_3d_tool_custom/src
 	${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM
@@ -30,12 +37,16 @@ include_directories(SYSTEM
                     
 link_directories(${catkin_LIBRARY_DIRS})
 
-add_subdirectory(vigir_ocs_plugin_image_display_custom)
-add_subdirectory(vigir_ocs_plugin_selection_tool_custom)
+add_subdirectory(vigir_ocs_rviz_plugin_image_display_custom)
+add_subdirectory(vigir_ocs_rviz_plugin_template_display_custom)
+add_subdirectory(vigir_ocs_rviz_plugin_image_selection_tool_custom)
+add_subdirectory(vigir_ocs_rviz_plugin_selection_3d_tool_custom)
 
 install(FILES
   image_display_custom_plugin_description.xml
-  selection_tool_custom_plugin_description.xml
+  template_display_custom_plugin_description.xml
+  image_selection_tool_custom_plugin_description.xml
+  selection_3d_tool_custom_plugin_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 #install(DIRECTORY icons DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
