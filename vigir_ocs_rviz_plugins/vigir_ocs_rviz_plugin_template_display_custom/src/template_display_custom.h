@@ -31,6 +31,7 @@
 #define RVIZ_ROBOT_MODEL_DISPLAY_H
 
 #include "rviz/display.h"
+#include <geometry_msgs/PoseStamped.h>
 
 #include <OGRE/OgreVector3.h>
 #include "OGRE/OgreRoot.h"
@@ -39,6 +40,7 @@
 #include "OGRE/OgreWindowEventUtilities.h"
 #include "OGRE/OgreManualObject.h"
 #include "OGRE/OgreEntity.h"
+#include <OGRE/OgreSceneNode.h>
 
 #include <map>
 
@@ -80,6 +82,9 @@ public:
 
   void clear();
 
+  virtual void processPoseChange(const geometry_msgs::PoseStamped::ConstPtr& pose);
+
+
 private Q_SLOTS:
   void updateVisualVisible();
   void updateCollisionVisible();
@@ -111,6 +116,12 @@ protected:
   StringProperty* robot_description_property_;
   FloatProperty* alpha_property_;
   StringProperty* tf_prefix_property_;
+
+  ros::NodeHandle nh_;
+  ros::Subscriber template_pose_;
+  Ogre::SceneNode* lNode_;
+
+
 };
 
 } // namespace rviz

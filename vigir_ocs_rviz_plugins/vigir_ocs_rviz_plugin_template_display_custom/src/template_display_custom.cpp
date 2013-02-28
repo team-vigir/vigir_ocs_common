@@ -68,6 +68,7 @@ TemplateDisplayCustom::TemplateDisplayCustom()
   : Display()
   , has_new_transforms_( false )
   , time_since_last_transform_( 0.0f )
+  , lNode_(NULL)
 {
   visual_enabled_property_ = new Property( "Visual Enabled", true,
                                            "Whether to display the visual representation of the robot.",
@@ -201,12 +202,17 @@ void TemplateDisplayCustom::load()
 	// create entity for mesh and attach it to the scene node
 	Ogre::String lNameOfTheMesh = "vehicle/steering_wheel_mm.mesh";
 	Ogre::Entity* lEntity = this->scene_manager_->createEntity(lNameOfTheMesh);
-	Ogre::SceneNode* lNode = this->scene_node_->createChildSceneNode();
-	lNode->attachObject(lEntity);
+    lNode_ = this->scene_node_->createChildSceneNode();
+    lNode_->attachObject(lEntity);
 	// change position and scale (from mm to m)
-	lNode->translate(1.0f, 0.0f, 0.0f);
-	lNode->scale(0.001f,0.001f,0.001f);
+    lNode_->setPosition(1.0f, 0.0f, 0.0f);
+    lNode_->scale(0.001f,0.001f,0.001f);
 	// The loaded mesh will be white. This is normal.
+
+    // then, subscribe to the topic that sets this templates pose
+    std::string template_pose_string = "/template_pose";//+lNameOfTheMesh; // stay generic for now
+    template_pose_ = nh_.subscribe<geometry_msgs::PoseStamped>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
+
 }
 
 void TemplateDisplayCustom::onEnable()
@@ -246,6 +252,24 @@ void TemplateDisplayCustom::reset()
 {
   Display::reset();
   has_new_transforms_ = true;
+}
+void TemplateDisplayCustom::processPoseChange(const geometry_msgs::PoseStamped::ConstPtr& pose)
+{
+//    printf(" Template pose change (%f, %f, %f) quat(%f, %f, %f, %f)\n",
+//             pose->pose.position.x,pose->pose.position.y,pose->pose.position.z,
+//             pose->pose.orientation.w,
+//             pose->pose.orientation.x,
+//             pose->pose.orientation.y,
+//             pose->pose.orientation.z );
+    lNode_->setPosition(pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
+    Ogre::Quaternion quat;
+    quat.w= pose->pose.orientation.w;
+    quat.x= pose->pose.orientation.x;
+    quat.y= pose->pose.orientation.y;
+    quat.z= pose->pose.orientation.z;
+
+    lNode_->setOrientation(quat);
+    context_->queueRender();
 }
 
 } // namespace rviz
