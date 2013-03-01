@@ -91,7 +91,7 @@ void Selection3DToolCustom::onInitialize()
 void Selection3DToolCustom::activate()
 {
   setStatus( "Click and drag to select objects on the screen." );
-  context_->getSelectionManager()->setTextureSize(512);
+  //context_->getSelectionManager()->setTextureSize(512);
   selecting_ = false;
   moving_ = false;
 //  context_->getSelectionManager()->enableInteraction(true);
@@ -99,17 +99,17 @@ void Selection3DToolCustom::activate()
 
 void Selection3DToolCustom::deactivate()
 {
-  context_->getSelectionManager()->removeHighlight();
+  //context_->getSelectionManager()->removeHighlight();
 }
 
 void Selection3DToolCustom::update(float wall_dt, float ros_dt)
 {
-  SelectionManager* sel_manager = context_->getSelectionManager();
+  //SelectionManager* sel_manager = context_->getSelectionManager();
 
-  if (!selecting_)
-  {
-    sel_manager->removeHighlight();
-  }
+  //if (!selecting_)
+  //{
+  //  sel_manager->removeHighlight();
+  //}
 }
 
 int Selection3DToolCustom::processMouseEvent( ViewportMouseEvent& event )
@@ -138,13 +138,13 @@ int Selection3DToolCustom::processMouseEvent( ViewportMouseEvent& event )
 
   if( selecting_ )
   {
-    sel_manager->highlight( event.viewport, sel_start_x_, sel_start_y_, event.x, event.y );
+    //sel_manager->highlight( event.viewport, sel_start_x_, sel_start_y_, event.x, event.y );
 
     if( event.leftUp() )
     {
-      SelectionManager::SelectType type = SelectionManager::Replace;
+      //SelectionManager::SelectType type = SelectionManager::Replace;
 
-      M_Picked selection;
+      //M_Picked selection;
 
       /*if( event.shift() )
       {
@@ -155,7 +155,7 @@ int Selection3DToolCustom::processMouseEvent( ViewportMouseEvent& event )
         type = SelectionManager::Remove;
       }*/
 
-      sel_manager->select( event.viewport, sel_start_x_, sel_start_y_, event.x, event.y, type );
+      //sel_manager->select( event.viewport, sel_start_x_, sel_start_y_, event.x, event.y, type );
       
       Q_EMIT select( sel_start_x_, sel_start_y_, event.x, event.y );
 
@@ -166,7 +166,7 @@ int Selection3DToolCustom::processMouseEvent( ViewportMouseEvent& event )
   }
   else if( moving_ )
   {
-    sel_manager->removeHighlight();
+    //sel_manager->removeHighlight();
 
     flags = move_tool_->processMouseEvent( event );
 
@@ -177,7 +177,7 @@ int Selection3DToolCustom::processMouseEvent( ViewportMouseEvent& event )
   }
   else
   {
-    sel_manager->highlight( event.viewport, event.x, event.y, event.x, event.y );
+    //sel_manager->highlight( event.viewport, event.x, event.y, event.x, event.y );
   }
 
   return flags;

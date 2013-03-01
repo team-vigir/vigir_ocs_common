@@ -69,19 +69,22 @@ Main3DView::Main3DView( QWidget* parent )
     // Add support for 3d selection
     selection_3d_tool_ = manager_->getToolManager()->addTool( "rviz/Selection3DToolCustom" );
 
-    // Make the interaction tool the currently selected one
-    //manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
-    manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
-
     // Add interactive markers Stefan's markers and IK implementation
-    interactive_marker_[0] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 1", true );
-    interactive_marker_[0]->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/update" );
-    interactive_marker_[1] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 2", true );
-    interactive_marker_[1]->subProp( "Update Topic" )->setValue( "/l_leg_pose_marker/update" );
-    interactive_marker_[2] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 3", true );
-    interactive_marker_[2]->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/update" );
-    interactive_marker_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
-    interactive_marker_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
+    interactive_marker_robot_[0] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 1", true );
+    interactive_marker_robot_[0]->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/update" );
+    interactive_marker_robot_[1] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 2", true );
+    interactive_marker_robot_[1]->subProp( "Update Topic" )->setValue( "/l_leg_pose_marker/update" );
+    interactive_marker_robot_[2] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 3", true );
+    interactive_marker_robot_[2]->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/update" );
+    interactive_marker_robot_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
+    interactive_marker_robot_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
+
+    // Add template marker
+    interactive_marker_template_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker template", true );
+    interactive_marker_template_->subProp( "Update Topic" )->setValue( "/template_pose_marker/update" );
+
+    // Make the move camera tool the currently selected one
+    manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
 
     // Create a LaserScan display.
     laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
@@ -110,7 +113,15 @@ Main3DView::Main3DView( QWidget* parent )
     lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/scan_cloud_filtered" );
     lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
     
-		template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );;
+    template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );;
+
+    selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );;
+
+    // connect the 3d selection tool to its display
+    QObject::connect(selection_3d_tool_, SIGNAL(select(int,int,int,int)), selection_3d_display_, SLOT(createMarker(int,int,int,int)));
+    QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
+
+    Q_EMIT setRenderPanel(this->render_panel_);
 
     // Set topic that will be used as 0,0,0 -> reference for all the other transforms
     // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
@@ -160,10 +171,42 @@ void Main3DView::selectToggled( bool selected )
         manager_->getToolManager()->setCurrentTool( selection_tool_ );
 }
 
-void Main3DView::markerToggled( bool selected )
+void Main3DView::select3DToggled( bool selected )
 {
     if(selected)
+        manager_->getToolManager()->setCurrentTool( selection_3d_tool_ );
+}
+
+void Main3DView::markerRobotToggled( bool selected )
+{
+    if(selected)
+    {
         manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
+
+        // enable robot IK markers
+        for( int i = 0; i < 4; i++ )
+        {
+            interactive_marker_robot_[i]->setEnabled( true );
+        }
+        // disable template marker
+        interactive_marker_template_->setEnabled( false );
+    }
+}
+
+void Main3DView::markerTemplateToggled( bool selected )
+{
+    if(selected)
+    {
+        manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
+
+        // disable robot IK markers
+        for( int i = 0; i < 4; i++ )
+        {
+            interactive_marker_robot_[i]->setEnabled( false );
+        }
+        // enable template markers
+        interactive_marker_template_->setEnabled( true );
+    }
 }
 
 void Main3DView::vectorToggled( bool selected )

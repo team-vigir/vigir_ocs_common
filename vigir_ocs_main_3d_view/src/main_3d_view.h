@@ -41,20 +41,27 @@ public Q_SLOTS:
   // tools
   void cameraToggled( bool );
   void selectToggled( bool );
-  void markerToggled( bool );
+  void select3DToggled( bool );
+  void markerRobotToggled( bool );
+  void markerTemplateToggled( bool );
   void vectorToggled( bool );
+
+Q_SIGNALS:
+  void setRenderPanel( rviz::RenderPanel* );
 
 private:
   rviz::VisualizationManager* manager_;
   rviz::RenderPanel* render_panel_;
 
   rviz::Display* robot_model_;
-  rviz::Display* interactive_marker_[4];
+  rviz::Display* interactive_marker_robot_[4];
+  rviz::Display* interactive_marker_template_;
   rviz::Display* marker_array_;
   rviz::Display* laser_scan_;
   rviz::Display* lidar_point_cloud_viewer_;
   rviz::Display* stereo_point_cloud_viewer_;
   rviz::Display* template_display_;
+  rviz::Display* selection_3d_display_;
 
   rviz::Tool* interactive_markers_tool_;
   rviz::Tool* selection_tool_;

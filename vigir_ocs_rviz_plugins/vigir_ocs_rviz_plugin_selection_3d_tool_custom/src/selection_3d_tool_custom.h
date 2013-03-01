@@ -64,7 +64,7 @@ public:
   virtual void update(float wall_dt, float ros_dt);
   
 Q_SIGNALS:
-	void select( int, int, int, int );
+    void select( int, int, int, int );
 
 private:
 

@@ -19,17 +19,20 @@ catkin_package(
     vigir_ocs_rviz_plugin_template_display_custom
     vigir_ocs_rviz_plugin_image_selection_tool_custom
     vigir_ocs_rviz_plugin_selection_3d_tool_custom
+    vigir_ocs_rviz_plugin_selection_3d_display_custom
   INCLUDE_DIRS
     vigir_ocs_rviz_plugin_image_display_custom/src
     vigir_ocs_rviz_plugin_template_display_custom/src
     vigir_ocs_rviz_plugin_image_selection_tool_custom/src
-    vigir_ocs_rviz_plugin_selection_3d_tool_custom/src  )
+    vigir_ocs_rviz_plugin_selection_3d_tool_custom/src
+    vigir_ocs_rviz_plugin_selection_3d_display_custom/src  )
 
 include_directories(
 	vigir_ocs_rviz_plugin_image_display_custom/src
-  vigir_ocs_rviz_plugin_template_display_custom/src
+	vigir_ocs_rviz_plugin_template_display_custom/src
 	vigir_ocs_rviz_plugin_image_selection_tool_custom/src
-  vigir_ocs_rviz_plugin_selection_3d_tool_custom/src
+	vigir_ocs_rviz_plugin_selection_3d_tool_custom/src
+	vigir_ocs_rviz_plugin_selection_3d_display_custom/src
 	${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM
@@ -41,12 +44,14 @@ add_subdirectory(vigir_ocs_rviz_plugin_image_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_template_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_image_selection_tool_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_selection_3d_tool_custom)
+add_subdirectory(vigir_ocs_rviz_plugin_selection_3d_display_custom)
 
 install(FILES
   image_display_custom_plugin_description.xml
   template_display_custom_plugin_description.xml
   image_selection_tool_custom_plugin_description.xml
   selection_3d_tool_custom_plugin_description.xml
+  selection_3d_display_custom_plugin_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 #install(DIRECTORY icons DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
