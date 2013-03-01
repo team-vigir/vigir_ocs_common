@@ -15,6 +15,7 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 catkin_package(
   LIBRARIES
+    vigir_ocs_rviz_plugin_camera_display_custom
     vigir_ocs_rviz_plugin_image_display_custom
     vigir_ocs_rviz_plugin_template_display_custom
     vigir_ocs_rviz_plugin_image_selection_tool_custom
@@ -22,6 +23,7 @@ catkin_package(
     vigir_ocs_rviz_plugin_selection_3d_display_custom
   INCLUDE_DIRS
     vigir_ocs_rviz_plugin_image_display_custom/src
+    vigir_ocs_rviz_plugin_camera_display_custom/src
     vigir_ocs_rviz_plugin_template_display_custom/src
     vigir_ocs_rviz_plugin_image_selection_tool_custom/src
     vigir_ocs_rviz_plugin_selection_3d_tool_custom/src
@@ -29,6 +31,7 @@ catkin_package(
 
 include_directories(
 	vigir_ocs_rviz_plugin_image_display_custom/src
+	vigir_ocs_rviz_plugin_camera_display_custom/src
 	vigir_ocs_rviz_plugin_template_display_custom/src
 	vigir_ocs_rviz_plugin_image_selection_tool_custom/src
 	vigir_ocs_rviz_plugin_selection_3d_tool_custom/src
@@ -40,6 +43,7 @@ include_directories(SYSTEM
                     
 link_directories(${catkin_LIBRARY_DIRS})
 
+add_subdirectory(vigir_ocs_rviz_plugin_camera_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_image_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_template_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_image_selection_tool_custom)
@@ -47,6 +51,7 @@ add_subdirectory(vigir_ocs_rviz_plugin_selection_3d_tool_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_selection_3d_display_custom)
 
 install(FILES
+  camera_display_custom_plugin_description.xml
   image_display_custom_plugin_description.xml
   template_display_custom_plugin_description.xml
   image_selection_tool_custom_plugin_description.xml

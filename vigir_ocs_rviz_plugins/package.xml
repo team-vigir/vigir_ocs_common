@@ -26,6 +26,7 @@
   <!-- The export tag contains other, unspecified, tags -->
   <export>
       <!--<rosdoc config="${prefix}/rosdoc.yaml"/>-->
+      <rviz plugin="${prefix}/camera_display_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/image_display_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/template_display_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/image_selection_tool_custom_plugin_description.xml"/>
