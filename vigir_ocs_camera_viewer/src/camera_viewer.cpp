@@ -47,10 +47,14 @@ CameraViewer::CameraViewer( QWidget* parent )
   manager_->initialize();
   manager_->startUpdate();
 
+    // Set topic that will be used as 0,0,0 -> reference for all the other transforms
+    // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
+    manager_->getFrameManager()->setFixedFrame("/pelvis");
+
   // Create a camera/image display.
   // can be both a camera or an image, the difference is that the camera has 3D content with it
-  // camera_viewer_ = manager_->createDisplay( "rviz/Camera", "Camera image", true );
-  camera_viewer_ = manager_->createDisplay( "rviz/Image", "Camera image", true );
+  camera_viewer_ = manager_->createDisplay( "rviz/Camera", "Camera image", true );
+  //camera_viewer_ = manager_->createDisplay( "rviz/Image", "Camera image", true );
   ROS_ASSERT( camera_viewer_ != NULL );
 
   // Set image topic
