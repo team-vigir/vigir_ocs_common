@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CameraViewerCustomWidget</class>
- <widget class="QWidget" name="CameraViewerCustomWidget">
+ <class>ImageViewerCustomWidget</class>
+ <widget class="QWidget" name="ImageViewerCustomWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>CameraViewerCustomWidget</string>
+   <string>ImageViewerCustomWidget</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -76,7 +76,7 @@
        <height>571</height>
       </size>
      </property>
-     <widget class="CameraViewerCustom" name="widget" native="true">
+     <widget class="ImageViewerCustom" name="widget" native="true">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -986,9 +986,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>CameraViewerCustom</class>
+   <class>ImageViewerCustom</class>
    <extends>QWidget</extends>
-   <header>camera_viewer_custom.h</header>
+   <header>image_viewer_custom.h</header>
    <container>1</container>
    <slots>
     <signal>setCameraTopic(int)</signal>

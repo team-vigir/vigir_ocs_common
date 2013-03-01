@@ -39,6 +39,7 @@
 
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreMovableObject.h>
 
 #include <urdf/model.h>
 
@@ -62,6 +63,7 @@ Selection3DDisplayCustom::Selection3DDisplayCustom()
   , has_new_transforms_( false )
   , time_since_last_transform_( 0.0f )
   , selection_marker_(NULL)
+  , mCurrentObject(NULL)
 {
 }
 
@@ -218,11 +220,16 @@ void Selection3DDisplayCustom::createMarker(int xo, int yo, int x, int y)
 
     // we calculate the smallest (> 0) distance
     float min_distance = 1E+37;
-    for( int i = 2; i < result.size(); i++ )
+    for( int i = 0; i < result.size(); i++ )
     {
         std::cout << "object picked [" << i << "] -> " << result[i].distance << std::endl;
         if( result[i].distance > 0 && result[i].distance < min_distance)
+        {
             min_distance = result[i].distance;
+            if(mCurrentObject)
+                mCurrentObject->showBoundingBox(false);
+            mCurrentObject = result[i].movable->getParentSceneNode();
+        }
     }
 
     // but we only care about the first real colision for setting the marker position
@@ -231,6 +238,7 @@ void Selection3DDisplayCustom::createMarker(int xo, int yo, int x, int y)
         Ogre::Vector3 position = mouseRay.getOrigin()+mouseRay.getDirection()*min_distance;
         std::cout << "object position: " << position.x << ", " << position.y << ", " << position.z << std::endl;
         selection_marker_->setPosition(position);
+        mCurrentObject->showBoundingBox(true);
     }
 
     selection_marker_->setVisible( true );

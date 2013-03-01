@@ -1,5 +1,5 @@
-#include "camera_viewer_custom_widget.h"
-#include "ui_camera_viewer_custom_widget.h"
+#include "image_viewer_custom_widget.h"
+#include "ui_image_viewer_custom_widget.h"
 #include "stdio.h"
 
 #include <iostream>
@@ -28,9 +28,9 @@ QObject* pitchParent;
 QPushButton* undoButton;
 QComboBox *actionBox;
 
-CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
+ImageViewerCustomWidget::ImageViewerCustomWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::CameraViewerCustomWidget)
+    ui(new Ui::ImageViewerCustomWidget)
 {
     ui->setupUi(this);
 
@@ -100,7 +100,7 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
     handBox->hide();
 }
 
-CameraViewerCustomWidget::~CameraViewerCustomWidget()
+ImageViewerCustomWidget::~ImageViewerCustomWidget()
 {
     delete ui;
 }
@@ -122,7 +122,7 @@ void sliderValues(int lockedValue)
   * 0 and 1 refer to the head cameras, while 2 and 3
   * refer to the hand cameras
   **/
-void CameraViewerCustomWidget::alterDisplay(int num)
+void ImageViewerCustomWidget::alterDisplay(int num)
 {
 
     if(num== 0 || num == 1)
@@ -150,7 +150,7 @@ void CameraViewerCustomWidget::alterDisplay(int num)
   * and updates the label so that the value is clearly
   * shown.
   **/
-void CameraViewerCustomWidget::updatePitch(int value)
+void ImageViewerCustomWidget::updatePitch(int value)
 {
 
 
@@ -166,7 +166,7 @@ void CameraViewerCustomWidget::updatePitch(int value)
   * and updates the title so that the value is clearly
   * shown.
   **/
-void CameraViewerCustomWidget::updateFeedFPS(int fps)
+void ImageViewerCustomWidget::updateFeedFPS(int fps)
 {
 
 
@@ -191,7 +191,7 @@ void CameraViewerCustomWidget::updateFeedFPS(int fps)
   * slider and updates the title so that the value is clearly
   * shown.
   **/
-void CameraViewerCustomWidget::updateSelectedFPS(int fps)
+void ImageViewerCustomWidget::updateSelectedFPS(int fps)
 {
 
     std::string newTitle = "Selected Area Rate: ";
@@ -213,7 +213,7 @@ void CameraViewerCustomWidget::updateSelectedFPS(int fps)
   * on the scan button changes. Later on, it
   * should toggle the scan behavior.
   **/
-void CameraViewerCustomWidget::scan()
+void ImageViewerCustomWidget::scan()
 {
     if(scanButton->text() == "Start Scanning")
     {
@@ -233,7 +233,7 @@ void CameraViewerCustomWidget::scan()
   * soon as "Locked" is checked, the values are made
   * to be the same.
   **/
-void CameraViewerCustomWidget::isLocked()
+void ImageViewerCustomWidget::isLocked()
 {
 
     if(lockBox->isChecked())

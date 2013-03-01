@@ -461,10 +461,10 @@ void ImageDisplayCustom::changeCropImageResolution( int t )
 
 void ImageDisplayCustom::changeCameraSpeed( int t )
 {
-    std::cout << "Camera speed changed:" << (15.0f/(float)pow(3,t)) << std::endl;
+    std::cout << "Camera speed changed:" << t << std::endl;//(15.0f/(float)pow(3,t)) << std::endl;
 
     if(t != 3)
-        publish_frequency_ = 15.0f/(float)pow(3,t); // 15 or whatever the max fps is
+        publish_frequency_ = t;//15.0f/(float)pow(3,t); // 15 or whatever the max fps is
     else
         publish_frequency_ = 0.0f;
 

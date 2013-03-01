@@ -1,5 +1,5 @@
-#ifndef CameraViewerCustomWidget_H
-#define CameraViewerCustomWidget_H
+#ifndef ImageViewerCustomWidget_H
+#define ImageViewerCustomWidget_H
 
 
 #include <QMainWindow>
@@ -12,19 +12,19 @@
 
 
 namespace Ui {
-class CameraViewerCustomWidget;
+class ImageViewerCustomWidget;
 }
 
-class CameraViewerCustomWidget : public QWidget
+class ImageViewerCustomWidget : public QWidget
 {
     Q_OBJECT
     
 public:
-    explicit CameraViewerCustomWidget(QWidget *parent = 0);
-    ~CameraViewerCustomWidget();
+    explicit ImageViewerCustomWidget(QWidget *parent = 0);
+    ~ImageViewerCustomWidget();
     
 private:
-    Ui::CameraViewerCustomWidget*ui;
+    Ui::ImageViewerCustomWidget*ui;
 
 public Q_SLOTS:
     void alterDisplay(int);
@@ -37,4 +37,4 @@ public Q_SLOTS:
 
 };
 
-#endif // CameraViewerCustomWidget_H
+#endif // ImageViewerCustomWidget_H
