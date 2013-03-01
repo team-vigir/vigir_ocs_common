@@ -1,0 +1,30 @@
+#include "jointlist.h"
+#include <QVBoxLayout>
+#include <ros/ros.h>
+
+jointList::jointList(QWidget *parent) :
+    QWidget(parent)
+{
+    QVBoxLayout* main_layout = new QVBoxLayout;
+    main_layout->addWidget(jointTable);
+    setLayout(main_layout);
+    ros::NodeHandle nh;
+    joint_states = nh.subscribe<sensor_msgs::JointState>( "/atlas/joint_states", 2, &jointList::updateList, this );
+
+    ros::spinOnce();
+}
+
+jointList::~jointList()
+{
+    //delete ui;
+}
+
+void jointList::updateList( const sensor_msgs::JointStateConstPtr& joint_states )
+{
+    std::cout<< "Recieved Message" << std::endl;
+
+
+
+
+
+}
