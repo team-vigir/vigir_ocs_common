@@ -95,7 +95,7 @@ MapView::MapView( QWidget* parent )
     marker_array_ = manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
     ROS_ASSERT( marker_array_ != NULL );
 
-    marker_array_->subProp( "Marker Topic" )->setValue( "/occupied_cells_vis_array" );
+    marker_array_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
 
     // Create a point cloud display.
     stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
@@ -111,7 +111,7 @@ MapView::MapView( QWidget* parent )
     lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
 
 
-    template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );;
+    template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
 
     // Set topic that will be used as 0,0,0 -> reference for all the other transforms
     // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
