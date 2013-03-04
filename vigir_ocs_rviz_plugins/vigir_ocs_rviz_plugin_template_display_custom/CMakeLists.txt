@@ -1,7 +1,7 @@
 # Convert the Qt Signals and Slots for QWidget events
 qt4_wrap_cpp(MOC_SOURCES src/template_display_custom.h)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR} /opt/vigir/vigir_sandbox/vigir_ocs_msg2/msg_gen/cpp/include)# /opt/vigir/vigir_perception/vigir_perception_msgs/msg_gen/cpp/include)
+include_directories(${CMAKE_CURRENT_BINARY_DIR} )# /opt/vigir/vigir_perception/vigir_perception_msgs/msg_gen/cpp/include)
 
 set(VIGIR_IMAGE_CUSTOM_LIB_NAME vigir_ocs_rviz_plugin_template_display_custom)
 

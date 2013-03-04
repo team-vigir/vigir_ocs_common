@@ -33,8 +33,8 @@
 #include "rviz/display.h"
 #include <geometry_msgs/PoseStamped.h>
 
-#include "vigir_ocs_msg2/OCSTemplateList.h"
-#include "vigir_ocs_msg2/OCSTemplateUpdate.h"
+#include <vigir_ocs_msg2/OCSTemplateList.h>
+#include <vigir_ocs_msg2/OCSTemplateUpdate.h>
 
 #include <OGRE/OgreVector3.h>
 #include "OGRE/OgreRoot.h"
