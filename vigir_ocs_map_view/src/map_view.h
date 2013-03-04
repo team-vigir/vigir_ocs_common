@@ -52,6 +52,7 @@ private:
   rviz::Display* laser_scan_;
   rviz::Display* lidar_point_cloud_viewer_;
   rviz::Display* stereo_point_cloud_viewer_;
+  rviz::Display* template_display_;
 
   rviz::Tool* interactive_markers_tool_;
   rviz::Tool* selection_tool_;

@@ -3,10 +3,14 @@ project(vigir_ocs_map_view)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_rviz_plugins)
 
 ## Declare things to be passed to other projects
-catkin_package()
+catkin_package(	
+	INCLUDE_DIRS src
+	LIBRARIES ${PROJECT_NAME} 
+	CATKIN_DEPENDS roscpp rospy std_msgs rviz
+)
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
@@ -50,7 +54,10 @@ set(SOURCE_FILES
 include_directories(include ${catkin_INCLUDE_DIRS} ../build/vigir_ocs_map_view src)
 
 add_executable(map_view ${UIC_FILES} ${SOURCE_FILES})
-target_link_libraries(map_view ${catkin_LIBRARIES} ${QT_LIBRARIES} /opt/ros/groovy/lib/librviz.so)
+target_link_libraries(map_view ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_executable(map_view_widget ${SOURCE_FILES_WIDGET})
-target_link_libraries(map_view_widget ${catkin_LIBRARIES} ${QT_LIBRARIES} /opt/ros/groovy/lib/librviz.so)
+target_link_libraries(map_view_widget ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})

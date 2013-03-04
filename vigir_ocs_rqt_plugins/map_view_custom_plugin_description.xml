@@ -1,0 +1,14 @@
+<library path="libvigir_ocs_rqt_plugin_map_view_custom">
+  <class name="rqt/MapViewCustom" 
+  	     type="rqt::MapViewCustom" 
+  	     base_class_type="rqt_gui_cpp::Plugin">
+    <description>
+      A GUI plugin version of the map view custom widget.
+    </description>
+    <qtgui>
+      <label>Map View Custom</label>
+      <icon type="theme">image-x-generic</icon>
+      <statustip>A GUI plugin version of map view custom</statustip>
+    </qtgui>
+  </class>
+</library>

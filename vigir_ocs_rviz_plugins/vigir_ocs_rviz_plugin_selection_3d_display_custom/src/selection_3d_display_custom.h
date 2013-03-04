@@ -1,4 +1,14 @@
 /*
+ * Selection3DDisplayCustom declarion.
+ *
+ * Author: Felipe Bacim.
+ *
+ * Based on the rviz image display class.
+ *
+ * Latest changes (12/11/2012):
+ * - fixed segfault issues
+ */
+/*
  * Copyright (c) 2008, Willow Garage, Inc.
  * All rights reserved.
  *
@@ -41,6 +51,7 @@
 #include "OGRE/OgreManualObject.h"
 #include "OGRE/OgreEntity.h"
 #include <OGRE/OgreSceneNode.h>
+#include "raycast_utils.h"
 
 #include <map>
 
@@ -61,7 +72,7 @@ namespace rviz
 
 /**
  * \class Selection3DDisplayCustom
- * \brief Uses a robot xml description to display the pieces of a robot at the transforms broadcast by rosTF
+ * \brief Uses the window mouse information to create a selection marker
  */
 class Selection3DDisplayCustom: public Display
 {
@@ -78,6 +89,8 @@ public:
 
   void clear();
 
+Q_SIGNALS:
+  void newSelection(Ogre::Vector3);
 
 private Q_SLOTS:
   void updateVisualVisible();
@@ -86,19 +99,17 @@ private Q_SLOTS:
   void updateAlpha();
   void updateRobotDescription();
   void createMarker(int, int, int, int);
+  void createMarker(int, int);
   void setRenderPanel(rviz::RenderPanel*);
 
 protected:
-  /** @brief Loads a URDF from the ros-param named by our
-   * "Robot Description" property, iterates through the links, and
-   * loads any necessary models. */
   virtual void load();
 
   // overrides from Display
   virtual void onEnable();
   virtual void onDisable();
 
-  bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
+  //bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
 
   float time_since_last_transform_;
 
@@ -107,10 +118,9 @@ protected:
   
   Ogre::SceneNode* selection_marker_;
 
-  Ogre::SceneNode* mCurrentObject;	//pointer to our currently selected object
-  Ogre::RaySceneQuery* mRayScnQuery;	//pointer to our ray scene query
-
   RenderPanel* render_panel_;
+
+  RayCastUtils* raycast_utils_;
 };
 
 } // namespace rviz

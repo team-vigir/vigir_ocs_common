@@ -1,4 +1,4 @@
-/* 
+/*
  * Main3DView class implementation.
  *
  * Author: Felipe Bacim.
@@ -19,6 +19,10 @@
 #include "rviz/frame_manager.h"
 #include "rviz/tool_manager.h"
 #include "main_3d_view.h"
+
+#include "vigir_ocs_msg2/OCSTemplateAdd.h"
+#include "vigir_ocs_msg2/OCSTemplateList.h"
+#include "vigir_ocs_msg2/OCSTemplateUpdate.h"
 
 // Constructor for Main3DView.  This does most of the work of the class.
 Main3DView::Main3DView( QWidget* parent )
@@ -119,13 +123,18 @@ Main3DView::Main3DView( QWidget* parent )
 
     // connect the 3d selection tool to its display
     QObject::connect(selection_3d_tool_, SIGNAL(select(int,int,int,int)), selection_3d_display_, SLOT(createMarker(int,int,int,int)));
+    //QObject::connect(this, SIGNAL(rightClickEvent(int,int)), selection_3d_display_, SLOT(createMarker(int,int)));
     QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
+    QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
 
     Q_EMIT setRenderPanel(this->render_panel_);
 
     // Set topic that will be used as 0,0,0 -> reference for all the other transforms
     // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
     manager_->getFrameManager()->setFixedFrame("/pelvis");
+
+    // also create a publisher to add templates
+    template_add_pub_   = n_.advertise<vigir_ocs_msg2::OCSTemplateAdd>( "/template/add", 1, false );
 }
 
 // Destructor.
@@ -213,4 +222,45 @@ void Main3DView::vectorToggled( bool selected )
 {
     if(selected)
         manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
+}
+
+void Main3DView::newSelection( Ogre::Vector3 position )
+{
+    selection_position_ = position;
+}
+
+void Main3DView::insertTemplate( QString path )
+{
+    std::cout << "adding template" << std::endl;
+
+    vigir_ocs_msg2::OCSTemplateAdd cmd;
+    geometry_msgs::Pose pose;
+
+    cmd.template_path = path.toStdString();
+
+    pose.position.x = selection_position_.x;
+    pose.position.y = selection_position_.y;
+    pose.position.z = selection_position_.z;
+    pose.orientation.x = 0;
+    pose.orientation.y = 0;
+    pose.orientation.z = 1;
+    pose.orientation.w = 0;
+    cmd.pose = pose;
+
+    // publish complete list of templates and poses
+    template_add_pub_.publish( cmd );
+}
+
+void Main3DView::mousePressEvent ( QMouseEvent * e )
+{
+    std::cout << "mouse" << std::endl;
+    if( e->button() == Qt::RightButton )
+    {
+        Q_EMIT rightClickEvent(e->x(),e->y());
+    }
+}
+
+void Main3DView::mouseReleaseEvent ( QMouseEvent * e )
+{
+    // do nothing
 }

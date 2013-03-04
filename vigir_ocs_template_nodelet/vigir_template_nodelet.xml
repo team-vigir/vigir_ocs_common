@@ -1,0 +1,8 @@
+<!-- OpenNI driver nodelet publisher -->
+<library path="libvigir_ocs_template_nodelet">
+  <class name="vigir_ocs_template_nodelet/TemplateNodelet" type="ocs_template::TemplateNodelet" base_class_type="nodelet::Nodelet">
+    <description>
+      Template nodelet
+    </description>
+  </class>
+</library>

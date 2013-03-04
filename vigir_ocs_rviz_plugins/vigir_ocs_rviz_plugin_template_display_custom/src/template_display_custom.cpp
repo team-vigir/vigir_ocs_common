@@ -68,7 +68,7 @@ TemplateDisplayCustom::TemplateDisplayCustom()
   : Display()
   , has_new_transforms_( false )
   , time_since_last_transform_( 0.0f )
-  , lNode_(NULL)
+  //, lNode_(NULL)
 {
   visual_enabled_property_ = new Property( "Visual Enabled", true,
                                            "Whether to display the visual representation of the robot.",
@@ -199,7 +199,7 @@ void TemplateDisplayCustom::load()
 	// as well as from the Ogre::MeshManager. A shared pointer to
 	// it can be accessed by : Ogre::MeshManager::getSingleton().getByName(name_of_the_mesh);
 
-	// create entity for mesh and attach it to the scene node
+    /*// create entity for mesh and attach it to the scene node
 	Ogre::String lNameOfTheMesh = "vehicle/steering_wheel_mm.mesh";
 	Ogre::Entity* lEntity = this->scene_manager_->createEntity(lNameOfTheMesh);
     lNode_ = this->scene_node_->createChildSceneNode();
@@ -207,11 +207,14 @@ void TemplateDisplayCustom::load()
 	// change position and scale (from mm to m)
     lNode_->setPosition(1.0f, 0.0f, 0.0f);
     lNode_->scale(0.001f,0.001f,0.001f);
-	// The loaded mesh will be white. This is normal.
+    // The loaded mesh will be white. This is normal.*/
 
     // then, subscribe to the topic that sets this templates pose
     std::string template_pose_string = "/template_pose";//+lNameOfTheMesh; // stay generic for now
-    template_pose_ = nh_.subscribe<geometry_msgs::PoseStamped>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
+    template_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
+
+    // subscribe to the topic to load all templates
+    template_list_sub_ = nh_.subscribe<vigir_ocs_msg2::OCSTemplateList>( "/template/list", 5, &TemplateDisplayCustom::processTemplateList, this );
 
 }
 
@@ -253,6 +256,7 @@ void TemplateDisplayCustom::reset()
   Display::reset();
   has_new_transforms_ = true;
 }
+
 void TemplateDisplayCustom::processPoseChange(const geometry_msgs::PoseStamped::ConstPtr& pose)
 {
 //    printf(" Template pose change (%f, %f, %f) quat(%f, %f, %f, %f)\n",
@@ -261,15 +265,63 @@ void TemplateDisplayCustom::processPoseChange(const geometry_msgs::PoseStamped::
 //             pose->pose.orientation.x,
 //             pose->pose.orientation.y,
 //             pose->pose.orientation.z );
-    lNode_->setPosition(pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
+    template_node_list_[0]->setPosition(pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
     Ogre::Quaternion quat;
     quat.w= pose->pose.orientation.w;
     quat.x= pose->pose.orientation.x;
     quat.y= pose->pose.orientation.y;
     quat.z= pose->pose.orientation.z;
 
-    lNode_->setOrientation(quat);
+    template_node_list_[0]->setOrientation(quat);
     context_->queueRender();
 }
+
+void TemplateDisplayCustom::addTemplate(std::string path, Ogre::Vector3 pos, Ogre::Quaternion quat)
+{
+    // create entity for mesh and attach it to the scene node
+    Ogre::Entity* lEntity = this->scene_manager_->createEntity(path);
+    Ogre::SceneNode* lNode = this->scene_node_->createChildSceneNode();
+    lNode->attachObject(lEntity);
+    // change position and scale (from mm to m)
+    lNode->setPosition(pos);
+    lNode->setOrientation(quat);
+    lNode->scale(0.001f,0.001f,0.001f);
+    // The loaded mesh will be white. This is normal.
+    template_node_list_.push_back(lNode);
+}
+
+void TemplateDisplayCustom::processTemplateList(const vigir_ocs_msg2::OCSTemplateList::ConstPtr& msg)
+{
+    for(int i = 0; i < msg->template_list.size(); i++)
+    {
+        std::cout << "Template: " << msg->template_list[i] << std::endl;
+
+        Ogre::Vector3 pos;
+        pos.x = msg->pose[i].position.x;
+        pos.y = msg->pose[i].position.y;
+        pos.z = msg->pose[i].position.z;
+        Ogre::Quaternion quat;
+        quat.w= msg->pose[i].orientation.w;
+        quat.x= msg->pose[i].orientation.x;
+        quat.y= msg->pose[i].orientation.y;
+        quat.z= msg->pose[i].orientation.z;
+
+        // if i is outside boundaries, add to lists
+        if(i >= template_list_.size())
+        {
+            std::string path = msg->template_list[i];
+            addTemplate(path,pos,quat);
+            template_list_.push_back(path);
+        }
+        else // just update position
+        {
+            template_node_list_[i]->setPosition(pos);
+            template_node_list_[i]->setOrientation(quat);
+        }
+    }
+    //template_list_
+    //msg->template_list;
+}
+
 
 } // namespace rviz

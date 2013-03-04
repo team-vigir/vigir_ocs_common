@@ -7,9 +7,9 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_rvi
 
 ## Declare things to be passed to other projects
 catkin_package(	
-	INCLUDE_DIRS src
+	INCLUDE_DIRS /opt/vigir/vigir_sandbox/vigir_ocs_msg2/msg_gen/cpp/include src
 	LIBRARIES ${PROJECT_NAME} 
-	CATKIN_DEPENDS roscpp rospy std_msgs rviz vigir_ocs_rviz_plugins vigir_ocs_template_loader
+	CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs rviz vigir_ocs_rviz_plugins vigir_ocs_template_loader 
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
@@ -51,7 +51,7 @@ set(SOURCE_FILES
   ${MOC_FILES}
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS} ../build/vigir_ocs_main_3d_view src)
+include_directories(/opt/vigir/vigir_sandbox/vigir_ocs_msg2/msg_gen/cpp/include ${catkin_INCLUDE_DIRS} ../build/vigir_ocs_main_3d_view src)
 
 add_executable(main_3d_view ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(main_3d_view ${catkin_LIBRARIES} ${QT_LIBRARIES})

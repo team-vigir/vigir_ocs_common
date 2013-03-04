@@ -33,6 +33,9 @@
 #include "rviz/display.h"
 #include <geometry_msgs/PoseStamped.h>
 
+#include "vigir_ocs_msg2/OCSTemplateList.h"
+#include "vigir_ocs_msg2/OCSTemplateUpdate.h"
+
 #include <OGRE/OgreVector3.h>
 #include "OGRE/OgreRoot.h"
 #include "OGRE/OgreRenderSystem.h"
@@ -43,6 +46,7 @@
 #include <OGRE/OgreSceneNode.h>
 
 #include <map>
+#include <vector>
 
 namespace Ogre
 {
@@ -82,8 +86,8 @@ public:
 
   void clear();
 
-  virtual void processPoseChange(const geometry_msgs::PoseStamped::ConstPtr& pose);
-
+  void processPoseChange(const geometry_msgs::PoseStamped::ConstPtr& pose);
+  void processTemplateList(const vigir_ocs_msg2::OCSTemplateList::ConstPtr& msg);
 
 private Q_SLOTS:
   void updateVisualVisible();
@@ -102,8 +106,6 @@ protected:
   virtual void onEnable();
   virtual void onDisable();
 
-  //Robot* robot_;                 ///< Handles actually drawing the robot
-
   bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
 
   float time_since_last_transform_;
@@ -117,10 +119,15 @@ protected:
   FloatProperty* alpha_property_;
   StringProperty* tf_prefix_property_;
 
-  ros::NodeHandle nh_;
-  ros::Subscriber template_pose_;
-  Ogre::SceneNode* lNode_;
+private:
+  void addTemplate(std::string path, Ogre::Vector3 pos, Ogre::Quaternion quat);
 
+  ros::NodeHandle nh_;
+  ros::Subscriber template_pose_sub_;
+  ros::Subscriber template_list_sub_;
+
+  std::vector<std::string> template_list_;
+  std::vector<Ogre::SceneNode*> template_node_list_;
 
 };
 

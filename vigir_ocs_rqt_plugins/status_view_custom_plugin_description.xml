@@ -1,0 +1,14 @@
+<library path="libvigir_ocs_rqt_plugin_status_view_custom">
+  <class name="rqt/StatusViewCustom" 
+  	     type="rqt::StatusViewCustom" 
+  	     base_class_type="rqt_gui_cpp::Plugin">
+    <description>
+      A GUI plugin version of the status view custom widget.
+    </description>
+    <qtgui>
+      <label>Status View Custom</label>
+      <icon type="theme">image-x-generic</icon>
+      <statustip>A GUI plugin version of status view custom</statustip>
+    </qtgui>
+  </class>
+</library>

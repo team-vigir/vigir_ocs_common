@@ -13,6 +13,14 @@
 #define MAIN_3D_VIEW_H
 
 #include <QWidget>
+#include <QMouseEvent>
+#include <OGRE/OgreVector3.h>
+
+#include <ros/ros.h>
+
+#include <geometry_msgs/Pose.h>
+
+#include <string>
 
 namespace rviz
 {
@@ -26,48 +34,61 @@ class FrameManager;
 // Class "Main3DView" implements the RobotModel class with joint manipulation that can be added to any QT application.
 class Main3DView: public QWidget
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-  Main3DView( QWidget* parent = 0 );
-  virtual ~Main3DView();
+    Main3DView( QWidget* parent = 0 );
+    virtual ~Main3DView();
 
 public Q_SLOTS:
-  // displays
-  void robotModelToggled( bool );
-  void lidarPointCloudToggled( bool );
-  void stereoPointCloudToggled( bool );
-  void laserScanToggled( bool );
-  void markerArrayToggled( bool );
-  // tools
-  void cameraToggled( bool );
-  void selectToggled( bool );
-  void select3DToggled( bool );
-  void markerRobotToggled( bool );
-  void markerTemplateToggled( bool );
-  void vectorToggled( bool );
+    // displays
+    void robotModelToggled( bool );
+    void lidarPointCloudToggled( bool );
+    void stereoPointCloudToggled( bool );
+    void laserScanToggled( bool );
+    void markerArrayToggled( bool );
+    // tools
+    void cameraToggled( bool );
+    void selectToggled( bool );
+    void select3DToggled( bool );
+    void markerRobotToggled( bool );
+    void markerTemplateToggled( bool );
+    void vectorToggled( bool );
+
+    void newSelection( Ogre::Vector3 );
+    void insertTemplate( QString );
 
 Q_SIGNALS:
-  void setRenderPanel( rviz::RenderPanel* );
+    void setRenderPanel( rviz::RenderPanel* );
+    void rightClickEvent( int, int );
+
+protected:
+    void mouseReleaseEvent ( QMouseEvent * e );
+    void mousePressEvent ( QMouseEvent * e );
 
 private:
-  rviz::VisualizationManager* manager_;
-  rviz::RenderPanel* render_panel_;
+    rviz::VisualizationManager* manager_;
+    rviz::RenderPanel* render_panel_;
 
-  rviz::Display* robot_model_;
-  rviz::Display* interactive_marker_robot_[4];
-  rviz::Display* interactive_marker_template_;
-  rviz::Display* marker_array_;
-  rviz::Display* laser_scan_;
-  rviz::Display* lidar_point_cloud_viewer_;
-  rviz::Display* stereo_point_cloud_viewer_;
-  rviz::Display* template_display_;
-  rviz::Display* selection_3d_display_;
+    rviz::Display* robot_model_;
+    rviz::Display* interactive_marker_robot_[4];
+    rviz::Display* interactive_marker_template_;
+    rviz::Display* marker_array_;
+    rviz::Display* laser_scan_;
+    rviz::Display* lidar_point_cloud_viewer_;
+    rviz::Display* stereo_point_cloud_viewer_;
+    rviz::Display* template_display_;
+    rviz::Display* selection_3d_display_;
 
-  rviz::Tool* interactive_markers_tool_;
-  rviz::Tool* selection_tool_;
-  rviz::Tool* move_camera_tool_;
-  rviz::Tool* set_goal_tool_;
-  rviz::Tool* selection_3d_tool_;
+    rviz::Tool* interactive_markers_tool_;
+    rviz::Tool* selection_tool_;
+    rviz::Tool* move_camera_tool_;
+    rviz::Tool* set_goal_tool_;
+    rviz::Tool* selection_3d_tool_;
 
+    Ogre::Vector3 selection_position_;
+
+    ros::NodeHandle n_;
+
+    ros::Publisher template_add_pub_;
 };
 #endif // MAIN_3D_VIEW_H

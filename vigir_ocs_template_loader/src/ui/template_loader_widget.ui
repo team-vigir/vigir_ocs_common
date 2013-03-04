@@ -97,8 +97,25 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>pressed()</signal>
+   <receiver>TemplateLoaderWidget</receiver>
+   <slot>insertButtonPressed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>70</x>
+     <y>177</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>124</x>
+     <y>99</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>treeItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)</slot>
+  <slot>insertButtonPressed()</slot>
  </slots>
 </ui>

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>vigir_ocs_integration_test</name>
-  <version>0.0.0</version>
-  <description>The vigir_ocs_integration_test package</description>
+  <name>vigir_ocs_template_nodelet</name>
+  <version>0.1.0</version>
+  <description>The OCS template nodelet package</description>
   <maintainer email="fbacim@vt.edu">Felipe Bacim</maintainer>
   <license>TORC</license>
   <author email="fbacim@vt.edu">Felipe Bacim</author>
@@ -10,17 +10,19 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
+  <build_depend>pluginlib</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>nodelet</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
+  <run_depend>pluginlib</run_depend>
   <run_depend>std_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>nodelet</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <!-- You can specify that this package is a metapackage here: -->
-    <!-- <metapackage/> -->
-    
-    <!-- Other tools can request additional information be placed here -->
-
+	<nodelet plugin="${prefix}/vigir_template_nodelet.xml" />
   </export>
 </package>

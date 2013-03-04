@@ -1,11 +1,11 @@
-#include <vigir_ocs_rqt_image_viewer_custom/image_viewer_custom.h>
+#include <image_viewer_custom.h>
 
 #include <pluginlib/class_list_macros.h>
 
 #include <QCloseEvent>
 #include <QMenuBar>
 
-namespace vigir_ocs_rqt_image_viewer_custom {
+namespace rqt {
 
 ImageViewerCustom::ImageViewerCustom()
   : rqt_gui_cpp::Plugin()
@@ -23,13 +23,7 @@ void ImageViewerCustom::initPlugin(qt_gui_cpp::PluginContext& context)
 {
   context_ = &context;
 
-  widget_ = new CameraViewerCustomWidget();
-
-  /*widget_->setWindowTitle("CameraViewerCustom");
-  if (context.serialNumber() != 1)
-  {
-    widget_->setWindowTitle(widget_->windowTitle() + " (" + QString::number(context.serialNumber()) + ")");
-  }*/
+  widget_ = new ImageViewerCustomWidget();
   context.addWidget(widget_);
 
   // trigger deleteLater for plugin when widget or frame is closed
@@ -50,4 +44,4 @@ bool ImageViewerCustom::eventFilter(QObject* watched, QEvent* event)
 
 }
 
-PLUGINLIB_EXPORT_CLASS(vigir_ocs_rqt_image_viewer_custom::ImageViewerCustom, rqt_gui_cpp::Plugin)
+PLUGINLIB_EXPORT_CLASS(rqt::ImageViewerCustom, rqt_gui_cpp::Plugin)

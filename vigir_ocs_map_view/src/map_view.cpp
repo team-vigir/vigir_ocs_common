@@ -110,6 +110,9 @@ MapView::MapView( QWidget* parent )
     lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/scan_cloud_filtered" );
     lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
 
+
+    template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );;
+
     // Set topic that will be used as 0,0,0 -> reference for all the other transforms
     // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
     manager_->getFrameManager()->setFixedFrame("/pelvis");

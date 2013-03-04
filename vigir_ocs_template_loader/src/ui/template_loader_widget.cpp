@@ -80,7 +80,7 @@ void TemplateLoaderWidget::treeItemChanged(QTreeWidgetItem * current, QTreeWidge
 
         ui->widget->setStyleSheet(QString("image:url('")+url+QString("');"));
 
-        templatePath = url;
+        templatePath = current->parent()->text(0)+"/"+current->text(0);
     }
     else // main item, just clear
     {

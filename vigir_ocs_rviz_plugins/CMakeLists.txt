@@ -3,7 +3,7 @@ project(vigir_ocs_rviz_plugins)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz pluginlib class_loader)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs rviz pluginlib class_loader)
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
@@ -22,6 +22,7 @@ catkin_package(
     vigir_ocs_rviz_plugin_selection_3d_tool_custom
     vigir_ocs_rviz_plugin_selection_3d_display_custom
   INCLUDE_DIRS
+	/opt/vigir/vigir_sandbox/vigir_ocs_msg2/msg_gen/cpp/include 
     vigir_ocs_rviz_plugin_image_display_custom/src
     vigir_ocs_rviz_plugin_camera_display_custom/src
     vigir_ocs_rviz_plugin_template_display_custom/src

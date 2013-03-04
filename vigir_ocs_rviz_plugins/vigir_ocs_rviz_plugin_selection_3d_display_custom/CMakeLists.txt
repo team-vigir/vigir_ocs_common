@@ -5,7 +5,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})# /opt/vigir/vigir_perception/vi
 
 set(VIGIR_IMAGE_CUSTOM_LIB_NAME vigir_ocs_rviz_plugin_selection_3d_display_custom)
 
-add_library(${VIGIR_IMAGE_CUSTOM_LIB_NAME}_core src/selection_3d_display_custom.cpp	${MOC_SOURCES})
+add_library(${VIGIR_IMAGE_CUSTOM_LIB_NAME}_core src/selection_3d_display_custom.cpp src/raycast_utils.cpp ${MOC_SOURCES})
 target_link_libraries(${VIGIR_IMAGE_CUSTOM_LIB_NAME}_core ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_library(${VIGIR_IMAGE_CUSTOM_LIB_NAME} src/plugin_init.cpp)

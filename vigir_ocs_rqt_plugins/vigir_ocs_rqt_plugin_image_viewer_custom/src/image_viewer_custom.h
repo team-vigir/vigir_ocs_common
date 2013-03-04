@@ -2,11 +2,11 @@
 #define vigir_ocs_rqt__ImageViewerCustom_H
 
 #include <rqt_gui_cpp/plugin.h>
-#include "ui/camera_viewer_custom_widget.h"
+#include "ui/image_viewer_custom_widget.h"
 
 #include <QDockWidget>
 
-namespace vigir_ocs_rqt_image_viewer_custom {
+namespace rqt {
 
 class ImageViewerCustom
   : public rqt_gui_cpp::Plugin
@@ -28,7 +28,7 @@ protected:
 
   qt_gui_cpp::PluginContext* context_;
 
-  CameraViewerCustomWidget* widget_;
+  ImageViewerCustomWidget* widget_;
   
 };
 
