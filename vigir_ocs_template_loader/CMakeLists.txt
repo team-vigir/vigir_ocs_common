@@ -37,7 +37,7 @@ set(SOURCE_FILES
   ${MOC_FILES}
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS} ../build/vigir_ocs_template_loader src src/ui)
+include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src src/ui)
 
 add_executable(template_loader ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(template_loader ${catkin_LIBRARIES} ${QT_LIBRARIES})

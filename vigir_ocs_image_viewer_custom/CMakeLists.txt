@@ -51,7 +51,7 @@ set(SOURCE_FILES
   ${MOC_FILES}
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS} ../build/vigir_ocs_image_viewer_custom src /opt/vigir/vigir_perception/vigir_perception_msgs/msg_gen/cpp/include)
+include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src src/ui)
 
 add_executable(image_viewer_custom ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(image_viewer_custom ${catkin_LIBRARIES} ${QT_LIBRARIES})

@@ -51,7 +51,7 @@ set(SOURCE_FILES
   ${MOC_FILES}
   ${UIC_FILES}
 )
-include_directories(include ${catkin_INCLUDE_DIRS} ../build/vigir_ocs_status_window src include)
+include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src src/ui)
 
 add_executable(status_window ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(status_window ${catkin_LIBRARIES} ${QT_LIBRARIES})
