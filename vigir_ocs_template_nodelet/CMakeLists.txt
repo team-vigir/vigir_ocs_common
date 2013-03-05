@@ -3,7 +3,7 @@ project(vigir_ocs_template_nodelet)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy pluginlib std_msgs geometry_msgs nodelet)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy pluginlib std_msgs geometry_msgs vigir_ocs_msg2 nodelet)
 
 ## Declare things to be passed to other projects
 catkin_package()
@@ -18,7 +18,7 @@ set(SOURCE_FILES_LIB
   src/template_nodelet.cpp
 )
 
-include_directories(${catkin_INCLUDE_DIRS} src /opt/vigir/vigir_sandbox/vigir_ocs_msg2/msg_gen/cpp/include)
+include_directories(${catkin_INCLUDE_DIRS} src)
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES_LIB})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
