@@ -1,7 +1,8 @@
 # Convert the Qt Signals and Slots for QWidget events
 qt4_wrap_cpp(MOC_SOURCES src/image_display_custom.h)
+find_package(catkin REQUIRED COMPONENTS flor_perception_msgs)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR} /opt/vigir/vigir_perception/vigir_perception_msgs/msg_gen/cpp/include)
+include_directories(${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} )
 
 set(VIGIR_IMAGE_CUSTOM_LIB_NAME vigir_ocs_rviz_plugin_image_display_custom)
 

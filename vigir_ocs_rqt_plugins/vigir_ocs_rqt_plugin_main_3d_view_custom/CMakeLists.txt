@@ -1,6 +1,6 @@
 qt4_wrap_cpp(MOC_SOURCES src/main_3d_view_custom.h)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR} src )
 
 set(LIB_NAME vigir_ocs_rqt_plugin_main_3d_view_custom)
 
