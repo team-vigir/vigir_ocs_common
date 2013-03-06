@@ -3,11 +3,11 @@ project(vigir_ocs_main_3d_view)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_rviz_plugins vigir_ocs_template_loader)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs rviz vigir_ocs_rviz_plugins vigir_ocs_template_loader)
 
 ## Declare things to be passed to other projects
 catkin_package(	
-	INCLUDE_DIRS ${catkin_INCLUDE_DIRS}#/opt/vigir/vigir_sandbox/vigir_ocs_msg2/msg_gen/cpp/include src
+	INCLUDE_DIRS ${catkin_INCLUDE_DIRS} src
 	LIBRARIES ${PROJECT_NAME} 
 	CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs rviz vigir_ocs_rviz_plugins vigir_ocs_template_loader 
 )
@@ -51,7 +51,7 @@ set(SOURCE_FILES
   ${MOC_FILES}
 )
 
-include_directories(${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src src/ui)
+include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src)
 
 add_executable(main_3d_view ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(main_3d_view ${catkin_LIBRARIES} ${QT_LIBRARIES})

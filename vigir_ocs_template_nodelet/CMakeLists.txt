@@ -6,7 +6,11 @@ project(vigir_ocs_template_nodelet)
 find_package(catkin REQUIRED COMPONENTS roscpp rospy pluginlib std_msgs geometry_msgs vigir_ocs_msg2 nodelet)
 
 ## Declare things to be passed to other projects
-catkin_package()
+catkin_package(	
+	INCLUDE_DIRS src
+	LIBRARIES ${PROJECT_NAME} 
+	CATKIN_DEPENDS roscpp rospy pluginlib std_msgs geometry_msgs vigir_ocs_msg2 nodelet
+)
 
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.

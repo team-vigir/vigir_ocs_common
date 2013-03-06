@@ -51,7 +51,7 @@ set(SOURCE_FILES
   ${MOC_FILES}
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src src/ui)
+include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src)
 
 add_executable(map_view ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(map_view ${catkin_LIBRARIES} ${QT_LIBRARIES})

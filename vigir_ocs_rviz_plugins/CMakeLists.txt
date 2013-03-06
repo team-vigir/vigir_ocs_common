@@ -22,13 +22,23 @@ catkin_package(
     vigir_ocs_rviz_plugin_selection_3d_tool_custom
     vigir_ocs_rviz_plugin_selection_3d_display_custom
   INCLUDE_DIRS
-	/opt/vigir/vigir_sandbox/vigir_ocs_msg2/msg_gen/cpp/include 
     vigir_ocs_rviz_plugin_image_display_custom/src
     vigir_ocs_rviz_plugin_camera_display_custom/src
     vigir_ocs_rviz_plugin_template_display_custom/src
     vigir_ocs_rviz_plugin_image_selection_tool_custom/src
     vigir_ocs_rviz_plugin_selection_3d_tool_custom/src
-    vigir_ocs_rviz_plugin_selection_3d_display_custom/src  )
+    vigir_ocs_rviz_plugin_selection_3d_display_custom/src
+  CATKIN_DEPENDS
+    roscpp 
+    rospy 
+    std_msgs 
+    geometry_msgs 
+    flor_perception_msgs 
+    vigir_ocs_msg2 
+    rviz 
+    pluginlib 
+    class_loader
+)
 
 include_directories(
 	vigir_ocs_rviz_plugin_image_display_custom/src
