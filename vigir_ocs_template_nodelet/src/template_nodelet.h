@@ -7,9 +7,9 @@
 #include <vector>
 #include <string>
 
-#include <vigir_ocs_msg2/OCSTemplateAdd.h>
-#include <vigir_ocs_msg2/OCSTemplateList.h>
-#include <vigir_ocs_msg2/OCSTemplateUpdate.h>
+#include <flor_ocs_msgs/OCSTemplateAdd.h>
+#include <flor_ocs_msgs/OCSTemplateList.h>
+#include <flor_ocs_msgs/OCSTemplateUpdate.h>
 
 #include <geometry_msgs/Pose.h>
 
@@ -20,8 +20,8 @@ namespace ocs_template
       public:
         virtual void onInit();
 
-        void addTemplateCb(const vigir_ocs_msg2::OCSTemplateAdd::ConstPtr& msg);
-        void updateTemplateCb(const vigir_ocs_msg2::OCSTemplateUpdate::ConstPtr& msg);
+        void addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr& msg);
+        void updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& msg);
         void publishTemplateList();
 
       protected:

@@ -214,7 +214,7 @@ void TemplateDisplayCustom::load()
     template_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
 
     // subscribe to the topic to load all templates
-    template_list_sub_ = nh_.subscribe<vigir_ocs_msg2::OCSTemplateList>( "/template/list", 5, &TemplateDisplayCustom::processTemplateList, this );
+    template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>( "/template/list", 5, &TemplateDisplayCustom::processTemplateList, this );
 
 }
 
@@ -290,7 +290,7 @@ void TemplateDisplayCustom::addTemplate(std::string path, Ogre::Vector3 pos, Ogr
     template_node_list_.push_back(lNode);
 }
 
-void TemplateDisplayCustom::processTemplateList(const vigir_ocs_msg2::OCSTemplateList::ConstPtr& msg)
+void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg)
 {
     for(int i = 0; i < msg->template_list.size(); i++)
     {

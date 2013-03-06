@@ -33,8 +33,8 @@
 #include "rviz/display.h"
 #include <geometry_msgs/PoseStamped.h>
 
-#include <vigir_ocs_msg2/OCSTemplateList.h>
-#include <vigir_ocs_msg2/OCSTemplateUpdate.h>
+#include <flor_ocs_msgs/OCSTemplateList.h>
+#include <flor_ocs_msgs/OCSTemplateUpdate.h>
 
 #include <OGRE/OgreVector3.h>
 #include "OGRE/OgreRoot.h"
@@ -87,7 +87,7 @@ public:
   void clear();
 
   void processPoseChange(const geometry_msgs::PoseStamped::ConstPtr& pose);
-  void processTemplateList(const vigir_ocs_msg2::OCSTemplateList::ConstPtr& msg);
+  void processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg);
 
 private Q_SLOTS:
   void updateVisualVisible();

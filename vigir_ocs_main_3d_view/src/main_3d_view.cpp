@@ -20,9 +20,9 @@
 #include "rviz/tool_manager.h"
 #include "main_3d_view.h"
 
-#include "vigir_ocs_msg2/OCSTemplateAdd.h"
-#include "vigir_ocs_msg2/OCSTemplateList.h"
-#include "vigir_ocs_msg2/OCSTemplateUpdate.h"
+#include "flor_ocs_msgs/OCSTemplateAdd.h"
+#include "flor_ocs_msgs/OCSTemplateList.h"
+#include "flor_ocs_msgs/OCSTemplateUpdate.h"
 
 // Constructor for Main3DView.  This does most of the work of the class.
 Main3DView::Main3DView( QWidget* parent )
@@ -134,7 +134,7 @@ Main3DView::Main3DView( QWidget* parent )
     manager_->getFrameManager()->setFixedFrame("/pelvis");
 
     // also create a publisher to add templates
-    template_add_pub_   = n_.advertise<vigir_ocs_msg2::OCSTemplateAdd>( "/template/add", 1, false );
+    template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
 }
 
 // Destructor.
@@ -233,7 +233,7 @@ void Main3DView::insertTemplate( QString path )
 {
     std::cout << "adding template" << std::endl;
 
-    vigir_ocs_msg2::OCSTemplateAdd cmd;
+    flor_ocs_msgs::OCSTemplateAdd cmd;
     geometry_msgs::Pose pose;
 
     cmd.template_path = path.toStdString();
