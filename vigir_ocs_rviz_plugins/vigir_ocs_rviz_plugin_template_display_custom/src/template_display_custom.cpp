@@ -186,7 +186,7 @@ void TemplateDisplayCustom::load()
 
 	// set the template directory path as root of our resource manager
 	// need a global config.xml file to define this sort of stuff that is going to be used by multiple plugins and packages
-	Ogre::String templatePath = "/opt/vigir/vigir_control/vigir_grasping/templates/";
+    Ogre::String templatePath = "/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/";
 	resourceManager.addResourceLocation(templatePath, "FileSystem", nameOfResourceGroup, false);
 
 	// parse scripts
