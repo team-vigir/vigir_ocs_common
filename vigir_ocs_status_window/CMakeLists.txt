@@ -22,14 +22,19 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 ## Here we specify which header files need to be run through "moc",
 ## Qt's meta-object compiler.
-qt4_wrap_cpp(MOC_FILES_WIDGET
+qt4_wrap_cpp(MOC_JOINT_WIDGET
   src/jointList.h
+)
+qt4_wrap_cpp(MOC_ROBOT_WIDGET
+  src/robotStatus.h
 )
 
 qt4_wrap_cpp(MOC_FILES
   src/status_window.h
   src/jointList.h
+  src/robotStatus.h
 )
+
 
 ## Here we add QtCreator ui files
 qt4_wrap_ui(UIC_FILES
@@ -38,15 +43,22 @@ qt4_wrap_ui(UIC_FILES
 
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.
-set(SOURCE_FILES_WIDGET
+set(SOURCE_JOINT_WIDGET
   src/jointList.cpp
   src/jointMain.cpp
-  ${MOC_FILES_WIDGET}
+  ${MOC_JOINT_WIDGET}
+)
+
+set(SOURCE_ROBOT_WIDGET
+  src/robotStatus.cpp
+  src/robotMain.cpp
+  ${MOC_ROBOT_WIDGET}
 )
 
 set(SOURCE_FILES
   src/status_window.cpp
   src/jointList.cpp
+  src/robotStatus.cpp
   src/main.cpp
   ${MOC_FILES}
   ${UIC_FILES}
@@ -56,8 +68,12 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} s
 add_executable(status_window ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(status_window ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
-add_executable(joint_list ${SOURCE_FILES_WIDGET})
+add_executable(joint_list ${SOURCE_JOINT_WIDGET})
 target_link_libraries(joint_list ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+add_executable(robot_status_widget ${SOURCE_ROBOT_WIDGET})
+target_link_libraries(robot_status_widget ${catkin_LIBRARIES}
+${QT_LIBRARIES})
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})

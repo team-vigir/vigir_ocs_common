@@ -11,8 +11,10 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        status_window.cpp
+        status_window.cpp \
+    stability_map.cpp
 
-HEADERS  += status_window.h
+HEADERS  += status_window.h \
+    stability_map.h
 
 FORMS    += status_window.ui

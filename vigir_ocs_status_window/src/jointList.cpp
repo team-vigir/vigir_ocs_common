@@ -102,26 +102,84 @@ jointList::jointList(QWidget *parent) :
     joints[27] = new QTreeWidgetItem(right_arm);
     joints[27]->setText(0,"r_arm_mwx");
 
+    warnMin=.8;
+    errorMin=.95;
+
      std::cout << "JointList Widget setup now starting subscribing to Ros topic." << std::endl;
     ros::NodeHandle nh;
     joint_states = nh.subscribe<sensor_msgs::JointState>( "/atlas/joint_states", 2, &jointList::updateList, this );
 
-    ros::spinOnce();
+    //ros::spinOnce();
 }
 
 jointList::~jointList()
 {
     //delete ui;
 }
+int jointList::getNumError()
+{
+    return error;
+}
+int jointList::getNumWarn()
+{
+    return warn;
+}
+
+//void jointList::getLimitsMessage ( const FOO& lmt_msg)
+//{
+//    limitsMessage = lmt_msg;
+//}
 
 void jointList::updateList( const sensor_msgs::JointStateConstPtr& joint_states )
 {
-
+    warn = 0;
+    error = 0;
      std::cout << "Recieved Ros Message." << std::endl;
     for(int i=0;i<joint_states->name.size(); i++)
     {
         joints[i].setText(1,QString::number(joint_states->position[i]));
         joints[i].setText(2,QString::number(joint_states->velocity[i]));
         joints[i].setText(3,QString::number(joint_states->effort[i]));
+//        if(joint_states->position[i] >= warnMin*limitsMessage->position[i])
+//        {
+//            warn++;
+//            joints[i].setBackgroundColor(0,Qt::yellow);
+//            joints[i].setBackgroundColor(1,Qt::yellow);
+//        }
+//        if(joint_states->position[i] >= errorMin*limitsMessage->position[i])
+//        {
+//            warn--;
+//            error++;
+//            joints[i].setBackgroundColor(0,Qt::red);
+//            joints[i].setBackgroundColor(1,Qt::red);
+//        }
+
+//        if(joint_states->velocity[i] >= warnMin*limitsMessage->velocity[i])
+//        {
+//            warn++;
+//            joints[i].setBackgroundColor(0,Qt::yellow);
+//            joints[i].setBackgroundColor(2,Qt::yellow);
+//        }
+//        if(joint_states->velocity[i] >= errorMin*limitsMessage->velocity[i])
+//        {
+//            warn--;
+//            error++;
+//            joints[i].setBackgroundColor(0,Qt::red);
+//            joints[i].setBackgroundColor(2,Qt::red);
+//        }
+
+//        if(joint_states->effort[i] >= warnMin*limitsMessage->effort[i])
+//        {
+//            warn++;
+//            joints[i].setBackgroundColor(0,Qt::yellow);
+//            joints[i].setBackgroundColor(3,Qt::yellow);
+//        }
+//        if(joint_states->effort[i] >= errorMin*limitsMessage->effort[i])
+//        {
+//            warn--;
+//            error++;
+//            joints[i].setBackgroundColor(0,Qt::red);
+//            joints[i].setBackgroundColor(3,Qt::red);
+//        }
     }
 }

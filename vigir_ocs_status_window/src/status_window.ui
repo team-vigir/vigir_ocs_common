@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>440</width>
-    <height>500</height>
+    <height>127</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,79 +16,37 @@
   <widget class="QPushButton" name="showJointButton">
    <property name="geometry">
     <rect>
-     <x>297</x>
-     <y>460</y>
-     <width>121</width>
-     <height>27</height>
+     <x>200</x>
+     <y>20</y>
+     <width>221</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
     <string>Show Joint List</string>
    </property>
   </widget>
-  <widget class="QFrame" name="frame">
+  <widget class="QWidget" name="stabilityMap" native="true">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>20</y>
-     <width>420</width>
-     <height>375</height>
-    </rect>
-   </property>
-   <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
-   </property>
-  </widget>
-  <widget class="QFrame" name="stabilityMap">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>400</y>
-     <width>150</width>
-     <height>90</height>
+     <y>10</y>
+     <width>160</width>
+     <height>100</height>
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="label">
+  <widget class="QPushButton" name="showRobotStatus">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>400</y>
-     <width>91</width>
-     <height>17</height>
+     <x>200</x>
+     <y>60</y>
+     <width>221</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>Robot Status</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>310</x>
-     <y>400</y>
-     <width>121</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Status Comment</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_3">
-   <property name="geometry">
-    <rect>
-     <x>210</x>
-     <y>430</y>
-     <width>91</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Joint Status</string>
+    <string>Show Robot Status</string>
    </property>
   </widget>
  </widget>
