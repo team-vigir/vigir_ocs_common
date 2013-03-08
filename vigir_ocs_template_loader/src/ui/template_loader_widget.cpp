@@ -8,7 +8,7 @@
 TemplateLoaderWidget::TemplateLoaderWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::TemplateLoaderWidget),
-    templateDirPath(QString("/opt/vigir/vigir_control/vigir_grasping/templates/")) // should read this from file
+    templateDirPath(QString("/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/")) // should read this from file
 {
     ui->setupUi(this);
 
