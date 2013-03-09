@@ -17,7 +17,7 @@ RayCastUtils::RayCastUtils(Ogre::SceneManager* sm)
     : scene_manager_(sm)
 {
     // Create the ray scene query object
-    ray_scene_query_ = scene_manager_->createRayQuery(Ogre::Ray(), Ogre::SceneManager::WORLD_GEOMETRY_TYPE_MASK);
+    ray_scene_query_ = scene_manager_->createRayQuery(Ogre::Ray());//, Ogre::SceneManager::WORLD_GEOMETRY_TYPE_MASK);
     if (ray_scene_query_ != NULL)
     {
         ray_scene_query_->setSortByDistance(true);
@@ -89,10 +89,16 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 &result)
         {
             break;
         }
+        
+        if(query_result[qr_idx].movable != NULL)
+        {
+        	query_result[qr_idx].movable->getParentSceneNode()->showBoundingBox(true);
+        	std::cout << query_result[qr_idx].movable->getName() << " of type " << query_result[qr_idx].movable->getMovableType() << std::endl;
+        }
 
         // only check this result if its a hit against an entity
         if ((query_result[qr_idx].movable != NULL) &&
-                (query_result[qr_idx].movable->getMovableType().compare("Entity") == 0))
+            (query_result[qr_idx].movable->getMovableType().compare("Entity") == 0))
         {
             // get the entity to check
             Ogre::Entity *pentity = static_cast<Ogre::Entity*>(query_result[qr_idx].movable);

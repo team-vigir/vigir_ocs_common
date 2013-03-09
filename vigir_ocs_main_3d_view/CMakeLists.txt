@@ -3,13 +3,13 @@ project(vigir_ocs_main_3d_view)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs rviz vigir_ocs_rviz_plugins vigir_ocs_template_loader)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs rviz vigir_ocs_rviz_plugins vigir_ocs_template_loader vigir_ocs_render_panel_custom vigir_ocs_selection_handler)
 
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS ${catkin_INCLUDE_DIRS} src
 	LIBRARIES ${PROJECT_NAME} 
-	CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs rviz vigir_ocs_rviz_plugins vigir_ocs_template_loader 
+	CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs rviz vigir_ocs_rviz_plugins vigir_ocs_template_loader vigir_ocs_render_panel_custom vigir_ocs_selection_handler
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:

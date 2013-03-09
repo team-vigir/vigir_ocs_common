@@ -36,5 +36,6 @@
       <rviz plugin="${prefix}/image_selection_tool_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/selection_3d_tool_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/selection_3d_display_custom_plugin_description.xml"/>
+      <rviz plugin="${prefix}/path_display_custom_plugin_description.xml"/>
   </export>
 </package>

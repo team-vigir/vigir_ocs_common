@@ -14,10 +14,12 @@
 #include <QHBoxLayout>
 
 #include "rviz/visualization_manager.h"
-#include "rviz/render_panel.h"
+//#include "rviz/render_panel.h"
+#include <render_panel_custom.h>
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
 #include "rviz/tool_manager.h"
+#include <selection_handler.h>
 #include "main_3d_view.h"
 
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
@@ -32,7 +34,7 @@ Main3DView::Main3DView( QWidget* parent )
     //QLabel* robot_model_label = new QLabel( "rviz/RobotModel" );
 
     // Construct and lay out render panel.
-    render_panel_ = new rviz::RenderPanel();
+    render_panel_ = new rviz::RenderPanelCustom();
     QVBoxLayout* main_layout = new QVBoxLayout;
     //main_layout->addWidget( robot_model_label );
     main_layout->addWidget( render_panel_ );
@@ -70,8 +72,6 @@ Main3DView::Main3DView( QWidget* parent )
     move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
     // Add support for goal specification/vector navigation
     set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
-    // Add support for 3d selection
-    selection_3d_tool_ = manager_->getToolManager()->addTool( "rviz/Selection3DToolCustom" );
 
     // Add interactive markers Stefan's markers and IK implementation
     interactive_marker_robot_[0] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 1", true );
@@ -116,13 +116,13 @@ Main3DView::Main3DView( QWidget* parent )
     lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
     lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/scan_cloud_filtered" );
     lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
-    
-    template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );;
+    +
+    template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
 
-    selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );;
+    selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
 
     // connect the 3d selection tool to its display
-    QObject::connect(selection_3d_tool_, SIGNAL(select(int,int,int,int)), selection_3d_display_, SLOT(createMarker(int,int,int,int)));
+    //QObject::connect(selection_3d_tool_, SIGNAL(select(int,int,int,int)), selection_3d_display_, SLOT(createMarker(int,int,int,int)));
     //QObject::connect(this, SIGNAL(rightClickEvent(int,int)), selection_3d_display_, SLOT(createMarker(int,int)));
     QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
     QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
@@ -135,6 +135,11 @@ Main3DView::Main3DView( QWidget* parent )
 
     // also create a publisher to add templates
     template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
+    
+    // handles selections without rviz::tool
+    selection_handler_ = new vigir_ocs::SelectionHandler();
+    QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), selection_handler_, SLOT(mousePressEvent(QMouseEvent*)));
+    QObject::connect(selection_handler_, SIGNAL(select(int,int)), selection_3d_display_, SLOT(createMarker(int,int)));
 }
 
 // Destructor.
@@ -182,8 +187,8 @@ void Main3DView::selectToggled( bool selected )
 
 void Main3DView::select3DToggled( bool selected )
 {
-    if(selected)
-        manager_->getToolManager()->setCurrentTool( selection_3d_tool_ );
+    //if(selected)
+    //    manager_->getToolManager()->setCurrentTool( selection_3d_tool_ );
 }
 
 void Main3DView::markerRobotToggled( bool selected )
@@ -249,18 +254,4 @@ void Main3DView::insertTemplate( QString path )
 
     // publish complete list of templates and poses
     template_add_pub_.publish( cmd );
-}
-
-void Main3DView::mousePressEvent ( QMouseEvent * e )
-{
-    std::cout << "mouse" << std::endl;
-    if( e->button() == Qt::RightButton )
-    {
-        Q_EMIT rightClickEvent(e->x(),e->y());
-    }
-}
-
-void Main3DView::mouseReleaseEvent ( QMouseEvent * e )
-{
-    // do nothing
 }

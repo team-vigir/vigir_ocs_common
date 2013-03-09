@@ -27,8 +27,14 @@ namespace rviz
 class Display;
 class Tool;
 class RenderPanel;
+class RenderPanelCustom;
 class VisualizationManager;
 class FrameManager;
+}
+
+namespace vigir_ocs
+{
+class SelectionHandler;
 }
 
 // Class "Main3DView" implements the RobotModel class with joint manipulation that can be added to any QT application.
@@ -61,13 +67,9 @@ Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
     void rightClickEvent( int, int );
 
-protected:
-    void mouseReleaseEvent ( QMouseEvent * e );
-    void mousePressEvent ( QMouseEvent * e );
-
 private:
     rviz::VisualizationManager* manager_;
-    rviz::RenderPanel* render_panel_;
+    rviz::RenderPanelCustom* render_panel_;
 
     rviz::Display* robot_model_;
     rviz::Display* interactive_marker_robot_[4];
@@ -83,12 +85,13 @@ private:
     rviz::Tool* selection_tool_;
     rviz::Tool* move_camera_tool_;
     rviz::Tool* set_goal_tool_;
-    rviz::Tool* selection_3d_tool_;
 
     Ogre::Vector3 selection_position_;
 
     ros::NodeHandle n_;
 
     ros::Publisher template_add_pub_;
+    
+    vigir_ocs::SelectionHandler* selection_handler_;
 };
 #endif // MAIN_3D_VIEW_H
