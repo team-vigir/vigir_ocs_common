@@ -1,0 +1,9 @@
+<library path="libvigir_ocs_rviz_plugin_path_display_custom">
+  <class name="rviz/PathDisplayCustom"
+         type="rviz::PathDisplayCustom"
+         base_class_type="rviz::Display">
+    <description>
+      Customized path display plugin that renders waypoints.
+    </description>
+  </class>
+</library>

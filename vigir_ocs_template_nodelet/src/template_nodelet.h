@@ -8,6 +8,7 @@
 #include <string>
 
 #include <flor_ocs_msgs/OCSTemplateAdd.h>
+#include <flor_ocs_msgs/OCSTemplateRemove.h>
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSTemplateUpdate.h>
 
@@ -21,12 +22,14 @@ namespace ocs_template
         virtual void onInit();
 
         void addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr& msg);
+        void removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
         void updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& msg);
         void publishTemplateList();
 
       protected:
         ros::Subscriber template_update_sub_;
         ros::Subscriber template_add_sub_;
+        ros::Subscriber template_remove_sub_;
         ros::Publisher template_list_pub_;
 
         ros::Timer image_publish_timer_;

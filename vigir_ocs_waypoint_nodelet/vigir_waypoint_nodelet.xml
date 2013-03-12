@@ -1,0 +1,8 @@
+<!-- waypoint nodelet -->
+<library path="libvigir_ocs_waypoint_nodelet">
+  <class name="vigir_ocs_waypoint_nodelet/WaypointNodelet" type="ocs_waypoint::WaypointNodelet" base_class_type="nodelet::Nodelet">
+    <description>
+      Waypoint nodelet
+    </description>
+  </class>
+</library>

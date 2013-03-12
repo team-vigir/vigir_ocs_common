@@ -19,6 +19,7 @@
 #include <ros/ros.h>
 
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
 
 #include <string>
 
@@ -62,6 +63,7 @@ public Q_SLOTS:
 
     void newSelection( Ogre::Vector3 );
     void insertTemplate( QString );
+    void insertWaypoint();
 
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
@@ -80,6 +82,7 @@ private:
     rviz::Display* stereo_point_cloud_viewer_;
     rviz::Display* template_display_;
     rviz::Display* selection_3d_display_;
+    rviz::Display* waypoints_display_;
 
     rviz::Tool* interactive_markers_tool_;
     rviz::Tool* selection_tool_;
@@ -91,6 +94,7 @@ private:
     ros::NodeHandle n_;
 
     ros::Publisher template_add_pub_;
+    ros::Publisher waypoint_add_pub_;
     
     vigir_ocs::SelectionHandler* selection_handler_;
 };

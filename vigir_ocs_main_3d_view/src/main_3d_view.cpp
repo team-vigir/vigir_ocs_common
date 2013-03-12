@@ -23,8 +23,8 @@
 #include "main_3d_view.h"
 
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
-#include "flor_ocs_msgs/OCSTemplateList.h"
-#include "flor_ocs_msgs/OCSTemplateUpdate.h"
+
+#include "flor_ocs_msgs/OCSWaypointAdd.h"
 
 // Constructor for Main3DView.  This does most of the work of the class.
 Main3DView::Main3DView( QWidget* parent )
@@ -116,10 +116,12 @@ Main3DView::Main3DView( QWidget* parent )
     lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
     lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/scan_cloud_filtered" );
     lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
-    +
     template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
 
     selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
+    
+    waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
+    waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/list" );
 
     // connect the 3d selection tool to its display
     //QObject::connect(selection_3d_tool_, SIGNAL(select(int,int,int,int)), selection_3d_display_, SLOT(createMarker(int,int,int,int)));
@@ -132,14 +134,17 @@ Main3DView::Main3DView( QWidget* parent )
     // Set topic that will be used as 0,0,0 -> reference for all the other transforms
     // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
     manager_->getFrameManager()->setFixedFrame("/pelvis");
-
-    // also create a publisher to add templates
-    template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
     
     // handles selections without rviz::tool
     selection_handler_ = new vigir_ocs::SelectionHandler();
     QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), selection_handler_, SLOT(mousePressEvent(QMouseEvent*)));
     QObject::connect(selection_handler_, SIGNAL(select(int,int)), selection_3d_display_, SLOT(createMarker(int,int)));
+
+    // create a publisher to add templates
+    template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
+    
+	// create a publisher to add waypoints
+    waypoint_add_pub_   = n_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
 }
 
 // Destructor.
@@ -254,4 +259,26 @@ void Main3DView::insertTemplate( QString path )
 
     // publish complete list of templates and poses
     template_add_pub_.publish( cmd );
+}
+
+void Main3DView::insertWaypoint()
+{
+    std::cout << "adding waypoint" << std::endl;
+    
+    flor_ocs_msgs::OCSWaypointAdd cmd;
+    geometry_msgs::PoseStamped pose;
+
+    pose.pose.position.x = selection_position_.x;
+    pose.pose.position.y = selection_position_.y;
+    pose.pose.position.z = selection_position_.z;
+    pose.pose.orientation.x = 0;
+    pose.pose.orientation.y = 0;
+    pose.pose.orientation.z = 1;
+    pose.pose.orientation.w = 0;
+    
+    pose.header.frame_id = "/pelvis";
+    cmd.pose = pose;
+
+    // publish complete list of templates and poses
+    waypoint_add_pub_.publish( cmd );
 }
