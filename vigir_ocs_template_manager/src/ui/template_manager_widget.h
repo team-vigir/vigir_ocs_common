@@ -25,18 +25,10 @@ public:
     ~TemplateManagerWidget();
     
 private:
-    void addTreeWidgetChild(QTreeWidgetItem* item);
 
     Ui::TemplateManagerWidget* ui;
     QString templateDirPath;
     QString templatePath;
-
-public Q_SLOTS:
-    void treeItemChanged(QTreeWidgetItem * current, QTreeWidgetItem * previous);
-    void insertButtonPressed();
-
-Q_SIGNALS:
-    void insertTemplate(QString);
 
 };
 

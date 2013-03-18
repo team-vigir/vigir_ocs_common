@@ -29,7 +29,7 @@
 #ifndef RVIZ_OCTOMAP_CUSTOM_DISPLAY_H
 #define RVIZ_OCTOMAP_CUSTOM_DISPLAY_H
 
-#include "marker_display.h"
+#include <rviz/default_plugin/marker_display.h>
 
 namespace rviz
 {
