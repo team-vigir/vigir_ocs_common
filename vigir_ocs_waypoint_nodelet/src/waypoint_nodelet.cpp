@@ -25,7 +25,8 @@ void WaypointNodelet::addWaypointCb(const flor_ocs_msgs::OCSWaypointAdd::ConstPt
 void WaypointNodelet::removeWaypointCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr& msg)
 {
     std::cout << "Removing waypoint from list" << std::endl;
-    pose_list_.poses.erase(pose_list_.poses.begin()+msg->waypoint_id);
+    if(msg->waypoint_id >= 0 && msg->waypoint_id < pose_list_.poses.size())
+        pose_list_.poses.erase(pose_list_.poses.begin()+msg->waypoint_id);
     this->publishWaypointList();
 }
 
