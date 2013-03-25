@@ -145,6 +145,59 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 &result)
                 closest_result = ray.getPoint(closest_distance);
             }
         }
+        else if ((query_result[qr_idx].movable != NULL) &&
+                 (query_result[qr_idx].movable->getMovableType().compare("PointCloudCustom") == 0))
+        {
+            // get the entity to check
+            rviz::PointCloudCustom *pentity = static_cast<rviz::PointCloudCustom*>(query_result[qr_idx].movable);
+
+            // mesh data to retrieve
+            size_t vertex_count;
+            size_t index_count;
+            std::vector<Ogre::Vector3> vertices;
+            std::vector<unsigned long> indices;
+
+            // get the mesh information
+            GetMeshInformationPointCloud(pentity, vertex_count, vertices, index_count, indices,
+                                         pentity->getParentNode()->_getDerivedPosition(), pentity->getParentNode()->_getDerivedOrientation(), pentity->getParentNode()->_getDerivedScale());
+			std::cout << "all mesh information ready (" << vertex_count << ", " << index_count << ")" << std::endl;
+
+            // test for hitting individual triangles on the mesh
+            bool new_closest_found = false;
+            for (int i = 0; i < static_cast<int>(index_count); i += 3)
+            {
+            	std::cout << "testing hit with " << i << " / " << vertices.size() << " " << indices.size() << std::endl;
+                // check for a hit against this triangle
+                std::pair<bool, Ogre::Real> hit = Ogre::Math::intersects(ray, vertices[indices[i]],
+                                                                         vertices[indices[i+1]], vertices[indices[i+2]], true, false);
+
+                // if it was a hit check if its the closest
+                if (hit.first)
+                {
+                    if ((closest_distance < 0.0f) ||
+                            (hit.second < closest_distance))
+                    {
+                        // this is the closest so far, save it off
+                        closest_distance = hit.second;
+                        new_closest_found = true;
+                    }
+                }
+            }
+			std::cout << "tested for hits" << std::endl;
+
+            // free the verticies and indicies memory
+            vertices.clear();
+            indices.clear();
+			std::cout << "cleared memory" << std::endl;
+
+            // if we found a new closest raycast for this object, update the
+            // closest_result before moving on to the next object.
+            if (new_closest_found)
+            {
+   				std::cout << "cleared memory" << std::endl;
+                closest_result = ray.getPoint(closest_distance);
+            }
+        }
     }
 
     // return the result
@@ -158,6 +211,20 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 &result)
     {
         // raycast failed
         return (false);
+    }
+}
+
+void RayCastUtils::GetMeshInformationPointCloud(rviz::PointCloudCustom* &mesh, size_t &vertex_count, std::vector<Ogre::Vector3> &vertices, size_t &index_count,
+                                                std::vector<unsigned long> &indices, const Ogre::Vector3 &position,	const Ogre::Quaternion &orient,	const Ogre::Vector3 &scale)
+{
+    mesh->getMesh(vertices,indices);
+    vertex_count = vertices.size();
+    index_count = indices.size();
+    
+    for( size_t j = 0; j < vertex_count; ++j)
+    {
+    	Ogre::Vector3 pt = vertices[j];
+        vertices[j] = (orient * (pt * scale)) + position;
     }
 }
 

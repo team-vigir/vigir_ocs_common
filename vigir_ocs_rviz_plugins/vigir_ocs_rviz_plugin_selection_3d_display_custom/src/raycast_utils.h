@@ -15,6 +15,7 @@
 #include <OGRE/OgrePrerequisites.h>
 #include <OGRE/OgreSceneQuery.h>
 #include <OGRE/OgreSceneManager.h>
+#include <point_cloud_custom.h>
 
 class RayCastUtils
 {
@@ -24,6 +25,9 @@ public:
 
     bool RayCastFromPoint(const Ogre::Vector3 &point, const Ogre::Vector3 &normal, Ogre::Vector3 &result);
     bool RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 &result);
+    
+    void GetMeshInformationPointCloud(rviz::PointCloudCustom* &mesh, size_t &vertex_count, std::vector<Ogre::Vector3> &vertices, size_t &index_count,
+        std::vector<unsigned long> &indices, const Ogre::Vector3 &position,	const Ogre::Quaternion &orient,	const Ogre::Vector3 &scale);
 
     void GetMeshInformationOptimized(const Ogre::MeshPtr mesh, size_t &vertex_count, Ogre::Vector3* &vertices, size_t &index_count,
         unsigned long* &indices, const Ogre::Vector3 &position,	const Ogre::Quaternion &orient,	const Ogre::Vector3 &scale);

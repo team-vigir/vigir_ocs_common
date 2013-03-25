@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Willow Garage, Inc.
+ * Copyright (c) 2009, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,38 +26,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef RVIZ_OCTOMAP_CUSTOM_DISPLAY_H
-#define RVIZ_OCTOMAP_CUSTOM_DISPLAY_H
 
-#include "marker_display_custom.h"
+#ifndef RVIZ_POINTS_MARKER_CUSTOM_H
+#define RVIZ_POINTS_MARKER_CUSTOM_H
+
+#include "marker_base_custom.h"
+
+namespace Ogre
+{
+class SceneNode;
+}
+
+namespace rviz
+{
+class PointCloudCustom;
+class MarkerDisplayCustom;
+}
 
 namespace rviz
 {
 
-/**
- * @brief Display for an array of markers.  The MarkerDisplay class handles
- * MarkerArray messages.  This is just a wrapper to let MarkerArray
- * topics get selected in the topic browser.
- */
-class OctomapDisplayCustom: public MarkerDisplayCustom
+class PointsMarkerCustom : public MarkerBaseCustom
 {
-Q_OBJECT
 public:
-  OctomapDisplayCustom();
+  PointsMarkerCustom(MarkerDisplayCustom* owner, DisplayContext* context, Ogre::SceneNode* parent_node);
+  ~PointsMarkerCustom();
+  void setHighlightColor( float r, float g, float b );
 
 protected:
-  /** @brief Overridden from MarkerDisplay.  Subscribes to the marker
-   * array topic. */
-  virtual void subscribe();
+  virtual void onNewMessage(const MarkerConstPtr& old_message, const MarkerConstPtr& new_message);
 
-  /** @brief Overridden from MarkerDisplay.  Unsubscribes to the
-   * marker array topic. */
-  virtual void unsubscribe();
-
-private:
-  void handleMarkerArray( const visualization_msgs::MarkerArray::ConstPtr& array );
+  PointCloudCustom* points_;
 };
 
-} // end namespace rviz
+}
 
-#endif // RVIZ_MARKER_ARRAY_DISPLAY_H
+#endif
+

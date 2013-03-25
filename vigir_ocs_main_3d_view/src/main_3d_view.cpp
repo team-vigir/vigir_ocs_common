@@ -99,7 +99,7 @@ Main3DView::Main3DView( QWidget* parent )
     laser_scan_->subProp( "Decay Time" )->setValue( 1 );
 
     // Create a MarkerArray display.
-    marker_array_ = manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
+    marker_array_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );//manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
     ROS_ASSERT( marker_array_ != NULL );
 
     marker_array_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );

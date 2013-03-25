@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Willow Garage, Inc.
+ * Copyright (c) 2009, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,38 +26,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef RVIZ_OCTOMAP_CUSTOM_DISPLAY_H
-#define RVIZ_OCTOMAP_CUSTOM_DISPLAY_H
+	
+#ifndef RVIZ_MARKER_SELECTION_HANDLER_CUSTOM_H
+#define RVIZ_MARKER_SELECTION_HANDLER_CUSTOM_H
 
-#include "marker_display_custom.h"
+#include "rviz/selection/forwards.h"
+#include "rviz/selection/selection_manager.h"
 
 namespace rviz
 {
+class InteractiveMarkerControl;
+class MarkerBaseCustom;
+class QuaternionProperty;
+class VectorProperty;
+typedef std::pair<std::string, int32_t> MarkerID;
 
-/**
- * @brief Display for an array of markers.  The MarkerDisplay class handles
- * MarkerArray messages.  This is just a wrapper to let MarkerArray
- * topics get selected in the topic browser.
- */
-class OctomapDisplayCustom: public MarkerDisplayCustom
+class MarkerSelectionHandlerCustom: public SelectionHandler
 {
-Q_OBJECT
 public:
-  OctomapDisplayCustom();
+  MarkerSelectionHandlerCustom( const MarkerBaseCustom* marker, MarkerID id, DisplayContext* context );
+  virtual ~MarkerSelectionHandlerCustom();
 
-protected:
-  /** @brief Overridden from MarkerDisplay.  Subscribes to the marker
-   * array topic. */
-  virtual void subscribe();
+  Ogre::Vector3 getPosition();
+  Ogre::Quaternion getOrientation();
 
-  /** @brief Overridden from MarkerDisplay.  Unsubscribes to the
-   * marker array topic. */
-  virtual void unsubscribe();
+  virtual void createProperties( const Picked& obj, Property* parent_property );
+  virtual void updateProperties();
 
 private:
-  void handleMarkerArray( const visualization_msgs::MarkerArray::ConstPtr& array );
+  const MarkerBaseCustom* marker_;
+  QString marker_id_;
+  VectorProperty* position_property_;
+  QuaternionProperty* orientation_property_;
 };
 
 } // end namespace rviz
 
-#endif // RVIZ_MARKER_ARRAY_DISPLAY_H
+#endif
+

@@ -36,7 +36,7 @@ namespace rviz
 {
 
 OctomapDisplayCustom::OctomapDisplayCustom()
-  : MarkerDisplay()
+  : MarkerDisplayCustom()
 {
   marker_topic_property_->setMessageType( QString::fromStdString( ros::message_traits::datatype<visualization_msgs::MarkerArray>() ));
   marker_topic_property_->setValue( "visualization_marker_array" );
