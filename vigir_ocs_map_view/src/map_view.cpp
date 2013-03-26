@@ -1,4 +1,4 @@
-/* 
+/*
  * MapView class implementation.
  *
  * Author: Felipe Bacim.
@@ -12,8 +12,10 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
+
 #include "rviz/visualization_manager.h"
-#include "rviz/render_panel.h"
+//#include "rviz/render_panel.h"
+#include <render_panel_custom.h>
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
 #include "rviz/tool_manager.h"
@@ -21,6 +23,15 @@
 #include "rviz/view_controller.h"
 #include "rviz/view_manager.h"
 #include "map_view.h"
+#include <selection_handler.h>
+
+
+#include "flor_ocs_msgs/OCSTemplateAdd.h"
+
+#include "flor_ocs_msgs/OCSWaypointAdd.h"
+
+
+
 
 // Constructor for MapView.  This does most of the work of the class.
 MapView::MapView( QWidget* parent )
@@ -30,7 +41,7 @@ MapView::MapView( QWidget* parent )
     //QLabel* robot_model_label = new QLabel( "rviz/RobotModel" );
 
     // Construct and lay out render panel.
-    render_panel_ = new rviz::RenderPanel();
+    render_panel_ = new rviz::RenderPanelCustom();
     QVBoxLayout* main_layout = new QVBoxLayout;
     //main_layout->addWidget( robot_model_label );
     main_layout->addWidget( render_panel_ );
@@ -74,14 +85,28 @@ MapView::MapView( QWidget* parent )
     manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
 
     // Add interactive markers Stefan's markers and IK implementation
-    interactive_marker_[0] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 1", true );
-    interactive_marker_[0]->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/update" );
-    interactive_marker_[1] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 2", true );
-    interactive_marker_[1]->subProp( "Update Topic" )->setValue( "/l_leg_pose_marker/update" );
-    interactive_marker_[2] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 3", true );
-    interactive_marker_[2]->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/update" );
-    interactive_marker_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
-    interactive_marker_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
+//    interactive_marker_[0] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 1", true );
+//    interactive_marker_[0]->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/update" );
+//    interactive_marker_[1] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 2", true );
+//    interactive_marker_[1]->subProp( "Update Topic" )->setValue( "/l_leg_pose_marker/update" );
+//    interactive_marker_[2] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 3", true );
+//    interactive_marker_[2]->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/update" );
+//    interactive_marker_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
+//    interactive_marker_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
+
+    // Add interactive markers Stefan's markers and IK implementation
+       interactive_marker_robot_[0] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 1", true );
+       interactive_marker_robot_[0]->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/update" );
+       interactive_marker_robot_[1] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 2", true );
+       interactive_marker_robot_[1]->subProp( "Update Topic" )->setValue( "/l_leg_pose_marker/update" );
+       interactive_marker_robot_[2] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 3", true );
+       interactive_marker_robot_[2]->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/update" );
+       interactive_marker_robot_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
+       interactive_marker_robot_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
+
+    // Add template marker
+    interactive_marker_template_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker template", true );
+    interactive_marker_template_->subProp( "Update Topic" )->setValue( "/template_pose_marker/update" );
 
     // Create a LaserScan display.
     laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
@@ -113,6 +138,8 @@ MapView::MapView( QWidget* parent )
 
     template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
 
+    //Q_EMIT setRenderPanel(this->render_panel_);
+
     // Set topic that will be used as 0,0,0 -> reference for all the other transforms
     // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
     manager_->getFrameManager()->setFixedFrame("/pelvis");
@@ -120,12 +147,16 @@ MapView::MapView( QWidget* parent )
     rviz::ViewManager* view_man_ = manager_->getViewManager();
     
     view_man_->setCurrentFrom( view_man_->create( "rviz/TopDownOrtho" ) );
+
+    // create a publisher to add templates
+    template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
     
     //Property* prop = view_man_->getPropertyModel()->getProp( index );
 		//if( ViewController* view = qobject_cast<ViewController*>( prop ))
 		//{
 		//  view_man_->setCurrentFrom( view );
 		//}
+
 }
 
 // Destructor.
@@ -176,3 +207,102 @@ void MapView::joystickToggled( bool selected )
     if(selected)
         manager_->getToolManager()->setCurrentTool( selection_tool_ );
 }
+
+
+void MapView::cameraToggled( bool selected )
+{
+    if(selected)
+        manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+}
+
+void MapView::selectToggled( bool selected )
+{
+    if(selected)
+        manager_->getToolManager()->setCurrentTool( selection_tool_ );
+}
+
+void MapView::markerRobotToggled( bool selected )
+{
+    if(selected)
+    {
+        manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
+
+        // enable robot IK markers
+        for( int i = 0; i < 4; i++ )
+        {
+            interactive_marker_robot_[i]->setEnabled( true );
+        }
+        // disable template marker
+        interactive_marker_template_->setEnabled( false );
+    }
+}
+
+
+void MapView::newSelection( Ogre::Vector3 position )
+{
+    selection_position_ = position;
+}
+
+///This all handles the template stuff
+void MapView::markerTemplateToggled( bool selected )
+{
+    if(selected)
+    {
+        manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
+
+        // disable robot IK markers
+        for( int i = 0; i < 4; i++ )
+        {
+            interactive_marker_robot_[i]->setEnabled( false );
+        }
+        // enable template markers
+        interactive_marker_template_->setEnabled( true );
+    }
+}
+
+
+void MapView::insertTemplate( QString path )
+{
+    std::cout << "adding template" << std::endl;
+
+    flor_ocs_msgs::OCSTemplateAdd cmd;
+    geometry_msgs::Pose pose;
+
+    cmd.template_path = path.toStdString();
+
+    pose.position.x = selection_position_.x;
+    pose.position.y = selection_position_.y;
+    pose.position.z = selection_position_.z;
+    pose.orientation.x = 0;
+    pose.orientation.y = 0;
+    pose.orientation.z = 1;
+    pose.orientation.w = 0;
+    cmd.pose = pose;
+
+    // publish complete list of templates and poses
+    template_add_pub_.publish( cmd );
+}
+
+
+void MapView::insertWaypoint()
+{
+    std::cout << "adding waypoint" << std::endl;
+
+    flor_ocs_msgs::OCSWaypointAdd cmd;
+    geometry_msgs::PoseStamped pose;
+
+    pose.pose.position.x = selection_position_.x;
+    pose.pose.position.y = selection_position_.y;
+    pose.pose.position.z = selection_position_.z;
+    pose.pose.orientation.x = 0;
+    pose.pose.orientation.y = 0;
+    pose.pose.orientation.z = 1;
+    pose.pose.orientation.w = 0;
+
+    pose.header.frame_id = "/pelvis";
+    cmd.pose = pose;
+
+    // publish complete list of templates and poses
+    waypoint_add_pub_.publish( cmd );
+}
+

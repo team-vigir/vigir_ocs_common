@@ -18,6 +18,11 @@ public:
     
 private:
     Ui::MapViewWidget *ui;
+
+public Q_SLOTS:
+    void hideWaypointButton();
+    void hideJoystick();
+
 };
 
 #endif // map_view_WIDGET_H

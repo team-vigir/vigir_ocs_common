@@ -15,19 +15,26 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
-    <widget class="MapView" name="map_view_" native="true"/>
+    <widget class="MapView" name="map_view_" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QWidget" name="ui_control" native="true">
      <property name="minimumSize">
       <size>
-       <width>250</width>
+       <width>280</width>
        <height>0</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>250</width>
+       <width>280</width>
        <height>16777215</height>
       </size>
      </property>
@@ -37,111 +44,227 @@
        <height>0</height>
       </size>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
-       <widget class="QGroupBox" name="groupBox_3">
-        <property name="title">
-         <string>Navigation Options</string>
+       <widget class="QScrollArea" name="scrollArea">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <widget class="QRadioButton" name="waypoint">
-           <property name="text">
-            <string>Waypoint</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="vector_steering">
-           <property name="text">
-            <string>Vector-Based</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="joystick_steering">
-           <property name="text">
-            <string>Manual Controls</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QGroupBox" name="groupBox_2">
-        <property name="title">
-         <string>Display</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <item>
-          <widget class="QCheckBox" name="robot_model">
-           <property name="text">
-            <string>Robot Model</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="lidar_point_cloud">
-           <property name="text">
-            <string>LIDAR Point Cloud</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="stereo_point_cloud">
-           <property name="text">
-            <string>Stereo Point Cloud</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="laser_scan">
-           <property name="text">
-            <string>Laser Scan</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="octomap">
-           <property name="text">
-            <string>Octomap</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
+        <property name="minimumSize">
          <size>
-          <width>20</width>
-          <height>40</height>
+          <width>250</width>
+          <height>0</height>
          </size>
         </property>
-       </spacer>
+        <property name="maximumSize">
+         <size>
+          <width>260</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="lineWidth">
+         <number>0</number>
+        </property>
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="scrollAreaWidgetContents_2">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>-152</y>
+           <width>242</width>
+           <height>827</height>
+          </rect>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QGroupBox" name="groupBox_3">
+            <property name="title">
+             <string>Navigation Options</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QRadioButton" name="waypoint">
+               <property name="text">
+                <string>Waypoint</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="insert_waypoint">
+               <property name="text">
+                <string>Insert Waypoint</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="joystick_steering">
+               <property name="text">
+                <string>Manual Controls</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="Joystick" name="joystick_widget" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>150</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_2">
+            <property name="title">
+             <string>Display</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QCheckBox" name="robot_model">
+               <property name="text">
+                <string>Robot Model</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="lidar_point_cloud">
+               <property name="text">
+                <string>LIDAR Point Cloud</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="stereo_point_cloud">
+               <property name="text">
+                <string>Stereo Point Cloud</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="laser_scan">
+               <property name="text">
+                <string>Laser Scan</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="octomap">
+               <property name="text">
+                <string>Octomap</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox">
+            <property name="title">
+             <string>Tools</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_8">
+             <item>
+              <widget class="QRadioButton" name="camera_tool_3">
+               <property name="text">
+                <string>Camera Manipulation</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="widget_tool_3">
+               <property name="text">
+                <string>Joint Manipulation</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="template_tool_3">
+               <property name="text">
+                <string>Template Manipulation</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_4">
+            <property name="title">
+             <string>Template</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_9">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>9</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="TemplateLoaderWidget" name="template_widget_3" native="true">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>205</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -150,6 +273,15 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
+  <customwidget>
+   <class>TemplateLoaderWidget</class>
+   <extends>QWidget</extends>
+   <header>ui/template_loader_widget.h</header>
+   <container>1</container>
+   <slots>
+    <signal>insertTemplate(QString)</signal>
+   </slots>
+  </customwidget>
   <customwidget>
    <class>MapView</class>
    <extends>QWidget</extends>
@@ -164,7 +296,19 @@
     <slot>waypointToggled(bool)</slot>
     <slot>vectorToggled(bool)</slot>
     <slot>stereoPointCloudToggled(bool)</slot>
+    <slot>insertTemplate(QString)</slot>
+    <slot>insertWaypoint()</slot>
+    <slot>markerRobotToggled(bool)</slot>
+    <slot>markerTemplateToggled(bool)</slot>
+    <slot>cameraToggled(bool)</slot>
+    <slot>selectToggled(bool)</slot>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>Joystick</class>
+   <extends>QWidget</extends>
+   <header>joystick.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -176,59 +320,11 @@
    <slot>robotModelToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>669</x>
-     <y>53</y>
+     <x>645</x>
+     <y>-9</y>
     </hint>
     <hint type="destinationlabel">
-     <x>271</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>lidar_point_cloud</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>map_view_</receiver>
-   <slot>lidarPointCloudToggled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>669</x>
-     <y>81</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>271</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>laser_scan</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>map_view_</receiver>
-   <slot>laserScanToggled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>669</x>
-     <y>109</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>271</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>octomap</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>map_view_</receiver>
-   <slot>markerArrayToggled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>669</x>
-     <y>137</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>271</x>
+     <x>256</x>
      <y>299</y>
     </hint>
    </hints>
@@ -240,59 +336,123 @@
    <slot>stereoPointCloudToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>669</x>
-     <y>109</y>
+     <x>645</x>
+     <y>46</y>
     </hint>
     <hint type="destinationlabel">
-     <x>271</x>
+     <x>256</x>
      <y>299</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>vector_steering</sender>
+   <sender>laser_scan</sender>
    <signal>toggled(bool)</signal>
    <receiver>map_view_</receiver>
-   <slot>vectorToggled(bool)</slot>
+   <slot>laserScanToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>669</x>
-     <y>81</y>
+     <x>645</x>
+     <y>74</y>
     </hint>
     <hint type="destinationlabel">
-     <x>271</x>
+     <x>256</x>
      <y>299</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>joystick_steering</sender>
-   <signal>toggled(bool)</signal>
+   <sender>insert_waypoint</sender>
+   <signal>pressed()</signal>
    <receiver>map_view_</receiver>
-   <slot>joystickToggled(bool)</slot>
+   <slot>insertWaypoint()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>669</x>
-     <y>109</y>
+     <x>641</x>
+     <y>485</y>
     </hint>
     <hint type="destinationlabel">
-     <x>271</x>
+     <x>256</x>
      <y>299</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>waypoint</sender>
+   <sender>octomap</sender>
    <signal>toggled(bool)</signal>
    <receiver>map_view_</receiver>
-   <slot>waypointToggled(bool)</slot>
+   <slot>markerArrayToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>669</x>
-     <y>53</y>
+     <x>645</x>
+     <y>267</y>
     </hint>
     <hint type="destinationlabel">
-     <x>271</x>
+     <x>256</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>template_tool_3</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>map_view_</receiver>
+   <slot>markerTemplateToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>645</x>
+     <y>443</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>256</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>template_widget_3</sender>
+   <signal>insertTemplate(QString)</signal>
+   <receiver>map_view_</receiver>
+   <slot>insertTemplate(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>645</x>
+     <y>632</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>256</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lidar_point_cloud</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>map_view_</receiver>
+   <slot>lidarPointCloudToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>645</x>
+     <y>183</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>256</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>camera_tool_3</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>map_view_</receiver>
+   <slot>cameraToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>645</x>
+     <y>331</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>256</x>
      <y>299</y>
     </hint>
    </hints>
