@@ -3,7 +3,7 @@ project(vigir_ocs_waypoint_following_basic)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy pluginlib std_msgs geometry_msgs nav_msgs flor_ocs_msgs nodelet)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy pluginlib std_msgs geometry_msgs flor_ocs_msgs nodelet )
 
 ## Declare things to be passed to other projects
 catkin_package(	

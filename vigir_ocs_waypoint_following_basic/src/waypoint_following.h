@@ -11,6 +11,7 @@
 #include <flor_ocs_msgs/OCSWaypointUpdate.h>
 
 #include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/Odometry.h>
 #include <sensor_msgs/Imu.h>
 #include <nav_msgs/Path.h>
 
@@ -22,7 +23,7 @@ namespace ocs_waypoint
         virtual void onInit();
 
         void recievedUpdateWaypointMessage( const nav_msgs::Path::ConstPtr& msg);
-        void recievedRobotLocUpdate( const sensor_msgs::Imu::ConstPtr& msg);
+        void recievedRobotLocUpdate( const nav_msgs::Odometry::ConstPtr& msg);
 //        void addWaypointCb(const flor_ocs_msgs::OCSWaypointAdd::ConstPtr& msg);
 //        void removeWaypointCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr& msg);
 //        void updateWaypointCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr& msg);
@@ -37,14 +38,17 @@ namespace ocs_waypoint
 
       private:
         bool atWaypoint();
+        void endOfList();
+        bool pointsClose(float x1, float x2);
         void moveRobot(const ros::TimerEvent&);
         int findClosestWaypoint(int maxDist);
         ros::Timer timer;
         int maxSpeed;
         nav_msgs::Path waypoints;
         int destWaypoint;
+        double maxTurn;
         float robotX;
         float robotY;
-        float robotW;
+        double robotHeading;
     };
 }
