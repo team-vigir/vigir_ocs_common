@@ -9,10 +9,6 @@
 #include <QGridLayout>
 
 
-//QPainter painter;
-//QWidget* picture;
-//QLabel* label1;
-//QLabel* label2;
 QComboBox *camera;
 QLabel *pitchLabel;
 QSlider *pitch;
@@ -27,6 +23,14 @@ QGroupBox* pitchBox;
 QObject* pitchParent;
 QPushButton* undoButton;
 QComboBox *actionBox;
+
+QComboBox *feedResolution;
+QComboBox *selectedResolution;
+
+QWidget *scrollingArea;
+QLayout* scrollLayout;
+int currentIndex=0;
+int headControlIndex = 0;
 
 ImageViewerCustomWidget::ImageViewerCustomWidget(QWidget *parent) :
     QWidget(parent),
@@ -58,6 +62,16 @@ ImageViewerCustomWidget::ImageViewerCustomWidget(QWidget *parent) :
 
 
 
+    feedResolution = this->findChild<QComboBox *>("comboBox_9");
+    connect(feedResolution, SIGNAL(currentIndexChanged(int)), this, SLOT(alterChoices(int)));
+
+    selectedResolution = this->findChild<QComboBox *>("comboBox_8");
+  //  connect(selectedResolution, SIGNAL(currentIndexChanged(int)), this, SLOT(alterChoices(int)));
+
+
+    scrollingArea= this->findChild<QWidget *>("scrollAreaWidgetContents");
+
+
     //This last part just creates the hand control box using the position
     // and size of the head pitch control box which it replaces.
     int x = 0; //x coordinate in parent.
@@ -69,17 +83,20 @@ ImageViewerCustomWidget::ImageViewerCustomWidget(QWidget *parent) :
     QWidget *parentWidget = pitchBox->parentWidget();
     x=pitchBox->x();
     y=pitchBox->y();
-    handBox = new QGroupBox("Hand Controls", pitchBox->parentWidget());
-
+    scrollLayout = scrollingArea->layout();
+//    int headControlIndex = scrollLayout.indexOf(pitchBox);
+    //handBox = new QGroupBox("Hand Controls", pitchBox);
+    handBox = new QGroupBox("Hand Control", scrollingArea);
+   // scrollingArea->setWidget(handBox);
 
     width = pitchBox->size().width();
     height = pitchBox->size().height();
 
 
+    //handBox->move(x,y);
+    handBox->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
     handBox->setMinimumSize(width,height);
-
     handBox->setMaximumSize(width,height);
-    handBox->move(x,y);
     QGridLayout *mainLayout = new QGridLayout;
 
 
@@ -125,22 +142,35 @@ void sliderValues(int lockedValue)
 void ImageViewerCustomWidget::alterDisplay(int num)
 {
 
+
+
     if(num== 0 || num == 1)
     {
         if(handBox != NULL)
         {
-
+            scrollLayout->removeWidget(handBox);
+            scrollLayout->removeWidget(scanButton);
             handBox->hide();
-        }
 
+        }
+        scrollLayout->addWidget(pitchBox);
+        scrollLayout->addWidget(scanButton);
         pitchBox->show();
+
     }
     else
     {
+       // pitchBox->hide();
+        scrollLayout->removeWidget(pitchBox);
+        scrollLayout->removeWidget(scanButton);
         pitchBox->hide();
 
 
+     //   handBox->show();
+        scrollLayout->addWidget(handBox);
+        scrollLayout->addWidget(scanButton);
         handBox->show();
+
 
     }
 }
@@ -241,4 +271,50 @@ void ImageViewerCustomWidget::isLocked()
         sliderValues(feedSlider->value());
     }
 
+}
+
+void ImageViewerCustomWidget::alterChoices(int index)
+{
+    int selected = selectedResolution->currentIndex(); //stores current index
+
+    selectedResolution->clear();
+
+    int indexCounter = 0;
+
+    if(index >= 0)
+    {
+        selectedResolution->addItem(QString("Selected - Very High"), indexCounter++);
+    }
+
+    if(index >=1)
+    {
+        selectedResolution->addItem(QString("Selected - High"), indexCounter++);
+    }
+    if(index >=2)
+    {
+        selectedResolution->addItem(QString("Selected - Medium"), indexCounter++);
+    }
+
+    if(index >=3)
+    {
+        selectedResolution->addItem(QString("Selected - Low"), indexCounter++);
+    }
+
+
+    if(index ==4)
+    {
+        selectedResolution->addItem(QString("Selected - Very Low"), indexCounter++);
+    }
+    //indexCounter-= index;
+
+
+
+    if(selected>index)
+    {
+        selectedResolution->setCurrentIndex(index);
+    }
+    else
+    {
+        selectedResolution->setCurrentIndex(selected);
+    }
 }

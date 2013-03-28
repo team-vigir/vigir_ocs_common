@@ -33,6 +33,7 @@ public Q_SLOTS:
     void updateSelectedFPS(int);
     void scan();
     void isLocked();
+    void alterChoices(int);
 
 
 };

@@ -8,6 +8,14 @@
 #include<QTreeWidget>
 #include<QFile>
 
+namespace rviz
+{
+class Display;
+class RenderPanel;
+class VisualizationManager;
+class FrameManager;
+}
+
 class jointList : public QWidget
 {
     Q_OBJECT
@@ -15,16 +23,21 @@ class jointList : public QWidget
 public:
     explicit jointList(QWidget *parent = 0);
     ~jointList();
-    void updateList( const sensor_msgs::JointStateConstPtr& joint_states );
-    //void getLimitsMessage ( const FOO& lmt_msg);
+    void updateList( const sensor_msgs::JointState::ConstPtr& joint_states );
     int getNumWarn();
     int getNumError();
 
 private:
+    rviz::VisualizationManager* manager_;
+    rviz::RenderPanel* render_panel_;
+    rviz::Display* robot_model_;
     ros::Subscriber joint_states;
-    //FOO limitsMessage;
+    std::vector<QTreeWidgetItem*> joints;
+    std::vector<double> effortLimits;
+    std::vector<double> upPoseLimit;
+    std::vector<double> downPoseLimit;
     QTreeWidget* jointTable;
-    QTreeWidgetItem joints[];
+    void processRobotInfo(std::string robotInfo);
     float warnMin;
     float errorMin;
     int warn;
