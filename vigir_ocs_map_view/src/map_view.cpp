@@ -266,17 +266,19 @@ void MapView::insertTemplate( QString path )
     std::cout << "adding template" << std::endl;
 
     flor_ocs_msgs::OCSTemplateAdd cmd;
-    geometry_msgs::Pose pose;
+    geometry_msgs::PoseStamped pose;
 
     cmd.template_path = path.toStdString();
 
-    pose.position.x = selection_position_.x;
-    pose.position.y = selection_position_.y;
-    pose.position.z = selection_position_.z;
-    pose.orientation.x = 0;
-    pose.orientation.y = 0;
-    pose.orientation.z = 1;
-    pose.orientation.w = 0;
+    pose.pose.position.x = selection_position_.x;
+    pose.pose.position.y = selection_position_.y;
+    pose.pose.position.z = selection_position_.z;
+    pose.pose.orientation.x = 0;
+    pose.pose.orientation.y = 0;
+    pose.pose.orientation.z = 1;
+    pose.pose.orientation.w = 0;
+
+    pose.header.frame_id = "/pelvis";
     cmd.pose = pose;
 
     // publish complete list of templates and poses

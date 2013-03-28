@@ -182,16 +182,18 @@ void TemplateDisplayCustom::load()
 	// create a new resource group for all our templates
 	Ogre::String nameOfResourceGroup = "templates";
 	Ogre::ResourceGroupManager& resourceManager = Ogre::ResourceGroupManager::getSingleton();
-	resourceManager.createResourceGroup(nameOfResourceGroup);
+    if(!resourceManager.resourceGroupExists(nameOfResourceGroup))
+    {
+        resourceManager.createResourceGroup(nameOfResourceGroup);
 
-	// set the template directory path as root of our resource manager
-	// need a global config.xml file to define this sort of stuff that is going to be used by multiple plugins and packages
-    Ogre::String templatePath = "/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/";
-	resourceManager.addResourceLocation(templatePath, "FileSystem", nameOfResourceGroup, false);
+        // set the template directory path as root of our resource manager
+        // need a global config.xml file to define this sort of stuff that is going to be used by multiple plugins and packages
+        Ogre::String templatePath = "/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/";
+        resourceManager.addResourceLocation(templatePath, "FileSystem", nameOfResourceGroup, false);
 
-	// parse scripts
-	resourceManager.initialiseResourceGroup(nameOfResourceGroup);
-
+        // parse scripts
+        resourceManager.initialiseResourceGroup(nameOfResourceGroup);
+    }
 	// loads files into our resource manager
 	resourceManager.loadResourceGroup(nameOfResourceGroup);
 
