@@ -40,6 +40,7 @@
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 #include <OGRE/OgreMovableObject.h>
+#include <OGRE/OgreMaterialManager.h>
 
 #include <urdf/model.h>
 
@@ -109,38 +110,39 @@ void Selection3DDisplayCustom::updateTfPrefix()
 
 void Selection3DDisplayCustom::load()
 {
-    /*Ogre::SceneNode* lightSceneNode = NULL;
-    Ogre::Light* light = this->scene_manager_->createLight();
+    Ogre::MaterialManager& lMaterialManager = Ogre::MaterialManager::getSingleton();
+    Ogre::String lNameOfResourceGroup = "SelectionMaterials";
 
-    // I can set some attributes of the light.
-    // The basic light type can be :
-    //		pointlight (like a candle?)
-    //		spotlight (kind of 'conic' light)
-    //		directional light (like the sun in an outdoor scene).
-    // Directional light is like parallel rays coming from 1 direction.
-    light->setType(Ogre::Light::LT_DIRECTIONAL);
+    Ogre::ResourceGroupManager& lRgMgr = Ogre::ResourceGroupManager::getSingleton();
+    lRgMgr.createResourceGroup(lNameOfResourceGroup);
 
-    // Here I choose the color of the light.
-    // The diffuse color is the main color of the light.
-    // The specular color is its color when reflected on an imperfect surface.
-    // For example, when my bald head skin reflect the sun, it makes a bright round of specular color.
-    //
-    // The final color of an object also depends on its material.
-    // Color values vary between 0.0(minimum) to 1.0 (maximum).
-    light->setDiffuseColour(0.8f, 0.8f, 0.8f); // this will be a red light
-    light->setSpecularColour(1.0f, 1.0f, 1.0f);// color of 'reflected' light
+    Ogre::String lMaterialName = lNameOfResourceGroup+"MarkerMaterial";
+    Ogre::MaterialPtr lMaterial = lMaterialManager.create(lMaterialName,lNameOfResourceGroup);
+    Ogre::Technique* lFirstTechnique = lMaterial->getTechnique(0);
+    Ogre::Pass* lFirstPass = lFirstTechnique->getPass(0);
 
-    lightSceneNode = this->scene_node_->createChildSceneNode();
-    lightSceneNode->attachObject(light);
+    float transparency = 0.3f;
+    Ogre::ColourValue lSelfIllumnationColour(0.1f, 0.0f, 0.0f, transparency);
+    lFirstPass->setSelfIllumination(lSelfIllumnationColour);
 
-    // I add an ambient color. The ambient color is managed in the scenemanager.
-    // If you want to learn more about ambient/specular/diffuse color, check the 'basic material tutorial'
-    // from this serie.
-    Ogre::ColourValue ambientColour(0.2f, 0.2f, 0.2f, 1.0f);
-    this->scene_manager_->setAmbientLight(ambientColour);*/
+    Ogre::ColourValue lDiffuseColour(1.0f, 0.4f, 0.4f, transparency);
+    lFirstPass->setDiffuse(lDiffuseColour);
+
+    Ogre::ColourValue lAmbientColour(0.4f, 0.1f, 0.1f, transparency);
+    lFirstPass->setAmbient(lAmbientColour);
+
+    Ogre::ColourValue lSpecularColour(1.0f, 1.0f, 1.0f, 1.0f);
+    lFirstPass->setSpecular(lSpecularColour);
+
+    Ogre::Real lShininess = 64.0f;
+    lFirstPass->setShininess(lShininess);
+
+    lFirstPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+    lFirstPass->setDepthWriteEnabled(false);
 
     // Create spheres to be used as markers
     Ogre::Entity* lEntity = this->scene_manager_->createEntity("selection marker", Ogre::SceneManager::PT_SPHERE);
+    //lEntity->setMaterialName(lMaterialName);
     selection_marker_ = this->scene_node_->createChildSceneNode();
     selection_marker_->attachObject(lEntity);
     // Change position and scale
@@ -149,16 +151,8 @@ void Selection3DDisplayCustom::load()
 
     selection_marker_->setVisible( false );
 
-    lEntity = this->scene_manager_->createEntity("ROI selection marker initial", Ogre::SceneManager::PT_SPHERE);
-    roi_marker_initial_ = this->scene_node_->createChildSceneNode();
-    roi_marker_initial_->attachObject(lEntity);
-    // Change position and scale
-    roi_marker_initial_->setPosition(0.0f, 0.0f, 0.0f);
-    roi_marker_initial_->scale(0.001f,0.001f,0.001f);
-
-    roi_marker_initial_->setVisible( false );
-
     lEntity = this->scene_manager_->createEntity("ROI selection marker final", Ogre::SceneManager::PT_SPHERE);
+    //lEntity->setMaterialName(lMaterialName);
     roi_marker_final_ = this->scene_node_->createChildSceneNode();
     roi_marker_final_->attachObject(lEntity);
     // Change position and scale
@@ -168,13 +162,15 @@ void Selection3DDisplayCustom::load()
     roi_marker_final_->setVisible( false );
 
     lEntity = this->scene_manager_->createEntity("ROI selection marker box", Ogre::SceneManager::PT_CUBE);
+    lEntity->setMaterialName(lMaterialName);
     roi_marker_box_ = this->scene_node_->createChildSceneNode();
     roi_marker_box_->attachObject(lEntity);
     // Change position and scale
     roi_marker_box_->setPosition(0.0f, 0.0f, 0.0f);
-    roi_marker_box_->scale(0.001f,0.001f,0.001f);
+    //roi_marker_box_->scale(0.001f,0.001f,0.001f);
 
     roi_marker_box_->setVisible( false );
+    lEntity->setMaterialName(lMaterialName);
 }
 
 void Selection3DDisplayCustom::onEnable()
@@ -280,6 +276,8 @@ void Selection3DDisplayCustom::createMarker(int x, int y)
     {
         selection_marker_->setVisible(false);
     }
+    roi_marker_final_->setVisible(false);
+    roi_marker_box_->setVisible(false);
 
 
     /*
@@ -319,7 +317,7 @@ void Selection3DDisplayCustom::createMarker(int x, int y)
     */
 }
 
-void Selection3DDisplayCustom::createROISelection(int xo, int yo, int x, int y)
+void Selection3DDisplayCustom::createROISelection(int x, int y)
 {
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
@@ -327,43 +325,38 @@ void Selection3DDisplayCustom::createROISelection(int xo, int yo, int x, int y)
     bool failed = false;
 
     // calculate raycasting position
-    Ogre::Ray mouseRayInitial = this->render_panel_->getCamera()->getCameraToViewportRay((float)xo/win_width, (float)yo/win_height);
-
-    Ogre::Vector3 positionInitial;
-
     Ogre::Vector3 pt;
     Ogre::Quaternion ot;
     transform(pt,ot);
-    if(raycast_utils_->RayCastFromPoint(mouseRayInitial,pt,ot,positionInitial))
+
+    Ogre::Ray mouseRayFinal = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
+
+    Ogre::Vector3 positionFinal;
+    if(raycast_utils_->RayCastFromPoint(mouseRayFinal,pt,ot,positionFinal))
     {
-        Ogre::Ray mouseRayFinal = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
+        selection_marker_->setVisible(true);
+        roi_marker_final_->setPosition(positionFinal);
+        roi_marker_final_->setVisible(true);
 
-        Ogre::Vector3 positionFinal;
-        if(raycast_utils_->RayCastFromPoint(mouseRayFinal,pt,ot,positionFinal))
-        {
-            selection_marker_->setVisible(false);
-            roi_marker_initial_->setPosition(positionInitial);
-            roi_marker_initial_->setVisible(true);
-            roi_marker_final_->setPosition(positionFinal);
-            roi_marker_final_->setVisible(true);
+        Ogre::Vector3 initial_position = selection_marker_->getPosition();
+        Ogre::Vector3 box_position = (initial_position+positionFinal)/2.0f;
+        roi_marker_box_->setPosition(box_position);
+        Ogre::Vector3 box_scale;
+        box_scale.x = fabs(positionFinal.x-initial_position.x)/100.0f;
+        box_scale.y = fabs(positionFinal.y-initial_position.y)/100.0f;
+        box_scale.z = fabs(positionFinal.z-initial_position.z)/100.0f;
+        roi_marker_box_->setScale(box_scale);
+        std::cout << "box_position: " << box_position.x << ", " << box_position.y << ", " << box_position.z << std::endl;
+        std::cout << "box_scale: " << box_scale.x << ", " << box_scale.y << ", " << box_scale.z << std::endl;
+        roi_marker_box_->setVisible(true);
 
-            // emit signal here?
-        }
-        else
-        {
-            failed = true;
-        }
+        // emit signal here?
     }
     else
     {
-        failed = true;
-    }
-
-    if(failed)
-    {
-        selection_marker_->setVisible(true);
-        roi_marker_initial_->setVisible(false);
+        selection_marker_->setVisible(false);
         roi_marker_final_->setVisible(false);
+        roi_marker_box_->setVisible(false);
     }
 }
 

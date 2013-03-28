@@ -140,7 +140,7 @@ Main3DView::Main3DView( QWidget* parent )
     selection_handler_ = new vigir_ocs::SelectionHandler();
     QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), selection_handler_, SLOT(mousePressEvent(QMouseEvent*)));
     QObject::connect(selection_handler_, SIGNAL(select(int,int)), selection_3d_display_, SLOT(createMarker(int,int)));
-    QObject::connect(selection_handler_, SIGNAL(selectROI(int,int,int,int)), selection_3d_display_, SLOT(createROISelection(int,int,int,int)));
+    QObject::connect(selection_handler_, SIGNAL(selectROI(int,int)), selection_3d_display_, SLOT(createROISelection(int,int)));
 
     // create a publisher to add templates
     template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );

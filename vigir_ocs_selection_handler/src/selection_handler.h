@@ -20,7 +20,7 @@ public:
 
 Q_SIGNALS:
   void select( int, int );
-  void selectROI( int, int, int, int );
+  void selectROI( int, int );
 
 public Q_SLOTS:
   void mousePressEvent( QMouseEvent* event );

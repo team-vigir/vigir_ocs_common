@@ -104,7 +104,7 @@ private Q_SLOTS:
   void updateRobotDescription();
   void createMarker(int, int, int, int);
   void createMarker(int, int);
-  void createROISelection(int,int,int,int);
+  void createROISelection(int,int);
   void setRenderPanel(rviz::RenderPanel*);
 
 protected:
@@ -124,7 +124,6 @@ protected:
   ros::Subscriber template_pose_;
   
   Ogre::SceneNode* selection_marker_;
-  Ogre::SceneNode* roi_marker_initial_;
   Ogre::SceneNode* roi_marker_final_;
   Ogre::SceneNode* roi_marker_box_;
 

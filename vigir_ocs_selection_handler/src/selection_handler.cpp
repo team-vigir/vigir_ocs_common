@@ -18,7 +18,7 @@ void SelectionHandler::mousePressEvent( QMouseEvent* event )
 { 
     if( event->modifiers() & Qt::ShiftModifier ) // as long as shift is pressed
     {
-        Q_EMIT selectROI( xo, yo, event->x(), event->y() );
+        Q_EMIT selectROI( event->x(), event->y() );
     }
     else if( event->modifiers() == Qt::ControlModifier ) // if only ctrl is pressed
 	{

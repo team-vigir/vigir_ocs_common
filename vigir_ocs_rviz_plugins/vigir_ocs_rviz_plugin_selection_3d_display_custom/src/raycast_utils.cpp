@@ -92,7 +92,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
         
         if(query_result[qr_idx].movable != NULL)
         {
-        	query_result[qr_idx].movable->getParentSceneNode()->showBoundingBox(true);
+            //query_result[qr_idx].movable->getParentSceneNode()->showBoundingBox(true);
         	std::cout << query_result[qr_idx].movable->getName() << " of type " << query_result[qr_idx].movable->getMovableType() << std::endl;
         }
 
@@ -157,7 +157,6 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
 
             // get the mesh information
             GetMeshInformationPointCloud(pentity, vertices, indices,
-                                         pentity->getParentNode()->_getDerivedPosition(), pentity->getParentNode()->_getDerivedOrientation(), pentity->getParentNode()->_getDerivedScale(),
                                          frame_pos, frame_quat);
             std::cout << "all mesh information ready (" << vertices.size() << ", " << indices.size() << ")" << std::endl;
 
