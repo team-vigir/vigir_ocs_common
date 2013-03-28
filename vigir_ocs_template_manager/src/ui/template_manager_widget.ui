@@ -6,19 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>250</width>
+    <width>200</width>
     <height>200</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>200</width>
-    <height>200</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>250</width>
     <height>200</height>
    </size>
   </property>
@@ -39,7 +33,7 @@
        <widget class="QTableWidget" name="tableWidget">
         <column>
          <property name="text">
-          <string> </string>
+          <string/>
          </property>
         </column>
         <column>

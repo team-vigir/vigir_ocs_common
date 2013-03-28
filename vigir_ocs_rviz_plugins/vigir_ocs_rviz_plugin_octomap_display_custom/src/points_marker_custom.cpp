@@ -150,7 +150,6 @@ void PointsMarkerCustom::onNewMessage(const MarkerConstPtr& old_message, const M
     points_->setAlpha(a);
   }
 
-  std::cout << "Added points" << std::endl;
   points_->addPoints(&points.front(), points.size());
   handler_.reset( new MarkerSelectionHandlerCustom( this, MarkerID( new_message->ns, new_message->id ), context_ ));
   points_->setPickColor( SelectionManager::handleToColor( handler_->getHandle() ));

@@ -23,11 +23,11 @@ public:
     RayCastUtils(Ogre::SceneManager* sm);
     ~RayCastUtils();
 
-    bool RayCastFromPoint(const Ogre::Vector3 &point, const Ogre::Vector3 &normal, Ogre::Vector3 &result);
-    bool RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 &result);
+    bool RayCastFromPoint(const Ogre::Vector3 &point, const Ogre::Vector3 &normal, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result);
+    bool RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result);
     
-    void GetMeshInformationPointCloud(rviz::PointCloudCustom* &mesh, size_t &vertex_count, std::vector<Ogre::Vector3> &vertices, size_t &index_count,
-        std::vector<unsigned long> &indices, const Ogre::Vector3 &position,	const Ogre::Quaternion &orient,	const Ogre::Vector3 &scale);
+    void GetMeshInformationPointCloud(rviz::PointCloudCustom* &mesh, std::vector<Ogre::Vector3> &vertices, std::vector<unsigned long> &indices,
+                                      Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat);
 
     void GetMeshInformationOptimized(const Ogre::MeshPtr mesh, size_t &vertex_count, Ogre::Vector3* &vertices, size_t &index_count,
         unsigned long* &indices, const Ogre::Vector3 &position,	const Ogre::Quaternion &orient,	const Ogre::Vector3 &scale);

@@ -201,6 +201,7 @@ private:
   PointCloudCustomRenderablePtr getOrCreateRenderable();
   void regenerateAll();
   void shrinkRenderables();
+  void reloadBoxMaterial();
 
   Ogre::AxisAlignedBox bounding_box_;       ///< The bounding box of this point cloud
   float bounding_radius_;                   ///< The bounding radius of this point cloud

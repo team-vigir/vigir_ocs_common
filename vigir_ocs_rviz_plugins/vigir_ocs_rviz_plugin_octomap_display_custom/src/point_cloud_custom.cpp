@@ -159,7 +159,7 @@ PointCloudCustom::PointCloudCustom()
   box_material_->load();
 
   setAlpha( 1.0f );
-  setRenderMode(RM_SPHERES);
+  setRenderMode(RM_BOXES);
   setDimensions(0.01f, 0.01f, 0.01f);
 
   clear();
@@ -195,6 +195,22 @@ float PointCloudCustom::getBoundingRadius() const
 void PointCloudCustom::getWorldTransforms(Ogre::Matrix4* xform) const
 {
   *xform = _getParentNodeFullTransform();
+}
+
+void PointCloudCustom::reloadBoxMaterial()
+{
+    box_material_->unload();
+
+    Ogre::MaterialManager::getSingleton().remove(box_material_);
+
+    std::stringstream ss;
+    static int count = 0;
+    ss << "PointCloudMaterial" << count++;
+    box_material_ = Ogre::MaterialManager::getSingleton().getByName("rviz/PointCloudBox");
+
+    box_material_ = Ogre::MaterialPtr(box_material_)->clone(ss.str() + "Box");
+
+    box_material_->load();
 }
 
 void PointCloudCustom::clear()
@@ -277,6 +293,7 @@ void PointCloudCustom::setRenderMode(RenderMode mode)
   }
   else if (mode == RM_BOXES)
   {
+      reloadBoxMaterial();
     current_material_ = Ogre::MaterialPtr(box_material_);
   }
 
@@ -871,7 +888,7 @@ const Ogre::LightList& PointCloudCustomRenderable::getLights() const
 
 void PointCloudCustom::getMesh(std::vector<Ogre::Vector3>& vertices, std::vector<unsigned long>& indices)
 {
-	float* v = 0;
+    float* v = 0;
     if (render_mode_ == RM_POINTS)
     {
       v = g_point_vertices;
@@ -897,22 +914,25 @@ void PointCloudCustom::getMesh(std::vector<Ogre::Vector3>& vertices, std::vector
       v = g_box_vertices;
     }
 
+    uint32_t vpp = 36;//getVerticesPerPoint(); box
+    //std::cout << "vertices per point: " << vpp << std::endl;
+    //Ogre::Matrix4 xform;
+    //getWorldTransforms(&xform);
+
 	unsigned long index = 0;
 	for(int i = 0; i < points_.size(); i++)
 	{
 		const Point& p = points_[i];
 		
-		float x = p.position.x;
-		float y = p.position.y;
-		float z = p.position.z;
-
-		uint32_t vpp = getVerticesPerPoint();
+        float x = p.position.x;
+        float y = p.position.y;
+        float z = p.position.z;
     
-    	for (uint32_t j = 0; j < vpp; ++j)
+        for (int j = 0; j < vpp; j++)
 		{
-			Ogre::Vector3 vertex(x+v[(j*3)],y+v[(j*3) + 1],z+v[(j*3) + 2]);
-			vertices.push_back(vertex);
-			indices.push_back(index++);
+            Ogre::Vector3 vertex(x+v[(j*3)]*width_,y+v[(j*3) + 1]*height_,z+v[(j*3) + 2]*depth_);
+            vertices.push_back(vertex);
+            indices.push_back(index++);
 		}
 	}
 }

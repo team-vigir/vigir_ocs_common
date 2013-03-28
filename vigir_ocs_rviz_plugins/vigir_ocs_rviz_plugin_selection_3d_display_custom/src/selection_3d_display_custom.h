@@ -41,7 +41,11 @@
 #define RVIZ_SELECT_3D_DISPLAY_H
 
 #include "rviz/display.h"
+#include "rviz/frame_manager.h"
+
 #include <geometry_msgs/PoseStamped.h>
+
+#include <tf/transform_listener.h>
 
 #include <OGRE/OgreVector3.h>
 #include "OGRE/OgreRoot.h"
@@ -100,6 +104,7 @@ private Q_SLOTS:
   void updateRobotDescription();
   void createMarker(int, int, int, int);
   void createMarker(int, int);
+  void createROISelection(int,int,int,int);
   void setRenderPanel(rviz::RenderPanel*);
 
 protected:
@@ -109,6 +114,8 @@ protected:
   virtual void onEnable();
   virtual void onDisable();
 
+  void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation);
+
   //bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
 
   float time_since_last_transform_;
@@ -117,6 +124,9 @@ protected:
   ros::Subscriber template_pose_;
   
   Ogre::SceneNode* selection_marker_;
+  Ogre::SceneNode* roi_marker_initial_;
+  Ogre::SceneNode* roi_marker_final_;
+  Ogre::SceneNode* roi_marker_box_;
 
   RenderPanel* render_panel_;
 

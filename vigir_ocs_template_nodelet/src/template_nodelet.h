@@ -12,7 +12,7 @@
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSTemplateUpdate.h>
 
-#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
 
 namespace ocs_template
 {
@@ -35,7 +35,9 @@ namespace ocs_template
         ros::Timer image_publish_timer_;
 
       private:
+        std::vector<unsigned char> template_id_list_;
         std::vector<std::string> template_list_;
-        std::vector<geometry_msgs::Pose> pose_list_;
+        std::vector<geometry_msgs::PoseStamped> pose_list_;
+        unsigned char id_counter_;
     };
 }

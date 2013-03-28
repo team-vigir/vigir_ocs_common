@@ -1,4 +1,4 @@
-/* 
+/*
  * TemplateDisplayCustom class implementation.
  *
  * Author: Felipe Bacim.
@@ -216,6 +216,12 @@ void TemplateDisplayCustom::load()
     // subscribe to the topic to load all templates
     template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>( "/template/list", 5, &TemplateDisplayCustom::processTemplateList, this );
 
+    // subscribe to the topic to load all templates
+    template_remove_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 5, &TemplateDisplayCustom::processTemplateRemove, this );
+
+    // and advertise the template update to update the manipulator
+    template_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "/template/update", 1, false );
+
 }
 
 void TemplateDisplayCustom::onEnable()
@@ -265,14 +271,19 @@ void TemplateDisplayCustom::processPoseChange(const geometry_msgs::PoseStamped::
 //             pose->pose.orientation.x,
 //             pose->pose.orientation.y,
 //             pose->pose.orientation.z );
-    template_node_list_[0]->setPosition(pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
+    unsigned int id = 0; // need to change this to move any template and not just one
+
+    /*template_node_list_[id]->setPosition(pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
     Ogre::Quaternion quat;
     quat.w= pose->pose.orientation.w;
     quat.x= pose->pose.orientation.x;
     quat.y= pose->pose.orientation.y;
     quat.z= pose->pose.orientation.z;
 
-    template_node_list_[0]->setOrientation(quat);
+    template_node_list_[id]->setOrientation(quat);*/
+
+    publishTemplateUpdate(id,pose);
+
     context_->queueRender();
 }
 
@@ -297,14 +308,14 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
         std::cout << "Template: " << msg->template_list[i] << std::endl;
 
         Ogre::Vector3 pos;
-        pos.x = msg->pose[i].position.x;
-        pos.y = msg->pose[i].position.y;
-        pos.z = msg->pose[i].position.z;
+        pos.x = msg->pose[i].pose.position.x;
+        pos.y = msg->pose[i].pose.position.y;
+        pos.z = msg->pose[i].pose.position.z;
         Ogre::Quaternion quat;
-        quat.w= msg->pose[i].orientation.w;
-        quat.x= msg->pose[i].orientation.x;
-        quat.y= msg->pose[i].orientation.y;
-        quat.z= msg->pose[i].orientation.z;
+        quat.w= msg->pose[i].pose.orientation.w;
+        quat.x= msg->pose[i].pose.orientation.x;
+        quat.y= msg->pose[i].pose.orientation.y;
+        quat.z= msg->pose[i].pose.orientation.z;
 
         // if i is outside boundaries, add to lists
         if(i >= template_list_.size())
@@ -312,6 +323,7 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
             std::string path = msg->template_list[i];
             addTemplate(path,pos,quat);
             template_list_.push_back(path);
+            template_id_list_.push_back(msg->template_id_list[i]);
         }
         else // just update position
         {
@@ -323,5 +335,32 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
     //msg->template_list;
 }
 
+void TemplateDisplayCustom::publishTemplateUpdate(const unsigned int& id, const geometry_msgs::PoseStamped::ConstPtr& pose)
+{
+    flor_ocs_msgs::OCSTemplateUpdate cmd;
+
+    cmd.template_id = id;
+    cmd.pose = *pose;
+
+    // publish complete list of templates and poses
+    template_update_pub_.publish( cmd );
+}
+
+void TemplateDisplayCustom::processTemplateRemove(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg)
+{
+    int index = 0;
+    for(; index < template_id_list_.size(); index++)
+        if(template_id_list_[index] == msg->template_id)
+            break;
+    if(index < template_id_list_.size())
+    {
+        template_id_list_.erase(template_id_list_.begin()+index);
+        template_list_.erase(template_list_.begin()+index);
+        this->scene_manager_->destroyEntity((Ogre::Entity*)template_node_list_[index]->getAttachedObject(0));
+        //template_node_list_[index]->detachObject(0);
+        this->scene_node_->removeChild(template_node_list_[index]);
+        template_node_list_.erase(template_node_list_.begin()+index);
+    }
+}
 
 } // namespace rviz

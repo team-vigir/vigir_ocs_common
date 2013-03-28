@@ -99,7 +99,8 @@ Main3DView::Main3DView( QWidget* parent )
     laser_scan_->subProp( "Decay Time" )->setValue( 1 );
 
     // Create a MarkerArray display.
-    marker_array_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );//manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
+    //marker_array_ = manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
+    marker_array_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );
     ROS_ASSERT( marker_array_ != NULL );
 
     marker_array_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
@@ -139,6 +140,7 @@ Main3DView::Main3DView( QWidget* parent )
     selection_handler_ = new vigir_ocs::SelectionHandler();
     QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), selection_handler_, SLOT(mousePressEvent(QMouseEvent*)));
     QObject::connect(selection_handler_, SIGNAL(select(int,int)), selection_3d_display_, SLOT(createMarker(int,int)));
+    QObject::connect(selection_handler_, SIGNAL(selectROI(int,int,int,int)), selection_3d_display_, SLOT(createROISelection(int,int,int,int)));
 
     // create a publisher to add templates
     template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
@@ -244,17 +246,19 @@ void Main3DView::insertTemplate( QString path )
     std::cout << "adding template" << std::endl;
 
     flor_ocs_msgs::OCSTemplateAdd cmd;
-    geometry_msgs::Pose pose;
+    geometry_msgs::PoseStamped pose;
 
     cmd.template_path = path.toStdString();
 
-    pose.position.x = selection_position_.x;
-    pose.position.y = selection_position_.y;
-    pose.position.z = selection_position_.z;
-    pose.orientation.x = 0;
-    pose.orientation.y = 0;
-    pose.orientation.z = 1;
-    pose.orientation.w = 0;
+    pose.pose.position.x = selection_position_.x;
+    pose.pose.position.y = selection_position_.y;
+    pose.pose.position.z = selection_position_.z;
+    pose.pose.orientation.x = 0;
+    pose.pose.orientation.y = 0;
+    pose.pose.orientation.z = 1;
+    pose.pose.orientation.w = 0;
+    
+    pose.header.frame_id = "/pelvis";
     cmd.pose = pose;
 
     // publish complete list of templates and poses

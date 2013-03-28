@@ -43,8 +43,6 @@
 
 #include <urdf/model.h>
 
-#include <tf/transform_listener.h>
-
 #include "rviz/display_context.h"
 #include "rviz/robot/robot.h"
 #include "rviz/robot/tf_link_updater.h"
@@ -141,8 +139,8 @@ void Selection3DDisplayCustom::load()
     Ogre::ColourValue ambientColour(0.2f, 0.2f, 0.2f, 1.0f);
     this->scene_manager_->setAmbientLight(ambientColour);*/
 
-    // Create a box to be used as marker
-    Ogre::Entity* lEntity = this->scene_manager_->createEntity("selection marker", Ogre::SceneManager::PT_CUBE);
+    // Create spheres to be used as markers
+    Ogre::Entity* lEntity = this->scene_manager_->createEntity("selection marker", Ogre::SceneManager::PT_SPHERE);
     selection_marker_ = this->scene_node_->createChildSceneNode();
     selection_marker_->attachObject(lEntity);
     // Change position and scale
@@ -150,6 +148,33 @@ void Selection3DDisplayCustom::load()
     selection_marker_->scale(0.001f,0.001f,0.001f);
 
     selection_marker_->setVisible( false );
+
+    lEntity = this->scene_manager_->createEntity("ROI selection marker initial", Ogre::SceneManager::PT_SPHERE);
+    roi_marker_initial_ = this->scene_node_->createChildSceneNode();
+    roi_marker_initial_->attachObject(lEntity);
+    // Change position and scale
+    roi_marker_initial_->setPosition(0.0f, 0.0f, 0.0f);
+    roi_marker_initial_->scale(0.001f,0.001f,0.001f);
+
+    roi_marker_initial_->setVisible( false );
+
+    lEntity = this->scene_manager_->createEntity("ROI selection marker final", Ogre::SceneManager::PT_SPHERE);
+    roi_marker_final_ = this->scene_node_->createChildSceneNode();
+    roi_marker_final_->attachObject(lEntity);
+    // Change position and scale
+    roi_marker_final_->setPosition(0.0f, 0.0f, 0.0f);
+    roi_marker_final_->scale(0.001f,0.001f,0.001f);
+
+    roi_marker_final_->setVisible( false );
+
+    lEntity = this->scene_manager_->createEntity("ROI selection marker box", Ogre::SceneManager::PT_CUBE);
+    roi_marker_box_ = this->scene_node_->createChildSceneNode();
+    roi_marker_box_->attachObject(lEntity);
+    // Change position and scale
+    roi_marker_box_->setPosition(0.0f, 0.0f, 0.0f);
+    roi_marker_box_->scale(0.001f,0.001f,0.001f);
+
+    roi_marker_box_->setVisible( false );
 }
 
 void Selection3DDisplayCustom::onEnable()
@@ -201,6 +226,37 @@ void Selection3DDisplayCustom::createMarker(int xo, int yo, int x, int y)
     createMarker(x,y);
 }
 
+void Selection3DDisplayCustom::transform(Ogre::Vector3& position, Ogre::Quaternion& orientation)
+{
+    //std::cout << "POS bt: " << position.x << ", " << position.y << ", " << position.z << std::endl;
+    // put all pose data into a tf stamped pose
+    tf::Quaternion bt_orientation(0, 0, 0, 1);
+    tf::Vector3 bt_position(0, 0, 0);
+
+    std::string frame("/world");
+    tf::Stamped<tf::Pose> pose_in(tf::Transform(bt_orientation,bt_position), ros::Time(), frame);
+    tf::Stamped<tf::Pose> pose_out;
+
+    // convert pose into new frame
+    try
+    {
+      context_->getFrameManager()->getTFClient()->transformPose( fixed_frame_.toUtf8().constData(), pose_in, pose_out );
+    }
+    catch(tf::TransformException& e)
+    {
+      ROS_DEBUG("Error transforming from frame '%s' to frame '%s': %s", frame.c_str(), fixed_frame_.toUtf8().constData(), e.what());
+      return;
+    }
+
+    bt_position = pose_out.getOrigin();
+    position = Ogre::Vector3(bt_position.x(), bt_position.y(), bt_position.z());
+    std::cout << "POS transform: " << position.x << ", " << position.y << ", " << position.z << std::endl;
+
+    bt_orientation = pose_out.getRotation();
+    orientation = Ogre::Quaternion( bt_orientation.w(), bt_orientation.x(), bt_orientation.y(), bt_orientation.z() );
+    std::cout << "QUAT transform: " << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << std::endl;
+}
+
 void Selection3DDisplayCustom::createMarker(int x, int y)
 {
     float win_width = render_panel_->width();
@@ -210,16 +266,20 @@ void Selection3DDisplayCustom::createMarker(int x, int y)
     Ogre::Ray mouseRay = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
 
     Ogre::Vector3 position;
-    if(raycast_utils_->RayCastFromPoint(mouseRay,position))
+
+    Ogre::Vector3 pt;
+    Ogre::Quaternion ot;
+    transform(pt,ot);
+    if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position))
     {
         selection_marker_->setPosition(position);
         selection_marker_->setVisible(true);
+        Q_EMIT newSelection(position);
     }
     else
     {
         selection_marker_->setVisible(false);
     }
-    Q_EMIT newSelection(position);
 
 
     /*
@@ -257,6 +317,54 @@ void Selection3DDisplayCustom::createMarker(int x, int y)
         selection_marker_->setVisible( true );
     }
     */
+}
+
+void Selection3DDisplayCustom::createROISelection(int xo, int yo, int x, int y)
+{
+    float win_width = render_panel_->width();
+    float win_height = render_panel_->height();
+
+    bool failed = false;
+
+    // calculate raycasting position
+    Ogre::Ray mouseRayInitial = this->render_panel_->getCamera()->getCameraToViewportRay((float)xo/win_width, (float)yo/win_height);
+
+    Ogre::Vector3 positionInitial;
+
+    Ogre::Vector3 pt;
+    Ogre::Quaternion ot;
+    transform(pt,ot);
+    if(raycast_utils_->RayCastFromPoint(mouseRayInitial,pt,ot,positionInitial))
+    {
+        Ogre::Ray mouseRayFinal = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
+
+        Ogre::Vector3 positionFinal;
+        if(raycast_utils_->RayCastFromPoint(mouseRayFinal,pt,ot,positionFinal))
+        {
+            selection_marker_->setVisible(false);
+            roi_marker_initial_->setPosition(positionInitial);
+            roi_marker_initial_->setVisible(true);
+            roi_marker_final_->setPosition(positionFinal);
+            roi_marker_final_->setVisible(true);
+
+            // emit signal here?
+        }
+        else
+        {
+            failed = true;
+        }
+    }
+    else
+    {
+        failed = true;
+    }
+
+    if(failed)
+    {
+        selection_marker_->setVisible(true);
+        roi_marker_initial_->setVisible(false);
+        roi_marker_final_->setVisible(false);
+    }
 }
 
 void Selection3DDisplayCustom::setRenderPanel( rviz::RenderPanel* rp )

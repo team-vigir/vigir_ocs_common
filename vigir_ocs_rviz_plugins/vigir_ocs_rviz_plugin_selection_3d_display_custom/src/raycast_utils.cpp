@@ -30,19 +30,19 @@ RayCastUtils::~RayCastUtils()
     scene_manager_->destroyQuery(ray_scene_query_);
 }
 
-bool RayCastUtils::RayCastFromPoint(const Ogre::Vector3 &point, const Ogre::Vector3 &direction, Ogre::Vector3 &result)
+bool RayCastUtils::RayCastFromPoint(const Ogre::Vector3 &point, const Ogre::Vector3 &direction, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result)
 {
     // create the ray to test
     Ogre::Ray ray(Ogre::Vector3(point.x, point.y, point.z),
                   Ogre::Vector3(direction.x, direction.y, direction.z));
 
-    return RayCastFromPoint(ray,result);
+    return RayCastFromPoint(ray,frame_pos,frame_quat,result);
 }
 
 // Raycast from a point in to the scene.
 // returns success or failure.
 // on success the point is returned in the result.
-bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 &result)
+bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result)
 {
     // check we are initialised
     if (ray_scene_query_ != NULL)
@@ -152,21 +152,23 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 &result)
             rviz::PointCloudCustom *pentity = static_cast<rviz::PointCloudCustom*>(query_result[qr_idx].movable);
 
             // mesh data to retrieve
-            size_t vertex_count;
-            size_t index_count;
             std::vector<Ogre::Vector3> vertices;
             std::vector<unsigned long> indices;
 
             // get the mesh information
-            GetMeshInformationPointCloud(pentity, vertex_count, vertices, index_count, indices,
-                                         pentity->getParentNode()->_getDerivedPosition(), pentity->getParentNode()->_getDerivedOrientation(), pentity->getParentNode()->_getDerivedScale());
-			std::cout << "all mesh information ready (" << vertex_count << ", " << index_count << ")" << std::endl;
+            GetMeshInformationPointCloud(pentity, vertices, indices,
+                                         pentity->getParentNode()->_getDerivedPosition(), pentity->getParentNode()->_getDerivedOrientation(), pentity->getParentNode()->_getDerivedScale(),
+                                         frame_pos, frame_quat);
+            std::cout << "all mesh information ready (" << vertices.size() << ", " << indices.size() << ")" << std::endl;
 
             // test for hitting individual triangles on the mesh
             bool new_closest_found = false;
-            for (int i = 0; i < static_cast<int>(index_count); i += 3)
+            for (int i = 0; i < indices.size(); i += 3)
             {
-            	std::cout << "testing hit with " << i << " / " << vertices.size() << " " << indices.size() << std::endl;
+                //std::cout << "testing hit with " << i << " / " << vertices.size() << std::endl;
+                //std::cout << "\t" << vertices[indices[i]].x << ", " << vertices[indices[i]].y << ", " << vertices[indices[i]].z << std::endl;
+                //std::cout << "\t" << vertices[indices[i+1]].x << ", " << vertices[indices[i+1]].y << ", " << vertices[indices[i+1]].z << std::endl;
+                //std::cout << "\t" << vertices[indices[i+2]].x << ", " << vertices[indices[i+2]].y << ", " << vertices[indices[i+2]].z << std::endl;
                 // check for a hit against this triangle
                 std::pair<bool, Ogre::Real> hit = Ogre::Math::intersects(ray, vertices[indices[i]],
                                                                          vertices[indices[i+1]], vertices[indices[i+2]], true, false);
@@ -175,7 +177,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 &result)
                 if (hit.first)
                 {
                     if ((closest_distance < 0.0f) ||
-                            (hit.second < closest_distance))
+                        (hit.second < closest_distance))
                     {
                         // this is the closest so far, save it off
                         closest_distance = hit.second;
@@ -194,7 +196,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 &result)
             // closest_result before moving on to the next object.
             if (new_closest_found)
             {
-   				std::cout << "cleared memory" << std::endl;
+   				std::cout << "found new point" << std::endl;
                 closest_result = ray.getPoint(closest_distance);
             }
         }
@@ -214,19 +216,20 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 &result)
     }
 }
 
-void RayCastUtils::GetMeshInformationPointCloud(rviz::PointCloudCustom* &mesh, size_t &vertex_count, std::vector<Ogre::Vector3> &vertices, size_t &index_count,
-                                                std::vector<unsigned long> &indices, const Ogre::Vector3 &position,	const Ogre::Quaternion &orient,	const Ogre::Vector3 &scale)
+void RayCastUtils::GetMeshInformationPointCloud(rviz::PointCloudCustom* &mesh, std::vector<Ogre::Vector3> &vertices, std::vector<unsigned long> &indices,
+                                                Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat)
 {
     mesh->getMesh(vertices,indices);
-    vertex_count = vertices.size();
-    index_count = indices.size();
     
-    for( size_t j = 0; j < vertex_count; ++j)
+    for( int j = 0; j < vertices.size(); ++j)
     {
-    	Ogre::Vector3 pt = vertices[j];
-        vertices[j] = (orient * (pt * scale)) + position;
+        Ogre::Vector3 pt = vertices[j];
+        //pt = (orient * (pt * scale)) + position;
+        vertices[j] = (frame_quat * pt) + frame_pos;
     }
 }
+
+
 
 //////////////////////////////////////////////////////////////////////////
 // This code is a copy of RetrieveVertexData.(Optimized version)

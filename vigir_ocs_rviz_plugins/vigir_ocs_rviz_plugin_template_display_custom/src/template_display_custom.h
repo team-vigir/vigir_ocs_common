@@ -35,6 +35,7 @@
 
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSTemplateUpdate.h>
+#include <flor_ocs_msgs/OCSTemplateRemove.h>
 
 #include <OGRE/OgreVector3.h>
 #include "OGRE/OgreRoot.h"
@@ -88,6 +89,8 @@ public:
 
   void processPoseChange(const geometry_msgs::PoseStamped::ConstPtr& pose);
   void processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg);
+  void publishTemplateUpdate(const unsigned int& id, const geometry_msgs::PoseStamped::ConstPtr& pose);
+  void processTemplateRemove(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
 
 private Q_SLOTS:
   void updateVisualVisible();
@@ -125,7 +128,10 @@ private:
   ros::NodeHandle nh_;
   ros::Subscriber template_pose_sub_;
   ros::Subscriber template_list_sub_;
+  ros::Subscriber template_remove_sub_;
+  ros::Publisher template_update_pub_;
 
+  std::vector<unsigned char> template_id_list_;
   std::vector<std::string> template_list_;
   std::vector<Ogre::SceneNode*> template_node_list_;
 
