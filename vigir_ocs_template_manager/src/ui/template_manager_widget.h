@@ -14,8 +14,15 @@
 
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
+#include <flor_grasp_msgs/GraspSelection.h>
 #include <geometry_msgs/Pose.h>
 #include <ros/ros.h>
+
+namespace rviz
+{
+class RenderPanel;
+class VisualizationManager;
+}
 
 namespace Ui {
 class TemplateManagerWidget;
@@ -36,6 +43,8 @@ public:
     void initGraspDB();
 
     std::vector< std::vector<QString> > readTextDBFile(QString path);
+
+    void configureGrasps(std::string template_name, QComboBox* combo_box);
 
 public Q_SLOTS:
     void editSlot(int,int);
@@ -65,6 +74,10 @@ private:
     ros::NodeHandle nh_;
     ros::Subscriber template_list_sub_;
     ros::Publisher template_remove_pub_;
+    ros::Publisher grasp_selected_pub_;
+
+    rviz::VisualizationManager* manager_;
+    rviz::RenderPanel* render_panel_;
 };
 
 #endif // TemplateManagerWidget_H

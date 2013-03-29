@@ -1,9 +1,12 @@
 #include "template_manager_widget.h"
 #include "ui_template_manager_widget.h"
 #include "stdio.h"
+#include "rviz/visualization_manager.h"
+#include "rviz/render_panel.h"
 #include <iostream>
 #include <QPainter>
 #include <QtGui>
+#include <QSignalMapper>
 
 TemplateManagerWidget::TemplateManagerWidget(QWidget *parent) :
     QWidget(parent),
@@ -11,6 +14,12 @@ TemplateManagerWidget::TemplateManagerWidget(QWidget *parent) :
     template_dir_path_(QString("/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/")) // should read this from file
 {
     ui->setupUi(this);
+
+    render_panel_ = new rviz::RenderPanel();
+    manager_ = new rviz::VisualizationManager( render_panel_ );
+    render_panel_->initialize( manager_->getSceneManager(), manager_ );
+    manager_->initialize();
+    manager_->startUpdate();
 
     connect(ui->tableWidget, SIGNAL(cellClicked(int,int)), this, SLOT(editSlot(int, int)));
 
@@ -25,6 +34,9 @@ TemplateManagerWidget::TemplateManagerWidget(QWidget *parent) :
 
     // and advertise the template update to update the manipulator
     template_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
+
+    // advertise to the
+    grasp_selected_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_selected", 1, false );
 }
 
 TemplateManagerWidget::~TemplateManagerWidget()
@@ -139,6 +151,7 @@ void TemplateManagerWidget::processTemplateList(const flor_ocs_msgs::OCSTemplate
     ui->tableWidget->setRowCount(msg->template_list.size());
 
     // add info about templates to the table
+    QSignalMapper* signalMapper = new QSignalMapper(this);
     QTableWidgetItem * item;
 
     for(int i = 0; i < msg->template_list.size(); i++)
@@ -171,13 +184,42 @@ void TemplateManagerWidget::processTemplateList(const flor_ocs_msgs::OCSTemplate
         ui->tableWidget->setItem(i,4,item);
         item = new QTableWidgetItem(QString::fromUtf8(msg->pose[i].header.frame_id.c_str()));
         ui->tableWidget->setItem(i,5,item);
-        // read from database all grasps for this template
+        QComboBox *combo = new QComboBox();
+        configureGrasps(msg->template_list[i].substr(0,msg->template_list[i].size()-5), combo);
+        // TODO: need to create changed function to keep track of what's being visualized
+        //connect(combo, SIGNAL(currentIndexChanged(int)), signalMapper, SLOT(map()));
+        //signalMapper->setMapping(combo, QString("%1").arg(i));
+        ui->tableWidget->setCellWidget(i, 6, combo);
         //ui->tableWidget->setItem(i,6,item);
         item = new QTableWidgetItem(QString("GRASP"));
         item->setBackground(QBrush(QColor(200,200,200)));
         item->setForeground(QBrush(QColor(20,20,20)));
         item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEditable);
         ui->tableWidget->setItem(i,7,item);
+    }
+}
+
+// for changed(QString)
+//QStringList coordinates = position.split("-");
+//int row = coordinates[0].toInt();
+//int col = coordinates[1].toInt();
+//QComboBox* combo=(QComboBox*)table->cellWidget(row, col);
+//combo->currentIndex();
+
+void TemplateManagerWidget::configureGrasps(std::string template_name, QComboBox* combo_box)
+{
+    std::cout << "looking for grasps for template " << template_name << std::endl;
+    // add all grasp ids to the combo box
+    for(int i = 0; i < grasp_db_.size(); i++)
+    {
+        if(template_name.compare(grasp_db_[i].template_name) == 0)
+        {
+            std::cout << "  found " << (unsigned int)grasp_db_[i].grasp_id << std::endl;
+            combo_box->addItem(QString::number((unsigned int)grasp_db_[i].grasp_id));
+
+
+            // need to add a connect here
+        }
     }
 }
 
@@ -201,8 +243,27 @@ void TemplateManagerWidget::editSlot(int row, int col)
         if(ok)
             removeTemplate(convert);
     }
-    else if(col == 6)
+    else if(col == 7)
     {
+        QComboBox* combo = (QComboBox*)ui->tableWidget->cellWidget(row, 6);
+        unsigned char grasp_id = combo->itemText(combo->currentIndex()).toUInt() & 0x000000ff;
 
+        for(int i = 0; i < grasp_db_.size(); i++)
+        {
+            if(grasp_id == grasp_db_[i].grasp_id)
+            {
+                flor_grasp_msgs::GraspSelection cmd;
+
+                cmd.grasp_id.data = grasp_id;
+                cmd.template_id.data = ui->tableWidget->item(row,0)->text().toUInt() & 0x000000ff;
+                cmd.template_type.data = grasp_db_[i].template_type;
+                cmd.header.frame_id = "/world";
+
+                // publish template to be removed
+                grasp_selected_pub_.publish( cmd );
+
+                break;
+            }
+        }
     }
 }
