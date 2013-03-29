@@ -40,6 +40,7 @@ int main(int argc, char **argv)
   QApplication a( argc, argv );
   TemplateManagerWidget w;
   w.show();
+  w.setMinimumSize(300,100);
 
   Spinner spinner; // this will create the spinner
 

@@ -184,20 +184,6 @@
               </widget>
              </item>
              <item>
-              <widget class="QRadioButton" name="selection_tool">
-               <property name="text">
-                <string>Robot Selection</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="selection_3d_tool">
-               <property name="text">
-                <string>3D Selection</string>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QRadioButton" name="widget_tool">
                <property name="text">
                 <string>Joint Manipulation</string>
@@ -387,22 +373,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>selection_tool</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>main_3d_view_</receiver>
-   <slot>selectToggled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>669</x>
-     <y>229</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>271</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>widget_tool</sender>
    <signal>toggled(bool)</signal>
    <receiver>main_3d_view_</receiver>
@@ -447,22 +417,6 @@
     <hint type="destinationlabel">
      <x>271</x>
      <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>selection_3d_tool</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>main_3d_view_</receiver>
-   <slot>select3DToggled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>669</x>
-     <y>274</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>271</x>
-     <y>305</y>
     </hint>
    </hints>
   </connection>

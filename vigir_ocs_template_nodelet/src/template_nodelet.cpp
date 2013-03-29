@@ -19,7 +19,7 @@ void TemplateNodelet::onInit()
 
 void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr& msg)
 {
-    std::cout << "Adding template to list" << std::endl;
+    std::cout << "Added template to list (id: " << (int)id_counter_ << ")" << std::endl;
     template_id_list_.push_back(id_counter_++);
     template_list_.push_back(msg->template_path);
     pose_list_.push_back(msg->pose);
@@ -28,13 +28,14 @@ void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPt
 
 void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg)
 {
-    std::cout << "Removing template from list" << std::endl;
+    std::cout << "Removing template " << msg->template_id << " from list... ";
     int index = 0;
     for(; index < template_id_list_.size(); index++)
         if(template_id_list_[index] == msg->template_id)
             break;
     if(index < template_id_list_.size())
     {
+        std::cout << "Removed!" << std::endl;
         template_id_list_.erase(template_id_list_.begin()+index);
         template_list_.erase(template_list_.begin()+index);
         pose_list_.erase(pose_list_.begin()+index);
@@ -44,13 +45,16 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
 
 void TemplateNodelet::updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& msg)
 {
-    std::cout << "Updating template" << std::endl;
+    std::cout << "Updating template " << msg->template_id << "... ";
     int index = 0;
     for(; index < template_id_list_.size(); index++)
         if(template_id_list_[index] == msg->template_id)
             break;
     if(index < template_id_list_.size())
+    {
+        std::cout << "Updated!" << std::endl;
         pose_list_[index] = msg->pose;
+    }
     this->publishTemplateList();
 }
 
