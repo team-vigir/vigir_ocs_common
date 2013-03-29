@@ -1,5 +1,6 @@
 #include "jointList.h"
 #include <QVBoxLayout>
+#include <QRegExp>
 #include <ros/ros.h>
 #include <QDebug>
 #include "rviz/visualization_manager.h"
@@ -43,7 +44,7 @@ jointList::jointList(QWidget *parent) :
     left_arm->setText(0,tr("Left Arm"));
     QTreeWidgetItem *right_arm = new QTreeWidgetItem(jointTable);
     right_arm->setText(0,tr("Right Arm"));
-    
+
     //Torso Joints
     QTreeWidgetItem *joint = new QTreeWidgetItem(torso);
     joint->setText(0,"back_lbz");
@@ -58,7 +59,7 @@ jointList::jointList(QWidget *parent) :
     joint->setText(0,"neck_ay");
     joints.push_back(joint);
 
-	//Left Leg Joints
+    //Left Leg Joints
     joint = new QTreeWidgetItem(left_leg);
     joint->setText(0,"l_leg_uhz");
     joints.push_back(joint);
@@ -78,7 +79,7 @@ jointList::jointList(QWidget *parent) :
     joint->setText(0,"l_leg_lax");
     joints.push_back(joint);
 
-	//Right Leg Joints
+    //Right Leg Joints
     joint= new QTreeWidgetItem(right_leg);
     joint->setText(0,"r_leg_uhz");
     joints.push_back(joint);
@@ -98,7 +99,7 @@ jointList::jointList(QWidget *parent) :
     joint->setText(0,"r_leg_lax");
     joints.push_back(joint);
 
-	//Left Arm Joints
+    //Left Arm Joints
     joint = new QTreeWidgetItem(left_arm);
     joint->setText(0,"l_arm_usy");
     joints.push_back(joint);
@@ -117,8 +118,7 @@ jointList::jointList(QWidget *parent) :
     joint = new QTreeWidgetItem(left_arm);
     joint->setText(0,"l_arm_mwx");
     joints.push_back(joint);
-
-	//Right Arm Joints
+    //Right Arm Joints
     joint= new QTreeWidgetItem(right_arm);
     joint->setText(0,"r_arm_usy");
     joints.push_back(joint);
@@ -138,8 +138,8 @@ jointList::jointList(QWidget *parent) :
     joint->setText(0,"r_arm_mwx");
     joints.push_back(joint);
 
-    warnMin=.8;
-    errorMin=.95;
+    warnMin=.75;
+    errorMin=.90;
 
     std::cout << "JointList Widget setup now starting subscribing to Ros topic." << std::endl;
     ros::NodeHandle nh;
@@ -153,10 +153,78 @@ jointList::jointList(QWidget *parent) :
 
 void jointList::processRobotInfo(std::string robotInfo)
 {
+    std::cout << "Setting up limits from ros param..." << std::endl;
 
+    QRegExp effort("<limit effort=\\\"\\d+.\\d+");
+    QRegExp lowLimit("soft_lower_limit=\\\"(\\)*-)\\d+.\\d+");
+    QRegExp upLimit("soft_upper_limit=\\\"(\\)*)\\d+.\\d+");
+    QRegExp names("<joint name=\\\"([a-z]|_){7,9}");
+    QString foo = QString::fromStdString(robotInfo);
+    int pos = 0;
+    while((pos = effort.indexIn(foo,pos)) != -1)
+    {
+        effortLimits.push_back((effort.cap(0).remove(0,15)).toDouble());
+        pos += effort.matchedLength();
+    }
+    pos = 0;
+    while((pos = lowLimit.indexIn(foo,pos)) != -1)
+    {
+        downPoseLimit.push_back((lowLimit.cap(0).remove(0,18)).toDouble());
+        pos += lowLimit.matchedLength();
+    }
+    pos = 0;
+    while((pos = upLimit.indexIn(foo,pos)) != -1)
+    {
+        upPoseLimit.push_back((upLimit.cap(0).remove(0,18)).toDouble());
+        pos += upLimit.matchedLength();
+    }
+    pos = 0;
+    int cur=0;
+    int order[joints.size()];
+    while((pos = names.indexIn(foo,pos)) != -1 && cur < 28)
+    {
 
+        for(int i=0;i<joints.size();i++)
+        {
+            if(joints[i]->text(0) == names.cap(0).remove(0,13))
+            {
+                order[cur] = i;
 
+                i = 99;
+            }
+        }
+        //std::cout << (names.cap(0).remove(0,13)).toStdString() << std::endl;
+        pos += names.matchedLength();
 
+        cur++;
+    }
+    for(int i=0;i<joints.size();i++)
+    {
+        for(int j =i;j<joints.size();j++)
+        {
+            if(order[j] == i)
+            {
+                float temp;
+                temp = downPoseLimit[i];
+                downPoseLimit[i] = downPoseLimit[j];
+                downPoseLimit[j] =temp;
+
+                temp = upPoseLimit[i];
+                upPoseLimit[i] = upPoseLimit[j];
+                upPoseLimit[j] = temp;
+
+                temp = effortLimits[i];
+                effortLimits[i] = effortLimits[j];
+                effortLimits[j] = temp;
+
+                temp = order[i];
+                order[i] = order[j];
+                order[j]=temp;
+                j=99;
+            }
+        }
+    }
+    std::cout << "Finished setting up limits. Now subscribing to joint information...." << std::endl;
 }
 
 jointList::~jointList()
@@ -172,11 +240,6 @@ int jointList::getNumWarn()
     return warn;
 }
 
-//void jointList::getLimitsMessage ( const FOO& lmt_msg)
-//{
-//    limitsMessage = lmt_msg;
-//}
-
 void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_states )
 {
     warn = 0;
@@ -186,46 +249,66 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
         joints[i]->setText(1,QString::number(joint_states->position[i]));
         joints[i]->setText(2,QString::number(joint_states->velocity[i]));
         joints[i]->setText(3,QString::number(joint_states->effort[i]));
-//        if(joint_states->position[i] >= warnMin*limitsMessage->position[i])
-//        {
-//            warn++;
-//            joints[i].setBackgroundColor(0,Qt::yellow);
-//            joints[i].setBackgroundColor(1,Qt::yellow);
-//        }
-//        if(joint_states->position[i] >= errorMin*limitsMessage->position[i])
-//        {
-//            warn--;
-//            error++;
-//            joints[i].setBackgroundColor(0,Qt::red);
-//            joints[i].setBackgroundColor(1,Qt::red);
-//        }
+        joints[i]->setBackgroundColor(0,Qt::white);
+        joints[i]->setBackgroundColor(1,Qt::white);
+        joints[i]->setBackgroundColor(3,Qt::white);
+        //std::cout << "p=" << joint_states->position[i] << " v=" << joint_states->velocity[i];
+        //std::cout << " e=" << joint_states->effort[i] << " dpl=" << downPoseLimit[i];
+        //std::cout << " upl=" << upPoseLimit[i] << " el=" << effortLimits[i] << std::endl;
+        if(joint_states->position[i] <= warnMin*downPoseLimit[i])
+        {
+            warn++;
+            joints[i]->setBackgroundColor(0,Qt::yellow);
+            joints[i]->setBackgroundColor(1,Qt::yellow);
+        }
+        if(joint_states->position[i] <= errorMin*downPoseLimit[i])
+        {
+            warn--;
+            error++;
+            joints[i]->setBackgroundColor(0,Qt::red);
+            joints[i]->setBackgroundColor(1,Qt::red);
+        }
 
-//        if(joint_states->position[i] <= warnMin*limitsMessage->position[i])
-//        {
-//            warn++;
-//            joints[i].setBackgroundColor(0,Qt::yellow);
-//            joints[i].setBackgroundColor(1,Qt::yellow);
-//        }
-//        if(joint_states->position[i] <= errorMin*limitsMessage->position[i])
-//        {
-//            warn--;
-//            error++;
-//            joints[i].setBackgroundColor(0,Qt::red);
-//            joints[i].setBackgroundColor(1,Qt::red);
-//        }
+        if(joint_states->position[i] >= warnMin*upPoseLimit[i])
+        {
+            warn++;
+            joints[i]->setBackgroundColor(0,Qt::yellow);
+            joints[i]->setBackgroundColor(1,Qt::yellow);
+        }
+        if(joint_states->position[i] >= errorMin*upPoseLimit[i])
+        {
+            warn--;
+            error++;
+            joints[i]->setBackgroundColor(0,Qt::red);
+            joints[i]->setBackgroundColor(1,Qt::red);
+        }
 
-//        if(joint_states->effort[i] >= warnMin*limitsMessage->effort[i])
-//        {
-//            warn++;
-//            joints[i].setBackgroundColor(0,Qt::yellow);
-//            joints[i].setBackgroundColor(3,Qt::yellow);
-//        }
-//        if(joint_states->effort[i] >= errorMin*limitsMessage->effort[i])
-//        {
-//            warn--;
-//            error++;
-//            joints[i].setBackgroundColor(0,Qt::red);
-//            joints[i].setBackgroundColor(3,Qt::red);
-//        }
+        if(joint_states->effort[i] >= warnMin*effortLimits[i])
+        {
+            warn++;
+            joints[i]->setBackgroundColor(0,Qt::yellow);
+            joints[i]->setBackgroundColor(3,Qt::yellow);
+        }
+        if(joint_states->effort[i] >= errorMin*effortLimits[i])
+        {
+            warn--;
+            error++;
+            joints[i]->setBackgroundColor(0,Qt::red);
+            joints[i]->setBackgroundColor(3,Qt::red);
+        }
+
+        if(joint_states->effort[i] <= -(warnMin*effortLimits[i]))
+        {
+            warn++;
+            joints[i]->setBackgroundColor(0,Qt::yellow);
+            joints[i]->setBackgroundColor(3,Qt::yellow);
+        }
+        if(joint_states->effort[i] <= -(errorMin*effortLimits[i]))
+        {
+            warn--;
+            error++;
+            joints[i]->setBackgroundColor(0,Qt::red);
+            joints[i]->setBackgroundColor(3,Qt::red);
+        }
     }
 }
