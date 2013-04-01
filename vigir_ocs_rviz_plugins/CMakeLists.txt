@@ -3,7 +3,7 @@ project(vigir_ocs_rviz_plugins)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs flor_perception_msgs flor_ocs_msgs rviz pluginlib class_loader)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs flor_perception_msgs flor_ocs_msgs flor_interactive_marker_server_custom rviz pluginlib class_loader)
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
@@ -39,6 +39,7 @@ catkin_package(
     geometry_msgs 
     flor_perception_msgs 
     flor_ocs_msgs
+    flor_interactive_marker_server_custom
     rviz 
     pluginlib 
     class_loader

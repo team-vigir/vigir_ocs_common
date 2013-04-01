@@ -75,7 +75,6 @@ private:
 
     rviz::Display* robot_model_;
     rviz::Display* interactive_marker_robot_[4];
-    rviz::Display* interactive_marker_template_;
     rviz::Display* marker_array_;
     rviz::Display* laser_scan_;
     rviz::Display* lidar_point_cloud_viewer_;

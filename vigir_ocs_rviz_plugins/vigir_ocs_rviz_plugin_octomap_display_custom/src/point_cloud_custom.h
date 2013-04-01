@@ -234,6 +234,8 @@ private:
   Ogre::ColourValue pick_color_;
 
   static Ogre::String sm_Type;              ///< The "renderable type" used by Ogre
+
+  int material_number_;
 };
 
 } // namespace rviz

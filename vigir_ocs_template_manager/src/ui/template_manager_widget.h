@@ -60,7 +60,7 @@ private:
     std::map<unsigned char,std::string> template_id_map_;
     typedef struct
     {
-        unsigned char grasp_id;
+        unsigned short grasp_id;
         unsigned char template_type;
         std::string template_name;
         std::string hand;
