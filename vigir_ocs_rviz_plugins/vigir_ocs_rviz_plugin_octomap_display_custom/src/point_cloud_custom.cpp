@@ -44,6 +44,7 @@
 #include <sstream>
 
 #include "rviz/ogre_helpers/custom_parameter_indices.h"
+#include "rviz/ogre_helpers/point_cloud.h"
 #include "rviz/selection/forwards.h"
 
 #define VERTEX_BUFFER_CAPACITY (36 * 1024 * 10)
@@ -136,7 +137,8 @@ PointCloudCustom::PointCloudCustom()
 {
   std::stringstream ss;
   static int count = 0;
-  ss << "PointCloudMaterial" << count++;
+  material_number_ = count;
+  ss << "PointCloudCustomMaterial" << count++;
   point_material_ = Ogre::MaterialManager::getSingleton().getByName("rviz/PointCloudPoint");
   square_material_ = Ogre::MaterialManager::getSingleton().getByName("rviz/PointCloudSquare");
   flat_square_material_ = Ogre::MaterialManager::getSingleton().getByName("rviz/PointCloudFlatSquare");
@@ -204,8 +206,7 @@ void PointCloudCustom::reloadBoxMaterial()
     Ogre::MaterialManager::getSingleton().remove(box_material_);
 
     std::stringstream ss;
-    static int count = 0;
-    ss << "PointCloudMaterial" << count++;
+    ss << "PointCloudMaterial" << material_number_;
     box_material_ = Ogre::MaterialManager::getSingleton().getByName("rviz/PointCloudBox");
 
     box_material_ = Ogre::MaterialPtr(box_material_)->clone(ss.str() + "Box");
@@ -293,7 +294,7 @@ void PointCloudCustom::setRenderMode(RenderMode mode)
   }
   else if (mode == RM_BOXES)
   {
-      reloadBoxMaterial();
+      //reloadBoxMaterial();
     current_material_ = Ogre::MaterialPtr(box_material_);
   }
 
@@ -919,22 +920,22 @@ void PointCloudCustom::getMesh(std::vector<Ogre::Vector3>& vertices, std::vector
     //Ogre::Matrix4 xform;
     //getWorldTransforms(&xform);
 
-	unsigned long index = 0;
-	for(int i = 0; i < points_.size(); i++)
-	{
-		const Point& p = points_[i];
-		
+    unsigned long index = 0;
+    for(int i = 0; i < points_.size(); i++)
+    {
+        const Point& p = points_[i];
+
         float x = p.position.x;
         float y = p.position.y;
         float z = p.position.z;
-    
+
         for (int j = 0; j < vpp; j++)
-		{
+        {
             Ogre::Vector3 vertex(x+v[(j*3)]*width_,y+v[(j*3) + 1]*height_,z+v[(j*3) + 2]*depth_);
             vertices.push_back(vertex);
             indices.push_back(index++);
-		}
-	}
+        }
+    }
 }
 
 } // namespace rviz

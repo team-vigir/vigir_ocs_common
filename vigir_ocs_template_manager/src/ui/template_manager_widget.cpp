@@ -67,7 +67,7 @@ void TemplateManagerWidget::initGraspDB()
         // [0] grasp id, [1] template type, [2] hand, [3] initial grasp type, [4] DISCARD, [5-16] finger joints (12), [17] DISCARD, [18-24] final grasp pose relative to template (x,y,z,qx,qy,qz,qw), [25] DISCARD, [26-32] pre-grasp pose relative to template (x,y,z,qx,qy,qz,qw)
         GraspDBItem grasp;
         std::cout << "-> Adding grasp to grasp DB" << std::endl;
-        grasp.grasp_id = db[i][0].toUInt(&ok, 10) & 0x000000ff;
+        grasp.grasp_id = db[i][0].toUInt(&ok, 10) & 0x0000ffff;
         std::cout << "id: " << (unsigned int)grasp.grasp_id << std::endl;
 
         grasp.template_type = db[i][1].toUInt(&ok, 10) & 0x000000ff;
@@ -246,7 +246,7 @@ void TemplateManagerWidget::editSlot(int row, int col)
     else if(col == 7)
     {
         QComboBox* combo = (QComboBox*)ui->tableWidget->cellWidget(row, 6);
-        unsigned char grasp_id = combo->itemText(combo->currentIndex()).toUInt() & 0x000000ff;
+        unsigned short grasp_id = combo->itemText(combo->currentIndex()).toUInt() & 0x0000ffff;
 
         for(int i = 0; i < grasp_db_.size(); i++)
         {

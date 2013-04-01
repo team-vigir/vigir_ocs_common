@@ -20,6 +20,7 @@
 #include "rviz/frame_manager.h"
 #include "rviz/tool_manager.h"
 #include <selection_handler.h>
+#include <template_display_custom.h>
 #include "main_3d_view.h"
 
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
@@ -83,10 +84,6 @@ Main3DView::Main3DView( QWidget* parent )
     interactive_marker_robot_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
     interactive_marker_robot_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
 
-    // Add template marker
-    interactive_marker_template_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker template", true );
-    interactive_marker_template_->subProp( "Update Topic" )->setValue( "/template_pose_marker/update" );
-
     // Make the move camera tool the currently selected one
     manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
 
@@ -118,6 +115,7 @@ Main3DView::Main3DView( QWidget* parent )
     lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/scan_cloud_filtered" );
     lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
     template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
+    ((rviz::TemplateDisplayCustom*)template_display_)->setVisualizationManager(manager_);
 
     selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
     
@@ -131,10 +129,6 @@ Main3DView::Main3DView( QWidget* parent )
     QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
 
     Q_EMIT setRenderPanel(this->render_panel_);
-
-    // Set topic that will be used as 0,0,0 -> reference for all the other transforms
-    // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
-    manager_->getFrameManager()->setFixedFrame("/pelvis");
     
     // handles selections without rviz::tool
     selection_handler_ = new vigir_ocs::SelectionHandler();
@@ -210,7 +204,7 @@ void Main3DView::markerRobotToggled( bool selected )
             interactive_marker_robot_[i]->setEnabled( true );
         }
         // disable template marker
-        interactive_marker_template_->setEnabled( false );
+        //interactive_marker_template_->setEnabled( false );
     }
 }
 
@@ -226,7 +220,7 @@ void Main3DView::markerTemplateToggled( bool selected )
             interactive_marker_robot_[i]->setEnabled( false );
         }
         // enable template markers
-        interactive_marker_template_->setEnabled( true );
+        //interactive_marker_template_->setEnabled( true );
     }
 }
 

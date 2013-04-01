@@ -45,6 +45,7 @@
 #include <tf/transform_listener.h>
 
 #include "rviz/display_context.h"
+#include "rviz/visualization_manager.h"
 #include "rviz/robot/robot.h"
 #include "rviz/robot/tf_link_updater.h"
 #include "rviz/properties/float_property.h"
@@ -211,10 +212,6 @@ void TemplateDisplayCustom::load()
     lNode_->scale(0.001f,0.001f,0.001f);
     // The loaded mesh will be white. This is normal.*/
 
-    // then, subscribe to the topic that sets this templates pose
-    std::string template_pose_string = "/template_pose";//+lNameOfTheMesh; // stay generic for now
-    template_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
-
     // subscribe to the topic to load all templates
     template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>( "/template/list", 5, &TemplateDisplayCustom::processTemplateList, this );
 
@@ -303,6 +300,26 @@ void TemplateDisplayCustom::addTemplate(std::string path, Ogre::Vector3 pos, Ogr
     template_node_list_.push_back(lNode);
 }
 
+void TemplateDisplayCustom::addTemplateMarker(int id, Ogre::Vector3 pos)
+{
+    std::string template_pose_string = std::string("/template_pose_")+boost::to_string(id); // one for each template
+
+    // Add template marker
+    rviz::Display* interactive_marker_template = vis_manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker template ")+boost::to_string(id)).c_str(), true );
+    interactive_marker_template->subProp( "Update Topic" )->setValue( (template_pose_string+std::string("/template_pose_marker/update")).c_str() );
+    interactive_marker_template->setEnabled( true );
+    display_template_marker_list_.push_back(interactive_marker_template);
+
+    // initialize template interactive marker server
+    geometry_msgs::Point point;
+    point.x = pos.x;
+    point.y = pos.y;
+    point.z = pos.z;
+    InteractiveMarkerServerCustom* template_marker_ = new InteractiveMarkerServerCustom(template_pose_string, point);
+    template_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
+    template_marker_list_.push_back(template_marker_);
+}
+
 void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg)
 {
     for(int i = 0; i < msg->template_list.size(); i++)
@@ -326,6 +343,7 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
             addTemplate(path,pos,quat);
             template_list_.push_back(path);
             template_id_list_.push_back(msg->template_id_list[i]);
+            addTemplateMarker(msg->template_id_list[i],pos);
         }
         else // just update position
         {
@@ -356,12 +374,20 @@ void TemplateDisplayCustom::processTemplateRemove(const flor_ocs_msgs::OCSTempla
             break;
     if(index < template_id_list_.size())
     {
+        // remove template id and template pointer
         template_id_list_.erase(template_id_list_.begin()+index);
         template_list_.erase(template_list_.begin()+index);
+        // remove from ogre
         this->scene_manager_->destroyEntity((Ogre::Entity*)template_node_list_[index]->getAttachedObject(0));
         //template_node_list_[index]->detachObject(0);
         this->scene_node_->removeChild(template_node_list_[index]);
         template_node_list_.erase(template_node_list_.begin()+index);
+        // make sure we also remove the marker server
+        delete template_marker_list_[index];
+        template_marker_list_.erase(template_marker_list_.begin()+index);
+        // and the marker display
+        //vis_manager_->removeDisplay(display_template_marker_list_[index]);
+        display_template_marker_list_.erase(display_template_marker_list_.begin()+index);
     }
 }
 
