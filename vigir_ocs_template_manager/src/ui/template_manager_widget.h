@@ -15,6 +15,7 @@
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
 #include <flor_grasp_msgs/GraspSelection.h>
+#include <flor_grasp_msgs/TemplateSelection.h>
 #include <geometry_msgs/Pose.h>
 #include <ros/ros.h>
 
@@ -74,7 +75,8 @@ private:
     ros::NodeHandle nh_;
     ros::Subscriber template_list_sub_;
     ros::Publisher template_remove_pub_;
-    ros::Publisher grasp_selected_pub_;
+    ros::Publisher template_match_request_pub_;
+    ros::Publisher grasp_request_pub_;
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;

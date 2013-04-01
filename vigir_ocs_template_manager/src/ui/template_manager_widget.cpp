@@ -32,11 +32,14 @@ TemplateManagerWidget::TemplateManagerWidget(QWidget *parent) :
     // subscribe to the topic to load all templates
     template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>( "/template/list", 5, &TemplateManagerWidget::processTemplateList, this );
 
+    // advertise the template match button pressed
+    template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/template_match_request", 1, false );
+
     // and advertise the template update to update the manipulator
     template_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
 
-    // advertise to the
-    grasp_selected_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_selected", 1, false );
+    // advertise the grasp selection
+    grasp_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_request", 1, false );
 }
 
 TemplateManagerWidget::~TemplateManagerWidget()
@@ -191,20 +194,18 @@ void TemplateManagerWidget::processTemplateList(const flor_ocs_msgs::OCSTemplate
         //signalMapper->setMapping(combo, QString("%1").arg(i));
         ui->tableWidget->setCellWidget(i, 6, combo);
         //ui->tableWidget->setItem(i,6,item);
-        item = new QTableWidgetItem(QString("GRASP"));
+        item = new QTableWidgetItem(QString("MATCH"));
         item->setBackground(QBrush(QColor(200,200,200)));
         item->setForeground(QBrush(QColor(20,20,20)));
         item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEditable);
         ui->tableWidget->setItem(i,7,item);
+        item = new QTableWidgetItem(QString("GRASP"));
+        item->setBackground(QBrush(QColor(200,200,200)));
+        item->setForeground(QBrush(QColor(20,20,20)));
+        item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEditable);
+        ui->tableWidget->setItem(i,8,item);
     }
 }
-
-// for changed(QString)
-//QStringList coordinates = position.split("-");
-//int row = coordinates[0].toInt();
-//int col = coordinates[1].toInt();
-//QComboBox* combo=(QComboBox*)table->cellWidget(row, col);
-//combo->currentIndex();
 
 void TemplateManagerWidget::configureGrasps(std::string template_name, QComboBox* combo_box)
 {
@@ -216,9 +217,6 @@ void TemplateManagerWidget::configureGrasps(std::string template_name, QComboBox
         {
             std::cout << "  found " << (unsigned int)grasp_db_[i].grasp_id << std::endl;
             combo_box->addItem(QString::number((unsigned int)grasp_db_[i].grasp_id));
-
-
-            // need to add a connect here
         }
     }
 }
@@ -245,6 +243,26 @@ void TemplateManagerWidget::editSlot(int row, int col)
     }
     else if(col == 7)
     {
+        flor_grasp_msgs::TemplateSelection cmd;
+
+        cmd.template_id.data = ui->tableWidget->item(row,0)->text().toUInt() & 0x000000ff;
+        std::string template_name = ui->tableWidget->item(row,2)->text().toUtf8().constData();
+        int index = 0;
+        for(int i = 0; i < grasp_db_.size(); i++)
+        {
+            if(grasp_db_[i].template_name.compare(template_name) == 0)
+            {
+                cmd.template_type.data = grasp_db_[i].template_type;
+                break;
+            }
+        }
+        cmd.pose.header.frame_id = "/pelvis";
+
+        // publish template to be matched
+        template_match_request_pub_.publish( cmd );
+    }
+    else if(col == 8)
+    {
         QComboBox* combo = (QComboBox*)ui->tableWidget->cellWidget(row, 6);
         unsigned short grasp_id = combo->itemText(combo->currentIndex()).toUInt() & 0x0000ffff;
 
@@ -257,10 +275,10 @@ void TemplateManagerWidget::editSlot(int row, int col)
                 cmd.grasp_id.data = grasp_id;
                 cmd.template_id.data = ui->tableWidget->item(row,0)->text().toUInt() & 0x000000ff;
                 cmd.template_type.data = grasp_db_[i].template_type;
-                cmd.header.frame_id = "/world";
+                cmd.header.frame_id = "/pelvis";
 
-                // publish template to be removed
-                grasp_selected_pub_.publish( cmd );
+                // publish template to be matched
+                grasp_request_pub_.publish( cmd );
 
                 break;
             }
