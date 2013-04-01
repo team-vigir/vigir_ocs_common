@@ -41,6 +41,8 @@ void WaypointFollowingBasic::recievedUpdateWaypointMessage( const nav_msgs::Path
     }
     waypoints = *msg;
     std::cout << "New updated list has " << waypoints.poses.size() << " points" << std::endl;
+    for(int i=0;i<waypoints.poses.size(); i++)
+        std::cout << "Waypoint " << i << " at (" << waypoints.poses[i].pose.position.x << ", " << waypoints.poses[i].pose.position.y << ")" <<std::endl;
     if(waypoints.poses.size() > 0)
     {
         destWaypoint = findClosestWaypoint(20);
@@ -73,7 +75,11 @@ void WaypointFollowingBasic::recievedRobotLocUpdate( const nav_msgs::Odometry::C
     if(destWaypoint >= waypoints.poses.size())
         return;
     if(destWaypoint != -1 && atWaypoint())
+    {
         destWaypoint++;
+        if(destWaypoint < waypoints.poses.size())
+            std::cout << "Next waypoint at (" << waypoints.poses[destWaypoint].pose.position.x << "," << waypoints.poses[destWaypoint].pose.position.y << ")" << std::endl;
+    }
     robotX = msg->pose.pose.position.x;
     robotY = msg->pose.pose.position.y;
     Eigen::Quaternionf quat((msg->pose.pose.orientation.w)*180/M_PI,(msg->pose.pose.orientation.x)*180/M_PI,(msg->pose.pose.orientation.y)*180/M_PI,(msg->pose.pose.orientation.z)*180/M_PI);
@@ -89,7 +95,7 @@ bool WaypointFollowingBasic::atWaypoint()
 
     geometry_msgs::PoseStamped pnt = waypoints.poses[destWaypoint];
     float dist = sqrt(pow((robotX-pnt.pose.position.x),2)+pow((robotY-pnt.pose.position.y),2));
-    if(dist <= 2)
+    if(dist <= 0.5)
     {
         std::cout << "Arived at waypoint # " << destWaypoint << std::endl;
         geometry_msgs::Twist stopMsg;
