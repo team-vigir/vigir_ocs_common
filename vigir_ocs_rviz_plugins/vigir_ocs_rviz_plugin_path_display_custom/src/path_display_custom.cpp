@@ -173,6 +173,38 @@ void PathDisplayCustom::processMessage( const nav_msgs::Path::ConstPtr& msg )
   manual_object->end();
 }
 
+void PathDisplayCustom::transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose)
+{
+    tf::Quaternion bt_orientation(pose.pose.orientation.x,pose.pose.orientation.y,pose.pose.orientation.z,pose.pose.orientation.w);
+    tf::Vector3 bt_position(pose.pose.position.x,pose.pose.position.y,pose.pose.position.z);
+
+    tf::Stamped<tf::Pose> pose_in(tf::Transform(bt_orientation,bt_position), ros::Time(), pose.header.frame_id);
+    tf::Stamped<tf::Pose> pose_out;
+
+    try
+    {
+        context_->getFrameManager()->getTFClient()->transformPose( target_frame.c_str(), pose_in, pose_out );
+    }
+    catch(tf::TransformException& e)
+    {
+        ROS_DEBUG("Error transforming from frame '%s' to frame '%s': %s", pose.header.frame_id.c_str(), target_frame.c_str(), e.what());
+        return;
+    }
+
+    bt_position = pose_out.getOrigin();
+    bt_orientation = pose_out.getRotation();
+
+    pose.pose.position.x = bt_position.x();
+    pose.pose.position.y = bt_position.y();
+    pose.pose.position.z = bt_position.z();
+    pose.pose.orientation.x = bt_orientation.x();
+    pose.pose.orientation.y = bt_orientation.y();
+    pose.pose.orientation.z = bt_orientation.z();
+    pose.pose.orientation.w = bt_orientation.w();
+
+    pose.header.frame_id = target_frame;
+}
+
 } // namespace rviz
 
 //#include <pluginlib/class_list_macros.h>

@@ -32,6 +32,7 @@
 #define RVIZ_PATH_DISPLAY_H
 
 #include <nav_msgs/Path.h>
+#include <geometry_msgs/PoseStamped.h>
 
 #include <vector>
 #include <OGRE/OgreSceneNode.h>
@@ -75,6 +76,7 @@ private Q_SLOTS:
   void updateBufferLength();
 
 private:
+  void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
   void destroyObjects();
 
   std::vector<Ogre::ManualObject*> manual_objects_;

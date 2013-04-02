@@ -141,6 +141,8 @@ Main3DView::Main3DView( QWidget* parent )
     
 	// create a publisher to add waypoints
     waypoint_add_pub_   = n_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
+
+    selection_position_ = Ogre::Vector3(0,0,0);
 }
 
 // Destructor.
@@ -235,6 +237,39 @@ void Main3DView::newSelection( Ogre::Vector3 position )
     selection_position_ = position;
 }
 
+void Main3DView::transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose)
+{
+
+    tf::Quaternion bt_orientation(pose.pose.orientation.x,pose.pose.orientation.y,pose.pose.orientation.z,pose.pose.orientation.w);
+    tf::Vector3 bt_position(pose.pose.position.x,pose.pose.position.y,pose.pose.position.z);
+
+    tf::Stamped<tf::Pose> pose_in(tf::Transform(bt_orientation,bt_position), ros::Time(), pose.header.frame_id);
+    tf::Stamped<tf::Pose> pose_out;
+
+    try
+    {
+        manager_->getFrameManager()->getTFClient()->transformPose( target_frame.c_str(), pose_in, pose_out );
+    }
+    catch(tf::TransformException& e)
+    {
+        ROS_DEBUG("Error transforming from frame '%s' to frame '%s': %s", pose.header.frame_id.c_str(), target_frame.c_str(), e.what());
+        return;
+    }
+
+    bt_position = pose_out.getOrigin();
+    bt_orientation = pose_out.getRotation();
+
+    pose.pose.position.x = bt_position.x();
+    pose.pose.position.y = bt_position.y();
+    pose.pose.position.z = bt_position.z();
+    pose.pose.orientation.x = bt_orientation.x();
+    pose.pose.orientation.y = bt_orientation.y();
+    pose.pose.orientation.z = bt_orientation.z();
+    pose.pose.orientation.w = bt_orientation.w();
+
+    pose.header.frame_id = target_frame;
+}
+
 void Main3DView::insertTemplate( QString path )
 {
     std::cout << "adding template" << std::endl;
@@ -249,10 +284,13 @@ void Main3DView::insertTemplate( QString path )
     pose.pose.position.z = selection_position_.z;
     pose.pose.orientation.x = 0;
     pose.pose.orientation.y = 0;
-    pose.pose.orientation.z = 1;
-    pose.pose.orientation.w = 0;
-    
+    pose.pose.orientation.z = 0;
+    pose.pose.orientation.w = 1;
+
     pose.header.frame_id = "/pelvis";
+
+    transform("/world",pose);
+
     cmd.pose = pose;
 
     // publish complete list of templates and poses
@@ -262,7 +300,7 @@ void Main3DView::insertTemplate( QString path )
 void Main3DView::insertWaypoint()
 {
     std::cout << "adding waypoint" << std::endl;
-    
+
     flor_ocs_msgs::OCSWaypointAdd cmd;
     geometry_msgs::PoseStamped pose;
 
@@ -271,10 +309,13 @@ void Main3DView::insertWaypoint()
     pose.pose.position.z = selection_position_.z;
     pose.pose.orientation.x = 0;
     pose.pose.orientation.y = 0;
-    pose.pose.orientation.z = 1;
-    pose.pose.orientation.w = 0;
-    
+    pose.pose.orientation.z = 0;
+    pose.pose.orientation.w = 1;
+
     pose.header.frame_id = "/pelvis";
+
+    transform("/world",pose);
+
     cmd.pose = pose;
 
     // publish complete list of templates and poses

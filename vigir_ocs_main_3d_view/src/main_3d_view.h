@@ -70,6 +70,8 @@ Q_SIGNALS:
     void rightClickEvent( int, int );
 
 private:
+    void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
+
     rviz::VisualizationManager* manager_;
     rviz::RenderPanelCustom* render_panel_;
 

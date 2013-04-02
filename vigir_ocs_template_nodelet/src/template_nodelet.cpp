@@ -107,7 +107,7 @@ void TemplateNodelet::graspRequestCb(const flor_grasp_msgs::GraspSelection::Cons
     cmd.template_id.data = msg->template_id.data;
     cmd.template_type.data = msg->template_type.data;
     cmd.grasp_id.data = msg->grasp_id.data;
-    cmd.header.frame_id = "/pelvis";
+    cmd.header.frame_id = "/world";
 
     grasp_selected_pub_.publish(cmd);
     }
