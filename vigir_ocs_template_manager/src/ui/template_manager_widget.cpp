@@ -1,3 +1,5 @@
+#include <ros/package.h>
+
 #include "template_manager_widget.h"
 #include "ui_template_manager_widget.h"
 #include "stdio.h"
@@ -8,11 +10,18 @@
 #include <QtGui>
 #include <QSignalMapper>
 
+
+
 TemplateManagerWidget::TemplateManagerWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::TemplateManagerWidget),
-    template_dir_path_(QString("/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/")) // should read this from file
-{
+    ui(new Ui::TemplateManagerWidget)
+{    
+    // @TODO: This is hacky as templates currently is no package. So for the moment, go to
+    // "vigir_grasp_control", then up one folder and into "templates". Should be changed, as
+    // this approach is brittle and will fail when packages are moved.
+    std::string template_path = ros::package::getPath("vigir_grasp_control") + "/../templates/";
+    template_dir_path_ = QString(template_path.c_str());
+
     ui->setupUi(this);
 
     render_panel_ = new rviz::RenderPanel();
