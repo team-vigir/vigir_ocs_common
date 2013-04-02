@@ -268,7 +268,7 @@ void TemplateDisplayCustom::reset()
   has_new_transforms_ = true;
 }
 
-void TemplateDisplayCustom::processPoseChange(const geometry_msgs::PoseStamped::ConstPtr& pose)
+void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose)
 {
     std::cout << "Processing pose change" << std::endl;
 //    printf(" Template pose change (%f, %f, %f) quat(%f, %f, %f, %f)\n",
@@ -277,7 +277,6 @@ void TemplateDisplayCustom::processPoseChange(const geometry_msgs::PoseStamped::
 //             pose->pose.orientation.x,
 //             pose->pose.orientation.y,
 //             pose->pose.orientation.z );
-    unsigned int id = 0; // need to change this to move any template and not just one
 
     /*template_node_list_[id]->setPosition(pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
     Ogre::Quaternion quat;
@@ -288,7 +287,7 @@ void TemplateDisplayCustom::processPoseChange(const geometry_msgs::PoseStamped::
 
     template_node_list_[id]->setOrientation(quat);*/
 
-    publishTemplateUpdate(id,pose);
+    publishTemplateUpdate(pose->template_id,pose->pose);
 
     context_->queueRender();
 }
@@ -308,21 +307,16 @@ void TemplateDisplayCustom::addTemplate(std::string path, Ogre::Vector3 pos, Ogr
     template_node_list_.push_back(lNode);
 }
 
-void TemplateDisplayCustom::addTemplateMarker(int id, Ogre::Vector3 pos)
+void TemplateDisplayCustom::addTemplateMarker(unsigned char id, Ogre::Vector3 pos)
 {
     std::cout << "Adding template marker " << id << std::endl;
-    std::string template_pose_string = std::string("/template_pose_")+boost::to_string(id); // one for each template
-    int count = 0;
+    std::string template_pose_string = std::string("/template_pose_")+boost::to_string((unsigned int)id); // one for each template
 
     // Add template marker
-    rviz::Display* interactive_marker_template = vis_manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker template ")+boost::to_string(id)).c_str(), true );
-    std::cout << count++ << std::endl;
+    rviz::Display* interactive_marker_template = vis_manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker template ")+boost::to_string((unsigned int)id)).c_str(), true );
     interactive_marker_template->subProp( "Update Topic" )->setValue( (template_pose_string+std::string("/template_pose_marker/update")).c_str() );
-    std::cout << count++ << std::endl;
     interactive_marker_template->setEnabled( true );
-    std::cout << count++ << std::endl;
     display_template_marker_list_.push_back(interactive_marker_template);
-    std::cout << count++ << std::endl;
 
     // initialize template interactive marker server if it doesn't exist yet
     bool exists = false;
@@ -343,15 +337,12 @@ void TemplateDisplayCustom::addTemplateMarker(int id, Ogre::Vector3 pos)
         point.x = pos.x;
         point.y = pos.y;
         point.z = pos.z;
-        std::cout << "Creating server" << std::endl;
-        InteractiveMarkerServerCustom* template_marker_ = new InteractiveMarkerServerCustom(template_pose_string, point);
-        std::cout << "Created server" << std::endl;
+        InteractiveMarkerServerCustom* template_marker_ = new InteractiveMarkerServerCustom(template_pose_string, id, point);
         template_marker_list_.push_back(template_marker_);
-        std::cout << "Added server to list" << std::endl;
     }
 
     // subscribe to the template marker feedback loop
-    template_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
+    template_pose_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
     std::cout << "subscribed to topic" << std::endl;
 }
 
@@ -394,12 +385,12 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
     //msg->template_list;
 }
 
-void TemplateDisplayCustom::publishTemplateUpdate(const unsigned int& id, const geometry_msgs::PoseStamped::ConstPtr& pose)
+void TemplateDisplayCustom::publishTemplateUpdate(const unsigned char& id, const geometry_msgs::PoseStamped& pose)
 {
     flor_ocs_msgs::OCSTemplateUpdate cmd;
 
     cmd.template_id = id;
-    cmd.pose = *pose;
+    cmd.pose = pose;
 
     transform("/world",cmd.pose);
 
