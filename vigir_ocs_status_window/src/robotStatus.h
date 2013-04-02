@@ -43,7 +43,7 @@ public:
     int getNumUnread();
     int getNumError();
     int getNumWarn();
-    QString timeFromMsg(const std_msgs::Header msg);
+    QString timeFromMsg(const ros::Time msg);
     void recievedMessage(const flor_ocs_msgs::OCSRobotError::ConstPtr& msg);
 
 private Q_SLOTS:
