@@ -102,9 +102,9 @@ void robotStatus::on_radioButtons_updated()
     }
 }
 
-QString robotStatus::timeFromMsg(const std_msgs::Header msg)
+QString robotStatus::timeFromMsg(const ros::Time stamp)
 {
-    int sec = msg.stamp.toSec();
+    int sec = stamp.toSec();
     std::stringstream stream;
 
     stream.str("");
@@ -121,20 +121,21 @@ QString robotStatus::timeFromMsg(const std_msgs::Header msg)
     stream << std::setw(2) << std::setfill('0') << hour << ":";
     stream << std::setw(2) << std::setfill('0') << min << ":";
     stream << std::setw(2) << std::setfill('0') << sec << ".";
-    stream << std::setw(3) << std::setfill('0') << (msg.stamp.toNSec()*(0.000001));
+    stream << std::setw(3) << std::setfill('0') << (stamp.toNSec()*(0.000001));
     return QString::fromStdString(stream.str());
 }
 
 void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotError::ConstPtr& msg)
 {
+
     //extract information from msg
-    int type = msg->msg >> 6;
-    int msgNum = msg->msg - type*64;
+    int type = msg->code >> 6;
+    int msgNum = msg->code - type*64;
     std::cout << "Recieved message. type = " << type << "msgNum = " << msgNum << std::endl;
     QTableWidgetItem* text = new QTableWidgetItem();
     QTableWidgetItem* msgType = new QTableWidgetItem();
     QTableWidgetItem* time = new QTableWidgetItem();
-    time->setText(timeFromMsg(msg->header));
+    time->setText(timeFromMsg(msg->stamp));
 
     switch(type){
     case 0:
