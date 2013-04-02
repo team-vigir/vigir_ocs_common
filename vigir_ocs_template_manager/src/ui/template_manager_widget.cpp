@@ -69,29 +69,29 @@ void TemplateManagerWidget::initGraspDB()
         bool ok;
         // [0] grasp id, [1] template type, [2] hand, [3] initial grasp type, [4] DISCARD, [5-16] finger joints (12), [17] DISCARD, [18-24] final grasp pose relative to template (x,y,z,qx,qy,qz,qw), [25] DISCARD, [26-32] pre-grasp pose relative to template (x,y,z,qx,qy,qz,qw)
         GraspDBItem grasp;
-        std::cout << "-> Adding grasp to grasp DB" << std::endl;
+        //std::cout << "-> Adding grasp to grasp DB" << std::endl;
         grasp.grasp_id = db[i][0].toUInt(&ok, 10) & 0x0000ffff;
-        std::cout << "id: " << (unsigned int)grasp.grasp_id << std::endl;
+        //std::cout << "id: " << (unsigned int)grasp.grasp_id << std::endl;
 
         grasp.template_type = db[i][1].toUInt(&ok, 10) & 0x000000ff;
-        std::cout << "template type: " << (unsigned int)grasp.template_type << std::endl;
+        //std::cout << "template type: " << (unsigned int)grasp.template_type << std::endl;
 
         grasp.template_name = template_id_map_.find(grasp.template_type)->second;
-        std::cout << "template name: " << grasp.template_name << std::endl;
+        //std::cout << "template name: " << grasp.template_name << std::endl;
 
         grasp.hand = db[i][2].toUtf8().constData();
-        std::cout << "hand: " << grasp.hand << std::endl;
+        //std::cout << "hand: " << grasp.hand << std::endl;
 
         grasp.initial_grasp_type = db[i][3].toUtf8().constData();
-        std::cout << "initial grasp type: " << grasp.initial_grasp_type << std::endl;
+        //std::cout << "initial grasp type: " << grasp.initial_grasp_type << std::endl;
 
-        std::cout << "finger joints: ";
+        //std::cout << "finger joints: ";
         for(int j = 5; j < 17; j++)
         {
             grasp.finger_joints[j-5] = db[i][j].toFloat(&ok);
-            std::cout << grasp.finger_joints[j-5] << ",";
+            //std::cout << grasp.finger_joints[j-5] << ",";
         }
-        std::cout << std::endl;
+        //std::cout << std::endl;
 
         grasp.final_pose.position.x = db[i][18].toFloat(&ok);
         grasp.final_pose.position.y = db[i][19].toFloat(&ok);
@@ -100,8 +100,8 @@ void TemplateManagerWidget::initGraspDB()
         grasp.final_pose.orientation.y = db[i][22].toFloat(&ok);
         grasp.final_pose.orientation.z = db[i][23].toFloat(&ok);
         grasp.final_pose.orientation.w = db[i][24].toFloat(&ok);
-        std::cout << "final pose: " << grasp.final_pose.position.x << ", " << grasp.final_pose.position.y << ", " << grasp.final_pose.position.z << ", " <<
-                     grasp.final_pose.orientation.x << ", " << grasp.final_pose.orientation.y << ", " << grasp.final_pose.orientation.y << ", " << grasp.final_pose.orientation.w << std::endl;
+        //std::cout << "final pose: " << grasp.final_pose.position.x << ", " << grasp.final_pose.position.y << ", " << grasp.final_pose.position.z << ", " <<
+        //             grasp.final_pose.orientation.x << ", " << grasp.final_pose.orientation.y << ", " << grasp.final_pose.orientation.y << ", " << grasp.final_pose.orientation.w << std::endl;
 
         grasp.pre_grasp_pose.position.x = db[i][26].toFloat(&ok);
         grasp.pre_grasp_pose.position.y = db[i][27].toFloat(&ok);
@@ -110,8 +110,8 @@ void TemplateManagerWidget::initGraspDB()
         grasp.pre_grasp_pose.orientation.y = db[i][30].toFloat(&ok);
         grasp.pre_grasp_pose.orientation.z = db[i][31].toFloat(&ok);
         grasp.pre_grasp_pose.orientation.w = db[i][32].toFloat(&ok);
-        std::cout << "final pose: " << grasp.pre_grasp_pose.position.x << ", " << grasp.pre_grasp_pose.position.y << ", " << grasp.pre_grasp_pose.position.z << ", " <<
-                     grasp.pre_grasp_pose.orientation.x << ", " << grasp.pre_grasp_pose.orientation.y << ", " << grasp.pre_grasp_pose.orientation.y << ", " << grasp.pre_grasp_pose.orientation.w << std::endl;
+        //std::cout << "final pose: " << grasp.pre_grasp_pose.position.x << ", " << grasp.pre_grasp_pose.position.y << ", " << grasp.pre_grasp_pose.position.z << ", " <<
+        //             grasp.pre_grasp_pose.orientation.x << ", " << grasp.pre_grasp_pose.orientation.y << ", " << grasp.pre_grasp_pose.orientation.y << ", " << grasp.pre_grasp_pose.orientation.w << std::endl;
 
         grasp_db_.push_back(grasp);
     }
@@ -159,7 +159,7 @@ void TemplateManagerWidget::processTemplateList(const flor_ocs_msgs::OCSTemplate
 
     for(int i = 0; i < msg->template_list.size(); i++)
     {
-        std::cout << "Template: " << msg->template_list[i] << std::endl;
+        //std::cout << "Template: " << msg->template_list[i] << std::endl;
 
         float px,py,pz;
         px = msg->pose[i].pose.position.x;
@@ -179,7 +179,7 @@ void TemplateManagerWidget::processTemplateList(const flor_ocs_msgs::OCSTemplate
         ui->tableWidget->setItem(i,0,item);
         item = new QTableWidgetItem(QString::number(msg->template_id_list[i]));
         ui->tableWidget->setItem(i,1,item);
-        item = new QTableWidgetItem(QString::fromUtf8(msg->template_list[i].c_str()));
+        item = new QTableWidgetItem(QString::fromUtf8(msg->template_list[i].substr(0,msg->template_list[i].size()-5).c_str()));
         ui->tableWidget->setItem(i,2,item);
         item = new QTableWidgetItem(QString::number(px)+", "+QString::number(py)+", "+QString::number(pz));
         ui->tableWidget->setItem(i,3,item);
@@ -256,7 +256,7 @@ void TemplateManagerWidget::editSlot(int row, int col)
                 break;
             }
         }
-        cmd.pose.header.frame_id = "/pelvis";
+        cmd.pose.header.frame_id = "/world";
 
         // publish template to be matched
         template_match_request_pub_.publish( cmd );
@@ -275,7 +275,7 @@ void TemplateManagerWidget::editSlot(int row, int col)
                 cmd.grasp_id.data = grasp_id;
                 cmd.template_id.data = ui->tableWidget->item(row,0)->text().toUInt() & 0x000000ff;
                 cmd.template_type.data = grasp_db_[i].template_type;
-                cmd.header.frame_id = "/pelvis";
+                cmd.header.frame_id = "/world";
 
                 // publish template to be matched
                 grasp_request_pub_.publish( cmd );

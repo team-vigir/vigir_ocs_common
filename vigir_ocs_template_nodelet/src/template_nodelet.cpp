@@ -108,6 +108,7 @@ void TemplateNodelet::graspRequestCb(const flor_grasp_msgs::GraspSelection::Cons
     cmd.template_type.data = msg->template_type.data;
     cmd.grasp_id.data = msg->grasp_id.data;
     cmd.header.frame_id = "/world";
+    cmd.header.stamp = ros::Time::now();
 
     grasp_selected_pub_.publish(cmd);
     }
@@ -132,6 +133,7 @@ void TemplateNodelet::templateMatchRequestCb(const flor_grasp_msgs::TemplateSele
         if(template_id_list_[index] == msg->template_id.data)
             break;
     cmd.pose = pose_list_[index];
+    cmd.pose.header.stamp = ros::Time::now();
 
     template_selected_pub_.publish(cmd);
 }
