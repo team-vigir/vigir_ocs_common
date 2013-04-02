@@ -67,9 +67,9 @@ private:
     QCheckBox* showError;
 
     QStringList labels;
-    QStringList errors;
 
     std::vector<completeRow*> messages;
+    std::vector<std::string> errors;
     QFont bold;
     QFont normal;
     ros::Subscriber rosSubscriber;

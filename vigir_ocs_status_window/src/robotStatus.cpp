@@ -158,7 +158,7 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotError::ConstPtr& 
         numError++;
     }
 
-    if(msgNum >= errors.count()/2 && errors.count() != 0)
+    if(msgNum >= errors.size() && errors.size() != 0)
     {
         QString tempMessage = "Recieved message number";
         tempMessage+=QString::number(msgNum);
@@ -169,8 +169,8 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotError::ConstPtr& 
         msgType->setBackgroundColor(Qt::red);
         numError++;
     }
-    else if(errors.count() > 0)
-        text->setText(errors.at(msgNum*2+1));
+    else if(errors.size() > 0)
+        text->setText(QString::fromStdString(errors[msgNum]));
     else
     {
         QString tempMessage = "Cannot find data file but recieved msg num ";
@@ -201,16 +201,30 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotError::ConstPtr& 
 void robotStatus::loadFile()
 {
     std::cout << "Reading in csv File for error list at " << messagesFile.fileName().toStdString() << std::endl;
+    errors.resize(RobotErrorCodes::MAX_ERROR_MESSAGES,"Default Error Message");
+    QStringList splitList;
     if(messagesFile.open(QIODevice::ReadOnly))
     {
         QString data;
         data = messagesFile.readAll();
-        errors = data.split(',');
+        splitList = data.split(',');
         messagesFile.close();
         std::cout << "Done reading in file" << std::endl;
     }
     else
         std::cout << "Failed to read in file" << std::endl;
+    for(int index=0;index<splitList.size(); index++)
+    {
+
+        //std::cout << "index " << index << "= " << splitList.at(index).toStdString() << " Size = " << splitList.at(index).length() << std::endl;
+        QString token = splitList.at(index);
+        if(token.size() == 1 || token.at(0) == '#');
+        else if(token.toInt() <= errors.size() && token.toInt() >=0)
+        {
+            errors[token.toInt()] = splitList.at(index+1).toStdString();
+            index++;
+        }
+    }
  }
 
 void robotStatus::on_clearButton_clicked()
