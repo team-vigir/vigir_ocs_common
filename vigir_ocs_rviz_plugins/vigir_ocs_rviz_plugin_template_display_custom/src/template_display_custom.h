@@ -131,6 +131,8 @@ private:
   void addTemplate(std::string path, Ogre::Vector3 pos, Ogre::Quaternion quat);
   void addTemplateMarker(int id, Ogre::Vector3 pos);
 
+  void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
+
   ros::NodeHandle nh_;
   ros::Subscriber template_pose_sub_;
   ros::Subscriber template_list_sub_;
@@ -141,7 +143,7 @@ private:
   std::vector<std::string> template_list_;
   std::vector<Ogre::SceneNode*> template_node_list_;
 
-  std::vector<InteractiveMarkerServerCustom*> template_marker_list_;
+  static std::vector<InteractiveMarkerServerCustom*> template_marker_list_;
   std::vector<rviz::Display*> display_template_marker_list_;
   //InteractiveMarkerServerCustom *template_marker_;
 
