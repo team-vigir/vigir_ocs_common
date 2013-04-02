@@ -7,9 +7,11 @@
 #include <QPainter>
 #include <QTableWidget>
 #include <QPushButton>
+#include <QCheckBox>
 #include <flor_ocs_msgs/OCSRobotError.h>
 #include <QFile>
 #include <ros/time.h>
+#include <QComboBox>
 
 namespace rviz
 {
@@ -18,6 +20,17 @@ class RenderPanel;
 class VisualizationManager;
 class FrameManager;
 }
+
+class completeRow
+{
+public:
+    QTableWidgetItem* text;
+    QTableWidgetItem* time;
+    QTableWidgetItem* priority;
+
+};
+
+
 
 class robotStatus : public QWidget
 {
@@ -30,25 +43,33 @@ public:
     int getNumUnread();
     int getNumError();
     int getNumWarn();
+    QString timeFromMsg(const std_msgs::Header msg);
     void recievedMessage(const flor_ocs_msgs::OCSRobotError::ConstPtr& msg);
 
 private Q_SLOTS:
     void on_clearButton_clicked();
     void on_msgTable_cellClicked(int row, int column);
+    void on_radioButtons_updated();
 private:
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
     rviz::Display* robot_model_;
+
     int unreadMsgs;
     int numError;
     int numWarn;
 
     QTableWidget* msgTable;
     QPushButton* clearButton;
+    QCheckBox* showOk;
+    QCheckBox* showDebug;
+    QCheckBox* showWarn;
+    QCheckBox* showError;
+
     QStringList labels;
     QStringList errors;
 
-    std::vector<QTableWidgetItem*> messages;
+    std::vector<completeRow*> messages;
     QFont bold;
     QFont normal;
     ros::Subscriber rosSubscriber;

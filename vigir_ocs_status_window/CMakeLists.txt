@@ -3,12 +3,12 @@ project(vigir_ocs_status_window)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz)# vigir_perception_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz flor_ocs_msgs)# vigir_perception_msgs)
 
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS src
-	LIBRARIES ${PROJECT_NAME} 
+	LIBRARIES ${PROJECT_NAME}
 	CATKIN_DEPENDS roscpp rospy std_msgs rviz
 )
 
@@ -73,7 +73,7 @@ target_link_libraries(joint_list ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_executable(robot_status_widget ${SOURCE_ROBOT_WIDGET})
 target_link_libraries(robot_status_widget ${catkin_LIBRARIES}
-${QT_LIBRARIES})
+${QT_LIBRARIES} flor_ocs_msgs)
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
