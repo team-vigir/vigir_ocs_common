@@ -17,7 +17,7 @@ TemplateManagerWidget::TemplateManagerWidget(QWidget *parent) :
     ui(new Ui::TemplateManagerWidget)
 {    
     // Use "templates" package.  @TODO make this a parameter
-    std::string template_path = ros::package::getPath("templates");//vigir_grasp_control") + "/../templates/";
+    std::string template_path = ros::package::getPath("templates")+"/";//vigir_grasp_control") + "/../templates/";
     std::cout << "--------------<" << template_path << ">\n" << std::endl;
 
     template_dir_path_ = QString(template_path.c_str());

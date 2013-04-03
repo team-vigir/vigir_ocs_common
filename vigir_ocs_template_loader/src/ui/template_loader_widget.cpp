@@ -12,14 +12,15 @@ TemplateLoaderWidget::TemplateLoaderWidget(QWidget *parent) :
     ui(new Ui::TemplateLoaderWidget)
 {
     // Use "templates" package.  @TODO make this a parameter
-    std::string template_path = ros::package::getPath("templates");//vigir_grasp_control") + "/../templates/";
-    std::cout << "--------------- <" << template_path << ">\n";
+    std::string template_path = ros::package::getPath("templates")+"/";//vigir_grasp_control") + "/../templates/";
+    //std::cout << "--------------- <" << template_path << ">\n";
     templateDirPath = QString(template_path.c_str());
 
     ui->setupUi(this);
 
     // load all directories under the templates directory and all .mesh files
     QDir* rootDir = new QDir(templateDirPath);
+    std::cout << "-------Root-------- <" << rootDir->absolutePath().toStdString() << ">\n";
 
     {
         QStringList nameFilter;
@@ -28,9 +29,10 @@ TemplateLoaderWidget::TemplateLoaderWidget(QWidget *parent) :
         for(int i = 0; i < filesList.size(); i++)
         {
             QFileInfo fileInfo = filesList[i];
-
-            if( fileInfo.fileName().compare(".") != 0 && fileInfo.fileName().compare("..") != 0 )
+            if( fileInfo.fileName().compare(".") != 0 && fileInfo.fileName().compare("..") != 0 &&
+                fileInfo.fileName().compare("src") != 0 && fileInfo.fileName().compare("lib") != 0 )
             {
+                std::cout << "  " << i << "   <" << fileInfo.fileName().toStdString() << "> - use\n";
                 QTreeWidgetItem* item = new QTreeWidgetItem();
                 item->setText(0,fileInfo.fileName());
 
@@ -40,6 +42,10 @@ TemplateLoaderWidget::TemplateLoaderWidget(QWidget *parent) :
                 }
 
                 ui->treeWidget->addTopLevelItem(item);
+            }
+            else
+            {
+                std::cout << "  " << i << "   <" << fileInfo.fileName().toStdString() << "> - skip!\n";
             }
         }
     }
@@ -63,6 +69,7 @@ void TemplateLoaderWidget::addTreeWidgetChild(QTreeWidgetItem* item)
     for(int i = 0; i < filesList.size(); i++)
     {
         QFileInfo fileInfo = filesList[i];
+        std::cout << "      " << i << "   <" << fileInfo.fileName().toStdString() << ">\n";
 
         QTreeWidgetItem* child = new QTreeWidgetItem();
         child->setText(0,fileInfo.fileName());

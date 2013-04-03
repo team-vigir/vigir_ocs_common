@@ -194,7 +194,7 @@ void TemplateDisplayCustom::load()
         resourceManager.createResourceGroup(nameOfResourceGroup);
 
         // Use "templates" package.  @TODO make this a parameter
-        std::string template_path = ros::package::getPath("templates");//vigir_grasp_control") + "/../templates/";
+        std::string template_path = ros::package::getPath("templates")+"/";//vigir_grasp_control") + "/../templates/";
         ROS_INFO("  Reading templates from <%s>", template_path.c_str());
         //template_dir_path_ = QString(template_path.c_str());
         Ogre::String templatePath = template_path;
@@ -220,7 +220,7 @@ void TemplateDisplayCustom::load()
     lNode_->attachObject(lEntity);
 	// change position and scale (from mm to m)
     lNode_->setPosition(1.0f, 0.0f, 0.0f);
-    lNode_->scale(0.001f,0.001f,0.001f);
+    //lNode_->scale(0.001f,0.001f,0.001f);
     // The loaded mesh will be white. This is normal.*/
 
     // subscribe to the topic to load all templates
@@ -309,7 +309,7 @@ void TemplateDisplayCustom::addTemplate(std::string path, Ogre::Vector3 pos, Ogr
     // change position and scale (from mm to m)
     lNode->setPosition(pos);
     lNode->setOrientation(quat);
-    lNode->scale(0.001f,0.001f,0.001f);
+    //lNode->scale(0.001f,0.001f,0.001f); - converting templates to use meters in mesh by default
     // The loaded mesh will be white. This is normal.
     template_node_list_.push_back(lNode);
 }
