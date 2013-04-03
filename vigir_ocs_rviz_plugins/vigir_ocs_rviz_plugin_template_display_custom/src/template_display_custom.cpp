@@ -193,10 +193,9 @@ void TemplateDisplayCustom::load()
     {
         resourceManager.createResourceGroup(nameOfResourceGroup);
 
-        // @TODO: This is hacky as templates currently is no package. So for the moment, go to
-        // "vigir_grasp_control", then up one folder and into "templates". Should be changed, as
-        // this approach is brittle and will fail when packages are moved.
-        std::string template_path = ros::package::getPath("vigir_grasp_control") + "/../templates/";
+        // Use "templates" package.  @TODO make this a parameter
+        std::string template_path = ros::package::getPath("templates");//vigir_grasp_control") + "/../templates/";
+        ROS_INFO("  Reading templates from <%s>", template_path.c_str());
         //template_dir_path_ = QString(template_path.c_str());
         Ogre::String templatePath = template_path;
 
