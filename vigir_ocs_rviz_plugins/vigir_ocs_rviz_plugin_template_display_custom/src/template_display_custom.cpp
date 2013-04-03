@@ -342,7 +342,8 @@ void TemplateDisplayCustom::addTemplateMarker(unsigned char id, Ogre::Vector3 po
     }
 
     // subscribe to the template marker feedback loop
-    template_pose_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
+    ros::Subscriber template_pose_sub = nh_.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
+    template_pose_sub_list_.push_back(template_pose_sub);
     std::cout << "subscribed to topic" << std::endl;
 }
 
@@ -421,6 +422,8 @@ void TemplateDisplayCustom::processTemplateRemove(const flor_ocs_msgs::OCSTempla
         // and the marker display
         //vis_manager_->removeDisplay(display_template_marker_list_[index]);
         display_template_marker_list_.erase(display_template_marker_list_.begin()+index);
+        // and finally remove the subscriber
+        template_pose_sub_list_.erase(template_pose_sub_list_.begin()+index);
     }
 }
 
