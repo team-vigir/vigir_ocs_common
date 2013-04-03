@@ -9,6 +9,8 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs flor
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 include(${QT_USE_FILE})
 
+find_package(OpenGL REQUIRED)
+
 ## I prefer the Qt signals and slots to avoid defining "emit", "slots",
 ## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
 add_definitions(-DQT_NO_KEYWORDS)
@@ -23,6 +25,7 @@ catkin_package(
     vigir_ocs_rviz_plugin_selection_3d_display_custom
     vigir_ocs_rviz_plugin_path_display_custom
     vigir_ocs_rviz_plugin_octomap_display_custom
+    ${OPENGL_LIBRARIES}
   INCLUDE_DIRS
     vigir_ocs_rviz_plugin_image_display_custom/src
     vigir_ocs_rviz_plugin_camera_display_custom/src
@@ -32,6 +35,7 @@ catkin_package(
     vigir_ocs_rviz_plugin_selection_3d_display_custom/src
     vigir_ocs_rviz_plugin_path_display_custom/src
     vigir_ocs_rviz_plugin_octomap_display_custom/src
+    ${OPENGL_INCLUDE_DIR}
   CATKIN_DEPENDS
     roscpp 
     rospy 
@@ -57,6 +61,7 @@ include_directories(
 	${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM
+				    ${OPENGL_INCLUDE_DIR}
                     ${QT_INCLUDE_DIR})
                     
 link_directories(${catkin_LIBRARY_DIRS})

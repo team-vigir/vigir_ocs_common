@@ -41,6 +41,7 @@ void WaypointNodelet::updateWaypointCb(const flor_ocs_msgs::OCSWaypointUpdate::C
 void WaypointNodelet::publishWaypointList()
 {
     pose_list_.header.frame_id = "/world";
+    pose_list_.header.stamp = ros::Time::now();
     // publish complete list of templates and poses
     waypoint_list_pub_.publish( pose_list_ );
 }
