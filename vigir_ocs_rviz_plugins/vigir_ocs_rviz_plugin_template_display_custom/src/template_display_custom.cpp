@@ -55,6 +55,8 @@
 
 #include "template_display_custom.h"
 
+#include <ros/package.h>
+
 namespace rviz
 {
 
@@ -191,9 +193,15 @@ void TemplateDisplayCustom::load()
     {
         resourceManager.createResourceGroup(nameOfResourceGroup);
 
-        // set the template directory path as root of our resource manager
-        // need a global config.xml file to define this sort of stuff that is going to be used by multiple plugins and packages
-        Ogre::String templatePath = "/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/";
+        // @TODO: This is hacky as templates currently is no package. So for the moment, go to
+        // "vigir_grasp_control", then up one folder and into "templates". Should be changed, as
+        // this approach is brittle and will fail when packages are moved.
+        std::string template_path = ros::package::getPath("vigir_grasp_control") + "/../templates/";
+        //template_dir_path_ = QString(template_path.c_str());
+        Ogre::String templatePath = template_path;
+
+
+        //Ogre::String templatePath = "/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/";
         resourceManager.addResourceLocation(templatePath, "FileSystem", nameOfResourceGroup, false);
 
         // parse scripts
