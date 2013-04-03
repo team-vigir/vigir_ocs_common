@@ -176,6 +176,10 @@ void PathDisplayCustom::draw(nav_msgs::Path path)
     uint32_t num_points = path.poses.size();
     manual_object->estimateVertexCount( num_points );
     manual_object->begin( "BaseWhiteNoLighting", Ogre::RenderOperation::OT_LINE_STRIP );
+
+    manual_object->position( -position.x, -position.y, -position.z ); // will only work if fixed frame is pelvis
+    manual_object->colour( color );
+
     glLineWidth(4.0f);
     for( uint32_t i=0; i < num_points; ++i)
     {
