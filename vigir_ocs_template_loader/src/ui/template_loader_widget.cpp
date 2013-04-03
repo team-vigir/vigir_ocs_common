@@ -5,11 +5,19 @@
 #include <QPainter>
 #include <QtGui>
 
+#include <ros/package.h>
+
 TemplateLoaderWidget::TemplateLoaderWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::TemplateLoaderWidget),
-    templateDirPath(QString("/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/")) // should read this from file
+    ui(new Ui::TemplateLoaderWidget)
 {
+    // @TODO: This is hacky as templates currently is no package. So for the moment, go to
+    // "vigir_grasp_control", then up one folder and into "templates". Should be changed, as
+    // this approach is brittle and will fail when packages are moved.
+    std::string template_path = ros::package::getPath("vigir_grasp_control") + "/../templates/";
+    std::cout << "--------------- " << template_path << "\n";
+    templateDirPath = QString(template_path.c_str());
+
     ui->setupUi(this);
 
     // load all directories under the templates directory and all .mesh files
