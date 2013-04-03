@@ -7,10 +7,10 @@ include_directories(${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
 set(VIGIR_IMAGE_CUSTOM_LIB_NAME vigir_ocs_rviz_plugin_path_display_custom)
 
 add_library(${VIGIR_IMAGE_CUSTOM_LIB_NAME}_core src/path_display_custom.cpp	${MOC_SOURCES})
-target_link_libraries(${VIGIR_IMAGE_CUSTOM_LIB_NAME}_core ${catkin_LIBRARIES} ${QT_LIBRARIES})
+target_link_libraries(${VIGIR_IMAGE_CUSTOM_LIB_NAME}_core ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OPENGL_LIBRARIES})
 
 add_library(${VIGIR_IMAGE_CUSTOM_LIB_NAME} src/plugin_init.cpp)
-target_link_libraries(${VIGIR_IMAGE_CUSTOM_LIB_NAME} ${VIGIR_IMAGE_CUSTOM_LIB_NAME}_core ${catkin_LIBRARIES})
+target_link_libraries(${VIGIR_IMAGE_CUSTOM_LIB_NAME} ${VIGIR_IMAGE_CUSTOM_LIB_NAME}_core ${catkin_LIBRARIES} ${OPENGL_LIBRARIES})
 
 install(DIRECTORY include/ DESTINATION include)
 

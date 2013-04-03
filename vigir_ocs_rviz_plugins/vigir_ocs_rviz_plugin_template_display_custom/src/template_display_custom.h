@@ -134,7 +134,7 @@ private:
   void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
 
   ros::NodeHandle nh_;
-  ros::Subscriber template_pose_sub_;
+  std::vector<ros::Subscriber> template_pose_sub_list_;
   ros::Subscriber template_list_sub_;
   ros::Subscriber template_remove_sub_;
   ros::Publisher template_update_pub_;

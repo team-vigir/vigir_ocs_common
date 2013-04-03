@@ -218,13 +218,13 @@ void TemplateManagerWidget::processTemplateList(const flor_ocs_msgs::OCSTemplate
 
 void TemplateManagerWidget::configureGrasps(std::string template_name, QComboBox* combo_box)
 {
-    std::cout << "looking for grasps for template " << template_name << std::endl;
+    //std::cout << "looking for grasps for template " << template_name << std::endl;
     // add all grasp ids to the combo box
     for(int i = 0; i < grasp_db_.size(); i++)
     {
         if(template_name.compare(grasp_db_[i].template_name) == 0)
         {
-            std::cout << "  found " << (unsigned int)grasp_db_[i].grasp_id << std::endl;
+            //std::cout << "  found " << (unsigned int)grasp_db_[i].grasp_id << std::endl;
             combo_box->addItem(QString::number((unsigned int)grasp_db_[i].grasp_id));
         }
     }

@@ -57,35 +57,43 @@ class IntProperty;
  */
 class PathDisplayCustom: public MessageFilterDisplay<nav_msgs::Path>
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-  PathDisplayCustom();
-  virtual ~PathDisplayCustom();
+    PathDisplayCustom();
+    virtual ~PathDisplayCustom();
 
-  /** @brief Overridden from Display. */
-  virtual void reset();
+    /** @brief Overridden from Display. */
+    virtual void reset();
+
+    /** @brief Overridden from Display. */
+    virtual void update( float wall_dt, float ros_dt );
 
 protected:
-  /** @brief Overridden from Display. */
-  virtual void onInitialize();
+    /** @brief Overridden from Display. */
+    virtual void onInitialize();
 
-  /** @brief Overridden from MessageFilterDisplay. */
-  void processMessage( const nav_msgs::Path::ConstPtr& msg );
+    /** @brief Overridden from MessageFilterDisplay. */
+    void processMessage( const nav_msgs::Path::ConstPtr& msg );
 
 private Q_SLOTS:
-  void updateBufferLength();
+    void updateBufferLength();
 
 private:
-  void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
-  void destroyObjects();
+    void transform(const std::string& from_frame, const std::string& to_frame, Ogre::Vector3& position, Ogre::Quaternion& orientation);
+    void destroyObjects();
+    void draw(nav_msgs::Path msg);
 
-  std::vector<Ogre::ManualObject*> manual_objects_;
+    std::vector<Ogre::ManualObject*> manual_objects_;
 
-  ColorProperty* color_property_;
-  FloatProperty* alpha_property_;
-  IntProperty* buffer_length_property_;
-  
-  std::vector<Ogre::SceneNode*> waypoint_markers_;
+    ColorProperty* color_property_;
+    FloatProperty* alpha_property_;
+    IntProperty* buffer_length_property_;
+
+    std::vector<Ogre::SceneNode*> waypoint_markers_;
+
+    nav_msgs::Path last_msg_;
+
+    float z_offset;
 };
 
 } // namespace rviz

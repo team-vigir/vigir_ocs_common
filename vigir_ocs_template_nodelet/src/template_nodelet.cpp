@@ -36,7 +36,7 @@ void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPt
 
 void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg)
 {
-    std::cout << "Removing template " << msg->template_id << " from list... ";
+    std::cout << "Removing template " << (unsigned int)msg->template_id << " from list... ";
     int index = 0;
     for(; index < template_id_list_.size(); index++)
         if(template_id_list_[index] == msg->template_id)
@@ -53,7 +53,7 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
 
 void TemplateNodelet::updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& msg)
 {
-    std::cout << "Updating template " << msg->template_id << "... ";
+    std::cout << "Updating template " << (unsigned int)msg->template_id << "... ";
     int index = 0;
     for(; index < template_id_list_.size(); index++)
         if(template_id_list_[index] == msg->template_id)
