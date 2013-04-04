@@ -387,6 +387,7 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
         {
             template_node_list_[i]->setPosition(pos);
             template_node_list_[i]->setOrientation(quat);
+            template_marker_list_[i]->setPose(pose);
         }
     }
     //template_list_
