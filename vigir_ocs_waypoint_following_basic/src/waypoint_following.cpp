@@ -22,6 +22,7 @@ void WaypointFollowingBasic::onInit()
     // also create a publisher to set parameters of cropped image
     //waypoint_list_pub_   = nh_out.advertise<nav_msgs::Path>( "list", 1, false );
     drive_pub_ = nh.advertise<geometry_msgs::Twist>("/atlas/cmd_vel",1,false);
+    remove_pub_ = nh.advertise<flor_ocs_msgs::OCSWaypointRemove>("/waypoint/achieved", 1, false);
     waypoint_update = nh.subscribe<nav_msgs::Path>( "/waypoint/list", 1, &WaypointFollowingBasic::recievedUpdateWaypointMessage, this );
     robot_loc = nh.subscribe<nav_msgs::Odometry>( "ground_truth_odom", 1, &WaypointFollowingBasic::recievedRobotLocUpdate, this );
     std::cout << "subscribers created now sending empty message to get initial waypoint list." << std::endl;
@@ -99,8 +100,12 @@ bool WaypointFollowingBasic::atWaypoint()
     {
         std::cout << "Arived at waypoint # " << destWaypoint << std::endl;
         geometry_msgs::Twist stopMsg;
+        flor_ocs_msgs::OCSWaypointRemove achievedMsg;
+        achievedMsg.waypoint_id =destWaypoint;
+        achievedMsg.stamp = ros::Time::now();
         stopMsg.linear.x=0;
         drive_pub_.publish(stopMsg);
+        remove_pub_.publish(achievedMsg);
         return true;
     }
     return false;

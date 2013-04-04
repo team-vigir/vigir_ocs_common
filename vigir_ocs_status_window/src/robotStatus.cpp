@@ -1,8 +1,8 @@
 #include "robotStatus.h"
 #include <QVBoxLayout>
-#include <flor_ocs_msgs/RobotErrorCodes.h>
 #include <ros/ros.h>
 #include "rviz/visualization_manager.h"
+#include <flor_ocs_msgs/RobotStatusCodes.h>
 #include "rviz/render_panel.h"
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
@@ -65,7 +65,7 @@ robotStatus::robotStatus(QWidget *parent) :
     else
             messagesFile.setFileName("/home/messages.csv");
     loadFile();
-    rosSubscriber = nh.subscribe<flor_ocs_msgs::OCSRobotError>( "/atlas/robot_error", 2, &robotStatus::recievedMessage, this );
+    rosSubscriber = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/robot_status", 2, &robotStatus::recievedMessage, this );
     std::cout << "Done setting up waiting for messages." << std::endl;
     ros::spinOnce();
     clearButton->connect(clearButton,SIGNAL(clicked()),this,SLOT(on_clearButton_clicked()));
@@ -125,7 +125,7 @@ QString robotStatus::timeFromMsg(const ros::Time stamp)
     return QString::fromStdString(stream.str());
 }
 
-void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotError::ConstPtr& msg)
+void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
 {
 
     //extract information from msg
@@ -202,7 +202,7 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotError::ConstPtr& 
 void robotStatus::loadFile()
 {
     std::cout << "Reading in csv File for error list at " << messagesFile.fileName().toStdString() << std::endl;
-    errors.resize(RobotErrorCodes::MAX_ERROR_MESSAGES,"Default Error Message");
+    errors.resize(RobotStatusCodes::MAX_ERROR_MESSAGES,"Default Error Message");
     QStringList splitList;
     if(messagesFile.open(QIODevice::ReadOnly))
     {

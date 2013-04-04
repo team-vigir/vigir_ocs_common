@@ -8,7 +8,7 @@
 #include <QTableWidget>
 #include <QPushButton>
 #include <QCheckBox>
-#include <flor_ocs_msgs/OCSRobotError.h>
+#include <flor_ocs_msgs/OCSRobotStatus.h>
 #include <QFile>
 #include <ros/time.h>
 #include <QComboBox>
@@ -44,7 +44,7 @@ public:
     int getNumError();
     int getNumWarn();
     QString timeFromMsg(const ros::Time msg);
-    void recievedMessage(const flor_ocs_msgs::OCSRobotError::ConstPtr& msg);
+    void recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
 
 private Q_SLOTS:
     void on_clearButton_clicked();

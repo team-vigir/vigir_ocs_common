@@ -32,6 +32,7 @@ namespace ocs_waypoint
       protected:
         ros::Subscriber waypoint_update;
         ros::Subscriber robot_loc;
+        ros::Publisher remove_pub_;
         ros::Publisher drive_pub_;
         ros::NodeHandle nh;
 
