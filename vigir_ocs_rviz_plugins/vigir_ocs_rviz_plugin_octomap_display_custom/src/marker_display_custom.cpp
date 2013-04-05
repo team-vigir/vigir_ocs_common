@@ -219,6 +219,7 @@ void MarkerDisplayCustom::deleteMarkerStatus(MarkerID id)
 
 void MarkerDisplayCustom::incomingMarkerArray(const visualization_msgs::MarkerArray::ConstPtr& array)
 {
+  //std::cout << "Incoming marker array" << std::endl;
   std::vector<visualization_msgs::Marker>::const_iterator it = array->markers.begin();
   std::vector<visualization_msgs::Marker>::const_iterator end = array->markers.end();
   for (; it != end; ++it)
@@ -253,6 +254,7 @@ bool validateFloats(const visualization_msgs::Marker& msg)
 
 void MarkerDisplayCustom::processMessage( const visualization_msgs::Marker::ConstPtr& message )
 {
+    //std::cout << "Processing message" << std::endl;
   if (!validateFloats(*message))
   {
     setMarkerStatus(MarkerID(message->ns, message->id), StatusProperty::Error, "Contains invalid floating point values (nans or infs)");
@@ -310,7 +312,7 @@ void MarkerDisplayCustom::processAdd( const visualization_msgs::Marker::ConstPtr
 
   if ( create )
   {
-  	std::cout << "Creating visualization of type: " << message->type << std::endl;
+    //std::cout << "Creating visualization of type: " << message->type << std::endl;
     switch ( message->type )
     {
     case visualization_msgs::Marker::CUBE:
@@ -366,6 +368,8 @@ void MarkerDisplayCustom::processAdd( const visualization_msgs::Marker::ConstPtr
 
     markers_.insert(std::make_pair(MarkerID(message->ns, message->id), marker));
   }
+
+  //std::cout << "Marker lifetime: " << message->lifetime.toSec() << std::endl;
 
   if (marker)
   {
@@ -431,6 +435,7 @@ void MarkerDisplayCustom::update(float wall_dt, float ros_dt)
     }
   }
 
+  //std::cout << "Updating... " << wall_dt << " " << ros_dt << " " << frame_locked_markers_.size() << std::endl;
   {
     S_MarkerBaseCustom::iterator it = frame_locked_markers_.begin();
     S_MarkerBaseCustom::iterator end = frame_locked_markers_.end();
