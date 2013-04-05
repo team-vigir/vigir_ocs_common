@@ -167,8 +167,11 @@ void PathDisplayCustom::draw(nav_msgs::Path path)
     //std::cout << "  position:    " << position.x << ", " << position.y << ", " << position.z << std::endl;
     //std::cout << "  orientation: " << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << std::endl;
 
-    scene_node_->setPosition( position );
-    scene_node_->setOrientation( orientation );
+    //scene_node_->setPosition( position );
+    //scene_node_->setOrientation( orientation );
+
+    Ogre::Matrix4 transform( orientation );
+    transform.setTrans( position );
 
     Ogre::ColourValue color = color_property_->getOgreColor();
     color.a = alpha_property_->getFloat();
@@ -177,14 +180,14 @@ void PathDisplayCustom::draw(nav_msgs::Path path)
     manual_object->estimateVertexCount( num_points );
     manual_object->begin( "BaseWhiteNoLighting", Ogre::RenderOperation::OT_LINE_STRIP );
 
-    manual_object->position( -position.x, -position.y, -position.z ); // will only work if fixed frame is pelvis
+    manual_object->position( 0, 0, 0 ); // will only work if fixed frame is pelvis
     manual_object->colour( color );
 
     glLineWidth(4.0f);
     for( uint32_t i=0; i < num_points; ++i)
     {
         const geometry_msgs::Point& pos = path.poses[ i ].pose.position;
-        Ogre::Vector3 xpos = /*transform * */Ogre::Vector3( pos.x, pos.y, pos.z+z_offset );
+        Ogre::Vector3 xpos = transform * Ogre::Vector3( pos.x, pos.y, pos.z+z_offset );
         manual_object->position( xpos.x, xpos.y, xpos.z );
         manual_object->colour( color );
 
