@@ -184,6 +184,9 @@ void PathDisplayCustom::draw(nav_msgs::Path path)
     manual_object->colour( color );
 
     glLineWidth(4.0f);
+
+    static int counter = 0;
+
     for( uint32_t i=0; i < num_points; ++i)
     {
         const geometry_msgs::Point& pos = path.poses[ i ].pose.position;
@@ -193,7 +196,7 @@ void PathDisplayCustom::draw(nav_msgs::Path path)
 
         int index = waypoint_markers_.size();
         std::ostringstream convert;
-        convert << index;
+        convert << counter++ << "." << index;
         Ogre::Entity* lEntity = this->scene_manager_->createEntity(std::string("waypoint marker ")+convert.str(), Ogre::SceneManager::PT_CUBE);
         waypoint_markers_.push_back(this->scene_node_->createChildSceneNode());
         waypoint_markers_[index]->attachObject(lEntity);

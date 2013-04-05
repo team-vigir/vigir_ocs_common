@@ -122,6 +122,10 @@ Main3DView::Main3DView( QWidget* parent )
     waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
     waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/list" );
 
+    achieved_waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
+    achieved_waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/achieved_list" );
+    achieved_waypoints_display_->subProp( "Color" )->setValue( QColor( 150, 150, 255 ) );
+
     // connect the 3d selection tool to its display
     //QObject::connect(selection_3d_tool_, SIGNAL(select(int,int,int,int)), selection_3d_display_, SLOT(createMarker(int,int,int,int)));
     //QObject::connect(this, SIGNAL(rightClickEvent(int,int)), selection_3d_display_, SLOT(createMarker(int,int)));

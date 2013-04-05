@@ -84,6 +84,7 @@ private:
     rviz::Display* template_display_;
     rviz::Display* selection_3d_display_;
     rviz::Display* waypoints_display_;
+    rviz::Display* achieved_waypoints_display_;
 
     rviz::Tool* interactive_markers_tool_;
     rviz::Tool* selection_tool_;
