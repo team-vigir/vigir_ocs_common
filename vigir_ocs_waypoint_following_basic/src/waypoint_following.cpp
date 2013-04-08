@@ -14,7 +14,8 @@ void WaypointFollowingBasic::onInit()
     ros::NodeHandle& nh = getNodeHandle();
     //ros::NodeHandle nh_out(nh, "waypoint");
     maxSpeed = 1.0;
-    maxTurn =  0.5;
+    maxTurn =  0.75;
+    oldTurn=0;
     destWaypoint = -1;
     timer = nh.createTimer(ros::Duration(0.025),&WaypointFollowingBasic::moveRobot,this,false,false);
 
@@ -46,7 +47,8 @@ void WaypointFollowingBasic::recievedUpdateWaypointMessage( const nav_msgs::Path
         std::cout << "Waypoint " << i << " at (" << waypoints.poses[i].pose.position.x << ", " << waypoints.poses[i].pose.position.y << ")" <<std::endl;
     if(waypoints.poses.size() > 0)
     {
-        destWaypoint = findClosestWaypoint(20);
+        //destWaypoint = findClosestWaypoint(20);
+        destWaypoint = 0;
     }
 
 }
@@ -128,7 +130,11 @@ void WaypointFollowingBasic::moveRobot(const ros::TimerEvent& event)
     if(pointsClose(abs(bearing),M_PI))
         bearing = M_PI;
     driveMsg.linear.x = maxSpeed;
-    float turn = maxTurn*(bearing - robotHeading);
+    float turn = maxTurn*(bearing - robotHeading);  
+    if (abs(turn) >= M_PI*0.9*maxTurn && oldTurn != 0 )
+        turn = oldTurn;
+    else
+        oldTurn = turn;
     driveMsg.angular.z = turn;
     //std::cout << "Bearing to next point  = " << bearing <<  " Current bearing = " <<  robotHeading  <<"Current Pose = (" << robotX << "," << robotY <<  ") dest point=(" << pnt.pose.position.x <<"," << pnt.pose.position.y << ") turn= " << turn << std::endl;
     drive_pub_.publish(driveMsg);
