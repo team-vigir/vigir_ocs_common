@@ -24,8 +24,8 @@
 #include "main_3d_view.h"
 
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
-
 #include "flor_ocs_msgs/OCSWaypointAdd.h"
+#include <flor_perception_msgs/EnvironmentRegionRequest.h>
 
 // Constructor for Main3DView.  This does most of the work of the class.
 Main3DView::Main3DView( QWidget* parent )
@@ -97,10 +97,10 @@ Main3DView::Main3DView( QWidget* parent )
 
     // Create a MarkerArray display.
     //marker_array_ = manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
-    marker_array_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );
-    ROS_ASSERT( marker_array_ != NULL );
+    octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );
+    ROS_ASSERT( octomap_ != NULL );
 
-    marker_array_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
+    octomap_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
 
     // Create a point cloud display.
     stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
@@ -147,6 +147,15 @@ Main3DView::Main3DView( QWidget* parent )
     waypoint_add_pub_   = n_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
 
     selection_position_ = Ogre::Vector3(0,0,0);
+
+    // this will all go to a separate nodelet that processes octomaps
+
+    //octomap_roi_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );
+    //ROS_ASSERT( octomap_roi_ != NULL );
+
+    //octomap_roi_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
+
+    //octomap_roi_pub_ = n_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/waypoint/add", 1, false );
 }
 
 // Destructor.
@@ -177,7 +186,7 @@ void Main3DView::laserScanToggled( bool selected )
 
 void Main3DView::markerArrayToggled( bool selected )
 {
-    marker_array_->setEnabled( selected );
+    octomap_->setEnabled( selected );
 }
 
 void Main3DView::cameraToggled( bool selected )

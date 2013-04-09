@@ -25,6 +25,7 @@ namespace ocs_waypoint
         void removeWaypointCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr& msg);
         void updateWaypointCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr& msg);
         void waypointAchievedCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr& msg);
+        void confirmNavigationCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr& msg);
         void publishWaypointList();
         void publishWaypointAchievedList();
 
@@ -33,8 +34,10 @@ namespace ocs_waypoint
         ros::Subscriber waypoint_add_sub_;
         ros::Subscriber waypoint_remove_sub_;
         ros::Subscriber waypoint_achieved_sub_;
+        ros::Subscriber confirm_navigation_sub_;
         ros::Publisher waypoint_list_pub_;
         ros::Publisher waypoint_achieved_list_pub_;
+        ros::Publisher navigation_list_pub_;
 
         ros::Timer image_publish_timer_;
 

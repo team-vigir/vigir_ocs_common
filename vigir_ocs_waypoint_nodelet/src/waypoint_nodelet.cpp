@@ -10,11 +10,13 @@ void WaypointNodelet::onInit()
     // create publishers for visualization
     waypoint_list_pub_          = nh_out.advertise<nav_msgs::Path>( "list", 1, false );
     waypoint_achieved_list_pub_ = nh_out.advertise<nav_msgs::Path>( "achieved_list", 1, false );
+    navigation_list_pub_        = nh_out.advertise<nav_msgs::Path>( "navigation_list", 1, false );
     // subscribe to be able to manipulate waypoints lists
-    waypoint_add_sub_      = nh_out.subscribe<flor_ocs_msgs::OCSWaypointAdd>( "add", 1, &WaypointNodelet::addWaypointCb, this );
-    waypoint_remove_sub_   = nh_out.subscribe<flor_ocs_msgs::OCSWaypointRemove>( "remove", 1, &WaypointNodelet::removeWaypointCb, this );
-    waypoint_update_sub_   = nh_out.subscribe<flor_ocs_msgs::OCSWaypointUpdate>( "update", 1, &WaypointNodelet::updateWaypointCb, this );
-    waypoint_achieved_sub_ = nh_out.subscribe<flor_ocs_msgs::OCSWaypointRemove>( "achieved", 1, &WaypointNodelet::waypointAchievedCb, this );
+    waypoint_add_sub_       = nh_out.subscribe<flor_ocs_msgs::OCSWaypointAdd>( "add", 1, &WaypointNodelet::addWaypointCb, this );
+    waypoint_remove_sub_    = nh_out.subscribe<flor_ocs_msgs::OCSWaypointRemove>( "remove", 1, &WaypointNodelet::removeWaypointCb, this );
+    waypoint_update_sub_    = nh_out.subscribe<flor_ocs_msgs::OCSWaypointUpdate>( "update", 1, &WaypointNodelet::updateWaypointCb, this );
+    waypoint_achieved_sub_  = nh_out.subscribe<flor_ocs_msgs::OCSWaypointRemove>( "achieved", 1, &WaypointNodelet::waypointAchievedCb, this );
+    confirm_navigation_sub_ = nh_out.subscribe<flor_ocs_msgs::OCSWaypointUpdate>( "confirm", 1, &WaypointNodelet::confirmNavigationCb, this );
 }
 
 void WaypointNodelet::addWaypointCb(const flor_ocs_msgs::OCSWaypointAdd::ConstPtr& msg)
@@ -50,6 +52,14 @@ void WaypointNodelet::waypointAchievedCb(const flor_ocs_msgs::OCSWaypointRemove:
     }
     this->publishWaypointList();
     this->publishWaypointAchievedList();
+}
+
+void WaypointNodelet::confirmNavigationCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr& msg)
+{
+    waypoint_list_.header.frame_id = "/world";
+    waypoint_list_.header.stamp = ros::Time::now();
+    // publish complete list of templates and poses
+    navigation_list_pub_.publish( waypoint_list_ );
 }
 
 void WaypointNodelet::publishWaypointList()

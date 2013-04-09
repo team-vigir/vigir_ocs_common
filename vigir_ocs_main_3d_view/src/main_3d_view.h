@@ -77,7 +77,7 @@ private:
 
     rviz::Display* robot_model_;
     rviz::Display* interactive_marker_robot_[4];
-    rviz::Display* marker_array_;
+    rviz::Display* octomap_;
     rviz::Display* laser_scan_;
     rviz::Display* lidar_point_cloud_viewer_;
     rviz::Display* stereo_point_cloud_viewer_;
@@ -85,6 +85,7 @@ private:
     rviz::Display* selection_3d_display_;
     rviz::Display* waypoints_display_;
     rviz::Display* achieved_waypoints_display_;
+    rviz::Display* octomap_roi_;
 
     rviz::Tool* interactive_markers_tool_;
     rviz::Tool* selection_tool_;
@@ -97,6 +98,8 @@ private:
 
     ros::Publisher template_add_pub_;
     ros::Publisher waypoint_add_pub_;
+
+    ros::Publisher octomap_roi_pub_;
     
     vigir_ocs::SelectionHandler* selection_handler_;
 };
