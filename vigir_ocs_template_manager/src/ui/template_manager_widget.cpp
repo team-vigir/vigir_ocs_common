@@ -244,19 +244,15 @@ void TemplateManagerWidget::editSlot(int row, int col)
 {
     if(col == 0)
     {
-        QString item = ui->tableWidget->item(row,1)->text();
-        bool ok;
-        int convert = item.toInt(&ok, 10);
-        if(ok)
-            removeTemplate(convert);
+        removeTemplate(ui->tableWidget->item(row,1)->text().toUInt() & 0x000000ff);
     }
     else if(col == 7)
     {
         flor_grasp_msgs::TemplateSelection cmd;
 
-        cmd.template_id.data = ui->tableWidget->item(row,0)->text().toUInt() & 0x000000ff;
+        cmd.template_id.data = ui->tableWidget->item(row,1)->text().toUInt() & 0x000000ff;
         std::string template_name = ui->tableWidget->item(row,2)->text().toUtf8().constData();
-        int index = 0;
+
         for(int i = 0; i < grasp_db_.size(); i++)
         {
             if(grasp_db_[i].template_name.compare(template_name) == 0)
@@ -282,7 +278,7 @@ void TemplateManagerWidget::editSlot(int row, int col)
                 flor_grasp_msgs::GraspSelection cmd;
 
                 cmd.grasp_id.data = grasp_id;
-                cmd.template_id.data = ui->tableWidget->item(row,0)->text().toUInt() & 0x000000ff;
+                cmd.template_id.data = ui->tableWidget->item(row,1)->text().toUInt() & 0x000000ff;
                 cmd.template_type.data = grasp_db_[i].template_type;
                 cmd.header.frame_id = "/world";
 
