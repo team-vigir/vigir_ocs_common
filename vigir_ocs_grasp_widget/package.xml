@@ -2,7 +2,7 @@
 <package>
   <name>vigir_ocs_grasp_widget</name>
   <version>0.0.1</version>
-  <description>The vigir_ocs_grasp_widget package/description>
+  <description>The vigir_ocs_grasp_widget package</description>
   <maintainer email="benjw90@vt.edu">benjamin Waxler</maintainer>
   <license>TODO</license>
   <buildtool_depend>catkin</buildtool_depend>
