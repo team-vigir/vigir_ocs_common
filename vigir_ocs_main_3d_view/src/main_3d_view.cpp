@@ -114,21 +114,25 @@ Main3DView::Main3DView( QWidget* parent )
     lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
     lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/scan_cloud_filtered" );
     lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+
+    // Create a template display to display all templates listed by the template nodelet
     template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
     ((rviz::TemplateDisplayCustom*)template_display_)->setVisualizationManager(manager_);
 
+    // Create a display for 3D selection
     selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
     
+    // Create a display for waypoints
     waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
     waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/list" );
 
+    // Create another display for waypoints, this time the ones that have already been achieved
     achieved_waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
     achieved_waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/achieved_list" );
     achieved_waypoints_display_->subProp( "Color" )->setValue( QColor( 150, 150, 255 ) );
 
     // connect the 3d selection tool to its display
     //QObject::connect(selection_3d_tool_, SIGNAL(select(int,int,int,int)), selection_3d_display_, SLOT(createMarker(int,int,int,int)));
-    //QObject::connect(this, SIGNAL(rightClickEvent(int,int)), selection_3d_display_, SLOT(createMarker(int,int)));
     QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
     QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
 
