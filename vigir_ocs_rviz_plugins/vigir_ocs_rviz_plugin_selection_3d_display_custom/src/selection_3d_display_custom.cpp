@@ -114,7 +114,7 @@ void Selection3DDisplayCustom::load()
     Ogre::String lNameOfResourceGroup = "SelectionMaterials";
 
     Ogre::ResourceGroupManager& lRgMgr = Ogre::ResourceGroupManager::getSingleton();
-    if(!resourceManager.resourceGroupExists(nameOfResourceGroup))
+    if(!lRgMgr.resourceGroupExists(lNameOfResourceGroup))
         lRgMgr.createResourceGroup(lNameOfResourceGroup);
 
     Ogre::String lMaterialName = lNameOfResourceGroup+"MarkerMaterial";
