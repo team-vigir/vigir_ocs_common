@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TemplateManagerWidget</class>
- <widget class="QWidget" name="TemplateManagerWidget">
+ <class>WaypointManagerWidget</class>
+ <widget class="QWidget" name="WaypointManagerWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>920</width>
+    <width>400</width>
     <height>200</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>920</width>
+    <width>400</width>
     <height>200</height>
    </size>
   </property>
   <property name="windowTitle">
-   <string>TemplateManagerWidget</string>
+   <string>WaypointManagerWidget</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <property name="sizeConstraint">
@@ -38,16 +38,6 @@
         </column>
         <column>
          <property name="text">
-          <string>id</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Name</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
           <string>Position</string>
          </property>
         </column>
@@ -56,26 +46,13 @@
           <string>Orientation</string>
          </property>
         </column>
-        <column>
-         <property name="text">
-          <string>Parent Frame</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Grasp Pose</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string/>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string/>
-         </property>
-        </column>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton">
+        <property name="text">
+         <string>Navigate</string>
+        </property>
        </widget>
       </item>
      </layout>
@@ -85,9 +62,44 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>tableWidget</sender>
+   <signal>cellClicked(int,int)</signal>
+   <receiver>WaypointManagerWidget</receiver>
+   <slot>editSlot(int,int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>83</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>99</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>pressed()</signal>
+   <receiver>WaypointManagerWidget</receiver>
+   <slot>confirmNavigation()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>177</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>99</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
  <slots>
   <slot>treeItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)</slot>
   <slot>insertButtonPressed()</slot>
+  <slot>editSlot(int,int)</slot>
+  <slot>confirmNavigation()</slot>
  </slots>
 </ui>

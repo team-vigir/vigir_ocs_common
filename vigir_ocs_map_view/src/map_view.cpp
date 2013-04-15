@@ -24,14 +24,11 @@
 #include "rviz/view_manager.h"
 #include "map_view.h"
 #include <selection_handler.h>
+#include <template_display_custom.h>
 
 
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
-
 #include "flor_ocs_msgs/OCSWaypointAdd.h"
-
-
-
 
 // Constructor for MapView.  This does most of the work of the class.
 MapView::MapView( QWidget* parent )
@@ -80,33 +77,18 @@ MapView::MapView( QWidget* parent )
     // Add support for goal specification/vector navigation
     set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
 
+    // Add interactive markers Stefan's markers and IK implementation
+    interactive_marker_robot_[0] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 1", true );
+    interactive_marker_robot_[0]->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/update" );
+    interactive_marker_robot_[1] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 2", true );
+    interactive_marker_robot_[1]->subProp( "Update Topic" )->setValue( "/l_leg_pose_marker/update" );
+    interactive_marker_robot_[2] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 3", true );
+    interactive_marker_robot_[2]->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/update" );
+    interactive_marker_robot_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
+    interactive_marker_robot_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
+
     // Make the interaction tool the currently selected one
-    //manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
     manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
-
-    // Add interactive markers Stefan's markers and IK implementation
-//    interactive_marker_[0] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 1", true );
-//    interactive_marker_[0]->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/update" );
-//    interactive_marker_[1] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 2", true );
-//    interactive_marker_[1]->subProp( "Update Topic" )->setValue( "/l_leg_pose_marker/update" );
-//    interactive_marker_[2] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 3", true );
-//    interactive_marker_[2]->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/update" );
-//    interactive_marker_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
-//    interactive_marker_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
-
-    // Add interactive markers Stefan's markers and IK implementation
-       interactive_marker_robot_[0] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 1", true );
-       interactive_marker_robot_[0]->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/update" );
-       interactive_marker_robot_[1] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 2", true );
-       interactive_marker_robot_[1]->subProp( "Update Topic" )->setValue( "/l_leg_pose_marker/update" );
-       interactive_marker_robot_[2] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 3", true );
-       interactive_marker_robot_[2]->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/update" );
-       interactive_marker_robot_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
-       interactive_marker_robot_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
-
-    // Add template marker
-    interactive_marker_template_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker template", true );
-    interactive_marker_template_->subProp( "Update Topic" )->setValue( "/template_pose_marker/update" );
 
     // Create a LaserScan display.
     laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
@@ -117,10 +99,11 @@ MapView::MapView( QWidget* parent )
     laser_scan_->subProp( "Decay Time" )->setValue( 1 );
 
     // Create a MarkerArray display.
-    marker_array_ = manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
-    ROS_ASSERT( marker_array_ != NULL );
+    //marker_array_ = manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
+    octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );
+    ROS_ASSERT( octomap_ != NULL );
 
-    marker_array_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
+    octomap_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
 
     // Create a point cloud display.
     stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
@@ -135,27 +118,46 @@ MapView::MapView( QWidget* parent )
     lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/scan_cloud_filtered" );
     lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
 
-
+    // Create a template display to display all templates listed by the template nodelet
     template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
+    ((rviz::TemplateDisplayCustom*)template_display_)->setVisualizationManager(manager_);
 
-    //Q_EMIT setRenderPanel(this->render_panel_);
+    // Create a display for 3D selection
+    selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
 
-    // Set topic that will be used as 0,0,0 -> reference for all the other transforms
-    // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
-    manager_->getFrameManager()->setFixedFrame("/pelvis");
-    
-    rviz::ViewManager* view_man_ = manager_->getViewManager();
-    
-    view_man_->setCurrentFrom( view_man_->create( "rviz/TopDownOrtho" ) );
+    // Create a display for waypoints
+    waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
+    waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/list" );
+
+    // Create another display for waypoints, this time the ones that have already been achieved
+    achieved_waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
+    achieved_waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/achieved_list" );
+    achieved_waypoints_display_->subProp( "Color" )->setValue( QColor( 150, 150, 255 ) );
+
+    // connect the 3d selection tool to its display
+    //QObject::connect(selection_3d_tool_, SIGNAL(select(int,int,int,int)), selection_3d_display_, SLOT(createMarker(int,int,int,int)));
+    QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
+    QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
+
+    Q_EMIT setRenderPanel(this->render_panel_);
+
+    // handles selections without rviz::tool
+    selection_handler_ = new vigir_ocs::SelectionHandler();
+    QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), selection_handler_, SLOT(mousePressEvent(QMouseEvent*)));
+    QObject::connect(selection_handler_, SIGNAL(select(int,int)), selection_3d_display_, SLOT(createMarker(int,int)));
+    QObject::connect(selection_handler_, SIGNAL(selectROI(int,int)), selection_3d_display_, SLOT(createROISelection(int,int)));
 
     // create a publisher to add templates
     template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
+
+    // create a publisher to add waypoints
+    waypoint_add_pub_   = n_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
+
+    selection_position_ = Ogre::Vector3(0,0,0);
     
-    //Property* prop = view_man_->getPropertyModel()->getProp( index );
-		//if( ViewController* view = qobject_cast<ViewController*>( prop ))
-		//{
-		//  view_man_->setCurrentFrom( view );
-		//}
+    // set the camera to be topdownortho
+    rviz::ViewManager* view_man_ = manager_->getViewManager();
+    view_man_->setCurrentFrom( view_man_->create( "rviz/TopDownOrtho" ) );
 
 }
 
@@ -187,7 +189,7 @@ void MapView::laserScanToggled( bool selected )
 
 void MapView::markerArrayToggled( bool selected )
 {
-    marker_array_->setEnabled( selected );
+    octomap_->setEnabled( selected );
 }
 
 void MapView::waypointToggled( bool selected )
@@ -256,10 +258,42 @@ void MapView::markerTemplateToggled( bool selected )
             interactive_marker_robot_[i]->setEnabled( false );
         }
         // enable template markers
-        interactive_marker_template_->setEnabled( true );
+        //interactive_marker_template_->setEnabled( true );
     }
 }
 
+void MapView::transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose)
+{
+
+    tf::Quaternion bt_orientation(pose.pose.orientation.x,pose.pose.orientation.y,pose.pose.orientation.z,pose.pose.orientation.w);
+    tf::Vector3 bt_position(pose.pose.position.x,pose.pose.position.y,pose.pose.position.z);
+
+    tf::Stamped<tf::Pose> pose_in(tf::Transform(bt_orientation,bt_position), ros::Time(), pose.header.frame_id);
+    tf::Stamped<tf::Pose> pose_out;
+
+    try
+    {
+        manager_->getFrameManager()->getTFClient()->transformPose( target_frame.c_str(), pose_in, pose_out );
+    }
+    catch(tf::TransformException& e)
+    {
+        ROS_DEBUG("Error transforming from frame '%s' to frame '%s': %s", pose.header.frame_id.c_str(), target_frame.c_str(), e.what());
+        return;
+    }
+
+    bt_position = pose_out.getOrigin();
+    bt_orientation = pose_out.getRotation();
+
+    pose.pose.position.x = bt_position.x();
+    pose.pose.position.y = bt_position.y();
+    pose.pose.position.z = bt_position.z();
+    pose.pose.orientation.x = bt_orientation.x();
+    pose.pose.orientation.y = bt_orientation.y();
+    pose.pose.orientation.z = bt_orientation.z();
+    pose.pose.orientation.w = bt_orientation.w();
+
+    pose.header.frame_id = target_frame;
+}
 
 void MapView::insertTemplate( QString path )
 {
@@ -275,16 +309,18 @@ void MapView::insertTemplate( QString path )
     pose.pose.position.z = selection_position_.z;
     pose.pose.orientation.x = 0;
     pose.pose.orientation.y = 0;
-    pose.pose.orientation.z = 1;
-    pose.pose.orientation.w = 0;
+    pose.pose.orientation.z = 0;
+    pose.pose.orientation.w = 1;
 
     pose.header.frame_id = "/pelvis";
+
+    transform("/world",pose);
+
     cmd.pose = pose;
 
     // publish complete list of templates and poses
     template_add_pub_.publish( cmd );
 }
-
 
 void MapView::insertWaypoint()
 {
@@ -298,13 +334,15 @@ void MapView::insertWaypoint()
     pose.pose.position.z = selection_position_.z;
     pose.pose.orientation.x = 0;
     pose.pose.orientation.y = 0;
-    pose.pose.orientation.z = 1;
-    pose.pose.orientation.w = 0;
+    pose.pose.orientation.z = 0;
+    pose.pose.orientation.w = 1;
 
     pose.header.frame_id = "/pelvis";
+
+    transform("/world",pose);
+
     cmd.pose = pose;
 
     // publish complete list of templates and poses
     waypoint_add_pub_.publish( cmd );
 }
-

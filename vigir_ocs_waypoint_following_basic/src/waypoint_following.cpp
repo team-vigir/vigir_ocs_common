@@ -14,7 +14,8 @@ void WaypointFollowingBasic::onInit()
     ros::NodeHandle& nh = getNodeHandle();
     //ros::NodeHandle nh_out(nh, "waypoint");
     maxSpeed = 1.0;
-    maxTurn =  0.5;
+    maxTurn =  0.75;
+    oldTurn=0;
     destWaypoint = -1;
     timer = nh.createTimer(ros::Duration(0.025),&WaypointFollowingBasic::moveRobot,this,false,false);
 
@@ -22,7 +23,8 @@ void WaypointFollowingBasic::onInit()
     // also create a publisher to set parameters of cropped image
     //waypoint_list_pub_   = nh_out.advertise<nav_msgs::Path>( "list", 1, false );
     drive_pub_ = nh.advertise<geometry_msgs::Twist>("/atlas/cmd_vel",1,false);
-    waypoint_update = nh.subscribe<nav_msgs::Path>( "/waypoint/list", 1, &WaypointFollowingBasic::recievedUpdateWaypointMessage, this );
+    remove_pub_ = nh.advertise<flor_ocs_msgs::OCSWaypointRemove>("/waypoint/achieved", 1, false);
+    waypoint_update = nh.subscribe<nav_msgs::Path>( "/waypoint/navigation_list", 1, &WaypointFollowingBasic::recievedUpdateWaypointMessage, this );
     robot_loc = nh.subscribe<nav_msgs::Odometry>( "ground_truth_odom", 1, &WaypointFollowingBasic::recievedRobotLocUpdate, this );
     std::cout << "subscribers created now sending empty message to get initial waypoint list." << std::endl;
     //add.publish(addMsg);
@@ -41,9 +43,12 @@ void WaypointFollowingBasic::recievedUpdateWaypointMessage( const nav_msgs::Path
     }
     waypoints = *msg;
     std::cout << "New updated list has " << waypoints.poses.size() << " points" << std::endl;
+    for(int i=0;i<waypoints.poses.size(); i++)
+        std::cout << "Waypoint " << i << " at (" << waypoints.poses[i].pose.position.x << ", " << waypoints.poses[i].pose.position.y << ")" <<std::endl;
     if(waypoints.poses.size() > 0)
     {
-        destWaypoint = findClosestWaypoint(20);
+        //destWaypoint = findClosestWaypoint(20);
+        destWaypoint = 0;
     }
 
 }
@@ -73,7 +78,11 @@ void WaypointFollowingBasic::recievedRobotLocUpdate( const nav_msgs::Odometry::C
     if(destWaypoint >= waypoints.poses.size())
         return;
     if(destWaypoint != -1 && atWaypoint())
+    {
         destWaypoint++;
+        if(destWaypoint < waypoints.poses.size())
+            std::cout << "Next waypoint at (" << waypoints.poses[destWaypoint].pose.position.x << "," << waypoints.poses[destWaypoint].pose.position.y << ")" << std::endl;
+    }
     robotX = msg->pose.pose.position.x;
     robotY = msg->pose.pose.position.y;
     Eigen::Quaternionf quat((msg->pose.pose.orientation.w)*180/M_PI,(msg->pose.pose.orientation.x)*180/M_PI,(msg->pose.pose.orientation.y)*180/M_PI,(msg->pose.pose.orientation.z)*180/M_PI);
@@ -89,12 +98,16 @@ bool WaypointFollowingBasic::atWaypoint()
 
     geometry_msgs::PoseStamped pnt = waypoints.poses[destWaypoint];
     float dist = sqrt(pow((robotX-pnt.pose.position.x),2)+pow((robotY-pnt.pose.position.y),2));
-    if(dist <= 2)
+    if(dist <= 0.5)
     {
         std::cout << "Arived at waypoint # " << destWaypoint << std::endl;
         geometry_msgs::Twist stopMsg;
+        flor_ocs_msgs::OCSWaypointRemove achievedMsg;
+        achievedMsg.waypoint_id = 0;//destWaypoint; // always refers to the next waypoint in the updated list, which is always 0
+        achievedMsg.stamp = ros::Time::now();
         stopMsg.linear.x=0;
         drive_pub_.publish(stopMsg);
+        remove_pub_.publish(achievedMsg);
         return true;
     }
     return false;
@@ -117,7 +130,11 @@ void WaypointFollowingBasic::moveRobot(const ros::TimerEvent& event)
     if(pointsClose(abs(bearing),M_PI))
         bearing = M_PI;
     driveMsg.linear.x = maxSpeed;
-    float turn = maxTurn*(bearing - robotHeading);
+    float turn = maxTurn*(bearing - robotHeading);  
+    if (abs(turn) >= M_PI*0.9*maxTurn && oldTurn != 0 )
+        turn = oldTurn;
+    else
+        oldTurn = turn;
     driveMsg.angular.z = turn;
     //std::cout << "Bearing to next point  = " << bearing <<  " Current bearing = " <<  robotHeading  <<"Current Pose = (" << robotX << "," << robotY <<  ") dest point=(" << pnt.pose.position.x <<"," << pnt.pose.position.y << ") turn= " << turn << std::endl;
     drive_pub_.publish(driveMsg);

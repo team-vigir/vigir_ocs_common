@@ -20,11 +20,12 @@
 #include "rviz/frame_manager.h"
 #include "rviz/tool_manager.h"
 #include <selection_handler.h>
+#include <template_display_custom.h>
 #include "main_3d_view.h"
 
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
-
 #include "flor_ocs_msgs/OCSWaypointAdd.h"
+#include <flor_perception_msgs/EnvironmentRegionRequest.h>
 
 // Constructor for Main3DView.  This does most of the work of the class.
 Main3DView::Main3DView( QWidget* parent )
@@ -83,10 +84,6 @@ Main3DView::Main3DView( QWidget* parent )
     interactive_marker_robot_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
     interactive_marker_robot_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
 
-    // Add template marker
-    interactive_marker_template_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker template", true );
-    interactive_marker_template_->subProp( "Update Topic" )->setValue( "/template_pose_marker/update" );
-
     // Make the move camera tool the currently selected one
     manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
 
@@ -100,10 +97,10 @@ Main3DView::Main3DView( QWidget* parent )
 
     // Create a MarkerArray display.
     //marker_array_ = manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
-    marker_array_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );
-    ROS_ASSERT( marker_array_ != NULL );
+    octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );
+    ROS_ASSERT( octomap_ != NULL );
 
-    marker_array_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
+    octomap_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
 
     // Create a point cloud display.
     stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
@@ -117,24 +114,29 @@ Main3DView::Main3DView( QWidget* parent )
     lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
     lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/scan_cloud_filtered" );
     lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
-    template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
 
+    // Create a template display to display all templates listed by the template nodelet
+    template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
+    ((rviz::TemplateDisplayCustom*)template_display_)->setVisualizationManager(manager_);
+
+    // Create a display for 3D selection
     selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
     
+    // Create a display for waypoints
     waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
     waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/list" );
 
+    // Create another display for waypoints, this time the ones that have already been achieved
+    achieved_waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
+    achieved_waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/achieved_list" );
+    achieved_waypoints_display_->subProp( "Color" )->setValue( QColor( 150, 150, 255 ) );
+
     // connect the 3d selection tool to its display
     //QObject::connect(selection_3d_tool_, SIGNAL(select(int,int,int,int)), selection_3d_display_, SLOT(createMarker(int,int,int,int)));
-    //QObject::connect(this, SIGNAL(rightClickEvent(int,int)), selection_3d_display_, SLOT(createMarker(int,int)));
     QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
     QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
 
     Q_EMIT setRenderPanel(this->render_panel_);
-
-    // Set topic that will be used as 0,0,0 -> reference for all the other transforms
-    // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
-    manager_->getFrameManager()->setFixedFrame("/pelvis");
     
     // handles selections without rviz::tool
     selection_handler_ = new vigir_ocs::SelectionHandler();
@@ -147,6 +149,17 @@ Main3DView::Main3DView( QWidget* parent )
     
 	// create a publisher to add waypoints
     waypoint_add_pub_   = n_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
+
+    selection_position_ = Ogre::Vector3(0,0,0);
+
+    // this will all go to a separate nodelet that processes octomaps
+
+    //octomap_roi_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );
+    //ROS_ASSERT( octomap_roi_ != NULL );
+
+    //octomap_roi_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
+
+    //octomap_roi_pub_ = n_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/waypoint/add", 1, false );
 }
 
 // Destructor.
@@ -177,7 +190,7 @@ void Main3DView::laserScanToggled( bool selected )
 
 void Main3DView::markerArrayToggled( bool selected )
 {
-    marker_array_->setEnabled( selected );
+    octomap_->setEnabled( selected );
 }
 
 void Main3DView::cameraToggled( bool selected )
@@ -210,7 +223,7 @@ void Main3DView::markerRobotToggled( bool selected )
             interactive_marker_robot_[i]->setEnabled( true );
         }
         // disable template marker
-        interactive_marker_template_->setEnabled( false );
+        //interactive_marker_template_->setEnabled( false );
     }
 }
 
@@ -226,7 +239,7 @@ void Main3DView::markerTemplateToggled( bool selected )
             interactive_marker_robot_[i]->setEnabled( false );
         }
         // enable template markers
-        interactive_marker_template_->setEnabled( true );
+        //interactive_marker_template_->setEnabled( true );
     }
 }
 
@@ -239,6 +252,39 @@ void Main3DView::vectorToggled( bool selected )
 void Main3DView::newSelection( Ogre::Vector3 position )
 {
     selection_position_ = position;
+}
+
+void Main3DView::transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose)
+{
+
+    tf::Quaternion bt_orientation(pose.pose.orientation.x,pose.pose.orientation.y,pose.pose.orientation.z,pose.pose.orientation.w);
+    tf::Vector3 bt_position(pose.pose.position.x,pose.pose.position.y,pose.pose.position.z);
+
+    tf::Stamped<tf::Pose> pose_in(tf::Transform(bt_orientation,bt_position), ros::Time(), pose.header.frame_id);
+    tf::Stamped<tf::Pose> pose_out;
+
+    try
+    {
+        manager_->getFrameManager()->getTFClient()->transformPose( target_frame.c_str(), pose_in, pose_out );
+    }
+    catch(tf::TransformException& e)
+    {
+        ROS_DEBUG("Error transforming from frame '%s' to frame '%s': %s", pose.header.frame_id.c_str(), target_frame.c_str(), e.what());
+        return;
+    }
+
+    bt_position = pose_out.getOrigin();
+    bt_orientation = pose_out.getRotation();
+
+    pose.pose.position.x = bt_position.x();
+    pose.pose.position.y = bt_position.y();
+    pose.pose.position.z = bt_position.z();
+    pose.pose.orientation.x = bt_orientation.x();
+    pose.pose.orientation.y = bt_orientation.y();
+    pose.pose.orientation.z = bt_orientation.z();
+    pose.pose.orientation.w = bt_orientation.w();
+
+    pose.header.frame_id = target_frame;
 }
 
 void Main3DView::insertTemplate( QString path )
@@ -255,10 +301,13 @@ void Main3DView::insertTemplate( QString path )
     pose.pose.position.z = selection_position_.z;
     pose.pose.orientation.x = 0;
     pose.pose.orientation.y = 0;
-    pose.pose.orientation.z = 1;
-    pose.pose.orientation.w = 0;
-    
+    pose.pose.orientation.z = 0;
+    pose.pose.orientation.w = 1;
+
     pose.header.frame_id = "/pelvis";
+
+    transform("/world",pose);
+
     cmd.pose = pose;
 
     // publish complete list of templates and poses
@@ -268,7 +317,7 @@ void Main3DView::insertTemplate( QString path )
 void Main3DView::insertWaypoint()
 {
     std::cout << "adding waypoint" << std::endl;
-    
+
     flor_ocs_msgs::OCSWaypointAdd cmd;
     geometry_msgs::PoseStamped pose;
 
@@ -277,10 +326,13 @@ void Main3DView::insertWaypoint()
     pose.pose.position.z = selection_position_.z;
     pose.pose.orientation.x = 0;
     pose.pose.orientation.y = 0;
-    pose.pose.orientation.z = 1;
-    pose.pose.orientation.w = 0;
-    
+    pose.pose.orientation.z = 0;
+    pose.pose.orientation.w = 1;
+
     pose.header.frame_id = "/pelvis";
+
+    transform("/world",pose);
+
     cmd.pose = pose;
 
     // publish complete list of templates and poses

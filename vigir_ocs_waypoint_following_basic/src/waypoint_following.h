@@ -32,6 +32,7 @@ namespace ocs_waypoint
       protected:
         ros::Subscriber waypoint_update;
         ros::Subscriber robot_loc;
+        ros::Publisher remove_pub_;
         ros::Publisher drive_pub_;
         ros::NodeHandle nh;
 
@@ -39,6 +40,7 @@ namespace ocs_waypoint
       private:
         bool atWaypoint();
         void endOfList();
+        float oldTurn;
         bool pointsClose(float x1, float x2);
         void moveRobot(const ros::TimerEvent&);
         int findClosestWaypoint(int maxDist);

@@ -67,22 +67,25 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
-    void rightClickEvent( int, int );
 
 private:
+    void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
+
     rviz::VisualizationManager* manager_;
     rviz::RenderPanelCustom* render_panel_;
 
     rviz::Display* robot_model_;
     rviz::Display* interactive_marker_robot_[4];
     rviz::Display* interactive_marker_template_;
-    rviz::Display* marker_array_;
+    rviz::Display* octomap_;
     rviz::Display* laser_scan_;
     rviz::Display* lidar_point_cloud_viewer_;
     rviz::Display* stereo_point_cloud_viewer_;
-    rviz::Display* template_display_;
     rviz::Display* selection_3d_display_;
+    rviz::Display* template_display_;
     rviz::Display* waypoints_display_;
+    rviz::Display* achieved_waypoints_display_;
+    rviz::Display* octomap_roi_;
 
     rviz::Tool* interactive_markers_tool_;
     rviz::Tool* selection_tool_;
@@ -95,6 +98,8 @@ private:
 
     ros::Publisher template_add_pub_;
     ros::Publisher waypoint_add_pub_;
+
+    ros::Publisher octomap_roi_pub_;
     
     vigir_ocs::SelectionHandler* selection_handler_;
 };

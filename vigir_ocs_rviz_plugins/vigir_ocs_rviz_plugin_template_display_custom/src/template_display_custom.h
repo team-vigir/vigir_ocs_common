@@ -37,6 +37,8 @@
 #include <flor_ocs_msgs/OCSTemplateUpdate.h>
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
 
+#include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
+
 #include <OGRE/OgreVector3.h>
 #include "OGRE/OgreRoot.h"
 #include "OGRE/OgreRenderSystem.h"
@@ -67,6 +69,7 @@ class FloatProperty;
 class Property;
 class Robot;
 class StringProperty;
+class VisualizationManager;
 
 /**
  * \class TemplateDisplayCustom
@@ -87,10 +90,12 @@ public:
 
   void clear();
 
-  void processPoseChange(const geometry_msgs::PoseStamped::ConstPtr& pose);
+  void processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose);
   void processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg);
-  void publishTemplateUpdate(const unsigned int& id, const geometry_msgs::PoseStamped::ConstPtr& pose);
+  void publishTemplateUpdate(const unsigned char& id, const geometry_msgs::PoseStamped& pose);
   void processTemplateRemove(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
+
+  void setVisualizationManager(rviz::VisualizationManager* manager) { vis_manager_ = manager; };
 
 private Q_SLOTS:
   void updateVisualVisible();
@@ -124,9 +129,12 @@ protected:
 
 private:
   void addTemplate(std::string path, Ogre::Vector3 pos, Ogre::Quaternion quat);
+  void addTemplateMarker(unsigned char id, Ogre::Vector3 pos);
+
+  void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
 
   ros::NodeHandle nh_;
-  ros::Subscriber template_pose_sub_;
+  std::vector<ros::Subscriber> template_pose_sub_list_;
   ros::Subscriber template_list_sub_;
   ros::Subscriber template_remove_sub_;
   ros::Publisher template_update_pub_;
@@ -134,6 +142,12 @@ private:
   std::vector<unsigned char> template_id_list_;
   std::vector<std::string> template_list_;
   std::vector<Ogre::SceneNode*> template_node_list_;
+
+  static std::vector<InteractiveMarkerServerCustom*> template_marker_list_;
+  std::vector<rviz::Display*> display_template_marker_list_;
+  //InteractiveMarkerServerCustom *template_marker_;
+
+  rviz::VisualizationManager* vis_manager_;
 
 };
 
