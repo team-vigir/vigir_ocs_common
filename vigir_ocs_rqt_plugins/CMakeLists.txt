@@ -10,6 +10,7 @@ find_package(catkin
     rqt_gui_cpp 
     rviz 
     vigir_ocs_image_viewer_custom
+    vigir_ocs_joystick
     vigir_ocs_main_3d_view
     vigir_ocs_map_view
     vigir_ocs_status_window)
@@ -22,11 +23,13 @@ include(${QT_USE_FILE})
 catkin_package(
   LIBRARIES
     vigir_ocs_rqt_plugin_image_viewer_custom
+    vigir_ocs_rqt_plugin_joystick_custom
     vigir_ocs_rqt_plugin_main_3d_view_custom
     vigir_ocs_rqt_plugin_map_view_custom
     vigir_ocs_rqt_plugin_status_view_custom
   INCLUDE_DIRS
-    vigir_ocs_rqt_plugin_image_viewer_custom/src  
+    vigir_ocs_rqt_plugin_image_viewer_custom/src
+    vigir_ocs_rqt_plugin_joystick_custom/src
     vigir_ocs_rqt_plugin_main_3d_view_custom/src
     vigir_ocs_rqt_plugin_map_view_custom/src
     vigir_ocs_rqt_plugin_status_view_custom/src
@@ -35,6 +38,7 @@ catkin_package(
     rqt_gui_cpp
     rviz
     vigir_ocs_image_viewer_custom
+    vigir_ocs_joystick
     vigir_ocs_main_3d_view
     vigir_ocs_map_view
     vigir_ocs_status_window)
@@ -44,6 +48,7 @@ catkin_python_setup()
 
 include_directories(
     vigir_ocs_rqt_plugin_image_viewer_custom/src
+    vigir_ocs_rqt_plugin_joystick_custom/src
     vigir_ocs_rqt_plugin_main_3d_view_custom/src
     vigir_ocs_rqt_plugin_map_view_custom/src
     vigir_ocs_rqt_plugin_status_view_custom/src
@@ -55,12 +60,14 @@ include_directories(SYSTEM
 link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(vigir_ocs_rqt_plugin_image_viewer_custom)
+add_subdirectory(vigir_ocs_rqt_plugin_joystick_custom)
 add_subdirectory(vigir_ocs_rqt_plugin_main_3d_view_custom)
 add_subdirectory(vigir_ocs_rqt_plugin_map_view_custom)
 add_subdirectory(vigir_ocs_rqt_plugin_status_view_custom)
 
 install(FILES
   image_viewer_custom_plugin_description.xml
+  joystick_custom_plugin_description.xml
   main_3d_view_custom_plugin_description.xml
   map_view_custom_plugin_description.xml
   status_view_custom_plugin_description.xml

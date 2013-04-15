@@ -1,8 +1,6 @@
-// test app for the joystick widget
-
 #include <QApplication>
 #include <ros/ros.h>
-#include "joystick.h"
+#include "ui/joystick_widget.h"
 
 int main(int argc, char **argv)
 {
@@ -13,10 +11,8 @@ int main(int argc, char **argv)
 
   QApplication app( argc, argv );
 
-  Joystick* joystick = new Joystick();
-  joystick->show();
+  JoystickWidget widget;
+  widget.show();
 
-  app.exec();
-
-  delete joystick;
+  return app.exec();
 }

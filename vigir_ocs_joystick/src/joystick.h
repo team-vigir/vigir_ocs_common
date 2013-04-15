@@ -14,33 +14,40 @@
 
 #include <QWidget>
 
-#include <geometry_msgs/Twist.h>
+#include "flor_ocs_msgs/OCSDrive.h"
 #include <ros/publisher.h>
+#include <ros/subscriber.h>
 #include <ros/ros.h>
 
-// Class "Joystick" implements the widget that can send linear/angular velocity messages to the robot to move it.
+//#include "ui/joystick_widget.h"
+
+// Class "Joystick" implements the widget that can send OCSDrive messages to the robot to move it.
 class Joystick: public QWidget
 {
-Q_OBJECT
+    Q_OBJECT
+
 public:
-  Joystick( QWidget* parent = 0 );
-  virtual ~Joystick();
+    explicit Joystick( QWidget* parent = 0 )/* : robot_steer(0), robot_throttle(0){}*/;
+    virtual ~Joystick();
+
+    void setRobotThrottle( unsigned char throttle );
+    unsigned char getRobotThrottle();
+    void setRobotSteer( signed char steer );
+    signed char getRobotSteer();
+    void publish();
 
 private Q_SLOTS:
-  void turnLeftPressed();
-  void turnLeftReleased();
-  void turnRightPressed();
-  void turnRightReleased();
-  void forwardPressed();
-  void forwardReleased();
-  void backwardPressed();
-  void backwardReleased();
+    void callback(const flor_ocs_msgs::OCSDrive::ConstPtr &str);
 
 private:  
-	double walk_vel, run_vel, yaw_rate, yaw_rate_run;
-	geometry_msgs::Twist cmd;
+    flor_ocs_msgs::OCSDrive drive_cmd;
 
-	ros::NodeHandle n_;
-	ros::Publisher vel_pub_;
+    /*const */signed char robot_steer;
+    /*const */unsigned char robot_throttle;
+
+    ros::NodeHandle n_;
+    ros::Publisher drive_pub_;
+
+    ros::Subscriber sub_;
 };
 #endif // JOYSTICK_H
