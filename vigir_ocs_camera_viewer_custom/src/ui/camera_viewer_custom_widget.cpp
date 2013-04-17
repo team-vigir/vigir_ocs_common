@@ -36,6 +36,9 @@ QLayout* scrollLayout;
 int currentIndex=0;
 int headControlIndex = 0;
 
+
+
+
 CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::CameraViewerCustomWidget)
@@ -73,6 +76,11 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
 
 
     scrollingArea= this->findChild<QWidget *>("scrollAreaWidgetContents");
+
+
+   // toggleButton = this->parentWidget()->findChild<QPushButton *>("toggleButton");
+  //  toggleButton->setEnabled(false);
+  //  connect(toggleButton, SIGNAL(clicked()), this, SLOT(disableSelection()));
 
 
     //This last part just creates the hand control box using the position

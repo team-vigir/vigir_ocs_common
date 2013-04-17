@@ -44,12 +44,13 @@ CameraViewer::CameraViewer( QWidget* parent )
   // librviz.
   manager_ = new rviz::VisualizationManager( render_panel_ );
   render_panel_->initialize( manager_->getSceneManager(), manager_ );
+  manager_->setFixedFrame("/pelvis");
   manager_->initialize();
   manager_->startUpdate();
 
     // Set topic that will be used as 0,0,0 -> reference for all the other transforms
     // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
-    manager_->getFrameManager()->setFixedFrame("/pelvis");
+
 
   // Create a camera/image display.
   // can be both a camera or an image, the difference is that the camera has 3D content with it
@@ -60,6 +61,7 @@ CameraViewer::CameraViewer( QWidget* parent )
   // Set image topic
   //camera_viewer_->subProp( "Image Topic" )->setValue( "/right_eye/image_raw" );
   camera_viewer_->subProp( "Image Topic" )->setValue( "/multisense_sl/camera/left/image_raw" );
+  manager_->getFrameManager()->setFixedFrame("/pelvis");
 }
 
 // Destructor.
