@@ -38,7 +38,7 @@
       </sizepolicy>
      </property>
      <property name="mouseTracking">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="autoFillBackground">
       <bool>false</bool>
@@ -46,6 +46,49 @@
      <property name="styleSheet">
       <string notr="true"/>
      </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widget_7" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <widget class="QLabel" name="label_9">
+        <property name="font">
+         <font>
+          <pointsize>14</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>  +</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSlider" name="verticalSlider">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>1000000000</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_10">
+        <property name="font">
+         <font>
+          <pointsize>14</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>   -</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
@@ -99,12 +142,19 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>0</y>
+           <y>-248</y>
            <width>244</width>
-           <height>726</height>
+           <height>895</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QPushButton" name="toggleButton">
+            <property name="text">
+             <string>Enable Selection</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QGroupBox" name="Selection_3">
             <property name="sizePolicy">
@@ -607,6 +657,127 @@
            </widget>
           </item>
           <item>
+           <widget class="QGroupBox" name="groupBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>221</horstretch>
+              <verstretch>120</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>221</width>
+              <height>130</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>221</width>
+              <height>130</height>
+             </size>
+            </property>
+            <property name="title">
+             <string>Image layers</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout">
+             <item>
+              <widget class="QComboBox" name="comboBox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>198</width>
+                 <height>27</height>
+                </size>
+               </property>
+               <item>
+                <property name="text">
+                 <string>Background</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Overlay</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Both</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSlider" name="horizontalSlider_4">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>198</width>
+                 <height>27</height>
+                </size>
+               </property>
+               <property name="maximum">
+                <number>100</number>
+               </property>
+               <property name="value">
+                <number>50</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="tickPosition">
+                <enum>QSlider::TicksBelow</enum>
+               </property>
+               <property name="tickInterval">
+                <number>20</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_14">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>191</width>
+                 <height>16</height>
+                </size>
+               </property>
+               <property name="text">
+                <string> 0                                              100</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_11">
+               <property name="text">
+                <string>Transparency %</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
            <widget class="QGroupBox" name="groupBox_3">
             <property name="title">
              <string>Display</string>
@@ -618,7 +789,7 @@
                 <string>Robot Model</string>
                </property>
                <property name="checked">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -628,7 +799,7 @@
                 <string>LIDAR Point Cloud</string>
                </property>
                <property name="checked">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -658,7 +829,7 @@
                 <string>Octomap</string>
                </property>
                <property name="checked">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -955,6 +1126,15 @@
     <slot>changeCropImageResolution(int)</slot>
     <slot>changeCameraSpeed(int)</slot>
     <slot>selected(int,int,int,int)</slot>
+    <slot>disableSelection()</slot>
+    <slot>robotModelToggled(bool)</slot>
+    <slot>lidarPointCloudToggled(bool)</slot>
+    <slot>stereoPointCloudToggled(bool)</slot>
+    <slot>laserScanToggled(bool)</slot>
+    <slot>markerArrayToggled(bool)</slot>
+    <slot>changeAlpha(int)</slot>
+    <slot>changeLayer(int)</slot>
+    <slot>changeZoom(int)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -1024,9 +1204,152 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>toggleButton</sender>
+   <signal>clicked()</signal>
+   <receiver>widget</receiver>
+   <slot>disableSelection()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>568</x>
+     <y>40</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>202</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>robot_model</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget</receiver>
+   <slot>robotModelToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>572</x>
+     <y>433</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>207</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lidar_point_cloud</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget</receiver>
+   <slot>lidarPointCloudToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>572</x>
+     <y>342</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>207</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>stereo_point_cloud</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget</receiver>
+   <slot>stereoPointCloudToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>572</x>
+     <y>370</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>207</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>octomap</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget</receiver>
+   <slot>markerArrayToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>572</x>
+     <y>426</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>207</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>laser_scan</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget</receiver>
+   <slot>laserScanToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>572</x>
+     <y>398</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>207</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>comboBox</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>widget</receiver>
+   <slot>changeLayer(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>570</x>
+     <y>434</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>207</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>horizontalSlider_4</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>widget</receiver>
+   <slot>changeAlpha(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>570</x>
+     <y>464</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>207</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>verticalSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>widget</receiver>
+   <slot>changeZoom(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>27</x>
+     <y>225</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>193</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>alterDisplay(int)</slot>
  </slots>
 </ui>
-

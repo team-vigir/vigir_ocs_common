@@ -48,6 +48,7 @@
 #include "rviz/image/image_display_base.h"
 #include "rviz/image/ros_image_texture.h"
 #include "rviz/render_panel.h"
+#include "rviz/visualization_manager.h"
 
 #include <ros/subscriber.h>
 #include <ros/publisher.h>
@@ -55,6 +56,9 @@
 
 #include <image_transport/image_transport.h>
 #include <flor_perception_msgs/DownSampledImageRequest.h>
+#include <sensor_msgs/CameraInfo.h>
+#include <message_filters/subscriber.h>
+#include <tf/message_filter.h>
 
 class QMouseEvent;
 
@@ -62,13 +66,21 @@ namespace Ogre
 {
 class SceneNode;
 class Rectangle2D;
+class ManualObject;
 class ViewportMouseEvent;
+class Camera;
 }
 
 namespace rviz
 {
+class EnumProperty;
+class FloatProperty;
+class IntProperty;
+class RenderPanel;
+class RosTopicProperty;
+class DisplayGroupVisibilityProperty;
 
-class CameraDisplayCustom: public rviz::ImageDisplayBase
+class CameraDisplayCustom: public rviz::ImageDisplayBase, public Ogre::RenderTargetListener
 {
     Q_OBJECT
 public:
@@ -84,25 +96,52 @@ public:
     virtual void setRenderPanel( RenderPanel* rp );
     virtual void selectionProcessed( int x1, int y1, int x2, int y2 );
 
+// Overrides from Ogre::RenderTargetListener
+
+  virtual void preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
+  virtual void postRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
+  virtual void fixedFrameChanged();
+
+    void setup();
+
+    void setAlpha(float newAlpha);
+    void updateSelectedAlpha(float newSelectedAlpha);
+    void setLayer(int index);
+    void setZoom(float newZoom);
+    static const QString BACKGROUND;
+    static const QString OVERLAY;
+    static const QString BOTH;
+
 public Q_SLOTS:
     void changeFullImageResolution( int );
     void changeCropImageResolution( int );
     void changeCameraSpeed( int );
+
+private Q_SLOTS:
+  void forceRender();
+  void updateAlpha();
+
+  virtual void updateQueueSize();
 
 protected:
     // overrides from Display
     virtual void onEnable();
     virtual void onDisable();
 
+
+
     // This is called by incomingMessage().
     virtual void processMessage(const sensor_msgs::Image::ConstPtr& msg);
+
     virtual void processCroppedImage(const sensor_msgs::Image::ConstPtr& msg);
 
     // The two functions that update our local variables for
     void processFullImageRequest(const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
     void processCropImageRequest(const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
 
+    //void subscribe();
 private:
+ //   void subscribe();
     enum
     {
         IMAGE_RESOLUTION_FULL = 0,
@@ -112,16 +151,27 @@ private:
         IMAGE_RESOLUTION_16 = 4
     } DECIMATE_OPTIONS;
 
+    
     void clear();
     void updateStatus();
+    bool updateCamera();
+    void caminfoCallback( const sensor_msgs::CameraInfo::ConstPtr& msg );
 
     void publishCropImageRequest();
     void publishFullImageRequest();
 
     // variables that define the full image rendering surface
-    Ogre::Rectangle2D* screen_rect_;
-    Ogre::MaterialPtr material_;
+    // for the background
+    Ogre::SceneNode* bg_scene_node_;
+    Ogre::Rectangle2D* bg_screen_rect_;
+    Ogre::MaterialPtr bg_material_;
     ROSImageTexture texture_;
+
+    // variables that define the full image rendering surface
+    // for the background
+    Ogre::SceneNode* fg_scene_node_;
+    Ogre::Rectangle2D* fg_screen_rect_;
+    Ogre::MaterialPtr fg_material_;
 
     // variables that define the cropped image rendering surface
     Ogre::Rectangle2D* screen_rect_selection_;
@@ -135,6 +185,9 @@ private:
     // reference to the main window render panel
     RenderPanel* render_panel_;
 
+    //This is the lidar_point_cloud_viewer display that will hopefully show up.
+    Display* lidar_point_cloud_viewer_;
+
     // ros publishers and subscribers
     ros::NodeHandle n_;
     ros::Publisher img_req_pub_crop_;
@@ -142,6 +195,23 @@ private:
     ros::Subscriber cropped_image_;
     ros::Subscriber img_req_sub_crop_;
     ros::Subscriber img_req_sub_full_;
+
+    //This deals with the camera info
+    message_filters::Subscriber<sensor_msgs::CameraInfo> caminfo_sub_; 
+    tf::MessageFilter<sensor_msgs::CameraInfo>* caminfo_tf_filter_;
+
+    sensor_msgs::CameraInfo::ConstPtr current_caminfo_;   
+    boost::mutex caminfo_mutex_;
+
+    bool new_caminfo_;
+    FloatProperty* alpha_property_;
+  FloatProperty* zoom_property_;
+    EnumProperty* image_position_property_;
+    DisplayGroupVisibilityProperty* visibility_property_;
+    bool caminfo_ok_;
+
+    bool force_render_;
+    uint32_t vis_bit_;
 
     // full image info
     int full_image_width_;
@@ -163,6 +233,8 @@ private:
     int rect_dim_x2_;
     int rect_dim_y1_;
     int rect_dim_y2_;
+
+  VisualizationManager* manager_;
 };
 
 } // namespace rviz

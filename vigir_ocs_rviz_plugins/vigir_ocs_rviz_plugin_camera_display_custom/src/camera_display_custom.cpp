@@ -52,17 +52,48 @@
 
 #include <tf/transform_listener.h>
 
+#include "rviz/bit_allocator.h"
 #include "rviz/display_context.h"
 #include "rviz/frame_manager.h"
 #include "rviz/render_panel.h"
 #include "rviz/validate_floats.h"
+#include "rviz/properties/enum_property.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/int_property.h"
+#include "rviz/properties/ros_topic_property.h"
+#include "rviz/properties/display_group_visibility_property.h"
+#include <image_transport/camera_common.h>
 
+#include "rviz/display.h"
+#include "rviz/display_group.h"
+#include "rviz/visualization_manager.h"
 #include "camera_display_custom.h"
+#include "rviz/load_resource.h"
 
 #include <flor_perception_msgs/DownSampledImageRequest.h>
 
+
+bool flag = true;
+
+
+
 namespace rviz
 {
+
+const QString CameraDisplayCustom::BACKGROUND( "background" );
+const QString CameraDisplayCustom::OVERLAY( "overlay" );
+const QString CameraDisplayCustom::BOTH( "background and overlay" );
+
+bool validateFloats(const sensor_msgs::CameraInfo& msg)
+{
+  bool valid = true;
+  valid = valid && validateFloats( msg.D );
+  valid = valid && validateFloats( msg.K );
+  valid = valid && validateFloats( msg.R );
+  valid = valid && validateFloats( msg.P );
+  return valid;
+}
+
 
 CameraDisplayCustom::CameraDisplayCustom()
     : ImageDisplayBase()
@@ -78,11 +109,52 @@ CameraDisplayCustom::CameraDisplayCustom()
     , crop_binning_(0)
     , publish_frequency_(15.0f)
     , render_panel_(NULL)
+    , caminfo_tf_filter_( 0 )
+    , new_caminfo_( false )
+    , force_render_( false )
+    , caminfo_ok_(false)
 {
+
+image_position_property_ = new EnumProperty( "Image Rendering", BACKGROUND,
+                                               "Render the image behind all other geometry or overlay it on top, or both.",
+                                               this, SLOT( forceRender() ));
+  image_position_property_->addOption( BACKGROUND );
+  image_position_property_->addOption( OVERLAY );
+  image_position_property_->addOption( BOTH );
+
+  alpha_property_ = new FloatProperty( "Overlay Alpha", 0.5,
+                                       "The amount of transparency to apply to the camera image when rendered as overlay.",
+                                       this, SLOT( updateAlpha() ));
+  alpha_property_->setMin( 0 );
+  alpha_property_->setMax( 1 );
+
+ zoom_property_ = new FloatProperty( "Zoom Factor", 1.0,
+                                      "Set a zoom factor below 1 to see a larger part of the world, above 1 to magnify the image.",
+                                      this, SLOT( forceRender() ));
+  zoom_property_->setMin( 0.00001 );
+  zoom_property_->setMax( 100000 );
+}
+
+CameraDisplayCustom::~CameraDisplayCustom()
+{
+    render_panel_->getRenderWindow()->removeListener( this );
+    ImageDisplayBase::unsubscribe();
+    caminfo_tf_filter_->clear();
+    //delete render_panel_;
+    delete bg_screen_rect_;
+    delete fg_screen_rect_;
+    delete screen_rect_selection_;
+    bg_scene_node_->getParentSceneNode()->removeAndDestroyChild(bg_scene_node_->getName() );
+    fg_scene_node_->getParentSceneNode()->removeAndDestroyChild( fg_scene_node_->getName() );
+
+    delete caminfo_tf_filter_;
+    context_->visibilityBits()->freeBits(vis_bit_);
 }
 
 void CameraDisplayCustom::onInitialize()
 {
+   // caminfo_tf_filter_ = new tf::MessageFilter<sensor_msgs::CameraInfo>( *context_->getTFClient(), fixed_frame_.toStdString(),queue_size_property_->getInt(), update_nh_ );
+caminfo_tf_filter_ = new tf::MessageFilter<sensor_msgs::CameraInfo>( *context_->getTFClient(), fixed_frame_.toStdString(),queue_size_property_->getInt(), update_nh_ );
     {
         static uint32_t count = 0;
         std::stringstream ss;
@@ -90,6 +162,8 @@ void CameraDisplayCustom::onInitialize()
         //img_scene_manager_ = Ogre::Root::getSingleton().createSceneManager(Ogre::ST_GENERIC, ss.str());
     }
 
+    bg_scene_node_ = scene_node_->createChildSceneNode();
+    fg_scene_node_ = scene_node_->createChildSceneNode();
     //img_scene_node_ = img_scene_manager_->getRootSceneNode()->createChildSceneNode();
 
     screen_rect_selection_ = NULL;
@@ -101,30 +175,52 @@ void CameraDisplayCustom::onInitialize()
         std::stringstream ss;
         ss << "ImageDisplayObject" << count++;
 
-        screen_rect_ = new Ogre::Rectangle2D(true);
-        screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 3);
-        screen_rect_->setCorners(-1.0f, 1.0f, 1.0f, -1.0f);
+        bg_screen_rect_ = new Ogre::Rectangle2D(true);
+     //   bg_screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 3);
+        bg_screen_rect_->setCorners(-1.0f, 1.0f, 1.0f, -1.0f);
 
         ss << "Material";
-        material_ = Ogre::MaterialManager::getSingleton().create( ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
-        material_->setSceneBlending( Ogre::SBT_REPLACE );
-        material_->setDepthWriteEnabled(false);
-        material_->setReceiveShadows(false);
-        material_->setDepthCheckEnabled(false);
+        bg_material_ = Ogre::MaterialManager::getSingleton().create( ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
+        bg_material_->setSceneBlending( Ogre::SBT_REPLACE );
+        bg_material_->setDepthWriteEnabled(false);
+        bg_material_->setReceiveShadows(false);
+        bg_material_->setDepthCheckEnabled(false);
 
-        material_->getTechnique(0)->setLightingEnabled(false);
-        Ogre::TextureUnitState* tu = material_->getTechnique(0)->getPass(0)->createTextureUnitState();
+        bg_material_->getTechnique(0)->setLightingEnabled(false);
+        Ogre::TextureUnitState* tu = bg_material_->getTechnique(0)->getPass(0)->createTextureUnitState();
         tu->setTextureName(texture_.getTexture()->getName());
         tu->setTextureFiltering( Ogre::TFO_NONE );
+        //
+        tu->setAlphaOperation( Ogre::LBX_SOURCE1, Ogre::LBS_MANUAL, Ogre::LBS_CURRENT, 0.0 );
 
-        material_->setCullingMode(Ogre::CULL_NONE);
+        bg_material_->setCullingMode(Ogre::CULL_NONE);
         Ogre::AxisAlignedBox aabInf;
         aabInf.setInfinite();
-        screen_rect_->setBoundingBox(aabInf);
-        screen_rect_->setMaterial(material_->getName());
+       //
+        bg_screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND);
+        bg_screen_rect_->setBoundingBox(aabInf);
+        bg_screen_rect_->setMaterial(bg_material_->getName());
         //std::cout << "Material name (full): " << material_->getName() << std::endl;
-        scene_node_->attachObject(screen_rect_);
+        bg_scene_node_->attachObject(bg_screen_rect_);
+    	bg_scene_node_->setVisible(false);
+
+	
+
+       //overlay rectangle
+       fg_screen_rect_ = new Ogre::Rectangle2D(true);
+       fg_screen_rect_->setCorners(-1.0f, 1.0f, 1.0f, -1.0f);
+
+      fg_material_ = bg_material_->clone( ss.str()+"fg" );
+      fg_screen_rect_->setBoundingBox(aabInf);
+      fg_screen_rect_->setMaterial(fg_material_->getName());
+
+      fg_material_->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
+      fg_screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 1);
+
+      fg_scene_node_->attachObject(fg_screen_rect_);
+      fg_scene_node_->setVisible(false);
     }
+      updateAlpha();
 
     // selected area image quad
     {
@@ -132,12 +228,12 @@ void CameraDisplayCustom::onInitialize()
         std::stringstream ss;
         ss << "ImageDisplayObject" << count++;
         screen_rect_selection_ = new Ogre::Rectangle2D(true);
-        screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 1);
+        screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND+2);
         screen_rect_selection_->setCorners(0, 0, 0, 0);
 
         ss << "Material";
         material_selection_ = Ogre::MaterialManager::getSingleton().create( ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
-        material_selection_->setSceneBlending( Ogre::SBT_REPLACE );
+        material_selection_->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
         material_selection_->setDepthWriteEnabled(false);
         material_selection_->setReceiveShadows(false);
         material_selection_->setDepthCheckEnabled(false);
@@ -153,16 +249,16 @@ void CameraDisplayCustom::onInitialize()
         screen_rect_selection_->setBoundingBox(aabInf);
         screen_rect_selection_->setMaterial(material_selection_->getName());
         //std::cout << "Material name (cropped): " << material_selection_->getName() << std::endl;
-        scene_node_->attachObject(screen_rect_selection_);
+        bg_scene_node_->attachObject(screen_rect_selection_);
     }
 
     // selected area highlight
     {
         static int count = 2;
         std::stringstream ss;
-        ss << "ImageDisplayObject" << count++;
+        ss << "ImageDisplayObject" << count-1;
         screen_rect_highlight_ = new Ogre::Rectangle2D(true);
-        screen_rect_highlight_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 2);
+        screen_rect_highlight_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND + 1);
         screen_rect_highlight_->setCorners(0, 0, 0, 0);
 
         ss << "Material";
@@ -180,7 +276,7 @@ void CameraDisplayCustom::onInitialize()
         screen_rect_highlight_->setBoundingBox(aabInf);
         screen_rect_highlight_->setMaterial(material_highlight_->getName());
         //std::cout << "Material name (highlight): " << material_highlight_->getName() << std::endl;
-        scene_node_->attachObject(screen_rect_highlight_);
+        bg_scene_node_->attachObject(screen_rect_highlight_);
     }
 
     // first create a publisher to set the parameters of the full image
@@ -197,22 +293,87 @@ void CameraDisplayCustom::onInitialize()
     // finally, we need to subscribe to requests so that multiple clients have everything updated
     img_req_sub_crop_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, &CameraDisplayCustom::processCropImageRequest, this );
     img_req_sub_full_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &CameraDisplayCustom::processFullImageRequest, this );
+
+
+
+    caminfo_tf_filter_->connectInput(caminfo_sub_);
+    caminfo_tf_filter_->registerCallback(boost::bind(&CameraDisplayCustom::caminfoCallback, this, _1));
+
+
 }
 
-CameraDisplayCustom::~CameraDisplayCustom()
+/**
+**
+**
+**/
+
+void CameraDisplayCustom::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 {
-    ImageDisplayBase::unsubscribe();
-    //delete render_panel_;
-    delete screen_rect_;
-    delete screen_rect_selection_;
-    scene_node_->getParentSceneNode()->removeAndDestroyChild( scene_node_->getName() );
+   QString image_position = image_position_property_->getString();
+   bg_scene_node_->setVisible( caminfo_ok_ && (image_position == BACKGROUND || image_position == BOTH) );
+   fg_scene_node_->setVisible( caminfo_ok_ && (image_position == OVERLAY || image_position == BOTH) );
+  // bg_scene_node_->setVisible(false);
+  // fg_scene_node_->setVisible(false); 
+  // set view flags on all displays
+   visibility_property_->update();
+
 }
+
+void CameraDisplayCustom::postRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
+{
+   bg_scene_node_->setVisible( false );
+   fg_scene_node_->setVisible( false );
+
+}
+
+
 
 void CameraDisplayCustom::onEnable()
 {
-    ImageDisplayBase::subscribe();
+  //ImageDisplayBase::subscribe();
+    //subscribe();
+	//std::cout<<"Enabled" <<std::endl;
+
+if ( (!isEnabled()) || (topic_property_->getTopicStd().empty()) )
+  {
+    if((topic_property_->getTopicStd().empty()))
+     {
+	//std::cout<<"The error is the topic std" <<std::endl;
+     }
+    return;
+  }
+
+/**
+* These next two lines make it so that "No Image" appears for some reason.
+*/
+  //std::string target_frame = fixed_frame_.toStdString();
+  //std::cout<<"this is the frame " <<target_frame<<std::endl;
+  //ImageDisplayBase::enableTFFilter(target_frame);
+  std::string target_frame = fixed_frame_.toStdString();
+
+  ImageDisplayBase::enableTFFilter(target_frame);
+  ImageDisplayBase::subscribe();
+
+  std::string topic = topic_property_->getTopicStd();
+  std::string caminfo_topic = image_transport::getCameraInfoTopic(topic_property_->getTopicStd());
+
+  try
+  {
+    caminfo_sub_.subscribe( update_nh_, caminfo_topic, 1 );
+   // std::cout<<"The subscription happens"<<std::endl;
+    setStatus( StatusProperty::Ok, "Camera Info", "OK" );
+  }
+  catch( ros::Exception& e )
+  {
+    setStatus( StatusProperty::Error, "Camera Info", QString( "Error subscribing: ") + e.what() );
+  }
+
     if(render_panel_)
+    {
         render_panel_->getRenderWindow()->setActive(true);
+	//This may be wrong	
+	
+    }
 }
 
 void CameraDisplayCustom::onDisable()
@@ -220,14 +381,19 @@ void CameraDisplayCustom::onDisable()
     if(render_panel_)
         render_panel_->getRenderWindow()->setActive(false);
     ImageDisplayBase::unsubscribe();
+    caminfo_sub_.unsubscribe();
     clear();
 }
 
 void CameraDisplayCustom::clear()
 {
     texture_.clear();
+    force_render_ = true;
+    context_->queueRender();
     texture_selection_.clear();
 
+    new_caminfo_ = false;
+    current_caminfo_.reset();
     if(render_panel_)
     {
         if( render_panel_->getCamera() )
@@ -243,17 +409,155 @@ void CameraDisplayCustom::update( float wall_dt, float ros_dt )
     {
         try
         {
-            texture_.update();
-            texture_selection_.update();
+            if(texture_.update()||texture_selection_.update()||force_render_)
+	    {
 
-            //make sure the aspect ratio of the image is preserved
+		caminfo_ok_ = updateCamera();
+                render_panel_->getRenderWindow()->update();
+           	force_render_ = false;
+	    }
+
+
+
+            //std::cout << "CUSTOM UPDATE LOOP" << std::endl;
+        }
+        catch( UnsupportedImageEncoding& e )
+        {
+            setStatus(StatusProperty::Error, "Image", e.what());
+        }
+
+    }
+}
+
+
+bool CameraDisplayCustom::updateCamera()
+{
+ 
+	     sensor_msgs::CameraInfo::ConstPtr info;
+	     sensor_msgs::Image::ConstPtr image;
+	     {
+	       boost::mutex::scoped_lock lock( caminfo_mutex_ );
+
+	       info = current_caminfo_;
+	       image = texture_.getImage();
+	     }
+	     if(!info || !image)
+  	     {
+		
+		//std::cout<<"Still has an issue"<<std::endl;		
+    		return false;
+  	     }
+	     
+             if( !validateFloats( *info ))
+	     {
+	      setStatus( StatusProperty::Error, "Camera Info", "Contains invalid floating point values (nans or infs)" );
+	    return false;
+	     }
+// if we're in 'exact' time mode, only show image if the time is exactly right
+  /**ros::Time rviz_time = context_->getFrameManager()->getTime();
+  if ( context_->getFrameManager()->getSyncMode() == FrameManager::SyncExact &&
+      rviz_time != image->header.stamp )
+  {
+    std::ostringstream s;
+    s << "Time-syncing active and no image at timestamp " << rviz_time.toSec() << ".";
+    setStatus( StatusProperty::Warn, "Time", s.str().c_str() );
+    return false;
+  }**/
+
+  Ogre::Vector3 position;
+  Ogre::Quaternion orientation;
+  
+  //image->header.frame_id (this stuff is grabbed from a sensor_msg)
+  context_->getFrameManager()->getTransform( image->header.frame_id, image->header.stamp, position, orientation );
+   //manager_->getFrameManager()->getTransform( image->header.frame_id, image->header.stamp, position, orientation );
+  
+
+//printf( "CameraDisplay:updateCamera(): pos = %.2f, %.2f, %.2f.\n", position.x, position.y, position.z );
+
+  // convert vision (Z-forward) frame to ogre frame (Z-out)
+  orientation = orientation * Ogre::Quaternion( Ogre::Degree( 180 ), Ogre::Vector3::UNIT_X );
+
+	   double fx = info->P[0];
+	   double fy = info->P[5];
+ //make sure the aspect ratio of the image is preserved
             float win_width = render_panel_->width();
             float win_height = render_panel_->height();
 
-            float img_width = texture_.getWidth();
-            float img_height = texture_.getHeight();
+//            float img_width = texture_.getWidth();
+  //          float img_height = texture_.getHeight();
+ 	   float img_width = info->width;
+            float img_height = info->height;
+	 float zoom_x = zoom_property_->getFloat();
+	  float zoom_y = zoom_x;
+	// Preserve aspect ratio
+	  if( win_width != 0 && win_height != 0 )
+	  {
+	    float img_aspect = (img_width/fx) / (img_height/fy);
+	    float win_aspect = win_width / win_height;
 
-            if ( img_width != 0 && img_height != 0 && win_width !=0 && win_height != 0 )
+	    if ( img_aspect > win_aspect )
+	    {
+	      zoom_y = zoom_y / img_aspect * win_aspect;
+	    }
+	    else
+	    {
+	      zoom_x = zoom_x / win_aspect * img_aspect;
+	    }
+	  }
+
+            
+
+// Add the camera's translation relative to the left camera (from P[3]);
+  double tx = -1 * (info->P[3] / fx);
+  Ogre::Vector3 right = orientation * Ogre::Vector3::UNIT_X;
+  position = position + (right * tx);
+
+  double ty = -1 * (info->P[7] / fy);
+  Ogre::Vector3 down = orientation * Ogre::Vector3::UNIT_Y;
+  position = position + (down * ty);
+
+  if( !validateFloats( position ))
+  {
+    setStatus( StatusProperty::Error, "Camera Info", "CameraInfo/P resulted in an invalid position calculation (nans or infs)" );
+    return false;
+  }
+
+  render_panel_->getCamera()->setPosition( position );
+  render_panel_->getCamera()->setOrientation( orientation );
+
+  // calculate the projection matrix
+  double cx = info->P[2];
+  double cy = info->P[6];
+
+  double far_plane = 100;
+  double near_plane = 0.01;
+
+  Ogre::Matrix4 proj_matrix;
+  proj_matrix = Ogre::Matrix4::ZERO;
+ 
+  proj_matrix[0][0]= 2.0 * fx/img_width * zoom_x; 
+  proj_matrix[1][1]= 2.0 * fy/img_height * zoom_y; 
+
+  proj_matrix[0][2]= 2.0 * (0.5 - cx/img_width) * zoom_x;
+  proj_matrix[1][2]= 2.0 * (cy/img_height - 0.5) * zoom_y;
+
+  proj_matrix[2][2]= -(far_plane+near_plane) / (far_plane-near_plane);
+  proj_matrix[2][3]= -2.0*far_plane*near_plane / (far_plane-near_plane);
+
+  proj_matrix[3][2]= -1;
+
+  render_panel_->getCamera()->setCustomProjectionMatrix( true, proj_matrix );
+
+  setStatus( StatusProperty::Ok, "Camera Info", "OK" );
+
+#if 0
+  static Axes* debug_axes = new Axes(scene_manager_, 0, 0.2, 0.01);
+  debug_axes->setPosition(position);
+  debug_axes->setOrientation(orientation);
+#endif
+
+ 
+  if ( img_width != 0 && img_height != 0 && win_width !=0 && win_height != 0 )
             {
                 float img_aspect = img_width / img_height;
                 float win_aspect = win_width / win_height;
@@ -264,7 +568,15 @@ void CameraDisplayCustom::update( float wall_dt, float ros_dt )
 
                 if ( img_aspect > win_aspect )
                 {
-                    screen_rect_->setCorners(-1.0f, 1.0f * win_aspect/img_aspect, 1.0f, -1.0f * win_aspect/img_aspect, false);
+		    //The camera_display file deals with zoom here.
+                    bg_screen_rect_->setCorners(-1.0f, 1.0f * win_aspect/img_aspect, 1.0f, -1.0f * win_aspect/img_aspect, false);
+			//This will most likely change
+  		    fg_screen_rect_->setCorners(-1.0f, 1.0f * win_aspect/img_aspect, 1.0f, -1.0f * win_aspect/img_aspect, false);
+                    /**
+		     * //adjust the image rectangles to fit the zoom & aspect ratio
+ 		     *  bg_screen_rect_->setCorners( -1.0f*zoom_x, 1.0f*zoom_y, 1.0f*zoom_x, -1.0f*zoom_y );
+  		     * fg_screen_rect_->setCorners( -1.0f*zoom_x, 1.0f*zoom_y, 1.0f*zoom_x, -1.0f*zoom_y );
+		     **/
                     // calculate full image rectangle dimensions in window coordinates
                     rect_dim_x1_ = 0;
                     rect_dim_x2_ = win_width;
@@ -286,7 +598,9 @@ void CameraDisplayCustom::update( float wall_dt, float ros_dt )
                 }
                 else
                 {
-                    screen_rect_->setCorners(-1.0f * img_aspect/win_aspect, 1.0f, 1.0f * img_aspect/win_aspect, -1.0f, false);
+                    bg_screen_rect_->setCorners(-1.0f * img_aspect/win_aspect, 1.0f, 1.0f * img_aspect/win_aspect, -1.0f, false);
+			//this will most likely change
+  		     fg_screen_rect_->setCorners(-1.0f * img_aspect/win_aspect, 1.0f, 1.0f * img_aspect/win_aspect, -1.0f, false);
                     // calculate full image rectangle dimensions in window coordinates
                     rect_dim_x1_ = (win_width - (win_width * img_aspect/win_aspect)) / 2.0f;
                     rect_dim_x2_ = win_width - rect_dim_x1_;
@@ -308,15 +622,15 @@ void CameraDisplayCustom::update( float wall_dt, float ros_dt )
                 }
             }
 
-            render_panel_->getRenderWindow()->update();
+  Ogre::AxisAlignedBox aabInf;
+  aabInf.setInfinite();
+  bg_screen_rect_->setBoundingBox( aabInf );
+  fg_screen_rect_->setBoundingBox( aabInf );
+	
+  setStatus( StatusProperty::Ok, "Time", "ok" );
+  setStatus( StatusProperty::Ok, "Camera Info", "ok" );
 
-            //std::cout << "CUSTOM UPDATE LOOP" << std::endl;
-        }
-        catch( UnsupportedImageEncoding& e )
-        {
-            setStatus(StatusProperty::Error, "Image", e.what());
-        }
-    }
+  return true;
 }
 
 void CameraDisplayCustom::reset()
@@ -330,6 +644,15 @@ void CameraDisplayCustom::processMessage(const sensor_msgs::Image::ConstPtr& msg
 {
     texture_.addMessage(msg);
 }
+
+void CameraDisplayCustom::caminfoCallback( const sensor_msgs::CameraInfo::ConstPtr& msg )
+{
+  //std::cout<<"This is called at some point"<<std::endl;
+  boost::mutex::scoped_lock lock( caminfo_mutex_ );
+  current_caminfo_ = msg;
+  new_caminfo_ = true;
+}
+
 
 void CameraDisplayCustom::processCroppedImage(const sensor_msgs::Image::ConstPtr& msg)
 {
@@ -357,6 +680,19 @@ void CameraDisplayCustom::processCropImageRequest(const flor_perception_msgs::Do
 void CameraDisplayCustom::setRenderPanel( RenderPanel* rp )
 {
     render_panel_ = rp;
+    render_panel_->getRenderWindow()->addListener( this );
+
+    render_panel_->getRenderWindow()->setAutoUpdated(false);
+    render_panel_->getRenderWindow()->setActive( false );
+
+
+
+  //  setAssociatedWidget( render_panel_ );
+    render_panel_->setAutoRender(false);
+    render_panel_->setOverlaysEnabled(false);
+    render_panel_->getCamera()->setNearClipDistance( 0.01f );
+	
+   
 }
 
 void CameraDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
@@ -511,7 +847,189 @@ void CameraDisplayCustom::publishFullImageRequest()
 
     // publish image request for full image
     img_req_pub_full_.publish( cmd );
+
 }
+
+
+
+void CameraDisplayCustom::forceRender()
+{
+// std::cout<<"this is forced to render"<<std::endl;
+  force_render_ = true;
+  context_->queueRender();
+}
+
+void CameraDisplayCustom::updateAlpha()
+{
+  float alpha = alpha_property_->getFloat();
+
+  Ogre::Pass* pass = fg_material_->getTechnique( 0 )->getPass( 0 );
+  if( pass->getNumTextureUnitStates() > 0 )
+  {
+    Ogre::TextureUnitState* tex_unit = pass->getTextureUnitState( 0 );
+    tex_unit->setAlphaOperation( Ogre::LBX_MODULATE, Ogre::LBS_MANUAL, Ogre::LBS_CURRENT, alpha );
+  }
+  else
+  {
+    fg_material_->setAmbient( Ogre::ColourValue( 0.0f, 1.0f, 1.0f, alpha ));
+    fg_material_->setDiffuse( Ogre::ColourValue( 0.0f, 1.0f, 1.0f, alpha ));
+  }
+
+  force_render_ = true;
+  if(screen_rect_selection_ != NULL && !flag)
+  {
+  	updateSelectedAlpha(alpha);
+  }
+  context_->queueRender();
+}
+
+/**
+* This is used to change the alpha of the selected area when the image
+* is overlaying the camera display information.
+**/
+void CameraDisplayCustom::updateSelectedAlpha(float selectedAlpha)
+{
+  
+
+  Ogre::Pass* pass = material_selection_->getTechnique( 0 )->getPass( 0 );
+  Ogre::Pass* pass2 = material_highlight_->getTechnique( 0 )->getPass( 0 );
+
+  if( pass->getNumTextureUnitStates() > 0 )
+  {
+    Ogre::TextureUnitState* tex_unit = pass->getTextureUnitState( 0 );
+    tex_unit->setAlphaOperation( Ogre::LBX_MODULATE, Ogre::LBS_MANUAL, Ogre::LBS_CURRENT, selectedAlpha );
+  }
+  else
+  {
+    material_selection_->setAmbient( Ogre::ColourValue( 0.0f, 1.0f, 1.0f, selectedAlpha ));
+    material_selection_->setDiffuse( Ogre::ColourValue( 0.0f, 1.0f, 1.0f, selectedAlpha ));
+  }
+
+ if( pass2->getNumTextureUnitStates() > 0 )
+  {
+    Ogre::TextureUnitState* tex_unit = pass2->getTextureUnitState( 0 );
+    tex_unit->setAlphaOperation( Ogre::LBX_MODULATE, Ogre::LBS_MANUAL, Ogre::LBS_CURRENT, selectedAlpha );
+  }
+  else
+  {
+    material_highlight_->setAmbient( Ogre::ColourValue( 0.0f, 1.0f, 1.0f, selectedAlpha ));
+    material_highlight_->setDiffuse( Ogre::ColourValue( 0.0f,1.0f,1.0f, selectedAlpha ));
+  }
+  
+
+
+  force_render_ = true;
+  context_->queueRender();
+}
+
+
+void CameraDisplayCustom::updateQueueSize()
+{
+  caminfo_tf_filter_->setQueueSize( (uint32_t) queue_size_property_->getInt() );
+  ImageDisplayBase::updateQueueSize();
+}
+
+
+void CameraDisplayCustom::fixedFrameChanged()
+{
+  std::string targetFrame = fixed_frame_.toStdString();
+  //caminfo_tf_filter_->setTargetFrame(targetFrame);
+  caminfo_tf_filter_->setTargetFrame(fixed_frame_.toStdString());
+//  texture_.setFrame(fixed_frame_, context_->getTFClient());
+
+  ImageDisplayBase::fixedFrameChanged();
+}
+
+void CameraDisplayCustom::setup()
+{
+   DisplayGroup* display = context_->getRootDisplayGroup();
+   		Display* theDisplay = display->getDisplayAt(0);
+   vis_bit_ = context_->visibilityBits()->allocBit();
+//vis_bit_ = manager_->visibilityBits()->allocBit();
+   render_panel_->getViewport()->setVisibilityMask( vis_bit_ );
+
+
+
+   visibility_property_ = new DisplayGroupVisibilityProperty(
+   vis_bit_,context_->getRootDisplayGroup() , this, "Visibility", true,
+      "Changes the visibility of other Displays in the camera view.");
+   
+   
+   visibility_property_->update();
+
+
+
+   visibility_property_->setIcon( loadPixmap("package://rviz/icons/visibility.svg",true) );
+
+
+   this->addChild( visibility_property_, 0 );
+  
+
+}
+
+
+void CameraDisplayCustom::setAlpha(float newAlpha)
+{
+	alpha_property_->setFloat(newAlpha);
+	updateAlpha();
+}
+
+void CameraDisplayCustom::setLayer(int index)
+{
+	if(index == 0)
+	{
+		image_position_property_->setString(BACKGROUND);
+		if(!flag)		
+		{
+	        	fg_scene_node_->detachObject(screen_rect_selection_);
+        		screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND+2);
+			bg_scene_node_->attachObject(screen_rect_selection_);
+	        	fg_scene_node_->detachObject(screen_rect_highlight_);
+			screen_rect_highlight_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND + 1);
+		        bg_scene_node_->attachObject(screen_rect_highlight_);
+			updateSelectedAlpha(1.0f);
+		}
+		flag = true;
+	}
+	else if(index == 1)
+	{
+		image_position_property_->setString(OVERLAY);
+		if(flag)
+		{
+			bg_scene_node_->detachObject(screen_rect_selection_);
+        		screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY-1);
+			fg_scene_node_->attachObject(screen_rect_selection_);
+	        	bg_scene_node_->detachObject(screen_rect_highlight_);
+			screen_rect_highlight_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 2);
+		        fg_scene_node_->attachObject(screen_rect_highlight_);
+			updateSelectedAlpha(alpha_property_->getFloat());
+			flag = false;
+		}
+
+	}
+	else
+	{
+		image_position_property_->setString(BOTH);
+		if(flag)
+		{
+			bg_scene_node_->detachObject(screen_rect_selection_);
+        		screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY-1);
+			fg_scene_node_->attachObject(screen_rect_selection_);
+	        	bg_scene_node_->detachObject(screen_rect_highlight_);
+			screen_rect_highlight_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 2);
+		        fg_scene_node_->attachObject(screen_rect_highlight_);
+			updateSelectedAlpha(alpha_property_->getFloat());
+			flag = false;
+		}
+	}
+}
+
+void CameraDisplayCustom::setZoom(float newZoom)
+{
+	zoom_property_->setFloat(newZoom);
+}
+
+
 
 } // namespace rviz
 
