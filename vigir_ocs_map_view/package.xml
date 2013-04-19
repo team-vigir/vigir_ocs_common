@@ -2,33 +2,25 @@
 <package>
   <name>vigir_ocs_map_view</name>
   <version>0.1.0</version>
-  <description>The OCS Main 3d display package</description>
+  <description>The OCS map display package</description>
   <maintainer email="fbacim@vt.edu">Felipe Bacim</maintainer>
   <license>TORC</license>
   <author email="fbacim@vt.edu">Felipe Bacim</author>
 
   <buildtool_depend>catkin</buildtool_depend>
+  
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
-  <build_depend>geometry_msgs</build_depend>
   <build_depend>rviz</build_depend>
-  <build_depend>vigir_ocs_rviz_plugins</build_depend>
-  <build_depend>vigir_ocs_template_loader</build_depend>
-  <build_depend>vigir_ocs_render_panel_custom</build_depend> 
-  <build_depend>vigir_ocs_selection_handler</build_depend> 
+  <build_depend>vigir_ocs_base_3d_view</build_depend>
   <build_depend>vigir_ocs_joystick</build_depend> 
-
 
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
-  <run_depend>geometry_msgs</run_depend>
   <run_depend>rviz</run_depend>
-  <run_depend>vigir_ocs_rviz_plugins</run_depend>
-  <run_depend>vigir_ocs_template_loader</run_depend> 
-  <run_depend>vigir_ocs_render_panel_custom</run_depend> 
-  <run_depend>vigir_ocs_selection_handler</run_depend>
+  <run_depend>vigir_ocs_base_3d_view</run_depend>
   <run_depend>vigir_ocs_joystick</run_depend>
 
 

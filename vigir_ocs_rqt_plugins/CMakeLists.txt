@@ -9,6 +9,7 @@ find_package(catkin
     rqt_gui 
     rqt_gui_cpp 
     rviz 
+    vigir_ocs_camera_viewer_custom
     vigir_ocs_image_viewer_custom
     vigir_ocs_joystick
     vigir_ocs_main_3d_view
@@ -27,12 +28,14 @@ catkin_package(
     vigir_ocs_rqt_plugin_main_3d_view_custom
     vigir_ocs_rqt_plugin_map_view_custom
     vigir_ocs_rqt_plugin_status_view_custom
+    vigir_ocs_rqt_plugin_camera_viewer_custom
   INCLUDE_DIRS
     vigir_ocs_rqt_plugin_image_viewer_custom/src
     vigir_ocs_rqt_plugin_joystick_custom/src
     vigir_ocs_rqt_plugin_main_3d_view_custom/src
     vigir_ocs_rqt_plugin_map_view_custom/src
     vigir_ocs_rqt_plugin_status_view_custom/src
+    vigir_ocs_rqt_plugin_camera_viewer_custom/src 
   CATKIN_DEPENDS 
     rqt_gui
     rqt_gui_cpp
@@ -41,7 +44,8 @@ catkin_package(
     vigir_ocs_joystick
     vigir_ocs_main_3d_view
     vigir_ocs_map_view
-    vigir_ocs_status_window)
+    vigir_ocs_status_window
+    vigir_ocs_camera_viewer_custom)
 
 ## Setup the plugin
 catkin_python_setup()
@@ -52,6 +56,7 @@ include_directories(
     vigir_ocs_rqt_plugin_main_3d_view_custom/src
     vigir_ocs_rqt_plugin_map_view_custom/src
     vigir_ocs_rqt_plugin_status_view_custom/src
+    vigir_ocs_rqt_plugin_camera_viewer_custom/src
 	${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM
@@ -64,6 +69,7 @@ add_subdirectory(vigir_ocs_rqt_plugin_joystick_custom)
 add_subdirectory(vigir_ocs_rqt_plugin_main_3d_view_custom)
 add_subdirectory(vigir_ocs_rqt_plugin_map_view_custom)
 add_subdirectory(vigir_ocs_rqt_plugin_status_view_custom)
+add_subdirectory(vigir_ocs_rqt_plugin_camera_viewer_custom)
 
 install(FILES
   image_viewer_custom_plugin_description.xml
@@ -71,6 +77,7 @@ install(FILES
   main_3d_view_custom_plugin_description.xml
   map_view_custom_plugin_description.xml
   status_view_custom_plugin_description.xml
+  camera_viewer_custom_plugin_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 #install(DIRECTORY icons DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

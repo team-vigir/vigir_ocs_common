@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 
   QApplication app( argc, argv );
 
-  MapView* map_view = new MapView();
+  vigir_ocs::MapView* map_view = new vigir_ocs::MapView();
   map_view->show();
 
   app.exec();

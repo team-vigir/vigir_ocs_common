@@ -68,8 +68,8 @@ ImageDisplayCustom::ImageDisplayCustom()
     : ImageDisplayBase()
     , texture_()
     , texture_selection_()
-    , full_image_width_(1024) // default parameters for atlas robot
-    , full_image_height_(544)
+    , full_image_width_(800) // default parameters for atlas robot
+    , full_image_height_(800)
     , full_image_binning_(8)
     , crop_x_offset_(0)
     , crop_y_offset_(0)

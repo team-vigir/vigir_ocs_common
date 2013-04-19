@@ -114,32 +114,36 @@ void Selection3DDisplayCustom::load()
     Ogre::String lNameOfResourceGroup = "SelectionMaterials";
 
     Ogre::ResourceGroupManager& lRgMgr = Ogre::ResourceGroupManager::getSingleton();
-    if(!lRgMgr.resourceGroupExists(lNameOfResourceGroup))
-        lRgMgr.createResourceGroup(lNameOfResourceGroup);
 
     Ogre::String lMaterialName = lNameOfResourceGroup+"MarkerMaterial";
-    Ogre::MaterialPtr lMaterial = lMaterialManager.create(lMaterialName,lNameOfResourceGroup);
-    Ogre::Technique* lFirstTechnique = lMaterial->getTechnique(0);
-    Ogre::Pass* lFirstPass = lFirstTechnique->getPass(0);
 
-    float transparency = 0.3f;
-    Ogre::ColourValue lSelfIllumnationColour(0.1f, 0.0f, 0.0f, transparency);
-    lFirstPass->setSelfIllumination(lSelfIllumnationColour);
+    if(!lRgMgr.resourceGroupExists(lNameOfResourceGroup))
+    {
+        lRgMgr.createResourceGroup(lNameOfResourceGroup);
 
-    Ogre::ColourValue lDiffuseColour(1.0f, 0.4f, 0.4f, transparency);
-    lFirstPass->setDiffuse(lDiffuseColour);
+        Ogre::MaterialPtr lMaterial = lMaterialManager.create(lMaterialName,lNameOfResourceGroup);
+        Ogre::Technique* lFirstTechnique = lMaterial->getTechnique(0);
+        Ogre::Pass* lFirstPass = lFirstTechnique->getPass(0);
 
-    Ogre::ColourValue lAmbientColour(0.4f, 0.1f, 0.1f, transparency);
-    lFirstPass->setAmbient(lAmbientColour);
+        float transparency = 0.3f;
+        Ogre::ColourValue lSelfIllumnationColour(0.1f, 0.0f, 0.0f, transparency);
+        lFirstPass->setSelfIllumination(lSelfIllumnationColour);
 
-    Ogre::ColourValue lSpecularColour(1.0f, 1.0f, 1.0f, 1.0f);
-    lFirstPass->setSpecular(lSpecularColour);
+        Ogre::ColourValue lDiffuseColour(1.0f, 0.4f, 0.4f, transparency);
+        lFirstPass->setDiffuse(lDiffuseColour);
 
-    Ogre::Real lShininess = 64.0f;
-    lFirstPass->setShininess(lShininess);
+        Ogre::ColourValue lAmbientColour(0.4f, 0.1f, 0.1f, transparency);
+        lFirstPass->setAmbient(lAmbientColour);
 
-    lFirstPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
-    lFirstPass->setDepthWriteEnabled(false);
+        Ogre::ColourValue lSpecularColour(1.0f, 1.0f, 1.0f, 1.0f);
+        lFirstPass->setSpecular(lSpecularColour);
+
+        Ogre::Real lShininess = 64.0f;
+        lFirstPass->setShininess(lShininess);
+
+        lFirstPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+        lFirstPass->setDepthWriteEnabled(false);
+    }
 
     // Create spheres to be used as markers
     Ogre::Entity* lEntity = this->scene_manager_->createEntity("selection marker", Ogre::SceneManager::PT_SPHERE);
