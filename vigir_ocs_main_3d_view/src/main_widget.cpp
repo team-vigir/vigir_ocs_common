@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 
   QApplication app( argc, argv );
 
-  Main3DView* main_3d_view = new Main3DView();
+  vigir_ocs::Main3DView* main_3d_view = new vigir_ocs::Main3DView();
   main_3d_view->show();
 
   app.exec();

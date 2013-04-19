@@ -24,7 +24,7 @@
     <enum>QLayout::SetDefaultConstraint</enum>
    </property>
    <item>
-    <widget class="Main3DView" name="main_3d_view_" native="true">
+    <widget class="vigir_ocs::Main3DView" name="main_3d_view_" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -260,7 +260,7 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>Main3DView</class>
+   <class>vigir_ocs::Main3DView</class>
    <extends>QWidget</extends>
    <header>main_3d_view.h</header>
    <container>1</container>

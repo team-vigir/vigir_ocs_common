@@ -15,7 +15,7 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
-    <widget class="MapView" name="map_view_" native="true">
+    <widget class="vigir_ocs::MapView" name="map_view_" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -283,7 +283,7 @@
    </slots>
   </customwidget>
   <customwidget>
-   <class>MapView</class>
+   <class>vigir_ocs::MapView</class>
    <extends>QWidget</extends>
    <header>map_view.h</header>
    <container>1</container>

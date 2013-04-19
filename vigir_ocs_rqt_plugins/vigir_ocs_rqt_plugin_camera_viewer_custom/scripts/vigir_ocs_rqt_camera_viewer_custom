@@ -5,4 +5,4 @@ import sys
 from rqt_gui.main import Main
 
 main = Main()
-sys.exit(main.main(sys.argv, standalone='vigir_ocs_rqt_main_3d_viewer_custom'))
+sys.exit(main.main(sys.argv, standalone='vigir_ocs_rqt_camera_view_custom'))
