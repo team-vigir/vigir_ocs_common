@@ -191,13 +191,13 @@ void CameraViewerCustomWidget::alterDisplay(int num)
   **/
 void CameraViewerCustomWidget::updatePitch(int value)
 {
-
-
     std::stringstream ss;//create a stringstream for int to string conversion
     ss << value;
     std::string string = ss.str();
     QString label = QString::fromStdString(string);
     pitchLabel->setText(label);
+
+    ui->widget->setCameraPitch(value);
 }
 
 /**

@@ -142,7 +142,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-248</y>
+           <y>0</y>
            <width>244</width>
            <height>895</height>
           </rect>
@@ -1135,6 +1135,7 @@
     <slot>changeAlpha(int)</slot>
     <slot>changeLayer(int)</slot>
     <slot>changeZoom(int)</slot>
+    <slot>updatePitch(int)</slot>
    </slots>
   </customwidget>
  </customwidgets>

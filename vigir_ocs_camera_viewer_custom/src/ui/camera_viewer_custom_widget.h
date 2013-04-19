@@ -26,6 +26,9 @@ public:
 private:
     Ui::CameraViewerCustomWidget*ui;
 
+Q_SIGNALS:
+    void pitchChanged(int);
+
 public Q_SLOTS:
     void alterDisplay(int);
     void updatePitch(int);

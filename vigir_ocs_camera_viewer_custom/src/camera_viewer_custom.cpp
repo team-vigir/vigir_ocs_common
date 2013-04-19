@@ -135,12 +135,22 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
   QObject::connect(this, SIGNAL(setFullImageResolution(int)), camera_viewer_, SLOT(changeFullImageResolution(int)));
   QObject::connect(this, SIGNAL(setCropImageResolution(int)), camera_viewer_, SLOT(changeCropImageResolution(int)));
   QObject::connect(this, SIGNAL(setCameraSpeed(int)), camera_viewer_, SLOT(changeCameraSpeed(int)));
+
+  // and advertise the head pitch update function
+  head_pitch_update_pub_ = nh_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ay", 1, false );
 }
 
 // Destructor.
 CameraViewerCustom::~CameraViewerCustom()
 {
   delete manager_;
+}
+
+void CameraViewerCustom::setCameraPitch( int degrees )
+{
+    std_msgs::Float64 cmd;
+    cmd.data = degrees*0.0174532925;
+    head_pitch_update_pub_.publish(cmd);
 }
 
 void CameraViewerCustom::select( int x1, int y1, int x2, int y2 )
