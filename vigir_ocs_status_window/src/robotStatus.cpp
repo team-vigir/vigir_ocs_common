@@ -248,6 +248,11 @@ void robotStatus::on_clearButton_clicked()
 void robotStatus::on_msgTable_cellClicked(int row, int column)
 {
     std::cout << "row " << row << " clicked to clear" <<std::endl;
+    if((messages[row])->priority->text() == "Warn")
+        numWarn--;
+    if((messages[row])->priority->text() == "Error")
+        numError--;
+    unreadMsgs--;
     (messages[row])->time->setFont(normal);
     (messages[row])->priority->setFont(normal);
     (messages[row])->text->setFont(normal);
