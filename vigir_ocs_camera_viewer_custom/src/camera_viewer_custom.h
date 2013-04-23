@@ -61,6 +61,9 @@ public Q_SLOTS:
 private Q_SLOTS:
   void select( int, int, int, int );
 
+protected:
+  void mouseMoveEvent(QMouseEvent *event);
+
 private:
   bool okay;
   rviz::VisualizationManager* manager_;

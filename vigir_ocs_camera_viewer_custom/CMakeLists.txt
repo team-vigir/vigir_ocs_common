@@ -53,11 +53,15 @@ set(SOURCE_FILES
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src src/ui )
 
+
+
 add_executable(camera_viewer_custom ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(camera_viewer_custom ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_executable(camera_viewer_custom_widget ${SOURCE_FILES_WIDGET})
 target_link_libraries(camera_viewer_custom_widget ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})

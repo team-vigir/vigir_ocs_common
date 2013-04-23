@@ -63,7 +63,11 @@
 #include "rviz/load_resource.h"
 
 #include "image_selection_tool_custom.h"
-
+int theX1 = 0;
+int theX2 = 0;
+int theY1 = 0;
+int theY2 = 0;
+Ogre::Viewport* port =NULL;
 namespace rviz
 {
 
@@ -99,17 +103,22 @@ void ImageSelectionToolCustom::activate()
 
 void ImageSelectionToolCustom::deactivate()
 {
-  context_->getSelectionManager()->removeHighlight();
+  //context_->getSelectionManager()->removeHighlight();
 }
 
 void ImageSelectionToolCustom::update(float wall_dt, float ros_dt)
 {
   SelectionManager* sel_manager = context_->getSelectionManager();
+ 
 
-  if (!selecting_)
+  if(port)
+  {
+     sel_manager->highlight( port, theX1, theY1, theX2, theY2 );
+  }
+  /**if (!selecting_)
   {
     sel_manager->removeHighlight();
-  }
+  }**/
 }
 
 int ImageSelectionToolCustom::processMouseEvent( ViewportMouseEvent& event )
@@ -138,7 +147,17 @@ int ImageSelectionToolCustom::processMouseEvent( ViewportMouseEvent& event )
 
   if( selecting_ )
   {
+    /**std::cout<<"tool selected x1 " <<sel_start_x_<<std::endl;
+    std::cout<<"tool selected y1 " <<sel_start_y_<<std::endl;
+    std::cout<<"tool selected x2 " <<event.x<<std::endl;
+    std::cout<<"selected y2 " <<event.y<<std::endl;**/
+    theX1 = sel_start_x_;
+    theX2 = event.x;
+    theY1 = sel_start_y_;
+    theY2 = event.y;
+    port = event.viewport;
     sel_manager->highlight( event.viewport, sel_start_x_, sel_start_y_, event.x, event.y );
+
 
     if( event.leftUp() )
     {
@@ -166,7 +185,7 @@ int ImageSelectionToolCustom::processMouseEvent( ViewportMouseEvent& event )
   }
   else if( moving_ )
   {
-    sel_manager->removeHighlight();
+    //sel_manager->removeHighlight();
 
     flags = move_tool_->processMouseEvent( event );
 
@@ -177,7 +196,7 @@ int ImageSelectionToolCustom::processMouseEvent( ViewportMouseEvent& event )
   }
   else
   {
-    sel_manager->highlight( event.viewport, event.x, event.y, event.x, event.y );
+    sel_manager->highlight( event.viewport, theX1, theY1, theX2, theY2 );
   }
 
   return flags;
@@ -193,6 +212,16 @@ int ImageSelectionToolCustom::processKeyEvent( QKeyEvent* event, RenderPanel* pa
   }
 
   return Render;
+}
+
+void ImageSelectionToolCustom::unHighlight()
+{
+   context_->getSelectionManager()->removeHighlight();	
+   port = NULL;
+   theX1 = 0;
+   theX2 = 0;
+   theY1 = 0;
+   theY2 = 0;
 }
 
 } // end namespace rviz

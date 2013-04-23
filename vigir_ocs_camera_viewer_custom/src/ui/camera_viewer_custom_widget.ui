@@ -38,7 +38,7 @@
       </sizepolicy>
      </property>
      <property name="mouseTracking">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
      <property name="autoFillBackground">
       <bool>false</bool>
@@ -147,6 +147,12 @@
            <height>895</height>
           </rect>
          </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
            <widget class="QPushButton" name="toggleButton">
@@ -159,14 +165,14 @@
            <widget class="QGroupBox" name="Selection_3">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>191</horstretch>
+              <verstretch>63</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>191</width>
-              <height>63</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
@@ -181,11 +187,14 @@
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
             </property>
-            <layout class="QGridLayout" name="gridLayout">
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_7">
              <property name="sizeConstraint">
               <enum>QLayout::SetMaximumSize</enum>
              </property>
-             <item row="0" column="0">
+             <item>
               <widget class="QComboBox" name="comboBox_7">
                <property name="enabled">
                 <bool>true</bool>
@@ -240,8 +249,8 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>224</width>
-              <height>96</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
@@ -256,52 +265,14 @@
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
             </property>
-            <layout class="QGridLayout" name="gridLayout_2">
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_6">
              <property name="sizeConstraint">
               <enum>QLayout::SetMaximumSize</enum>
              </property>
-             <item row="1" column="0">
-              <widget class="QComboBox" name="comboBox_8">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>198</width>
-                 <height>27</height>
-                </size>
-               </property>
-               <item>
-                <property name="text">
-                 <string>Selected Area - Very High</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Selected Area - High</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Selected Area - Medium</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Selected Area - Low</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Selected Area - Very Low</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-             <item row="0" column="0">
+             <item>
               <widget class="QComboBox" name="comboBox_9">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -345,6 +316,47 @@
                </item>
               </widget>
              </item>
+             <item>
+              <widget class="QComboBox" name="comboBox_8">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>198</width>
+                 <height>27</height>
+                </size>
+               </property>
+               <item>
+                <property name="text">
+                 <string>Selected Area - Very High</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Selected Area - High</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Selected Area - Medium</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Selected Area - Low</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Selected Area - Very Low</string>
+                </property>
+               </item>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>
@@ -358,7 +370,7 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>221</width>
+              <width>0</width>
               <height>161</height>
              </size>
             </property>
@@ -373,6 +385,9 @@
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
             </property>
             <widget class="QSlider" name="horizontalSlider_2">
              <property name="geometry">
@@ -506,7 +521,7 @@
              </property>
              <property name="minimumSize">
               <size>
-               <width>221</width>
+               <width>0</width>
                <height>71</height>
               </size>
              </property>
@@ -517,7 +532,7 @@
               </size>
              </property>
              <property name="title">
-              <string>Selected Area Rate: 0 FPS</string>
+              <string>       Selected Area Rate: 0 FPS</string>
              </property>
              <widget class="QWidget" name="widget_4" native="true">
               <property name="geometry">
@@ -660,14 +675,14 @@
            <widget class="QGroupBox" name="groupBox">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>221</horstretch>
-              <verstretch>120</verstretch>
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>221</width>
-              <height>130</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
@@ -678,6 +693,9 @@
             </property>
             <property name="title">
              <string>Image layers</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout">
              <item>
@@ -779,8 +797,17 @@
           </item>
           <item>
            <widget class="QGroupBox" name="groupBox_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="title">
              <string>Display</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_3">
              <item>
@@ -849,7 +876,7 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>221</width>
+              <width>0</width>
               <height>161</height>
              </size>
             </property>
@@ -864,6 +891,9 @@
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
             </property>
             <widget class="QSlider" name="horizontalSlider">
              <property name="geometry">

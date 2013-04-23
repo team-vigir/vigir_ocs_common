@@ -38,6 +38,17 @@ public Q_SLOTS:
     void isLocked();
     void alterChoices(int);
 
+    void disableImagePanel(bool);
+    void disableDisplayPanel(bool);
+    void disableCameraPanel(bool);
+    void disableHeadPanel(bool);
+    void disableResolutionPanel(bool);
+    void disableFeedPanel(bool);
+/**
+protected:
+    void mouseMoveEvent(QMouseEvent*);**/
+
+
 
 };
 
