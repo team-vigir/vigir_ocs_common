@@ -13,6 +13,8 @@
 
 #include <QWidget>
 #include "rviz/selection/selection_manager.h"
+#include <std_msgs/Float64.h>
+#include <ros/ros.h>
 
 namespace rviz
 {
@@ -30,6 +32,8 @@ Q_OBJECT
 public:
   CameraViewerCustom( QWidget* parent = 0 );
   virtual ~CameraViewerCustom();
+
+  void setCameraPitch( int );
 
 Q_SIGNALS:
   void setFullImageResolution( int );
@@ -54,9 +58,11 @@ public Q_SLOTS:
   void markerArrayToggled( bool );
 
 
-
 private Q_SLOTS:
   void select( int, int, int, int );
+
+protected:
+  void mouseMoveEvent(QMouseEvent *event);
 
 private:
   bool okay;
@@ -73,6 +79,9 @@ private:
   rviz::Tool* selection_tool_;
 
   rviz::SelectionManager* select_manager_;
+
+  ros::NodeHandle nh_;
+  ros::Publisher head_pitch_update_pub_;
 
 };
 #endif // CAMERA_VIEWER_H

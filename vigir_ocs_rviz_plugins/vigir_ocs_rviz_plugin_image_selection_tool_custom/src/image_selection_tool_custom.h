@@ -62,6 +62,7 @@ public:
   virtual int processKeyEvent( QKeyEvent* event, RenderPanel* panel );
 
   virtual void update(float wall_dt, float ros_dt);
+  void unHighlight();
   
 Q_SIGNALS:
 	void select( int, int, int, int );

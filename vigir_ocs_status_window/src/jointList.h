@@ -41,7 +41,7 @@ private:
     float warnMin;
     float errorMin;
     int warn;
-    int error;
+    int err;
 };
 
 #endif // JOINTLIST_H

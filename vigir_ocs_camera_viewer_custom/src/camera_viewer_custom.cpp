@@ -21,22 +21,30 @@
 #include "camera_viewer_custom.h"
 //#include "image_display_custom.h"
 #include "camera_display_custom.h"
+#include "image_selection_tool_custom.h"
+
 // Constructor for CameraViewerCustom.  This does most of the work of the class.
 
 QPushButton* toggleButton;
+QPushButton* xButton;
+
 int selectedArea[4];
 CameraViewerCustom::CameraViewerCustom( QWidget* parent )
   : QWidget( parent )
 {
   // Create a new label for this widget.
   //QLabel* image_label = new QLabel( "rviz/ImageCustom, topic /multisense_sl/left/image_raw" );
-  //    this->setMouseTracking(true);
+   //   this->setMouseTracking(true);
   //  selectedArea = new int[4];
   // Construct and lay out render panel.
   render_panel_ = new rviz::RenderPanel();
   QVBoxLayout* main_layout = new QVBoxLayout;
   //main_layout->addWidget( image_label );
   main_layout->addWidget( render_panel_ );
+  /**drawHelper* helper = new drawHelper(this);
+  helper->resize(this->size());
+  helper->show();**/
+ // main_layout->addWidget(helper);
 
   // Set the top-level layout for this MyViz widget.
   setLayout( main_layout );
@@ -135,6 +143,13 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
   QObject::connect(this, SIGNAL(setFullImageResolution(int)), camera_viewer_, SLOT(changeFullImageResolution(int)));
   QObject::connect(this, SIGNAL(setCropImageResolution(int)), camera_viewer_, SLOT(changeCropImageResolution(int)));
   QObject::connect(this, SIGNAL(setCameraSpeed(int)), camera_viewer_, SLOT(changeCameraSpeed(int)));
+
+  // and advertise the head pitch update function
+  head_pitch_update_pub_ = nh_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ay", 1, false );
+ // xButton = this->findChild<QPushButton *>("pushButton_2");
+  /** drawHelper* helper = new drawHelper(this);
+   helper->resize(this->size());
+   helper->show();**/
 }
 
 // Destructor.
@@ -143,13 +158,25 @@ CameraViewerCustom::~CameraViewerCustom()
   delete manager_;
 }
 
+void CameraViewerCustom::setCameraPitch( int degrees )
+{
+    std_msgs::Float64 cmd;
+    cmd.data = degrees*0.0174532925;
+    head_pitch_update_pub_.publish(cmd);
+}
+
 void CameraViewerCustom::select( int x1, int y1, int x2, int y2 )
 {
     selectedArea[0] = x1;
     selectedArea[1] = y1;
     selectedArea[2] = x2;
     selectedArea[3] = y2;
-   // select_manager_->highlight(, x1, y1, x2, y2 );
+   /** std::cout<<"selected x1 " <<x1<<std::endl;
+    std::cout<<"selected y1 " <<y1<<std::endl;
+    std::cout<<"selected x2 " <<x2<<std::endl;
+    std::cout<<"selected y2 " <<y2<<std::endl;**/
+
+    select_manager_->highlight(render_panel_->getViewport(), x1, y1, x2, y2 );
    /** if(!disabled)
     {
         ((rviz::CameraDisplayCustom*)camera_viewer_)->selectionProcessed( x1, y1, x2, y2 );
@@ -191,8 +218,8 @@ void CameraViewerCustom::disableSelection()
 {
   //  toggleButton->setEnabled(false);
   //  okay = true;
+    ((rviz::ImageSelectionToolCustom*)selection_tool_)->unHighlight();
     ((rviz::CameraDisplayCustom*)camera_viewer_)->selectionProcessed( selectedArea[0], selectedArea[1], selectedArea[2], selectedArea[3] );
-    select_manager_->removeHighlight();
 
  //   ((rviz::CameraDisplayCustom*)camera_viewer_)->selectionProcessed( 0, 0, 0, 0 );
 
@@ -241,16 +268,27 @@ void CameraViewerCustom::changeZoom(int newZoom)
 
 }
 
-void QWidget::mouseMoveEvent(QMouseEvent *event)
+void CameraViewerCustom::mouseMoveEvent(QMouseEvent *event)
 {
-    QPoint point = event->pos();
-    std::cout<<"Prints when mouse is moved";
+  /**  QPoint point = event->pos();
+    std::cout<<"Prints when mouse is moved"<<std::endl;
+    int x = this->size().width();
+    int y = this->size().height();
+    std::cout<<"width is "<<x<<std::endl;
+    std::cout<<"height is "<<y<<std::endl;
+
+
     if(((point.x()<selectedArea[0] && point.x()>selectedArea[2]) ||
        (point.x()>selectedArea[0] && point.x()<selectedArea[2])) &&
        ((point.y()<selectedArea[1] && point.y()>selectedArea[3]) ||
        (point.y()>selectedArea[1] && point.y()<selectedArea[3])))
     {
+    //    xButton->show();
     }
+    else
+    {
+    //    xButton->hide();
+    }**/
 
 }
 

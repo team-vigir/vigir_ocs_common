@@ -233,7 +233,7 @@ jointList::~jointList()
 }
 int jointList::getNumError()
 {
-    return error;
+    return err;
 }
 int jointList::getNumWarn()
 {
@@ -243,7 +243,7 @@ int jointList::getNumWarn()
 void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_states )
 {
     warn = 0;
-    error = 0;
+    err = 0;
     for(int i=0;i<joint_states->name.size(); i++)
     {
         joints[i]->setText(1,QString::number(joint_states->position[i]));
@@ -264,7 +264,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
         if(joint_states->position[i] <= errorMin*downPoseLimit[i])
         {
             warn--;
-            error++;
+            err++;
             joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(1,Qt::red);
         }
@@ -278,7 +278,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
         if(joint_states->position[i] >= errorMin*upPoseLimit[i])
         {
             warn--;
-            error++;
+            err++;
             joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(1,Qt::red);
         }
@@ -292,7 +292,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
         if(joint_states->effort[i] >= errorMin*effortLimits[i])
         {
             warn--;
-            error++;
+            err++;
             joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(3,Qt::red);
         }
@@ -306,7 +306,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
         if(joint_states->effort[i] <= -(errorMin*effortLimits[i]))
         {
             warn--;
-            error++;
+            err++;
             joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(3,Qt::red);
         }

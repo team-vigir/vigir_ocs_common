@@ -6,6 +6,7 @@
 #include <sstream>  // Required for stringstreams
 #include <string>
 #include <QPainter>
+#include <QObjectList>
 #include <QGridLayout>
 
 
@@ -16,14 +17,14 @@
 QComboBox *camera;
 QLabel *pitchLabel;
 QSlider *pitch;
-QGroupBox *feedFPSBox;
+QGroupBox *feedFPSBox; //frame rate box
 QSlider *feedSlider;
 QGroupBox *selectedFPSBox;
 QSlider *selectedSlider;
 QCheckBox *lockBox;
 QPushButton *scanButton;
 QGroupBox *handBox;
-QGroupBox* pitchBox;
+QGroupBox* pitchBox; //head panel
 QObject* pitchParent;
 QPushButton* undoButton;
 QComboBox *actionBox;
@@ -33,6 +34,20 @@ QComboBox *selectedResolution;
 
 QWidget *scrollingArea;
 QLayout* scrollLayout;
+
+QGroupBox *displayBox;
+QGroupBox *resolutionBox;
+QGroupBox *imageBox;
+QGroupBox *cameraBox;
+
+
+QObjectList displayChildren;
+QObjectList imageChildren;
+QObjectList resolutionChildren;
+QObjectList cameraChildren;
+QObjectList headChildren;
+QObjectList rateChildren;
+
 int currentIndex=0;
 int headControlIndex = 0;
 
@@ -44,7 +59,7 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
     ui(new Ui::CameraViewerCustomWidget)
 {
     ui->setupUi(this);
-
+    this->setMouseTracking(true);
     camera = this->findChild<QComboBox *>("comboBox_7");
     connect(camera, SIGNAL(currentIndexChanged(int)), this, SLOT(alterDisplay(int)));
 
@@ -126,6 +141,30 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
 
     handBox->setLayout(mainLayout);
     handBox->hide();
+
+
+
+
+    displayBox= this->findChild<QGroupBox *>("groupBox_3");
+    cameraBox= this->findChild<QGroupBox *>("Selection_3");
+    imageBox= this->findChild<QGroupBox *>("groupBox");
+    resolutionBox = this->findChild<QGroupBox *>("groupBox_6");
+
+    displayChildren = displayBox->children();
+    imageChildren = imageBox->children();
+    resolutionChildren = resolutionBox->children();
+    cameraChildren = cameraBox->children();
+    headChildren = pitchBox->children();
+    rateChildren = feedFPSBox->children();
+
+
+    connect(cameraBox, SIGNAL(toggled(bool)), this, SLOT(disableCameraPanel(bool)));
+    connect(resolutionBox, SIGNAL(toggled(bool)), this, SLOT(disableResolutionPanel(bool)));
+    connect(feedFPSBox, SIGNAL(toggled(bool)), this, SLOT(disableFeedPanel(bool)));
+    connect(displayBox, SIGNAL(toggled(bool)), this, SLOT(disableDisplayPanel(bool)));
+    connect(pitchBox, SIGNAL(toggled(bool)), this, SLOT(disableHeadPanel(bool)));
+    connect(imageBox, SIGNAL(toggled(bool)), this, SLOT(disableImagePanel(bool)));
+
 }
 
 CameraViewerCustomWidget::~CameraViewerCustomWidget()
@@ -191,13 +230,13 @@ void CameraViewerCustomWidget::alterDisplay(int num)
   **/
 void CameraViewerCustomWidget::updatePitch(int value)
 {
-
-
     std::stringstream ss;//create a stringstream for int to string conversion
     ss << value;
     std::string string = ss.str();
     QString label = QString::fromStdString(string);
     pitchLabel->setText(label);
+
+    ui->widget->setCameraPitch(value);
 }
 
 /**
@@ -328,3 +367,157 @@ void CameraViewerCustomWidget::alterChoices(int index)
         selectedResolution->setCurrentIndex(selected);
     }
 }
+
+void CameraViewerCustomWidget::disableImagePanel(bool selected)
+{
+    if(!imageBox->isChecked())
+    {
+        for(int x = 0; x<imageChildren.count(); x++)
+        {
+            QWidget * widget = (QWidget *)imageChildren.at(x);
+            widget->hide();
+        }
+    }
+    else
+    {
+        for(int x = 0; x<imageChildren.count(); x++)
+        {
+            QWidget * widget = (QWidget *)imageChildren.at(x);
+            widget->show();
+        }
+    }
+}
+
+void CameraViewerCustomWidget::disableDisplayPanel(bool selected)
+{
+    if(!displayBox->isChecked())
+    {
+        for(int x = 0; x<displayChildren.count(); x++)
+        {
+            QWidget * widget = (QWidget *)displayChildren.at(x);
+            widget->hide();
+        }
+    }
+    else
+    {
+        for(int x = 0; x<displayChildren.count(); x++)
+        {
+            QWidget * widget = (QWidget *)displayChildren.at(x);
+            widget->show();
+        }
+    }
+}
+void CameraViewerCustomWidget::disableCameraPanel(bool selected)
+{
+    if(!cameraBox->isChecked())
+    {
+        for(int x = 0; x<cameraChildren.count(); x++)
+        {
+            QWidget * widget = (QWidget *)cameraChildren.at(x);
+            widget->hide();
+        }
+    }
+    else
+    {
+        for(int x = 0; x<cameraChildren.count(); x++)
+        {
+            QWidget * widget = (QWidget *)cameraChildren.at(x);
+            widget->show();
+        }
+    }
+
+}
+void CameraViewerCustomWidget::disableHeadPanel(bool selected)
+{
+    if(!pitchBox->isChecked())
+    {
+        pitchBox->setMinimumSize(0,0);
+        for(int x = 0; x<headChildren.count(); x++)
+        {
+            QWidget * widget = (QWidget *)headChildren.at(x);
+            widget->hide();
+        }
+    }
+    else
+    {
+        pitchBox->setMinimumSize(0,161);
+        for(int x = 0; x<headChildren.count(); x++)
+        {
+            QWidget * widget = (QWidget *)headChildren.at(x);
+            widget->show();
+        }
+    }
+}
+void CameraViewerCustomWidget::disableResolutionPanel(bool selected)
+{
+    if(!resolutionBox->isChecked())
+    {
+        for(int x = 0; x<resolutionChildren.count(); x++)
+        {
+            QWidget * widget = (QWidget *)resolutionChildren.at(x);
+            widget->hide();
+        }
+    }
+    else
+    {
+        for(int x = 0; x<resolutionChildren.count(); x++)
+        {
+            QWidget * widget = (QWidget *)resolutionChildren.at(x);
+            widget->show();
+        }
+    }
+
+}
+
+void CameraViewerCustomWidget::disableFeedPanel(bool selected)
+{
+    if(!feedFPSBox->isChecked())
+    {
+        feedFPSBox->setMinimumSize(0,0);
+
+        for(int x = 0; x<rateChildren.count(); x++)
+        {
+            QWidget * widget = (QWidget *)rateChildren.at(x);
+            widget->hide();
+        }
+    }
+    else
+    {
+
+        feedFPSBox->setMinimumSize(0,161);
+
+        for(int x = 0; x<rateChildren.count(); x++)
+        {
+            QWidget * widget = (QWidget *)rateChildren.at(x);
+            widget->show();
+        }
+    }
+
+}
+
+
+
+/**
+void CameraViewerCustomWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    QPoint point = event->pos();
+    std::cout<<"Prints when mouse is moved"<<std::endl;
+    int x = this->size().width();
+    int y = this->size().height();
+    std::cout<<"width is "<<x<<std::endl;
+    std::cout<<"height is "<<y<<std::endl;
+
+/**
+    if(((point.x()<selectedArea[0] && point.x()>selectedArea[2]) ||
+       (point.x()>selectedArea[0] && point.x()<selectedArea[2])) &&
+       ((point.y()<selectedArea[1] && point.y()>selectedArea[3]) ||
+       (point.y()>selectedArea[1] && point.y()<selectedArea[3])))
+    {
+    //    xButton->show();
+    }8
+    else
+    {
+    //    xButton->hide();
+    }
+
+}**/

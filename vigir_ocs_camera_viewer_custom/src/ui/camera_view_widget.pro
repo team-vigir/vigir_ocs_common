@@ -13,11 +13,13 @@ TEMPLATE = app
 SOURCES += \
     camera_viewer_custom_widget.cpp \
     ../main.cpp \
-    ../camera_viewer_custom.cpp
+    ../camera_viewer_custom.cpp \
+
 
 HEADERS  += \
     camera_viewer_custom_widget.h \
-    ../camera_viewer_custom.h
+    ../camera_viewer_custom.h \
+
 
 FORMS    += \
     camera_viewer_custom_widget.ui
