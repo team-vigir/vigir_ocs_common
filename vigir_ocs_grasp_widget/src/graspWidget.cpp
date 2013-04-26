@@ -61,10 +61,10 @@ graspWidget::graspWidget(QWidget *parent) :
     template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>( "/template/template_match_feedback", 1, &graspWidget::templateMatchFeedback, this );
 
     // and advertise the template update to update the manipulator
-    template_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
+    //template_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
 
     // advertise the grasp selection
-    grasp_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_request", 1, false );
+    //grasp_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_request", 1, false );
 }
 //SetStylesheet to change on the fly
 
