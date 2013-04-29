@@ -26,6 +26,13 @@
 Joystick::Joystick( QWidget* parent )
  : QWidget( parent )
 {
+    // initialize rviz thread
+    render_panel_ = new rviz::RenderPanel();
+    manager_ = new rviz::VisualizationManager( render_panel_ );
+    render_panel_->initialize( manager_->getSceneManager(), manager_ );
+    manager_->initialize();
+    manager_->startUpdate();
+
     //Initialize globals
     robot_steer = 0;
     robot_throttle = 0;
@@ -34,7 +41,7 @@ Joystick::Joystick( QWidget* parent )
     drive_pub_ = n_.advertise<flor_ocs_msgs::OCSDrive>( "drive_cmd", 1, false );
 
     //Initialize subscriber
-    sub_ = n_.subscribe<flor_ocs_msgs::OCSDrive>( "drive_status", 1, &Joystick::callback, this );
+    sub_ = n_.subscribe<flor_ocs_msgs::OCSDrive>( "drive_status", 1, &Joystick::JoystickFeedbackCB, this );
 }
 
 // Destructor.
@@ -42,16 +49,19 @@ Joystick::~Joystick()
 {
 }
 
-void Joystick::callback(const flor_ocs_msgs::OCSDrive::ConstPtr& msg)
+void Joystick::JoystickFeedbackCB(const flor_ocs_msgs::OCSDrive::ConstPtr& msg)
 {
-    robot_steer = msg->steer/*.data*/;
-    robot_throttle = msg->throttle/*.data*/;
+    robot_steer = msg->steer;
+    robot_throttle = msg->throttle;
+
+    Q_EMIT throttleUpdated(robot_throttle);
 }
 
 // SLOTS implementation
 void Joystick::setRobotThrottle( unsigned char throttle )
 {
     robot_throttle = throttle;
+    publish();
 }
 
 unsigned char Joystick::getRobotThrottle()
@@ -59,12 +69,13 @@ unsigned char Joystick::getRobotThrottle()
     return robot_throttle;
 }
 
-void Joystick::setRobotSteer( signed char steer )
+void Joystick::setRobotSteer( char steer )
 {
     robot_steer = steer;
+    publish();
 }
 
-signed char Joystick::getRobotSteer()
+char Joystick::getRobotSteer()
 {
     return robot_steer;
 }

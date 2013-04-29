@@ -18,6 +18,8 @@
 #include <ros/publisher.h>
 #include <ros/subscriber.h>
 #include <ros/ros.h>
+#include "rviz/visualization_manager.h"
+#include "rviz/render_panel.h"
 
 //#include "ui/joystick_widget.h"
 
@@ -32,18 +34,25 @@ public:
 
     void setRobotThrottle( unsigned char throttle );
     unsigned char getRobotThrottle();
-    void setRobotSteer( signed char steer );
-    signed char getRobotSteer();
+    void setRobotSteer( char steer );
+    char getRobotSteer();
     void publish();
 
-private Q_SLOTS:
-    void callback(const flor_ocs_msgs::OCSDrive::ConstPtr &str);
+    // callback
+    void JoystickFeedbackCB(const flor_ocs_msgs::OCSDrive::ConstPtr &str);
+
+Q_SIGNALS:
+    void throttleUpdated(unsigned char);
 
 private:  
+    // this is only here so we don't have to initialize a thread for ros
+    rviz::VisualizationManager* manager_;
+    rviz::RenderPanel* render_panel_;
+
     flor_ocs_msgs::OCSDrive drive_cmd;
 
-    /*const */signed char robot_steer;
-    /*const */unsigned char robot_throttle;
+    char robot_steer;
+    unsigned char robot_throttle;
 
     ros::NodeHandle n_;
     ros::Publisher drive_pub_;

@@ -17,10 +17,10 @@ public:
     explicit JoystickWidget(QWidget *parent = 0);
     ~JoystickWidget();
 
-private Q_SLOTS:
+public Q_SLOTS:
     void yawDialChanged();
     void yawDialReleased();
-    void setProgressBar();
+    void setProgressBar(unsigned char throttle);
     void throttleSliderMoved();
     void throttleSliderReleased();
     
