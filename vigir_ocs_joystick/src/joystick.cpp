@@ -61,6 +61,7 @@ void Joystick::JoystickFeedbackCB(const flor_ocs_msgs::OCSDrive::ConstPtr& msg)
 void Joystick::setRobotThrottle( unsigned char throttle )
 {
     robot_throttle = throttle;
+    publish();
 }
 
 unsigned char Joystick::getRobotThrottle()
@@ -71,6 +72,7 @@ unsigned char Joystick::getRobotThrottle()
 void Joystick::setRobotSteer( signed char steer )
 {
     robot_steer = steer;
+    publish();
 }
 
 signed char Joystick::getRobotSteer()
