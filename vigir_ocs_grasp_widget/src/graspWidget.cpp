@@ -25,7 +25,6 @@ graspWidget::graspWidget(QWidget *parent) :
     render_panel_->initialize( manager_->getSceneManager(), manager_ );
     manager_->initialize();
     manager_->startUpdate();
-
     std::string templatePath = (ros::package::getPath("templates"))+"/";//vigir_grasp_control") + "/../templates/";
     std::cout << "--------------<" << templatePath << ">\n" << std::endl;
     template_dir_path_ = QString(templatePath.c_str());
@@ -34,13 +33,19 @@ graspWidget::graspWidget(QWidget *parent) :
     std::string temp = "";
     currentGraspMode = 0;
     QLabel foo;
-    ros::NodeHandle nh;
+    ros::NodeHandle nh;//BDI
     nh.getParam("/graspWidget/hand",temp);
+    //ui->
     if(temp == "left")
+    {
+        this->setWindowTitle(QString::fromStdString("Left Hand Grasp Widget"));
         hand = "left";
+    }
     else
+    {
         hand = "right";
-
+        this->setWindowTitle(QString::fromStdString("Right Hand Grasp Widget"));
+    }
     initTemplateIdMap();
     initGraspDB();
 
@@ -60,11 +65,11 @@ graspWidget::graspWidget(QWidget *parent) :
 
     template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>( "/template/template_match_feedback", 1, &graspWidget::templateMatchFeedback, this );
 
-    // and advertise the template update to update the manipulator
+   /* // and advertise the template update to update the manipulator
     template_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
 
     // advertise the grasp selection
-    grasp_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_request", 1, false );
+    grasp_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_request", 1, false );*/
 }
 //SetStylesheet to change on the fly
 

@@ -157,16 +157,26 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="templateBox"/>
+          <widget class="QComboBox" name="templateBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
          </item>
          <item>
           <spacer name="horizontalSpacer_14">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>40</width>
+             <width>45</width>
              <height>20</height>
             </size>
            </property>
@@ -197,16 +207,26 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="graspBox"/>
+          <widget class="QComboBox" name="graspBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
          </item>
          <item>
           <spacer name="horizontalSpacer_13">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>40</width>
+             <width>55</width>
              <height>20</height>
             </size>
            </property>
@@ -241,9 +261,12 @@
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>40</width>
+             <width>55</width>
              <height>20</height>
             </size>
            </property>
@@ -278,9 +301,12 @@
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>40</width>
+             <width>52</width>
              <height>20</height>
             </size>
            </property>
@@ -315,9 +341,12 @@
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>40</width>
+             <width>72</width>
              <height>20</height>
             </size>
            </property>
@@ -335,7 +364,7 @@
           <enum>Qt::LeftToRight</enum>
          </property>
          <property name="maximum">
-          <number>255</number>
+          <number>200</number>
          </property>
          <property name="value">
           <number>100</number>
@@ -381,7 +410,7 @@
 }</string>
            </property>
            <property name="maximum">
-            <number>155</number>
+            <number>100</number>
            </property>
            <property name="value">
             <number>24</number>
