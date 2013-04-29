@@ -36,7 +36,8 @@ graspWidget::graspWidget(QWidget *parent) :
     currentGraspMode = 0;
     QLabel foo;
     ros::NodeHandle nh;
-    nh.param<std::string>("/graspWidget/hand",temp,"default");
+    ros::NodeHandle nhp("~");
+    nhp.param<std::string>("graspWidget/hand",temp,"default");
     if(temp == "left")
         hand = "left";
     else
@@ -413,7 +414,7 @@ void graspWidget::on_templateRadio_clicked()
     msg.grasp_state.data = (flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4;
     msg.grip.data = 0;
     grasp_mode_command_pub_.publish(msg);
-    std::cout << "Sent Template mode message ("<< msg.grasp_state.data << ") with " <<  msg.grip.data << " manual grip level" << std::endl;
+    std::cout << "Sent Template mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level to " << hand << " hand" << std::endl;
 
 }
 
@@ -423,6 +424,6 @@ void graspWidget::on_manualRadio_clicked()
     msg.grasp_state.data = (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
     msg.grip.data = ui->userSlider->value();
     grasp_mode_command_pub_.publish(msg);
-    std::cout << "Sent Manual mode message ("<< msg.grasp_state.data << ") with " <<  msg.grip.data << " manual grip level" << std::endl;
+    std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level to " << hand << " hand" << std::endl;
 
 }
