@@ -87,11 +87,12 @@ private:
     ros::Subscriber template_select_sub;
     ros::Subscriber template_list_sub_;
     ros::Subscriber template_match_feedback_sub_;
-    ros::Publisher grasp_selected_pub_;
+    ros::Publisher grasp_selection_pub_;
     ros::Publisher template_remove_pub_;
-    ros::Publisher grasp_selected_state_pub_;
+    ros::Publisher grasp_mode_command_pub_;
     ros::Publisher template_match_request_pub_;
     ros::Publisher grasp_request_pub_;
+    ros::Publisher grasp_release_pub_;
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
