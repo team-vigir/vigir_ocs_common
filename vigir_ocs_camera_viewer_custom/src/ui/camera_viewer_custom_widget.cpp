@@ -230,13 +230,18 @@ void CameraViewerCustomWidget::alterDisplay(int num)
   **/
 void CameraViewerCustomWidget::updatePitch(int value)
 {
-    std::stringstream ss;//create a stringstream for int to string conversion
-    ss << value;
-    std::string string = ss.str();
-    QString label = QString::fromStdString(string);
-    pitchLabel->setText(label);
+    if(value != 0 && value > -10 && value < 10)
+        ui->horizontalSlider->setValue(0);
+    else
+    {
+        std::stringstream ss;//create a stringstream for int to string conversion
+        ss << value;
+        std::string string = ss.str();
+        QString label = QString::fromStdString(string);
+        pitchLabel->setText(label);
 
-    ui->widget->setCameraPitch(value);
+        ui->widget->setCameraPitch(value);
+    }
 }
 
 /**
@@ -320,7 +325,6 @@ void CameraViewerCustomWidget::isLocked()
     }
 
 }
-
 
 void CameraViewerCustomWidget::alterChoices(int index)
 {

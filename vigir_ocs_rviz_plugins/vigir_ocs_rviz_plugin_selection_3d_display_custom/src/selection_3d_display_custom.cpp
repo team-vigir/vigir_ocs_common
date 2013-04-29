@@ -175,6 +175,7 @@ void Selection3DDisplayCustom::load()
     //roi_marker_box_->scale(0.001f,0.001f,0.001f);
 
     roi_marker_box_->setVisible( false );
+    roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
     lEntity->setMaterialName(lMaterialName);
 }
 
@@ -184,8 +185,6 @@ void Selection3DDisplayCustom::onEnable()
     {
         load();
 
-        //but we also want to set up our raySceneQuery after everything has been initialized
-        //mRayScnQuery = this->scene_manager_->createRayQuery(Ogre::Ray());
         // rayscenequery is initialized by raycastutils now
         raycast_utils_ = new RayCastUtils(this->scene_manager_);
     }
@@ -200,8 +199,39 @@ void Selection3DDisplayCustom::onDisable()
 void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
 {
     time_since_last_transform_ += wall_dt;
-    //float rate = update_rate_property_->getFloat();
-    //bool update = rate < 0.0001f || time_since_last_transform_ >= rate;
+
+    // get transform from world to fixed frame
+    Ogre::Quaternion selection_orientation(1,0,0,0);
+    Ogre::Vector3 selection_position = selection_position_;
+    transform(selection_position,selection_orientation,"/world",fixed_frame_.toUtf8().constData());
+
+    //Ogre::Vector3 selection_position_roi = selection_position_roi_;
+    //selection_position_roi = (ot * selection_position_roi) * pt;
+    Ogre::Quaternion selection_orientation_roi(1,0,0,0);
+    Ogre::Vector3 selection_position_roi = selection_position_roi_;
+    transform(selection_position_roi,selection_orientation_roi,"/world",fixed_frame_.toUtf8().constData());
+
+    // get camera position to calculate selection marker
+    Ogre::Vector3 camera_position = this->render_panel_->getCamera()->getDerivedPosition();
+    // get the current fov
+    float radians = 0.174; // 5 deg //this->render_panel_->getCamera()->getFOVy() * 0.04;
+
+    // calculate distance from markers
+    float distance_selection = camera_position.distance(selection_position);
+    //std::cout << distance_selection << std::endl;
+    selection_marker_->setPosition(selection_position);
+    float scale_selection = distance_selection*tan(radians)*0.001f;
+    selection_marker_->setScale(scale_selection,scale_selection,scale_selection);
+
+    float distance_selection_roi = camera_position.distance(selection_position_roi);
+    roi_marker_final_->setPosition(selection_position_roi);
+    float scale_selection_roi = distance_selection_roi*tan(radians)*0.001f;
+    selection_marker_->setScale(scale_selection_roi,scale_selection_roi,scale_selection_roi);
+
+    Ogre::Vector3 box_position = (selection_position+selection_position_roi)/2.0f;
+
+    roi_marker_box_->setPosition(box_position);
+    roi_marker_box_->setOrientation(selection_orientation);
 
     context_->queueRender();
 }
@@ -227,35 +257,35 @@ void Selection3DDisplayCustom::createMarker(int xo, int yo, int x, int y)
     createMarker(x,y);
 }
 
-void Selection3DDisplayCustom::transform(Ogre::Vector3& position, Ogre::Quaternion& orientation)
+void Selection3DDisplayCustom::transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame)
 {
     //std::cout << "POS bt: " << position.x << ", " << position.y << ", " << position.z << std::endl;
     // put all pose data into a tf stamped pose
-    tf::Quaternion bt_orientation(0, 0, 0, 1);
-    tf::Vector3 bt_position(0, 0, 0);
+    tf::Quaternion bt_orientation(orientation.x, orientation.y, orientation.z, orientation.w);
+    tf::Vector3 bt_position(position.x, position.y, position.z);
 
-    std::string frame("/world");
+    std::string frame(from_frame);
     tf::Stamped<tf::Pose> pose_in(tf::Transform(bt_orientation,bt_position), ros::Time(), frame);
     tf::Stamped<tf::Pose> pose_out;
 
     // convert pose into new frame
     try
     {
-      context_->getFrameManager()->getTFClient()->transformPose( fixed_frame_.toUtf8().constData(), pose_in, pose_out );
+      context_->getFrameManager()->getTFClient()->transformPose( to_frame, pose_in, pose_out );
     }
     catch(tf::TransformException& e)
     {
-      ROS_DEBUG("Error transforming from frame '%s' to frame '%s': %s", frame.c_str(), fixed_frame_.toUtf8().constData(), e.what());
+      ROS_DEBUG("Error transforming from frame '%s' to frame '%s': %s", from_frame, to_frame, e.what());
       return;
     }
 
     bt_position = pose_out.getOrigin();
     position = Ogre::Vector3(bt_position.x(), bt_position.y(), bt_position.z());
-    std::cout << "POS transform: " << position.x << ", " << position.y << ", " << position.z << std::endl;
+    //std::cout << "POS transform: " << position.x << ", " << position.y << ", " << position.z << std::endl;
 
     bt_orientation = pose_out.getRotation();
     orientation = Ogre::Quaternion( bt_orientation.w(), bt_orientation.x(), bt_orientation.y(), bt_orientation.z() );
-    std::cout << "QUAT transform: " << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << std::endl;
+    //std::cout << "QUAT transform: " << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << std::endl;
 }
 
 void Selection3DDisplayCustom::createMarker(int x, int y)
@@ -268,14 +298,24 @@ void Selection3DDisplayCustom::createMarker(int x, int y)
 
     Ogre::Vector3 position;
 
-    Ogre::Vector3 pt;
-    Ogre::Quaternion ot;
+    Ogre::Vector3 pt(0,0,0);
+    Ogre::Quaternion ot(1,0,0,0);
     transform(pt,ot);
     if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position))
     {
         selection_marker_->setPosition(position);
         selection_marker_->setVisible(true);
-        Q_EMIT newSelection(position);
+        //Q_EMIT newSelection(position);
+
+        std::cout << "POS transform in: " << position.x << ", " << position.y << ", " << position.z << std::endl;
+
+        Ogre::Quaternion orientation(1,0,0,0);
+        transform(position,orientation,fixed_frame_.toUtf8().constData(),"/world");
+        //selection_position_ = (ot * position) * pt;
+        selection_position_ = position;
+        Q_EMIT newSelection(selection_position_);
+
+        std::cout << "POS transform out: " << position.x << ", " << position.y << ", " << position  .z << std::endl;
     }
     else
     {
@@ -283,43 +323,7 @@ void Selection3DDisplayCustom::createMarker(int x, int y)
     }
     roi_marker_final_->setVisible(false);
     roi_marker_box_->setVisible(false);
-
-
-    /*
-    // OLD CODE, ONLY LOOK FOR COLLISIONS WITH BOUNDING BOXES
-
-    mRayScnQuery->setRay(mouseRay);
-
-    //This next chunk finds the results of the raycast
-    // 0 -> null
-    // 1 -> ground
-    // 2 and up -> node colision
-    Ogre::RaySceneQueryResult& result = mRayScnQuery->execute();
-
-    // we calculate the smallest (> 0) distance
-    float min_distance = 1E+37;
-    for( int i = 0; i < result.size(); i++ )
-    {
-        std::cout << "object picked [" << i << "] -> " << result[i].distance << std::endl;
-        if( result[i].distance > 0 && result[i].distance < min_distance)
-        {
-            min_distance = result[i].distance;
-            if(mCurrentObject)
-                mCurrentObject->showBoundingBox(false);
-            mCurrentObject = result[i].movable->getParentSceneNode();
-        }
-    }
-
-    // but we only care about the first real colision for setting the marker position
-    if( result.size() > 2)
-    {
-        Ogre::Vector3 position = mouseRay.getOrigin()+mouseRay.getDirection()*min_distance;
-        std::cout << "object position: " << position.x << ", " << position.y << ", " << position.z << std::endl;
-        selection_marker_->setPosition(position);
-        mCurrentObject->showBoundingBox(true);
-        selection_marker_->setVisible( true );
-    }
-    */
+    roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
 }
 
 void Selection3DDisplayCustom::createROISelection(int x, int y)
@@ -329,14 +333,14 @@ void Selection3DDisplayCustom::createROISelection(int x, int y)
 
     bool failed = false;
 
-    // calculate raycasting position
-    Ogre::Vector3 pt;
-    Ogre::Quaternion ot;
-    transform(pt,ot);
-
+    //then send a raycast straight out from the camera at the mouse's position
     Ogre::Ray mouseRayFinal = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
 
     Ogre::Vector3 positionFinal;
+
+    Ogre::Vector3 pt(0,0,0);
+    Ogre::Quaternion ot(1,0,0,0);
+    transform(pt,ot);
     if(raycast_utils_->RayCastFromPoint(mouseRayFinal,pt,ot,positionFinal))
     {
         selection_marker_->setVisible(true);
@@ -355,6 +359,10 @@ void Selection3DDisplayCustom::createROISelection(int x, int y)
         std::cout << "box_scale: " << box_scale.x << ", " << box_scale.y << ", " << box_scale.z << std::endl;
         roi_marker_box_->setVisible(true);
 
+        Ogre::Quaternion orientation(1,0,0,0);
+        transform(positionFinal,orientation,fixed_frame_.toUtf8().constData(),"/world");
+        selection_position_roi_ = positionFinal;
+
         // emit signal here?
     }
     else
@@ -362,6 +370,7 @@ void Selection3DDisplayCustom::createROISelection(int x, int y)
         selection_marker_->setVisible(false);
         roi_marker_final_->setVisible(false);
         roi_marker_box_->setVisible(false);
+        roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
     }
 }
 

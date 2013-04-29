@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QMouseEvent>
 
 #include "render_panel_custom.h"
 
@@ -23,19 +24,22 @@ void RenderPanelCustom::mouseMoveEvent( QMouseEvent* event )
 void RenderPanelCustom::mousePressEvent( QMouseEvent* event ) 
 { 
 	Q_EMIT signalMousePressEvent( event );
-	RenderPanel::mousePressEvent( event ); 
+    if( !(event->buttons() & Qt::RightButton) ) // ignore right button events
+        RenderPanel::mousePressEvent( event );
 }
 
 void RenderPanelCustom::mouseReleaseEvent( QMouseEvent* event ) 
 { 
 	Q_EMIT signalMouseReleaseEvent( event );
-	RenderPanel::mouseReleaseEvent( event ); 
+    if( !(event->buttons() & Qt::RightButton) ) // ignore right button events
+        RenderPanel::mouseReleaseEvent( event );
 }
 
 void RenderPanelCustom::mouseDoubleClickEvent( QMouseEvent* event ) 
 { 
 	Q_EMIT signalMouseDoubleClickEvent( event );
-	RenderPanel::mouseDoubleClickEvent( event ); 
+    if( !(event->buttons() & Qt::RightButton) ) // ignore right button events
+        RenderPanel::mouseDoubleClickEvent( event );
 }
 
 

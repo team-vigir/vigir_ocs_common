@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(vigir_ocs_selection_handler)
+project(vigir_ocs_mouse_event_handler)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
@@ -21,13 +21,13 @@ include(${QT_USE_FILE})
 add_definitions(-DQT_NO_KEYWORDS)
 
 qt4_wrap_cpp(MOC_FILES
-  src/selection_handler.h
+  src/mouse_event_handler.h
 )
 
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.
 set(SOURCE_FILES
-  src/selection_handler.cpp
+  src/mouse_event_handler.cpp
   ${MOC_FILES}
 )
 

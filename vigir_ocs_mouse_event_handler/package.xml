@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>vigir_ocs_camera_viewer_custom</name>
+  <name>vigir_ocs_mouse_event_handler</name>
   <version>0.1.0</version>
-  <description>The OCS Camera Viewer Custom display package</description>
+  <description>The OCS mouse event handler library package</description>
   <maintainer email="fbacim@vt.edu">Felipe Bacim</maintainer>
   <license>TORC</license>
   <author email="fbacim@vt.edu">Felipe Bacim</author>
@@ -11,20 +11,11 @@
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
-  <build_depend>pluginlib</build_depend>
   <build_depend>rviz</build_depend>
-  <build_depend>flor_perception_msgs</build_depend>
-  <build_depend>vigir_ocs_rviz_plugins</build_depend>
-  <build_depend>vigir_ocs_base_3d_view</build_depend>
-  
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
-  <run_depend>pluginlib</run_depend>
   <run_depend>rviz</run_depend>
-  <run_depend>flor_perception_msgs</run_depend>
-  <run_depend>vigir_ocs_rviz_plugins</run_depend>
-  <run_depend>vigir_ocs_base_3d_view</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

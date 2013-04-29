@@ -113,6 +113,9 @@
             <property name="title">
              <string>Display</string>
             </property>
+            <property name="checkable">
+             <bool>false</bool>
+            </property>
             <layout class="QVBoxLayout" name="verticalLayout_3">
              <item>
               <widget class="QCheckBox" name="robot_model">

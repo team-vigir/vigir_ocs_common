@@ -3,13 +3,13 @@ project(vigir_ocs_camera_viewer_custom)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz pluginlib vigir_ocs_rviz_plugins flor_perception_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz pluginlib vigir_ocs_rviz_plugins flor_perception_msgs vigir_ocs_base_3d_view)
 
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-	CATKIN_DEPENDS roscpp rospy std_msgs rviz pluginlib vigir_ocs_rviz_plugins flor_perception_msgs
+	CATKIN_DEPENDS roscpp rospy std_msgs rviz pluginlib vigir_ocs_rviz_plugins flor_perception_msgs vigir_ocs_base_3d_view
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
@@ -53,15 +53,11 @@ set(SOURCE_FILES
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src src/ui )
 
-
-
 add_executable(camera_viewer_custom ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(camera_viewer_custom ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_executable(camera_viewer_custom_widget ${SOURCE_FILES_WIDGET})
 target_link_libraries(camera_viewer_custom_widget ${catkin_LIBRARIES} ${QT_LIBRARIES})
-
-
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})

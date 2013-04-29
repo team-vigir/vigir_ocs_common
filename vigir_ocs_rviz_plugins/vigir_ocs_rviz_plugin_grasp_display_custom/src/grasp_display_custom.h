@@ -1,14 +1,4 @@
 /*
- * Selection3DDisplayCustom declarion.
- *
- * Author: Felipe Bacim.
- *
- * Based on the rviz image display class.
- *
- * Latest changes (12/11/2012):
- * - fixed segfault issues
- */
-/*
  * Copyright (c) 2008, Willow Garage, Inc.
  * All rights reserved.
  *
@@ -37,25 +27,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef RVIZ_SELECT_3D_DISPLAY_H
-#define RVIZ_SELECT_3D_DISPLAY_H
+#ifndef RVIZ_GRASP_DISPLAY_CUSTOM_H
+#define RVIZ_GRASP_DISPLAY_CUSTOM_H
 
 #include "rviz/display.h"
-#include "rviz/frame_manager.h"
-
-#include <geometry_msgs/PoseStamped.h>
-
-#include <tf/transform_listener.h>
 
 #include <OGRE/OgreVector3.h>
-#include "OGRE/OgreRoot.h"
-#include "OGRE/OgreRenderSystem.h"
-#include "OGRE/OgreRenderWindow.h"
-#include "OGRE/OgreWindowEventUtilities.h"
-#include "OGRE/OgreManualObject.h"
-#include "OGRE/OgreEntity.h"
-#include <OGRE/OgreSceneNode.h>
-#include "raycast_utils.h"
 
 #include <map>
 
@@ -68,22 +45,26 @@ class SceneNode;
 namespace rviz
 {
 class Axes;
-class RenderPanel;
 }
 
 namespace rviz
 {
 
+class FloatProperty;
+class Property;
+class Robot;
+class StringProperty;
+
 /**
- * \class Selection3DDisplayCustom
- * \brief Uses the window mouse information to create a selection marker
+ * \class GraspDisplayCustom
+ * \brief Uses a robot xml description to display the pieces of a robot at the transforms broadcast by rosTF
  */
-class Selection3DDisplayCustom: public Display
+class GraspDisplayCustom: public Display
 {
 Q_OBJECT
 public:
-  Selection3DDisplayCustom();
-  virtual ~Selection3DDisplayCustom();
+  GraspDisplayCustom();
+  virtual ~GraspDisplayCustom();
 
   // Overrides from Display
   virtual void onInitialize();
@@ -93,50 +74,40 @@ public:
 
   void clear();
 
-Q_SIGNALS:
-  void newSelection(Ogre::Vector3);
-
 private Q_SLOTS:
   void updateVisualVisible();
   void updateCollisionVisible();
   void updateTfPrefix();
   void updateAlpha();
   void updateRobotDescription();
-  void createMarker(int, int, int, int);
-  void createMarker(int, int);
-  void createROISelection(int,int);
-  void setRenderPanel(rviz::RenderPanel*);
 
 protected:
+  /** @brief Loads a URDF from the ros-param named by our
+   * "Robot Description" property, iterates through the links, and
+   * loads any necessary models. */
   virtual void load();
 
   // overrides from Display
   virtual void onEnable();
   virtual void onDisable();
 
-  void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame = "/world", const char* to_frame = "/pelvis");
+  Robot* robot_;                 ///< Handles actually drawing the robot
 
-  //bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
+  bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
 
   float time_since_last_transform_;
 
-  ros::NodeHandle nh_;
-  ros::Subscriber template_pose_;
-  
-  Ogre::SceneNode* selection_marker_;
-  Ogre::SceneNode* roi_marker_final_;
-  Ogre::SceneNode* roi_marker_box_;
+  std::string robot_description_;
 
-  RenderPanel* render_panel_;
-
-  RayCastUtils* raycast_utils_;
-
-  Ogre::Vector3 selection_position_;
-  Ogre::Vector3 selection_position_roi_;
+  Property* visual_enabled_property_;
+  Property* collision_enabled_property_;
+  FloatProperty* update_rate_property_;
+  StringProperty* robot_description_property_;
+  FloatProperty* alpha_property_;
+  StringProperty* tf_prefix_property_;
 };
 
 } // namespace rviz
 
-#endif
-
+ #endif
 

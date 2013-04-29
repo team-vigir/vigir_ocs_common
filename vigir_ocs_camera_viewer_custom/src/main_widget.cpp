@@ -12,7 +12,7 @@ int main(int argc, char **argv)
 
   QApplication app( argc, argv );
 
-  CameraViewerCustom* camera_viewer_custom = new CameraViewerCustom();
+  vigir_ocs::CameraViewerCustom* camera_viewer_custom = new vigir_ocs::CameraViewerCustom();
   camera_viewer_custom->show();
 
   app.exec();

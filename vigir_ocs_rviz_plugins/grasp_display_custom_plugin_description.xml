@@ -1,0 +1,9 @@
+<library path="libvigir_ocs_rviz_plugin_grasp_display_custom">
+  <class name="rviz/GraspDisplayCustom"
+         type="rviz::GraspDisplayCustom"
+         base_class_type="rviz::Display">
+    <description>
+      Customized robot display plugin specialized for rendering of grasps directly into the main widget.
+    </description>
+  </class>
+</library>
