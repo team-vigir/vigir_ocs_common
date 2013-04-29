@@ -1,5 +1,5 @@
-#ifndef RVIZ_SELECTION_HANDLER_H
-#define RVIZ_SELECTION_HANDLER_H
+#ifndef RVIZ_MOUSE_EVENT_HANDLER_H
+#define RVIZ_MOUSE_EVENT_HANDLER_H
 
 #include <QApplication>
 #include <QMouseEvent>
@@ -9,18 +9,20 @@ namespace vigir_ocs
 {
 
 /**
- * a handler for mouse-based selection
+ * a handler for mouse events in general
+ * is pa
  */
-class SelectionHandler : public QObject
+class MouseEventHandler : public QObject
 {
 Q_OBJECT
 public:
-  SelectionHandler( QObject* parent = 0 );
-  virtual ~SelectionHandler();
+  MouseEventHandler( QObject* parent = 0 );
+  virtual ~MouseEventHandler();
 
 Q_SIGNALS:
   void select( int, int );
   void selectROI( int, int );
+  void createContextMenu( int, int );
 
 public Q_SLOTS:
   void mousePressEvent( QMouseEvent* event );

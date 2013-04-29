@@ -114,7 +114,7 @@ protected:
   virtual void onEnable();
   virtual void onDisable();
 
-  void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation);
+  void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame = "/world", const char* to_frame = "/pelvis");
 
   //bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
 
@@ -130,6 +130,9 @@ protected:
   RenderPanel* render_panel_;
 
   RayCastUtils* raycast_utils_;
+
+  Ogre::Vector3 selection_position_;
+  Ogre::Vector3 selection_position_roi_;
 };
 
 } // namespace rviz

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package>
+  <name>vigir_ocs_tools_options</name>
+  <version>0.1.0</version>
+  <description>The OCS tools options package</description>
+  <maintainer email="fbacim@vt.edu">Felipe Bacim</maintainer>
+  <license>TORC</license>
+  <author email="fbacim@vt.edu">Felipe Bacim</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>roslib</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>rviz</build_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>roslib</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>rviz</run_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+  </export>
+</package>

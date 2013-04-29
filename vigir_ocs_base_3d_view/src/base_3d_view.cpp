@@ -12,6 +12,8 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QPoint>
+#include <QMenu>
 
 #include "rviz/visualization_manager.h"
 //#include "rviz/render_panel.h"
@@ -19,7 +21,7 @@
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
 #include "rviz/tool_manager.h"
-#include <selection_handler.h>
+#include <mouse_event_handler.h>
 #include <template_display_custom.h>
 #include "base_3d_view.h"
 
@@ -58,6 +60,11 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // librviz.
     manager_ = new rviz::VisualizationManager( render_panel_ );
     render_panel_->initialize( manager_->getSceneManager(), manager_ );
+
+    // Set topic that will be used as 0,0,0 -> reference for all the other transforms
+    // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
+    manager_->setFixedFrame(base_frame_.c_str());
+
     manager_->initialize();
     manager_->startUpdate();
 
@@ -65,9 +72,9 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     robot_model_ = manager_->createDisplay( "rviz/RobotModel", "Robot model", true );
     ROS_ASSERT( robot_model_ != NULL );
 
-    // Set topic that will be used as 0,0,0 -> reference for all the other transforms
-    // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
-    manager_->setFixedFrame(base_frame_.c_str());
+    // hand model display?
+    //hand_model_ = manager_->createDisplay( "rviz/GraspDisplayCustom", "Grasp display test", true );
+    //ROS_ASSERT( hand_model_ != NULL );
 
     // Add support for interactive markers
     interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/Interact" );
@@ -142,11 +149,12 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     Q_EMIT setRenderPanel(this->render_panel_);
     
-    // handles selections without rviz::tool
-    selection_handler_ = new vigir_ocs::SelectionHandler();
-    QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), selection_handler_, SLOT(mousePressEvent(QMouseEvent*)));
-    QObject::connect(selection_handler_, SIGNAL(select(int,int)), selection_3d_display_, SLOT(createMarker(int,int)));
-    QObject::connect(selection_handler_, SIGNAL(selectROI(int,int)), selection_3d_display_, SLOT(createROISelection(int,int)));
+    // handles mouse events without rviz::tool
+    mouse_event_handler_ = new vigir_ocs::MouseEventHandler();
+    QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mousePressEvent(QMouseEvent*)));
+    QObject::connect(mouse_event_handler_, SIGNAL(select(int,int)), selection_3d_display_, SLOT(createMarker(int,int)));
+    QObject::connect(mouse_event_handler_, SIGNAL(selectROI(int,int)), selection_3d_display_, SLOT(createROISelection(int,int)));
+    QObject::connect(mouse_event_handler_, SIGNAL(createContextMenu(int,int)), this, SLOT(createContextMenu(int,int)));
 
     // create a publisher to add templates
     template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
@@ -258,39 +266,6 @@ void Base3DView::newSelection( Ogre::Vector3 position )
     selection_position_ = position;
 }
 
-void Base3DView::transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose)
-{
-
-    tf::Quaternion bt_orientation(pose.pose.orientation.x,pose.pose.orientation.y,pose.pose.orientation.z,pose.pose.orientation.w);
-    tf::Vector3 bt_position(pose.pose.position.x,pose.pose.position.y,pose.pose.position.z);
-
-    tf::Stamped<tf::Pose> pose_in(tf::Transform(bt_orientation,bt_position), ros::Time(), pose.header.frame_id);
-    tf::Stamped<tf::Pose> pose_out;
-
-    try
-    {
-        manager_->getFrameManager()->getTFClient()->transformPose( target_frame.c_str(), pose_in, pose_out );
-    }
-    catch(tf::TransformException& e)
-    {
-        ROS_DEBUG("Error transforming from frame '%s' to frame '%s': %s", pose.header.frame_id.c_str(), target_frame.c_str(), e.what());
-        return;
-    }
-
-    bt_position = pose_out.getOrigin();
-    bt_orientation = pose_out.getRotation();
-
-    pose.pose.position.x = bt_position.x();
-    pose.pose.position.y = bt_position.y();
-    pose.pose.position.z = bt_position.z();
-    pose.pose.orientation.x = bt_orientation.x();
-    pose.pose.orientation.y = bt_orientation.y();
-    pose.pose.orientation.z = bt_orientation.z();
-    pose.pose.orientation.w = bt_orientation.w();
-
-    pose.header.frame_id = target_frame;
-}
-
 void Base3DView::insertTemplate( QString path )
 {
     std::cout << "adding template" << std::endl;
@@ -308,9 +283,7 @@ void Base3DView::insertTemplate( QString path )
     pose.pose.orientation.z = 0;
     pose.pose.orientation.w = 1;
 
-    pose.header.frame_id = base_frame_;
-
-    transform("/world",pose);
+    pose.header.frame_id = "/world";
 
     cmd.pose = pose;
 
@@ -333,14 +306,30 @@ void Base3DView::insertWaypoint()
     pose.pose.orientation.z = 0;
     pose.pose.orientation.w = 1;
 
-    pose.header.frame_id = base_frame_;
-
-    transform("/world",pose);
+    pose.header.frame_id = "/world";
 
     cmd.pose = pose;
 
     // publish complete list of templates and poses
     waypoint_add_pub_.publish( cmd );
+}
+
+void Base3DView::createContextMenu(int x, int y)
+{
+    QPoint globalPos = this->mapToGlobal(QPoint(x+10,y+10));
+
+    QMenu myMenu;
+    myMenu.addAction("Menu Item 1");
+
+    QAction* selectedItem = myMenu.exec(globalPos);
+    if (selectedItem)
+    {
+        // something was chosen, do stuff
+    }
+    else
+    {
+        // nothing was chosen
+    }
 }
 
 }

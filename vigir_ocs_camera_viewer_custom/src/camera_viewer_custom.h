@@ -16,6 +16,8 @@
 #include <std_msgs/Float64.h>
 #include <ros/ros.h>
 
+#include "base_3d_view.h"
+
 namespace rviz
 {
 class Display;
@@ -25,63 +27,51 @@ class FrameManager;
 class Tool;
 }
 
-// Class "CameraViewerCustom" implements the QWidget that can be added to any QT application.
-class CameraViewerCustom: public QWidget
+namespace vigir_ocs
 {
-Q_OBJECT
+// Class "CameraViewerCustom" implements the QWidget that can be added to any QT application.
+class CameraViewerCustom: public Base3DView
+{
+    Q_OBJECT
 public:
-  CameraViewerCustom( QWidget* parent = 0 );
-  virtual ~CameraViewerCustom();
+    CameraViewerCustom( QWidget* parent = 0 );
+    virtual ~CameraViewerCustom();
 
-  void setCameraPitch( int );
+    void setCameraPitch( int );
 
 Q_SIGNALS:
-  void setFullImageResolution( int );
-  void setCropImageResolution( int );
-  void setCameraSpeed( int );
+    void setFullImageResolution( int );
+    void setCropImageResolution( int );
+    void setCameraSpeed( int );
 
 public Q_SLOTS:
-  void changeCameraTopic( int );
-  void changeFullImageResolution( int );
-  void changeCropImageResolution( int );
-  void changeCameraSpeed( int );
-  void disableSelection( );
-  void changeAlpha(int);
-  void changeLayer(int);
-  void changeZoom(int);
-
-  //displays
-  void robotModelToggled( bool );
-  void lidarPointCloudToggled( bool );
-  void stereoPointCloudToggled( bool );
-  void laserScanToggled( bool );
-  void markerArrayToggled( bool );
+    void changeCameraTopic( int );
+    void changeFullImageResolution( int );
+    void changeCropImageResolution( int );
+    void changeCameraSpeed( int );
+    void disableSelection( );
+    void changeAlpha(int);
+    void changeLayer(int);
+    void changeZoom(int);
 
 
 private Q_SLOTS:
-  void select( int, int, int, int );
+    void select( int, int, int, int );
 
 protected:
-  void mouseMoveEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
 
 private:
-  bool okay;
-  rviz::VisualizationManager* manager_;
-  rviz::RenderPanel* render_panel_;
-  rviz::Display* camera_viewer_;
-  rviz::Display* marker_array_;
-  rviz::Display* stereo_point_cloud_viewer_;
-  rviz::Display* lidar_point_cloud_viewer_;
-  rviz::Display* robot_model_;
+    bool okay;
 
-  rviz::Display* laser_scan_;
+    rviz::Display* camera_viewer_;
 
-  rviz::Tool* selection_tool_;
+    rviz::Tool* selection_tool_;
 
-  rviz::SelectionManager* select_manager_;
+    rviz::SelectionManager* select_manager_;
 
-  ros::NodeHandle nh_;
-  ros::Publisher head_pitch_update_pub_;
+    ros::Publisher head_pitch_update_pub_;
 
 };
+}
 #endif // CAMERA_VIEWER_H

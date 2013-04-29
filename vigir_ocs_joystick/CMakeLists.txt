@@ -3,13 +3,13 @@ project(vigir_ocs_joystick)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz flor_ocs_msgs vigir_ocs_rviz_plugins vigir_ocs_template_loader)
 
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-	CATKIN_DEPENDS roscpp rospy std_msgs rviz
+	CATKIN_DEPENDS roscpp rospy std_msgs rviz flor_ocs_msgs vigir_ocs_rviz_plugins vigir_ocs_template_loader
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
@@ -20,20 +20,26 @@ include(${QT_USE_FILE})
 ## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
 add_definitions(-DQT_NO_KEYWORDS)
 
-## Here we specify which header files need to be run through "moc",
-## Qt's meta-object compiler.
+## Here we add QtCreator ui files
+qt4_wrap_ui(UIC_FILES
+  src/ui/joystick_widget.ui
+)
+
 qt4_wrap_cpp(MOC_FILES
   src/joystick.h
+  src/ui/joystick_widget.h
 )
+
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.
 set(SOURCE_FILES
   src/joystick.cpp
   src/main.cpp
+  src/ui/joystick_widget.cpp
   ${MOC_FILES}
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src)
 
 add_executable(joystick ${SOURCE_FILES})
 target_link_libraries(joystick ${catkin_LIBRARIES} ${QT_LIBRARIES})

@@ -35,7 +35,7 @@ class FrameManager;
 
 namespace vigir_ocs
 {
-class SelectionHandler;
+class MouseEventHandler;
 
 // Class "Main3DView" implements the RobotModel class with joint manipulation that can be added to any QT application.
 class Base3DView: public QWidget
@@ -64,14 +64,14 @@ public Q_SLOTS:
     void insertTemplate( QString );
     void insertWaypoint();
 
+    void createContextMenu( int, int );
+
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
 
 protected:
-    void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
-
     rviz::VisualizationManager* manager_;
-    rviz::RenderPanelCustom* render_panel_;
+    rviz::RenderPanel* render_panel_;
 
     rviz::Display* robot_model_;
     rviz::Display* interactive_marker_robot_[4];
@@ -85,6 +85,8 @@ protected:
     rviz::Display* waypoints_display_;
     rviz::Display* achieved_waypoints_display_;
     rviz::Display* octomap_roi_;
+
+    rviz::Display* hand_model_;
 
     rviz::Tool* interactive_markers_tool_;
     rviz::Tool* selection_tool_;
@@ -100,7 +102,7 @@ protected:
 
     ros::Publisher octomap_roi_pub_;
     
-    vigir_ocs::SelectionHandler* selection_handler_;
+    vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
     std::string base_frame_;
 };
