@@ -204,34 +204,36 @@ void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
     Ogre::Quaternion selection_orientation(1,0,0,0);
     Ogre::Vector3 selection_position = selection_position_;
     transform(selection_position,selection_orientation,"/world",fixed_frame_.toUtf8().constData());
+    //std::cout << selection_position.x << "," << selection_position.y << "," << selection_position.z << std::endl;
 
     //Ogre::Vector3 selection_position_roi = selection_position_roi_;
     //selection_position_roi = (ot * selection_position_roi) * pt;
     Ogre::Quaternion selection_orientation_roi(1,0,0,0);
     Ogre::Vector3 selection_position_roi = selection_position_roi_;
     transform(selection_position_roi,selection_orientation_roi,"/world",fixed_frame_.toUtf8().constData());
+    //std::cout << selection_position_roi.x << "," << selection_position_roi.y << "," << selection_position_roi.z << std::endl;
 
     // get camera position to calculate selection marker
     Ogre::Vector3 camera_position = this->render_panel_->getCamera()->getDerivedPosition();
     // get the current fov
-    float radians = 0.174; // 5 deg //this->render_panel_->getCamera()->getFOVy() * 0.04;
+    float radians = 0.174; // 10 deg //this->render_panel_->getCamera()->getFOVy() * 0.04;
 
     // calculate distance from markers
     float distance_selection = camera_position.distance(selection_position);
     //std::cout << distance_selection << std::endl;
-    selection_marker_->setPosition(selection_position);
+    if(!selection_position.isNaN()) selection_marker_->setPosition(selection_position);
     float scale_selection = distance_selection*tan(radians)*0.001f;
     selection_marker_->setScale(scale_selection,scale_selection,scale_selection);
 
     float distance_selection_roi = camera_position.distance(selection_position_roi);
-    roi_marker_final_->setPosition(selection_position_roi);
+    if(!selection_position_roi.isNaN()) roi_marker_final_->setPosition(selection_position_roi);
     float scale_selection_roi = distance_selection_roi*tan(radians)*0.001f;
     selection_marker_->setScale(scale_selection_roi,scale_selection_roi,scale_selection_roi);
 
     Ogre::Vector3 box_position = (selection_position+selection_position_roi)/2.0f;
 
-    roi_marker_box_->setPosition(box_position);
-    roi_marker_box_->setOrientation(selection_orientation);
+    if(!box_position.isNaN()) roi_marker_box_->setPosition(box_position);
+    if(!selection_orientation.isNaN()) roi_marker_box_->setOrientation(selection_orientation);
 
     context_->queueRender();
 }
