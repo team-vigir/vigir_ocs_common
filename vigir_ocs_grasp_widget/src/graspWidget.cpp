@@ -47,13 +47,14 @@ graspWidget::graspWidget(QWidget *parent) :
     template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>( "/template/list", 5, &graspWidget::processTemplateList, this );
 
     //nh.getParam("/vigir_grasp_control/templates",templatePath);
-    grasp_state_sub_ = nh_.subscribe<flor_grasp_msgs::GraspState>( "/template/grasp_state_feedback", 1, &graspWidget::graspStateRecieved, this );
+    grasp_state_sub_ = nh_.subscribe<flor_grasp_msgs::GraspState>( "/template/active_state", 1, &graspWidget::graspStateRecieved, this );
 
     //grasp_selected_sub_ = nh_.subscribe<flor_grasp_msgs::GraspSelection>( "/template/grasp_selected", 1, &graspWidget::graspSelectedRecieved, this );
 
-    grasp_selected_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_selected", 1,false);
+    grasp_selection_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_selection", 1,false);
+    grasp_release_pub_  = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/release_grasp" , 1,false);
 
-    grasp_selected_state_pub_ = nh.advertise<flor_grasp_msgs::GraspState>("/template/grasp_selected_state", 1, false);
+    grasp_mode_command_pub_ = nh.advertise<flor_grasp_msgs::GraspState>("/template/grasp_mode_command", 1, false);
 
     // advertise the template match button pressed
     template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/template_match_request", 1, false );
@@ -61,10 +62,10 @@ graspWidget::graspWidget(QWidget *parent) :
     template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>( "/template/template_match_feedback", 1, &graspWidget::templateMatchFeedback, this );
 
     // and advertise the template update to update the manipulator
-    template_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
+    //template_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
 
     // advertise the grasp selection
-    grasp_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_request", 1, false );
+    //grasp_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_request", 1, false );
 }
 //SetStylesheet to change on the fly
 
@@ -90,12 +91,13 @@ void graspWidget::templateMatchFeedback (const flor_grasp_msgs::TemplateSelectio
 
 void graspWidget::graspStateRecieved (const flor_grasp_msgs::GraspState::ConstPtr& graspState)
 {
-    std::cout << "Grasp State message recieved" << std::endl;
-    uint8_t mode = graspState->grasp_state.data >> 4;
-    uint8_t state = graspState->grasp_state.data - mode*64;
+    std::cout << "Grasp State message recieved" << graspState << std::endl;
+    uint8_t mode  = (graspState->grasp_state.data&0xF0) >> 4;
+    uint8_t state = graspState->grasp_state.data&0x0F;
     setProgressLevel(graspState->grip.data);
 
     ui->userSlider->setValue(graspState->grip.data);
+    std::cout << "     mode=" << uint32_t(mode) << "   state="<< uint32_t(state) << std::endl;
     switch(mode)
     {
     case 0:
@@ -313,7 +315,7 @@ void graspWidget::sendManualMsg(uint8_t level)
     flor_grasp_msgs::GraspState cmd;
     cmd.grip.data = level;
     cmd.grasp_state.data = 128;
-    grasp_selected_state_pub_.publish(cmd);
+    grasp_mode_command_pub_.publish(cmd);
     std::cout << "Sent command message as manual grip to" << (int)level << std::endl;
 }
 
@@ -329,7 +331,7 @@ void graspWidget::on_userSlider_sliderReleased()
 		flor_grasp_msgs::GraspState msg;//68 mode
 		msg.grasp_state.data = 68;
 		msg.grip.data = ui->userSlider->value();
-        grasp_selected_state_pub_.publish(msg);
+        grasp_mode_command_pub_.publish(msg);
     }
     else
     {
@@ -344,7 +346,14 @@ void graspWidget::on_releaseButton_clicked()
     flor_grasp_msgs::GraspState msg;
     msg.grasp_state.data = 0;
     msg.grip.data = 0;
-    grasp_selected_state_pub_.publish(msg);
+    grasp_mode_command_pub_.publish(msg);
+
+    flor_grasp_msgs::GraspSelection grasp_msg;
+    grasp_msg.header.stamp=ros::Time::now();
+    grasp_msg.grasp_id.data      = 0;
+    grasp_msg.template_id.data   = 0;
+    grasp_msg.template_type.data = 0;
+    grasp_release_pub_.publish(grasp_msg);
 }
 
 void graspWidget::on_templateButton_clicked()
@@ -375,7 +384,7 @@ void graspWidget::on_performButton_clicked()
         if(grasp_db_[index].grasp_id == graspID)
             msg.template_type.data = grasp_db_[index].template_type;
     }
-    grasp_selected_pub_.publish(msg);
+    grasp_selection_pub_.publish(msg);
 }
 
 void graspWidget::on_templateBox_activated(const QString &arg1)
@@ -400,7 +409,7 @@ void graspWidget::on_templateRadio_clicked()
 	flor_grasp_msgs::GraspState msg;
     msg.grasp_state.data = 64;
 	msg.grip.data = 0;
-    grasp_selected_state_pub_.publish(msg);
+    grasp_mode_command_pub_.publish(msg);
 
 }
 
@@ -409,6 +418,6 @@ void graspWidget::on_manualRadio_clicked()
 	flor_grasp_msgs::GraspState msg;
     msg.grasp_state.data = 128;
 	msg.grip.data = ui->userSlider->value();
-    grasp_selected_state_pub_.publish(msg);
+    grasp_mode_command_pub_.publish(msg);
 
 }

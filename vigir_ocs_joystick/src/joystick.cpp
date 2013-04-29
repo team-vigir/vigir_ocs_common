@@ -1,4 +1,4 @@
-/* 
+/*
  * Main3DView class implementation.
  * 
  * Author: Felipe Bacim.
@@ -6,6 +6,8 @@
  * Based on librviz_tutorials and pr2_teleop.
  * 
  * Latest changes (12/08/2012):
+ *   -(03/28/2013)
+ *   -(04/11/2013) changed to support for new joystick GUI and message
  *
  */
 
@@ -16,53 +18,23 @@
 
 #include <ros/ros.h>
 
+#include "flor_ocs_msgs/OCSDrive.h"
+
 #include "joystick.h"
 
 // Constructor for Joystick.  This does most of the work of the class.
 Joystick::Joystick( QWidget* parent )
  : QWidget( parent )
 {
-  // Create a new label for this widget.
-  QLabel* joystick_label = new QLabel( "Joystick" );
-  
-  // Construct and lay out render panel.
-  QPushButton* turn_left = new QPushButton( "<" );
-  QPushButton* turn_right = new QPushButton( ">" );
-  QPushButton* forward = new QPushButton( "^" );
-  QPushButton* backward = new QPushButton( "v" );
-  // Use nested layouts to create the buttons
-  QVBoxLayout* mid_layout = new QVBoxLayout;
-  QHBoxLayout* main_layout = new QHBoxLayout;
-  mid_layout->addWidget( forward );
-  mid_layout->addWidget( backward );
-  QWidget* mid = new QWidget;
-  mid->setLayout( mid_layout );
-  main_layout->addWidget( turn_left );
-  main_layout->addWidget( mid );
-  main_layout->addWidget( turn_right );
+    //Initialize globals
+    robot_steer = 0;
+    robot_throttle = 0;
 
-  // Set the top-level layout for this MyViz widget.
-  setLayout( main_layout );		
+    // Initialize publisher
+    drive_pub_ = n_.advertise<flor_ocs_msgs::OCSDrive>( "drive_cmd", 1, false );
 
-  // Make signal/slot connections.
-  connect( turn_left, SIGNAL( pressed() ), this, SLOT( turnLeftPressed() ) );
-  connect( turn_left, SIGNAL( released() ), this, SLOT( turnLeftReleased() ) );
-  connect( turn_right, SIGNAL( pressed() ), this, SLOT( turnRightPressed() ) );
-  connect( turn_right, SIGNAL( released() ), this, SLOT( turnRightReleased() ) );
-  connect( forward, SIGNAL( pressed() ), this, SLOT( forwardPressed() ) );
-  connect( forward, SIGNAL( released() ), this, SLOT( forwardReleased() ) );
-  connect( backward, SIGNAL( pressed() ), this, SLOT( backwardPressed() ) );
-  connect( backward, SIGNAL( released() ), this, SLOT( backwardReleased() ) );
-
-	// Initialize publisher  
-  vel_pub_ = n_.advertise<geometry_msgs::Twist>( "atlas/cmd_vel", 1 );
-
-	// Initialize velocity variables
-  ros::NodeHandle n_private("~");
-  n_private.param( "walk_vel", walk_vel, 0.5 );
-  n_private.param( "run_vel", run_vel, 1.0 );
-  n_private.param( "yaw_rate", yaw_rate, 1.0 );
-  n_private.param( "yaw_run_rate", yaw_rate_run, 1.5 );
+    //Initialize subscriber
+    sub_ = n_.subscribe<flor_ocs_msgs::OCSDrive>( "drive_status", 1, &Joystick::callback, this );
 }
 
 // Destructor.
@@ -70,52 +42,36 @@ Joystick::~Joystick()
 {
 }
 
+void Joystick::callback(const flor_ocs_msgs::OCSDrive::ConstPtr& msg)
+{
+    robot_steer = msg->steer/*.data*/;
+    robot_throttle = msg->throttle/*.data*/;
+}
+
 // SLOTS implementation
-void Joystick::turnLeftPressed()
+void Joystick::setRobotThrottle( unsigned char throttle )
 {
-	cmd.angular.z = yaw_rate;
-	vel_pub_.publish( cmd );
+    robot_throttle = throttle;
 }
 
-void Joystick::turnLeftReleased()
+unsigned char Joystick::getRobotThrottle()
 {
-	cmd.angular.z = 0.0;
-	vel_pub_.publish( cmd );
+    return robot_throttle;
 }
 
-void Joystick::turnRightPressed()
+void Joystick::setRobotSteer( signed char steer )
 {
-	cmd.angular.z = -yaw_rate;
-	vel_pub_.publish( cmd );
+    robot_steer = steer;
 }
 
-void Joystick::turnRightReleased()
+signed char Joystick::getRobotSteer()
 {
-	cmd.angular.z = 0.0;
-	vel_pub_.publish( cmd );
+    return robot_steer;
 }
 
-void Joystick::forwardPressed()
+void Joystick::publish()
 {
-	cmd.linear.x = run_vel;
-	vel_pub_.publish( cmd );
+    drive_cmd.steer = robot_steer;
+    drive_cmd.throttle = robot_throttle;
+    drive_pub_.publish( drive_cmd );
 }
-
-void Joystick::forwardReleased()
-{
-	cmd.linear.x = 0.0;
-	vel_pub_.publish( cmd );
-}
-
-void Joystick::backwardPressed()
-{
-	cmd.linear.x = -run_vel;
-	vel_pub_.publish( cmd );
-}
-
-void Joystick::backwardReleased()
-{
-	cmd.linear.x = 0.0;
-	vel_pub_.publish( cmd );
-}
-
