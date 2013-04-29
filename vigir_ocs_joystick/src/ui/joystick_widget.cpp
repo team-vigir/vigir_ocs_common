@@ -15,6 +15,7 @@ JoystickWidget::JoystickWidget(QWidget *parent) :
 //    connect( ui->yaw_dial, SIGNAL( released() ), this, SLOT( yawDialReleased() ) );
 //    connect( ui->throttle_slider, SIGNAL( sliderMoved( int ) ), this, SLOT( verticalSliderMoved() ) );
 //    connect( ui->throttle_slider, SIGNAL( released() ), this, SLOT( verticalSliderReleased() ) );
+    QObject::connect( joystick, SIGNAL( throttleUpdated(unsigned char)), this, SLOT( setProgressBar(unsigned char)) );
 
 //    ui->yaw_dial->setRange( -127, 127 );
 
@@ -64,9 +65,8 @@ void JoystickWidget::yawDialReleased()
     }
 }
 
-void JoystickWidget::setProgressBar()
+void JoystickWidget::setProgressBar(unsigned char throttle)
 {
-    unsigned char throttle = joystick->getRobotThrottle();
     ui->throttle_progress_bar->setValue( (int)throttle / 255 * 100 );
 }
 
