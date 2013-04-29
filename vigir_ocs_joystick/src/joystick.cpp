@@ -69,13 +69,13 @@ unsigned char Joystick::getRobotThrottle()
     return robot_throttle;
 }
 
-void Joystick::setRobotSteer( signed char steer )
+void Joystick::setRobotSteer( char steer )
 {
     robot_steer = steer;
     publish();
 }
 
-signed char Joystick::getRobotSteer()
+char Joystick::getRobotSteer()
 {
     return robot_steer;
 }

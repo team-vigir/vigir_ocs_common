@@ -34,8 +34,8 @@ public:
 
     void setRobotThrottle( unsigned char throttle );
     unsigned char getRobotThrottle();
-    void setRobotSteer( signed char steer );
-    signed char getRobotSteer();
+    void setRobotSteer( char steer );
+    char getRobotSteer();
     void publish();
 
     // callback

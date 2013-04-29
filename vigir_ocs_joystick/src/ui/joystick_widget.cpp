@@ -10,20 +10,12 @@ JoystickWidget::JoystickWidget(QWidget *parent) :
 
     joystick = new Joystick();
 
-<<<<<<< HEAD
-//    // Make signal/slot connections.
-//    connect( ui->yaw_dial, SIGNAL( sliderMoved( int ) ), this, SLOT( yawDialChanged() ) );
-//    connect( ui->yaw_dial, SIGNAL( released() ), this, SLOT( yawDialReleased() ) );
-//    connect( ui->throttle_slider, SIGNAL( sliderMoved( int ) ), this, SLOT( verticalSliderMoved() ) );
-//    connect( ui->throttle_slider, SIGNAL( released() ), this, SLOT( verticalSliderReleased() ) );
-    QObject::connect( joystick, SIGNAL( throttleUpdated(unsigned char)), this, SLOT( setProgressBar(unsigned char)) );
-=======
     // Make signal/slot connections.
     connect( ui->yaw_dial, SIGNAL( valueChanged( int ) ), this, SLOT( yawDialChanged() ) );
     //connect( ui->yaw_dial, SIGNAL( sliderMoved( int ) ), this, SLOT( yawDialReleased() ) );
     connect( ui->throttle_slider, SIGNAL( valueChanged( int ) ), this, SLOT( throttleSliderMoved() ) );
     //connect( ui->throttle_slider, SIGNAL( valueChanged( int ) ), this, SLOT( throttleSliderMoved() ) );
->>>>>>> origin/joystick_test
+    connect( joystick, SIGNAL( throttleUpdated(unsigned char)), this, SLOT( setProgressBar(unsigned char)) );
 
     ui->yaw_dial->setRange( -127, 127 );
 
@@ -35,7 +27,7 @@ JoystickWidget::JoystickWidget(QWidget *parent) :
 
     ui->throttle_slider->setValue( ( int )( joystick->getRobotThrottle() ) );
 
-    setProgressBar();
+    setProgressBar(0);
 }
 
 JoystickWidget::~JoystickWidget()
@@ -45,20 +37,14 @@ JoystickWidget::~JoystickWidget()
 
 void JoystickWidget::yawDialChanged()
 {
-    //std::cout << "Yaw changed";
+    char steer = ui->yaw_dial->value();
+    if (abs(joystick->getRobotSteer()-(-ui->yaw_dial->value())) > 50) // do this to prevent big jumps
+    {
+        steer = -joystick->getRobotSteer();
+        ui->yaw_dial->setValue(steer);
+    }
 
-    if (ui->yaw_dial->value() > 127)
-    {
-        joystick->setRobotSteer( (signed char)-127 );
-    }
-    else if (ui->yaw_dial->value() < -127)
-    {
-        joystick->setRobotSteer( (signed char)127 );
-    }
-    else
-    {
-        joystick->setRobotSteer( (signed char)( -1 * (ui->yaw_dial->value() ) ) );
-    }
+    joystick->setRobotSteer( (char)( -steer ) );
 }
 
 void JoystickWidget::yawDialReleased()
@@ -66,40 +52,28 @@ void JoystickWidget::yawDialReleased()
     if (ui->yaw_dial->value() > 127)
     {
         ui->yaw_dial->setValue( 127 );
-        joystick->setRobotSteer( (signed char)127 );
+        joystick->setRobotSteer( (char)127 );
     }
     else if (ui->yaw_dial->value() < -127)
     {
         ui->yaw_dial->setValue( -127 );
-        joystick->setRobotSteer( (signed char)-127 );
+        joystick->setRobotSteer( (char)-127 );
     }
     else
     {
-        joystick->setRobotSteer( (signed char)(ui->yaw_dial->value()) );
+        joystick->setRobotSteer( (char)(ui->yaw_dial->value()) );
     }
 }
 
 void JoystickWidget::setProgressBar(unsigned char throttle)
 {
-    ui->throttle_progress_bar->setValue( (int)throttle / 255 * 100 );
+    std::cout << "joystick " << (unsigned int)throttle << std::endl;
+    ui->throttle_progress_bar->setValue( (unsigned int)throttle / 255.0 * 100.0 );
 }
 
 void JoystickWidget::throttleSliderMoved()
 {
-    //std::cout << ui->throttle_slider->value() << " ";
-
-    if (ui->throttle_slider->value() > 255)
-    {
-        joystick->setRobotThrottle( (unsigned char)255 );
-    }
-    else if (ui->throttle_slider->value() < 0)
-    {
-        joystick->setRobotThrottle( (unsigned char)0 );
-    }
-    else
-    {
-        joystick->setRobotThrottle( (unsigned char)(ui->throttle_slider->value()) );
-    }
+    joystick->setRobotThrottle( (unsigned char)(ui->throttle_slider->value()) );
 }
 
 void JoystickWidget::throttleSliderReleased()
