@@ -8,6 +8,7 @@
 #include "rviz/render_panel.h"
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
+
 //grasp_testing grasp_testing_simple.launch
 
 graspWidget::graspWidget(QWidget *parent) :
@@ -35,11 +36,12 @@ graspWidget::graspWidget(QWidget *parent) :
     currentGraspMode = 0;
     QLabel foo;
     ros::NodeHandle nh;
-    nh.getParam("/graspWidget/hand",temp);
+    nh.param<std::string>("/graspWidget/hand",temp,"default");
     if(temp == "left")
         hand = "left";
     else
         hand = "right";
+    ROS_INFO("  Grasp widget using %s hand (%s)",hand.c_str(), temp.c_str());
 
     initTemplateIdMap();
     initGraspDB();
@@ -100,11 +102,11 @@ void graspWidget::graspStateRecieved (const flor_grasp_msgs::GraspState::ConstPt
     std::cout << "     mode=" << uint32_t(mode) << "   state="<< uint32_t(state) << std::endl;
     switch(mode)
     {
-    case 0:
+    case flor_grasp_msgs::GraspState::GRASP_MODE_NONE:
         ui->currentStateLabel->setText("idle");
         currentGraspMode = 0;
         break;
-    case 1:
+    case flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE:
         if(currentGraspMode != 1)
         {
             ui->manualRadio->setChecked(false);
@@ -114,33 +116,34 @@ void graspWidget::graspStateRecieved (const flor_grasp_msgs::GraspState::ConstPt
         }
         switch(state)
         {
-        case 0:
+        case flor_grasp_msgs::GraspState::GRASP_STATE_NONE:
             ui->currentStateLabel->setText("State Unknown");
             break;
-        case 1:
+        case flor_grasp_msgs::GraspState::GRASP_INIT:
             ui->currentStateLabel->setText("init");
             break;
-        case 2:
+        case flor_grasp_msgs::GraspState::APPROACHING:
             ui->currentStateLabel->setText("approaching");
             break;
-        case 3:
+        case flor_grasp_msgs::GraspState::SURROUNDING:
             ui->currentStateLabel->setText("surrounding");
             break;
-        case 4:
+        case flor_grasp_msgs::GraspState::GRASPING:
             ui->currentStateLabel->setText("grasping");
             break;
-        case 5:
+        case flor_grasp_msgs::GraspState::MONITORING:
             ui->currentStateLabel->setText("monitoring");
             break;
-        case 6:
+        case flor_grasp_msgs::GraspState::OPENING:
             ui->currentStateLabel->setText("opening");
             break;
+        case flor_grasp_msgs::GraspState::GRASP_ERROR:
         default:
             ui->currentStateLabel->setText("template error");
             break;
         }
         break;
-    case 2:
+    case flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE:
         if(currentGraspMode != 2)
         {
             ui->manualRadio->setChecked(true);
@@ -150,7 +153,7 @@ void graspWidget::graspStateRecieved (const flor_grasp_msgs::GraspState::ConstPt
         ui->currentStateLabel->setText("manual");
         break;
     default:
-        ui->currentStateLabel->setText("ERROR");
+        ui->currentStateLabel->setText("MODE ERROR");
         break;
     }
 }
@@ -314,7 +317,7 @@ void graspWidget::sendManualMsg(uint8_t level)
 {
     flor_grasp_msgs::GraspState cmd;
     cmd.grip.data = level;
-    cmd.grasp_state.data = 128;
+    cmd.grasp_state.data = (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
     grasp_mode_command_pub_.publish(cmd);
     std::cout << "Sent command message as manual grip to" << (int)level << std::endl;
 }
@@ -328,9 +331,9 @@ void graspWidget::on_userSlider_sliderReleased()
     }
     else if(ui->userSlider->value() > 100)
     {
-		flor_grasp_msgs::GraspState msg;//68 mode
-		msg.grasp_state.data = 68;
-		msg.grip.data = ui->userSlider->value();
+        flor_grasp_msgs::GraspState msg;//68 mode
+        msg.grasp_state.data = 68;
+        msg.grip.data = ui->userSlider->value();
         grasp_mode_command_pub_.publish(msg);
     }
     else
@@ -406,18 +409,20 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
 
 void graspWidget::on_templateRadio_clicked()
 {
-	flor_grasp_msgs::GraspState msg;
-    msg.grasp_state.data = 64;
-	msg.grip.data = 0;
+    flor_grasp_msgs::GraspState msg;
+    msg.grasp_state.data = (flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4;
+    msg.grip.data = 0;
     grasp_mode_command_pub_.publish(msg);
+    std::cout << "Sent Template mode message ("<< msg.grasp_state.data << ") with " <<  msg.grip.data << " manual grip level" << std::endl;
 
 }
 
 void graspWidget::on_manualRadio_clicked()
 {
-	flor_grasp_msgs::GraspState msg;
-    msg.grasp_state.data = 128;
-	msg.grip.data = ui->userSlider->value();
+    flor_grasp_msgs::GraspState msg;
+    msg.grasp_state.data = (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
+    msg.grip.data = ui->userSlider->value();
     grasp_mode_command_pub_.publish(msg);
+    std::cout << "Sent Manual mode message ("<< msg.grasp_state.data << ") with " <<  msg.grip.data << " manual grip level" << std::endl;
 
 }
