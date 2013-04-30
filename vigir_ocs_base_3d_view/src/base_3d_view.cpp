@@ -107,7 +107,6 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     laser_scan_->subProp( "Decay Time" )->setValue( 1 );
 
     // Create a MarkerArray display.
-    //marker_array_ = manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
     octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );
     ROS_ASSERT( octomap_ != NULL );
 
@@ -143,12 +142,11 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     achieved_waypoints_display_->subProp( "Color" )->setValue( QColor( 150, 150, 255 ) );
 
     // connect the 3d selection tool to its display
-    //QObject::connect(selection_3d_tool_, SIGNAL(select(int,int,int,int)), selection_3d_display_, SLOT(createMarker(int,int,int,int)));
     QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
     QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
 
     Q_EMIT setRenderPanel(this->render_panel_);
-    
+
     // handles mouse events without rviz::tool
     mouse_event_handler_ = new vigir_ocs::MouseEventHandler();
     QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mousePressEvent(QMouseEvent*)));

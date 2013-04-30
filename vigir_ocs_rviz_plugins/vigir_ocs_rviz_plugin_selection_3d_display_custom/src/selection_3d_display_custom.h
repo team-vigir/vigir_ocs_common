@@ -133,6 +133,8 @@ protected:
 
   Ogre::Vector3 selection_position_;
   Ogre::Vector3 selection_position_roi_;
+
+  bool initialized_;
 };
 
 } // namespace rviz

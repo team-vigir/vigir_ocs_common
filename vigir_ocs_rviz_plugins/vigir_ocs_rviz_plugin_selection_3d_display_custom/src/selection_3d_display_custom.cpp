@@ -63,6 +63,7 @@ Selection3DDisplayCustom::Selection3DDisplayCustom()
     , time_since_last_transform_( 0.0f )
     , selection_marker_(NULL)
     //, mCurrentObject(NULL)
+    , initialized_(false)
 {
 }
 
@@ -171,11 +172,10 @@ void Selection3DDisplayCustom::load()
     roi_marker_box_ = this->scene_node_->createChildSceneNode();
     roi_marker_box_->attachObject(lEntity);
     // Change position and scale
-    roi_marker_box_->setPosition(0.0f, 0.0f, 0.0f);
-    //roi_marker_box_->scale(0.001f,0.001f,0.001f);
+    roi_marker_box_->setPosition(100000.0f, 100000.0f, 100000.0f);
+    roi_marker_box_->scale(0.001f,0.001f,0.001f);
 
     roi_marker_box_->setVisible( false );
-    roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
     lEntity->setMaterialName(lMaterialName);
 }
 
@@ -200,40 +200,42 @@ void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
 {
     time_since_last_transform_ += wall_dt;
 
-    // get transform from world to fixed frame
-    Ogre::Quaternion selection_orientation(1,0,0,0);
-    Ogre::Vector3 selection_position = selection_position_;
-    transform(selection_position,selection_orientation,"/world",fixed_frame_.toUtf8().constData());
-    //std::cout << selection_position.x << "," << selection_position.y << "," << selection_position.z << std::endl;
+    if(initialized_)
+    {
+        // get transform from world to fixed frame
+        Ogre::Quaternion selection_orientation(1,0,0,0);
+        Ogre::Vector3 selection_position = selection_position_;
+        transform(selection_position,selection_orientation,"/world",fixed_frame_.toUtf8().constData());
+        //std::cout << selection_position.x << "," << selection_position.y << "," << selection_position.z << std::endl;
 
-    //Ogre::Vector3 selection_position_roi = selection_position_roi_;
-    //selection_position_roi = (ot * selection_position_roi) * pt;
-    Ogre::Quaternion selection_orientation_roi(1,0,0,0);
-    Ogre::Vector3 selection_position_roi = selection_position_roi_;
-    transform(selection_position_roi,selection_orientation_roi,"/world",fixed_frame_.toUtf8().constData());
-    //std::cout << selection_position_roi.x << "," << selection_position_roi.y << "," << selection_position_roi.z << std::endl;
+        //Ogre::Vector3 selection_position_roi = selection_position_roi_;
+        //selection_position_roi = (ot * selection_position_roi) * pt;
+        Ogre::Quaternion selection_orientation_roi(1,0,0,0);
+        Ogre::Vector3 selection_position_roi = selection_position_roi_;
+        transform(selection_position_roi,selection_orientation_roi,"/world",fixed_frame_.toUtf8().constData());
+        //std::cout << selection_position_roi.x << "," << selection_position_roi.y << "," << selection_position_roi.z << std::endl;
 
-    // get camera position to calculate selection marker
-    Ogre::Vector3 camera_position = this->render_panel_->getCamera()->getDerivedPosition();
-    // get the current fov
-    float radians = 0.174; // 10 deg //this->render_panel_->getCamera()->getFOVy() * 0.04;
+        // get camera position to calculate selection marker
+        Ogre::Vector3 camera_position = this->render_panel_->getCamera()->getDerivedPosition();
+        // get the current fov
+        float radians = 0.174; // 10 deg //this->render_panel_->getCamera()->getFOVy() * 0.04;
 
-    // calculate distance from markers
-    float distance_selection = camera_position.distance(selection_position);
-    //std::cout << distance_selection << std::endl;
-    if(!selection_position.isNaN()) selection_marker_->setPosition(selection_position);
-    float scale_selection = distance_selection*tan(radians)*0.001f;
-    selection_marker_->setScale(scale_selection,scale_selection,scale_selection);
+        // calculate distance from markers
+        float distance_selection = camera_position.distance(selection_position);
+        if(!selection_position.isNaN()) selection_marker_->setPosition(selection_position);
+        float scale_selection = distance_selection*tan(radians)*0.001f;
+        if(scale_selection > 0.0f) selection_marker_->setScale(scale_selection,scale_selection,scale_selection);
 
-    float distance_selection_roi = camera_position.distance(selection_position_roi);
-    if(!selection_position_roi.isNaN()) roi_marker_final_->setPosition(selection_position_roi);
-    float scale_selection_roi = distance_selection_roi*tan(radians)*0.001f;
-    selection_marker_->setScale(scale_selection_roi,scale_selection_roi,scale_selection_roi);
+        float distance_selection_roi = camera_position.distance(selection_position_roi);
+        if(!selection_position_roi.isNaN()) roi_marker_final_->setPosition(selection_position_roi);
+        float scale_selection_roi = distance_selection_roi*tan(radians)*0.001f;
+        if(scale_selection_roi > 0.0f) selection_marker_->setScale(scale_selection_roi,scale_selection_roi,scale_selection_roi);
 
-    Ogre::Vector3 box_position = (selection_position+selection_position_roi)/2.0f;
+        Ogre::Vector3 box_position = (selection_position+selection_position_roi)/2.0f;
 
-    if(!box_position.isNaN()) roi_marker_box_->setPosition(box_position);
-    if(!selection_orientation.isNaN()) roi_marker_box_->setOrientation(selection_orientation);
+        if(!box_position.isNaN()) roi_marker_box_->setPosition(box_position);
+        if(!selection_orientation.isNaN()) roi_marker_box_->setOrientation(selection_orientation);
+    }
 
     context_->queueRender();
 }
@@ -305,6 +307,7 @@ void Selection3DDisplayCustom::createMarker(int x, int y)
     transform(pt,ot);
     if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position))
     {
+        initialized_ = true;
         selection_marker_->setPosition(position);
         selection_marker_->setVisible(true);
         //Q_EMIT newSelection(position);
@@ -321,6 +324,7 @@ void Selection3DDisplayCustom::createMarker(int x, int y)
     }
     else
     {
+        initialized_ = false;
         selection_marker_->setVisible(false);
     }
     roi_marker_final_->setVisible(false);
@@ -330,6 +334,9 @@ void Selection3DDisplayCustom::createMarker(int x, int y)
 
 void Selection3DDisplayCustom::createROISelection(int x, int y)
 {
+    if(!initialized_)
+        return;
+
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
 
