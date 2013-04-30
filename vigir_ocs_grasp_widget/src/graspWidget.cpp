@@ -328,9 +328,13 @@ void graspWidget::sendManualMsg(uint8_t level)
 {
     flor_grasp_msgs::GraspState cmd;
     cmd.grip.data = level;
-    cmd.grasp_state.data = (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
+    cmd.grasp_state.data = 4; // leave as current command
+    if (ui->graspBox->currentText() == QString("CYLINDRICAL"))  cmd.grasp_state.data = 0;
+    if (ui->graspBox->currentText() == QString("PRISMATIC"))    cmd.grasp_state.data = 1;
+    if (ui->graspBox->currentText() == QString("SPHERICAL"))    cmd.grasp_state.data = 2;
+    cmd.grasp_state.data += (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
     grasp_mode_command_pub_.publish(cmd);
-    std::cout << "Sent command message as manual grip to" << (int)level << std::endl;
+    std::cout << "Sent Manual mode message ("<< uint32_t(cmd.grasp_state.data) << ") with " <<  uint32_t(cmd.grip.data) << " manual grip level to " << hand << " hand" << std::endl;
 }
 
 void graspWidget::on_userSlider_sliderReleased()
@@ -403,7 +407,7 @@ void graspWidget::on_performButton_clicked()
 
 void graspWidget::on_templateBox_activated(const QString &arg1)
 {
-    std::cout << "updating the grasp widget box contents" << std::endl;
+    std::cout << "updating the grasp widget grasp selection box contents" << std::endl;
     while(ui->graspBox->count() >0)
         ui->graspBox->removeItem(0);
     for(int index=0; index < grasp_db_.size(); index++)
@@ -416,10 +420,53 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
             ui->graspBox->addItem(QString::number(grasp_db_[index].grasp_id));
         }
     }
+
+    if (ui->manualRadio->isChecked())
+    {
+        ui->graspBox->addItem(QString("CYLINDRICAL"));
+        ui->graspBox->addItem(QString("PRISMATIC"));
+        ui->graspBox->addItem(QString("SPHERICAL"));
+    }
+}
+
+void graspWidget::on_graspBox_activated(const QString &arg1)
+{
+    std::cout << " grasp selection = " << arg1.toStdString() << std::endl;
+    if (ui->manualRadio->isChecked())
+    {
+
+        flor_grasp_msgs::GraspState msg;
+        msg.grasp_state.data = 4; // leave as current command
+        if (arg1 == QString("CYLINDRICAL"))  msg.grasp_state.data = 0;
+        if (arg1 == QString("PRISMATIC"))    msg.grasp_state.data = 1;
+        if (arg1 == QString("SPHERICAL"))    msg.grasp_state.data = 2;
+        msg.grasp_state.data += (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
+        msg.grip.data = ui->userSlider->value();
+        grasp_mode_command_pub_.publish(msg);
+        std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level to " << hand << " hand" << std::endl;
+    }
 }
 
 void graspWidget::on_templateRadio_clicked()
 {
+    for (uint32_t ndx=0; ndx < ui->graspBox->count(); ++ndx)
+    {
+        if ( (ui->graspBox->itemText(ndx) == QString("CYLINDRICAL")) ||
+             (ui->graspBox->itemText(ndx) == QString("PRISMATIC")) ||
+             (ui->graspBox->itemText(ndx) == QString("SPHERICAL")) ||
+             (ui->graspBox->itemText(ndx) == QString("CURRENT")))
+        {
+
+            std::string str = ui->graspBox->itemText(ndx).toStdString();
+            ROS_INFO(" Removing item at %d (%s)", ndx, str.c_str());
+            ui->graspBox->removeItem(ndx);
+            --ndx;
+        }
+    }
+    if (ui->graspBox->count() < 1)
+    {
+        ui->graspBox->setDisabled(true); // nothing to select
+    }
     flor_grasp_msgs::GraspState msg;
     msg.grasp_state.data = (flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4;
     msg.grip.data = 0;
@@ -430,8 +477,28 @@ void graspWidget::on_templateRadio_clicked()
 
 void graspWidget::on_manualRadio_clicked()
 {
+    bool addCylindrical= true;
+    bool addPrismatic  = true;
+    bool addSpherical  = true;
+    bool addCurrent    = true;
+
+    for (uint32_t ndx=0; ndx < ui->graspBox->count(); ++ndx)
+    {
+        if (ui->graspBox->itemText(ndx) == QString("CYLINDRICAL"))  addCylindrical= false;
+        if (ui->graspBox->itemText(ndx) == QString("PRISMATIC"))    addPrismatic  = false;
+        if (ui->graspBox->itemText(ndx) == QString("SPHERICAL"))    addSpherical  = false;
+        if (ui->graspBox->itemText(ndx) == QString("CURRENT"))      addCurrent    = false;
+    }
+    if (addCylindrical) ui->graspBox->addItem(QString("CYLINDRICAL"));
+    if (addPrismatic)   ui->graspBox->addItem(QString("PRISMATIC"));
+    if (addSpherical)   ui->graspBox->addItem(QString("SPHERICAL"));
+    if (addCurrent)     ui->graspBox->addItem(QString("CURRENT"));
+    ui->graspBox->setDisabled(false);
+
+
     flor_grasp_msgs::GraspState msg;
     msg.grasp_state.data = (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
+    msg.grasp_state.data += 4; // no grasp type chosen (force selection) (default to keeping old terminal values)
     msg.grip.data = ui->userSlider->value();
     grasp_mode_command_pub_.publish(msg);
     std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level to " << hand << " hand" << std::endl;
