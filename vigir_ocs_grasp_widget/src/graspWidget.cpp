@@ -389,7 +389,7 @@ void graspWidget::on_performButton_clicked()
 {
     std::cout << "Performing grasp" << std::endl;
     flor_grasp_msgs::GraspSelection msg;
-    msg.header.frame_id = "/word";
+    msg.header.frame_id = "/world";
     int graspID = ui->graspBox->currentText().toInt();
     msg.grasp_id.data = graspID;
     msg.template_id.data = ui->templateBox->currentIndex();
