@@ -51,33 +51,14 @@ graspWidget::graspWidget(QWidget *parent) :
     initTemplateIdMap();
     initGraspDB();
 
-    template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>( "/template/list", 5, &graspWidget::processTemplateList, this );
+    template_list_sub_           = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",                    5, &graspWidget::processTemplateList, this );
+    template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>("/template/template_match_feedback", 1, &graspWidget::templateMatchFeedback, this );
+    grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(       "/template/active_state",            1, &graspWidget::graspStateRecieved,  this );
 
-    //nh.getParam("/vigir_grasp_control/templates",templatePath);
-    grasp_state_sub_ = nh_.subscribe<flor_grasp_msgs::GraspState>( "/template/active_state", 1, &graspWidget::graspStateRecieved, this );
-
-    //grasp_selected_sub_ = nh_.subscribe<flor_grasp_msgs::GraspSelection>( "/template/grasp_selected", 1, &graspWidget::graspSelectedRecieved, this );
-
-    grasp_selection_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_selection", 1,false);
-    grasp_release_pub_  = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/release_grasp" , 1,false);
-
-    grasp_mode_command_pub_ = nh.advertise<flor_grasp_msgs::GraspState>("/template/grasp_mode_command", 1, false);
-
-    // advertise the template match button pressed
+    grasp_selection_pub_        = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/template/grasp_selection",        1, false);
+    grasp_release_pub_          = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/template/release_grasp" ,         1, false);
+    grasp_mode_command_pub_     = nh.advertise<flor_grasp_msgs::GraspState>(         "/template/grasp_mode_command",     1, false);
     template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/template_match_request", 1, false );
-
-    template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>( "/template/template_match_feedback", 1, &graspWidget::templateMatchFeedback, this );
-
-   /* // and advertise the template update to update the manipulator
-    template_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
-
-    // advertise the grasp selection
-    grasp_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_request", 1, false );*/
-    // and advertise the template update to update the manipulator
-    //template_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
-
-    // advertise the grasp selection
-    //grasp_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_request", 1, false );
 
 }
 //SetStylesheet to change on the fly
@@ -104,13 +85,13 @@ void graspWidget::templateMatchFeedback (const flor_grasp_msgs::TemplateSelectio
 
 void graspWidget::graspStateRecieved (const flor_grasp_msgs::GraspState::ConstPtr& graspState)
 {
-    std::cout << "Grasp State message recieved" << graspState << std::endl;
+    //std::cout << "Grasp State message recieved" << graspState << std::endl;
     uint8_t mode  = (graspState->grasp_state.data&0xF0) >> 4;
     uint8_t state = graspState->grasp_state.data&0x0F;
     setProgressLevel(graspState->grip.data);
 
     ui->userSlider->setValue(graspState->grip.data);
-    std::cout << "     mode=" << uint32_t(mode) << "   state="<< uint32_t(state) << std::endl;
+    //std::cout << "     mode=" << uint32_t(mode) << "   state="<< uint32_t(state) << std::endl;
     switch(mode)
     {
     case flor_grasp_msgs::GraspState::GRASP_MODE_NONE:
@@ -210,7 +191,7 @@ void graspWidget::initTemplateMode()
 //currentStateLabel
 void graspWidget::setProgressLevel(uint8_t level)
 {
-    std::cout << "setting fill level to be " << (int)level << std::endl;
+    //std::cout << "setting fill level to be " << (int)level << std::endl;
     if(level >=100)
     {
         ui->closedGraph->setValue(100);
@@ -359,12 +340,12 @@ void graspWidget::on_userSlider_sliderReleased()
 
 void graspWidget::on_releaseButton_clicked()
 {
-    std::cout << "release the grasp requested" << std::endl;
+    std::cout << "Release the grasp requested" << std::endl;
     ui->userSlider->setValue(0);
-    flor_grasp_msgs::GraspState msg;
-    msg.grasp_state.data = 0;
-    msg.grip.data = 0;
-    grasp_mode_command_pub_.publish(msg);
+    //flor_grasp_msgs::GraspState msg;
+    //msg.grasp_state.data = 0;
+    //msg.grip.data = 0;
+    //grasp_mode_command_pub_.publish(msg);
 
     flor_grasp_msgs::GraspSelection grasp_msg;
     grasp_msg.header.stamp=ros::Time::now();
