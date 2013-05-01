@@ -1,6 +1,5 @@
 #include "joystick_widget.h"
 #include "ui_joystick_widget.h"
-#include "ui/template_loader_widget.h"
 
 JoystickWidget::JoystickWidget(QWidget *parent) :
     QWidget(parent),

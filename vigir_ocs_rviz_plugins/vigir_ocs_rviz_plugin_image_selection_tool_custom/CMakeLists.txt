@@ -1,7 +1,7 @@
 # Convert the Qt Signals and Slots for QWidget events
 qt4_wrap_cpp(MOC_SOURCES src/image_selection_tool_custom.h)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR} /opt/ros/groovy/include/rviz/default_plugin/tools)
+include_directories(${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} /opt/ros/groovy/include/rviz/default_plugin/tools)
 
 set(VIGIR_IMAGE_SELECTION_CUSTOM_LIB_NAME vigir_ocs_rviz_plugin_image_selection_tool_custom)
 

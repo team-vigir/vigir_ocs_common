@@ -28,8 +28,8 @@ catkin_package(
     vigir_ocs_rviz_plugin_grasp_display_custom
     ${OPENGL_LIBRARIES}
   INCLUDE_DIRS
-    vigir_ocs_rviz_plugin_image_display_custom/src
     vigir_ocs_rviz_plugin_camera_display_custom/src
+    vigir_ocs_rviz_plugin_image_display_custom/src
     vigir_ocs_rviz_plugin_template_display_custom/src
     vigir_ocs_rviz_plugin_image_selection_tool_custom/src
     vigir_ocs_rviz_plugin_selection_3d_tool_custom/src
@@ -53,8 +53,8 @@ catkin_package(
 )
 
 include_directories(
-	vigir_ocs_rviz_plugin_image_display_custom/src
 	vigir_ocs_rviz_plugin_camera_display_custom/src
+	vigir_ocs_rviz_plugin_image_display_custom/src
 	vigir_ocs_rviz_plugin_template_display_custom/src
 	vigir_ocs_rviz_plugin_image_selection_tool_custom/src
 	vigir_ocs_rviz_plugin_selection_3d_tool_custom/src

@@ -12,7 +12,6 @@
 #define CAMERA_VIEWER_H
 
 #include <QWidget>
-#include "rviz/selection/selection_manager.h"
 #include <std_msgs/Float64.h>
 #include <ros/ros.h>
 
@@ -43,6 +42,7 @@ Q_SIGNALS:
     void setFullImageResolution( int );
     void setCropImageResolution( int );
     void setCameraSpeed( int );
+    void unHighlight();
 
 public Q_SLOTS:
     void changeCameraTopic( int );
@@ -52,26 +52,18 @@ public Q_SLOTS:
     void disableSelection( );
     void changeAlpha(int);
     void changeLayer(int);
-    void changeZoom(int);
-
 
 private Q_SLOTS:
     void select( int, int, int, int );
 
-protected:
-    void mouseMoveEvent(QMouseEvent *event);
-
 private:
-    bool okay;
+    int selectedArea[4];
 
     rviz::Display* camera_viewer_;
 
     rviz::Tool* selection_tool_;
 
-    rviz::SelectionManager* select_manager_;
-
     ros::Publisher head_pitch_update_pub_;
-
 };
 }
 #endif // CAMERA_VIEWER_H

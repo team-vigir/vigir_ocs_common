@@ -7,7 +7,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz pluginlib vig
 
 ## Declare things to be passed to other projects
 catkin_package(	
-	INCLUDE_DIRS src
+	INCLUDE_DIRS ${catkin_INCLUDE_DIRS} src src/ui
 	LIBRARIES ${PROJECT_NAME} 
 	CATKIN_DEPENDS roscpp rospy std_msgs rviz pluginlib vigir_ocs_rviz_plugins flor_perception_msgs vigir_ocs_base_3d_view
 )

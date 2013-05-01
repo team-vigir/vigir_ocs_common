@@ -3,13 +3,13 @@ project(vigir_ocs_joystick)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz flor_ocs_msgs vigir_ocs_rviz_plugins vigir_ocs_template_loader)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz flor_ocs_msgs)
 
 ## Declare things to be passed to other projects
 catkin_package(	
-	INCLUDE_DIRS src
+	INCLUDE_DIRS ${catkin_INCLUDE_DIRS} src
 	LIBRARIES ${PROJECT_NAME} 
-	CATKIN_DEPENDS roscpp rospy std_msgs rviz flor_ocs_msgs vigir_ocs_rviz_plugins vigir_ocs_template_loader
+	CATKIN_DEPENDS roscpp rospy std_msgs rviz flor_ocs_msgs
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
@@ -41,7 +41,7 @@ set(SOURCE_FILES
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src)
 
-add_executable(joystick ${SOURCE_FILES})
+add_executable(joystick ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(joystick ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})

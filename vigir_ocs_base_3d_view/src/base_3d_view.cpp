@@ -95,9 +95,6 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     interactive_marker_robot_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
     interactive_marker_robot_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
 
-    // Make the move camera tool the currently selected one
-    manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
-
     // Create a LaserScan display.
     laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
     ROS_ASSERT( laser_scan_ != NULL );
@@ -170,6 +167,9 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     //octomap_roi_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
 
     //octomap_roi_pub_ = n_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/waypoint/add", 1, false );
+
+    // Make the move camera tool the currently selected one
+    manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
 }
 
 // Destructor.

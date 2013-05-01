@@ -8,7 +8,7 @@
     <qtgui>
       <label>Camera Viewer Custom</label>
       <icon type="theme">image-x-generic</icon>
-      <statustip>A GUI plugin version of camera viewer custom</statustip>
+      <statustip>A GUI plugin version of Camera viewer custom</statustip>
     </qtgui>
   </class>
 </library>
