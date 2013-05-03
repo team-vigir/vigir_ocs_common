@@ -105,6 +105,7 @@ private Q_SLOTS:
   void createMarker(int, int, int, int);
   void createMarker(int, int);
   void createROISelection(int,int);
+  void resetSelection();
   void setRenderPanel(rviz::RenderPanel*);
 
 protected:

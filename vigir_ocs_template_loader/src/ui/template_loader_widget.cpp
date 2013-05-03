@@ -101,6 +101,7 @@ void TemplateLoaderWidget::treeItemChanged(QTreeWidgetItem * current, QTreeWidge
 
         templatePath = "";
     }
+    Q_EMIT templatePathChanged(templatePath);
 }
 
 void TemplateLoaderWidget::insertButtonPressed()

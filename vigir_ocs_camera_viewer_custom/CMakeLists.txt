@@ -23,10 +23,12 @@ add_definitions(-DQT_NO_KEYWORDS)
 ## Here we specify which header files need to be run through "moc",
 ## Qt's meta-object compiler.
 qt4_wrap_cpp(MOC_FILES_WIDGET
+  src/empty_view_controller.h
   src/camera_viewer_custom.h
 )
 
 qt4_wrap_cpp(MOC_FILES
+  src/empty_view_controller.h
   src/camera_viewer_custom.h
   src/ui/camera_viewer_custom_widget.h
 )
@@ -39,12 +41,14 @@ qt4_wrap_ui(UIC_FILES
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.
 set(SOURCE_FILES_WIDGET
+  src/empty_view_controller.cpp
   src/camera_viewer_custom.cpp
   src/main_widget.cpp
   ${MOC_FILES_WIDGET}
 )
 
 set(SOURCE_FILES
+  src/empty_view_controller.cpp
   src/camera_viewer_custom.cpp
   src/ui/camera_viewer_custom_widget.cpp
   src/main.cpp

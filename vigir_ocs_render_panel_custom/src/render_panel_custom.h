@@ -21,6 +21,8 @@ public:
   RenderPanelCustom( QWidget* parent = 0 );
   virtual ~RenderPanelCustom();
 
+  //Ogre::Camera* getCamera() {return customCamera;};
+
 Q_SIGNALS:
   void signalMouseMoveEvent( QMouseEvent* event );
   void signalMousePressEvent( QMouseEvent* event );
@@ -39,6 +41,9 @@ protected:
   virtual void wheelEvent( QWheelEvent* event );
   virtual void leaveEvent ( QEvent * event );
   virtual void keyPressEvent( QKeyEvent* event );
+
+private:
+  //Ogre::Camera customCamera;
 };
 
 } // namespace rviz

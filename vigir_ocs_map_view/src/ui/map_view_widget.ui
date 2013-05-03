@@ -75,7 +75,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-152</y>
+           <y>-265</y>
            <width>242</width>
            <height>827</height>
           </rect>
@@ -280,6 +280,7 @@
    <container>1</container>
    <slots>
     <signal>insertTemplate(QString)</signal>
+    <signal>templatePathChanged(QString)</signal>
    </slots>
   </customwidget>
   <customwidget>
@@ -302,6 +303,7 @@
     <slot>markerTemplateToggled(bool)</slot>
     <slot>cameraToggled(bool)</slot>
     <slot>selectToggled(bool)</slot>
+    <slot>templatePathChanged(QString)</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -450,6 +452,22 @@
     <hint type="sourcelabel">
      <x>645</x>
      <y>331</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>256</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>template_widget_3</sender>
+   <signal>templatePathChanged(QString)</signal>
+   <receiver>map_view_</receiver>
+   <slot>templatePathChanged(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>645</x>
+     <y>467</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>

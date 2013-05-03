@@ -51,6 +51,8 @@
 #include "rviz/properties/property.h"
 #include "rviz/properties/string_property.h"
 #include "rviz/render_panel.h"
+#include "rviz/validate_floats.h"
+#include "rviz/view_manager.h"
 
 #include "selection_3d_display_custom.h"
 
@@ -202,6 +204,7 @@ void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
 
     if(initialized_)
     {
+        //std::cout << "Update" << std::endl;
         // get transform from world to fixed frame
         Ogre::Quaternion selection_orientation(1,0,0,0);
         Ogre::Vector3 selection_position = selection_position_;
@@ -216,25 +219,55 @@ void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
         //std::cout << selection_position_roi.x << "," << selection_position_roi.y << "," << selection_position_roi.z << std::endl;
 
         // get camera position to calculate selection marker
-        Ogre::Vector3 camera_position = this->render_panel_->getCamera()->getDerivedPosition();
+        //std::cout << "selection " << render_panel_->getCamera() << std::endl;
+        Ogre::Vector3 camera_position = this->render_panel_->getCamera()->getPosition();
+        //std::cout << this->context_->getSceneManager()->getCameras().size() << std::endl;
+        //Ogre::SceneManager::CameraList camera_list = this->context_->getSceneManager()->getCameras();
+        //Ogre::SceneManager::CameraIterator camera_list_iterator = this->context_->getSceneManager()->getCameraIterator();
+        //while(camera_list_iterator.hasMoreElements())
+        //{
+        //    Ogre::Camera* temp_cam = camera_list_iterator.getNext();
+        //    Ogre::Vector3 temp_pos = temp_cam->getDerivedPosition();
+        //    std::cout << "it " << temp_pos.x << "," << temp_pos.y << "," << temp_pos.z << std::endl;
+        //}
+
+        //Ogre::Vector3 camera_position2 = this->context_->getSceneManager()->getCamera();
+        //std::cout << "1 " << camera_position.x << "," << camera_position.y << "," << camera_position.z << std::endl;
+        //std::cout << "2 " << camera_position2.x << "," << camera_position2.y << "," << camera_position2.z << std::endl;
         // get the current fov
-        float radians = 0.174; // 10 deg //this->render_panel_->getCamera()->getFOVy() * 0.04;
+        float size = 0.0007f;
 
         // calculate distance from markers
-        float distance_selection = camera_position.distance(selection_position);
-        if(!selection_position.isNaN()) selection_marker_->setPosition(selection_position);
-        float scale_selection = distance_selection*tan(radians)*0.001f;
-        if(scale_selection > 0.0f) selection_marker_->setScale(scale_selection,scale_selection,scale_selection);
+        if(validateFloats(selection_position))
+        {
+            float distance_selection = camera_position.distance(selection_position);
+            //std::cout << distance_selection << std::endl;
+            if(distance_selection != std::numeric_limits<float>::infinity() && !(distance_selection != distance_selection)) // check for inf and nan
+            {
+                if(!selection_position.isNaN()) selection_marker_->setPosition(selection_position);
+                float scale_selection = 2.0f * distance_selection * tan(this->render_panel_->getCamera()->getFOVy().valueRadians() / 2.0f);//distance_selection*tan(radians)*0.002f;
+                //std::cout << scale_selection << std::endl;
+                if(scale_selection > 0.0f) selection_marker_->setScale(scale_selection*size,scale_selection*size,scale_selection*size);
 
-        float distance_selection_roi = camera_position.distance(selection_position_roi);
-        if(!selection_position_roi.isNaN()) roi_marker_final_->setPosition(selection_position_roi);
-        float scale_selection_roi = distance_selection_roi*tan(radians)*0.001f;
-        if(scale_selection_roi > 0.0f) selection_marker_->setScale(scale_selection_roi,scale_selection_roi,scale_selection_roi);
+                if(validateFloats(selection_position_roi))
+                {
+                    float distance_selection_roi = camera_position.distance(selection_position_roi);
+                    //std::cout << distance_selection_roi << std::endl; // <<< inf
+                    if(distance_selection_roi != std::numeric_limits<float>::infinity() && !(distance_selection_roi != distance_selection_roi))
+                    {
+                        if(!selection_position_roi.isNaN()) roi_marker_final_->setPosition(selection_position_roi);
+                        float scale_selection_roi = 2.0f * distance_selection_roi * tan(this->render_panel_->getCamera()->getFOVy().valueRadians() / 2.0f);// = distance_selection_roi*tan(radians)*0.002f;
+                        //std::cout << scale_selection_roi << std::endl;
+                        if(scale_selection_roi > 0.0f) roi_marker_final_->setScale(scale_selection_roi*size,scale_selection_roi*size,scale_selection_roi*size);
 
-        Ogre::Vector3 box_position = (selection_position+selection_position_roi)/2.0f;
+                        Ogre::Vector3 box_position = (selection_position+selection_position_roi)/2.0f;
 
-        if(!box_position.isNaN()) roi_marker_box_->setPosition(box_position);
-        if(!selection_orientation.isNaN()) roi_marker_box_->setOrientation(selection_orientation);
+                        if(!box_position.isNaN()) roi_marker_box_->setPosition(box_position);
+                        if(!selection_orientation.isNaN()) roi_marker_box_->setOrientation(selection_orientation);
+                    }
+                }
+            }
+        }
     }
 
     context_->queueRender();
@@ -386,6 +419,17 @@ void Selection3DDisplayCustom::createROISelection(int x, int y)
 void Selection3DDisplayCustom::setRenderPanel( rviz::RenderPanel* rp )
 {
     this->render_panel_ = rp;
+}
+
+void Selection3DDisplayCustom::resetSelection()
+{
+
+    selection_marker_->setVisible(false);
+    selection_marker_->setScale(0.0000001f,0.0000001f,0.0000001f);
+    roi_marker_final_->setVisible(false);
+    roi_marker_final_->setScale(0.0000001f,0.0000001f,0.0000001f);
+    roi_marker_box_->setVisible(false);
+    roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
 }
 
 } // namespace rviz

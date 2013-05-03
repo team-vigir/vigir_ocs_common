@@ -475,9 +475,6 @@ bool CameraDisplayCustom::updateCamera()
     context_->getFrameManager()->getTransform( image->header.frame_id, image->header.stamp, position, orientation );
     //manager_->getFrameManager()->getTransform( image->header.frame_id, image->header.stamp, position, orientation );
 
-
-    //printf( "CameraDisplay:updateCamera(): pos = %.2f, %.2f, %.2f.\n", position.x, position.y, position.z );
-
     // convert vision (Z-forward) frame to ogre frame (Z-out)
     orientation = orientation * Ogre::Quaternion( Ogre::Degree( 180 ), Ogre::Vector3::UNIT_X );
 
@@ -528,6 +525,9 @@ bool CameraDisplayCustom::updateCamera()
 
     render_panel_->getCamera()->setPosition( position );
     render_panel_->getCamera()->setOrientation( orientation );
+
+    //std::cout << render_panel_->getCamera() << std::endl;
+    //printf( "CameraDisplay:updateCamera(): pos = %.2f, %.2f, %.2f.\n", position.x, position.y, position.z );
 
     // calculate the projection matrix
     double cx = info->P[2];

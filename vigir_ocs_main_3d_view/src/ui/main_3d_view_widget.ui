@@ -281,6 +281,7 @@
     <slot>select3DToggled(bool)</slot>
     <slot>insertTemplate(QString)</slot>
     <slot>insertWaypoint()</slot>
+    <slot>templatePathChanged(QString)</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -290,6 +291,7 @@
    <container>1</container>
    <slots>
     <signal>insertTemplate(QString)</signal>
+    <signal>templatePathChanged(QString)</signal>
    </slots>
   </customwidget>
  </customwidgets>
@@ -464,6 +466,22 @@
     <hint type="sourcelabel">
      <x>650</x>
      <y>408</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>256</x>
+     <y>337</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>template_widget</sender>
+   <signal>templatePathChanged(QString)</signal>
+   <receiver>main_3d_view_</receiver>
+   <slot>templatePathChanged(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>654</x>
+     <y>527</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>

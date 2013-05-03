@@ -34,6 +34,7 @@ namespace vigir_ocs
 // Constructor for Base3DView.  This does most of the work of the class.
 Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     : QWidget( parent )
+    , selected_(false)
 {
     base_frame_ = base_frame;
 
@@ -76,6 +77,8 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     //hand_model_ = manager_->createDisplay( "rviz/GraspDisplayCustom", "Grasp display test", true );
     //ROS_ASSERT( hand_model_ != NULL );
 
+    // First remove all existin tools
+    manager_->getToolManager()->removeAll();
     // Add support for interactive markers
     interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/Interact" );
     // Add support for selection
@@ -128,7 +131,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     // Create a display for 3D selection
     selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
-    
+
     // Create a display for waypoints
     waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
     waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/list" );
@@ -141,6 +144,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // connect the 3d selection tool to its display
     QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
     QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
+    QObject::connect(this, SIGNAL(resetSelection()), selection_3d_display_, SLOT(resetSelection()));
 
     Q_EMIT setRenderPanel(this->render_panel_);
 
@@ -153,8 +157,8 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     // create a publisher to add templates
     template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
-    
-	// create a publisher to add waypoints
+
+    // create a publisher to add waypoints
     waypoint_add_pub_   = n_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
 
     selection_position_ = Ogre::Vector3(0,0,0);
@@ -262,54 +266,128 @@ void Base3DView::vectorToggled( bool selected )
 void Base3DView::newSelection( Ogre::Vector3 position )
 {
     selection_position_ = position;
+    selected_ = true;
+}
+
+void Base3DView::templatePathChanged( QString path )
+{
+    selected_template_path_ = path;
+}
+
+void Base3DView::transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose)
+{
+
+    tf::Quaternion bt_orientation(pose.pose.orientation.x,pose.pose.orientation.y,pose.pose.orientation.z,pose.pose.orientation.w);
+    tf::Vector3 bt_position(pose.pose.position.x,pose.pose.position.y,pose.pose.position.z);
+
+    tf::Stamped<tf::Pose> pose_in(tf::Transform(bt_orientation,bt_position), ros::Time(), pose.header.frame_id);
+    tf::Stamped<tf::Pose> pose_out;
+
+    try
+    {
+        manager_->getFrameManager()->getTFClient()->transformPose( target_frame.c_str(), pose_in, pose_out );
+    }
+    catch(tf::TransformException& e)
+    {
+        ROS_DEBUG("Error transforming from frame '%s' to frame '%s': %s", pose.header.frame_id.c_str(), target_frame.c_str(), e.what());
+        return;
+    }
+
+    bt_position = pose_out.getOrigin();
+    bt_orientation = pose_out.getRotation();
+
+    pose.pose.position.x = bt_position.x();
+    pose.pose.position.y = bt_position.y();
+    pose.pose.position.z = bt_position.z();
+    pose.pose.orientation.x = bt_orientation.x();
+    pose.pose.orientation.y = bt_orientation.y();
+    pose.pose.orientation.z = bt_orientation.z();
+    pose.pose.orientation.w = bt_orientation.w();
+
+    pose.header.frame_id = target_frame;
 }
 
 void Base3DView::insertTemplate( QString path )
 {
     std::cout << "adding template" << std::endl;
 
-    flor_ocs_msgs::OCSTemplateAdd cmd;
-    geometry_msgs::PoseStamped pose;
+    if(!selected_)
+    {
+        flor_ocs_msgs::OCSTemplateAdd cmd;
+        geometry_msgs::PoseStamped pose;
 
-    cmd.template_path = path.toStdString();
+        cmd.template_path = path.toStdString();
 
-    pose.pose.position.x = selection_position_.x;
-    pose.pose.position.y = selection_position_.y;
-    pose.pose.position.z = selection_position_.z;
-    pose.pose.orientation.x = 0;
-    pose.pose.orientation.y = 0;
-    pose.pose.orientation.z = 0;
-    pose.pose.orientation.w = 1;
+        pose.pose.position.x = 1;
+        pose.pose.position.y = 0;
+        pose.pose.position.z = .2;
+        pose.pose.orientation.x = 0;
+        pose.pose.orientation.y = 0;
+        pose.pose.orientation.z = 0;
+        pose.pose.orientation.w = 1;
+        pose.header.frame_id = base_frame_;
+        transform("/world",pose);
 
-    pose.header.frame_id = "/world";
+        cmd.pose = pose;
 
-    cmd.pose = pose;
+        // publish complete list of templates and poses
+        template_add_pub_.publish( cmd );
+    }
+    else
+    {
+        flor_ocs_msgs::OCSTemplateAdd cmd;
+        geometry_msgs::PoseStamped pose;
 
-    // publish complete list of templates and poses
-    template_add_pub_.publish( cmd );
+        cmd.template_path = path.toStdString();
+
+        pose.pose.position.x = selection_position_.x;
+        pose.pose.position.y = selection_position_.y;
+        pose.pose.position.z = selection_position_.z;
+        pose.pose.orientation.x = 0;
+        pose.pose.orientation.y = 0;
+        pose.pose.orientation.z = 0;
+        pose.pose.orientation.w = 1;
+
+        pose.header.frame_id = "/world";
+
+        cmd.pose = pose;
+
+        // publish complete list of templates and poses
+        template_add_pub_.publish( cmd );
+
+        selected_ = false;
+
+        Q_EMIT resetSelection();
+    }
 }
 
 void Base3DView::insertWaypoint()
 {
-    std::cout << "adding waypoint" << std::endl;
+    if(selected_)
+    {
+        std::cout << "adding waypoint" << std::endl;
 
-    flor_ocs_msgs::OCSWaypointAdd cmd;
-    geometry_msgs::PoseStamped pose;
+        flor_ocs_msgs::OCSWaypointAdd cmd;
+        geometry_msgs::PoseStamped pose;
 
-    pose.pose.position.x = selection_position_.x;
-    pose.pose.position.y = selection_position_.y;
-    pose.pose.position.z = selection_position_.z;
-    pose.pose.orientation.x = 0;
-    pose.pose.orientation.y = 0;
-    pose.pose.orientation.z = 0;
-    pose.pose.orientation.w = 1;
+        pose.pose.position.x = selection_position_.x;
+        pose.pose.position.y = selection_position_.y;
+        pose.pose.position.z = selection_position_.z;
+        pose.pose.orientation.x = 0;
+        pose.pose.orientation.y = 0;
+        pose.pose.orientation.z = 0;
+        pose.pose.orientation.w = 1;
 
-    pose.header.frame_id = "/world";
+        pose.header.frame_id = "/world";
 
-    cmd.pose = pose;
+        cmd.pose = pose;
 
-    // publish complete list of templates and poses
-    waypoint_add_pub_.publish( cmd );
+        // publish complete list of templates and poses
+        waypoint_add_pub_.publish( cmd );
+
+        selected_ = false;
+        Q_EMIT resetSelection();
+    }
 }
 
 void Base3DView::createContextMenu(int x, int y)
@@ -317,16 +395,27 @@ void Base3DView::createContextMenu(int x, int y)
     QPoint globalPos = this->mapToGlobal(QPoint(x+10,y+10));
 
     QMenu myMenu;
-    myMenu.addAction("Menu Item 1");
+
+    myMenu.addAction("Insert Template");
+    if(selected_) myMenu.addAction("Insert Waypoint");
 
     QAction* selectedItem = myMenu.exec(globalPos);
-    if (selectedItem)
+    std::cout << selectedItem << std::endl;
+    if(selectedItem != NULL)
     {
-        // something was chosen, do stuff
-    }
-    else
-    {
-        // nothing was chosen
+        if (selectedItem->text() == QString("Insert Template"))
+        {
+            if(!selected_template_path_.isEmpty())
+                insertTemplate(selected_template_path_);
+        }
+        else if (selectedItem->text() == QString("Insert Waypoint"))
+        {
+            insertWaypoint();
+        }
+        else
+        {
+            // nothing was chosen, probably don't need this anymore since checking for NULL
+        }
     }
 }
 

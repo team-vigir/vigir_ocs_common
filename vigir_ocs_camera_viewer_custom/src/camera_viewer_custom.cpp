@@ -16,10 +16,12 @@
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
 #include "rviz/tool_manager.h"
+#include "rviz/view_manager.h"
 #include "camera_viewer_custom.h"
 //#include "image_display_custom.h"
 #include "camera_display_custom.h"
 #include "image_selection_tool_custom.h"
+#include "empty_view_controller.h"
 
 // Constructor for CameraViewerCustom.  This does most of the work of the class.
 
@@ -58,6 +60,10 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
 
     // and advertise the head pitch update function
     head_pitch_update_pub_ = n_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ay", 1, false );
+
+    rviz::EmptyViewController* camera_controller = new rviz::EmptyViewController();
+    camera_controller->initialize( render_panel_->getManager() );
+    render_panel_->setViewController( camera_controller );
 }
 
 // Destructor.

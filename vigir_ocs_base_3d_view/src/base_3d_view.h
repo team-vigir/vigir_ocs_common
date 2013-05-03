@@ -62,14 +62,18 @@ public Q_SLOTS:
 
     void newSelection( Ogre::Vector3 );
     void insertTemplate( QString );
+    void templatePathChanged( QString );
     void insertWaypoint();
 
     void createContextMenu( int, int );
 
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
+    void resetSelection();
 
 protected:
+    void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
+
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
 
@@ -105,6 +109,9 @@ protected:
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
     std::string base_frame_;
+
+    bool selected_;
+    QString selected_template_path_;
 };
 }
 #endif // BASE_3D_VIEW_H

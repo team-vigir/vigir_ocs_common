@@ -37,6 +37,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void insertTemplate(QString);
+    void templatePathChanged(QString);
 
 };
 
