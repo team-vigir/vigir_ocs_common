@@ -18,6 +18,8 @@
 #include <flor_grasp_msgs/TemplateSelection.h>
 #include <geometry_msgs/Pose.h>
 #include <ros/ros.h>
+#include <flor_ocs_msgs/OCSRobotStatus.h>
+#include <flor_ocs_msgs/RobotStatusCodes.h>
 
 namespace rviz
 {
@@ -104,6 +106,13 @@ private:
     std::string hand;
 //    uint8_t currentGraspState;
     uint8_t currentGraspMode;
+
+    // **************************
+    // show robot status messages
+    ros::Subscriber robot_status_sub_;
+    RobotStatusCodes robot_status_codes_;
+
+    void robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
 };
 
 #endif // GRASPWIDGET_H

@@ -60,6 +60,16 @@ graspWidget::graspWidget(QWidget *parent) :
     grasp_mode_command_pub_     = nh.advertise<flor_grasp_msgs::GraspState>(         "/template/grasp_mode_command",     1, false);
     template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/template_match_request", 1, false );
 
+    // create subscribers for grasp status
+    if(hand == "left")
+        robot_status_sub_            = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>(     "/grasp_control/l_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
+    else
+        robot_status_sub_            = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>(     "/grasp_control/r_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
+
+    // find robot status message code csv file
+    std::string code_path_ = (ros::package::getPath("flor_ocs_msgs"))+"/include/flor_ocs_msgs/messages.csv";
+    std::cout << code_path_ << std::endl;
+    robot_status_codes_.loadErrorMessages(code_path_);
 }
 //SetStylesheet to change on the fly
 
@@ -484,4 +494,11 @@ void graspWidget::on_manualRadio_clicked()
     grasp_mode_command_pub_.publish(msg);
     std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level to " << hand << " hand" << std::endl;
 
+}
+
+void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
+{
+	uint8_t code, severity;
+	RobotStatusCodes::codes(msg->code,code,severity);
+	ui->robot_status_->setText(robot_status_codes_.str(code).c_str());
 }
