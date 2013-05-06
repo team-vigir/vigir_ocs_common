@@ -14,7 +14,7 @@ void WaypointFollowingBasic::onInit()
     ros::NodeHandle& nh = getNodeHandle();
     //ros::NodeHandle nh_out(nh, "waypoint");
     maxSpeed = 1.0;
-    maxTurn =  0.75;
+    maxTurn =  1.5;
     oldTurn=0;
     destWaypoint = -1;
     timer = nh.createTimer(ros::Duration(0.025),&WaypointFollowingBasic::moveRobot,this,false,false);
@@ -98,7 +98,7 @@ bool WaypointFollowingBasic::atWaypoint()
 
     geometry_msgs::PoseStamped pnt = waypoints.poses[destWaypoint];
     float dist = sqrt(pow((robotX-pnt.pose.position.x),2)+pow((robotY-pnt.pose.position.y),2));
-    if(dist <= 0.5)
+    if(dist <= 0.25)
     {
         std::cout << "Arived at waypoint # " << destWaypoint << std::endl;
         geometry_msgs::Twist stopMsg;
