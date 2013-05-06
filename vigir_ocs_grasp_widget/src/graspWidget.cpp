@@ -498,5 +498,7 @@ void graspWidget::on_manualRadio_clicked()
 
 void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
 {
-
+	uint8_t code, severity;
+	RobotStatusCodes::codes(msg->code,code,severity);
+	ui->robot_status_->setText(robot_status_codes_.str(code).c_str());
 }
