@@ -15,6 +15,11 @@
 
 #include "base_3d_view.h"
 
+namespace rviz
+{
+class RenderPanelCustom;
+}
+
 namespace vigir_ocs
 {
 // Class "MapView" implements the RobotModel class with joint manipulation that can be added to any QT application.

@@ -14,6 +14,8 @@
 
 #include "rviz/visualization_manager.h"
 #include "rviz/view_manager.h"
+#include "rviz/display.h"
+#include <render_panel_custom.h>
 #include "map_view.h"
 
 namespace vigir_ocs
@@ -25,6 +27,11 @@ MapView::MapView( QWidget* parent )
     // set the camera to be topdownortho
     rviz::ViewManager* view_man_ = manager_->getViewManager();
     view_man_->setCurrentFrom( view_man_->create( "rviz/TopDownOrtho" ) );
+
+    //rviz::TopDownOrthoCustom* camera_controller = new rviz::TopDownOrthoCustom();
+    //camera_controller->initialize( render_panel_->getManager() );
+    //render_panel_->setViewController( camera_controller );
+    //view_man_->setCurrentFrom( camera_controller );
 }
 
 // Destructor.

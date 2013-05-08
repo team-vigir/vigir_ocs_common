@@ -64,6 +64,8 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     rviz::EmptyViewController* camera_controller = new rviz::EmptyViewController();
     camera_controller->initialize( render_panel_->getManager() );
     render_panel_->setViewController( camera_controller );
+
+    Q_EMIT setMarkerScale(0.001f);
 }
 
 // Destructor.

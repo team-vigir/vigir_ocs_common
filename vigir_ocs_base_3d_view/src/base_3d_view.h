@@ -70,6 +70,7 @@ public Q_SLOTS:
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
     void resetSelection();
+    void setMarkerScale( float );
 
 protected:
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);

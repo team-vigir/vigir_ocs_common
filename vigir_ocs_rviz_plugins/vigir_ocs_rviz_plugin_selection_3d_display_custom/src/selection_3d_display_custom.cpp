@@ -41,6 +41,7 @@
 #include <OGRE/OgreSceneManager.h>
 #include <OGRE/OgreMovableObject.h>
 #include <OGRE/OgreMaterialManager.h>
+#include <OGRE/OgreFrustum.h>
 
 #include <urdf/model.h>
 
@@ -66,6 +67,7 @@ Selection3DDisplayCustom::Selection3DDisplayCustom()
     , selection_marker_(NULL)
     //, mCurrentObject(NULL)
     , initialized_(false)
+    , marker_scale_(0.0004f)
 {
 }
 
@@ -209,7 +211,7 @@ void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
         Ogre::Quaternion selection_orientation(1,0,0,0);
         Ogre::Vector3 selection_position = selection_position_;
         transform(selection_position,selection_orientation,"/world",fixed_frame_.toUtf8().constData());
-        //std::cout << selection_position.x << "," << selection_position.y << "," << selection_position.z << std::endl;
+        //std::cout << "selection: " << selection_position.x << "," << selection_position.y << "," << selection_position.z << std::endl;
 
         //Ogre::Vector3 selection_position_roi = selection_position_roi_;
         //selection_position_roi = (ot * selection_position_roi) * pt;
@@ -232,10 +234,25 @@ void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
         //}
 
         //Ogre::Vector3 camera_position2 = this->context_->getSceneManager()->getCamera();
-        //std::cout << "1 " << camera_position.x << "," << camera_position.y << "," << camera_position.z << std::endl;
         //std::cout << "2 " << camera_position2.x << "," << camera_position2.y << "," << camera_position2.z << std::endl;
+
+        if(this->render_panel_->getCamera()->getProjectionType() == Ogre::PT_ORTHOGRAPHIC) // if it's ortho, we need to calculate z again
+        {
+            Ogre::Matrix4 m = this->render_panel_->getCamera()->getProjectionMatrix();
+            //float near   =  (1+m[2][3])/m[2][2];
+            //float far    = -(1-m[2][3])/m[2][2];
+            float bottom =  (1-m[1][3])/m[1][1];
+            float top    = -(1+m[1][3])/m[1][1];
+            //float left   = -(1+m[0][3])/m[0][0];
+            //float right  =  (1-m[0][3])/m[0][0];
+            //std::cout << "ortho:\n\t" << left << "\n\t" << right << "\n\t" << bottom << "\n\t" << top << "\n\t" << near << "\n\t" << far << std::endl;
+            camera_position.z = fabs(bottom)+fabs(top);
+        }
+
+        //std::cout << "camera: " << camera_position.x << "," << camera_position.y << "," << camera_position.z << std::endl;
+
         // get the current fov
-        float size = 0.0007f;
+        float size = marker_scale_;
 
         // calculate distance from markers
         if(validateFloats(selection_position))
@@ -430,6 +447,11 @@ void Selection3DDisplayCustom::resetSelection()
     roi_marker_final_->setScale(0.0000001f,0.0000001f,0.0000001f);
     roi_marker_box_->setVisible(false);
     roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
+}
+
+void Selection3DDisplayCustom::setMarkerScale(float scale)
+{
+    marker_scale_ = scale;
 }
 
 } // namespace rviz

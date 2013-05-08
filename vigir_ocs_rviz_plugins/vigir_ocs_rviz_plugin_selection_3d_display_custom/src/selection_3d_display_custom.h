@@ -107,6 +107,7 @@ private Q_SLOTS:
   void createROISelection(int,int);
   void resetSelection();
   void setRenderPanel(rviz::RenderPanel*);
+  void setMarkerScale(float);
 
 protected:
   virtual void load();
@@ -136,6 +137,8 @@ protected:
   Ogre::Vector3 selection_position_roi_;
 
   bool initialized_;
+
+  float marker_scale_;
 };
 
 } // namespace rviz

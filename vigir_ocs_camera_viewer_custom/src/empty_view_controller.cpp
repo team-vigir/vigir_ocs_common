@@ -293,5 +293,5 @@ void EmptyViewController::move( float x, float y, float z )
 
 } // end namespace rviz
 
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS( rviz::EmptyViewController, rviz::ViewController )
+//#include <pluginlib/class_list_macros.h>
+//PLUGINLIB_EXPORT_CLASS( rviz::EmptyViewController, rviz::ViewController )
