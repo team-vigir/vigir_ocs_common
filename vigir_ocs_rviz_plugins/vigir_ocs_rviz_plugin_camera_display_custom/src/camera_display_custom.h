@@ -123,6 +123,8 @@ private Q_SLOTS:
 
   virtual void updateQueueSize();
 
+  void updateCroppedTopic();
+
 protected:
     // overrides from Display
     virtual void onEnable();
@@ -208,6 +210,7 @@ private:
   FloatProperty* zoom_property_;
     EnumProperty* image_position_property_;
     DisplayGroupVisibilityProperty* visibility_property_;
+    RosTopicProperty* cropped_topic_property_;
     bool caminfo_ok_;
 
     bool force_render_;

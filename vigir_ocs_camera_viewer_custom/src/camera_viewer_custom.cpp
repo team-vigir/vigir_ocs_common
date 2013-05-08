@@ -94,11 +94,39 @@ void CameraViewerCustom::select( int x1, int y1, int x2, int y2 )
 void CameraViewerCustom::changeCameraTopic( int t )
 {
     std::cout << "Camera topic changed:" << t << std::endl;
-    //switch( t )
-    //{
-    //    case 0:
-    //
-    //}
+    switch( t )
+    {
+    case 0: // Head Left
+    {
+        camera_viewer_->subProp( "Image Topic" )->setValue( "/l_image_full/image_raw" );
+        break;
+    }
+    case 1: // Head Right
+    {
+        camera_viewer_->subProp( "Image Topic" )->setValue( "/r_image_full/image_raw" );
+        break;
+    }
+    case 2: // Left hand Left
+    {
+        camera_viewer_->subProp( "Image Topic" )->setValue( "/lhl_image_full/image_raw" );
+        break;
+    }
+    case 3: // Left hand Right
+    {
+        camera_viewer_->subProp( "Image Topic" )->setValue( "/lhr_image_full/image_raw" );
+        break;
+    }
+    case 4: // Right hand Right
+    {
+        camera_viewer_->subProp( "Image Topic" )->setValue( "/rhl_image_full/image_raw" );
+        break;
+    }
+    case 5: // Right hand Right
+    {
+        camera_viewer_->subProp( "Image Topic" )->setValue( "/rhr_image_full/image_raw" );
+        break;
+    }
+    }
 }
 
 void CameraViewerCustom::changeFullImageResolution( int t )

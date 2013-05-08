@@ -114,29 +114,28 @@ CameraDisplayCustom::CameraDisplayCustom()
     , force_render_( false )
     , caminfo_ok_(false)
 {
-
-    std::cout << " 1" << std::endl;
     image_position_property_ = new EnumProperty( "Image Rendering", BACKGROUND,
                                                  "Render the image behind all other geometry or overlay it on top, or both.",
                                                  this, SLOT( forceRender() ));
     image_position_property_->addOption( BACKGROUND );
     image_position_property_->addOption( OVERLAY );
     image_position_property_->addOption( BOTH );
-    std::cout << " 2" << std::endl;
 
     alpha_property_ = new FloatProperty( "Overlay Alpha", 0.5,
                                          "The amount of transparency to apply to the camera image when rendered as overlay.",
                                          this, SLOT( updateAlpha() ));
     alpha_property_->setMin( 0 );
     alpha_property_->setMax( 1 );
-    std::cout << " 3" << std::endl;
 
     zoom_property_ = new FloatProperty( "Zoom Factor", 1.0,
                                         "Set a zoom factor below 1 to see a larger part of the world, above 1 to magnify the image.",
                                         this, SLOT( forceRender() ));
     zoom_property_->setMin( 0.00001 );
     zoom_property_->setMax( 100000 );
-    std::cout << " 4" << std::endl;
+
+    cropped_topic_property_ = new RosTopicProperty("Cropped Image Topic", "",
+                                           QString::fromStdString(ros::message_traits::datatype<sensor_msgs::Image>()),
+                                           "sensor_msgs::Image topic to subscribe to.", this, SLOT( updateCroppedTopic() ));
 }
 
 CameraDisplayCustom::~CameraDisplayCustom()
