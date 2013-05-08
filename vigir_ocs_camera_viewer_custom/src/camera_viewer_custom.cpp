@@ -98,32 +98,50 @@ void CameraViewerCustom::changeCameraTopic( int t )
     {
     case 0: // Head Left
     {
+        camera_viewer_->subProp( "Image Request Topic" )->setValue( "/l_image_full/image_request" );
         camera_viewer_->subProp( "Image Topic" )->setValue( "/l_image_full/image_raw" );
+        camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( "/l_image_cropped/image_request" );
+        camera_viewer_->subProp( "Cropped Image Topic" )->setValue( "/l_image_cropped/image_raw" );
         break;
     }
     case 1: // Head Right
     {
+        camera_viewer_->subProp( "Image Request Topic" )->setValue( "/r_image_full/image_request" );
         camera_viewer_->subProp( "Image Topic" )->setValue( "/r_image_full/image_raw" );
+        camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( "/r_image_cropped/image_request" );
+        camera_viewer_->subProp( "Cropped Image Topic" )->setValue( "/r_image_cropped/image_raw" );
         break;
     }
     case 2: // Left hand Left
     {
+        camera_viewer_->subProp( "Image Request Topic" )->setValue( "/lhl_image_full/image_request" );
         camera_viewer_->subProp( "Image Topic" )->setValue( "/lhl_image_full/image_raw" );
+        camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( "/lhl_image_cropped/image_request" );
+        camera_viewer_->subProp( "Cropped Image Topic" )->setValue( "/lhl_image_cropped/image_raw" );
         break;
     }
     case 3: // Left hand Right
     {
+        camera_viewer_->subProp( "Image Request Topic" )->setValue( "/lhr_image_full/image_request" );
         camera_viewer_->subProp( "Image Topic" )->setValue( "/lhr_image_full/image_raw" );
+        camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( "/lhr_image_cropped/image_request" );
+        camera_viewer_->subProp( "Cropped Image Topic" )->setValue( "/lhr_image_cropped/image_raw" );
         break;
     }
-    case 4: // Right hand Right
+    case 4: // Right hand Left
     {
+        camera_viewer_->subProp( "Image Request Topic" )->setValue( "/rhl_image_full/image_request" );
         camera_viewer_->subProp( "Image Topic" )->setValue( "/rhl_image_full/image_raw" );
+        camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( "/rhl_image_cropped/image_request" );
+        camera_viewer_->subProp( "Cropped Image Topic" )->setValue( "/rhl_image_cropped/image_raw" );
         break;
     }
     case 5: // Right hand Right
     {
+        camera_viewer_->subProp( "Image Request Topic" )->setValue( "/rhr_image_full/image_request" );
         camera_viewer_->subProp( "Image Topic" )->setValue( "/rhr_image_full/image_raw" );
+        camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( "/rhr_image_cropped/image_request" );
+        camera_viewer_->subProp( "Cropped Image Topic" )->setValue( "/rhr_image_cropped/image_raw" );
         break;
     }
     }
@@ -143,6 +161,7 @@ void CameraViewerCustom::changeCropImageResolution( int t )
 
 void CameraViewerCustom::changeCameraSpeed( int t )
 {
+    std::cout << "changed camera update speed: " << t << std::endl;
     Q_EMIT setCameraSpeed( t );
 }
 

@@ -124,6 +124,8 @@ private Q_SLOTS:
   virtual void updateQueueSize();
 
   void updateCroppedTopic();
+  void updateImgReqTopic();
+  void updateImgReqCroppedTopic();
 
 protected:
     // overrides from Display
@@ -207,10 +209,9 @@ private:
 
     bool new_caminfo_;
     FloatProperty* alpha_property_;
-  FloatProperty* zoom_property_;
+    FloatProperty* zoom_property_;
     EnumProperty* image_position_property_;
     DisplayGroupVisibilityProperty* visibility_property_;
-    RosTopicProperty* cropped_topic_property_;
     bool caminfo_ok_;
 
     bool force_render_;
@@ -237,7 +238,12 @@ private:
     int rect_dim_y1_;
     int rect_dim_y2_;
 
-  VisualizationManager* manager_;
+    VisualizationManager* manager_;
+
+    RosTopicProperty* cropped_topic_property_;
+    RosTopicProperty* img_req_full_topic_property_;
+    RosTopicProperty* img_req_cropped_topic_property_;
+
 };
 
 } // namespace rviz

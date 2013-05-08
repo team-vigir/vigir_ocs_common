@@ -1,4 +1,4 @@
-/* 
+/*
  * CameraDisplayCustom class implementation.
  *
  * Author: Felipe Bacim.
@@ -134,8 +134,15 @@ CameraDisplayCustom::CameraDisplayCustom()
     zoom_property_->setMax( 100000 );
 
     cropped_topic_property_ = new RosTopicProperty("Cropped Image Topic", "",
-                                           QString::fromStdString(ros::message_traits::datatype<sensor_msgs::Image>()),
-                                           "sensor_msgs::Image topic to subscribe to.", this, SLOT( updateCroppedTopic() ));
+                                                   QString::fromStdString(ros::message_traits::datatype<sensor_msgs::Image>()),
+                                                   "sensor_msgs::Image topic to subscribe to.", this, SLOT( updateCroppedTopic() ));
+
+    img_req_full_topic_property_ = new RosTopicProperty("Image Request Topic", "",
+                                                      QString::fromStdString(ros::message_traits::datatype<sensor_msgs::Image>()),
+                                                      "sensor_msgs::Image topic to subscribe to.", this, SLOT( updateImgReqTopic() ));
+    img_req_cropped_topic_property_ = new RosTopicProperty("Cropped Image Request Topic", "",
+                                                           QString::fromStdString(ros::message_traits::datatype<sensor_msgs::Image>()),
+                                                           "sensor_msgs::Image topic to subscribe to.", this, SLOT( updateImgReqCroppedTopic() ));
 }
 
 CameraDisplayCustom::~CameraDisplayCustom()
@@ -297,12 +304,8 @@ void CameraDisplayCustom::onInitialize()
     img_req_sub_crop_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, &CameraDisplayCustom::processCropImageRequest, this );
     img_req_sub_full_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &CameraDisplayCustom::processFullImageRequest, this );
 
-
-
     caminfo_tf_filter_->connectInput(caminfo_sub_);
     caminfo_tf_filter_->registerCallback(boost::bind(&CameraDisplayCustom::caminfoCallback, this, _1));
-
-
 }
 
 /**
@@ -1033,6 +1036,52 @@ void CameraDisplayCustom::setZoom(float newZoom)
 }
 
 
+void CameraDisplayCustom::updateCroppedTopic()
+{
+    std::cout << "new cropped image topic: " << cropped_topic_property_->getTopicStd() << std::endl;
+
+    if(!cropped_topic_property_->getTopicStd().empty())
+    {
+        // unsubscribe
+        cropped_image_.shutdown();
+        // then, subscribe to the resulting cropped image
+        cropped_image_ = n_.subscribe<sensor_msgs::Image>( cropped_topic_property_->getTopicStd(), 5, &CameraDisplayCustom::processCroppedImage, this );
+    }
+}
+
+void CameraDisplayCustom::updateImgReqTopic()
+{
+    std::cout << "new image request topic: " << img_req_full_topic_property_->getTopicStd() << std::endl;
+
+    if(!img_req_full_topic_property_->getTopicStd().empty())
+    {
+        img_req_pub_full_.shutdown();
+        img_req_pub_full_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( img_req_full_topic_property_->getTopicStd(), 1, true );
+
+        // publish image request for full image - TO DO: MAKE THESE CONFIGURABLE WITH A SLOT FOR UI INTEGRATION
+        publishFullImageRequest();
+
+        img_req_sub_full_.shutdown();
+        // finally, we need to subscribe to requests so that multiple clients have everything updated
+        img_req_sub_full_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( img_req_full_topic_property_->getTopicStd(), 1, &CameraDisplayCustom::processFullImageRequest, this );
+    }
+}
+
+void CameraDisplayCustom::updateImgReqCroppedTopic()
+{
+    std::cout << "new crop request topic: " << img_req_cropped_topic_property_->getTopicStd() << std::endl;
+
+    if(!img_req_cropped_topic_property_->getTopicStd().empty())
+    {
+        img_req_pub_crop_.shutdown();
+        // also create a publisher to set parameters of cropped image
+        img_req_pub_crop_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( img_req_cropped_topic_property_->getTopicStd(), 1, false );
+
+        img_req_sub_crop_.shutdown();
+        // finally, we need to subscribe to requests so that multiple clients have everything updated
+        img_req_sub_crop_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( img_req_cropped_topic_property_->getTopicStd(), 1, &CameraDisplayCustom::processCropImageRequest, this );
+    }
+}
 
 } // namespace rviz
 
