@@ -113,7 +113,7 @@
            <x>0</x>
            <y>0</y>
            <width>244</width>
-           <height>895</height>
+           <height>850</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -671,43 +671,12 @@
              </size>
             </property>
             <property name="title">
-             <string>Image layers</string>
+             <string>Image Transparency %</string>
             </property>
             <property name="checkable">
              <bool>true</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout">
-             <item>
-              <widget class="QComboBox" name="comboBox">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>198</width>
-                 <height>27</height>
-                </size>
-               </property>
-               <item>
-                <property name="text">
-                 <string>Background</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Overlay</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Both</string>
-                </property>
-               </item>
-              </widget>
-             </item>
              <item>
               <widget class="QSlider" name="horizontalSlider_4">
                <property name="enabled">
@@ -758,16 +727,6 @@
                </property>
                <property name="text">
                 <string> 0                                              100</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_11">
-               <property name="text">
-                <string>Transparency %</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -1303,22 +1262,6 @@
     <hint type="sourcelabel">
      <x>572</x>
      <y>398</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>207</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>comboBox</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>widget</receiver>
-   <slot>changeLayer(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>570</x>
-     <y>434</y>
     </hint>
     <hint type="destinationlabel">
      <x>207</x>

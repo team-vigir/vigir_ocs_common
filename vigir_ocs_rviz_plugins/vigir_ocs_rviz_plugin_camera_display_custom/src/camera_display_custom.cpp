@@ -108,13 +108,14 @@ CameraDisplayCustom::CameraDisplayCustom()
     , crop_height_(0)
     , crop_binning_(0)
     , publish_frequency_(15.0f)
+    , crop_publish_frequency_(15.0f)
     , render_panel_(NULL)
     , caminfo_tf_filter_( 0 )
     , new_caminfo_( false )
     , force_render_( false )
     , caminfo_ok_(false)
 {
-    image_position_property_ = new EnumProperty( "Image Rendering", BACKGROUND,
+    image_position_property_ = new EnumProperty( "Image Rendering", BOTH,
                                                  "Render the image behind all other geometry or overlay it on top, or both.",
                                                  this, SLOT( forceRender() ));
     image_position_property_->addOption( BACKGROUND );
@@ -154,6 +155,7 @@ CameraDisplayCustom::~CameraDisplayCustom()
     delete bg_screen_rect_;
     delete fg_screen_rect_;
     delete screen_rect_selection_;
+    delete fg_screen_rect_selection_;
     bg_scene_node_->getParentSceneNode()->removeAndDestroyChild(bg_scene_node_->getName() );
     fg_scene_node_->getParentSceneNode()->removeAndDestroyChild( fg_scene_node_->getName() );
 
@@ -165,6 +167,7 @@ void CameraDisplayCustom::onInitialize()
 {
     // caminfo_tf_filter_ = new tf::MessageFilter<sensor_msgs::CameraInfo>( *context_->getTFClient(), fixed_frame_.toStdString(),queue_size_property_->getInt(), update_nh_ );
     caminfo_tf_filter_ = new tf::MessageFilter<sensor_msgs::CameraInfo>( *context_->getTFClient(), fixed_frame_.toStdString(),queue_size_property_->getInt(), update_nh_ );
+    context_->getSceneManager()->addRenderQueueListener(this);
     {
         static uint32_t count = 0;
         std::stringstream ss;
@@ -177,6 +180,7 @@ void CameraDisplayCustom::onInitialize()
     //img_scene_node_ = img_scene_manager_->getRootSceneNode()->createChildSceneNode();
 
     screen_rect_selection_ = NULL;
+    fg_screen_rect_selection_ = NULL;
     screen_rect_highlight_ = NULL;
 
     // full image quad
@@ -207,7 +211,7 @@ void CameraDisplayCustom::onInitialize()
         Ogre::AxisAlignedBox aabInf;
         aabInf.setInfinite();
         //
-        bg_screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND);
+        bg_screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND+2);
         bg_screen_rect_->setBoundingBox(aabInf);
         bg_screen_rect_->setMaterial(bg_material_->getName());
         //std::cout << "Material name (full): " << material_->getName() << std::endl;
@@ -225,7 +229,7 @@ void CameraDisplayCustom::onInitialize()
         fg_screen_rect_->setMaterial(fg_material_->getName());
 
         fg_material_->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
-        fg_screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 1);
+        fg_screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY);
 
         fg_scene_node_->attachObject(fg_screen_rect_);
         fg_scene_node_->setVisible(false);
@@ -238,7 +242,7 @@ void CameraDisplayCustom::onInitialize()
         std::stringstream ss;
         ss << "ImageDisplayObject" << count++;
         screen_rect_selection_ = new Ogre::Rectangle2D(true);
-        screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND+2);
+        screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND+1);
         screen_rect_selection_->setCorners(0, 0, 0, 0);
 
         ss << "Material";
@@ -260,6 +264,34 @@ void CameraDisplayCustom::onInitialize()
         screen_rect_selection_->setMaterial(material_selection_->getName());
         //std::cout << "Material name (cropped): " << material_selection_->getName() << std::endl;
         bg_scene_node_->attachObject(screen_rect_selection_);
+
+
+
+
+        ss << "ImageDisplayObject" << count-1;
+        fg_screen_rect_selection_ = new Ogre::Rectangle2D(true);
+        fg_screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY+1);
+        fg_screen_rect_selection_->setCorners(0, 0, 0, 0);
+
+        ss << "Material";
+        fg_material_selection_ = Ogre::MaterialManager::getSingleton().create( ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
+        fg_material_selection_->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
+        fg_material_selection_->setDepthWriteEnabled(false);
+        fg_material_selection_->setReceiveShadows(false);
+        fg_material_selection_->setDepthCheckEnabled(false);
+
+        fg_material_selection_->getTechnique(0)->setLightingEnabled(false);
+        tu = fg_material_selection_->getTechnique(0)->getPass(0)->createTextureUnitState();
+        tu->setTextureName(texture_selection_.getTexture()->getName());
+        tu->setTextureFiltering( Ogre::TFO_NONE );
+
+        fg_material_selection_->setCullingMode(Ogre::CULL_NONE);
+        aabInf.setInfinite();
+        fg_screen_rect_selection_->setBoundingBox(aabInf);
+        fg_screen_rect_selection_->setMaterial(fg_material_selection_->getName());
+        //std::cout << "Material name (cropped): " << material_selection_->getName() << std::endl;
+        fg_scene_node_->attachObject(fg_screen_rect_selection_);
+        updateSelectedAlpha(alpha_property_->getFloat());
     }
 
     // selected area highlight
@@ -331,6 +363,55 @@ void CameraDisplayCustom::postRenderTargetUpdate(const Ogre::RenderTargetEvent& 
     fg_scene_node_->setVisible( false );
 
 }
+
+
+//This set up right now makes it so that the selected image comes through everything but the 
+//full image doesn't cover up anything
+void CameraDisplayCustom::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation) {
+   // std::cout<<"Comes in here " << static_cast<int>(queueGroupId)<<std::endl;
+    
+    if (queueGroupId == Ogre::RENDER_QUEUE_BACKGROUND) {
+
+      Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
+      rs->clearFrameBuffer(Ogre::FBT_STENCIL);
+      rs->setStencilCheckEnabled(true);
+      rs->setStencilBufferParams(Ogre::CMPF_ALWAYS_PASS, 0x1, 0xFFFFFFFF, Ogre::SOP_REPLACE, 
+	Ogre::SOP_REPLACE,Ogre::SOP_REPLACE, false); 
+   }
+   else if (queueGroupId == Ogre::RENDER_QUEUE_BACKGROUND+1 || queueGroupId == Ogre::RENDER_QUEUE_OVERLAY+1) {
+
+      Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
+      rs->setStencilCheckEnabled(true);
+      rs->setStencilBufferParams(Ogre::CMPF_EQUAL, 0x1, 0xFFFFFFFF, Ogre::SOP_REPLACE, 
+	Ogre::SOP_REPLACE,Ogre::SOP_REPLACE, false); 
+   }
+   else if (queueGroupId != Ogre::RENDER_QUEUE_BACKGROUND+2 && queueGroupId != Ogre::RENDER_QUEUE_OVERLAY) {
+
+      Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
+      rs->setStencilCheckEnabled(true);
+      rs->setStencilBufferParams(Ogre::CMPF_ALWAYS_PASS, 0x1, 0xFFFFFFFF, Ogre::SOP_KEEP, 
+	Ogre::SOP_KEEP,Ogre::SOP_KEEP, false); 
+   }		
+   else{
+   
+      Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
+      rs->setStencilCheckEnabled(true);
+      rs->setStencilBufferParams(Ogre::CMPF_NOT_EQUAL, 0x1,  0xFFFFFFFF, Ogre::SOP_KEEP, 
+	Ogre::SOP_KEEP, Ogre::SOP_KEEP, false); 
+   }
+  
+}
+
+void CameraDisplayCustom::renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& repeatThisInvocation)  {
+  
+ if (queueGroupId == Ogre::RENDER_QUEUE_OVERLAY+1)  {
+      Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
+      rs->setStencilCheckEnabled(false);
+      rs->setStencilBufferParams();
+   }
+}
+
+
 
 
 
@@ -598,6 +679,7 @@ bool CameraDisplayCustom::updateCamera()
                 float y1 = -(((2.0f * win_aspect/img_aspect) * crop_y_offset_) / full_image_height_) + ((1.0f * win_aspect/img_aspect));
                 float y2 = -(((2.0f * win_aspect/img_aspect) * (crop_y_offset_+crop_height_)) / full_image_height_) + ((1.0f * win_aspect/img_aspect));
                 screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
+                fg_screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
                 screen_rect_highlight_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
                 //std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
             }
@@ -622,6 +704,7 @@ bool CameraDisplayCustom::updateCamera()
                 float y1 = -((2.0f * crop_y_offset_) / full_image_height_) + 1.0f;
                 float y2 = -((2.0f * (crop_y_offset_+crop_height_)) / full_image_height_) + 1.0f;
                 screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
+                fg_screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
                 screen_rect_highlight_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
                 //std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
             }
@@ -680,7 +763,7 @@ void CameraDisplayCustom::processCropImageRequest(const flor_perception_msgs::Do
     crop_height_ = msg->roi.height;
     crop_x_offset_ = msg->roi.x_offset;
     crop_y_offset_ = msg->roi.y_offset;
-    publish_frequency_ = msg->publish_frequency;
+    crop_publish_frequency_ = msg->publish_frequency;
 }
 
 void CameraDisplayCustom::setRenderPanel( RenderPanel* rp )
@@ -814,6 +897,19 @@ void CameraDisplayCustom::changeCameraSpeed( int t )
     publishCropImageRequest();
 }
 
+void CameraDisplayCustom::changeCropCameraSpeed( int t )
+{
+    std::cout << "Camera speed changed:" << t << std::endl;//(15.0f/(float)pow(3,t)) << std::endl;
+
+    if(t != 3)
+        crop_publish_frequency_ = t;//15.0f/(float)pow(3,t); // 15 or whatever the max fps is
+    else
+        crop_publish_frequency_ = 0.0f;
+
+    publishFullImageRequest();
+    publishCropImageRequest();
+}
+
 
 void CameraDisplayCustom::publishCropImageRequest()
 {
@@ -825,11 +921,11 @@ void CameraDisplayCustom::publishCropImageRequest()
     cmd.roi.height = crop_height_;
     cmd.roi.x_offset = crop_x_offset_;
     cmd.roi.y_offset = crop_y_offset_;
-    if(publish_frequency_ == 0.0f)
+    if(crop_publish_frequency_ == 0.0f)
         cmd.mode = 0;
     else
         cmd.mode = 1;
-    cmd.publish_frequency = publish_frequency_;
+    cmd.publish_frequency = crop_publish_frequency_;
 
     // publish image request for cropped image
     img_req_pub_crop_.publish( cmd );
@@ -882,7 +978,7 @@ void CameraDisplayCustom::updateAlpha()
     }
 
     force_render_ = true;
-    if(screen_rect_selection_ != NULL && !flag)
+    if(fg_screen_rect_selection_ != NULL)
     {
         updateSelectedAlpha(alpha);
     }
@@ -895,35 +991,20 @@ void CameraDisplayCustom::updateAlpha()
 **/
 void CameraDisplayCustom::updateSelectedAlpha(float selectedAlpha)
 {
+    float alpha = selectedAlpha;
 
-
-    Ogre::Pass* pass = material_selection_->getTechnique( 0 )->getPass( 0 );
-    Ogre::Pass* pass2 = material_highlight_->getTechnique( 0 )->getPass( 0 );
-
+    Ogre::Pass* pass =  fg_material_selection_->getTechnique( 0 )->getPass( 0 );
     if( pass->getNumTextureUnitStates() > 0 )
     {
         Ogre::TextureUnitState* tex_unit = pass->getTextureUnitState( 0 );
-        tex_unit->setAlphaOperation( Ogre::LBX_MODULATE, Ogre::LBS_MANUAL, Ogre::LBS_CURRENT, selectedAlpha );
+        tex_unit->setAlphaOperation( Ogre::LBX_MODULATE, Ogre::LBS_MANUAL, Ogre::LBS_CURRENT, alpha );
     }
     else
     {
-        material_selection_->setAmbient( Ogre::ColourValue( 0.0f, 1.0f, 1.0f, selectedAlpha ));
-        material_selection_->setDiffuse( Ogre::ColourValue( 0.0f, 1.0f, 1.0f, selectedAlpha ));
+        fg_material_selection_->setAmbient( Ogre::ColourValue( 0.0f, 1.0f, 1.0f, alpha ));
+        fg_material_selection_->setDiffuse( Ogre::ColourValue( 0.0f, 1.0f, 1.0f, alpha ));
     }
-
-    if( pass2->getNumTextureUnitStates() > 0 )
-    {
-        Ogre::TextureUnitState* tex_unit = pass2->getTextureUnitState( 0 );
-        tex_unit->setAlphaOperation( Ogre::LBX_MODULATE, Ogre::LBS_MANUAL, Ogre::LBS_CURRENT, selectedAlpha );
-    }
-    else
-    {
-        material_highlight_->setAmbient( Ogre::ColourValue( 0.0f, 1.0f, 1.0f, selectedAlpha ));
-        material_highlight_->setDiffuse( Ogre::ColourValue( 0.0f,1.0f,1.0f, selectedAlpha ));
-    }
-
-
-
+  //  std::cout<<"It should be adjusting transparency"<<std::endl;
     force_render_ = true;
     context_->queueRender();
 }
@@ -980,61 +1061,17 @@ void CameraDisplayCustom::setAlpha(float newAlpha)
     updateAlpha();
 }
 
-void CameraDisplayCustom::setLayer(int index)
-{
-    if(index == 0)
-    {
-        image_position_property_->setString(BACKGROUND);
-        if(!flag)
-        {
-            fg_scene_node_->detachObject(screen_rect_selection_);
-            screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND+2);
-            bg_scene_node_->attachObject(screen_rect_selection_);
-            fg_scene_node_->detachObject(screen_rect_highlight_);
-            screen_rect_highlight_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND + 1);
-            bg_scene_node_->attachObject(screen_rect_highlight_);
-            updateSelectedAlpha(1.0f);
-        }
-        flag = true;
-    }
-    else if(index == 1)
-    {
-        image_position_property_->setString(OVERLAY);
-        if(flag)
-        {
-            bg_scene_node_->detachObject(screen_rect_selection_);
-            screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY-1);
-            fg_scene_node_->attachObject(screen_rect_selection_);
-            bg_scene_node_->detachObject(screen_rect_highlight_);
-            screen_rect_highlight_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 2);
-            fg_scene_node_->attachObject(screen_rect_highlight_);
-            updateSelectedAlpha(alpha_property_->getFloat());
-            flag = false;
-        }
-
-    }
-    else
-    {
-        image_position_property_->setString(BOTH);
-        if(flag)
-        {
-            bg_scene_node_->detachObject(screen_rect_selection_);
-            screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY-1);
-            fg_scene_node_->attachObject(screen_rect_selection_);
-            bg_scene_node_->detachObject(screen_rect_highlight_);
-            screen_rect_highlight_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 2);
-            fg_scene_node_->attachObject(screen_rect_highlight_);
-            updateSelectedAlpha(alpha_property_->getFloat());
-            flag = false;
-        }
-    }
-}
 
 void CameraDisplayCustom::setZoom(float newZoom)
 {
     zoom_property_->setFloat(newZoom);
 }
 
+
+void CameraDisplayCustom::closeSelected()
+{
+    selectionProcessed(0,0,0,0);
+}
 
 void CameraDisplayCustom::updateCroppedTopic()
 {

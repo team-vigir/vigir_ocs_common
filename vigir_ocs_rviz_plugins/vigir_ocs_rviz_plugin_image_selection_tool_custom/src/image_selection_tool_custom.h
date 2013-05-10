@@ -65,6 +65,7 @@ public:
   
 Q_SIGNALS:
 	void select( int, int, int, int );
+        void mouseHasMoved(int,int);
 
 public Q_SLOTS:
 

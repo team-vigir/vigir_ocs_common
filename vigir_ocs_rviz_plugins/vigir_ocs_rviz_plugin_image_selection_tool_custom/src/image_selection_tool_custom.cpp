@@ -124,7 +124,7 @@ void ImageSelectionToolCustom::update(float wall_dt, float ros_dt)
 int ImageSelectionToolCustom::processMouseEvent( ViewportMouseEvent& event )
 {
   SelectionManager* sel_manager = context_->getSelectionManager();
-
+  Q_EMIT mouseHasMoved(event.x, event.y);
   int flags = 0;
 
   if( event.alt() )

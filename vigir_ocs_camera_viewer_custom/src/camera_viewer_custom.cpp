@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QMouseEvent>
+#include <QPushButton>
 
 #include "rviz/visualization_manager.h"
 #include "rviz/display.h"
@@ -22,9 +23,12 @@
 #include "camera_display_custom.h"
 #include "image_selection_tool_custom.h"
 #include "empty_view_controller.h"
+#include "rviz/viewport_mouse_event.h"
 
 // Constructor for CameraViewerCustom.  This does most of the work of the class.
 
+QPushButton* xButton;
+bool selectionMade = false;
 namespace vigir_ocs
 {
 CameraViewerCustom::CameraViewerCustom( QWidget* parent )
@@ -55,6 +59,7 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     QObject::connect(this, SIGNAL(setFullImageResolution(int)), camera_viewer_, SLOT(changeFullImageResolution(int)));
     QObject::connect(this, SIGNAL(setCropImageResolution(int)), camera_viewer_, SLOT(changeCropImageResolution(int)));
     QObject::connect(this, SIGNAL(setCameraSpeed(int)), camera_viewer_, SLOT(changeCameraSpeed(int)));
+    QObject::connect(this, SIGNAL(setCropCameraSpeed(int)), camera_viewer_, SLOT(changeCropCameraSpeed(int)));
 
     QObject::connect(this, SIGNAL(unHighlight()), selection_tool_, SLOT(unHighlight()));
 
@@ -64,6 +69,11 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     rviz::EmptyViewController* camera_controller = new rviz::EmptyViewController();
     camera_controller->initialize( render_panel_->getManager() );
     render_panel_->setViewController( camera_controller );
+
+    xButton = new QPushButton("X",this);
+    QObject::connect(xButton, SIGNAL(clicked()), this, SLOT(closeSelectedArea()));
+    xButton->hide();
+    QObject::connect((selection_tool_), SIGNAL(mouseHasMoved(int,int)), this, SLOT(mouseMoved(int,int)));
 
     Q_EMIT setMarkerScale(0.001f);
 }
@@ -165,12 +175,50 @@ void CameraViewerCustom::changeCameraSpeed( int t )
     Q_EMIT setCameraSpeed( t );
 }
 
+void CameraViewerCustom::changeCropCameraSpeed( int t )
+{
+    Q_EMIT setCropCameraSpeed( t );
+}
+
 
 void CameraViewerCustom::disableSelection()
 {
-    //((rviz::ImageSelectionToolCustom*)selection_tool_)->unHighlight();
+     //((rviz::ImageSelectionToolCustom*)selection_tool_)->unHighlight();
     Q_EMIT unHighlight();
+ 
+  //  toggleButton->setEnabled(false);
+  //  okay = true;
     ((rviz::CameraDisplayCustom*)camera_viewer_)->selectionProcessed( selectedArea[0], selectedArea[1], selectedArea[2], selectedArea[3] );
+    selectionMade = true;
+    int rightSide = 0;
+    int topSide = 0;
+    if(selectedArea[0]<selectedArea[2])
+    {
+        rightSide = selectedArea[2];
+    }
+    else
+    {
+        rightSide = selectedArea[0];
+    }
+
+    if(selectedArea[1]<selectedArea[3])
+    {
+        topSide = selectedArea[1];
+    }
+    else
+    {
+        topSide = selectedArea[3];
+    }
+   // xButton = new QPushButton(render_panel_);
+    xButton->setGeometry(rightSide-10, topSide+10, 20,20);
+  //  xButton->show();
+ // connect(xButton, SIGNAL(clicked()), this, SLOT(closeSelectedArea()));
+  //  xButton->x =rightSide;
+ //   xButton->y = topSide;
+
+
+
+ //   ((rviz::CameraDisplayCustom*)camera_viewer_)->selectionProcessed( 0, 0, 0, 0 );
 }
 
 void CameraViewerCustom::changeAlpha(int newAlpha)
@@ -178,11 +226,36 @@ void CameraViewerCustom::changeAlpha(int newAlpha)
     ((rviz::CameraDisplayCustom*)camera_viewer_)->setAlpha(1.0f-(newAlpha/100.0f));
 }
 
-void CameraViewerCustom::changeLayer(int selectedLayer)
+void CameraViewerCustom::mouseMoved(int newX, int newY)
 {
+   // QPoint point = event->pos();
+  /**  std::cout<<"Prints when mouse is moved"<<std::endl;
+    int x = this->size().width();
+    int y = this->size().height();
+    std::cout<<"width is "<<x<<std::endl;
+    std::cout<<"height is "<<y<<std::endl;**/
 
-    ((rviz::CameraDisplayCustom*)camera_viewer_)->setLayer(selectedLayer);
 
+    if(((newX<selectedArea[0] && newX>selectedArea[2]) ||
+       (newX>selectedArea[0] && newX<selectedArea[2])) &&
+       ((newY<selectedArea[1] && newY>selectedArea[3]) ||
+       (newY>selectedArea[1] && newY<selectedArea[3])) && selectionMade)
+    {
+        xButton->show();
+    }
+    else
+    {
+        xButton->hide();
+    }
+
+}
+
+void CameraViewerCustom::closeSelectedArea()
+{
+    std::cout<<"This gets hit"<<std::endl;
+    ((rviz::CameraDisplayCustom*)camera_viewer_)->closeSelected();
+    xButton->hide();
+    selectionMade = false;
 }
 }
 
