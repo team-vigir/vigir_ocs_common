@@ -335,16 +335,23 @@ void graspWidget::on_userSlider_sliderReleased()
         setProgressLevel(ui->userSlider->value());
         sendManualMsg(ui->userSlider->value());
     }
-    else if(ui->userSlider->value() > 100)
+    else if (ui->templateRadio->isChecked())
     {
-        flor_grasp_msgs::GraspState msg;//68 mode
-        msg.grasp_state.data = 68;
-        msg.grip.data = ui->userSlider->value();
-        grasp_mode_command_pub_.publish(msg);
+        if(ui->userSlider->value() > 100)
+        {
+            flor_grasp_msgs::GraspState msg;
+            msg.grasp_state.data = (flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4 + 4;
+            msg.grip.data = ui->userSlider->value();
+            grasp_mode_command_pub_.publish(msg);
+        }
+        else
+        {
+            std::cout << "Only relevant in template mode if the feedforward is set!  New position is " << ui->userSlider->value() << std::endl;
+        }
     }
     else
     {
-        std::cout << "slider changed while not in manual mode. New position is " << ui->userSlider->value() << std::endl;
+        std::cout << "slider changed while not in any control mode. New position is " << ui->userSlider->value() << std::endl;
     }
 }
 
