@@ -73,10 +73,6 @@
 #include <flor_perception_msgs/DownSampledImageRequest.h>
 
 
-bool flag = true;
-
-
-
 namespace rviz
 {
 
@@ -139,8 +135,8 @@ CameraDisplayCustom::CameraDisplayCustom()
                                                    "sensor_msgs::Image topic to subscribe to.", this, SLOT( updateCroppedTopic() ));
 
     img_req_full_topic_property_ = new RosTopicProperty("Image Request Topic", "",
-                                                      QString::fromStdString(ros::message_traits::datatype<sensor_msgs::Image>()),
-                                                      "sensor_msgs::Image topic to subscribe to.", this, SLOT( updateImgReqTopic() ));
+                                                        QString::fromStdString(ros::message_traits::datatype<sensor_msgs::Image>()),
+                                                        "sensor_msgs::Image topic to subscribe to.", this, SLOT( updateImgReqTopic() ));
     img_req_cropped_topic_property_ = new RosTopicProperty("Cropped Image Request Topic", "",
                                                            QString::fromStdString(ros::message_traits::datatype<sensor_msgs::Image>()),
                                                            "sensor_msgs::Image topic to subscribe to.", this, SLOT( updateImgReqCroppedTopic() ));
@@ -350,8 +346,6 @@ void CameraDisplayCustom::preRenderTargetUpdate(const Ogre::RenderTargetEvent& e
     QString image_position = image_position_property_->getString();
     bg_scene_node_->setVisible( caminfo_ok_ && (image_position == BACKGROUND || image_position == BOTH) );
     fg_scene_node_->setVisible( caminfo_ok_ && (image_position == OVERLAY || image_position == BOTH) );
-    // bg_scene_node_->setVisible(false);
-    // fg_scene_node_->setVisible(false);
     // set view flags on all displays
     visibility_property_->update();
 
@@ -367,60 +361,51 @@ void CameraDisplayCustom::postRenderTargetUpdate(const Ogre::RenderTargetEvent& 
 
 //This set up right now makes it so that the selected image comes through everything but the 
 //full image doesn't cover up anything
-void CameraDisplayCustom::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation) {
-   // std::cout<<"Comes in here " << static_cast<int>(queueGroupId)<<std::endl;
-    
-    if (queueGroupId == Ogre::RENDER_QUEUE_BACKGROUND) {
+void CameraDisplayCustom::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation)
+{
+    if (queueGroupId == Ogre::RENDER_QUEUE_BACKGROUND)
+    {
+        Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
+        rs->clearFrameBuffer(Ogre::FBT_STENCIL);
+        rs->setStencilCheckEnabled(true);
+        rs->setStencilBufferParams(Ogre::CMPF_ALWAYS_PASS, 0x1, 0xFFFFFFFF, Ogre::SOP_REPLACE,
+                                   Ogre::SOP_REPLACE,Ogre::SOP_REPLACE, false);
+    }
+    else if (queueGroupId == Ogre::RENDER_QUEUE_BACKGROUND+1 || queueGroupId == Ogre::RENDER_QUEUE_OVERLAY+1)
+    {
+        Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
+        rs->setStencilCheckEnabled(true);
+        rs->setStencilBufferParams(Ogre::CMPF_EQUAL, 0x1, 0xFFFFFFFF, Ogre::SOP_REPLACE,
+                                   Ogre::SOP_REPLACE,Ogre::SOP_REPLACE, false);
+    }
+    else if (queueGroupId != Ogre::RENDER_QUEUE_BACKGROUND+2 && queueGroupId != Ogre::RENDER_QUEUE_OVERLAY)
+    {
+        Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
+        rs->setStencilCheckEnabled(true);
+        rs->setStencilBufferParams(Ogre::CMPF_ALWAYS_PASS, 0x1, 0xFFFFFFFF, Ogre::SOP_KEEP,
+                                   Ogre::SOP_KEEP,Ogre::SOP_KEEP, false);
+    }
+    else
+    {
+        Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
+        rs->setStencilCheckEnabled(true);
+        rs->setStencilBufferParams(Ogre::CMPF_NOT_EQUAL, 0x1,  0xFFFFFFFF, Ogre::SOP_KEEP,
+                                   Ogre::SOP_KEEP, Ogre::SOP_KEEP, false);
+    }
 
-      Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
-      rs->clearFrameBuffer(Ogre::FBT_STENCIL);
-      rs->setStencilCheckEnabled(true);
-      rs->setStencilBufferParams(Ogre::CMPF_ALWAYS_PASS, 0x1, 0xFFFFFFFF, Ogre::SOP_REPLACE, 
-	Ogre::SOP_REPLACE,Ogre::SOP_REPLACE, false); 
-   }
-   else if (queueGroupId == Ogre::RENDER_QUEUE_BACKGROUND+1 || queueGroupId == Ogre::RENDER_QUEUE_OVERLAY+1) {
-
-      Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
-      rs->setStencilCheckEnabled(true);
-      rs->setStencilBufferParams(Ogre::CMPF_EQUAL, 0x1, 0xFFFFFFFF, Ogre::SOP_REPLACE, 
-	Ogre::SOP_REPLACE,Ogre::SOP_REPLACE, false); 
-   }
-   else if (queueGroupId != Ogre::RENDER_QUEUE_BACKGROUND+2 && queueGroupId != Ogre::RENDER_QUEUE_OVERLAY) {
-
-      Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
-      rs->setStencilCheckEnabled(true);
-      rs->setStencilBufferParams(Ogre::CMPF_ALWAYS_PASS, 0x1, 0xFFFFFFFF, Ogre::SOP_KEEP, 
-	Ogre::SOP_KEEP,Ogre::SOP_KEEP, false); 
-   }		
-   else{
-   
-      Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
-      rs->setStencilCheckEnabled(true);
-      rs->setStencilBufferParams(Ogre::CMPF_NOT_EQUAL, 0x1,  0xFFFFFFFF, Ogre::SOP_KEEP, 
-	Ogre::SOP_KEEP, Ogre::SOP_KEEP, false); 
-   }
-  
 }
 
-void CameraDisplayCustom::renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& repeatThisInvocation)  {
-  
- if (queueGroupId == Ogre::RENDER_QUEUE_OVERLAY+1)  {
-      Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
-      rs->setStencilCheckEnabled(false);
-      rs->setStencilBufferParams();
-   }
+void CameraDisplayCustom::renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& repeatThisInvocation)
+{
+    if (queueGroupId == Ogre::RENDER_QUEUE_OVERLAY+1)  {
+        Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
+        rs->setStencilCheckEnabled(false);
+        rs->setStencilBufferParams();
+    }
 }
-
-
-
-
 
 void CameraDisplayCustom::onEnable()
 {
-    //ImageDisplayBase::subscribe();
-    //subscribe();
-    //std::cout<<"Enabled" <<std::endl;
-
     if ( (!isEnabled()) || (topic_property_->getTopicStd().empty()) )
     {
         if((topic_property_->getTopicStd().empty()))
@@ -431,11 +416,8 @@ void CameraDisplayCustom::onEnable()
     }
 
     /**
-* These next two lines make it so that "No Image" appears for some reason.
-*/
-    //std::string target_frame = fixed_frame_.toStdString();
-    //std::cout<<"this is the frame " <<target_frame<<std::endl;
-    //ImageDisplayBase::enableTFFilter(target_frame);
+    * These next two lines make it so that "No Image" appears for some reason.
+    */
     std::string target_frame = fixed_frame_.toStdString();
 
     ImageDisplayBase::enableTFFilter(target_frame);
@@ -503,16 +485,11 @@ void CameraDisplayCustom::update( float wall_dt, float ros_dt )
                 render_panel_->getRenderWindow()->update();
                 force_render_ = false;
             }
-
-
-
-            //std::cout << "CUSTOM UPDATE LOOP" << std::endl;
         }
         catch( UnsupportedImageEncoding& e )
         {
             setStatus(StatusProperty::Error, "Image", e.what());
         }
-
     }
 }
 
@@ -540,23 +517,12 @@ bool CameraDisplayCustom::updateCamera()
         setStatus( StatusProperty::Error, "Camera Info", "Contains invalid floating point values (nans or infs)" );
         return false;
     }
-    // if we're in 'exact' time mode, only show image if the time is exactly right
-    /**ros::Time rviz_time = context_->getFrameManager()->getTime();
-  if ( context_->getFrameManager()->getSyncMode() == FrameManager::SyncExact &&
-      rviz_time != image->header.stamp )
-  {
-    std::ostringstream s;
-    s << "Time-syncing active and no image at timestamp " << rviz_time.toSec() << ".";
-    setStatus( StatusProperty::Warn, "Time", s.str().c_str() );
-    return false;
-  }**/
 
     Ogre::Vector3 position;
     Ogre::Quaternion orientation;
 
     //image->header.frame_id (this stuff is grabbed from a sensor_msg)
     context_->getFrameManager()->getTransform( image->header.frame_id, image->header.stamp, position, orientation );
-    //manager_->getFrameManager()->getTransform( image->header.frame_id, image->header.stamp, position, orientation );
 
     // convert vision (Z-forward) frame to ogre frame (Z-out)
     orientation = orientation * Ogre::Quaternion( Ogre::Degree( 180 ), Ogre::Vector3::UNIT_X );
@@ -567,8 +533,6 @@ bool CameraDisplayCustom::updateCamera()
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
 
-    //            float img_width = texture_.getWidth();
-    //          float img_height = texture_.getHeight();
     float img_width = info->width;
     float img_height = info->height;
     float zoom_x = zoom_property_->getFloat();
@@ -589,8 +553,6 @@ bool CameraDisplayCustom::updateCamera()
         }
     }
 
-
-
     // Add the camera's translation relative to the left camera (from P[3]);
     double tx = -1 * (info->P[3] / fx);
     Ogre::Vector3 right = orientation * Ogre::Vector3::UNIT_X;
@@ -608,9 +570,6 @@ bool CameraDisplayCustom::updateCamera()
 
     render_panel_->getCamera()->setPosition( position );
     render_panel_->getCamera()->setOrientation( orientation );
-
-    //std::cout << render_panel_->getCamera() << std::endl;
-    //printf( "CameraDisplay:updateCamera(): pos = %.2f, %.2f, %.2f.\n", position.x, position.y, position.z );
 
     // calculate the projection matrix
     double cx = info->P[2];
@@ -774,14 +733,9 @@ void CameraDisplayCustom::setRenderPanel( RenderPanel* rp )
     render_panel_->getRenderWindow()->setAutoUpdated(false);
     render_panel_->getRenderWindow()->setActive( false );
 
-
-
-    //  setAssociatedWidget( render_panel_ );
     render_panel_->setAutoRender(false);
     render_panel_->setOverlaysEnabled(false);
     render_panel_->getCamera()->setNearClipDistance( 0.01f );
-
-
 }
 
 void CameraDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
@@ -1004,7 +958,7 @@ void CameraDisplayCustom::updateSelectedAlpha(float selectedAlpha)
         fg_material_selection_->setAmbient( Ogre::ColourValue( 0.0f, 1.0f, 1.0f, alpha ));
         fg_material_selection_->setDiffuse( Ogre::ColourValue( 0.0f, 1.0f, 1.0f, alpha ));
     }
-  //  std::cout<<"It should be adjusting transparency"<<std::endl;
+    //  std::cout<<"It should be adjusting transparency"<<std::endl;
     force_render_ = true;
     context_->queueRender();
 }
@@ -1035,23 +989,14 @@ void CameraDisplayCustom::setup()
     //vis_bit_ = manager_->visibilityBits()->allocBit();
     render_panel_->getViewport()->setVisibilityMask( vis_bit_ );
 
-
-
     visibility_property_ = new DisplayGroupVisibilityProperty(
                 vis_bit_,context_->getRootDisplayGroup() , this, "Visibility", true,
                 "Changes the visibility of other Displays in the camera view.");
 
-
     visibility_property_->update();
-
-
-
     visibility_property_->setIcon( loadPixmap("package://rviz/icons/visibility.svg",true) );
 
-
     this->addChild( visibility_property_, 0 );
-
-
 }
 
 
@@ -1121,7 +1066,4 @@ void CameraDisplayCustom::updateImgReqCroppedTopic()
 }
 
 } // namespace rviz
-
-//#include <pluginlib/class_list_macros.h>
-//PLUGINLIB_EXPORT_CLASS( rviz::CameraDisplayCustom, rviz::Display )
 

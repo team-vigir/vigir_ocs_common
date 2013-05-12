@@ -96,13 +96,13 @@ public:
     virtual void setRenderPanel( RenderPanel* rp );
     virtual void selectionProcessed( int x1, int y1, int x2, int y2 );
 
-// Overrides from Ogre::RenderTargetListener
+    // Overrides from Ogre::RenderTargetListener
 
-  virtual void preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
-  virtual void postRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
-  virtual void renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
-  virtual void renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
-  virtual void fixedFrameChanged();
+    virtual void preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
+    virtual void postRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
+    virtual void renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
+    virtual void renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
+    virtual void fixedFrameChanged();
 
     void setup();
 
@@ -121,21 +121,19 @@ public Q_SLOTS:
     void changeCropCameraSpeed( int );
 
 private Q_SLOTS:
-  void forceRender();
-  void updateAlpha();
+    void forceRender();
+    void updateAlpha();
 
-  virtual void updateQueueSize();
+    virtual void updateQueueSize();
 
-  void updateCroppedTopic();
-  void updateImgReqTopic();
-  void updateImgReqCroppedTopic();
+    void updateCroppedTopic();
+    void updateImgReqTopic();
+    void updateImgReqCroppedTopic();
 
 protected:
     // overrides from Display
     virtual void onEnable();
     virtual void onDisable();
-
-
 
     // This is called by incomingMessage().
     virtual void processMessage(const sensor_msgs::Image::ConstPtr& msg);
@@ -146,9 +144,7 @@ protected:
     void processFullImageRequest(const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
     void processCropImageRequest(const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
 
-    //void subscribe();
 private:
- //   void subscribe();
     enum
     {
         IMAGE_RESOLUTION_FULL = 0,
@@ -157,7 +153,6 @@ private:
         IMAGE_RESOLUTION_8 = 3,
         IMAGE_RESOLUTION_16 = 4
     } DECIMATE_OPTIONS;
-
     
     void clear();
     void updateStatus();
@@ -209,10 +204,10 @@ private:
     ros::Subscriber img_req_sub_full_;
 
     //This deals with the camera info
-    message_filters::Subscriber<sensor_msgs::CameraInfo> caminfo_sub_; 
+    message_filters::Subscriber<sensor_msgs::CameraInfo> caminfo_sub_;
     tf::MessageFilter<sensor_msgs::CameraInfo>* caminfo_tf_filter_;
 
-    sensor_msgs::CameraInfo::ConstPtr current_caminfo_;   
+    sensor_msgs::CameraInfo::ConstPtr current_caminfo_;
     boost::mutex caminfo_mutex_;
 
     bool new_caminfo_;
