@@ -111,7 +111,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>0</y>
+           <y>-296</y>
            <width>244</width>
            <height>895</height>
           </rect>
@@ -805,7 +805,7 @@
                 <string>LIDAR Point Cloud</string>
                </property>
                <property name="checked">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -835,7 +835,7 @@
                 <string>Octomap</string>
                </property>
                <property name="checked">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
