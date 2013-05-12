@@ -44,7 +44,7 @@
 
 #include <OGRE/OgreMaterial.h>
 #include <OGRE/OgreRenderTargetListener.h>
-
+#include <OGRE/OgreRenderQueueListener.h>
 #include "rviz/image/image_display_base.h"
 #include "rviz/image/ros_image_texture.h"
 #include "rviz/render_panel.h"
@@ -80,7 +80,7 @@ class RenderPanel;
 class RosTopicProperty;
 class DisplayGroupVisibilityProperty;
 
-class CameraDisplayCustom: public rviz::ImageDisplayBase, public Ogre::RenderTargetListener
+class CameraDisplayCustom: public rviz::ImageDisplayBase,  public Ogre::RenderTargetListener, public Ogre::RenderQueueListener
 {
     Q_OBJECT
 public:
@@ -96,18 +96,20 @@ public:
     virtual void setRenderPanel( RenderPanel* rp );
     virtual void selectionProcessed( int x1, int y1, int x2, int y2 );
 
-// Overrides from Ogre::RenderTargetListener
+    // Overrides from Ogre::RenderTargetListener
 
-  virtual void preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
-  virtual void postRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
-  virtual void fixedFrameChanged();
+    virtual void preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
+    virtual void postRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
+    virtual void renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
+    virtual void renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
+    virtual void fixedFrameChanged();
 
     void setup();
 
     void setAlpha(float newAlpha);
     void updateSelectedAlpha(float newSelectedAlpha);
-    void setLayer(int index);
     void setZoom(float newZoom);
+    void closeSelected();
     static const QString BACKGROUND;
     static const QString OVERLAY;
     static const QString BOTH;
@@ -116,23 +118,22 @@ public Q_SLOTS:
     void changeFullImageResolution( int );
     void changeCropImageResolution( int );
     void changeCameraSpeed( int );
+    void changeCropCameraSpeed( int );
 
 private Q_SLOTS:
-  void forceRender();
-  void updateAlpha();
+    void forceRender();
+    void updateAlpha();
 
-  virtual void updateQueueSize();
+    virtual void updateQueueSize();
 
-  void updateCroppedTopic();
-  void updateImgReqTopic();
-  void updateImgReqCroppedTopic();
+    void updateCroppedTopic();
+    void updateImgReqTopic();
+    void updateImgReqCroppedTopic();
 
 protected:
     // overrides from Display
     virtual void onEnable();
     virtual void onDisable();
-
-
 
     // This is called by incomingMessage().
     virtual void processMessage(const sensor_msgs::Image::ConstPtr& msg);
@@ -143,9 +144,7 @@ protected:
     void processFullImageRequest(const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
     void processCropImageRequest(const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
 
-    //void subscribe();
 private:
- //   void subscribe();
     enum
     {
         IMAGE_RESOLUTION_FULL = 0,
@@ -154,7 +153,6 @@ private:
         IMAGE_RESOLUTION_8 = 3,
         IMAGE_RESOLUTION_16 = 4
     } DECIMATE_OPTIONS;
-
     
     void clear();
     void updateStatus();
@@ -182,6 +180,11 @@ private:
     Ogre::MaterialPtr material_selection_;
     ROSImageTexture texture_selection_;
 
+
+    Ogre::Rectangle2D* fg_screen_rect_selection_;
+    Ogre::MaterialPtr fg_material_selection_;
+    ROSImageTexture fg_texture_selection_;
+
     // variables that define the rectangle that highlights selection
     Ogre::Rectangle2D* screen_rect_highlight_;
     Ogre::MaterialPtr material_highlight_;
@@ -201,10 +204,10 @@ private:
     ros::Subscriber img_req_sub_full_;
 
     //This deals with the camera info
-    message_filters::Subscriber<sensor_msgs::CameraInfo> caminfo_sub_; 
+    message_filters::Subscriber<sensor_msgs::CameraInfo> caminfo_sub_;
     tf::MessageFilter<sensor_msgs::CameraInfo>* caminfo_tf_filter_;
 
-    sensor_msgs::CameraInfo::ConstPtr current_caminfo_;   
+    sensor_msgs::CameraInfo::ConstPtr current_caminfo_;
     boost::mutex caminfo_mutex_;
 
     bool new_caminfo_;
@@ -231,6 +234,7 @@ private:
 
     // fps for both full and cropped images
     float publish_frequency_;
+    float crop_publish_frequency_;
 
     // define *window* dimensions of the full image rendering surface -> necessary to calculate selection
     int rect_dim_x1_;

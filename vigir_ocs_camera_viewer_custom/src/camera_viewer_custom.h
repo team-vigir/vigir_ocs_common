@@ -24,6 +24,12 @@ class RenderPanel;
 class VisualizationManager;
 class FrameManager;
 class Tool;
+class ViewportMouseEvent;
+}
+
+namespace Ogre
+{
+class Viewport;
 }
 
 namespace vigir_ocs
@@ -42,6 +48,7 @@ Q_SIGNALS:
     void setFullImageResolution( int );
     void setCropImageResolution( int );
     void setCameraSpeed( int );
+    void setCropCameraSpeed( int );
     void unHighlight();
 
 public Q_SLOTS:
@@ -49,9 +56,11 @@ public Q_SLOTS:
     void changeFullImageResolution( int );
     void changeCropImageResolution( int );
     void changeCameraSpeed( int );
+    void changeCropCameraSpeed( int );
     void disableSelection( );
     void changeAlpha(int);
-    void changeLayer(int);
+    void closeSelectedArea();
+    void mouseMoved(int,int);
 
 private Q_SLOTS:
     void select( int, int, int, int );
