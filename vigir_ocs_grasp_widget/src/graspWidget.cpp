@@ -340,13 +340,18 @@ void graspWidget::on_userSlider_sliderReleased()
         if(ui->userSlider->value() > 100)
         {
             flor_grasp_msgs::GraspState msg;
-            msg.grasp_state.data = (flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4 + 4;
+            msg.grasp_state.data = ((flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4) + 4;
             msg.grip.data = ui->userSlider->value();
             grasp_mode_command_pub_.publish(msg);
+            std::cout << "Adjust feedforward to " << int32_t(ui->userSlider->value()) << " with state=" << uint32_t(msg.grasp_state.data) << std::endl;
         }
         else
         {
             std::cout << "Only relevant in template mode if the feedforward is set!  New position is " << ui->userSlider->value() << std::endl;
+            flor_grasp_msgs::GraspState msg;
+            msg.grasp_state.data = ((flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4) + 4;
+            msg.grip.data = 100; // can't undo grasp closure in template mode, but need to send message to clear feedforward
+            grasp_mode_command_pub_.publish(msg);
         }
     }
     else
