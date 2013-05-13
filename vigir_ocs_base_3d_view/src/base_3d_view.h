@@ -66,11 +66,15 @@ public Q_SLOTS:
     void insertWaypoint();
 
     void createContextMenu( int, int );
+    // sends back the context
+    void setContext( int );
 
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
     void resetSelection();
     void setMarkerScale( float );
+    // send position of the mouse when clicked to create context menu
+    void queryContext( int, int );
 
 protected:
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
@@ -113,6 +117,8 @@ protected:
 
     bool selected_;
     QString selected_template_path_;
+
+    int active_context_;
 };
 }
 #endif // BASE_3D_VIEW_H

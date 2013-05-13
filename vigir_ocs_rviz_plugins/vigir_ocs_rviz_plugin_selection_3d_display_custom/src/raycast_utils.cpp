@@ -12,6 +12,7 @@
 #include <OGRE/OgreTextureManager.h>
 #include <OGRE/OgreViewport.h>
 #include <OGRE/OgrePrerequisites.h>
+#include <boost/algorithm/string/predicate.hpp>
 
 RayCastUtils::RayCastUtils(Ogre::SceneManager* sm)
     : scene_manager_(sm)
@@ -30,19 +31,19 @@ RayCastUtils::~RayCastUtils()
     scene_manager_->destroyQuery(ray_scene_query_);
 }
 
-bool RayCastUtils::RayCastFromPoint(const Ogre::Vector3 &point, const Ogre::Vector3 &direction, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result)
+bool RayCastUtils::RayCastFromPoint(const Ogre::Vector3 &point, const Ogre::Vector3 &direction, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result, int &object_type)
 {
     // create the ray to test
     Ogre::Ray ray(Ogre::Vector3(point.x, point.y, point.z),
                   Ogre::Vector3(direction.x, direction.y, direction.z));
 
-    return RayCastFromPoint(ray,frame_pos,frame_quat,result);
+    return RayCastFromPoint(ray,frame_pos,frame_quat,result,object_type);
 }
 
 // Raycast from a point in to the scene.
 // returns success or failure.
 // on success the point is returned in the result.
-bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result)
+bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result, int &object_type)
 {
     // check we are initialised
     if (ray_scene_query_ != NULL)
@@ -93,7 +94,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
         if(query_result[qr_idx].movable != NULL)
         {
             //query_result[qr_idx].movable->getParentSceneNode()->showBoundingBox(true);
-        	std::cout << query_result[qr_idx].movable->getName() << " of type " << query_result[qr_idx].movable->getMovableType() << std::endl;
+            std::cout << query_result[qr_idx].movable->getName() << " of type " << query_result[qr_idx].movable->getMovableType() << std::endl;;
         }
 
         // only check this result if its a hit against an entity
@@ -119,7 +120,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
             {
                 // check for a hit against this triangle
                 std::pair<bool, Ogre::Real> hit = Ogre::Math::intersects(ray, vertices[indices[i]],
-                                                                         vertices[indices[i+1]], vertices[indices[i+2]], true, false);
+                                                                         vertices[indices[i+1]], vertices[indices[i+2]], true, true);
 
                 // if it was a hit check if its the closest
                 if (hit.first)
@@ -143,6 +144,19 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
             if (new_closest_found)
             {
                 closest_result = ray.getPoint(closest_distance);
+
+                // type 0 -> UNKNOWN ENTITY
+                // type 1 -> POINT CLOUD
+                // type 2 -> WAYPOINT
+                // type 3 -> TEMPLATE
+                if(query_result[qr_idx].movable->getMovableType().compare("PointCloudCustom") == 0)
+                    object_type = 1;
+                else if(query_result[qr_idx].movable->getMovableType().compare("Entity") == 0 && boost::algorithm::starts_with(query_result[qr_idx].movable->getName(),"waypoint"))
+                    object_type = 2;
+                else if(query_result[qr_idx].movable->getMovableType().compare("Entity") == 0 && boost::algorithm::starts_with(query_result[qr_idx].movable->getName(),"template"))
+                    object_type = 3;
+                else
+                    object_type = 0;
             }
         }
         else if ((query_result[qr_idx].movable != NULL) &&
@@ -170,11 +184,12 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                 //std::cout << "\t" << vertices[indices[i+2]].x << ", " << vertices[indices[i+2]].y << ", " << vertices[indices[i+2]].z << std::endl;
                 // check for a hit against this triangle
                 std::pair<bool, Ogre::Real> hit = Ogre::Math::intersects(ray, vertices[indices[i]],
-                                                                         vertices[indices[i+1]], vertices[indices[i+2]], true, false);
+                                                                         vertices[indices[i+1]], vertices[indices[i+2]], true, true);
 
                 // if it was a hit check if its the closest
                 if (hit.first)
                 {
+                    std::cout << "new hit: " << hit.second << "\n   compared to current closest hit: " << closest_distance << std::endl;
                     if ((closest_distance < 0.0f) ||
                         (hit.second < closest_distance))
                     {
@@ -197,6 +212,19 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
             {
    				std::cout << "found new point" << std::endl;
                 closest_result = ray.getPoint(closest_distance);
+
+                // type 0 -> UNKNOWN ENTITY
+                // type 1 -> POINT CLOUD
+                // type 2 -> WAYPOINT
+                // type 3 -> TEMPLATE
+                if(query_result[qr_idx].movable->getMovableType().compare("PointCloudCustom") == 0)
+                    object_type = 1;
+                else if(query_result[qr_idx].movable->getMovableType().compare("Entity") == 0 && boost::algorithm::starts_with(query_result[qr_idx].movable->getName(),"waypoint"))
+                    object_type = 2;
+                else if(query_result[qr_idx].movable->getMovableType().compare("Entity") == 0 && boost::algorithm::starts_with(query_result[qr_idx].movable->getName(),"template"))
+                    object_type = 3;
+                else
+                    object_type = 0;
             }
         }
     }

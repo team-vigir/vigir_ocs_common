@@ -299,11 +299,14 @@ void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUp
     context_->queueRender();
 }
 
-void TemplateDisplayCustom::addTemplate(std::string path, Ogre::Vector3 pos, Ogre::Quaternion quat)
+void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vector3 pos, Ogre::Quaternion quat)
 {
     std::cout << "Adding Ogre object for template" << std::endl;
+    static int counter = 0;
+    std::ostringstream convert;
+    convert << counter++ << "." << index;
     // create entity for mesh and attach it to the scene node
-    Ogre::Entity* lEntity = this->scene_manager_->createEntity(path);
+    Ogre::Entity* lEntity = this->scene_manager_->createEntity(std::string("template ")+convert.str(), path);
     Ogre::SceneNode* lNode = this->scene_node_->createChildSceneNode();
     lNode->attachObject(lEntity);
     // change position and scale (from mm to m)
@@ -378,7 +381,7 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
         if(i >= template_list_.size())
         {
             std::string path = msg->template_list[i];
-            addTemplate(path,pos,quat);
+            addTemplate(msg->template_id_list[i],path,pos,quat);
             template_list_.push_back(path);
             template_id_list_.push_back(msg->template_id_list[i]);
             addTemplateMarker(msg->template_id_list[i],pos);

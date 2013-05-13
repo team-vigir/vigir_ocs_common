@@ -355,7 +355,8 @@ void Selection3DDisplayCustom::createMarker(int x, int y)
     Ogre::Vector3 pt(0,0,0);
     Ogre::Quaternion ot(1,0,0,0);
     transform(pt,ot);
-    if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position))
+    int type;
+    if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type))
     {
         initialized_ = true;
         selection_marker_->setPosition(position);
@@ -400,7 +401,8 @@ void Selection3DDisplayCustom::createROISelection(int x, int y)
     Ogre::Vector3 pt(0,0,0);
     Ogre::Quaternion ot(1,0,0,0);
     transform(pt,ot);
-    if(raycast_utils_->RayCastFromPoint(mouseRayFinal,pt,ot,positionFinal))
+    int type;
+    if(raycast_utils_->RayCastFromPoint(mouseRayFinal,pt,ot,positionFinal,type))
     {
         selection_marker_->setVisible(true);
         roi_marker_final_->setPosition(positionFinal);
@@ -452,6 +454,34 @@ void Selection3DDisplayCustom::resetSelection()
 void Selection3DDisplayCustom::setMarkerScale(float scale)
 {
     marker_scale_ = scale;
+}
+
+void Selection3DDisplayCustom::queryContext( int x, int y )
+{
+    float win_width = render_panel_->width();
+    float win_height = render_panel_->height();
+
+    //then send a raycast straight out from the camera at the mouse's position
+    Ogre::Ray mouseRay = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
+
+    Ogre::Vector3 position;
+
+    Ogre::Vector3 pt(0,0,0);
+    Ogre::Quaternion ot(1,0,0,0);
+    transform(pt,ot);
+    int type = -1;
+    if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type))
+    {
+        // type 0 -> UNKNOWN ENTITY
+        // type 1 -> POINT CLOUD
+        // type 2 -> WAYPOINT
+        // type 3 -> TEMPLATE
+        Q_EMIT setContext(type);
+    }
+    else
+    {
+        Q_EMIT setContext(-1); // NO_HIT
+    }
 }
 
 } // namespace rviz

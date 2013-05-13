@@ -95,6 +95,7 @@ public:
 
 Q_SIGNALS:
   void newSelection(Ogre::Vector3);
+  void setContext( int );
 
 private Q_SLOTS:
   void updateVisualVisible();
@@ -108,6 +109,7 @@ private Q_SLOTS:
   void resetSelection();
   void setRenderPanel(rviz::RenderPanel*);
   void setMarkerScale(float);
+  void queryContext( int, int );
 
 protected:
   virtual void load();

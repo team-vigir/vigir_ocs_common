@@ -132,6 +132,10 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // Create a display for 3D selection
     selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
 
+    // Connect the 3D selection tool to
+    QObject::connect(this, SIGNAL(queryContext(int,int)), selection_3d_display_, SLOT(queryContext(int,int)));
+    QObject::connect(selection_3d_display_, SIGNAL(setContext(int)), this, SLOT(setContext(int)));
+
     // Create a display for waypoints
     waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
     waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/list" );
@@ -393,6 +397,10 @@ void Base3DView::insertWaypoint()
 
 void Base3DView::createContextMenu(int x, int y)
 {
+    // first we need to query the 3D scene to retrieve the context
+    Q_EMIT queryContext(x,y);
+    // context is stored in the active_context_ variable
+
     QPoint globalPos = this->mapToGlobal(QPoint(x+10,y+10));
 
     QMenu myMenu;
@@ -420,4 +428,9 @@ void Base3DView::createContextMenu(int x, int y)
     }
 }
 
+void Base3DView::setContext(int context)
+{
+    active_context_ = context;
+    std::cout << "Active context: " << active_context_ << std::endl;
+}
 }
