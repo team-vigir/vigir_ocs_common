@@ -1,4 +1,4 @@
-/* 
+/*
  * MapView class definition.
  *
  * Author: Felipe Bacim.
@@ -28,7 +28,7 @@ class MapView: public Base3DView
     Q_OBJECT
 public:
     MapView( QWidget* parent = 0 );
-    virtual ~MapView();
+    virtual ~MapView();    
 };
 }
 #endif // map_view_H

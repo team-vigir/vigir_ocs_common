@@ -179,6 +179,26 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     // Make the move camera tool the currently selected one
     manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+
+    // Footstep array
+    footsteps_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps array", true );
+    footsteps_array_->subProp( "Marker Topic" )->setValue( "/flor_footstep_planner/footsteps_array" );
+
+    ground_map_ = manager_->createDisplay( "rviz/Map", "Ground map", true );
+    ground_map_->subProp( "Topic" )->setValue( "/ground_lvl_grid_map" );
+
+    goal_pose_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
+    goal_pose_->subProp( "Topic" )->setValue( "/goalpose" );
+    goal_pose_->subProp( "Shape" )->setValue( "Axes" );
+
+    planner_start_ = manager_->createDisplay( "rviz/Pose", "Start pose", true );
+    planner_start_->subProp( "Topic" )->setValue( "/ros_footstep_planner/start" );
+    planner_start_->subProp( "Shape" )->setValue( "Axes" );
+
+    planned_path_ = manager_->createDisplay( "rviz/Path", "Planned path", true );
+    planned_path_->subProp( "Topic" )->setValue( "/ros_footstep_planner/path" );
+
+    set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goalpose" );
 }
 
 // Destructor.
@@ -262,10 +282,9 @@ void Base3DView::markerTemplateToggled( bool selected )
     }
 }
 
-void Base3DView::vectorToggled( bool selected )
+void Base3DView::vectorPressed()
 {
-    if(selected)
-        manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
+    manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
 }
 
 void Base3DView::newSelection( Ogre::Vector3 position )

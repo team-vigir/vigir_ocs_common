@@ -75,9 +75,9 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-265</y>
+           <y>0</y>
            <width>242</width>
-           <height>827</height>
+           <height>869</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout">
@@ -115,25 +115,47 @@
            </widget>
           </item>
           <item>
-           <widget class="Joystick" name="joystick_widget" native="true">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>150</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>215</width>
-              <height>16777215</height>
-             </size>
-            </property>
+           <widget class="QWidget" name="widget" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="Joystick" name="joystick_widget" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>150</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>215</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="footstep_pose">
+               <property name="text">
+                <string>Define Target Pose</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>
@@ -295,7 +317,7 @@
     <slot>markerArrayToggled(bool)</slot>
     <slot>joystickToggled(bool)</slot>
     <slot>waypointToggled(bool)</slot>
-    <slot>vectorToggled(bool)</slot>
+    <slot>vectorPressed()</slot>
     <slot>stereoPointCloudToggled(bool)</slot>
     <slot>insertTemplate(QString)</slot>
     <slot>insertWaypoint()</slot>
@@ -468,6 +490,22 @@
     <hint type="sourcelabel">
      <x>645</x>
      <y>467</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>256</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>footstep_pose</sender>
+   <signal>pressed()</signal>
+   <receiver>map_view_</receiver>
+   <slot>vectorPressed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>641</x>
+     <y>322</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>

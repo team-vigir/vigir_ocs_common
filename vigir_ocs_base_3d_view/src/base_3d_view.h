@@ -58,7 +58,7 @@ public Q_SLOTS:
     void select3DToggled( bool );
     void markerRobotToggled( bool );
     void markerTemplateToggled( bool );
-    void vectorToggled( bool );
+    void vectorPressed();
 
     void newSelection( Ogre::Vector3 );
     void insertTemplate( QString );
@@ -94,6 +94,13 @@ protected:
     rviz::Display* waypoints_display_;
     rviz::Display* achieved_waypoints_display_;
     rviz::Display* octomap_roi_;
+
+    // new displays for walking
+    rviz::Display* footsteps_array_;
+    rviz::Display* ground_map_;
+    rviz::Display* goal_pose_;
+    rviz::Display* planner_start_;
+    rviz::Display* planned_path_;
 
     rviz::Display* hand_model_;
 
