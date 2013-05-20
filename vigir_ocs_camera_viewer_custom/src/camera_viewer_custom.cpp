@@ -32,7 +32,7 @@ bool selectionMade = false;
 namespace vigir_ocs
 {
 CameraViewerCustom::CameraViewerCustom( QWidget* parent )
-    : Base3DView( "/pelvis", parent )
+    : Base3DView( "/world", parent )
 {
     // Create a camera/image display.
     camera_viewer_ = manager_->createDisplay( "rviz/CameraDisplayCustom", "Camera image", true ); // this would use the plugin instead of manually adding the display object to the manager
