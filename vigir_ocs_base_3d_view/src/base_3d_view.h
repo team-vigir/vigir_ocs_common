@@ -80,6 +80,7 @@ protected:
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
 
     rviz::VisualizationManager* manager_;
+    rviz::VisualizationManager* manager_simulation_;
     rviz::RenderPanel* render_panel_;
 
     rviz::Display* robot_model_;
@@ -103,6 +104,9 @@ protected:
     rviz::Display* planned_path_;
 
     rviz::Display* hand_model_;
+
+    // for simulation
+    rviz::Display* ghost_robot_model_;
 
     rviz::Tool* interactive_markers_tool_;
     rviz::Tool* selection_tool_;

@@ -1,0 +1,9 @@
+<library path="libvigir_ocs_rviz_plugin_robot_display_custom">
+  <class name="rviz/RobotDisplayCustom"
+         type="rviz::RobotDisplayCustom"
+         base_class_type="rviz::Display">
+    <description>
+      Customized robot display plugin that renders robot simulation everywhere.
+    </description>
+  </class>
+</library>

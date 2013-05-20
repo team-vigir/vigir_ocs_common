@@ -71,7 +71,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     // Create a RobotModel display.
     robot_model_ = manager_->createDisplay( "rviz/RobotModel", "Robot model", true );
-    ROS_ASSERT( robot_model_ != NULL );
+    //ROS_ASSERT( robot_model_ != NULL );
 
     // hand model display?
     //hand_model_ = manager_->createDisplay( "rviz/GraspDisplayCustom", "Grasp display test", true );
@@ -199,6 +199,9 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     planned_path_->subProp( "Topic" )->setValue( "/ros_footstep_planner/path" );
 
     set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goalpose" );
+
+    ghost_robot_model_ = manager_->createDisplay( "rviz/RobotModel", "Robot model", true );
+    ghost_robot_model_->subProp( "TF Prefix" )->setValue( "/simulation" );
 }
 
 // Destructor.
