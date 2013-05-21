@@ -365,7 +365,7 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
         std::cout << "Template: " << msg->template_list[i] << std::endl;
 
         geometry_msgs::PoseStamped pose = msg->pose[i];
-        transform("/pelvis",pose);
+        transform(fixed_frame_.toUtf8().constData(),pose);
 
         Ogre::Vector3 pos;
         pos.x = pose.pose.position.x;

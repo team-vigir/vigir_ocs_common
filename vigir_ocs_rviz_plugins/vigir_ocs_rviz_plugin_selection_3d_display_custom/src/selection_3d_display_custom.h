@@ -118,7 +118,7 @@ protected:
   virtual void onEnable();
   virtual void onDisable();
 
-  void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame = "/world", const char* to_frame = "/pelvis");
+  void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
   //bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
 
