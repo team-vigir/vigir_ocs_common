@@ -22,7 +22,7 @@ namespace vigir_ocs
 {
 // Constructor for MapView.  This does most of the work of the class.
 MapView::MapView( QWidget* parent )
-    : Base3DView( "/pelvis", parent )
+    : Base3DView( "/world", parent )
 {
     // set the camera to be topdownortho
     rviz::ViewManager* view_man_ = manager_->getViewManager();
