@@ -122,7 +122,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", true );
     ROS_ASSERT( lidar_point_cloud_viewer_ != NULL );
     lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
-    lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/scan_cloud_filtered" );
+    lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/worldmodel_main/pointcloud_vis" );
     lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
 
     // Create a template display to display all templates listed by the template nodelet
