@@ -347,7 +347,7 @@ void TemplateDisplayCustom::addTemplateMarker(unsigned char id, Ogre::Vector3 po
         point.x = pos.x;
         point.y = pos.y;
         point.z = pos.z;
-        InteractiveMarkerServerCustom* template_marker_ = new InteractiveMarkerServerCustom(template_pose_string, id, point);
+        InteractiveMarkerServerCustom* template_marker_ = new InteractiveMarkerServerCustom(template_pose_string, fixed_frame_.toUtf8().constData(), id, point);
         template_marker_list_.push_back(template_marker_);
     }
 
@@ -365,7 +365,7 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
         std::cout << "Template: " << msg->template_list[i] << std::endl;
 
         geometry_msgs::PoseStamped pose = msg->pose[i];
-        transform("/pelvis",pose);
+        transform(fixed_frame_.toUtf8().constData(),pose);
 
         Ogre::Vector3 pos;
         pos.x = pose.pose.position.x;

@@ -354,7 +354,7 @@ void Selection3DDisplayCustom::createMarker(int x, int y)
 
     Ogre::Vector3 pt(0,0,0);
     Ogre::Quaternion ot(1,0,0,0);
-    transform(pt,ot);
+    transform(pt,ot,"/world",fixed_frame_.toUtf8().constData());
     int type;
     if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type))
     {
@@ -400,7 +400,7 @@ void Selection3DDisplayCustom::createROISelection(int x, int y)
 
     Ogre::Vector3 pt(0,0,0);
     Ogre::Quaternion ot(1,0,0,0);
-    transform(pt,ot);
+    transform(pt,ot,"/world",fixed_frame_.toUtf8().constData());
     int type;
     if(raycast_utils_->RayCastFromPoint(mouseRayFinal,pt,ot,positionFinal,type))
     {
@@ -468,7 +468,7 @@ void Selection3DDisplayCustom::queryContext( int x, int y )
 
     Ogre::Vector3 pt(0,0,0);
     Ogre::Quaternion ot(1,0,0,0);
-    transform(pt,ot);
+    transform(pt,ot,"/world",fixed_frame_.toUtf8().constData());
     int type = -1;
     if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type))
     {
