@@ -225,6 +225,8 @@ void RobotCustom::update(const LinkUpdater& updater)
     RobotLinkCustom* info = link_it->second;
 
     info->setToNormalMaterial();
+    info->setColor(0.2,0.8,0.2);
+
     std::cout << "\t" << info->getName() << std::endl;
 
     Ogre::Vector3 visual_position, collision_position;

@@ -453,7 +453,7 @@ void RobotLinkCustom::createEntityForGeometryElement(const urdf::LinkConstPtr& l
 
       static int count = 0;
       std::stringstream ss;
-      ss << default_material_->getName() << count++ << "Robot";
+      ss << default_material_->getName() << count++ << "Robot Custom";
       std::string cloned_name = ss.str();
 
       default_material_ = default_material_->clone(cloned_name);
@@ -476,7 +476,7 @@ void RobotLinkCustom::createEntityForGeometryElement(const urdf::LinkConstPtr& l
         // this can go away
         static int count = 0;
         std::stringstream ss;
-        ss << material_name << count++ << "Robot";
+        ss << material_name << count++ << "Robot Custom";
         std::string cloned_name = ss.str();
         sub->getMaterial()->clone(cloned_name);
         sub->setMaterialName(cloned_name);
@@ -658,11 +658,20 @@ void RobotLinkCustom::setToNormalMaterial()
 void RobotLinkCustom::setColor( float red, float green, float blue )
 {
   Ogre::ColourValue color( red, green, blue );
-  color_material_->getTechnique(0)->setAmbient( 0.5 * color );
-  color_material_->getTechnique(0)->setDiffuse( color );
+  //color_material_->getTechnique(0)->setAmbient( 0.5 * color );
+  //color_material_->getTechnique(0)->setDiffuse( color );
 
-  using_color_ = true;
-  setToNormalMaterial();
+  //using_color_ = true;
+  M_SubEntityToMaterial::iterator it = materials_.begin();
+  M_SubEntityToMaterial::iterator end = materials_.end();
+  for (; it != end; ++it)
+  {
+    const Ogre::MaterialPtr& material = it->second;
+
+    material->getTechnique(0)->getPass(0)->setAmbient( 0.5* color );
+    material->getTechnique(0)->getPass(0)->setDiffuse( color );
+  }
+  updateAlpha();
 }
 
 void RobotLinkCustom::unsetColor()

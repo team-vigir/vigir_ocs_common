@@ -198,7 +198,10 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     ghost_robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
     ghost_robot_model_->subProp( "TF Prefix" )->setValue( "/simulation" );
-    //ghost_robot_model_->subProp( "Alpha" )->setValue( 0.5f );
+    ghost_robot_model_->subProp( "Visual Enabled" )->setValue( true );
+    ghost_robot_model_->subProp( "Collision Enabled" )->setValue( false );
+    ghost_robot_model_->subProp( "Alpha" )->setValue( 0.5f );
+
 }
 
 // Destructor.
