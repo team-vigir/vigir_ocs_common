@@ -38,13 +38,9 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 {
     base_frame_ = base_frame;
 
-    // Create a new label for this widget.
-    //QLabel* robot_model_label = new QLabel( "rviz/RobotModel" );
-
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
     QVBoxLayout* main_layout = new QVBoxLayout;
-    //main_layout->addWidget( robot_model_label );
     main_layout->addWidget( render_panel_ );
 
     // Set the top-level layout for this MyViz widget.
@@ -200,8 +196,9 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goalpose" );
 
-    ghost_robot_model_ = manager_->createDisplay( "rviz/RobotModel", "Robot model", true );
+    ghost_robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
     ghost_robot_model_->subProp( "TF Prefix" )->setValue( "/simulation" );
+    //ghost_robot_model_->subProp( "Alpha" )->setValue( 0.5f );
 }
 
 // Destructor.

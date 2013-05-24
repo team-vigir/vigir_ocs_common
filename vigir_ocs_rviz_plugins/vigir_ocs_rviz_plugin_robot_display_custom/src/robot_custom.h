@@ -27,10 +27,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef RVIZ_ROBOT_H_
-#define RVIZ_ROBOT_H_
+#ifndef RVIZ_ROBOT_CUSTOM_H_
+#define RVIZ_ROBOT_CUSTOM_H_
 
-#include "link_updater.h"
+#include "rviz/robot/link_updater.h"
 
 #include <string>
 #include <map>
@@ -72,7 +72,7 @@ namespace rviz
 
 class Property;
 class RobotCustom;
-class RobotLink;
+class RobotLinkCustom;
 class DisplayContext;
 
 /**
@@ -133,9 +133,9 @@ public:
   void setAlpha(float a);
   float getAlpha() { return alpha_; }
 
-  RobotCustomLink* getLink( const std::string& name );
+  RobotLinkCustom* getLink( const std::string& name );
   
-  typedef std::map< std::string, RobotCustomLink* > M_NameToLink;
+  typedef std::map< std::string, RobotLinkCustom* > M_NameToLink;
   M_NameToLink getLinks() const { return links_; }
 
   const std::string& getName() { return name_; }
@@ -151,7 +151,7 @@ public:
   virtual const Ogre::Quaternion& getOrientation();
 
 protected:
-  /** @brief Call RobotCustomLink::updateVisibility() on each link. */
+  /** @brief Call RobotLinkCustom::updateVisibility() on each link. */
   void updateLinkVisibilities();
 
   Ogre::SceneManager* scene_manager_;
@@ -174,4 +174,4 @@ protected:
 
 } // namespace rviz
 
-#endif /* RVIZ_ROBOT_H_ */
+#endif /* RVIZ_ROBOT_CUSTOM_H_ */

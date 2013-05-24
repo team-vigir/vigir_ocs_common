@@ -35,8 +35,8 @@
 #include <tf/transform_listener.h>
 
 #include "rviz/display_context.h"
-#include "rviz/robot/robot.h"
-#include "rviz/robot/tf_link_updater.h"
+#include "robot_custom.h"
+#include "tf_link_updater_custom.h"
 #include "rviz/properties/float_property.h"
 #include "rviz/properties/property.h"
 #include "rviz/properties/string_property.h"
@@ -96,7 +96,7 @@ RobotDisplayCustom::~RobotDisplayCustom()
 
 void RobotDisplayCustom::onInitialize()
 {
-  robot_ = new Robot( scene_node_, context_, "Robot: " + getName().toStdString(), this );
+  robot_ = new RobotCustom( scene_node_, context_, "Robot: " + getName().toStdString(), this );
 
   updateVisualVisible();
   updateCollisionVisible();
@@ -187,9 +187,11 @@ void RobotDisplayCustom::load()
     return;
   }
 
+  //setModelPrefix("simulation", descr);
+
   setStatus( StatusProperty::Ok, "URDF", "URDF parsed OK" );
   robot_->load( descr );
-  robot_->update( TFLinkUpdater( context_->getFrameManager(),
+  robot_->update( TFLinkUpdaterCustom( context_->getFrameManager(),
                                  boost::bind( linkUpdaterStatusFunction, _1, _2, _3, this ),
                                  tf_prefix_property_->getStdString() ));
 }
@@ -214,7 +216,7 @@ void RobotDisplayCustom::update( float wall_dt, float ros_dt )
 
   if( has_new_transforms_ || update )
   {
-    robot_->update( TFLinkUpdater( context_->getFrameManager(),
+    robot_->update( TFLinkUpdaterCustom( context_->getFrameManager(),
                                    boost::bind( linkUpdaterStatusFunction, _1, _2, _3, this ),
                                    tf_prefix_property_->getStdString() ));
     context_->queueRender();
@@ -240,6 +242,55 @@ void RobotDisplayCustom::reset()
 {
   Display::reset();
   has_new_transforms_ = true;
+}
+
+void RobotDisplayCustom::setModelPrefix(std::string prefix, urdf::ModelInterface &descr)
+{
+    //std::cout << "1" << std::endl;
+    // first deal with links
+    std::map<std::string, boost::shared_ptr<urdf::Link> > links = descr.links_;
+
+    std::map<std::string, boost::shared_ptr<urdf::Link> > new_links;
+
+    // modify key values - I need to add a constant value to each key
+    for (std::map<std::string, boost::shared_ptr<urdf::Link> >::iterator mi=links.begin(); mi != links.end(); ++mi)
+    {
+        std::string new_name = prefix+std::string("/")+mi->first;
+        new_links[new_name] = mi->second;
+        new_links[new_name]->name = new_name;
+
+        for (int i = 0; i < new_links[new_name]->child_joints.size(); i++)
+        {
+            std::string new_joint_name = prefix+std::string("/")+new_links[new_name]->child_joints[i]->name;
+            new_links[new_name]->child_joints[i]->name = new_joint_name;
+            new_links[new_name]->child_joints[i]->parent_link_name = new_name;
+        }
+        //std::cout << "2" << std::endl;
+        if(new_links[new_name] != NULL && new_links[new_name]->parent_joint != NULL)
+        {
+            std::string new_joint_name = prefix+std::string("/")+new_links[new_name]->parent_joint->name;
+            new_links[new_name]->parent_joint->name = new_joint_name;
+            new_links[new_name]->parent_joint->child_link_name = new_name;
+        }
+    }
+
+    descr.links_ = new_links;
+    //std::cout << "5" << std::endl;
+
+    // then with joints
+    std::map<std::string, boost::shared_ptr<urdf::Joint> > joints = descr.joints_;
+
+    std::map<std::string, boost::shared_ptr<urdf::Joint> > new_joints;
+
+    // modify key values - I need to add a constant value to each key
+    for (std::map<std::string, boost::shared_ptr<urdf::Joint> >::iterator mi=joints.begin(); mi != joints.end(); ++mi)
+    {
+        std::string new_name = prefix+std::string("/")+mi->first;
+        new_joints[new_name] = mi->second;
+        new_joints[new_name]->name = new_name;
+    }
+
+    descr.joints_ = new_joints;
 }
 
 } // namespace rviz

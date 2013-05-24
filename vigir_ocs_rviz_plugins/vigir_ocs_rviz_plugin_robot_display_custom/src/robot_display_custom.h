@@ -27,10 +27,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef RVIZ_ROBOT_MODEL_DISPLAY_H
-#define RVIZ_ROBOT_MODEL_DISPLAY_H
+#ifndef RVIZ_ROBOT_MODEL_DISPLAY_CUSTOM_H
+#define RVIZ_ROBOT_MODEL_DISPLAY_CUSTOM_H
 
 #include "rviz/display.h"
+#include "rviz/robot/link_updater.h"
 
 #include <OGRE/OgreVector3.h>
 
@@ -47,12 +48,17 @@ namespace rviz
 class Axes;
 }
 
+namespace urdf
+{
+class ModelInterface;
+}
+
 namespace rviz
 {
 
 class FloatProperty;
 class Property;
-class Robot;
+class RobotCustom;
 class StringProperty;
 
 /**
@@ -74,6 +80,8 @@ public:
 
   void clear();
 
+  void setModelPrefix(std::string prefix, urdf::ModelInterface &descr);
+
 private Q_SLOTS:
   void updateVisualVisible();
   void updateCollisionVisible();
@@ -91,7 +99,7 @@ protected:
   virtual void onEnable();
   virtual void onDisable();
 
-  Robot* robot_;                 ///< Handles actually drawing the robot
+  RobotCustom* robot_;                 ///< Handles actually drawing the robot
 
   bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
 

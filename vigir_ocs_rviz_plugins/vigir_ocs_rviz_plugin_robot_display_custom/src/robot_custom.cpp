@@ -27,14 +27,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "robot.h"
-#include "robot_link.h"
-#include "properties/property.h"
-#include "display_context.h"
+#include "robot_custom.h"
+#include "robot_link_custom.h"
+#include "rviz/properties/property.h"
+#include "rviz/display_context.h"
 
-#include "ogre_helpers/object.h"
-#include "ogre_helpers/shape.h"
-#include "ogre_helpers/axes.h"
+#include "rviz/ogre_helpers/object.h"
+#include "rviz/ogre_helpers/shape.h"
+#include "rviz/ogre_helpers/axes.h"
 
 #include <urdf_model/model.h>
 
@@ -111,7 +111,7 @@ void RobotCustom::updateLinkVisibilities()
   M_NameToLink::iterator end = links_.end();
   for ( ; it != end; ++it )
   {
-    RobotCustomLink* link = it->second;
+    RobotLinkCustom* link = it->second;
     link->updateVisibility();
   }
 }
@@ -134,9 +134,9 @@ void RobotCustom::setAlpha(float a)
   M_NameToLink::iterator end = links_.end();
   for ( ; it != end; ++it )
   {
-    RobotCustomLink* info = it->second;
+    RobotLinkCustom* info = it->second;
 
-    info->setRobotCustomAlpha(alpha_);
+    info->setRobotAlpha(alpha_);
   }
 }
 
@@ -146,7 +146,7 @@ void RobotCustom::clear()
   M_NameToLink::iterator link_end = links_.end();
   for ( ; link_it != link_end; ++link_it )
   {
-    RobotCustomLink* info = link_it->second;
+    RobotLinkCustom* info = link_it->second;
     delete info;
   }
 
@@ -179,7 +179,9 @@ void RobotCustom::load( const urdf::ModelInterface &descr, bool visual, bool col
   {
     const boost::shared_ptr<urdf::Link>& link = *it;
 
-    RobotCustomLink* link_info = new RobotCustomLink( this, context_, links_category_ );
+    std::cout << link->name << std::endl;
+
+    RobotLinkCustom* link_info = new RobotLinkCustom( this, context_, links_category_ );
 
     link_info->load( descr, link, visual, collision );
 
@@ -192,7 +194,7 @@ void RobotCustom::load( const urdf::ModelInterface &descr, bool visual, bool col
     bool inserted = links_.insert( std::make_pair( link_info->getName(), link_info ) ).second;
     ROS_ASSERT( inserted );
 
-    link_info->setRobotCustomAlpha( alpha_ );
+    link_info->setRobotAlpha( alpha_ );
   }
 
   links_category_->collapse();
@@ -201,7 +203,7 @@ void RobotCustom::load( const urdf::ModelInterface &descr, bool visual, bool col
   setCollisionVisible( isCollisionVisible() );
 }
 
-RobotCustomLink* RobotCustom::getLink( const std::string& name )
+RobotLinkCustom* RobotCustom::getLink( const std::string& name )
 {
   M_NameToLink::iterator it = links_.find( name );
   if ( it == links_.end() )
@@ -217,11 +219,13 @@ void RobotCustom::update(const LinkUpdater& updater)
 {
   M_NameToLink::iterator link_it = links_.begin();
   M_NameToLink::iterator link_end = links_.end();
+  std::cout << "Update" << std::endl;
   for ( ; link_it != link_end; ++link_it )
   {
-    RobotCustomLink* info = link_it->second;
+    RobotLinkCustom* info = link_it->second;
 
     info->setToNormalMaterial();
+    std::cout << "\t" << info->getName() << std::endl;
 
     Ogre::Vector3 visual_position, collision_position;
     Ogre::Quaternion visual_orientation, collision_orientation;
