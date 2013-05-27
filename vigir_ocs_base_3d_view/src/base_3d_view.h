@@ -52,6 +52,9 @@ public Q_SLOTS:
     void stereoPointCloudToggled( bool );
     void laserScanToggled( bool );
     void markerArrayToggled( bool );
+    void gridMapToggled( bool );
+    void footstepPlanningToggled( bool );
+    void simulationRobotToggled( bool );
     // tools
     void cameraToggled( bool );
     void selectToggled( bool );

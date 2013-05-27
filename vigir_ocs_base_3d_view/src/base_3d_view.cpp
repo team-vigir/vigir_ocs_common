@@ -235,6 +235,24 @@ void Base3DView::markerArrayToggled( bool selected )
     octomap_->setEnabled( selected );
 }
 
+void Base3DView::gridMapToggled( bool selected )
+{
+    ground_map_->setEnabled( selected );
+}
+
+void Base3DView::footstepPlanningToggled( bool selected )
+{
+    goal_pose_->setEnabled( selected );
+    planner_start_->setEnabled( selected );
+    planned_path_->setEnabled( selected );
+    footsteps_array_->setEnabled( selected );
+}
+
+void Base3DView::simulationRobotToggled( bool selected )
+{
+    ghost_robot_model_->setEnabled( selected );
+}
+
 void Base3DView::cameraToggled( bool selected )
 {
     if(selected)

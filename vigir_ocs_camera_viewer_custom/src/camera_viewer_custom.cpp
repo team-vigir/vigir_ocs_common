@@ -55,6 +55,7 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     QObject::connect(selection_tool_, SIGNAL(select(int,int,int,int)), this, SLOT(select(int,int,int,int)));
 
     robot_model_->setEnabled(false);
+    ghost_robot_model_->setEnabled(false);
 
     QObject::connect(this, SIGNAL(setFullImageResolution(int)), camera_viewer_, SLOT(changeFullImageResolution(int)));
     QObject::connect(this, SIGNAL(setCropImageResolution(int)), camera_viewer_, SLOT(changeCropImageResolution(int)));

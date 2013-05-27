@@ -219,7 +219,7 @@ void RobotCustom::update(const LinkUpdater& updater)
 {
   M_NameToLink::iterator link_it = links_.begin();
   M_NameToLink::iterator link_end = links_.end();
-  std::cout << "Update" << std::endl;
+  //std::cout << "Update" << std::endl;
   for ( ; link_it != link_end; ++link_it )
   {
     RobotLinkCustom* info = link_it->second;
@@ -227,7 +227,7 @@ void RobotCustom::update(const LinkUpdater& updater)
     info->setToNormalMaterial();
     info->setColor(0.2,0.8,0.2);
 
-    std::cout << "\t" << info->getName() << std::endl;
+    //std::cout << "\t" << info->getName() << std::endl;
 
     Ogre::Vector3 visual_position, collision_position;
     Ogre::Quaternion visual_orientation, collision_orientation;

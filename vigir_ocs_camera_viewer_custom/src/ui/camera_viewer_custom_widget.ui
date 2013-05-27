@@ -111,9 +111,9 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-296</y>
+           <y>0</y>
            <width>244</width>
-           <height>850</height>
+           <height>934</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -123,6 +123,107 @@
           </sizepolicy>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QGroupBox" name="groupBox_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="title">
+             <string>Display</string>
+            </property>
+            <property name="flat">
+             <bool>false</bool>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QCheckBox" name="robot_model">
+               <property name="text">
+                <string>Robot Model</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="simulation_robot">
+               <property name="text">
+                <string>Simulation Robot</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="lidar_point_cloud">
+               <property name="text">
+                <string>LIDAR Point Cloud</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="stereo_point_cloud">
+               <property name="text">
+                <string>Stereo Point Cloud</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="laser_scan">
+               <property name="text">
+                <string>Laser Scan</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="octomap">
+               <property name="text">
+                <string>Octomap</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="grid_map">
+               <property name="text">
+                <string>Map</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="footstep_planning">
+               <property name="text">
+                <string>Footstep Planning</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
           <item>
            <widget class="QPushButton" name="toggleButton">
             <property name="text">
@@ -734,74 +835,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QGroupBox" name="groupBox_3">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="title">
-             <string>Display</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_3">
-             <item>
-              <widget class="QCheckBox" name="robot_model">
-               <property name="text">
-                <string>Robot Model</string>
-               </property>
-               <property name="checked">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="lidar_point_cloud">
-               <property name="text">
-                <string>LIDAR Point Cloud</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="stereo_point_cloud">
-               <property name="text">
-                <string>Stereo Point Cloud</string>
-               </property>
-               <property name="checked">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="laser_scan">
-               <property name="text">
-                <string>Laser Scan</string>
-               </property>
-               <property name="checked">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="octomap">
-               <property name="text">
-                <string>Octomap</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
            <widget class="QGroupBox" name="Orientation_3">
             <property name="enabled">
              <bool>true</bool>
@@ -1104,6 +1137,9 @@
     <slot>changeLayer(int)</slot>
     <slot>changeZoom(int)</slot>
     <slot>updatePitch(int)</slot>
+    <slot>gridMapToggled(bool)</slot>
+    <slot>footstepPlanningToggled(bool)</slot>
+    <slot>simulationRobotToggled(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -1281,6 +1317,54 @@
     </hint>
     <hint type="destinationlabel">
      <x>207</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>grid_map</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget</receiver>
+   <slot>gridMapToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>541</x>
+     <y>221</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>220</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>footstep_planning</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget</receiver>
+   <slot>footstepPlanningToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>541</x>
+     <y>249</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>220</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>simulation_robot</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget</receiver>
+   <slot>simulationRobotToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>541</x>
+     <y>81</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>220</x>
      <y>299</y>
     </hint>
    </hints>
