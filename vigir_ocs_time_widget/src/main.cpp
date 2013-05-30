@@ -5,9 +5,10 @@
 int main(int argc, char *argv[])
 {
     if( !ros::isInitialized() )
-       {
-         ros::init( argc, argv, "time_widget", ros::init_options::AnonymousName );
-       }
+    {
+        ros::init( argc, argv, "time_widget");
+    }
+
     QApplication a(argc, argv);
     Widget w;
     w.show();

@@ -12,36 +12,27 @@ Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
 {
-    render_panel_ = new rviz::RenderPanel();
-    manager_ = new rviz::VisualizationManager( render_panel_ );
-    render_panel_->initialize( manager_->getSceneManager(), manager_ );
-    manager_->initialize();
-    manager_->startUpdate();
+    ros::start();
+
     ui->setupUi(this);
-    //updateDate();
-    //updateTime();
-    ros::NodeHandle nh;
-    rosTime = nh.subscribe<rosgraph_msgs::Clock>( "/clock", 2, &Widget::rosTimeMsgRecieved, this );
-    //QTimer *timer = new QTimer(this);
-    //connect(timer, SIGNAL(timeout()), this, SLOT(timerCallback()));
-    timer.start(200, this);
-    //timer = nh.createTimer(ros::Duration(0.2), &Widget::timerCallback, this, false);
-    //timer.start();
-    ros::spinOnce();
+
+    timer.start(33, this);
 }
 
 void Widget::timerEvent(QTimerEvent *event)
 {
-    //std::cout << "Timer Went off! Now updating date and time." << std::endl;
+    //Spin at beginning of Qt timer callback, so current ROS time is retrieved
+    ros::spinOnce();
+
     updateDate();
     updateTime();
+    ui->rosDisp->setText(timeFromMsg(ros::Time::now()));
 }
 
 void Widget::updateDate()
 {
     time_t now;
     struct tm *tm;
-    //rosgr
 
     now = time(0);
     if ((tm = localtime (&now)) == NULL) {
@@ -76,15 +67,7 @@ void Widget::updateTime()
     }
 }
 
-void Widget::rosTimeMsgRecieved(const rosgraph_msgs::Clock::ConstPtr& time)
-{
-    //std::cout << "Recieved ros sim time message" << std::endl;
-    ui->rosDisp->setText(timeFromMsg(time->clock));
-	
-}
-
-
-QString Widget::timeFromMsg(const ros::Time stamp)
+QString Widget::timeFromMsg(const ros::Time& stamp)
 {
     int sec = stamp.toSec();
     std::stringstream stream;

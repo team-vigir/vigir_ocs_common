@@ -26,21 +26,14 @@ public:
     explicit Widget(QWidget *parent = 0);
     void updateDate();
     void updateTime();
-    void timerCallback(const ros::TimerEvent& e);
-    void rosTimeRecieved();
-	QString timeFromMsg(const ros::Time stamp);
-    void rosTimeMsgRecieved(const rosgraph_msgs::Clock::ConstPtr& time);
+    QString timeFromMsg(const ros::Time& stamp);
     ~Widget();
     
 protected:
     void timerEvent(QTimerEvent *event);
 private:
-    rviz::VisualizationManager* manager_;
-    rviz::RenderPanel* render_panel_;
-    rviz::Display* robot_model_;
-    ros::Subscriber joint_states;
+
     Ui::Widget *ui;
-    ros::Subscriber rosTime;
     QBasicTimer timer;
 };
 
