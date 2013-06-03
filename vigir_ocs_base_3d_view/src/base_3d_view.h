@@ -98,6 +98,7 @@ protected:
     rviz::Display* waypoints_display_;
     rviz::Display* achieved_waypoints_display_;
     rviz::Display* octomap_roi_;
+    rviz::Display* point_cloud_request_viewer_;
 
     // new displays for walking
     rviz::Display* footsteps_array_;

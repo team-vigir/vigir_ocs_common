@@ -61,18 +61,21 @@ public Q_SLOTS:
     void changeAlpha(int);
     void closeSelectedArea();
     void mouseMoved(int,int);
+    void requestPointCloudROI();
 
 private Q_SLOTS:
     void select( int, int, int, int );
 
 private:
     int selectedArea[4];
+    int selected_topic;
 
     rviz::Display* camera_viewer_;
 
     rviz::Tool* selection_tool_;
 
     ros::Publisher head_pitch_update_pub_;
+    ros::Publisher pointcloud_request_pub_;
 };
 }
 #endif // CAMERA_VIEWER_H

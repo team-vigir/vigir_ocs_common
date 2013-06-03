@@ -32,7 +32,8 @@ bool selectionMade = false;
 namespace vigir_ocs
 {
 CameraViewerCustom::CameraViewerCustom( QWidget* parent )
-    : Base3DView( "/world", parent )
+    : Base3DView( "/world", parent ),
+      selected_topic(0)
 {
     // Create a camera/image display.
     camera_viewer_ = manager_->createDisplay( "rviz/CameraDisplayCustom", "Camera image", true ); // this would use the plugin instead of manually adding the display object to the manager
@@ -77,6 +78,9 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     QObject::connect((selection_tool_), SIGNAL(mouseHasMoved(int,int)), this, SLOT(mouseMoved(int,int)));
 
     Q_EMIT setMarkerScale(0.001f);
+
+    // advertise pointcloud request
+    pointcloud_request_pub_ = n_.advertise<geometry_msgs::PointStamped>( "/flor/worldmodel/ocs/dist_query_pointcloud_request", 1, false );
 }
 
 // Destructor.
@@ -104,8 +108,10 @@ void CameraViewerCustom::select( int x1, int y1, int x2, int y2 )
 
 void CameraViewerCustom::changeCameraTopic( int t )
 {
-    std::cout << "Camera topic changed:" << t << std::endl;
-    switch( t )
+    selected_topic = t;
+
+    std::cout << "Camera topic changed:" << selected_topic << std::endl;
+    switch( selected_topic )
     {
     case 0: // Head Left
     {
@@ -220,6 +226,39 @@ void CameraViewerCustom::disableSelection()
 
 
  //   ((rviz::CameraDisplayCustom*)camera_viewer_)->selectionProcessed( 0, 0, 0, 0 );
+}
+
+void CameraViewerCustom::requestPointCloudROI()
+{
+    Q_EMIT unHighlight();
+
+    float win_width = render_panel_->width();
+    float win_height = render_panel_->height();
+
+    Ogre::Ray mouseRay = this->render_panel_->getCamera()->getCameraToViewportRay(((float)(selectedArea[0]+selectedArea[2])/2.0f)/win_width, (float)((float)(selectedArea[1]+selectedArea[3])/2.0f)/win_height);
+    Ogre::Vector3 direction = mouseRay.getDirection();
+
+    geometry_msgs::PointStamped cmd;
+
+    cmd.header.stamp = ros::Time::now();
+    std::string camera_topic = "";
+    switch(selected_topic)
+    {
+    case 0: camera_topic = "head left"; break;
+    case 1: camera_topic = "head right"; break;
+    case 2: camera_topic = "left hand left"; break;
+    case 3: camera_topic = "left hand right"; break;
+    case 4: camera_topic = "right hand left"; break;
+    case 5: camera_topic = "right hand right"; break;
+    }
+
+    cmd.header.frame_id = camera_topic;
+
+    cmd.point.x = direction.x;
+    cmd.point.y = direction.y;
+    cmd.point.z = direction.z;
+
+    pointcloud_request_pub_.publish(cmd);
 }
 
 void CameraViewerCustom::changeAlpha(int newAlpha)

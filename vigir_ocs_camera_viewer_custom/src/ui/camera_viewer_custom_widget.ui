@@ -113,7 +113,7 @@
            <x>0</x>
            <y>0</y>
            <width>244</width>
-           <height>934</height>
+           <height>967</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -227,7 +227,14 @@
           <item>
            <widget class="QPushButton" name="toggleButton">
             <property name="text">
-             <string>Enable Selection</string>
+             <string>Request Image ROI</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="requestPointCloudROI">
+            <property name="text">
+             <string>Request Point Cloud ROI</string>
             </property>
            </widget>
           </item>
@@ -1079,6 +1086,10 @@
               </property>
              </widget>
             </widget>
+            <zorder>horizontalSlider</zorder>
+            <zorder>widget_2</zorder>
+            <zorder>widget_5</zorder>
+            <zorder>pushButton</zorder>
            </widget>
           </item>
           <item>
@@ -1140,6 +1151,7 @@
     <slot>gridMapToggled(bool)</slot>
     <slot>footstepPlanningToggled(bool)</slot>
     <slot>simulationRobotToggled(bool)</slot>
+    <slot>requestPointCloudROI()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -1362,6 +1374,22 @@
     <hint type="sourcelabel">
      <x>541</x>
      <y>81</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>220</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>requestPointCloudROI</sender>
+   <signal>clicked()</signal>
+   <receiver>widget</receiver>
+   <slot>requestPointCloudROI()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>559</x>
+     <y>324</y>
     </hint>
     <hint type="destinationlabel">
      <x>220</x>

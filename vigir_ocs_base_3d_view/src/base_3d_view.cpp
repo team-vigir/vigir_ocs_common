@@ -202,6 +202,12 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ghost_robot_model_->subProp( "Collision Enabled" )->setValue( false );
     ghost_robot_model_->subProp( "Alpha" )->setValue( 0.5f );
 
+    // point cloud request
+    point_cloud_request_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
+    ROS_ASSERT( point_cloud_request_viewer_ != NULL );
+    point_cloud_request_viewer_->subProp( "Style" )->setValue( "Points" );
+    point_cloud_request_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/dist_query_pointcloud_result" );
+    point_cloud_request_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
 }
 
 // Destructor.
