@@ -115,7 +115,7 @@
                 <string>Simulation Robot</string>
                </property>
                <property name="checked">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -125,7 +125,7 @@
                 <string>LIDAR Point Cloud</string>
                </property>
                <property name="checked">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -155,7 +155,7 @@
                 <string>Octomap</string>
                </property>
                <property name="checked">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>

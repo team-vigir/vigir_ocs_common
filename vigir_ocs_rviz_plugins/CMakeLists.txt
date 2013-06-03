@@ -27,6 +27,7 @@ catkin_package(
     vigir_ocs_rviz_plugin_octomap_display_custom
     vigir_ocs_rviz_plugin_grasp_display_custom
     vigir_ocs_rviz_plugin_robot_display_custom
+    vigir_ocs_rviz_plugin_map_display_custom
     ${OPENGL_LIBRARIES}
   INCLUDE_DIRS
     vigir_ocs_rviz_plugin_camera_display_custom/src
@@ -39,6 +40,7 @@ catkin_package(
     vigir_ocs_rviz_plugin_octomap_display_custom/src
     vigir_ocs_rviz_plugin_grasp_display_custom/src
     vigir_ocs_rviz_plugin_robot_display_custom/src
+    vigir_ocs_rviz_plugin_map_display_custom/src
     ${OPENGL_INCLUDE_DIR}
   CATKIN_DEPENDS
     roscpp 
@@ -65,6 +67,7 @@ include_directories(
     vigir_ocs_rviz_plugin_octomap_display_custom/src
     vigir_ocs_rviz_plugin_grasp_display_custom/src
     vigir_ocs_rviz_plugin_robot_display_custom/src
+    vigir_ocs_rviz_plugin_map_display_custom/src
 	${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM
@@ -83,6 +86,7 @@ add_subdirectory(vigir_ocs_rviz_plugin_path_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_octomap_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_grasp_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_robot_display_custom)
+add_subdirectory(vigir_ocs_rviz_plugin_map_display_custom)
 
 install(FILES
   camera_display_custom_plugin_description.xml
@@ -95,6 +99,7 @@ install(FILES
   octomap_display_custom_plugin_description.xml
   grasp_display_custom_plugin_description.xml
   robot_display_custom_plugin_description.xml
+  map_display_custom_plugin_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 #install(DIRECTORY icons DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

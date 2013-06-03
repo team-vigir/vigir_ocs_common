@@ -20,6 +20,7 @@
 
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/OccupancyGrid.h>
 
 #include <string>
 
@@ -44,6 +45,8 @@ class Base3DView: public QWidget
 public:
     Base3DView( std::string base_frame = "/pelvis", QWidget* parent = 0 );
     virtual ~Base3DView();
+
+    void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
 
 public Q_SLOTS:
     // displays
@@ -103,7 +106,7 @@ protected:
 
     // new displays for walking
     rviz::Display* footsteps_array_;
-    rviz::Display* ground_map_;
+    std::vector<rviz::Display*> ground_map_;
     rviz::Display* goal_pose_;
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
@@ -126,6 +129,8 @@ protected:
     ros::Publisher waypoint_add_pub_;
 
     ros::Publisher octomap_roi_pub_;
+
+    ros::Subscriber ground_map_sub_;
     
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 

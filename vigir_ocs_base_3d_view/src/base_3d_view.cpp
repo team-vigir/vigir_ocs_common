@@ -103,7 +103,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     laser_scan_->subProp( "Selectable" )->setValue( false );
 
     // Create a MarkerArray display.
-    octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );
+    octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", false );
     ROS_ASSERT( octomap_ != NULL );
 
     octomap_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
@@ -116,7 +116,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     stereo_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
     stereo_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
-    lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", true );
+    lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
     ROS_ASSERT( lidar_point_cloud_viewer_ != NULL );
     lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
     lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/worldmodel_main/pointcloud_vis" );
@@ -190,9 +190,6 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     footsteps_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps array", true );
     footsteps_array_->subProp( "Marker Topic" )->setValue( "/flor_footstep_planner/footsteps_array" );
 
-    ground_map_ = manager_->createDisplay( "rviz/Map", "Ground map", true );
-    ground_map_->subProp( "Topic" )->setValue( "/ground_lvl_grid_map" );
-
     goal_pose_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
     goal_pose_->subProp( "Topic" )->setValue( "/goalpose" );
     goal_pose_->subProp( "Shape" )->setValue( "Axes" );
@@ -206,11 +203,13 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goalpose" );
 
-    ghost_robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
+    ghost_robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", false );
     ghost_robot_model_->subProp( "TF Prefix" )->setValue( "/simulation" );
     ghost_robot_model_->subProp( "Visual Enabled" )->setValue( true );
     ghost_robot_model_->subProp( "Collision Enabled" )->setValue( false );
     ghost_robot_model_->subProp( "Alpha" )->setValue( 0.5f );
+
+    ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
 }
 
 // Destructor.
@@ -246,7 +245,8 @@ void Base3DView::markerArrayToggled( bool selected )
 
 void Base3DView::gridMapToggled( bool selected )
 {
-    ground_map_->setEnabled( selected );
+    for(int i = 0; i < ground_map_.size(); i++)
+        ground_map_[i]->setEnabled( selected );
 }
 
 void Base3DView::footstepPlanningToggled( bool selected )
@@ -512,5 +512,14 @@ void Base3DView::setContext(int context)
 {
     active_context_ = context;
     std::cout << "Active context: " << active_context_ << std::endl;
+}
+
+void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &pose)
+{
+    rviz::Display* ground_map = manager_->createDisplay( "rviz/MapDisplayCustom", "Ground map", true );
+    std::stringstream map_topic;
+    map_topic << "map_topic_" << ground_map_.size();
+    ground_map->subProp( "Topic" )->setValue( map_topic.str().c_str() );
+    ground_map_.push_back(ground_map);
 }
 }

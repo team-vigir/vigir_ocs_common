@@ -1,0 +1,9 @@
+<library path="libvigir_ocs_rviz_plugin_map_display_custom">
+  <class name="rviz/MapDisplayCustom"
+         type="rviz::MapDisplayCustom"
+         base_class_type="rviz::Display">
+    <description>
+      Customized map display plugin that creates a new image for new map messages instead of replacing the map.
+    </description>
+  </class>
+</library>
