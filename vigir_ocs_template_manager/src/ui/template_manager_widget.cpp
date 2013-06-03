@@ -3,8 +3,6 @@
 #include "template_manager_widget.h"
 #include "ui_template_manager_widget.h"
 #include "stdio.h"
-#include "rviz/visualization_manager.h"
-#include "rviz/render_panel.h"
 #include <iostream>
 #include <QPainter>
 #include <QtGui>
@@ -24,11 +22,7 @@ TemplateManagerWidget::TemplateManagerWidget(QWidget *parent) :
 
     ui->setupUi(this);
 
-    render_panel_ = new rviz::RenderPanel();
-    manager_ = new rviz::VisualizationManager( render_panel_ );
-    render_panel_->initialize( manager_->getSceneManager(), manager_ );
-    manager_->initialize();
-    manager_->startUpdate();
+    ros::start();
 
     connect(ui->tableWidget, SIGNAL(cellClicked(int,int)), this, SLOT(editSlot(int, int)));
 

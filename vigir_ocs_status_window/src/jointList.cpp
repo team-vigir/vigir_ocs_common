@@ -3,10 +3,6 @@
 #include <QRegExp>
 #include <ros/ros.h>
 #include <QDebug>
-#include "rviz/visualization_manager.h"
-#include "rviz/render_panel.h"
-#include "rviz/display.h"
-#include "rviz/frame_manager.h"
 
 jointList::jointList(QWidget *parent) :
     QWidget(parent)
@@ -26,11 +22,7 @@ jointList::jointList(QWidget *parent) :
     columns.push_back("Velocity");
     columns.push_back("Effort");
 
-    render_panel_ = new rviz::RenderPanel();
-    manager_ = new rviz::VisualizationManager( render_panel_ );
-    render_panel_->initialize( manager_->getSceneManager(), manager_ );
-    manager_->initialize();
-    manager_->startUpdate();
+    ros::start();
 
     jointTable->setHeaderLabels(columns);
     jointTable->setColumnWidth(0,150);

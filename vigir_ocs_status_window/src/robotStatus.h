@@ -13,14 +13,6 @@
 #include <ros/time.h>
 #include <QComboBox>
 
-namespace rviz
-{
-class Display;
-class RenderPanel;
-class VisualizationManager;
-class FrameManager;
-}
-
 class completeRow
 {
 public:
@@ -51,10 +43,6 @@ private Q_SLOTS:
     void on_msgTable_cellClicked(int row, int column);
     void on_radioButtons_updated();
 private:
-    rviz::VisualizationManager* manager_;
-    rviz::RenderPanel* render_panel_;
-    rviz::Display* robot_model_;
-
     int unreadMsgs;
     int numError;
     int numWarn;

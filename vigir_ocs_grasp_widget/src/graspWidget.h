@@ -21,14 +21,6 @@
 #include <flor_ocs_msgs/OCSRobotStatus.h>
 #include <flor_ocs_msgs/RobotStatusCodes.h>
 
-namespace rviz
-{
-class Display;
-class RenderPanel;
-class VisualizationManager;
-class FrameManager;
-}
-
 namespace Ui {
 class graspWidget;
 }
@@ -96,10 +88,6 @@ private:
     ros::Publisher template_match_request_pub_;
     ros::Publisher grasp_request_pub_;
     ros::Publisher grasp_release_pub_;
-
-    rviz::VisualizationManager* manager_;
-    rviz::RenderPanel* render_panel_;
-    rviz::Display* robot_model_;
 
     geometry_msgs::Pose feedbackPose;
     bool templateMatchDone;

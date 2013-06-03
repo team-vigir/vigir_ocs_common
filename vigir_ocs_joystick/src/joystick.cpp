@@ -26,12 +26,8 @@
 Joystick::Joystick( QWidget* parent )
  : QWidget( parent )
 {
-    // initialize rviz thread
-    render_panel_ = new rviz::RenderPanel();
-    manager_ = new rviz::VisualizationManager( render_panel_ );
-    render_panel_->initialize( manager_->getSceneManager(), manager_ );
-    manager_->initialize();
-    manager_->startUpdate();
+    // initialize ros thread
+    ros::start();
 
     //Initialize globals
     robot_steer = 0;

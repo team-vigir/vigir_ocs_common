@@ -77,9 +77,6 @@ private:
     ros::Publisher template_remove_pub_;
     ros::Publisher template_match_request_pub_;
     ros::Publisher grasp_request_pub_;
-
-    rviz::VisualizationManager* manager_;
-    rviz::RenderPanel* render_panel_;
 };
 
 #endif // TemplateManagerWidget_H

@@ -28,9 +28,6 @@ public:
     int getNumError();
 
 private:
-    rviz::VisualizationManager* manager_;
-    rviz::RenderPanel* render_panel_;
-    rviz::Display* robot_model_;
     ros::Subscriber joint_states;
     std::vector<QTreeWidgetItem*> joints;
     std::vector<double> effortLimits;

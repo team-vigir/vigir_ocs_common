@@ -1,20 +1,12 @@
 #include "robotStatus.h"
 #include <QVBoxLayout>
 #include <ros/ros.h>
-#include "rviz/visualization_manager.h"
 #include <flor_ocs_msgs/RobotStatusCodes.h>
-#include "rviz/render_panel.h"
-#include "rviz/display.h"
-#include "rviz/frame_manager.h"
 
 robotStatus::robotStatus(QWidget *parent) :
     QWidget(parent)
 {
-    render_panel_ = new rviz::RenderPanel();
-    manager_ = new rviz::VisualizationManager( render_panel_ );
-    render_panel_->initialize( manager_->getSceneManager(), manager_ );
-    manager_->initialize();
-    manager_->startUpdate();
+    ros::start();
 
     bold.setBold(true);
     normal.setBold(false);

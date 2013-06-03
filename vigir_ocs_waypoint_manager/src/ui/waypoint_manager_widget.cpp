@@ -3,8 +3,6 @@
 #include "waypoint_manager_widget.h"
 #include "ui_waypoint_manager_widget.h"
 #include "stdio.h"
-#include "rviz/visualization_manager.h"
-#include "rviz/render_panel.h"
 #include <iostream>
 #include <QPainter>
 #include <QtGui>
@@ -18,11 +16,7 @@ WaypointManagerWidget::WaypointManagerWidget(QWidget *parent) :
 {    
     ui->setupUi(this);
 
-    render_panel_ = new rviz::RenderPanel();
-    manager_ = new rviz::VisualizationManager( render_panel_ );
-    render_panel_->initialize( manager_->getSceneManager(), manager_ );
-    manager_->initialize();
-    manager_->startUpdate();
+    ros::start();
 
     // subscribe to the topic to load all waypoints
     waypoint_list_sub_ = nh_.subscribe<nav_msgs::Path>( "/waypoint/list", 5, &WaypointManagerWidget::processWaypointList, this );

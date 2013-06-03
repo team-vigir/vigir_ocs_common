@@ -22,12 +22,8 @@ namespace ocs_waypoint
       public:
         virtual void onInit();
 
-        void recievedUpdateWaypointMessage( const nav_msgs::Path::ConstPtr& msg);
-        void recievedRobotLocUpdate( const nav_msgs::Odometry::ConstPtr& msg);
-//        void addWaypointCb(const flor_ocs_msgs::OCSWaypointAdd::ConstPtr& msg);
-//        void removeWaypointCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr& msg);
-//        void updateWaypointCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr& msg);
-//        void publishWaypointList();
+        void receivedUpdateWaypointMessage( const nav_msgs::Path::ConstPtr& msg);
+        void receivedRobotLocUpdate( const nav_msgs::Odometry::ConstPtr& msg);
 
       protected:
         ros::Subscriber waypoint_update;

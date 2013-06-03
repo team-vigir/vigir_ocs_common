@@ -18,12 +18,6 @@
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
 
-namespace rviz
-{
-class RenderPanel;
-class VisualizationManager;
-}
-
 namespace Ui {
 class WaypointManagerWidget;
 }
@@ -50,9 +44,6 @@ private:
     ros::Subscriber waypoint_list_sub_;
     ros::Publisher waypoint_remove_pub_;
     ros::Publisher confirm_navigation_pub_;
-
-    rviz::VisualizationManager* manager_;
-    rviz::RenderPanel* render_panel_;
 };
 
 #endif // WaypointManagerWidget_H

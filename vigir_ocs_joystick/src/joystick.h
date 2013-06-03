@@ -18,8 +18,6 @@
 #include <ros/publisher.h>
 #include <ros/subscriber.h>
 #include <ros/ros.h>
-#include "rviz/visualization_manager.h"
-#include "rviz/render_panel.h"
 
 //#include "ui/joystick_widget.h"
 
@@ -44,11 +42,7 @@ public:
 Q_SIGNALS:
     void throttleUpdated(unsigned char);
 
-private:  
-    // this is only here so we don't have to initialize a thread for ros
-    rviz::VisualizationManager* manager_;
-    rviz::RenderPanel* render_panel_;
-
+private:
     flor_ocs_msgs::OCSDrive drive_cmd;
 
     char robot_steer;

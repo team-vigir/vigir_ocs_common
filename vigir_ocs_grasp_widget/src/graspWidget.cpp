@@ -4,10 +4,6 @@
 #include <QColor>
 #include <QProgressBar>
 #include <QSlider>
-#include "rviz/visualization_manager.h"
-#include "rviz/render_panel.h"
-#include "rviz/display.h"
-#include "rviz/frame_manager.h"
 
 //grasp_testing grasp_testing_simple.launch
 
@@ -21,11 +17,9 @@ graspWidget::graspWidget(QWidget *parent) :
     ui->performButton->setDisabled(true);
     ui->templateButton->setDisabled(true);
     templateMatchDone = false;
-    render_panel_ = new rviz::RenderPanel();
-    manager_ = new rviz::VisualizationManager( render_panel_ );
-    render_panel_->initialize( manager_->getSceneManager(), manager_ );
-    manager_->initialize();
-    manager_->startUpdate();
+
+    ros::start();
+
     std::string templatePath = (ros::package::getPath("templates"))+"/";//vigir_grasp_control") + "/../templates/";
     std::cout << "--------------<" << templatePath << ">\n" << std::endl;
     template_dir_path_ = QString(templatePath.c_str());
