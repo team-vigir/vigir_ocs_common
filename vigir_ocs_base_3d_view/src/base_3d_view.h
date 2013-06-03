@@ -81,6 +81,7 @@ Q_SIGNALS:
 
 protected:
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
+    void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
     rviz::VisualizationManager* manager_;
     rviz::VisualizationManager* manager_simulation_;

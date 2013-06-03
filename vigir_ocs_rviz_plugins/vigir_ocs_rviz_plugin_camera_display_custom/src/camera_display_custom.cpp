@@ -518,6 +518,8 @@ bool CameraDisplayCustom::updateCamera()
         return false;
     }
 
+    Q_EMIT updateFrameID(info->header.frame_id);
+
     Ogre::Vector3 position;
     Ogre::Quaternion orientation;
 

@@ -130,6 +130,9 @@ private Q_SLOTS:
     void updateImgReqTopic();
     void updateImgReqCroppedTopic();
 
+Q_SIGNALS:
+    void updateFrameID( std::string );
+
 protected:
     // overrides from Display
     virtual void onEnable();

@@ -62,13 +62,14 @@ public Q_SLOTS:
     void closeSelectedArea();
     void mouseMoved(int,int);
     void requestPointCloudROI();
+    void updateImageFrame(std::string);
 
 private Q_SLOTS:
     void select( int, int, int, int );
 
 private:
     int selectedArea[4];
-    int selected_topic;
+    std::string camera_frame_topic_;
 
     rviz::Display* camera_viewer_;
 

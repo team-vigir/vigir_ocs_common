@@ -33,7 +33,7 @@ namespace vigir_ocs
 {
 CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     : Base3DView( "/world", parent ),
-      selected_topic(0)
+      camera_frame_topic_("")
 {
     // Create a camera/image display.
     camera_viewer_ = manager_->createDisplay( "rviz/CameraDisplayCustom", "Camera image", true ); // this would use the plugin instead of manually adding the display object to the manager
@@ -64,6 +64,9 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     QObject::connect(this, SIGNAL(setCropCameraSpeed(int)), camera_viewer_, SLOT(changeCropCameraSpeed(int)));
 
     QObject::connect(this, SIGNAL(unHighlight()), selection_tool_, SLOT(unHighlight()));
+
+    QObject::connect(camera_viewer_, SIGNAL(updateFrameID(std::string)), this, SLOT(updateImageFrame(std::string)));
+
 
     // and advertise the head pitch update function
     head_pitch_update_pub_ = n_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ay", 1, false );
@@ -108,10 +111,8 @@ void CameraViewerCustom::select( int x1, int y1, int x2, int y2 )
 
 void CameraViewerCustom::changeCameraTopic( int t )
 {
-    selected_topic = t;
-
-    std::cout << "Camera topic changed:" << selected_topic << std::endl;
-    switch( selected_topic )
+    std::cout << "Camera topic changed:" << t << std::endl;
+    switch( t )
     {
     case 0: // Head Left
     {
@@ -241,18 +242,18 @@ void CameraViewerCustom::requestPointCloudROI()
     geometry_msgs::PointStamped cmd;
 
     cmd.header.stamp = ros::Time::now();
-    std::string camera_topic = "";
-    switch(selected_topic)
-    {
-    case 0: camera_topic = "head left"; break;
-    case 1: camera_topic = "head right"; break;
-    case 2: camera_topic = "left hand left"; break;
-    case 3: camera_topic = "left hand right"; break;
-    case 4: camera_topic = "right hand left"; break;
-    case 5: camera_topic = "right hand right"; break;
-    }
+    cmd.header.frame_id = camera_frame_topic_;
+    std::cout << "Requesting new pointcloud from " << camera_frame_topic_ << std::endl;
 
-    cmd.header.frame_id = camera_topic;
+    Ogre::Vector3 frame_pos(0,0,0);
+    Ogre::Quaternion frame_quat(1,0,0,0);
+
+    transform( frame_pos, frame_quat, manager_->getFixedFrame().toUtf8().constData(), camera_frame_topic_.c_str() );
+
+    // convert vision (Z-forward) frame to ogre frame (Z-out)
+    //orientation = orientation * Ogre::Quaternion( Ogre::Degree( 180 ), Ogre::Vector3::UNIT_X );
+
+    direction = (frame_quat * direction);// + frame_pos;
 
     cmd.point.x = direction.x;
     cmd.point.y = direction.y;
@@ -296,6 +297,11 @@ void CameraViewerCustom::closeSelectedArea()
     ((rviz::CameraDisplayCustom*)camera_viewer_)->closeSelected();
     xButton->hide();
     selectionMade = false;
+}
+
+void CameraViewerCustom::updateImageFrame(std::string frame)
+{
+    camera_frame_topic_ = frame;
 }
 }
 

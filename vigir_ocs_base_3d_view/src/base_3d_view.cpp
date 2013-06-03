@@ -67,7 +67,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     // Create a RobotModel display.
     robot_model_ = manager_->createDisplay( "rviz/RobotModel", "Robot model", true );
-    //ROS_ASSERT( robot_model_ != NULL );
+    ROS_ASSERT( robot_model_ != NULL );
 
     // hand model display?
     //hand_model_ = manager_->createDisplay( "rviz/GraspDisplayCustom", "Grasp display test", true );
@@ -97,10 +97,10 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // Create a LaserScan display.
     laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
     ROS_ASSERT( laser_scan_ != NULL );
-
     laser_scan_->subProp( "Topic" )->setValue( "/multisense_sl/laser/scan" );
     laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
     laser_scan_->subProp( "Decay Time" )->setValue( 1 );
+    laser_scan_->subProp( "Selectable" )->setValue( false );
 
     // Create a MarkerArray display.
     octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );
@@ -114,12 +114,22 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     stereo_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
     stereo_point_cloud_viewer_->subProp( "Topic" )->setValue( "/multisense_sl/camera/points2" );
     stereo_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+    stereo_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
     lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", true );
     ROS_ASSERT( lidar_point_cloud_viewer_ != NULL );
     lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
     lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/worldmodel_main/pointcloud_vis" );
     lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+    lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
+
+    // point cloud request
+    point_cloud_request_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", true );
+    point_cloud_request_viewer_->subProp( "Style" )->setValue( "Points" );
+    point_cloud_request_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/dist_query_pointcloud_result" );
+    point_cloud_request_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+    point_cloud_request_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+    point_cloud_request_viewer_->subProp( "Selectable" )->setValue( false );
 
     // Create a template display to display all templates listed by the template nodelet
     template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
@@ -201,13 +211,6 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ghost_robot_model_->subProp( "Visual Enabled" )->setValue( true );
     ghost_robot_model_->subProp( "Collision Enabled" )->setValue( false );
     ghost_robot_model_->subProp( "Alpha" )->setValue( 0.5f );
-
-    // point cloud request
-    point_cloud_request_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
-    ROS_ASSERT( point_cloud_request_viewer_ != NULL );
-    point_cloud_request_viewer_->subProp( "Style" )->setValue( "Points" );
-    point_cloud_request_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/dist_query_pointcloud_result" );
-    point_cloud_request_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
 }
 
 // Destructor.
@@ -323,6 +326,37 @@ void Base3DView::newSelection( Ogre::Vector3 position )
 void Base3DView::templatePathChanged( QString path )
 {
     selected_template_path_ = path;
+}
+
+void Base3DView::transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame)
+{
+    //std::cout << "POS bt: " << position.x << ", " << position.y << ", " << position.z << std::endl;
+    // put all pose data into a tf stamped pose
+    tf::Quaternion bt_orientation(orientation.x, orientation.y, orientation.z, orientation.w);
+    tf::Vector3 bt_position(position.x, position.y, position.z);
+
+    std::string frame(from_frame);
+    tf::Stamped<tf::Pose> pose_in(tf::Transform(bt_orientation,bt_position), ros::Time(), frame);
+    tf::Stamped<tf::Pose> pose_out;
+
+    // convert pose into new frame
+    try
+    {
+      manager_->getFrameManager()->getTFClient()->transformPose( to_frame, pose_in, pose_out );
+    }
+    catch(tf::TransformException& e)
+    {
+      ROS_DEBUG("Error transforming from frame '%s' to frame '%s': %s", from_frame, to_frame, e.what());
+      return;
+    }
+
+    bt_position = pose_out.getOrigin();
+    position = Ogre::Vector3(bt_position.x(), bt_position.y(), bt_position.z());
+    //std::cout << "POS transform: " << position.x << ", " << position.y << ", " << position.z << std::endl;
+
+    bt_orientation = pose_out.getRotation();
+    orientation = Ogre::Quaternion( bt_orientation.w(), bt_orientation.x(), bt_orientation.y(), bt_orientation.z() );
+    //std::cout << "QUAT transform: " << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << std::endl;
 }
 
 void Base3DView::transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose)
