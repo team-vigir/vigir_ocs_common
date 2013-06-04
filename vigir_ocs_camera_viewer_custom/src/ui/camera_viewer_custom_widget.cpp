@@ -36,7 +36,7 @@ QWidget *scrollingArea;
 QLayout* scrollLayout;
 
 QGroupBox *displayBox;
-QGroupBox *resolutionBox;
+QGroupBox *areaFeedBox;
 QGroupBox *imageBox;
 QGroupBox *cameraBox;
 
@@ -50,9 +50,6 @@ QObjectList rateChildren;
 
 int currentIndex=0;
 int headControlIndex = 0;
-
-
-
 
 CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
     QWidget(parent),
@@ -70,7 +67,7 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
     feedFPSBox = this->findChild<QGroupBox *>("Mode_3");
     feedSlider = this->findChild<QSlider *>("horizontalSlider_2");
     connect(feedSlider, SIGNAL(valueChanged(int)), this, SLOT(updateFeedFPS(int)));
-    selectedFPSBox = this->findChild<QGroupBox *>("groupBox_2");
+    //selectedFPSBox = this->findChild<QGroupBox *>("groupBox_2");
     selectedSlider = this->findChild<QSlider *>("horizontalSlider_3");
     connect(selectedSlider, SIGNAL(valueChanged(int)), this, SLOT(updateSelectedFPS(int)));
 
@@ -89,14 +86,7 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
     selectedResolution = this->findChild<QComboBox *>("comboBox_8");
   //  connect(selectedResolution, SIGNAL(currentIndexChanged(int)), this, SLOT(alterChoices(int)));
 
-
     scrollingArea= this->findChild<QWidget *>("scrollAreaWidgetContents");
-
-
-   // toggleButton = this->parentWidget()->findChild<QPushButton *>("toggleButton");
-  //  toggleButton->setEnabled(false);
-  //  connect(toggleButton, SIGNAL(clicked()), this, SLOT(disableSelection()));
-
 
     //This last part just creates the hand control box using the position
     // and size of the head pitch control box which it replaces.
@@ -142,29 +132,24 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
     handBox->setLayout(mainLayout);
     handBox->hide();
 
-
-
-
     displayBox= this->findChild<QGroupBox *>("groupBox_3");
     cameraBox= this->findChild<QGroupBox *>("Selection_3");
     imageBox= this->findChild<QGroupBox *>("groupBox");
-    resolutionBox = this->findChild<QGroupBox *>("groupBox_6");
+    areaFeedBox = this->findChild<QGroupBox *>("groupBox_2");
 
     displayChildren = displayBox->children();
     imageChildren = imageBox->children();
-    resolutionChildren = resolutionBox->children();
+    resolutionChildren = areaFeedBox->children();
     cameraChildren = cameraBox->children();
     headChildren = pitchBox->children();
     rateChildren = feedFPSBox->children();
 
-
     connect(cameraBox, SIGNAL(toggled(bool)), this, SLOT(disableCameraPanel(bool)));
-    connect(resolutionBox, SIGNAL(toggled(bool)), this, SLOT(disableResolutionPanel(bool)));
+    connect(areaFeedBox, SIGNAL(toggled(bool)), this, SLOT(disableAreaFeedPanel(bool)));
     connect(feedFPSBox, SIGNAL(toggled(bool)), this, SLOT(disableFeedPanel(bool)));
     connect(displayBox, SIGNAL(toggled(bool)), this, SLOT(disableDisplayPanel(bool)));
     connect(pitchBox, SIGNAL(toggled(bool)), this, SLOT(disableHeadPanel(bool)));
     connect(imageBox, SIGNAL(toggled(bool)), this, SLOT(disableImagePanel(bool)));
-
 }
 
 CameraViewerCustomWidget::~CameraViewerCustomWidget()
@@ -251,8 +236,6 @@ void CameraViewerCustomWidget::updatePitch(int value)
   **/
 void CameraViewerCustomWidget::updateFeedFPS(int fps)
 {
-
-
     std::string newTitle = "Feed Rate: ";
 
     std::stringstream ss;//create a stringstream for int to string conversion
@@ -265,7 +248,8 @@ void CameraViewerCustomWidget::updateFeedFPS(int fps)
     {
         sliderValues(fps);
     }
-    feedFPSBox->setTitle(label);
+    ui->label_9->setText(label);
+    //feedFPSBox->setTitle(label);
 
 }
 
@@ -288,7 +272,20 @@ void CameraViewerCustomWidget::updateSelectedFPS(int fps)
     {
         sliderValues(fps);
     }
-    selectedFPSBox->setTitle(label);
+    ui->label_10->setText(label);
+    //selectedFPSBox->setTitle(label);
+}
+
+void CameraViewerCustomWidget::setFeedToSingleImage()
+{
+    ui->horizontalSlider_2->setValue(0);
+    updateFeedFPS(0);
+}
+
+void CameraViewerCustomWidget::setAreaToSingleImage()
+{
+    ui->horizontalSlider_3->setValue(0);
+    updateSelectedFPS(0);
 }
 
 /**
@@ -328,47 +325,9 @@ void CameraViewerCustomWidget::isLocked()
 
 void CameraViewerCustomWidget::alterChoices(int index)
 {
-    int selected = selectedResolution->currentIndex(); //stores current index
-
-    selectedResolution->clear();
-
-    int indexCounter = 0;
-
-    if(index >= 0)
-    {
-        selectedResolution->addItem(QString("Selected - Very High"), indexCounter++);
-    }
-
-    if(index >=1)
-    {
-        selectedResolution->addItem(QString("Selected - High"), indexCounter++);
-    }
-    if(index >=2)
-    {
-        selectedResolution->addItem(QString("Selected - Medium"), indexCounter++);
-    }
-
-    if(index >=3)
-    {
-        selectedResolution->addItem(QString("Selected - Low"), indexCounter++);
-    }
-
-
-    if(index ==4)
-    {
-        selectedResolution->addItem(QString("Selected - Very Low"), indexCounter++);
-    }
-    //indexCounter-= index;
-
-
-
-    if(selected>index)
+    if(selectedResolution->currentIndex()>index)
     {
         selectedResolution->setCurrentIndex(index);
-    }
-    else
-    {
-        selectedResolution->setCurrentIndex(selected);
     }
 }
 
@@ -452,9 +411,9 @@ void CameraViewerCustomWidget::disableHeadPanel(bool selected)
         }
     }
 }
-void CameraViewerCustomWidget::disableResolutionPanel(bool selected)
+void CameraViewerCustomWidget::disableAreaFeedPanel(bool selected)
 {
-    if(!resolutionBox->isChecked())
+    if(!areaFeedBox->isChecked())
     {
         for(int x = 0; x<resolutionChildren.count(); x++)
         {

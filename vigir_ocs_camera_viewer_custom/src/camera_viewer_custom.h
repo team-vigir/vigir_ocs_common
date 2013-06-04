@@ -57,6 +57,10 @@ public Q_SLOTS:
     void changeCropImageResolution( int );
     void changeCameraSpeed( int );
     void changeCropCameraSpeed( int );
+    void applyFeedChanges();
+    void applyAreaChanges();
+    void requestSingleFeedImage();
+    void requestSingleAreaImage();
     void disableSelection( );
     void changeAlpha(int);
     void closeSelectedArea();
@@ -68,7 +72,7 @@ private Q_SLOTS:
     void select( int, int, int, int );
 
 private:
-    int selectedArea[4];
+    int selected_area_[4];
     std::string camera_frame_topic_;
 
     rviz::Display* camera_viewer_;
@@ -77,6 +81,11 @@ private:
 
     ros::Publisher head_pitch_update_pub_;
     ros::Publisher pointcloud_request_pub_;
+
+    int feed_rate_;
+    int feed_resolution_;
+    int area_rate_;
+    int area_resolution_;
 };
 }
 #endif // CAMERA_VIEWER_H

@@ -103,8 +103,8 @@ CameraDisplayCustom::CameraDisplayCustom()
     , crop_width_(0)
     , crop_height_(0)
     , crop_binning_(0)
-    , publish_frequency_(15.0f)
-    , crop_publish_frequency_(15.0f)
+    , publish_frequency_(0.0f)
+    , crop_publish_frequency_(0.0f)
     , render_panel_(NULL)
     , caminfo_tf_filter_( 0 )
     , new_caminfo_( false )
@@ -482,7 +482,6 @@ void CameraDisplayCustom::update( float wall_dt, float ros_dt )
             {
 
                 caminfo_ok_ = updateCamera();
-                render_panel_->getRenderWindow()->update();
                 force_render_ = false;
             }
         }
@@ -490,6 +489,8 @@ void CameraDisplayCustom::update( float wall_dt, float ros_dt )
         {
             setStatus(StatusProperty::Error, "Image", e.what());
         }
+
+        render_panel_->getRenderWindow()->update();
     }
 }
 
@@ -844,25 +845,19 @@ void CameraDisplayCustom::changeCameraSpeed( int t )
 {
     std::cout << "Camera speed changed:" << t << std::endl;//(15.0f/(float)pow(3,t)) << std::endl;
 
-    if(t != 3)
-        publish_frequency_ = t;//15.0f/(float)pow(3,t); // 15 or whatever the max fps is
-    else
-        publish_frequency_ = 0.0f;
+    publish_frequency_ = t;//15.0f/(float)pow(3,t); // 15 or whatever the max fps is
 
     publishFullImageRequest();
-    publishCropImageRequest();
+    //publishCropImageRequest();
 }
 
 void CameraDisplayCustom::changeCropCameraSpeed( int t )
 {
     std::cout << "Camera speed changed:" << t << std::endl;//(15.0f/(float)pow(3,t)) << std::endl;
 
-    if(t != 3)
-        crop_publish_frequency_ = t;//15.0f/(float)pow(3,t); // 15 or whatever the max fps is
-    else
-        crop_publish_frequency_ = 0.0f;
+    crop_publish_frequency_ = t;//15.0f/(float)pow(3,t); // 15 or whatever the max fps is
 
-    publishFullImageRequest();
+    //publishFullImageRequest();
     publishCropImageRequest();
 }
 
@@ -878,7 +873,7 @@ void CameraDisplayCustom::publishCropImageRequest()
     cmd.roi.x_offset = crop_x_offset_;
     cmd.roi.y_offset = crop_y_offset_;
     if(crop_publish_frequency_ == 0.0f)
-        cmd.mode = 0;
+        cmd.mode = 2;
     else
         cmd.mode = 1;
     cmd.publish_frequency = crop_publish_frequency_;
@@ -898,7 +893,7 @@ void CameraDisplayCustom::publishFullImageRequest()
     cmd.roi.x_offset = 0;
     cmd.roi.y_offset = 0;
     if(publish_frequency_ == 0.0f)
-        cmd.mode = 0;
+        cmd.mode = 2;
     else
         cmd.mode = 1;
     cmd.publish_frequency = publish_frequency_;

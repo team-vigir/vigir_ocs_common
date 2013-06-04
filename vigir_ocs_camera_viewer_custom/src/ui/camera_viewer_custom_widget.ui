@@ -111,9 +111,9 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>0</y>
+           <y>-249</y>
            <width>244</width>
-           <height>967</height>
+           <height>1070</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -254,7 +254,7 @@
             </property>
             <property name="maximumSize">
              <size>
-              <width>191</width>
+              <width>221</width>
               <height>63</height>
              </size>
             </property>
@@ -284,7 +284,7 @@
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>165</width>
+                 <width>198</width>
                  <height>27</height>
                 </size>
                </property>
@@ -327,7 +327,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QGroupBox" name="groupBox_6">
+           <widget class="QGroupBox" name="Mode_3">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
               <horstretch>0</horstretch>
@@ -337,17 +337,17 @@
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>0</height>
+              <height>180</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>224</width>
-              <height>96</height>
+              <width>221</width>
+              <height>180</height>
              </size>
             </property>
             <property name="title">
-             <string>Resolutions</string>
+             <string>Camera Feed</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -355,10 +355,7 @@
             <property name="checkable">
              <bool>true</bool>
             </property>
-            <layout class="QVBoxLayout" name="verticalLayout_6">
-             <property name="sizeConstraint">
-              <enum>QLayout::SetMaximumSize</enum>
-             </property>
+            <layout class="QVBoxLayout" name="verticalLayout_5">
              <item>
               <widget class="QComboBox" name="comboBox_9">
                <property name="sizePolicy">
@@ -378,31 +375,219 @@
                </property>
                <item>
                 <property name="text">
-                 <string>Feed - Very High</string>
+                 <string>Resolution - Very High</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Feed - High</string>
+                 <string>Resolution - High</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Feed - Medium</string>
+                 <string>Resolution - Medium</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Feed - Low</string>
+                 <string>Resolution - Low</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Feed - Very Low</string>
+                 <string>Resolution - Very Low</string>
                 </property>
                </item>
               </widget>
              </item>
+             <item>
+              <widget class="QWidget" name="widget_7" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout">
+                <property name="margin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="label_9">
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Feed Rate: 0 FPS&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="textFormat">
+                   <enum>Qt::RichText</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="checkBox">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>81</width>
+                    <height>22</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Lock</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSlider" name="horizontalSlider_2">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>181</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>181</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="maximum">
+                <number>30</number>
+               </property>
+               <property name="value">
+                <number>0</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="tickPosition">
+                <enum>QSlider::TicksBelow</enum>
+               </property>
+               <property name="tickInterval">
+                <number>5</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_3" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>201</width>
+                 <height>16</height>
+                </size>
+               </property>
+               <widget class="QLabel" name="label_2">
+                <property name="geometry">
+                 <rect>
+                  <x>3</x>
+                  <y>0</y>
+                  <width>21</width>
+                  <height>20</height>
+                 </rect>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>21</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+               <widget class="QLabel" name="label_5">
+                <property name="geometry">
+                 <rect>
+                  <x>160</x>
+                  <y>0</y>
+                  <width>31</width>
+                  <height>17</height>
+                 </rect>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>31</width>
+                  <height>17</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Max</string>
+                </property>
+               </widget>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_10" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <property name="margin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="applyCameraFeed">
+                  <property name="text">
+                   <string>Apply</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="getCameraImage">
+                  <property name="text">
+                   <string>Get Image</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_2">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>180</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>180</height>
+             </size>
+            </property>
+            <property name="title">
+             <string>Selected Area Feed</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_6">
              <item>
               <widget class="QComboBox" name="comboBox_8">
                <property name="sizePolicy">
@@ -419,343 +604,159 @@
                </property>
                <item>
                 <property name="text">
-                 <string>Selected Area - Very High</string>
+                 <string>Resolution - Very High</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Selected Area - High</string>
+                 <string>Resolution - High</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Selected Area - Medium</string>
+                 <string>Resolution - Medium</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Selected Area - Low</string>
+                 <string>Resolution - Low</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Selected Area - Very Low</string>
+                 <string>Resolution - Very Low</string>
                 </property>
                </item>
               </widget>
              </item>
+             <item>
+              <widget class="QLabel" name="label_10">
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Selected Area Rate: 0 FPS&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSlider" name="horizontalSlider_3">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>181</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="maximum">
+                <number>30</number>
+               </property>
+               <property name="value">
+                <number>0</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="tickPosition">
+                <enum>QSlider::TicksBelow</enum>
+               </property>
+               <property name="tickInterval">
+                <number>5</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_4" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>191</width>
+                 <height>16</height>
+                </size>
+               </property>
+               <widget class="QLabel" name="label_6">
+                <property name="geometry">
+                 <rect>
+                  <x>3</x>
+                  <y>0</y>
+                  <width>20</width>
+                  <height>20</height>
+                 </rect>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>20</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+               <widget class="QLabel" name="label_7">
+                <property name="geometry">
+                 <rect>
+                  <x>160</x>
+                  <y>0</y>
+                  <width>31</width>
+                  <height>20</height>
+                 </rect>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>31</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Max</string>
+                </property>
+               </widget>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_8" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <property name="margin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="applyAreaFeed">
+                  <property name="text">
+                   <string>Apply</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="getAreaImage">
+                  <property name="text">
+                   <string>Get Image</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
             </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="Mode_3">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>161</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>221</width>
-              <height>161</height>
-             </size>
-            </property>
-            <property name="title">
-             <string>Feed Rate: 0 FPS</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <widget class="QSlider" name="horizontalSlider_2">
-             <property name="geometry">
-              <rect>
-               <x>20</x>
-               <y>30</y>
-               <width>181</width>
-               <height>24</height>
-              </rect>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>181</width>
-               <height>24</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>181</width>
-               <height>24</height>
-              </size>
-             </property>
-             <property name="maximum">
-              <number>30</number>
-             </property>
-             <property name="value">
-              <number>30</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="tickPosition">
-              <enum>QSlider::TicksBelow</enum>
-             </property>
-             <property name="tickInterval">
-              <number>5</number>
-             </property>
-            </widget>
-            <widget class="QWidget" name="widget_3" native="true">
-             <property name="geometry">
-              <rect>
-               <x>20</x>
-               <y>60</y>
-               <width>201</width>
-               <height>16</height>
-              </rect>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>201</width>
-               <height>16</height>
-              </size>
-             </property>
-             <widget class="QLabel" name="label_2">
-              <property name="geometry">
-               <rect>
-                <x>5</x>
-                <y>0</y>
-                <width>21</width>
-                <height>20</height>
-               </rect>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>21</width>
-                <height>20</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_5">
-              <property name="geometry">
-               <rect>
-                <x>160</x>
-                <y>0</y>
-                <width>31</width>
-                <height>17</height>
-               </rect>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>31</width>
-                <height>17</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Max</string>
-              </property>
-             </widget>
-            </widget>
-            <widget class="QGroupBox" name="groupBox_2">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>90</y>
-               <width>221</width>
-               <height>71</height>
-              </rect>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>71</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>221</width>
-               <height>71</height>
-              </size>
-             </property>
-             <property name="title">
-              <string>       Selected Area Rate: 0 FPS</string>
-             </property>
-             <widget class="QWidget" name="widget_4" native="true">
-              <property name="geometry">
-               <rect>
-                <x>23</x>
-                <y>49</y>
-                <width>191</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>191</width>
-                <height>16</height>
-               </size>
-              </property>
-              <widget class="QLabel" name="label_6">
-               <property name="geometry">
-                <rect>
-                 <x>1</x>
-                 <y>0</y>
-                 <width>20</width>
-                 <height>20</height>
-                </rect>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>20</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>0</string>
-               </property>
-              </widget>
-              <widget class="QLabel" name="label_7">
-               <property name="geometry">
-                <rect>
-                 <x>160</x>
-                 <y>0</y>
-                 <width>31</width>
-                 <height>20</height>
-                </rect>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>31</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Max</string>
-               </property>
-              </widget>
-             </widget>
-             <widget class="QSlider" name="horizontalSlider_3">
-              <property name="geometry">
-               <rect>
-                <x>20</x>
-                <y>20</y>
-                <width>181</width>
-                <height>24</height>
-               </rect>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>181</width>
-                <height>24</height>
-               </size>
-              </property>
-              <property name="maximum">
-               <number>30</number>
-              </property>
-              <property name="value">
-               <number>30</number>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="tickPosition">
-               <enum>QSlider::TicksBelow</enum>
-              </property>
-              <property name="tickInterval">
-               <number>5</number>
-              </property>
-             </widget>
-            </widget>
-            <widget class="QCheckBox" name="checkBox">
-             <property name="geometry">
-              <rect>
-               <x>140</x>
-               <y>0</y>
-               <width>81</width>
-               <height>22</height>
-              </rect>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>81</width>
-               <height>22</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Lock</string>
-             </property>
-            </widget>
            </widget>
           </item>
           <item>
@@ -1148,6 +1149,11 @@
     <slot>footstepPlanningToggled(bool)</slot>
     <slot>simulationRobotToggled(bool)</slot>
     <slot>requestPointCloudROI()</slot>
+    <slot>changeCropCameraSpeed(int)</slot>
+    <slot>applyFeedChanges()</slot>
+    <slot>applyAreaChanges()</slot>
+    <slot>requestSingleFeedImage()</slot>
+    <slot>requestSingleAreaImage()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -1393,8 +1399,122 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>horizontalSlider_3</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>widget</receiver>
+   <slot>changeCropCameraSpeed(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>554</x>
+     <y>451</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>220</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>applyAreaFeed</sender>
+   <signal>clicked()</signal>
+   <receiver>widget</receiver>
+   <slot>applyAreaChanges()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>512</x>
+     <y>505</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>220</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>applyCameraFeed</sender>
+   <signal>clicked()</signal>
+   <receiver>widget</receiver>
+   <slot>applyFeedChanges()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>511</x>
+     <y>319</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>220</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>getCameraImage</sender>
+   <signal>clicked()</signal>
+   <receiver>widget</receiver>
+   <slot>requestSingleFeedImage()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>611</x>
+     <y>319</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>220</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>getAreaImage</sender>
+   <signal>clicked()</signal>
+   <receiver>widget</receiver>
+   <slot>requestSingleAreaImage()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>615</x>
+     <y>505</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>220</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>getCameraImage</sender>
+   <signal>clicked()</signal>
+   <receiver>CameraViewerCustomWidget</receiver>
+   <slot>setFeedToSingleImage()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>611</x>
+     <y>319</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>363</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>getAreaImage</sender>
+   <signal>clicked()</signal>
+   <receiver>CameraViewerCustomWidget</receiver>
+   <slot>setAreaToSingleImage()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>615</x>
+     <y>505</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>363</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>alterDisplay(int)</slot>
+  <slot>setFeedToSingleImage()</slot>
+  <slot>setAreaToSingleImage()</slot>
  </slots>
 </ui>

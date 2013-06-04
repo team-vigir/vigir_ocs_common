@@ -101,10 +101,10 @@ void CameraViewerCustom::setCameraPitch( int degrees )
 
 void CameraViewerCustom::select( int x1, int y1, int x2, int y2 )
 {
-    selectedArea[0] = x1;
-    selectedArea[1] = y1;
-    selectedArea[2] = x2;
-    selectedArea[3] = y2;
+    selected_area_[0] = x1;
+    selected_area_[1] = y1;
+    selected_area_[2] = x2;
+    selected_area_[3] = y2;
 
     //select_manager_->highlight(render_panel_->getViewport(), x1, y1, x2, y2 );
 }
@@ -167,66 +167,82 @@ void CameraViewerCustom::changeCameraTopic( int t )
 
 void CameraViewerCustom::changeFullImageResolution( int t )
 {
-    Q_EMIT setFullImageResolution( t );
+    std::cout << "changed camera resolution: " << t << std::endl;
+    //Q_EMIT setFullImageResolution( t );
+    feed_resolution_ = t;
 }
-
 
 void CameraViewerCustom::changeCropImageResolution( int t )
 {
-    Q_EMIT setCropImageResolution( t );
+    std::cout << "changed crop camera resolution: " << t << std::endl;
+    //Q_EMIT setCropImageResolution( t );
+    area_resolution_ = t;
 }
-
 
 void CameraViewerCustom::changeCameraSpeed( int t )
 {
     std::cout << "changed camera update speed: " << t << std::endl;
-    Q_EMIT setCameraSpeed( t );
+    //Q_EMIT setCameraSpeed( t );
+    feed_rate_ = t;
 }
 
 void CameraViewerCustom::changeCropCameraSpeed( int t )
 {
-    Q_EMIT setCropCameraSpeed( t );
+    std::cout << "changed crop camera update speed: " << t << std::endl;
+    //Q_EMIT setCropCameraSpeed( t );
+    area_rate_ = t;
 }
 
+void CameraViewerCustom::applyFeedChanges()
+{
+    Q_EMIT setFullImageResolution( feed_resolution_ );
+    Q_EMIT setCameraSpeed( feed_rate_ );
+}
+
+void CameraViewerCustom::applyAreaChanges()
+{
+    Q_EMIT setCropImageResolution( area_resolution_ );
+    Q_EMIT setCropCameraSpeed( area_rate_ );
+}
+
+void CameraViewerCustom::requestSingleFeedImage()
+{
+    feed_rate_ = 0;
+    applyFeedChanges();
+}
+
+void CameraViewerCustom::requestSingleAreaImage()
+{
+    area_rate_ = 0;
+    applyAreaChanges();
+}
 
 void CameraViewerCustom::disableSelection()
 {
-     //((rviz::ImageSelectionToolCustom*)selection_tool_)->unHighlight();
     Q_EMIT unHighlight();
- 
-  //  toggleButton->setEnabled(false);
-  //  okay = true;
-    ((rviz::CameraDisplayCustom*)camera_viewer_)->selectionProcessed( selectedArea[0], selectedArea[1], selectedArea[2], selectedArea[3] );
+
+    ((rviz::CameraDisplayCustom*)camera_viewer_)->selectionProcessed( selected_area_[0], selected_area_[1], selected_area_[2], selected_area_[3] );
     selectionMade = true;
     int rightSide = 0;
     int topSide = 0;
-    if(selectedArea[0]<selectedArea[2])
+    if(selected_area_[0]<selected_area_[2])
     {
-        rightSide = selectedArea[2];
+        rightSide = selected_area_[2];
     }
     else
     {
-        rightSide = selectedArea[0];
+        rightSide = selected_area_[0];
     }
 
-    if(selectedArea[1]<selectedArea[3])
+    if(selected_area_[1]<selected_area_[3])
     {
-        topSide = selectedArea[1];
+        topSide = selected_area_[1];
     }
     else
     {
-        topSide = selectedArea[3];
+        topSide = selected_area_[3];
     }
-   // xButton = new QPushButton(render_panel_);
     xButton->setGeometry(rightSide-10, topSide+10, 20,20);
-  //  xButton->show();
- // connect(xButton, SIGNAL(clicked()), this, SLOT(closeSelectedArea()));
-  //  xButton->x =rightSide;
- //   xButton->y = topSide;
-
-
-
- //   ((rviz::CameraDisplayCustom*)camera_viewer_)->selectionProcessed( 0, 0, 0, 0 );
 }
 
 void CameraViewerCustom::requestPointCloudROI()
@@ -236,7 +252,7 @@ void CameraViewerCustom::requestPointCloudROI()
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
 
-    Ogre::Ray mouseRay = this->render_panel_->getCamera()->getCameraToViewportRay(((float)(selectedArea[0]+selectedArea[2])/2.0f)/win_width, (float)((float)(selectedArea[1]+selectedArea[3])/2.0f)/win_height);
+    Ogre::Ray mouseRay = this->render_panel_->getCamera()->getCameraToViewportRay(((float)(selected_area_[0]+selected_area_[2])/2.0f)/win_width, (float)((float)(selected_area_[1]+selected_area_[3])/2.0f)/win_height);
     Ogre::Vector3 direction = mouseRay.getDirection();
 
     geometry_msgs::PointStamped cmd;
@@ -269,18 +285,10 @@ void CameraViewerCustom::changeAlpha(int newAlpha)
 
 void CameraViewerCustom::mouseMoved(int newX, int newY)
 {
-   // QPoint point = event->pos();
-  /**  std::cout<<"Prints when mouse is moved"<<std::endl;
-    int x = this->size().width();
-    int y = this->size().height();
-    std::cout<<"width is "<<x<<std::endl;
-    std::cout<<"height is "<<y<<std::endl;**/
-
-
-    if(((newX<selectedArea[0] && newX>selectedArea[2]) ||
-       (newX>selectedArea[0] && newX<selectedArea[2])) &&
-       ((newY<selectedArea[1] && newY>selectedArea[3]) ||
-       (newY>selectedArea[1] && newY<selectedArea[3])) && selectionMade)
+    if(((newX<selected_area_[0] && newX>selected_area_[2]) ||
+       (newX>selected_area_[0] && newX<selected_area_[2])) &&
+       ((newY<selected_area_[1] && newY>selected_area_[3]) ||
+       (newY>selected_area_[1] && newY<selected_area_[3])) && selectionMade)
     {
         xButton->show();
     }
