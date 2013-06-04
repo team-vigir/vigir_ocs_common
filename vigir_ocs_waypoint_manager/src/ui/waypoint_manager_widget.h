@@ -44,6 +44,11 @@ private:
     ros::Subscriber waypoint_list_sub_;
     ros::Publisher waypoint_remove_pub_;
     ros::Publisher confirm_navigation_pub_;
+
+protected:
+    void timerEvent(QTimerEvent *event);
+private:
+    QBasicTimer timer;
 };
 
 #endif // WaypointManagerWidget_H

@@ -26,9 +26,6 @@
 Joystick::Joystick( QWidget* parent )
  : QWidget( parent )
 {
-    // initialize ros thread
-    ros::start();
-
     //Initialize globals
     robot_steer = 0;
     robot_throttle = 0;
@@ -38,11 +35,19 @@ Joystick::Joystick( QWidget* parent )
 
     //Initialize subscriber
     sub_ = n_.subscribe<flor_ocs_msgs::OCSDrive>( "drive_status", 1, &Joystick::JoystickFeedbackCB, this );
+
+    timer.start(33, this);
 }
 
 // Destructor.
 Joystick::~Joystick()
 {
+}
+
+void Joystick::timerEvent(QTimerEvent *event)
+{
+    //Spin at beginning of Qt timer callback, so current ROS time is retrieved
+    ros::spinOnce();
 }
 
 void Joystick::JoystickFeedbackCB(const flor_ocs_msgs::OCSDrive::ConstPtr& msg)

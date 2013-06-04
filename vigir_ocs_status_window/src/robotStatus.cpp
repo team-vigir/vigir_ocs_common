@@ -6,8 +6,6 @@
 robotStatus::robotStatus(QWidget *parent) :
     QWidget(parent)
 {
-    ros::start();
-
     bold.setBold(true);
     normal.setBold(false);
     msgTable = new QTableWidget();
@@ -66,6 +64,14 @@ robotStatus::robotStatus(QWidget *parent) :
     showDebug->connect(showDebug,SIGNAL(clicked()),this,SLOT(on_radioButtons_updated()));
     showWarn->connect(showWarn,SIGNAL(clicked()),this,SLOT(on_radioButtons_updated()));
     showError->connect(showError,SIGNAL(clicked()),this,SLOT(on_radioButtons_updated()));
+
+    timer.start(33, this);
+}
+
+void robotStatus::timerEvent(QTimerEvent *event)
+{
+    //Spin at beginning of Qt timer callback, so current ROS time is retrieved
+    ros::spinOnce();
 }
 
 void robotStatus::on_radioButtons_updated()

@@ -18,8 +18,6 @@ graspWidget::graspWidget(QWidget *parent) :
     ui->templateButton->setDisabled(true);
     templateMatchDone = false;
 
-    ros::start();
-
     std::string templatePath = (ros::package::getPath("templates"))+"/";//vigir_grasp_control") + "/../templates/";
     std::cout << "--------------<" << templatePath << ">\n" << std::endl;
     template_dir_path_ = QString(templatePath.c_str());
@@ -64,12 +62,20 @@ graspWidget::graspWidget(QWidget *parent) :
     std::string code_path_ = (ros::package::getPath("flor_ocs_msgs"))+"/include/flor_ocs_msgs/messages.csv";
     std::cout << code_path_ << std::endl;
     robot_status_codes_.loadErrorMessages(code_path_);
+
+    timer.start(33, this);
 }
 //SetStylesheet to change on the fly
 
 graspWidget::~graspWidget()
 {
     delete ui;
+}
+
+void graspWidget::timerEvent(QTimerEvent *event)
+{
+    //Spin at beginning of Qt timer callback, so current ROS time is retrieved
+    ros::spinOnce();
 }
 
 void graspWidget::templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr& feedback)

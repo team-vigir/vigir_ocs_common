@@ -16,8 +16,6 @@ WaypointManagerWidget::WaypointManagerWidget(QWidget *parent) :
 {    
     ui->setupUi(this);
 
-    ros::start();
-
     // subscribe to the topic to load all waypoints
     waypoint_list_sub_ = nh_.subscribe<nav_msgs::Path>( "/waypoint/list", 5, &WaypointManagerWidget::processWaypointList, this );
 
@@ -26,11 +24,19 @@ WaypointManagerWidget::WaypointManagerWidget(QWidget *parent) :
 
     // add a confirmation publisher for the button callback
     confirm_navigation_pub_ = nh_.advertise<flor_ocs_msgs::OCSWaypointUpdate>( "/waypoint/confirm", 1, false );
+
+    timer.start(33, this);
 }
 
 WaypointManagerWidget::~WaypointManagerWidget()
 {
     delete ui;
+}
+
+void WaypointManagerWidget::timerEvent(QTimerEvent *event)
+{
+    //Spin at beginning of Qt timer callback, so current ROS time is retrieved
+    ros::spinOnce();
 }
 
 void WaypointManagerWidget::processWaypointList(const nav_msgs::Path::ConstPtr& msg)

@@ -22,8 +22,6 @@ jointList::jointList(QWidget *parent) :
     columns.push_back("Velocity");
     columns.push_back("Effort");
 
-    ros::start();
-
     jointTable->setHeaderLabels(columns);
     jointTable->setColumnWidth(0,150);
     QTreeWidgetItem *torso = new QTreeWidgetItem(jointTable);
@@ -141,6 +139,14 @@ jointList::jointList(QWidget *parent) :
     joint_states = nh.subscribe<sensor_msgs::JointState>( "/atlas/joint_states", 2, &jointList::updateList, this );
 
     //ros::spinOnce();
+
+    timer.start(33, this);
+}
+
+void jointList::timerEvent(QTimerEvent *event)
+{
+    //Spin at beginning of Qt timer callback, so current ROS time is retrieved
+    ros::spinOnce();
 }
 
 void jointList::processRobotInfo(std::string robotInfo)

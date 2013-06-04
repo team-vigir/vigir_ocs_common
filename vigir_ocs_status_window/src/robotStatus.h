@@ -1,17 +1,21 @@
 #ifndef ROBOTSTATUS_H
 #define ROBOTSTATUS_H
 
+#include <QMainWindow>
 #include <QWidget>
-#include <ros/subscriber.h>
 #include <QPoint>
 #include <QPainter>
 #include <QTableWidget>
 #include <QPushButton>
 #include <QCheckBox>
-#include <flor_ocs_msgs/OCSRobotStatus.h>
 #include <QFile>
-#include <ros/time.h>
 #include <QComboBox>
+#include <QtGui>
+
+#include <ros/subscriber.h>
+#include <ros/time.h>
+
+#include <flor_ocs_msgs/OCSRobotStatus.h>
 
 class completeRow
 {
@@ -68,6 +72,11 @@ private:
     //float positionLimits[];
     //float velocityLimits[];
     //float effortLimits[];
+
+protected:
+    void timerEvent(QTimerEvent *event);
+private:
+    QBasicTimer timer;
 };
 
 #endif // ROBOTSTATUS_H

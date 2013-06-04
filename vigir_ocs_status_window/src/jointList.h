@@ -1,12 +1,15 @@
 #ifndef JOINTLIST_H
 #define JOINTLIST_H
 
+#include <QMainWindow>
 #include <QWidget>
+#include <QTreeWidget>
+#include <QFile>
+#include <QtGui>
+
 #include <ros/subscriber.h>
+
 #include <sensor_msgs/JointState.h>
-//#include < insert message file for limits FOO
-#include<QTreeWidget>
-#include<QFile>
 
 namespace rviz
 {
@@ -39,6 +42,11 @@ private:
     float errorMin;
     int warn;
     int err;
+
+protected:
+    void timerEvent(QTimerEvent *event);
+private:
+    QBasicTimer timer;
 };
 
 #endif // JOINTLIST_H

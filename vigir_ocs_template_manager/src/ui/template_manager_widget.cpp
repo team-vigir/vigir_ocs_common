@@ -22,8 +22,6 @@ TemplateManagerWidget::TemplateManagerWidget(QWidget *parent) :
 
     ui->setupUi(this);
 
-    ros::start();
-
     connect(ui->tableWidget, SIGNAL(cellClicked(int,int)), this, SLOT(editSlot(int, int)));
 
     template_id_db_path_ = template_dir_path_+QString("grasp_templates.txt");
@@ -43,11 +41,19 @@ TemplateManagerWidget::TemplateManagerWidget(QWidget *parent) :
 
     // advertise the grasp selection
     grasp_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/template/grasp_request", 1, false );
+
+    timer.start(33, this);
 }
 
 TemplateManagerWidget::~TemplateManagerWidget()
 {
     delete ui;
+}
+
+void TemplateManagerWidget::timerEvent(QTimerEvent *event)
+{
+    //Spin at beginning of Qt timer callback, so current ROS time is retrieved
+    ros::spinOnce();
 }
 
 void TemplateManagerWidget::initTemplateIdMap()

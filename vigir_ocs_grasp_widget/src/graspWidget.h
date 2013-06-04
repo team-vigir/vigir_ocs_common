@@ -7,17 +7,17 @@
 #include <QSpinBox>
 #include <QComboBox>
 #include <QStringList>
-
 #include <QPainter>
 #include <QtGui>
+
+#include <ros/ros.h>
+#include <geometry_msgs/Pose.h>
 
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
 #include <flor_grasp_msgs/GraspState.h>
 #include <flor_grasp_msgs/GraspSelection.h>
 #include <flor_grasp_msgs/TemplateSelection.h>
-#include <geometry_msgs/Pose.h>
-#include <ros/ros.h>
 #include <flor_ocs_msgs/OCSRobotStatus.h>
 #include <flor_ocs_msgs/RobotStatusCodes.h>
 
@@ -32,7 +32,7 @@ class graspWidget : public QWidget
 public:
     explicit graspWidget(QWidget *parent = 0);
     ~graspWidget();
-    
+
 public Q_SLOTS:
     void on_userSlider_sliderReleased();
     void on_templateBox_activated(const QString &arg1);
@@ -101,6 +101,11 @@ private:
     RobotStatusCodes robot_status_codes_;
 
     void robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
+
+protected:
+    void timerEvent(QTimerEvent *event);
+private:
+    QBasicTimer timer;
 };
 
 #endif // GRASPWIDGET_H

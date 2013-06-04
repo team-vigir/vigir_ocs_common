@@ -13,6 +13,7 @@
 #define JOYSTICK_H
 
 #include <QWidget>
+#include <QtGui>
 
 #include "flor_ocs_msgs/OCSDrive.h"
 #include <ros/publisher.h>
@@ -52,5 +53,10 @@ private:
     ros::Publisher drive_pub_;
 
     ros::Subscriber sub_;
+
+protected:
+    void timerEvent(QTimerEvent *event);
+private:
+    QBasicTimer timer;
 };
 #endif // JOYSTICK_H

@@ -77,6 +77,11 @@ private:
     ros::Publisher template_remove_pub_;
     ros::Publisher template_match_request_pub_;
     ros::Publisher grasp_request_pub_;
+
+protected:
+    void timerEvent(QTimerEvent *event);
+private:
+    QBasicTimer timer;
 };
 
 #endif // TemplateManagerWidget_H
