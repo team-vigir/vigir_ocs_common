@@ -130,6 +130,9 @@ private Q_SLOTS:
     void updateImgReqTopic();
     void updateImgReqCroppedTopic();
 
+    void publishCropImageRequest();
+    void publishFullImageRequest();
+
 Q_SIGNALS:
     void updateFrameID( std::string );
 
@@ -161,9 +164,6 @@ private:
     void updateStatus();
     bool updateCamera();
     void caminfoCallback( const sensor_msgs::CameraInfo::ConstPtr& msg );
-
-    void publishCropImageRequest();
-    void publishFullImageRequest();
 
     // variables that define the full image rendering surface
     // for the background

@@ -321,7 +321,7 @@ void CameraDisplayCustom::onInitialize()
     img_req_pub_full_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, true );
 
     // publish image request for full image - TO DO: MAKE THESE CONFIGURABLE WITH A SLOT FOR UI INTEGRATION
-    publishFullImageRequest();
+    //publishFullImageRequest();
 
     // also create a publisher to set parameters of cropped image
     img_req_pub_crop_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, false );
@@ -476,6 +476,24 @@ void CameraDisplayCustom::update( float wall_dt, float ros_dt )
 {
     if(render_panel_)
     {
+        std::string caminfo_topic = image_transport::getCameraInfoTopic(topic_property_->getTopicStd());
+        if(caminfo_sub_.getTopic().compare(caminfo_topic) != 0)
+        {
+            std::cout<<"updating topic" <<std::endl;
+
+            caminfo_sub_.unsubscribe();
+            try
+            {
+                caminfo_sub_.subscribe( update_nh_, caminfo_topic, 1 );
+                // std::cout<<"The subscription happens"<<std::endl;
+                setStatus( StatusProperty::Ok, "Camera Info", "OK" );
+            }
+            catch( ros::Exception& e )
+            {
+                setStatus( StatusProperty::Error, "Camera Info", QString( "Error subscribing: ") + e.what() );
+            }
+        }
+
         try
         {
             if(texture_.update()||texture_selection_.update()||force_render_)
@@ -519,6 +537,12 @@ bool CameraDisplayCustom::updateCamera()
         return false;
     }
 
+    std::cout << "CameraInfo dimensions: " << info->width << " x " << info->height << std::endl;
+    std::cout << "Texture dimensions: " << image->width << " x " << image->height << std::endl;
+    std::cout << "Original image dimensions: " << image->width*full_image_binning_ << " x " << image->height*full_image_binning_ << std::endl;
+    full_image_width_  = info->width;//image->width*full_image_binning_;
+    full_image_height_ = info->height;//image->height*full_image_binning_;
+
     Q_EMIT updateFrameID(info->header.frame_id);
 
     Ogre::Vector3 position;
@@ -536,8 +560,8 @@ bool CameraDisplayCustom::updateCamera()
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
 
-    float img_width = info->width;
-    float img_height = info->height;
+    float img_width = full_image_width_;
+    float img_height = full_image_height_;
     float zoom_x = zoom_property_->getFloat();
     float zoom_y = zoom_x;
     // Preserve aspect ratio
@@ -803,7 +827,7 @@ void CameraDisplayCustom::changeFullImageResolution( int t )
         break;
     }
 
-    publishFullImageRequest();
+    //publishFullImageRequest();
 }
 
 void CameraDisplayCustom::changeCropImageResolution( int t )
@@ -838,7 +862,7 @@ void CameraDisplayCustom::changeCropImageResolution( int t )
         break;
     }
 
-    publishCropImageRequest();
+    //publishCropImageRequest();
 }
 
 void CameraDisplayCustom::changeCameraSpeed( int t )
@@ -847,8 +871,7 @@ void CameraDisplayCustom::changeCameraSpeed( int t )
 
     publish_frequency_ = t;//15.0f/(float)pow(3,t); // 15 or whatever the max fps is
 
-    publishFullImageRequest();
-    //publishCropImageRequest();
+    //publishFullImageRequest();
 }
 
 void CameraDisplayCustom::changeCropCameraSpeed( int t )
@@ -857,8 +880,7 @@ void CameraDisplayCustom::changeCropCameraSpeed( int t )
 
     crop_publish_frequency_ = t;//15.0f/(float)pow(3,t); // 15 or whatever the max fps is
 
-    //publishFullImageRequest();
-    publishCropImageRequest();
+    //publishCropImageRequest();
 }
 
 
@@ -888,8 +910,8 @@ void CameraDisplayCustom::publishFullImageRequest()
 
     cmd.binning_x = full_image_binning_;
     cmd.binning_y = full_image_binning_;
-    cmd.roi.width = full_image_width_;
-    cmd.roi.height = full_image_height_;
+    cmd.roi.width = 4000;
+    cmd.roi.height = 4000;
     cmd.roi.x_offset = 0;
     cmd.roi.y_offset = 0;
     if(publish_frequency_ == 0.0f)
@@ -902,8 +924,6 @@ void CameraDisplayCustom::publishFullImageRequest()
     img_req_pub_full_.publish( cmd );
 
 }
-
-
 
 void CameraDisplayCustom::forceRender()
 {
@@ -1038,7 +1058,7 @@ void CameraDisplayCustom::updateImgReqTopic()
         img_req_pub_full_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( img_req_full_topic_property_->getTopicStd(), 1, true );
 
         // publish image request for full image - TO DO: MAKE THESE CONFIGURABLE WITH A SLOT FOR UI INTEGRATION
-        publishFullImageRequest();
+        //publishFullImageRequest();
 
         img_req_sub_full_.shutdown();
         // finally, we need to subscribe to requests so that multiple clients have everything updated

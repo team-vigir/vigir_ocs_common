@@ -111,9 +111,9 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-249</y>
+           <y>0</y>
            <width>244</width>
-           <height>1070</height>
+           <height>1037</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -222,13 +222,6 @@
               </widget>
              </item>
             </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="toggleButton">
-            <property name="text">
-             <string>Request Image ROI</string>
-            </property>
            </widget>
           </item>
           <item>
@@ -1220,22 +1213,6 @@
     <hint type="destinationlabel">
      <x>254</x>
      <y>372</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>toggleButton</sender>
-   <signal>clicked()</signal>
-   <receiver>widget</receiver>
-   <slot>disableSelection()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>568</x>
-     <y>40</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>202</x>
-     <y>299</y>
     </hint>
    </hints>
   </connection>

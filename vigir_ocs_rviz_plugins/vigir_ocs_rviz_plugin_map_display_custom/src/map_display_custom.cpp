@@ -66,6 +66,7 @@ MapDisplayCustom::MapDisplayCustom()
   , position_(Ogre::Vector3::ZERO)
   , orientation_(Ogre::Quaternion::IDENTITY)
   , new_map_(false)
+  , priority_(0)
 {
   topic_property_ = new RosTopicProperty( "Topic", "",
                                           QString::fromStdString( ros::message_traits::datatype<nav_msgs::OccupancyGrid>() ),
@@ -252,6 +253,9 @@ bool validateFloats(const nav_msgs::OccupancyGrid& msg)
 
 void MapDisplayCustom::update( float wall_dt, float ros_dt )
 {
+  if(manual_object_)
+    manual_object_->setRenderQueueGroupAndPriority( Ogre::RENDER_QUEUE_MAIN, priority_ );
+
   {
     boost::mutex::scoped_lock lock(mutex_);
 
@@ -528,6 +532,11 @@ void MapDisplayCustom::reset()
   clear();
   // Force resubscription so that the map will be re-sent
   updateTopic();
+}
+
+void MapDisplayCustom::setPriority(unsigned short priority)
+{
+    priority_ = priority;
 }
 
 } // namespace rviz

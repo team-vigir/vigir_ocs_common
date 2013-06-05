@@ -75,6 +75,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // Create a RobotModel display.
     robot_model_ = manager_->createDisplay( "rviz/RobotModel", "Robot model", true );
     ROS_ASSERT( robot_model_ != NULL );
+    robot_model_->subProp( "Selectable" )->setValue( false );
 
     // hand model display?
     //hand_model_ = manager_->createDisplay( "rviz/GraspDisplayCustom", "Grasp display test", true );
@@ -569,10 +570,12 @@ void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
         ground_map_.erase(ground_map_.begin());
     }
     float alpha = 1.0f, step = (0.95f/stored_maps);
+    unsigned short priority = stored_maps-1;
     for(int i = ground_map_.size()-1; i >= 0; i--,alpha-=step)
     {
         //std::cout << i << " " << alpha << std::endl;
         ground_map_[i]->subProp("Alpha")->setValue(alpha);
+        ((rviz::MapDisplayCustom*)ground_map_[i])->setPriority(priority--);
     }
 }
 }

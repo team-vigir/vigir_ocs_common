@@ -79,13 +79,14 @@ public:
   Ogre::Vector3 getPosition() { return position_; }
   Ogre::Quaternion getOrientation() { return orientation_; }
 
-  void incomingMap(const nav_msgs::OccupancyGrid::ConstPtr& msg);
+public Q_SLOTS:
+  void incomingMap( const nav_msgs::OccupancyGrid::ConstPtr& );
+  void setPriority( unsigned short );
 
 protected Q_SLOTS:
   void updateAlpha();
   void updateTopic();
   void updateDrawUnder();
-
 
 protected:
   // overrides from Display
@@ -127,6 +128,8 @@ protected:
   nav_msgs::OccupancyGrid::ConstPtr current_map_;
   boost::mutex mutex_;
   bool new_map_;
+
+  unsigned short priority_;
 };
 
 } // namespace rviz

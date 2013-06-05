@@ -50,6 +50,8 @@ Q_SIGNALS:
     void setCameraSpeed( int );
     void setCropCameraSpeed( int );
     void unHighlight();
+    void publishCropImageRequest();
+    void publishFullImageRequest();
 
 public Q_SLOTS:
     void changeCameraTopic( int );
