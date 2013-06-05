@@ -15,6 +15,12 @@
 #include <QPoint>
 #include <QMenu>
 
+#include <pcl/ros/conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/common/common.h>
+#include <pcl/common/transforms.h>
+
 #include "rviz/visualization_manager.h"
 //#include "rviz/render_panel.h"
 #include <render_panel_custom.h>
@@ -23,6 +29,7 @@
 #include "rviz/tool_manager.h"
 #include <mouse_event_handler.h>
 #include <template_display_custom.h>
+#include "map_display_custom.h"
 #include "base_3d_view.h"
 
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
@@ -209,7 +216,15 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ghost_robot_model_->subProp( "Collision Enabled" )->setValue( false );
     ghost_robot_model_->subProp( "Alpha" )->setValue( 0.5f );
 
+    // ground map middle man
     ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
+
+    // point cloud request/selection publisher
+    point_cloud_request_sub_ =  n_.subscribe<sensor_msgs::PointCloud2>( "/flor/worldmodel/ocs/dist_query_pointcloud_result", 5, &Base3DView::processPointCloud, this );
+    global_selection_pos_pub_ = n_.advertise<geometry_msgs::Point>( "/new_point_cloud_request", 1, false );
+    global_selection_pos_sub_ = n_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
+
+    QObject::connect(this, SIGNAL(setMarkerPosition(float,float,float)), selection_3d_display_, SLOT(setMarkerPosition(float,float,float)));
 }
 
 // Destructor.
@@ -317,6 +332,28 @@ void Base3DView::vectorPressed()
     manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
 }
 
+void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc )
+{
+    std::cout << "point cloud received" << std::endl;
+    pcl::PointCloud<pcl::PointXYZ> pclCloud;
+    pcl::fromROSMsg(*pc, pclCloud);
+    Eigen::Vector4f centroid;
+    if(pcl::compute3DCentroid(pclCloud,centroid) != 0)
+    {
+        geometry_msgs::Point point;
+        point.x = centroid[0];
+        point.y = centroid[1];
+        point.z = centroid[2];
+        std::cout << "centroid: " << point.x << ", " << point.y << ", " << point.z << std::endl;
+        global_selection_pos_pub_.publish(point);
+    }
+}
+
+void Base3DView::processNewSelection( const geometry_msgs::Point::ConstPtr& pose )
+{
+    Q_EMIT setMarkerPosition(pose->x,pose->y,pose->z);
+}
+
 void Base3DView::newSelection( Ogre::Vector3 position )
 {
     selection_position_ = position;
@@ -410,7 +447,7 @@ void Base3DView::insertTemplate( QString path )
         pose.pose.orientation.y = 0;
         pose.pose.orientation.z = 0;
         pose.pose.orientation.w = 1;
-        pose.header.frame_id = base_frame_;
+        pose.header.frame_id = "/pelvis";
         transform("/world",pose);
 
         cmd.pose = pose;
@@ -514,12 +551,28 @@ void Base3DView::setContext(int context)
     std::cout << "Active context: " << active_context_ << std::endl;
 }
 
-void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &pose)
+void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
 {
-    rviz::Display* ground_map = manager_->createDisplay( "rviz/MapDisplayCustom", "Ground map", true );
+    static int counter = 0;
     std::stringstream map_topic;
-    map_topic << "map_topic_" << ground_map_.size();
-    ground_map->subProp( "Topic" )->setValue( map_topic.str().c_str() );
+    map_topic << "map_topic_" << counter++;
+    rviz::Display* ground_map = manager_->createDisplay( "rviz/MapDisplayCustom", "Ground map", true );
+    ((rviz::MapDisplayCustom*)ground_map)->incomingMap(map);
     ground_map_.push_back(ground_map);
+    int stored_maps = 30;// THIS VALUE DETERMINES HOW MANY WE STORE
+    if(ground_map_.size() > stored_maps)
+    {
+        rviz::Display* tmp = ground_map_[0];
+        tmp->setEnabled(false);
+        delete tmp;
+        manager_->notifyConfigChanged();
+        ground_map_.erase(ground_map_.begin());
+    }
+    float alpha = 1.0f, step = (0.95f/stored_maps);
+    for(int i = ground_map_.size()-1; i >= 0; i--,alpha-=step)
+    {
+        //std::cout << i << " " << alpha << std::endl;
+        ground_map_[i]->subProp("Alpha")->setValue(alpha);
+    }
 }
 }

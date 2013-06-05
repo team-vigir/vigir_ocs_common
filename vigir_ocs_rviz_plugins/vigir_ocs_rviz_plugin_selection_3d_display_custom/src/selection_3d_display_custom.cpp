@@ -130,14 +130,14 @@ void Selection3DDisplayCustom::load()
         Ogre::Technique* lFirstTechnique = lMaterial->getTechnique(0);
         Ogre::Pass* lFirstPass = lFirstTechnique->getPass(0);
 
-        float transparency = 0.3f;
-        Ogre::ColourValue lSelfIllumnationColour(0.1f, 0.0f, 0.0f, transparency);
+        float transparency = 0.6f;
+        Ogre::ColourValue lSelfIllumnationColour(0.0f, 0.0f, 0.0f, transparency);
         lFirstPass->setSelfIllumination(lSelfIllumnationColour);
 
-        Ogre::ColourValue lDiffuseColour(1.0f, 0.4f, 0.4f, transparency);
+        Ogre::ColourValue lDiffuseColour(1.0f, 1.0f, 0.0f, transparency);
         lFirstPass->setDiffuse(lDiffuseColour);
 
-        Ogre::ColourValue lAmbientColour(0.4f, 0.1f, 0.1f, transparency);
+        Ogre::ColourValue lAmbientColour(0.4f, 0.4f, 0.1f, transparency);
         lFirstPass->setAmbient(lAmbientColour);
 
         Ogre::ColourValue lSpecularColour(1.0f, 1.0f, 1.0f, 1.0f);
@@ -160,6 +160,7 @@ void Selection3DDisplayCustom::load()
     selection_marker_->scale(0.001f,0.001f,0.001f);
 
     selection_marker_->setVisible( false );
+    lEntity->setMaterialName(lMaterialName);
 
     lEntity = this->scene_manager_->createEntity("ROI selection marker final", Ogre::SceneManager::PT_SPHERE);
     //lEntity->setMaterialName(lMaterialName);
@@ -170,6 +171,37 @@ void Selection3DDisplayCustom::load()
     roi_marker_final_->scale(0.001f,0.001f,0.001f);
 
     roi_marker_final_->setVisible( false );
+    lEntity->setMaterialName(lMaterialName);
+
+    lMaterialName = lNameOfResourceGroup+"MarkerBoxMaterial";
+
+    if(!lRgMgr.resourceGroupExists(lNameOfResourceGroup))
+    {
+        lRgMgr.createResourceGroup(lNameOfResourceGroup);
+
+        Ogre::MaterialPtr lMaterial = lMaterialManager.create(lMaterialName,lNameOfResourceGroup);
+        Ogre::Technique* lFirstTechnique = lMaterial->getTechnique(0);
+        Ogre::Pass* lFirstPass = lFirstTechnique->getPass(0);
+
+        float transparency = 0.3f;
+        Ogre::ColourValue lSelfIllumnationColour(0.1f, 0.0f, 0.0f, transparency);
+        lFirstPass->setSelfIllumination(lSelfIllumnationColour);
+
+        Ogre::ColourValue lDiffuseColour(1.0f, 0.4f, 0.4f, transparency);
+        lFirstPass->setDiffuse(lDiffuseColour);
+
+        Ogre::ColourValue lAmbientColour(0.4f, 0.1f, 0.1f, transparency);
+        lFirstPass->setAmbient(lAmbientColour);
+
+        Ogre::ColourValue lSpecularColour(1.0f, 1.0f, 1.0f, 1.0f);
+        lFirstPass->setSpecular(lSpecularColour);
+
+        Ogre::Real lShininess = 64.0f;
+        lFirstPass->setShininess(lShininess);
+
+        lFirstPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+        lFirstPass->setDepthWriteEnabled(false);
+    }
 
     lEntity = this->scene_manager_->createEntity("ROI selection marker box", Ogre::SceneManager::PT_CUBE);
     lEntity->setMaterialName(lMaterialName);
@@ -482,6 +514,26 @@ void Selection3DDisplayCustom::queryContext( int x, int y )
     {
         Q_EMIT setContext(-1); // NO_HIT
     }
+}
+
+void Selection3DDisplayCustom::setMarkerPosition(float x, float y, float z)
+{
+    Ogre::Vector3 position(x,y,z);
+
+    initialized_ = true;
+    selection_marker_->setPosition(position);
+    selection_marker_->setVisible(true);
+    //Q_EMIT newSelection(position);
+
+    std::cout << "POS transform in: " << position.x << ", " << position.y << ", " << position.z << std::endl;
+
+    //selection_position_ = (ot * position) * pt;
+    selection_position_ = position;
+    Q_EMIT newSelection(selection_position_);
+
+    roi_marker_final_->setVisible(false);
+    roi_marker_box_->setVisible(false);
+    roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
 }
 
 } // namespace rviz

@@ -79,6 +79,8 @@ public:
   Ogre::Vector3 getPosition() { return position_; }
   Ogre::Quaternion getOrientation() { return orientation_; }
 
+  void incomingMap(const nav_msgs::OccupancyGrid::ConstPtr& msg);
+
 protected Q_SLOTS:
   void updateAlpha();
   void updateTopic();
@@ -92,8 +94,6 @@ protected:
 
   virtual void subscribe();
   virtual void unsubscribe();
-
-  void incomingMap(const nav_msgs::OccupancyGrid::ConstPtr& msg);
 
   void clear();
 

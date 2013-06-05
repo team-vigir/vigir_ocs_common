@@ -20,7 +20,9 @@
 
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Point.h>
 #include <nav_msgs/OccupancyGrid.h>
+#include <sensor_msgs/PointCloud2.h>
 
 #include <string>
 
@@ -47,6 +49,8 @@ public:
     virtual ~Base3DView();
 
     void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
+    void processNewSelection( const geometry_msgs::Point::ConstPtr& pose );
+    void processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc );
 
 public Q_SLOTS:
     // displays
@@ -81,6 +85,7 @@ Q_SIGNALS:
     void setMarkerScale( float );
     // send position of the mouse when clicked to create context menu
     void queryContext( int, int );
+    void setMarkerPosition( float, float, float );
 
 protected:
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
@@ -130,7 +135,11 @@ protected:
 
     ros::Publisher octomap_roi_pub_;
 
+    ros::Publisher global_selection_pos_pub_;
+    ros::Subscriber global_selection_pos_sub_;
+
     ros::Subscriber ground_map_sub_;
+    ros::Subscriber point_cloud_request_sub_;
     
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 

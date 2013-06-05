@@ -109,6 +109,7 @@ private Q_SLOTS:
   void resetSelection();
   void setRenderPanel(rviz::RenderPanel*);
   void setMarkerScale(float);
+  void setMarkerPosition(float, float, float);
   void queryContext( int, int );
 
 protected:
