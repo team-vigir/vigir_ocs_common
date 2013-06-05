@@ -1,10 +1,10 @@
 /* 
  * ImageSelectionToolCustom class implementation.
- * 
+ *
  * Author: Felipe Bacim.
- * 
+ *
  * Based on librviz_tutorials.
- * 
+ *
  * Latest changes (12/11/2012):
  */
 /*
@@ -72,100 +72,138 @@ namespace rviz
 {
 
 ImageSelectionToolCustom::ImageSelectionToolCustom()
-  : Tool()
-  , move_tool_( new MoveTool() )
-  , selecting_( false )
-  , sel_start_x_( 0 )
-  , sel_start_y_( 0 )
-  , moving_( false )
+    : Tool()
+    , move_tool_( new MoveTool() )
+    , selecting_( false )
+    , sel_start_x_( 0 )
+    , sel_start_y_( 0 )
+    , moving_( false )
 {
-  shortcut_key_ = 's';
+    shortcut_key_ = 's';
 }
 
 ImageSelectionToolCustom::~ImageSelectionToolCustom()
 {
-  delete move_tool_;
+    delete move_tool_;
+
+    highlight_node_->getParentSceneNode()->removeAndDestroyChild(highlight_node_->getName());
+    delete highlight_rectangle_;
 }
 
 void ImageSelectionToolCustom::onInitialize()
 {
-  move_tool_->initialize( context_ );
+    move_tool_->initialize( context_ );
+
+    // Create our highlight rectangle
+    Ogre::SceneManager* scene_manager = context_->getSceneManager();
+    highlight_node_ = scene_manager->getRootSceneNode()->createChildSceneNode();
+
+    std::stringstream ss;
+    static int count = 0;
+    ss << "SelectionRect" << count++;
+    highlight_rectangle_ = new Ogre::Rectangle2D(true);
+
+    const static uint32_t texture_data[1] = { 0xffff0070 };
+    Ogre::DataStreamPtr pixel_stream;
+    pixel_stream.bind(new Ogre::MemoryDataStream( (void*)&texture_data[0], 4 ));
+
+    Ogre::TexturePtr tex = Ogre::TextureManager::getSingleton().loadRawData(ss.str() + "Texture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, pixel_stream, 1, 1, Ogre::PF_R8G8B8A8, Ogre::TEX_TYPE_2D, 0);
+
+    Ogre::MaterialPtr material = Ogre::MaterialManager::getSingleton().create(ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+    material->setLightingEnabled(false);
+    //material->getTechnique(0)->getPass(0)->setPolygonMode(Ogre::PM_WIREFRAME);
+    highlight_rectangle_->setMaterial(material->getName());
+    Ogre::AxisAlignedBox aabInf;
+    aabInf.setInfinite();
+    highlight_rectangle_->setBoundingBox(aabInf);
+    highlight_rectangle_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY + 3);
+    material->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+    material->setCullingMode(Ogre::CULL_NONE);
+
+    Ogre::TextureUnitState* tex_unit = material->getTechnique(0)->getPass(0)->createTextureUnitState();
+    tex_unit->setTextureName(tex->getName());
+    tex_unit->setTextureFiltering( Ogre::TFO_NONE );
+
+    highlight_node_->attachObject(highlight_rectangle_);
 }
 
 void ImageSelectionToolCustom::activate()
 {
-  setStatus( "Click and drag to select objects on the screen." );
-  context_->getSelectionManager()->setTextureSize(512);
-  selecting_ = false;
-  moving_ = false;
-//  context_->getSelectionManager()->enableInteraction(true);
+    setStatus( "Click and drag to select objects on the screen." );
+    //context_->getSelectionManager()->setTextureSize(512);
+    selecting_ = false;
+    moving_ = false;
+    //  context_->getSelectionManager()->enableInteraction(true);
 }
 
 void ImageSelectionToolCustom::deactivate()
 {
-  //context_->getSelectionManager()->removeHighlight();
+    //context_->getSelectionManager()->removeHighlight();
 }
 
 void ImageSelectionToolCustom::update(float wall_dt, float ros_dt)
 {
-  SelectionManager* sel_manager = context_->getSelectionManager();
- 
+    //SelectionManager* sel_manager = context_->getSelectionManager();
 
-  if(port)
-  {
-     sel_manager->highlight( port, theX1, theY1, theX2, theY2 );
-  }
-  /**if (!selecting_)
-  {
-    sel_manager->removeHighlight();
-  }**/
+
+    //if(port)
+    //{
+    //   sel_manager->highlight( port, theX1, theY1, theX2, theY2 );
+    //}
+
+    highlight_node_->setVisible(highlight_enabled_);
+
+    if (highlight_enabled_)
+    {
+        setHighlightRect(highlight_.viewport, highlight_.x1, highlight_.y1, highlight_.x2, highlight_.y2);
+    }
 }
 
 int ImageSelectionToolCustom::processMouseEvent( ViewportMouseEvent& event )
 {
-  SelectionManager* sel_manager = context_->getSelectionManager();
-  Q_EMIT mouseHasMoved(event.x, event.y);
-  int flags = 0;
+    //SelectionManager* sel_manager = context_->getSelectionManager();
+    Q_EMIT mouseHasMoved(event.x, event.y);
+    int flags = 0;
 
-  if( event.alt() )
-  {
-    moving_ = true;
-    selecting_ = false;
-  }
-  else
-  {
-    moving_ = false;
-
-    if( event.leftDown() )
+    if( event.alt() )
     {
-      selecting_ = true;
-
-      sel_start_x_ = event.x;
-      sel_start_y_ = event.y;
+        moving_ = true;
+        selecting_ = false;
     }
-  }
+    else
+    {
+        moving_ = false;
 
-  if( selecting_ )
-  {
-    /**std::cout<<"tool selected x1 " <<sel_start_x_<<std::endl;
+        if( event.leftDown() )
+        {
+            selecting_ = true;
+
+            sel_start_x_ = event.x;
+            sel_start_y_ = event.y;
+        }
+    }
+
+    if( selecting_ )
+    {
+        /**std::cout<<"tool selected x1 " <<sel_start_x_<<std::endl;
     std::cout<<"tool selected y1 " <<sel_start_y_<<std::endl;
     std::cout<<"tool selected x2 " <<event.x<<std::endl;
     std::cout<<"selected y2 " <<event.y<<std::endl;**/
-    theX1 = sel_start_x_;
-    theX2 = event.x;
-    theY1 = sel_start_y_;
-    theY2 = event.y;
-    port = event.viewport;
-    sel_manager->highlight( event.viewport, sel_start_x_, sel_start_y_, event.x, event.y );
+        theX1 = sel_start_x_;
+        theX2 = event.x;
+        theY1 = sel_start_y_;
+        theY2 = event.y;
+        port = event.viewport;
+        highlight( event.viewport, sel_start_x_, sel_start_y_, event.x, event.y );
 
 
-    if( event.leftUp() )
-    {
-      SelectionManager::SelectType type = SelectionManager::Replace;
+        if( event.leftUp() )
+        {
+            SelectionManager::SelectType type = SelectionManager::Replace;
 
-      M_Picked selection;
+            M_Picked selection;
 
-      /*if( event.shift() )
+            /*if( event.shift() )
       {
         type = SelectionManager::Add;
       }
@@ -174,54 +212,86 @@ int ImageSelectionToolCustom::processMouseEvent( ViewportMouseEvent& event )
         type = SelectionManager::Remove;
       }*/
 
-      sel_manager->select( event.viewport, sel_start_x_, sel_start_y_, event.x, event.y, type );
-      
-      Q_EMIT select( sel_start_x_, sel_start_y_, event.x, event.y );
+            //sel_manager->select( event.viewport, sel_start_x_, sel_start_y_, event.x, event.y, type );
+            removeHighlight();
 
-      selecting_ = false;
+            Q_EMIT select( sel_start_x_, sel_start_y_, event.x, event.y );
+
+            selecting_ = false;
+        }
+
+        flags |= Render;
     }
-
-    flags |= Render;
-  }
-  else if( moving_ )
-  {
-    //sel_manager->removeHighlight();
-
-    flags = move_tool_->processMouseEvent( event );
-
-    if( event.type == QEvent::MouseButtonRelease )
+    else if( moving_ )
     {
-      moving_ = false;
-    }
-  }
-  else
-  {
-    sel_manager->highlight( event.viewport, theX1, theY1, theX2, theY2 );
-  }
+        //sel_manager->removeHighlight();
 
-  return flags;
+        flags = move_tool_->processMouseEvent( event );
+
+        if( event.type == QEvent::MouseButtonRelease )
+        {
+            moving_ = false;
+        }
+    }
+    else
+    {
+        highlight( event.viewport, theX1, theY1, theX2, theY2 );
+    }
+
+    return flags;
 }
 
 int ImageSelectionToolCustom::processKeyEvent( QKeyEvent* event, RenderPanel* panel )
 {
-  SelectionManager* sel_manager = context_->getSelectionManager();
+    //SelectionManager* sel_manager = context_->getSelectionManager();
 
-  if( event->key() == Qt::Key_F )
-  {
-    sel_manager->focusOnSelection();
-  }
+    if( event->key() == Qt::Key_F )
+    {
+        //sel_manager->focusOnSelection();
+    }
 
-  return Render;
+    return Render;
 }
 
 void ImageSelectionToolCustom::unHighlight()
 {
-   context_->getSelectionManager()->removeHighlight();	
-   port = NULL;
-   theX1 = 0;
-   theX2 = 0;
-   theY1 = 0;
-   theY2 = 0;
+    removeHighlight();
+    port = NULL;
+    theX1 = 0;
+    theX2 = 0;
+    theY1 = 0;
+    theY2 = 0;
+}
+
+void ImageSelectionToolCustom::highlight(Ogre::Viewport* viewport, int x1, int y1, int x2, int y2)
+{
+    highlight_enabled_ = true;
+
+    highlight_.viewport = viewport;
+    highlight_.x1 = x1;
+    highlight_.y1 = y1;
+    highlight_.x2 = x2;
+    highlight_.y2 = y2;
+}
+
+void ImageSelectionToolCustom::setHighlightRect(Ogre::Viewport* viewport, int x1, int y1, int x2, int y2)
+{
+    float nx1 = ((float)x1 / viewport->getActualWidth()) * 2 - 1;
+    float nx2 = ((float)x2 / viewport->getActualWidth()) * 2 - 1;
+    float ny1 = -(((float)y1 / viewport->getActualHeight()) * 2 - 1);
+    float ny2 = -(((float)y2 / viewport->getActualHeight()) * 2 - 1);
+
+    nx1 = nx1 < -1 ? -1 : (nx1 > 1 ? 1 : nx1);
+    ny1 = ny1 < -1 ? -1 : (ny1 > 1 ? 1 : ny1);
+    nx2 = nx2 < -1 ? -1 : (nx2 > 1 ? 1 : nx2);
+    ny2 = ny2 < -1 ? -1 : (ny2 > 1 ? 1 : ny2);
+
+    highlight_rectangle_->setCorners(nx1, ny1, nx2, ny2);
+}
+
+void ImageSelectionToolCustom::removeHighlight()
+{
+    highlight_enabled_ = false;
 }
 
 } // end namespace rviz

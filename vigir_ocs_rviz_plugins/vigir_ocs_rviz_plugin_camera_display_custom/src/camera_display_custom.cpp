@@ -177,7 +177,7 @@ void CameraDisplayCustom::onInitialize()
 
     screen_rect_selection_ = NULL;
     fg_screen_rect_selection_ = NULL;
-    screen_rect_highlight_ = NULL;
+    screen_rect_highlight_mask_ = NULL;
 
     // full image quad
     {
@@ -207,7 +207,7 @@ void CameraDisplayCustom::onInitialize()
         Ogre::AxisAlignedBox aabInf;
         aabInf.setInfinite();
         //
-        bg_screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND+2);
+        bg_screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND+3);
         bg_screen_rect_->setBoundingBox(aabInf);
         bg_screen_rect_->setMaterial(bg_material_->getName());
         //std::cout << "Material name (full): " << material_->getName() << std::endl;
@@ -232,18 +232,19 @@ void CameraDisplayCustom::onInitialize()
     }
     updateAlpha();
 
+    static int count = 1;
+
     // selected area image quad
     {
-        static int count = 1;
         std::stringstream ss;
         ss << "ImageDisplayObject" << count++;
         screen_rect_selection_ = new Ogre::Rectangle2D(true);
-        screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND+1);
+        screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND+4);
         screen_rect_selection_->setCorners(0, 0, 0, 0);
 
         ss << "Material";
         material_selection_ = Ogre::MaterialManager::getSingleton().create( ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
-        material_selection_->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
+        //material_selection_->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
         material_selection_->setDepthWriteEnabled(false);
         material_selection_->setReceiveShadows(false);
         material_selection_->setDepthCheckEnabled(false);
@@ -261,10 +262,7 @@ void CameraDisplayCustom::onInitialize()
         //std::cout << "Material name (cropped): " << material_selection_->getName() << std::endl;
         bg_scene_node_->attachObject(screen_rect_selection_);
 
-
-
-
-        ss << "ImageDisplayObject" << count-1;
+        ss << "ImageDisplayObject" << count++;
         fg_screen_rect_selection_ = new Ogre::Rectangle2D(true);
         fg_screen_rect_selection_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY+1);
         fg_screen_rect_selection_->setCorners(0, 0, 0, 0);
@@ -287,34 +285,42 @@ void CameraDisplayCustom::onInitialize()
         fg_screen_rect_selection_->setMaterial(fg_material_selection_->getName());
         //std::cout << "Material name (cropped): " << material_selection_->getName() << std::endl;
         fg_scene_node_->attachObject(fg_screen_rect_selection_);
+
         updateSelectedAlpha(alpha_property_->getFloat());
     }
 
     // selected area highlight
     {
-        static int count = 2;
+        static int count = 1000;
         std::stringstream ss;
-        ss << "ImageDisplayObject" << count-1;
-        screen_rect_highlight_ = new Ogre::Rectangle2D(true);
-        screen_rect_highlight_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND + 1);
-        screen_rect_highlight_->setCorners(0, 0, 0, 0);
+        ss << "ImageDisplayObject" << count++;
+        screen_rect_highlight_mask_ = new Ogre::Rectangle2D(true);
+        screen_rect_highlight_mask_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND+1);
+        screen_rect_highlight_mask_->setCorners(0, 0, 0, 0);
+
+        screen_rect_highlight_bg_ = new Ogre::Rectangle2D(true);
+        screen_rect_highlight_bg_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND+2);
+        screen_rect_highlight_bg_->setCorners(0, 0, 0, 0);
 
         ss << "Material";
         material_highlight_ = Ogre::MaterialManager::getSingleton().create( ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
-        material_highlight_->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
+        //material_highlight_->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
         material_highlight_->setDepthWriteEnabled(false);
         material_highlight_->setReceiveShadows(false);
         material_highlight_->setDepthCheckEnabled(false);
         material_highlight_->getTechnique(0)->setLightingEnabled(false);
-        material_highlight_->setDiffuse(1.0,1.0,0.0,0.5);
+        material_highlight_->setDiffuse(1.0,1.0,1.0,1.0);
 
         material_highlight_->setCullingMode(Ogre::CULL_NONE);
         Ogre::AxisAlignedBox aabInf;
         aabInf.setInfinite();
-        screen_rect_highlight_->setBoundingBox(aabInf);
-        screen_rect_highlight_->setMaterial(material_highlight_->getName());
+        screen_rect_highlight_mask_->setBoundingBox(aabInf);
+        //screen_rect_highlight_mask_->setMaterial(material_highlight_->getName());
+        screen_rect_highlight_bg_->setBoundingBox(aabInf);
+        screen_rect_highlight_bg_->setMaterial(material_highlight_->getName());
         //std::cout << "Material name (highlight): " << material_highlight_->getName() << std::endl;
-        bg_scene_node_->attachObject(screen_rect_highlight_);
+        bg_scene_node_->attachObject(screen_rect_highlight_mask_);
+        bg_scene_node_->attachObject(screen_rect_highlight_bg_);
     }
 
     // first create a publisher to set the parameters of the full image
@@ -371,14 +377,14 @@ void CameraDisplayCustom::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogr
         rs->setStencilBufferParams(Ogre::CMPF_ALWAYS_PASS, 0x1, 0xFFFFFFFF, Ogre::SOP_REPLACE,
                                    Ogre::SOP_REPLACE,Ogre::SOP_REPLACE, false);
     }
-    else if (queueGroupId == Ogre::RENDER_QUEUE_BACKGROUND+1 || queueGroupId == Ogre::RENDER_QUEUE_OVERLAY+1)
+    else if (queueGroupId == Ogre::RENDER_QUEUE_BACKGROUND+1)// || queueGroupId == Ogre::RENDER_QUEUE_OVERLAY+1)
     {
         Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
         rs->setStencilCheckEnabled(true);
         rs->setStencilBufferParams(Ogre::CMPF_EQUAL, 0x1, 0xFFFFFFFF, Ogre::SOP_REPLACE,
                                    Ogre::SOP_REPLACE,Ogre::SOP_REPLACE, false);
     }
-    else if (queueGroupId != Ogre::RENDER_QUEUE_BACKGROUND+2 && queueGroupId != Ogre::RENDER_QUEUE_OVERLAY)
+    else if (queueGroupId != Ogre::RENDER_QUEUE_BACKGROUND+3 && queueGroupId != Ogre::RENDER_QUEUE_OVERLAY)
     {
         Ogre::RenderSystem *rs = Ogre::Root::getSingleton().getRenderSystem();
         rs->setStencilCheckEnabled(true);
@@ -636,8 +642,8 @@ bool CameraDisplayCustom::updateCamera()
         float win_aspect = win_width / win_height;
 
         // calculate size of 3 pixels in scene CS for selection highlight
-        float padding_x = 3.0f*2.0f/win_width;
-        float padding_y = 3.0f*2.0f/win_height;
+        float padding_x = 1.0f*2.0f/win_width;
+        float padding_y = 1.0f*2.0f/win_height;
 
         if ( img_aspect > win_aspect )
         {
@@ -666,7 +672,8 @@ bool CameraDisplayCustom::updateCamera()
                 float y2 = -(((2.0f * win_aspect/img_aspect) * (crop_y_offset_+crop_height_)) / full_image_height_) + ((1.0f * win_aspect/img_aspect));
                 screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
                 fg_screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
-                screen_rect_highlight_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
+                screen_rect_highlight_mask_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
+                screen_rect_highlight_bg_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
                 //std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
             }
         }
@@ -691,7 +698,8 @@ bool CameraDisplayCustom::updateCamera()
                 float y2 = -((2.0f * (crop_y_offset_+crop_height_)) / full_image_height_) + 1.0f;
                 screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
                 fg_screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
-                screen_rect_highlight_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
+                screen_rect_highlight_mask_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
+                screen_rect_highlight_bg_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
                 //std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
             }
         }

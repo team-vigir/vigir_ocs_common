@@ -40,6 +40,7 @@
 namespace Ogre
 {
 class Viewport;
+class Rectangle2D;
 }
 
 namespace rviz
@@ -48,24 +49,24 @@ class MoveTool;
 
 class ImageSelectionToolCustom : public Tool
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-  ImageSelectionToolCustom();
-  virtual ~ImageSelectionToolCustom();
+    ImageSelectionToolCustom();
+    virtual ~ImageSelectionToolCustom();
 
-  virtual void onInitialize();
+    virtual void onInitialize();
 
-  virtual void activate();
-  virtual void deactivate();
+    virtual void activate();
+    virtual void deactivate();
 
-  virtual int processMouseEvent( ViewportMouseEvent& event );
-  virtual int processKeyEvent( QKeyEvent* event, RenderPanel* panel );
+    virtual int processMouseEvent( ViewportMouseEvent& event );
+    virtual int processKeyEvent( QKeyEvent* event, RenderPanel* panel );
 
-  virtual void update(float wall_dt, float ros_dt);
-  
+    virtual void update(float wall_dt, float ros_dt);
+
 Q_SIGNALS:
-	void select( int, int, int, int );
-        void mouseHasMoved(int,int);
+    void select( int, int, int, int );
+    void mouseHasMoved(int,int);
 
 public Q_SLOTS:
 
@@ -73,15 +74,34 @@ public Q_SLOTS:
 
 private:
 
-  MoveTool* move_tool_;
+    // control the highlight box being displayed while selecting
+    void highlight(Ogre::Viewport* viewport, int x1, int y1, int x2, int y2);
+    void removeHighlight();
 
-  bool selecting_;
-  int sel_start_x_;
-  int sel_start_y_;
+    void setHighlightRect(Ogre::Viewport* viewport, int x1, int y1, int x2, int y2);
 
-  M_Picked highlight_;
+    MoveTool* move_tool_;
 
-  bool moving_;
+    bool selecting_;
+    int sel_start_x_;
+    int sel_start_y_;
+
+    bool moving_;
+
+    bool highlight_enabled_;
+
+    struct Highlight
+    {
+        int x1;
+        int y1;
+        int x2;
+        int y2;
+        Ogre::Viewport* viewport;
+    };
+    Highlight highlight_;
+
+    Ogre::Rectangle2D* highlight_rectangle_;
+    Ogre::SceneNode* highlight_node_;
 };
 
 }

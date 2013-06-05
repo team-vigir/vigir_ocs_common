@@ -189,7 +189,8 @@ private:
     ROSImageTexture fg_texture_selection_;
 
     // variables that define the rectangle that highlights selection
-    Ogre::Rectangle2D* screen_rect_highlight_;
+    Ogre::Rectangle2D* screen_rect_highlight_mask_;
+    Ogre::Rectangle2D* screen_rect_highlight_bg_;
     Ogre::MaterialPtr material_highlight_;
 
     // reference to the main window render panel
