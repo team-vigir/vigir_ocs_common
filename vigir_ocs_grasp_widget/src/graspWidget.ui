@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>420</width>
-    <height>290</height>
+    <height>336</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -250,9 +250,9 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="templateButton">
+          <widget class="QPushButton" name="performButton">
            <property name="text">
-            <string>Template Match</string>
+            <string>Grasp!</string>
            </property>
           </widget>
          </item>
@@ -261,12 +261,9 @@
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
-           </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>52</width>
+             <width>40</width>
              <height>20</height>
             </size>
            </property>
@@ -290,16 +287,9 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="performButton">
+          <widget class="QPushButton" name="templateButton">
            <property name="text">
-            <string>Perform Grasp</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="releaseButton">
-           <property name="text">
-            <string>Release</string>
+            <string>Move to Template</string>
            </property>
           </widget>
          </item>
@@ -310,6 +300,43 @@
            </property>
            <property name="sizeType">
             <enum>QSizePolicy::Expanding</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <spacer name="horizontalSpacer_17">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="releaseButton">
+           <property name="text">
+            <string>Release</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_16">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
