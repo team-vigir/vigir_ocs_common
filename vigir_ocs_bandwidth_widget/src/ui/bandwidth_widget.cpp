@@ -21,9 +21,9 @@ BandwidthWidget::BandwidthWidget(QWidget *parent) :
     
     timer.start(33, this);
     
-    ui->tableWidget->setColumnWidth(0,  120);
-    ui->tableWidget->setColumnWidth(1,  150);
-    ui->tableWidget->setColumnWidth(2,  150);
+    ui->tableWidget->setColumnWidth(0,  155);
+    ui->tableWidget->setColumnWidth(1,  170);
+    ui->tableWidget->setColumnWidth(2,  170);
 }
 
 BandwidthWidget::~BandwidthWidget()
@@ -88,8 +88,8 @@ void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth:
 	ui->total_download->setText(QString::number(total_read));
 	ui->total_upload->setText(QString::number(total_sent));
     
-    ui->tableWidget->setColumnWidth(0,  120);
-    ui->tableWidget->setColumnWidth(1,  150);
-    ui->tableWidget->setColumnWidth(2,  150);
+    ui->tableWidget->setColumnWidth(0,  155);
+    ui->tableWidget->setColumnWidth(1,  170);
+    ui->tableWidget->setColumnWidth(2,  170);
 }
 
