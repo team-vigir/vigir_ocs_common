@@ -13,6 +13,7 @@
 #include <QtGui>
 
 #include <flor_ocs_msgs/OCSBandwidth.h>
+#include <flor_ocs_msgs/VRCdata.h>
 #include <ros/ros.h>
 
 namespace Ui {
@@ -28,12 +29,14 @@ public:
     ~BandwidthWidget();
 
     void processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth::ConstPtr& msg);
+    void processVRCData(const flor_ocs_msgs::VRCdata::ConstPtr& msg);
 
 private:
     Ui::BandwidthWidget* ui;
 
     ros::NodeHandle nh_;
     ros::Subscriber ocs_bandwidth_sub_;
+    ros::Subscriber vrc_data_sub_;
     
     typedef struct
     {

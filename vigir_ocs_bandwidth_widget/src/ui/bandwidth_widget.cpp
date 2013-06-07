@@ -16,8 +16,11 @@ BandwidthWidget::BandwidthWidget(QWidget *parent) :
 {    
     ui->setupUi(this);
 
-    // subscribe to the topic to load all waypoints
+    // subscribe to the topic to monitor bandwidth usage
     ocs_bandwidth_sub_ = nh_.subscribe<flor_ocs_msgs::OCSBandwidth>( "/flor_ocs_bandwidth", 5, &BandwidthWidget::processBandwidthMessage, this );
+    
+    // subscribe to the topic to load all waypoints
+    vrc_data_sub_ = nh_.subscribe<flor_ocs_msgs::VRCdata>( "/vrc_data", 5, &BandwidthWidget::processVRCData, this );
     
     timer.start(33, this);
     
@@ -91,5 +94,41 @@ void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth:
     ui->tableWidget->setColumnWidth(0,  155);
     ui->tableWidget->setColumnWidth(1,  170);
     ui->tableWidget->setColumnWidth(2,  170);
+}
+
+QString timeFromMsg(const ros::Time& stamp)
+{
+    int sec = stamp.toSec();
+    std::stringstream stream;
+
+    stream.str("");
+    int day = sec/86400;
+    sec -= day * 86400;
+
+    int hour = sec / 3600;
+    sec -= hour * 3600;
+
+    int min = sec / 60;
+    sec -= min * 60;
+    uint32_t nano = (stamp.toSec() - (int)stamp.toSec())*1000;
+    stream << std::setw(2) << std::setfill('0') << day << " ";
+    stream << std::setw(2) << std::setfill('0') << hour << ":";
+    stream << std::setw(2) << std::setfill('0') << min << ":";
+    stream << std::setw(2) << std::setfill('0') << sec << ".";
+     stream << std::setw(3) << std::setfill('0') << nano;
+//    stream << std::setw(3) << std::setfill('0') << (stamp.toNSec()*(0.00001));
+    //std::cout << "Nano = " << stamp.toNSec() <<  " full = " << stamp.toSec() << std::endl;
+    return QString::fromStdString(stream.str());
+}
+
+void BandwidthWidget::processVRCData(const flor_ocs_msgs::VRCdata::ConstPtr& msg)
+{
+    ui->sim_time_elapsed->setText(timeFromMsg(msg->sim_time_elapsed));	
+	ui->competition_score->setText(QString::number(msg->competition_score));
+	ui->falls->setText(QString::number(msg->falls));
+	ui->message->setText(QString(msg->message.c_str()));
+	ui->task_type->setText(QString::number(msg->task_type));
+	ui->remaining_download->setText(QString::number(msg->downlink_bytes_remaining));
+	ui->remaining_upload->setText(QString::number(msg->uplink_bytes_remaining));    
 }
 
