@@ -31,6 +31,7 @@
 #define RVIZ_ROBOT_CUSTOM_H_
 
 #include "rviz/robot/link_updater.h"
+#include "rviz/properties/color_property.h"
 
 #include <string>
 #include <map>
@@ -84,92 +85,100 @@ class DisplayContext;
 class RobotCustom
 {
 public:
-  RobotCustom( Ogre::SceneNode* root_node, DisplayContext* context, const std::string& name, Property* parent_property );
-  ~RobotCustom();
+    RobotCustom( Ogre::SceneNode* root_node, DisplayContext* context, const std::string& name, Property* parent_property );
+    ~RobotCustom();
 
-  /**
+    /**
    * \brief Loads meshes/primitives from a robot description.  Calls clear() before loading.
    *
    * @param descr The robot description to read from
    * @param visual Whether or not to load the visual representation
    * @param collision Whether or not to load the collision representation
    */
-  void load( const urdf::ModelInterface &descr, bool visual = true, bool collision = true );
+    void load( const urdf::ModelInterface &descr, bool visual = true, bool collision = true );
 
-  /**
+    /**
    * \brief Clears all data loaded from a URDF
    */
-  void clear();
+    void clear();
 
-  void update(const LinkUpdater& updater);
+    void update(const LinkUpdater& updater);
 
-  /**
+    /**
    * \brief Set the robot as a whole to be visible or not
    * @param visible Should we be visible?
    */
-  void setVisible( bool visible );
+    void setVisible( bool visible );
 
-  /**
+    /**
    * \brief Set whether the visual meshes of the robot should be visible
    * @param visible Whether the visual meshes of the robot should be visible
    */
-  void setVisualVisible( bool visible );
+    void setVisualVisible( bool visible );
 
-  /**
+    /**
    * \brief Set whether the collision meshes/primitives of the robot should be visible
    * @param visible Whether the collision meshes/primitives should be visible
    */
-  void setCollisionVisible( bool visible );
+    void setCollisionVisible( bool visible );
 
+  /**
+   * \brief Returns whether anything is visible
+   */
+  bool isVisible();
   /**
    * \brief Returns whether or not the visual representation is set to be visible
    */
-  bool isVisualVisible();
-  /**
+    bool isVisualVisible();
+    /**
    * \brief Returns whether or not the collision representation is set to be visible
    */
-  bool isCollisionVisible();
+    bool isCollisionVisible();
 
-  void setAlpha(float a);
-  float getAlpha() { return alpha_; }
+    void setAlpha(float a);
+    float getAlpha() { return alpha_; }
 
-  RobotLinkCustom* getLink( const std::string& name );
-  
-  typedef std::map< std::string, RobotLinkCustom* > M_NameToLink;
-  M_NameToLink getLinks() const { return links_; }
+    void setLinkColor(std::string link, QColor qc);
+    void setRobotColor(QColor qc);
 
-  const std::string& getName() { return name_; }
+    RobotLinkCustom* getLink( const std::string& name );
 
-  Ogre::SceneNode* getVisualNode() { return root_visual_node_; }
-  Ogre::SceneNode* getCollisionNode() { return root_collision_node_; }
-  Ogre::SceneNode* getOtherNode() { return root_other_node_; }
+    typedef std::map< std::string, RobotLinkCustom* > M_NameToLink;
+    M_NameToLink getLinks() const { return links_; }
 
-  virtual void setPosition( const Ogre::Vector3& position );
-  virtual void setOrientation( const Ogre::Quaternion& orientation );
-  virtual void setScale( const Ogre::Vector3& scale );
-  virtual const Ogre::Vector3& getPosition();
-  virtual const Ogre::Quaternion& getOrientation();
+    const std::string& getName() { return name_; }
+
+    Ogre::SceneNode* getVisualNode() { return root_visual_node_; }
+    Ogre::SceneNode* getCollisionNode() { return root_collision_node_; }
+    Ogre::SceneNode* getOtherNode() { return root_other_node_; }
+
+    virtual void setPosition( const Ogre::Vector3& position );
+    virtual void setOrientation( const Ogre::Quaternion& orientation );
+    virtual void setScale( const Ogre::Vector3& scale );
+    virtual const Ogre::Vector3& getPosition();
+    virtual const Ogre::Quaternion& getOrientation();
 
 protected:
-  /** @brief Call RobotLinkCustom::updateVisibility() on each link. */
-  void updateLinkVisibilities();
+    /** @brief Call RobotLinkCustom::updateVisibility() on each link. */
+    void updateLinkVisibilities();
 
-  Ogre::SceneManager* scene_manager_;
+    Ogre::SceneManager* scene_manager_;
 
-  M_NameToLink links_;                      ///< Map of name to link info, stores all loaded links.
+    M_NameToLink links_;                      ///< Map of name to link info, stores all loaded links.
 
-  Ogre::SceneNode* root_visual_node_;           ///< Node all our visual nodes are children of
-  Ogre::SceneNode* root_collision_node_;        ///< Node all our collision nodes are children of
-  Ogre::SceneNode* root_other_node_;
+    Ogre::SceneNode* root_visual_node_;           ///< Node all our visual nodes are children of
+    Ogre::SceneNode* root_collision_node_;        ///< Node all our collision nodes are children of
+    Ogre::SceneNode* root_other_node_;
 
-  bool visual_visible_;                         ///< Should we show the visual representation?
-  bool collision_visible_;                      ///< Should we show the collision representation?
+    bool visible_;                                ///< Should we show anything at all? (affects visual, collision, axes, and trails)
+    bool visual_visible_;                         ///< Should we show the visual representation?
+    bool collision_visible_;                      ///< Should we show the collision representation?
 
-  DisplayContext* context_;
-  Property* links_category_;
+    DisplayContext* context_;
+    Property* links_category_;
 
-  std::string name_;
-  float alpha_;
+    std::string name_;
+    float alpha_;
 };
 
 } // namespace rviz

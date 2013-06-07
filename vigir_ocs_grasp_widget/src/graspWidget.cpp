@@ -30,16 +30,8 @@ graspWidget::graspWidget(QWidget *parent) :
     ros::NodeHandle nh;
     ros::NodeHandle nhp("~");
     nhp.param<std::string>("graspWidget/hand",temp,"default");
-    if(temp == "left")
-    {
-        this->setWindowTitle(QString::fromStdString("Left Hand Grasp Widget"));
-        hand = "left";
-    }
-    else
-    {
-        hand = "right";
-        this->setWindowTitle(QString::fromStdString("Right Hand Grasp Widget"));
-    }
+    hand = temp;
+
     ROS_INFO("  Grasp widget using %s hand (%s)",hand.c_str(), temp.c_str());
     initTemplateIdMap();
     initGraspDB();
@@ -55,9 +47,18 @@ graspWidget::graspWidget(QWidget *parent) :
 
     // create subscribers for grasp status
     if(hand == "left")
+    {
+        this->setWindowTitle(QString::fromStdString("Left Hand Grasp Widget"));
         robot_status_sub_            = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>(     "/grasp_control/l_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
+    }
     else
+    {
+        this->setWindowTitle(QString::fromStdString("Right Hand Grasp Widget"));
         robot_status_sub_            = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>(     "/grasp_control/r_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
+    }
+
+    // publisher to color the hand links
+    hand_link_color_pub_        = nh_.advertise<flor_ocs_msgs::OCSLinkColor>("/link_color", 1, false);
 
     // find robot status message code csv file
     std::string code_path_ = (ros::package::getPath("flor_ocs_msgs"))+"/include/flor_ocs_msgs/messages.csv";
@@ -182,7 +183,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         {
             ui->templateBox->addItem(QString::fromStdString(templateName));
         }
-            else if( ui->templateBox->itemText(i).toStdString() != templateName)
+        else if( ui->templateBox->itemText(i).toStdString() != templateName)
         {
             ui->templateBox->setItemText(i,QString::fromStdString(templateName));
         }
@@ -518,4 +519,16 @@ void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& m
 	uint8_t code, severity;
 	RobotStatusCodes::codes(msg->code,code,severity);
 	ui->robot_status_->setText(robot_status_codes_.str(code).c_str());
+}
+
+void graspWidget::publishLinkColor(std::string link_name, unsigned char r, unsigned char g, unsigned char b)
+{
+    flor_ocs_msgs::OCSLinkColor cmd;
+
+    cmd.link = link_name;
+    cmd.r = r;
+    cmd.g = g;
+    cmd.b = b;
+
+    hand_link_color_pub_.publish(cmd);
 }

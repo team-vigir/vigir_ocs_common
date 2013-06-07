@@ -35,6 +35,8 @@
 
 #include <OGRE/OgreVector3.h>
 
+#include <flor_ocs_msgs/OCSLinkColor.h>
+
 #include <map>
 
 namespace Ogre
@@ -60,6 +62,7 @@ class FloatProperty;
 class Property;
 class RobotCustom;
 class StringProperty;
+class ColorProperty;
 
 /**
  * \class RobotDisplayCustom
@@ -67,55 +70,62 @@ class StringProperty;
  */
 class RobotDisplayCustom: public Display
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-  RobotDisplayCustom();
-  virtual ~RobotDisplayCustom();
+    RobotDisplayCustom();
+    virtual ~RobotDisplayCustom();
 
-  // Overrides from Display
-  virtual void onInitialize();
-  virtual void update( float wall_dt, float ros_dt );
-  virtual void fixedFrameChanged();
-  virtual void reset();
+    // Overrides from Display
+    virtual void onInitialize();
+    virtual void update( float wall_dt, float ros_dt );
+    virtual void fixedFrameChanged();
+    virtual void reset();
 
-  void clear();
+    void clear();
 
-  void setModelPrefix(std::string prefix, urdf::ModelInterface &descr);
+    void setModelPrefix(std::string prefix, urdf::ModelInterface &descr);
+
+    void processLinkColorChange(const flor_ocs_msgs::OCSLinkColor::ConstPtr& color);
 
 private Q_SLOTS:
-  void updateVisualVisible();
-  void updateCollisionVisible();
-  void updateTfPrefix();
-  void updateAlpha();
-  void updateRobotDescription();
+    void updateVisualVisible();
+    void updateCollisionVisible();
+    void updateTfPrefix();
+    void updateAlpha();
+    void updateColor();
+    void updateRobotDescription();
 
 protected:
-  /** @brief Loads a URDF from the ros-param named by our
+    /** @brief Loads a URDF from the ros-param named by our
    * "Robot Description" property, iterates through the links, and
    * loads any necessary models. */
-  virtual void load();
+    virtual void load();
 
-  // overrides from Display
-  virtual void onEnable();
-  virtual void onDisable();
+    // overrides from Display
+    virtual void onEnable();
+    virtual void onDisable();
 
-  RobotCustom* robot_;                 ///< Handles actually drawing the robot
+    RobotCustom* robot_;                 ///< Handles actually drawing the robot
 
-  bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
+    bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
 
-  float time_since_last_transform_;
+    float time_since_last_transform_;
 
-  std::string robot_description_;
+    std::string robot_description_;
 
-  Property* visual_enabled_property_;
-  Property* collision_enabled_property_;
-  FloatProperty* update_rate_property_;
-  StringProperty* robot_description_property_;
-  FloatProperty* alpha_property_;
-  StringProperty* tf_prefix_property_;
+    ColorProperty* color_property_;
+    Property* visual_enabled_property_;
+    Property* collision_enabled_property_;
+    FloatProperty* update_rate_property_;
+    StringProperty* robot_description_property_;
+    FloatProperty* alpha_property_;
+    StringProperty* tf_prefix_property_;
+
+    ros::NodeHandle nh_;
+    ros::Subscriber link_color_sub_;
 };
 
 } // namespace rviz
 
- #endif
+#endif
 

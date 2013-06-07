@@ -20,6 +20,7 @@
 #include <flor_grasp_msgs/TemplateSelection.h>
 #include <flor_ocs_msgs/OCSRobotStatus.h>
 #include <flor_ocs_msgs/RobotStatusCodes.h>
+#include <flor_ocs_msgs/OCSLinkColor.h>
 
 namespace Ui {
 class graspWidget;
@@ -101,6 +102,10 @@ private:
     RobotStatusCodes robot_status_codes_;
 
     void robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
+
+    // publisher to color fingers/hand
+    ros::Publisher hand_link_color_pub_;
+    void publishLinkColor(std::string, unsigned char r, unsigned char g, unsigned char b);
 
 protected:
     void timerEvent(QTimerEvent *event);

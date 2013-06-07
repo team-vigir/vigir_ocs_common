@@ -72,14 +72,6 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     manager_->initialize();
     manager_->startUpdate();
 
-    // Create a RobotModel display.
-    robot_model_ = manager_->createDisplay( "rviz/RobotModel", "Robot model", true );
-    ROS_ASSERT( robot_model_ != NULL );
-
-    // hand model display?
-    //hand_model_ = manager_->createDisplay( "rviz/GraspDisplayCustom", "Grasp display test", true );
-    //ROS_ASSERT( hand_model_ != NULL );
-
     // First remove all existin tools
     manager_->getToolManager()->removeAll();
     // Add support for interactive markers
@@ -210,7 +202,25 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goalpose" );
 
-    ghost_robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", false );
+    // Create a RobotModel display.
+    robot_model_ = manager_->createDisplay( "rviz/RobotModel", "Robot model", true );
+    //robot_model_->subProp( "Color" )->setValue( QColor( 127,127,127 ) );
+
+    // create the hands displays
+    left_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot left hand model", true );
+    //left_hand_model_->subProp( "TF Prefix" )->setValue( "/left_hand_model" );
+    left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
+    left_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
+    left_hand_model_->subProp( "Color" )->setValue( QColor( 255, 255, 0 ) );
+
+    right_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot right hand model", true );
+    //right_hand_model_->subProp( "TF Prefix" )->setValue( "/right_hand_model" );
+    right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
+    right_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
+    right_hand_model_->subProp( "Color" )->setValue( QColor( 0, 255, 255 ) );
+
+    // create the simulation robot display
+    ghost_robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot simulation model", false );
     ghost_robot_model_->subProp( "TF Prefix" )->setValue( "/simulation" );
     ghost_robot_model_->subProp( "Visual Enabled" )->setValue( true );
     ghost_robot_model_->subProp( "Collision Enabled" )->setValue( false );

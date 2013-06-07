@@ -918,8 +918,8 @@ void CameraDisplayCustom::publishFullImageRequest()
 
     cmd.binning_x = full_image_binning_;
     cmd.binning_y = full_image_binning_;
-    cmd.roi.width = 4000;
-    cmd.roi.height = 4000;
+    cmd.roi.width = 0xffff;
+    cmd.roi.height = 0xffff;
     cmd.roi.x_offset = 0;
     cmd.roi.y_offset = 0;
     if(publish_frequency_ == 0.0f)

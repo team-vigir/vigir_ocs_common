@@ -58,7 +58,7 @@ bool TFLinkUpdaterCustom::getLinkTransforms(const std::string& _link_name, Ogre:
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;
   std::string old_fixed_frame = frame_manager_->getFixedFrame();
-  frame_manager_->setFixedFrame("/simulation/world");
+  frame_manager_->setFixedFrame(tf_prefix_+"/world");
   if (!frame_manager_->getTransform(link_name, ros::Time(), position, orientation))
   {
     frame_manager_->setFixedFrame(old_fixed_frame);
@@ -72,7 +72,7 @@ bool TFLinkUpdaterCustom::getLinkTransforms(const std::string& _link_name, Ogre:
   frame_manager_->setFixedFrame(old_fixed_frame);
 
   setLinkStatus(StatusProperty::Ok, link_name, "Transform OK");
-  std::cout << "\t\t" << "Transform OK" << std::endl;
+  //std::cout << "\t\t" << "Transform OK" << std::endl;
 
   // Collision/visual transforms are the same in this case
   visual_position = position;

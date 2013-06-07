@@ -116,7 +116,8 @@ protected:
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
 
-    rviz::Display* hand_model_;
+    rviz::Display* left_hand_model_;
+    rviz::Display* right_hand_model_;
 
     // for simulation
     rviz::Display* ghost_robot_model_;
