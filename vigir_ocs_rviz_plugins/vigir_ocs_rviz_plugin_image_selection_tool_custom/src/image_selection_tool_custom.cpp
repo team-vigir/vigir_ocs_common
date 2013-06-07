@@ -63,11 +63,7 @@
 #include "rviz/load_resource.h"
 
 #include "image_selection_tool_custom.h"
-int theX1 = 0;
-int theX2 = 0;
-int theY1 = 0;
-int theY2 = 0;
-Ogre::Viewport* port =NULL;
+
 namespace rviz
 {
 
@@ -78,6 +74,11 @@ ImageSelectionToolCustom::ImageSelectionToolCustom()
     , sel_start_x_( 0 )
     , sel_start_y_( 0 )
     , moving_( false )
+    , theX1(0)
+    , theX2(0)
+    , theY1(0)
+    , theY2(0)
+    , port(NULL)
 {
     shortcut_key_ = 's';
 }
@@ -265,28 +266,34 @@ void ImageSelectionToolCustom::unHighlight()
 
 void ImageSelectionToolCustom::highlight(Ogre::Viewport* viewport, int x1, int y1, int x2, int y2)
 {
-    highlight_enabled_ = true;
+    if(viewport != NULL)
+    {
+        highlight_enabled_ = true;
 
-    highlight_.viewport = viewport;
-    highlight_.x1 = x1;
-    highlight_.y1 = y1;
-    highlight_.x2 = x2;
-    highlight_.y2 = y2;
+        highlight_.viewport = viewport;
+        highlight_.x1 = x1;
+        highlight_.y1 = y1;
+        highlight_.x2 = x2;
+        highlight_.y2 = y2;
+    }
 }
 
 void ImageSelectionToolCustom::setHighlightRect(Ogre::Viewport* viewport, int x1, int y1, int x2, int y2)
 {
-    float nx1 = ((float)x1 / viewport->getActualWidth()) * 2 - 1;
-    float nx2 = ((float)x2 / viewport->getActualWidth()) * 2 - 1;
-    float ny1 = -(((float)y1 / viewport->getActualHeight()) * 2 - 1);
-    float ny2 = -(((float)y2 / viewport->getActualHeight()) * 2 - 1);
+    if(viewport != NULL)
+    {
+        float nx1 = ((float)x1 / viewport->getActualWidth()) * 2 - 1;
+        float nx2 = ((float)x2 / viewport->getActualWidth()) * 2 - 1;
+        float ny1 = -(((float)y1 / viewport->getActualHeight()) * 2 - 1);
+        float ny2 = -(((float)y2 / viewport->getActualHeight()) * 2 - 1);
 
-    nx1 = nx1 < -1 ? -1 : (nx1 > 1 ? 1 : nx1);
-    ny1 = ny1 < -1 ? -1 : (ny1 > 1 ? 1 : ny1);
-    nx2 = nx2 < -1 ? -1 : (nx2 > 1 ? 1 : nx2);
-    ny2 = ny2 < -1 ? -1 : (ny2 > 1 ? 1 : ny2);
+        nx1 = nx1 < -1 ? -1 : (nx1 > 1 ? 1 : nx1);
+        ny1 = ny1 < -1 ? -1 : (ny1 > 1 ? 1 : ny1);
+        nx2 = nx2 < -1 ? -1 : (nx2 > 1 ? 1 : nx2);
+        ny2 = ny2 < -1 ? -1 : (ny2 > 1 ? 1 : ny2);
 
-    highlight_rectangle_->setCorners(nx1, ny1, nx2, ny2);
+        highlight_rectangle_->setCorners(nx1, ny1, nx2, ny2);
+    }
 }
 
 void ImageSelectionToolCustom::removeHighlight()

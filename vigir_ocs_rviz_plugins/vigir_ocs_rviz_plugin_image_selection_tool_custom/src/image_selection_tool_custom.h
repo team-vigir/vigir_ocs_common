@@ -102,6 +102,8 @@ private:
 
     Ogre::Rectangle2D* highlight_rectangle_;
     Ogre::SceneNode* highlight_node_;
+    int theX1,theX2,theY1,theY2;
+    Ogre::Viewport* port;
 };
 
 }

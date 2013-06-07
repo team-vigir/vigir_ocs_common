@@ -29,6 +29,8 @@ class MapView: public Base3DView
 public:
     MapView( QWidget* parent = 0 );
     virtual ~MapView();    
+
+    rviz::Tool* selection_tool_;
 };
 }
 #endif // map_view_H
