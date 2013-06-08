@@ -23,6 +23,7 @@
 #include <geometry_msgs/Point.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <mouse_event_handler.h>
 
 #include <string>
 
@@ -38,7 +39,6 @@ class FrameManager;
 
 namespace vigir_ocs
 {
-class MouseEventHandler;
 
 // Class "Main3DView" implements the RobotModel class with joint manipulation that can be added to any QT application.
 class Base3DView: public QWidget
@@ -75,7 +75,7 @@ public Q_SLOTS:
     void templatePathChanged( QString );
     void insertWaypoint();
 
-    void createContextMenu( int, int );
+    void createContextMenu( bool, int, int );
     // sends back the context
     void setContext( int );
 

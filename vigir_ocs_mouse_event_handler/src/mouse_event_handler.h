@@ -20,12 +20,14 @@ public:
   virtual ~MouseEventHandler();
 
 Q_SIGNALS:
-  void select( int, int );
-  void selectROI( int, int );
-  void createContextMenu( int, int );
+  void mouseLeftButton( bool, int, int );
+  void mouseLeftButtonCtrl( bool, int, int );
+  void mouseLeftButtonShift( bool, int, int );
+  void mouseRightButton( bool, int, int );
 
 public Q_SLOTS:
   void mousePressEvent( QMouseEvent* event );
+  void mouseReleaseEvent( QMouseEvent* event );
 
 private:
   int xo, yo;

@@ -152,6 +152,7 @@ void ImageSelectionToolCustom::update(float wall_dt, float ros_dt)
     //   sel_manager->highlight( port, theX1, theY1, theX2, theY2 );
     //}
 
+
     highlight_node_->setVisible(highlight_enabled_);
 
     if (highlight_enabled_)
@@ -262,6 +263,7 @@ void ImageSelectionToolCustom::unHighlight()
     theX2 = 0;
     theY1 = 0;
     theY2 = 0;
+    highlight_node_->setVisible(false);
 }
 
 void ImageSelectionToolCustom::highlight(Ogre::Viewport* viewport, int x1, int y1, int x2, int y2)

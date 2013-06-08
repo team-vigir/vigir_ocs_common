@@ -23,7 +23,15 @@ void TemplateNodelet::onInit()
     grasp_state_feedback_sub_    = nh_out.subscribe<flor_grasp_msgs::GraspState>( "grasp_state_feedback", 1, &TemplateNodelet::graspStateFeedbackCb, this );
     
     id_counter_ = 0;
+
+    timer = nh_out.createTimer(ros::Duration(0.066), &TemplateNodelet::timerCallback, this);
 }
+
+void TemplateNodelet::timerCallback(const ros::TimerEvent& event)
+{
+    this->publishTemplateList();
+}
+
 
 void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr& msg)
 {
@@ -151,6 +159,7 @@ void TemplateNodelet::templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSel
 
 void TemplateNodelet::publishTemplateList()
 {
+    std::cout << "timer" << std::endl;
     flor_ocs_msgs::OCSTemplateList cmd;
 
     cmd.template_id_list = template_id_list_;
@@ -159,6 +168,36 @@ void TemplateNodelet::publishTemplateList()
 
     // publish complete list of templates and poses
     template_list_pub_.publish( cmd );
+
+    // publish to TF
+    ros::Time now = ros::Time::now();
+
+    std::vector<tf::StampedTransform> transforms;
+
+    for(int i = 0; i < pose_list_.size(); i++)
+    {
+        tf::StampedTransform template_pose_to_tf;
+
+        template_pose_to_tf.frame_id_ = "/world";
+        std::stringstream ss;
+        ss << "/template_tf_" << (unsigned int)template_id_list_[i];
+        template_pose_to_tf.child_frame_id_ = ss.str();
+
+        template_pose_to_tf.stamp_ = now;
+
+        const geometry_msgs::Point& vec_l (pose_list_[i].pose.position);
+        template_pose_to_tf.setOrigin(tf::Vector3(vec_l.x, vec_l.y, vec_l.z));
+
+        tf::Quaternion orientation;
+        tf::quaternionMsgToTF(pose_list_[i].pose.orientation, orientation);
+
+        template_pose_to_tf.setRotation(orientation);
+
+        transforms.push_back(template_pose_to_tf);
+    }
+
+    if(transforms.size() > 0)
+        tfb_.sendTransform(transforms);
 }
 }
 

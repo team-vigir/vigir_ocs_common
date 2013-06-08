@@ -11,7 +11,13 @@
 #include <QtGui>
 
 #include <ros/ros.h>
+
+#include "tf/transform_listener.h"
+
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
+
+#include <sensor_msgs/JointState.h>
 
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
@@ -54,11 +60,13 @@ private:
 
     Ui::graspWidget *ui;
 
-    flor_ocs_msgs::OCSTemplateList lastList;
     void graspStateRecieved (const flor_grasp_msgs::GraspState::ConstPtr& graspState);
     void graspSelectedRecieved (const flor_grasp_msgs::GraspSelection::ConstPtr& graspMsg);
     void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list);
     void templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr& feedback);
+
+    int calcWristTarget( const geometry_msgs::Pose& wrist_pose,const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose );
+    int staticTransform(geometry_msgs::Pose& palm_pose);
 
     QString template_dir_path_;
     QString grasp_db_path_;
@@ -77,6 +85,11 @@ private:
         geometry_msgs::Pose pre_grasp_pose;
     } GraspDBItem;
     std::vector<GraspDBItem> grasp_db_;
+
+    // need to store updated template list and selected template id to calculate final position of the hand
+    flor_ocs_msgs::OCSTemplateList last_template_list_;
+    int selected_template_id_;
+
     ros::NodeHandle nh_;
     ros::Subscriber grasp_state_sub_;
     ros::Subscriber grasp_selected_sub_;
@@ -106,6 +119,16 @@ private:
     // publisher to color fingers/hand
     ros::Publisher hand_link_color_pub_;
     void publishLinkColor(std::string, unsigned char r, unsigned char g, unsigned char b);
+
+    // publisher for ghost hand position
+    ros::Publisher ghost_hand_pub_;
+    void publishHandPose(unsigned int id);
+
+    // publisher for the finger joints
+    ros::Publisher ghost_hand_joint_state_pub_;
+    void publishHandJointStates(unsigned int grasp_index);
+
+    tf::TransformListener tf_;
 
 protected:
     void timerEvent(QTimerEvent *event);

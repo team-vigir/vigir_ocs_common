@@ -77,7 +77,7 @@
            <x>0</x>
            <y>0</y>
            <width>242</width>
-           <height>959</height>
+           <height>992</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout">
@@ -212,6 +212,13 @@
               <widget class="QRadioButton" name="template_tool_3">
                <property name="text">
                 <string>Template Manipulation</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="request_map">
+               <property name="text">
+                <string>Request Area Map</string>
                </property>
               </widget>
              </item>
@@ -380,6 +387,7 @@
     <slot>gridMapToggled(bool)</slot>
     <slot>footstepPlanningToggled(bool)</slot>
     <slot>simulationRobotToggled(bool)</slot>
+    <slot>requestMap()</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -608,6 +616,22 @@
     <hint type="sourcelabel">
      <x>624</x>
      <y>259</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>256</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>request_map</sender>
+   <signal>clicked()</signal>
+   <receiver>map_view_</receiver>
+   <slot>requestMap()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>645</x>
+     <y>410</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>

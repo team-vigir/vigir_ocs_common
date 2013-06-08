@@ -7,6 +7,8 @@
 #include <vector>
 #include <string>
 
+#include <tf/transform_broadcaster.h>
+
 #include <flor_ocs_msgs/OCSTemplateAdd.h>
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
 #include <flor_ocs_msgs/OCSTemplateList.h>
@@ -32,6 +34,7 @@ namespace ocs_template
         void templateMatchRequestCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
         void templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
         void publishTemplateList();
+        void timerCallback(const ros::TimerEvent& event);
 
       protected:
         ros::Subscriber template_update_sub_;
@@ -53,5 +56,9 @@ namespace ocs_template
         std::vector<std::string> template_list_;
         std::vector<geometry_msgs::PoseStamped> pose_list_;
         unsigned char id_counter_;
+
+        ros::Timer timer;
+
+        tf::TransformBroadcaster tfb_;
     };
 }

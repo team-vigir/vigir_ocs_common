@@ -27,7 +27,6 @@
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
 #include "rviz/tool_manager.h"
-#include <mouse_event_handler.h>
 #include <template_display_custom.h>
 #include "map_display_custom.h"
 #include "base_3d_view.h"
@@ -161,9 +160,9 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // handles mouse events without rviz::tool
     mouse_event_handler_ = new vigir_ocs::MouseEventHandler();
     QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mousePressEvent(QMouseEvent*)));
-    QObject::connect(mouse_event_handler_, SIGNAL(select(int,int)), selection_3d_display_, SLOT(createMarker(int,int)));
-    QObject::connect(mouse_event_handler_, SIGNAL(selectROI(int,int)), selection_3d_display_, SLOT(createROISelection(int,int)));
-    QObject::connect(mouse_event_handler_, SIGNAL(createContextMenu(int,int)), this, SLOT(createContextMenu(int,int)));
+    QObject::connect(render_panel_, SIGNAL(signalMouseReleaseEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseReleaseEvent(QMouseEvent*)));
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(createMarker(bool,int,int)));
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), this, SLOT(createContextMenu(bool,int,int)));
 
     // create a publisher to add templates
     template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
@@ -207,14 +206,14 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     //robot_model_->subProp( "Color" )->setValue( QColor( 127,127,127 ) );
 
     // create the hands displays
-    left_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot left hand model", true );
-    //left_hand_model_->subProp( "TF Prefix" )->setValue( "/left_hand_model" );
+    left_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot left hand model", false );
+    left_hand_model_->subProp( "TF Prefix" )->setValue( "/left_hand_model" );
     left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
     left_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
     left_hand_model_->subProp( "Color" )->setValue( QColor( 255, 255, 0 ) );
 
-    right_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot right hand model", true );
-    //right_hand_model_->subProp( "TF Prefix" )->setValue( "/right_hand_model" );
+    right_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot right hand model", false );
+    right_hand_model_->subProp( "TF Prefix" )->setValue( "/right_hand_model" );
     right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
     right_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
     right_hand_model_->subProp( "Color" )->setValue( QColor( 0, 255, 255 ) );
@@ -227,7 +226,8 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ghost_robot_model_->subProp( "Alpha" )->setValue( 0.5f );
 
     // ground map middle man
-    ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
+    //ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
+    ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/ocs/gridmap_result", 5, &Base3DView::processNewMap, this );
 
     // point cloud request/selection publisher
     point_cloud_request_sub_ =  n_.subscribe<sensor_msgs::PointCloud2>( "/flor/worldmodel/ocs/dist_query_pointcloud_result", 5, &Base3DView::processPointCloud, this );
@@ -522,7 +522,7 @@ void Base3DView::insertWaypoint()
     }
 }
 
-void Base3DView::createContextMenu(int x, int y)
+void Base3DView::createContextMenu(bool, int x, int y)
 {
     // first we need to query the 3D scene to retrieve the context
     Q_EMIT queryContext(x,y);

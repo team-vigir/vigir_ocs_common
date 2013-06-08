@@ -21,7 +21,7 @@ namespace vigir_ocs
 Main3DView::Main3DView( QWidget* parent )
     : Base3DView( "/world", parent )
 {
-
+    //QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(createROISelection(bool,int,int)));
 }
 
 // Destructor.

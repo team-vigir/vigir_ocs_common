@@ -58,10 +58,10 @@ bool TFLinkUpdaterCustom::getLinkTransforms(const std::string& _link_name, Ogre:
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;
   std::string old_fixed_frame = frame_manager_->getFixedFrame();
-  frame_manager_->setFixedFrame(tf_prefix_+"/world");
+  //frame_manager_->setFixedFrame(tf_prefix_+"/world");
   if (!frame_manager_->getTransform(link_name, ros::Time(), position, orientation))
   {
-    frame_manager_->setFixedFrame(old_fixed_frame);
+    //frame_manager_->setFixedFrame(old_fixed_frame);
 
     std::stringstream ss;
     ss << "No transform from [" << link_name << "] to [" << frame_manager_->getFixedFrame() << "]";

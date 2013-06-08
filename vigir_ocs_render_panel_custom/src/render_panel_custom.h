@@ -44,6 +44,28 @@ protected:
 
 private:
   //Ogre::Camera customCamera;
+  // define what will be sent over to rviz, gives total flexibility
+  bool block_mouse_move_;
+  Qt::KeyboardModifiers block_mouse_move_key_modifiers_;
+  Qt::MouseButtons block_mouse_move_mouse_buttons_;
+  bool block_mouse_press_;
+  Qt::KeyboardModifiers block_mouse_press_key_modifiers_;
+  Qt::MouseButtons block_mouse_press_mouse_buttons_;
+  bool block_mouse_release_;
+  Qt::KeyboardModifiers block_mouse_release_key_modifiers_;
+  Qt::MouseButtons block_mouse_release_mouse_buttons_;
+  bool block_mouse_double_click_;
+  Qt::KeyboardModifiers block_mouse_double_click_key_modifiers_;
+  Qt::MouseButtons block_mouse_double_click_mouse_buttons_;
+  bool block_mouse_wheel_;
+  Qt::KeyboardModifiers block_mouse_wheel_key_modifiers_;
+  Qt::MouseButtons block_mouse_wheel_mouse_buttons_;
+  bool block_mouse_leave_;
+  Qt::KeyboardModifiers block_mouse_leave_key_modifiers_;
+  Qt::MouseButtons block_mouse_leave_mouse_buttons_;
+  bool block_mouse_key_press_;
+  Qt::KeyboardModifiers block_mouse_key_press_key_modifiers_;
+  Qt::MouseButtons block_mouse_key_press_mouse_buttons_;
 };
 
 } // namespace rviz

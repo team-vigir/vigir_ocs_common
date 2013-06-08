@@ -213,6 +213,16 @@ void Selection3DDisplayCustom::load()
 
     roi_marker_box_->setVisible( false );
     lEntity->setMaterialName(lMaterialName);
+
+    // Create ground plane to be able to perform raycasting anywhere
+    lEntity = this->scene_manager_->createEntity("ground plane", Ogre::SceneManager::PT_CUBE);
+    //lEntity->setMaterialName(lMaterialName);
+    ground_ = this->scene_node_->createChildSceneNode();
+    ground_->attachObject(lEntity);
+    // Change position and scale
+    ground_->setPosition(0.0f, 0.0f, 0.0f);
+    ground_->scale(10000.0f,10000.0f,0.00001f);
+    ground_->setVisible( false );
 }
 
 void Selection3DDisplayCustom::onEnable()
@@ -340,7 +350,7 @@ void Selection3DDisplayCustom::reset()
 
 void Selection3DDisplayCustom::createMarker(int xo, int yo, int x, int y)
 {
-    createMarker(x,y);
+    createMarker(false,x,y);
 }
 
 void Selection3DDisplayCustom::transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame)
@@ -374,7 +384,7 @@ void Selection3DDisplayCustom::transform(Ogre::Vector3& position, Ogre::Quaterni
     //std::cout << "QUAT transform: " << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << std::endl;
 }
 
-void Selection3DDisplayCustom::createMarker(int x, int y)
+void Selection3DDisplayCustom::createMarker(bool, int x, int y)
 {
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
@@ -415,7 +425,7 @@ void Selection3DDisplayCustom::createMarker(int x, int y)
     roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
 }
 
-void Selection3DDisplayCustom::createROISelection(int x, int y)
+void Selection3DDisplayCustom::createROISelection(bool, int x, int y)
 {
     if(!initialized_)
         return;
@@ -486,6 +496,28 @@ void Selection3DDisplayCustom::resetSelection()
 void Selection3DDisplayCustom::setMarkerScale(float scale)
 {
     marker_scale_ = scale;
+}
+
+void Selection3DDisplayCustom::queryPosition( int x, int y, Ogre::Vector3& world_position )
+{
+    float win_width = render_panel_->width();
+    float win_height = render_panel_->height();
+
+    //then send a raycast straight out from the camera at the mouse's position
+    Ogre::Ray mouseRay = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
+
+    Ogre::Vector3 position;
+
+    Ogre::Vector3 pt(0,0,0);
+    Ogre::Quaternion ot(1,0,0,0);
+    transform(pt,ot,"/world",fixed_frame_.toUtf8().constData());
+    int type = -1;
+    if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type))
+    {
+        Ogre::Quaternion orientation(1,0,0,0);
+        transform(position,orientation,fixed_frame_.toUtf8().constData(),"/world");
+        world_position = position;
+    }
 }
 
 void Selection3DDisplayCustom::queryContext( int x, int y )

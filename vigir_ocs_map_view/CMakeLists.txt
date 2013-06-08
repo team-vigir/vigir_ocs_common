@@ -3,13 +3,13 @@ project(vigir_ocs_map_view)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_joystick)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz flor_perception_msgs vigir_ocs_base_3d_view vigir_ocs_joystick)
 
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-	CATKIN_DEPENDS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_joystick
+	CATKIN_DEPENDS roscpp rospy std_msgs rviz flor_perception_msgs vigir_ocs_base_3d_view vigir_ocs_joystick
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:

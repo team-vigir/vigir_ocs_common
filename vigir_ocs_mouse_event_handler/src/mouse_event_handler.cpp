@@ -1,5 +1,7 @@
 #include "mouse_event_handler.h"
 
+#include <iostream>
+
 namespace vigir_ocs
 {
 
@@ -20,18 +22,33 @@ void MouseEventHandler::mousePressEvent( QMouseEvent* event )
     {
         if( event->modifiers() & Qt::ShiftModifier ) // as long as shift is pressed
         {
-            Q_EMIT selectROI( event->x(), event->y() );
+            Q_EMIT mouseLeftButtonShift( true, event->x(), event->y() );
         }
         else if( event->modifiers() == Qt::ControlModifier ) // if only ctrl is pressed
         {
-            Q_EMIT select( event->x(), event->y() );
+            Q_EMIT mouseLeftButtonCtrl( true, event->x(), event->y() );
             xo = event->x();
             yo = event->y();
         }
     }
     else if( event->buttons() & Qt::RightButton )
     {
-		Q_EMIT createContextMenu( event->x(), event->y() );
+        Q_EMIT mouseRightButton( true, event->x(), event->y() );
+    }
+}
+
+void MouseEventHandler::mouseReleaseEvent( QMouseEvent* event )
+{
+    //std::cout << "mouse release event: " << event->button() << " " << event->modifiers() << std::endl;
+    if( event->button() == Qt::LeftButton )
+    {
+        //std::cout << "left button" << std::endl;
+        if( event->modifiers() & Qt::ShiftModifier ) // as long as shift is pressed
+        {
+            //std::cout << "shift" << std::endl;
+            // need to emit selection signal here
+            Q_EMIT mouseLeftButtonShift( false, event->x(), event->y() );
+        }
     }
 }
 

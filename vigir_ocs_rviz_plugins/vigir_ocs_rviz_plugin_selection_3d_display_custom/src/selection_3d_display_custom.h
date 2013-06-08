@@ -104,12 +104,13 @@ private Q_SLOTS:
   void updateAlpha();
   void updateRobotDescription();
   void createMarker(int, int, int, int);
-  void createMarker(int, int);
-  void createROISelection(int,int);
+  void createMarker(bool, int, int);
+  void createROISelection(bool,int,int);
   void resetSelection();
   void setRenderPanel(rviz::RenderPanel*);
   void setMarkerScale(float);
   void setMarkerPosition(float, float, float);
+  void queryPosition( int, int, Ogre::Vector3& );
   void queryContext( int, int );
 
 protected:
@@ -128,6 +129,7 @@ protected:
   ros::NodeHandle nh_;
   ros::Subscriber template_pose_;
   
+  Ogre::SceneNode* ground_;
   Ogre::SceneNode* selection_marker_;
   Ogre::SceneNode* roi_marker_final_;
   Ogre::SceneNode* roi_marker_box_;

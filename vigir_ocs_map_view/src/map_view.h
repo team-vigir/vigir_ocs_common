@@ -28,9 +28,22 @@ class MapView: public Base3DView
     Q_OBJECT
 public:
     MapView( QWidget* parent = 0 );
-    virtual ~MapView();    
+    virtual ~MapView();
 
+Q_SIGNALS:
+    void queryPosition( int, int, Ogre::Vector3& );
+    void unHighlight();
+
+public Q_SLOTS:
+    void enableSelectionTool(bool, int, int);
+    void requestMap();
+
+private:
     rviz::Tool* selection_tool_;
+
+    ros::Publisher grid_map_request_pub_;
+
+    int selected_area_[4];
 };
 }
 #endif // map_view_H
