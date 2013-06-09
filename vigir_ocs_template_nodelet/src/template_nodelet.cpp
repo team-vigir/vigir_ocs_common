@@ -159,7 +159,7 @@ void TemplateNodelet::templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSel
 
 void TemplateNodelet::publishTemplateList()
 {
-    std::cout << "timer" << std::endl;
+    //std::cout << "timer" << std::endl;
     flor_ocs_msgs::OCSTemplateList cmd;
 
     cmd.template_id_list = template_id_list_;

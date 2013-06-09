@@ -48,14 +48,17 @@ robotStatus::robotStatus(QWidget *parent) :
     unreadMsgs=0;
     numError = 0;
     numWarn = 0;
-    ros::NodeHandle nh;
+    ros::NodeHandle nh("~");
     std::string fileName;
     if(nh.getParam("robotErrorFileLocation",fileName))
             messagesFile.setFileName(fileName.c_str());
     else
             messagesFile.setFileName("/home/messages.csv");
+
+    std::cerr << "Reading messages from <" << messagesFile.fileName().toStdString() << ">" << fileName <<std::endl;
     loadFile();
-    rosSubscriber = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/robot_status", 2, &robotStatus::recievedMessage, this );
+
+    rosSubscriber = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/robot_status", 100, &robotStatus::recievedMessage, this );
     std::cout << "Done setting up waiting for messages." << std::endl;
     ros::spinOnce();
     clearButton->connect(clearButton,SIGNAL(clicked()),this,SLOT(on_clearButton_clicked()));
@@ -102,7 +105,9 @@ void robotStatus::on_radioButtons_updated()
 
 QString robotStatus::timeFromMsg(const ros::Time stamp)
 {
-    int sec = stamp.toSec();
+
+    double dSec = stamp.toSec();
+    int sec = dSec;
     std::stringstream stream;
 
     stream.str("");
@@ -115,11 +120,15 @@ QString robotStatus::timeFromMsg(const ros::Time stamp)
     int min = sec / 60;
     sec -= min * 60;
 
+    int iSec = dSec;
+    dSec -= iSec;
+    int ms = (dSec*1000.0);
+
     stream << std::setw(2) << std::setfill('0') << day << " ";
     stream << std::setw(2) << std::setfill('0') << hour << ":";
     stream << std::setw(2) << std::setfill('0') << min << ":";
     stream << std::setw(2) << std::setfill('0') << sec << ".";
-    stream << std::setw(3) << std::setfill('0') << (stamp.toNSec()*(0.000001));
+    stream << std::setw(3) << std::setfill('0') << ms ;
     return QString::fromStdString(stream.str());
 }
 
@@ -127,9 +136,9 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
 {
 
     //extract information from msg
-    int type = msg->code >> 6;
-    int msgNum = msg->code - type*64;
-    std::cout << "Recieved message. type = " << type << "msgNum = " << msgNum << std::endl;
+    uint8_t type, msgNum;
+    RobotStatusCodes::codes(msg->code, msgNum,type); //const uint8_t& error, uint8_t& code, uint8_t& severity)
+    //std::cout << "Recieved message. type = " << type << "msgNum = " << msgNum << std::endl;
     QTableWidgetItem* text = new QTableWidgetItem();
     QTableWidgetItem* msgType = new QTableWidgetItem();
     QTableWidgetItem* time = new QTableWidgetItem();
