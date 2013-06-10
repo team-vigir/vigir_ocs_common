@@ -89,6 +89,7 @@ private:
     // need to store updated template list and selected template id to calculate final position of the hand
     flor_ocs_msgs::OCSTemplateList last_template_list_;
     int selected_template_id_;
+    int selected_grasp_id_;
 
     ros::NodeHandle nh_;
     ros::Subscriber grasp_state_sub_;

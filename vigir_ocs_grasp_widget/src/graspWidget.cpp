@@ -7,9 +7,11 @@
 
 //grasp_testing grasp_testing_simple.launch
 
-graspWidget::graspWidget(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::graspWidget)
+graspWidget::graspWidget(QWidget *parent)
+    : QWidget(parent)
+    , ui(new Ui::graspWidget)
+    , selected_template_id_(-1)
+    , selected_grasp_id_(-1)
 {
     ui->setupUi(this);
     ui->templateBox->setDisabled(true);
@@ -207,6 +209,9 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
             ui->templateBox->setItemText(i,QString::fromStdString(templateName));
         }
     }
+
+    if(selected_grasp_id_ != -1)
+        publishHandPose(selected_grasp_id_);
 }
 
 void graspWidget::initTemplateMode()
@@ -453,6 +458,7 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
     // clean grasp box
     while(ui->graspBox->count() > 0)
         ui->graspBox->removeItem(0);
+    selected_grasp_id_ = -1;
 
     // add grasps to the grasp combo box
     for(int index = 0; index < grasp_db_.size(); index++)
@@ -491,6 +497,7 @@ void graspWidget::on_graspBox_activated(const QString &arg1)
     }
     else
     {
+        selected_grasp_id_ = arg1.toInt();
         publishHandPose(arg1.toUInt());
     }
 }
@@ -699,7 +706,7 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
         joint_states.effort[i] = 0;
         joint_states.velocity[i] = 0;
         joint_states.position[i] = grasp_db_[grasp_index].finger_joints[i];
-        ROS_ERROR("Setting Finger Joint %s to %f",joint_states.name[i].c_str(),joint_states.position[i]);
+        //ROS_ERROR("Setting Finger Joint %s to %f",joint_states.name[i].c_str(),joint_states.position[i]);
     }
 
     ghost_hand_joint_state_pub_.publish(joint_states);
