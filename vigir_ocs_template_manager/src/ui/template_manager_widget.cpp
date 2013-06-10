@@ -105,20 +105,20 @@ void TemplateManagerWidget::initGraspDB()
         grasp.final_pose.position.x = db[i][18].toFloat(&ok);
         grasp.final_pose.position.y = db[i][19].toFloat(&ok);
         grasp.final_pose.position.z = db[i][20].toFloat(&ok);
-        grasp.final_pose.orientation.x = db[i][21].toFloat(&ok);
-        grasp.final_pose.orientation.y = db[i][22].toFloat(&ok);
-        grasp.final_pose.orientation.z = db[i][23].toFloat(&ok);
-        grasp.final_pose.orientation.w = db[i][24].toFloat(&ok);
+        grasp.final_pose.orientation.w = db[i][21].toFloat(&ok);
+        grasp.final_pose.orientation.x = db[i][22].toFloat(&ok);
+        grasp.final_pose.orientation.y = db[i][23].toFloat(&ok);
+        grasp.final_pose.orientation.z = db[i][24].toFloat(&ok);
         //std::cout << "final pose: " << grasp.final_pose.position.x << ", " << grasp.final_pose.position.y << ", " << grasp.final_pose.position.z << ", " <<
         //             grasp.final_pose.orientation.x << ", " << grasp.final_pose.orientation.y << ", " << grasp.final_pose.orientation.y << ", " << grasp.final_pose.orientation.w << std::endl;
 
         grasp.pre_grasp_pose.position.x = db[i][26].toFloat(&ok);
         grasp.pre_grasp_pose.position.y = db[i][27].toFloat(&ok);
         grasp.pre_grasp_pose.position.z = db[i][28].toFloat(&ok);
-        grasp.pre_grasp_pose.orientation.x = db[i][29].toFloat(&ok);
-        grasp.pre_grasp_pose.orientation.y = db[i][30].toFloat(&ok);
-        grasp.pre_grasp_pose.orientation.z = db[i][31].toFloat(&ok);
-        grasp.pre_grasp_pose.orientation.w = db[i][32].toFloat(&ok);
+        grasp.pre_grasp_pose.orientation.w = db[i][29].toFloat(&ok);
+        grasp.pre_grasp_pose.orientation.x = db[i][30].toFloat(&ok);
+        grasp.pre_grasp_pose.orientation.y = db[i][31].toFloat(&ok);
+        grasp.pre_grasp_pose.orientation.z = db[i][32].toFloat(&ok);
         //std::cout << "final pose: " << grasp.pre_grasp_pose.position.x << ", " << grasp.pre_grasp_pose.position.y << ", " << grasp.pre_grasp_pose.position.z << ", " <<
         //             grasp.pre_grasp_pose.orientation.x << ", " << grasp.pre_grasp_pose.orientation.y << ", " << grasp.pre_grasp_pose.orientation.y << ", " << grasp.pre_grasp_pose.orientation.w << std::endl;
 

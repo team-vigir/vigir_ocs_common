@@ -65,7 +65,7 @@ bool TFLinkUpdaterCustom::getLinkTransforms(const std::string& _link_name, Ogre:
 
     std::stringstream ss;
     ss << "No transform from [" << link_name << "] to [" << frame_manager_->getFixedFrame() << "]";
-    std::cout << "\t\t" << ss.str() << std::endl;
+    //std::cout << "\t\t" << ss.str() << std::endl;
     setLinkStatus(StatusProperty::Error, link_name, ss.str());
     return false;
   }

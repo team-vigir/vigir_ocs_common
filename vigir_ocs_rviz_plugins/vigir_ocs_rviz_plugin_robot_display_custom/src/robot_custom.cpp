@@ -151,9 +151,9 @@ void RobotCustom::setAlpha(float a)
 
 void RobotCustom::setLinkColor(std::string link, QColor qc)
 {
-    std::cout << "setting link color for " << link << std::endl;
+    //std::cout << "setting link color for " << link << std::endl;
     if ( links_.find(link) != links_.end() )
-        links_[link]->setColor(qc.red(),qc.green(),qc.blue());
+        links_[link]->setColor(qc.redF(),qc.greenF(),qc.blueF());
 }
 
 void RobotCustom::setRobotColor(QColor qc)
@@ -164,7 +164,7 @@ void RobotCustom::setRobotColor(QColor qc)
     {
         RobotLinkCustom* info = it->second;
 
-        info->setColor(qc.red(),qc.green(),qc.blue());
+        info->setColor(qc.redF(),qc.greenF(),qc.blueF());
     }
 }
 
@@ -253,9 +253,9 @@ void RobotCustom::update(const LinkUpdater& updater)
     {
         RobotLinkCustom* info = link_it->second;
 
-        info->getColor(red,green,blue);
+        //info->getColor(red,green,blue);
         info->setToNormalMaterial();
-        info->setColor(red,green,blue);
+        //info->setColor(red,green,blue);
 
         //std::cout << "\t" << info->getName() << std::endl;
 

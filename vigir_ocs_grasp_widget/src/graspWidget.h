@@ -60,8 +60,8 @@ private:
 
     Ui::graspWidget *ui;
 
-    void graspStateRecieved (const flor_grasp_msgs::GraspState::ConstPtr& graspState);
-    void graspSelectedRecieved (const flor_grasp_msgs::GraspSelection::ConstPtr& graspMsg);
+    void graspStateReceived (const flor_grasp_msgs::GraspState::ConstPtr& graspState);
+    void graspSelectedReceived (const flor_grasp_msgs::GraspSelection::ConstPtr& graspMsg);
     void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list);
     void templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr& feedback);
 
@@ -129,6 +129,11 @@ private:
     void publishHandJointStates(unsigned int grasp_index);
 
     tf::TransformListener tf_;
+
+    // get joint states
+    ros::Subscriber joint_states_sub_;
+
+    void jointStatesCB(const sensor_msgs::JointState::ConstPtr& joint_states);
 
 protected:
     void timerEvent(QTimerEvent *event);

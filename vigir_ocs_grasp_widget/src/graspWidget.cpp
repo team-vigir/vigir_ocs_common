@@ -37,7 +37,7 @@ graspWidget::graspWidget(QWidget *parent) :
 
     template_list_sub_           = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",                    5, &graspWidget::processTemplateList, this );
     template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>("/template/template_match_feedback", 1, &graspWidget::templateMatchFeedback, this );
-    grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(       "/template/active_state",            1, &graspWidget::graspStateRecieved,  this );
+    grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(       "/template/active_state",            1, &graspWidget::graspStateReceived,  this );
 
     grasp_selection_pub_        = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/template/grasp_selection",        1, false);
     grasp_release_pub_          = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/template/release_grasp" ,         1, false);
@@ -52,6 +52,9 @@ graspWidget::graspWidget(QWidget *parent) :
         robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/l_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
         ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_left_hand_pose",             1, false);
         ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_left_hand/joint_states",     1, false); // /ghost_left_hand/joint_states
+
+        // We first subscribe to the JointState messages
+        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/l_hand/sandia_states", 2, &graspWidget::jointStatesCB, this );
     }
     else
     {
@@ -59,6 +62,9 @@ graspWidget::graspWidget(QWidget *parent) :
         robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/r_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
         ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_right_hand_pose",            1, false);
         ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_right_hand/joint_states",    1, false); // /ghost_right_hand/joint_states
+
+        // We first subscribe to the JointState messages
+        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/r_hand/sandia_states", 2, &graspWidget::jointStatesCB, this );
     }
 
     // publisher to color the hand links
@@ -95,13 +101,13 @@ void graspWidget::templateMatchFeedback (const flor_grasp_msgs::TemplateSelectio
         pal.setColor(QPalette::Button,Qt::red);
     ui->templateButton->setPalette(pal);
     ui->templateButton->setAutoFillBackground(true);
-    std::cout << "Template confidence recieved and found to be " << (int)feedback->confidence.data << std::endl;
+    std::cout << "Template confidence received and found to be " << (int)feedback->confidence.data << std::endl;
     templateMatchDone = true;
 }
 
-void graspWidget::graspStateRecieved (const flor_grasp_msgs::GraspState::ConstPtr& graspState)
+void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPtr& graspState)
 {
-    //std::cout << "Grasp State message recieved" << graspState << std::endl;
+    //std::cout << "Grasp State message received" << graspState << std::endl;
     uint8_t mode  = (graspState->grasp_state.data&0xF0) >> 4;
     uint8_t state = graspState->grasp_state.data&0x0F;
     setProgressLevel(graspState->grip.data);
@@ -169,7 +175,7 @@ void graspWidget::graspStateRecieved (const flor_grasp_msgs::GraspState::ConstPt
 
 void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list)
 {
-    std::cout << "Template list recieved containing " << list->template_id_list.size() << " elements" << std::cout;
+    std::cout << "Template list received containing " << list->template_id_list.size() << " elements" << std::cout;
     // save last template list
     last_template_list_ = *list;
 
@@ -294,20 +300,20 @@ void graspWidget::initGraspDB()
         std::cout << "hand: " << grasp.hand << std::endl;
 
         grasp.initial_grasp_type = db[i][3].toUtf8().constData();
-        //std::cout << "initial grasp type: " << grasp.initial_grasp_type << std::endl;
+        std::cout << "initial grasp type: " << grasp.initial_grasp_type << std::endl;
 
         //std::cout << "finger joints: ";
-        for(int j = 5; j < 17; j++)
+        for(int j = 0; j < 12; j++)
         {
 
             // Graspit outputs the fingers in different order, and these were copied into .grasp library
             // We need to swap f0 and f2, which this code does
-            if((j-5) < 3)
-                grasp.finger_joints[(j-5)+6] = db[i][j].toFloat(&ok);//grasp_spec.finger_poses.f2[i]= db[i][j].toFloat(&ok); //joints from the pinky
-            else if ((j-5) > 5 && (j-5) < 9)
-                grasp.finger_joints[(j-5)-6] = db[i][j].toFloat(&ok);//grasp_spec.finger_poses.f0[i-6]= db[i][j].toFloat(&ok); //joints from the index
+            if(j < 3)
+                grasp.finger_joints[j+6] = db[i][j+5].toFloat(&ok);//grasp_spec.finger_poses.f2[i]= db[i][j].toFloat(&ok); //joints from the pinky
+            else if (j > 5 && j < 9)
+                grasp.finger_joints[j-6] = db[i][j+5].toFloat(&ok);//grasp_spec.finger_poses.f0[i-6]= db[i][j].toFloat(&ok); //joints from the index
             else// if ((j-5) > 2 && (j-5) < 6)
-                grasp.finger_joints[(j-5)] = db[i][j].toFloat(&ok);//grasp_spec.finger_poses.f1[i-3]= db[i][j].toFloat(&ok); //joints from middle
+                grasp.finger_joints[j] = db[i][j+5].toFloat(&ok);//grasp_spec.finger_poses.f1[i-3]= db[i][j].toFloat(&ok); //joints from middle and thumb
             //else //9,10,11
             //    grasp.finger_joints[(j-5)] = db[i][j].toFloat(&ok);//grasp_spec.finger_poses.f3[i-9]= db[i][j].toFloat(&ok); //joints from thumb
             //grasp.finger_joints[j-5] = db[i][j].toFloat(&ok); // old code, using Graspit order
@@ -318,20 +324,20 @@ void graspWidget::initGraspDB()
         grasp.final_pose.position.x = db[i][18].toFloat(&ok);
         grasp.final_pose.position.y = db[i][19].toFloat(&ok);
         grasp.final_pose.position.z = db[i][20].toFloat(&ok);
-        grasp.final_pose.orientation.x = db[i][21].toFloat(&ok);
-        grasp.final_pose.orientation.y = db[i][22].toFloat(&ok);
-        grasp.final_pose.orientation.z = db[i][23].toFloat(&ok);
-        grasp.final_pose.orientation.w = db[i][24].toFloat(&ok);
+        grasp.final_pose.orientation.w = db[i][21].toFloat(&ok);
+        grasp.final_pose.orientation.x = db[i][22].toFloat(&ok);
+        grasp.final_pose.orientation.y = db[i][23].toFloat(&ok);
+        grasp.final_pose.orientation.z = db[i][24].toFloat(&ok);
         //std::cout << "final pose: " << grasp.final_pose.position.x << ", " << grasp.final_pose.position.y << ", " << grasp.final_pose.position.z << ", " <<
         //             grasp.final_pose.orientation.x << ", " << grasp.final_pose.orientation.y << ", " << grasp.final_pose.orientation.y << ", " << grasp.final_pose.orientation.w << std::endl;
 
         grasp.pre_grasp_pose.position.x = db[i][26].toFloat(&ok);
         grasp.pre_grasp_pose.position.y = db[i][27].toFloat(&ok);
         grasp.pre_grasp_pose.position.z = db[i][28].toFloat(&ok);
-        grasp.pre_grasp_pose.orientation.x = db[i][29].toFloat(&ok);
-        grasp.pre_grasp_pose.orientation.y = db[i][30].toFloat(&ok);
-        grasp.pre_grasp_pose.orientation.z = db[i][31].toFloat(&ok);
-        grasp.pre_grasp_pose.orientation.w = db[i][32].toFloat(&ok);
+        grasp.pre_grasp_pose.orientation.w = db[i][29].toFloat(&ok);
+        grasp.pre_grasp_pose.orientation.x = db[i][30].toFloat(&ok);
+        grasp.pre_grasp_pose.orientation.y = db[i][31].toFloat(&ok);
+        grasp.pre_grasp_pose.orientation.z = db[i][32].toFloat(&ok);
         //std::cout << "final pose: " << grasp.pre_grasp_pose.position.x << ", " << grasp.pre_grasp_pose.position.y << ", " << grasp.pre_grasp_pose.position.z << ", " <<
         //             grasp.pre_grasp_pose.orientation.x << ", " << grasp.pre_grasp_pose.orientation.y << ", " << grasp.pre_grasp_pose.orientation.y << ", " << grasp.pre_grasp_pose.orientation.w << std::endl;
 
@@ -554,6 +560,44 @@ void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& m
 	ui->robot_status_->setText(robot_status_codes_.str(code).c_str());
 }
 
+void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_states )
+{
+    //Index 	Name            Link
+    //0         right_f0_j0 	Palm index base
+    //1         right_f0_j1 	Index proximal
+    //2         right_f0_j2 	Index distal
+    //3         right_f1_j0 	Palm middle base
+    //4         right_f1_j1 	Middle proximal
+    //5         right_f1_j2 	Middle distal
+    //6         right_f2_j0 	Palm little base
+    //7         right_f2_j1 	Little proximal
+    //8         right_f2_j2 	Little distal
+    //9         right_f3_j0 	Palm cylinder
+    //10        right_f3_j1 	Thumb proximal
+    //11        right_f3_j2 	Thumb distal
+
+    double min_feedback = 0, max_feedback = 1.0;
+    for(int i = 0; i < joint_states->name.size(); i++)
+    {
+        // get the joint name to figure out the color of the links
+        std::string joint_name = joint_states->name[i].c_str();
+
+        // velocity represents tactile feedback
+        double feedback = joint_states->velocity[i];
+
+        // NOTE: this is SPECIFIC to atlas hands, IT IS NOT GENERAL
+        std::string link_name;
+        size_t found = joint_name.find('j');
+        if( found != std::string::npos )
+            link_name = joint_name.erase(found,1);
+
+        //ROS_ERROR("Applying color to %s",link_name.c_str());
+        // calculate color intensity based on min/max feedback
+        unsigned char color_intensity = (unsigned char)((feedback - min_feedback)/(max_feedback-min_feedback) * 255.0);
+        publishLinkColor(link_name,color_intensity,255-color_intensity,0);
+    }
+}
+
 void graspWidget::publishLinkColor(std::string link_name, unsigned char r, unsigned char g, unsigned char b)
 {
     flor_ocs_msgs::OCSLinkColor cmd;
@@ -568,7 +612,8 @@ void graspWidget::publishLinkColor(std::string link_name, unsigned char r, unsig
 
 void graspWidget::publishHandPose(unsigned int id)
 {
-    std::cout << "publishing hand pose for grasp id " << id << std::endl;
+    //std::cout << "publishing hand pose for grasp id " << id << std::endl;
+    //ROS_ERROR("publishing hand pose for grasp id %d",id);
     unsigned int grasp_index;
     for(grasp_index = 0; grasp_index < grasp_db_.size(); grasp_index++)
         if(grasp_db_[grasp_index].grasp_id == id)
@@ -580,8 +625,12 @@ void graspWidget::publishHandPose(unsigned int id)
     geometry_msgs::Pose grasp_transform;//geometry_msgs::PoseStamped grasp_transform;
     grasp_transform = grasp_db_[grasp_index].final_pose;//grasp_transform.pose = grasp_db_[grasp_index].final_pose;
 
+    //ROS_ERROR("Grasp transform before: p=(%f, %f, %f) q=(%f, %f, %f, %f)",grasp_transform.position.x,grasp_transform.position.y,grasp_transform.position.z,grasp_transform.orientation.w,grasp_transform.orientation.x,grasp_transform.orientation.y,grasp_transform.orientation.z);
+
     // do the necessary transforms for graspit
     staticTransform(grasp_transform);//staticTransform(grasp_transform.pose);
+
+    //ROS_ERROR("Grasp transform after:  p=(%f, %f, %f) q=(%f, %f, %f, %f)",grasp_transform.position.x,grasp_transform.position.y,grasp_transform.position.z,grasp_transform.orientation.w,grasp_transform.orientation.x,grasp_transform.orientation.y,grasp_transform.orientation.z);
 
     //grasp_transform.header.stamp = ros::Time(0);
     //grasp_transform.header.frame_id = (QString("/template_tf_")+QString::number(selected_template_id_)).toStdString();
@@ -595,10 +644,11 @@ void graspWidget::publishHandPose(unsigned int id)
 
     geometry_msgs::PoseStamped template_transform;
     template_transform.pose = last_template_list_.pose[template_index].pose;
+    //ROS_ERROR("Template transform:     p=(%f, %f, %f) q=(%f, %f, %f, %f)",template_transform.pose.position.x,template_transform.pose.position.y,template_transform.pose.position.z,template_transform.pose.orientation.w,template_transform.pose.orientation.x,template_transform.pose.orientation.y,template_transform.pose.orientation.z);
 
     geometry_msgs::PoseStamped hand_transform;
-
     calcWristTarget(grasp_transform, template_transform, hand_transform);
+    //ROS_ERROR("Hand transform:         p=(%f, %f, %f) q=(%f, %f, %f, %f)",hand_transform.pose.position.x,hand_transform.pose.position.y,hand_transform.pose.position.z,hand_transform.pose.orientation.w,hand_transform.pose.orientation.x,hand_transform.pose.orientation.y,hand_transform.pose.orientation.z);
 
     hand_transform.header.stamp = ros::Time::now();
     hand_transform.header.frame_id = "/world";
@@ -649,6 +699,7 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
         joint_states.effort[i] = 0;
         joint_states.velocity[i] = 0;
         joint_states.position[i] = grasp_db_[grasp_index].finger_joints[i];
+        ROS_ERROR("Setting Finger Joint %s to %f",joint_states.name[i].c_str(),joint_states.position[i]);
     }
 
     ghost_hand_joint_state_pub_.publish(joint_states);
@@ -681,18 +732,18 @@ int graspWidget::calcWristTarget(const geometry_msgs::Pose& wrist_pose,const geo
     final_pose.pose.position.y = tg_vector.getY();
     final_pose.pose.position.z = tg_vector.getZ();
 
-//        ROS_INFO(" %s wrist: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-//                 hand_name_.c_str(), "wrist",
-//                 wrist_pose.position.x,wrist_pose.position.z,wrist_pose.position.z,
-//                 wrist_pose.orientation.w, wrist_pose.orientation.x, wrist_pose.orientation.y, wrist_pose.orientation.z);
-//        ROS_INFO(" %s template: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-//                 hand_name_.c_str(), template_pose.header.frame_id.c_str(),
-//                 template_pose.pose.position.x,template_pose.pose.position.z,template_pose.pose.position.z,
-//                 template_pose.pose.orientation.w, template_pose.pose.orientation.x, template_pose.pose.orientation.y, template_pose.pose.orientation.z);
-//        ROS_INFO(" %s target: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-//                 hand_name_.c_str(), this->wrist_target_pose_.header.frame_id.c_str(),
-//                 this->wrist_target_pose_.pose.position.x,this->wrist_target_pose_.pose.position.z,this->wrist_target_pose_.pose.position.z,
-//                 this->wrist_target_pose_.pose.orientation.w, this->wrist_target_pose_.pose.orientation.x, this->wrist_target_pose_.pose.orientation.y, this->wrist_target_pose_.pose.orientation.z);
+        ROS_ERROR(" %s wrist: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+                 hand.c_str(), "wrist",
+                 wrist_pose.position.x,wrist_pose.position.y,wrist_pose.position.z,
+                 wrist_pose.orientation.w, wrist_pose.orientation.x, wrist_pose.orientation.y, wrist_pose.orientation.z);
+        ROS_ERROR(" %s template: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+                 hand.c_str(), template_pose.header.frame_id.c_str(),
+                 template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z,
+                 template_pose.pose.orientation.w, template_pose.pose.orientation.x, template_pose.pose.orientation.y, template_pose.pose.orientation.z);
+        ROS_ERROR(" %s target: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+                 hand.c_str(), final_pose.header.frame_id.c_str(),
+                 final_pose.pose.position.x,final_pose.pose.position.y,final_pose.pose.position.z,
+                 final_pose.pose.orientation.w, final_pose.pose.orientation.x, final_pose.pose.orientation.y, final_pose.pose.orientation.z);
     return 0;
 }
 
@@ -707,8 +758,15 @@ int graspWidget::staticTransform(geometry_msgs::Pose& palm_pose)
     o_T_pg.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
     o_T_pg.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
 
-    pg_T_rhand = tf::Transform(tf::Matrix3x3(0,0,1,0,-1,0,1,0,0),tf::Vector3(0.0173,-0.1587,-0.0061));
-    pg_T_lhand = tf::Transform(tf::Matrix3x3(0,0,-1,0,1,0,1,0,0),tf::Vector3(-0.0173,-0.1587,-0.0061));
+    pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0, 1,0,0,0,0,1),tf::Vector3(0.0173,-0.0587,-0.0061)); // but we need to got to right_palm
+    pg_T_rhand.inverse();
+
+    tf::Quaternion left_quat = pg_T_rhand.getRotation();
+    //left_quat.setW(-left_quat.w());
+    left_quat.setX(-left_quat.x());
+    tf::Vector3 left_pos = pg_T_rhand.getOrigin();
+    left_pos.setX(-left_pos.x());
+    pg_T_lhand = tf::Transform(left_quat,left_pos); // but we need to got to left_palm
 
     if(hand == "right")
     {

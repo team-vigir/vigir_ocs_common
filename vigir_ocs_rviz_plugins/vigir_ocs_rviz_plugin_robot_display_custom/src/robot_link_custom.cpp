@@ -189,6 +189,10 @@ RobotLinkCustom::RobotLinkCustom( RobotCustom* parent, DisplayContext* context, 
     visual_node_ = parent_->getVisualNode()->createChildSceneNode();
     collision_node_ = parent_->getCollisionNode()->createChildSceneNode();
 
+    color_[0] = 1.0;
+    color_[1] = 1.0;
+    color_[2] = 1.0;
+
     std::stringstream ss;
     static int count = 1;
     ss << "robot custom link color material " << count;
