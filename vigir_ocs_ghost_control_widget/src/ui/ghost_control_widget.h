@@ -33,8 +33,8 @@ public:
     explicit GhostControlWidget(QWidget *parent = 0);
     ~GhostControlWidget();
 
-    void processState(const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg);
-    void publishState();
+    void processState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
+    void publishState( bool snap=false );
 
     void saveState();
     void loadState(std::vector<unsigned char> planning_group=saved_state_planning_group_,
@@ -49,6 +49,7 @@ protected:
 private Q_SLOTS:
     void applyClicked();
     void cancelClicked();
+    void snapClicked();
 
 private:
     Ui::GhostControlWidget* ui;
@@ -56,6 +57,7 @@ private:
     ros::NodeHandle nh_;
     ros::Subscriber state_sub_; // need to make sure we subscribe to others in case someone else changes the configuration
     ros::Publisher state_pub_;
+    ros::Publisher snap_pub_;
 
     // variables that hold saved state of the widget
     static std::vector<unsigned char> saved_state_planning_group_;

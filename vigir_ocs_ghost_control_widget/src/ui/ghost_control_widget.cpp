@@ -55,7 +55,7 @@ void GhostControlWidget::processState(const flor_ocs_msgs::OCSGhostControl::Cons
     saveState();
 }
 
-void GhostControlWidget::publishState()
+void GhostControlWidget::publishState( bool snap )
 {
     flor_ocs_msgs::OCSGhostControl cmd;
     cmd.planning_group = saved_state_planning_group_;
@@ -63,6 +63,7 @@ void GhostControlWidget::publishState()
     cmd.world_lock = saved_state_world_lock_;
     cmd.collision_avoidance = saved_state_collision_avoidance_;
     cmd.lock_pelvis = saved_state_lock_pelvis_;
+    cmd.snap = snap;
     state_pub_.publish(cmd);
 }
 
@@ -121,4 +122,9 @@ void GhostControlWidget::applyClicked()
 void GhostControlWidget::cancelClicked()
 {
     loadState();
+}
+
+void GhostControlWidget::snapClicked()
+{
+    publishState(true);
 }
