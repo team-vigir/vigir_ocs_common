@@ -111,7 +111,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-307</y>
+           <y>0</y>
            <width>244</width>
            <height>952</height>
           </rect>
@@ -287,7 +287,7 @@
                 </size>
                </property>
                <property name="currentIndex">
-                <number>0</number>
+                <number>4</number>
                </property>
                <item>
                 <property name="text">

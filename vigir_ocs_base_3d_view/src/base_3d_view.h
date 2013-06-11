@@ -78,7 +78,7 @@ public Q_SLOTS:
     void select3DToggled( bool );
     void markerRobotToggled( bool );
     void markerTemplateToggled( bool );
-    void vectorPressed();
+    virtual void vectorPressed();
 
     void newSelection( Ogre::Vector3 );
     void insertTemplate( QString );

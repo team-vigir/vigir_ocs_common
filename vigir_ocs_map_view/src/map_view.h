@@ -13,6 +13,8 @@
 
 #include <QWidget>
 
+#include <geometry_msgs/PoseStamped.h>
+
 #include "base_3d_view.h"
 
 namespace rviz
@@ -33,20 +35,26 @@ public:
     void requestMap(double min_z, double max_z, double resolution);
     void requestOctomap(double min_z, double max_z, double resolution);
 
+    void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
+
 Q_SIGNALS:
     void queryPosition( int, int, Ogre::Vector3& );
     void unHighlight();
 
 public Q_SLOTS:
     void enableSelectionTool(bool, int, int);
+    virtual void vectorPressed();
 
 private:
     rviz::Tool* selection_tool_;
 
     ros::Publisher grid_map_request_pub_;
     ros::Publisher octomap_request_pub_;
+    ros::Subscriber set_goal_sub_;
 
     int selected_area_[4];
+
+    bool setting_pose_;
 };
 }
 #endif // map_view_H

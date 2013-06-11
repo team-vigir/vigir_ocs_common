@@ -489,7 +489,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="snap_button_">
      <property name="text">
       <string>Snap to Robot</string>
      </property>
@@ -555,9 +555,26 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>snap_button_</sender>
+   <signal>clicked()</signal>
+   <receiver>GhostControlWidget</receiver>
+   <slot>snapClicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>214</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>134</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>applyClicked()</slot>
   <slot>cancelClicked()</slot>
+  <slot>snapClicked()</slot>
  </slots>
 </ui>
