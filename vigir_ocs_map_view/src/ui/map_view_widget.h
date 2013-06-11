@@ -22,6 +22,8 @@ private:
 public Q_SLOTS:
     void hideWaypointButton();
     void hideJoystick();
+    void requestMap();
+    void requestOctomap();
 
 };
 

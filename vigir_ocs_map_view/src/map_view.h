@@ -30,18 +30,21 @@ public:
     MapView( QWidget* parent = 0 );
     virtual ~MapView();
 
+    void requestMap(double min_z, double max_z, double resolution);
+    void requestOctomap(double min_z, double max_z, double resolution);
+
 Q_SIGNALS:
     void queryPosition( int, int, Ogre::Vector3& );
     void unHighlight();
 
 public Q_SLOTS:
     void enableSelectionTool(bool, int, int);
-    void requestMap();
 
 private:
     rviz::Tool* selection_tool_;
 
     ros::Publisher grid_map_request_pub_;
+    ros::Publisher octomap_request_pub_;
 
     int selected_area_[4];
 };

@@ -47,6 +47,9 @@ MapView::MapView( QWidget* parent )
     // create publisher for grid map
     grid_map_request_pub_ = n_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/gridmap_request", 1, false );
 
+    // create publisher for grid map
+    octomap_request_pub_ = n_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/octomap_request", 1, false );
+
     // connect to selection display to query position/raycast
     QObject::connect(this, SIGNAL(queryPosition(int,int,Ogre::Vector3&)), selection_3d_display_, SLOT(queryPosition(int,int,Ogre::Vector3&)));
 }
@@ -83,7 +86,7 @@ void MapView::enableSelectionTool(bool activate, int x, int y)
     }
 }
 
-void MapView::requestMap()
+void MapView::requestMap(double min_z, double max_z, double resolution)
 {
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
@@ -96,15 +99,41 @@ void MapView::requestMap()
 
     cmd.bounding_box_min.x = min.x;
     cmd.bounding_box_min.y = min.y;
-    cmd.bounding_box_min.z = 0.1f;
+    cmd.bounding_box_min.z = min_z;
 
     cmd.bounding_box_max.x = max.x;
     cmd.bounding_box_max.y = max.y;
-    cmd.bounding_box_max.z = 2.0f;
+    cmd.bounding_box_max.z = max_z;
 
-    cmd.resolution = 0;
+    cmd.resolution = resolution;
 
     grid_map_request_pub_.publish(cmd);
+
+    Q_EMIT unHighlight();
+}
+
+void MapView::requestOctomap(double min_z, double max_z, double resolution)
+{
+    float win_width = render_panel_->width();
+    float win_height = render_panel_->height();
+
+    Ogre::Vector3 min, max;
+    Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
+    Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
+
+    flor_perception_msgs::EnvironmentRegionRequest cmd;
+
+    cmd.bounding_box_min.x = min.x;
+    cmd.bounding_box_min.y = min.y;
+    cmd.bounding_box_min.z = min_z;
+
+    cmd.bounding_box_max.x = max.x;
+    cmd.bounding_box_max.y = max.y;
+    cmd.bounding_box_max.z = max_z;
+
+    cmd.resolution = resolution;
+
+    octomap_request_pub_.publish(cmd);
 
     Q_EMIT unHighlight();
 }

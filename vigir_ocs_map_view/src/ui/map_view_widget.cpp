@@ -44,3 +44,13 @@ void MapViewWidget::hideJoystick()
     joystickWidget->hide();
     insertWaypoints->show();
 }
+
+void MapViewWidget::requestMap()
+{
+    ui->map_view_->requestMap(ui->map_min_z->value(),ui->map_max_z->value(),ui->map_res->value());
+}
+
+void MapViewWidget::requestOctomap()
+{
+    ui->map_view_->requestOctomap(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->oct_res->value());
+}
