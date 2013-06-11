@@ -220,7 +220,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     ghost_robot_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot simulation model", false );
     ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
-    ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
+    ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.0f );
     ghost_robot_model_->setEnabled(false);
 
     // Add custom interactive markers to control ghost robot
