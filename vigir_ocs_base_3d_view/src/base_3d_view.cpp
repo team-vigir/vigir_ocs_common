@@ -34,6 +34,7 @@
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
 #include "flor_ocs_msgs/OCSWaypointAdd.h"
 #include "flor_perception_msgs/EnvironmentRegionRequest.h"
+#include "flor_planning_msgs/TargetConfigIkRequest.h"
 
 namespace vigir_ocs
 {
@@ -41,11 +42,16 @@ namespace vigir_ocs
 Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     : QWidget( parent )
     , selected_(false)
+    , update_markers_(false)
 {
     base_frame_ = base_frame;
 
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+
     QVBoxLayout* main_layout = new QVBoxLayout;
     main_layout->addWidget( render_panel_ );
 
@@ -76,21 +82,11 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // Add support for interactive markers
     interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/Interact" );
     // Add support for selection
-    selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
+    //selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
     // Add support for camera movement
     move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
     // Add support for goal specification/vector navigation
     set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
-
-    // Add interactive markers Stefan's markers and IK implementation
-    interactive_marker_robot_[0] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 1", true );
-    interactive_marker_robot_[0]->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/update" );
-    interactive_marker_robot_[1] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 2", true );
-    interactive_marker_robot_[1]->subProp( "Update Topic" )->setValue( "/l_leg_pose_marker/update" );
-    interactive_marker_robot_[2] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 3", true );
-    interactive_marker_robot_[2]->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/update" );
-    interactive_marker_robot_[3] = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker 4", true );
-    interactive_marker_robot_[3]->subProp( "Update Topic" )->setValue( "/r_leg_pose_marker/update" );
 
     // Create a LaserScan display.
     laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
@@ -201,10 +197,6 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goalpose" );
 
-    // Create a RobotModel display.
-    robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
-    robot_model_->subProp( "Color" )->setValue( QColor( 200, 200, 200 ) );
-
     // create the hands displays
     left_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot left hand model", true );
     left_hand_model_->subProp( "TF Prefix" )->setValue( "/left_hand_model" );
@@ -219,11 +211,67 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     right_hand_model_->subProp( "Color" )->setValue( QColor( 0, 255, 255 ) );
 
     // create the simulation robot display
-    ghost_robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot simulation model", false );
-    ghost_robot_model_->subProp( "TF Prefix" )->setValue( "/simulation" );
-    ghost_robot_model_->subProp( "Visual Enabled" )->setValue( true );
-    ghost_robot_model_->subProp( "Collision Enabled" )->setValue( false );
-    ghost_robot_model_->subProp( "Alpha" )->setValue( 0.5f );
+    //ghost_robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot simulation model", false );
+    //ghost_robot_model_->subProp( "TF Prefix" )->setValue( "/simulation" );
+    //ghost_robot_model_->subProp( "Visual Enabled" )->setValue( true );
+    //ghost_robot_model_->subProp( "Collision Enabled" )->setValue( false );
+    //ghost_robot_model_->subProp( "Color" )->setValue( QColor( 30, 200, 30 ) );
+    //ghost_robot_model_->subProp( "Alpha" )->setValue( 0.5f );
+
+    ghost_robot_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot simulation model", false );
+    ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
+    ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
+
+    // Add custom interactive markers to control ghost robot
+    rviz::Display* im_left_arm = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - left arm", false );
+    im_left_arm->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/pose_marker/update" );
+    im_ghost_robot_.push_back(im_left_arm);
+    rviz::Display* im_right_arm = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - right arm", false );
+    im_right_arm->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/pose_marker/update" );
+    im_ghost_robot_.push_back(im_right_arm);
+    rviz::Display* im_pelvis = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - right arm", false );
+    im_pelvis->subProp( "Update Topic" )->setValue( "/pelvis_pose_marker/pose_marker/update" );
+    im_ghost_robot_.push_back(im_pelvis);
+
+    geometry_msgs::Point point;
+    static InteractiveMarkerServerCustom* marker_server_left_arm = new InteractiveMarkerServerCustom("Ghost Left Arm", "/l_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0, point);
+    im_ghost_robot_server_.push_back(marker_server_left_arm);
+    im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
+    static InteractiveMarkerServerCustom* marker_server_right_arm = new InteractiveMarkerServerCustom("Ghost Right Arm", "/r_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0, point);
+    im_ghost_robot_server_.push_back(marker_server_right_arm);
+    im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
+    static InteractiveMarkerServerCustom* marker_server_pelvis = new InteractiveMarkerServerCustom("Ghost Pelvis", "/pelvis_pose_marker", manager_->getFixedFrame().toStdString(), 0, point);
+    im_ghost_robot_server_.push_back(marker_server_pelvis);
+    im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
+
+    // subscribe to the pose topics
+    end_effector_sub_.push_back(n_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
+    end_effector_sub_.push_back(n_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
+
+    end_effector_pub_ = n_.advertise<flor_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 1, false );
+
+    ghost_root_pose_pub_ = n_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/set_root_pose", 1, false );
+
+    // initialize ghost control config
+    saved_state_planning_group_.push_back(0);
+    saved_state_planning_group_.push_back(0);
+    saved_state_planning_group_.push_back(0);
+    saved_state_pose_source_.push_back(0);
+    saved_state_pose_source_.push_back(0);
+    saved_state_pose_source_.push_back(0);
+    saved_state_world_lock_.push_back(0);
+    saved_state_world_lock_.push_back(0);
+    saved_state_world_lock_.push_back(0);
+    saved_state_collision_avoidance_ = 0;
+    saved_state_lock_pelvis_ = 1;
+
+    // ghost state
+    ghost_control_state_sub_ = n_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
+
+    // Create a RobotModel display.
+    robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
+    robot_model_->subProp( "Color" )->setValue( QColor( 200, 200, 200 ) );
+    robot_model_->subProp( "Alpha" )->setValue( 1.0f );
 
     // ground map middle man
     //ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
@@ -285,18 +333,35 @@ void Base3DView::footstepPlanningToggled( bool selected )
 void Base3DView::simulationRobotToggled( bool selected )
 {
     ghost_robot_model_->setEnabled( selected );
+    if(selected)
+    {
+        update_markers_ = true;
+
+        publishGhostPoses();
+    }
 }
 
 void Base3DView::cameraToggled( bool selected )
 {
     if(selected)
+    {
         manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+
+        // enable robot IK markers
+        for( int i = 0; i < im_ghost_robot_.size(); i++ )
+        {
+            im_ghost_robot_[i]->setEnabled( false );
+        }
+
+        // disable template marker
+        Q_EMIT enableTemplateMarkers( false );
+    }
 }
 
 void Base3DView::selectToggled( bool selected )
 {
-    if(selected)
-        manager_->getToolManager()->setCurrentTool( selection_tool_ );
+    //if(selected)
+    //    manager_->getToolManager()->setCurrentTool( selection_tool_ );
 }
 
 void Base3DView::select3DToggled( bool selected )
@@ -312,12 +377,15 @@ void Base3DView::markerRobotToggled( bool selected )
         manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
 
         // enable robot IK markers
-        for( int i = 0; i < 4; i++ )
+        for( int i = 0; i < im_ghost_robot_.size(); i++ )
         {
-            interactive_marker_robot_[i]->setEnabled( true );
+            im_ghost_robot_[i]->setEnabled( true );
         }
+
+        publishGhostPoses();
+
         // disable template marker
-        //interactive_marker_template_->setEnabled( false );
+        Q_EMIT enableTemplateMarkers( false );
     }
 }
 
@@ -328,12 +396,12 @@ void Base3DView::markerTemplateToggled( bool selected )
         manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
 
         // disable robot IK markers
-        for( int i = 0; i < 4; i++ )
+        for( int i = 0; i < im_ghost_robot_.size(); i++ )
         {
-            interactive_marker_robot_[i]->setEnabled( false );
+            im_ghost_robot_[i]->setEnabled( false );
         }
         // enable template markers
-        //interactive_marker_template_->setEnabled( true );
+        Q_EMIT enableTemplateMarkers( true );
     }
 }
 
@@ -586,5 +654,132 @@ void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
         ground_map_[i]->subProp("Alpha")->setValue(alpha);
         ((rviz::MapDisplayCustom*)ground_map_[i])->setPriority(priority--);
     }
+}
+
+void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
+{
+    //if(update_markers_)
+    {
+        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
+        {
+            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Left Arm")
+            {
+                im_ghost_robot_server_[i]->setPose(*pose);
+                break;
+            }
+        }
+        update_markers_ = false;
+    }
+}
+
+void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
+{
+    //if(update_markers_)
+    {
+        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
+        {
+            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Right Arm")
+            {
+                im_ghost_robot_server_[i]->setPose(*pose);
+                break;
+            }
+        }
+        update_markers_ = false;
+    }
+}
+
+void Base3DView::onMarkerFeedback(std::string topic_name, geometry_msgs::PoseStamped pose)
+{
+    //ROS_ERROR("Marker feedback on topic %s, have %d markers instantiated",topic_name.c_str(),(unsigned int)im_ghost_robot_.size());
+    end_effector_pose_list_[topic_name] = pose;
+
+    publishGhostPoses();
+
+}
+
+void Base3DView::publishGhostPoses()
+{
+    bool left = saved_state_planning_group_[0];
+    bool right = saved_state_planning_group_[1];
+    bool torso = saved_state_planning_group_[2];
+
+    flor_planning_msgs::TargetConfigIkRequest cmd;
+
+    cmd.target_poses.resize(saved_state_planning_group_.size());
+    cmd.lock_to_world.resize(saved_state_world_lock_.size());
+
+    if(left && end_effector_pose_list_.find( "/l_arm_pose_marker") != end_effector_pose_list_.end())
+    {
+        cmd.target_poses[0] = end_effector_pose_list_["/l_arm_pose_marker"];
+        cmd.lock_to_world[0].data = saved_state_world_lock_[0];
+    }
+
+    if(right && end_effector_pose_list_.find( "/r_arm_pose_marker") != end_effector_pose_list_.end())
+    {
+        cmd.target_poses[1] = end_effector_pose_list_["/r_arm_pose_marker"];
+        cmd.lock_to_world[1].data = saved_state_world_lock_[1];
+    }
+
+    if(left && !right && !torso)
+        cmd.planning_group.data = "l_arm_group";
+    else if(left && !right && torso)
+        cmd.planning_group.data = "l_arm_with_torso_group";
+    else if(!left && right && !torso)
+        cmd.planning_group.data = "r_arm_group";
+    else if(!left && right && torso)
+        cmd.planning_group.data = "r_arm_with_torso_group";
+    else if(left && right && !torso)
+        cmd.planning_group.data = "both_arms_group";
+    else if(left && right && torso)
+        cmd.planning_group.data = "both_arms_with_torso_group";
+
+    end_effector_pub_.publish(cmd);
+
+    if(saved_state_lock_pelvis_)
+    {
+        Ogre::Vector3 position(0,0,0);
+        Ogre::Quaternion orientation(1,0,0,0);
+        transform(position, orientation, "/pelvis", "/world");
+
+        geometry_msgs::PoseStamped pose;
+        pose.pose.position.x = position.x;
+        pose.pose.position.y = position.y;
+        pose.pose.position.z = position.z;
+        pose.pose.orientation.x = orientation.x;
+        pose.pose.orientation.y = orientation.y;
+        pose.pose.orientation.z = orientation.z;
+        pose.pose.orientation.w = orientation.w;
+        pose.header.frame_id = "/world";
+        pose.header.stamp = ros::Time::now();
+
+        ghost_root_pose_pub_.publish(pose);
+
+        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
+        {
+            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Pelvis")
+            {
+                im_ghost_robot_server_[i]->setPose(pose);
+                break;
+            }
+        }
+    }
+    else
+    {
+        // how do I set world lock for torso?
+        ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+    }
+}
+
+void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::ConstPtr &msg)
+{
+    saved_state_planning_group_.clear();
+    saved_state_pose_source_.clear();
+    saved_state_world_lock_.clear();
+
+    saved_state_planning_group_ = msg->planning_group;
+    saved_state_pose_source_ = msg->pose_source;
+    saved_state_world_lock_ = msg->world_lock;
+    saved_state_collision_avoidance_ = msg->collision_avoidance;
+    saved_state_lock_pelvis_ = msg->lock_pelvis;
 }
 }

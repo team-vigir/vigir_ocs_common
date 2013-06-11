@@ -101,7 +101,7 @@ void ImageSelectionToolCustom::onInitialize()
 
     std::stringstream ss;
     static int count = 0;
-    ss << "SelectionRect" << count++;
+    ss << "ImageSelectionRect" << count++;
     highlight_rectangle_ = new Ogre::Rectangle2D(true);
 
     const static uint32_t texture_data[1] = { 0xffff0070 };
@@ -117,7 +117,7 @@ void ImageSelectionToolCustom::onInitialize()
     Ogre::AxisAlignedBox aabInf;
     aabInf.setInfinite();
     highlight_rectangle_->setBoundingBox(aabInf);
-    highlight_rectangle_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY + 3);
+    highlight_rectangle_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY + 4);
     material->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
     material->setCullingMode(Ogre::CULL_NONE);
 
@@ -167,22 +167,14 @@ int ImageSelectionToolCustom::processMouseEvent( ViewportMouseEvent& event )
     Q_EMIT mouseHasMoved(event.x, event.y);
     int flags = 0;
 
-    if( event.alt() )
-    {
-        moving_ = true;
-        selecting_ = false;
-    }
-    else
-    {
-        moving_ = false;
+    moving_ = false;
 
-        if( event.leftDown() )
-        {
-            selecting_ = true;
+    if( event.leftDown() )
+    {
+        selecting_ = true;
 
-            sel_start_x_ = event.x;
-            sel_start_y_ = event.y;
-        }
+        sel_start_x_ = event.x;
+        sel_start_y_ = event.y;
     }
 
     if( selecting_ )
@@ -223,17 +215,6 @@ int ImageSelectionToolCustom::processMouseEvent( ViewportMouseEvent& event )
         }
 
         flags |= Render;
-    }
-    else if( moving_ )
-    {
-        //sel_manager->removeHighlight();
-
-        flags = move_tool_->processMouseEvent( event );
-
-        if( event.type == QEvent::MouseButtonRelease )
-        {
-            moving_ = false;
-        }
     }
     else
     {

@@ -28,14 +28,21 @@ namespace vigir_ocs
 MapView::MapView( QWidget* parent )
     : Base3DView( "/world", parent )
 {
+    // block sending left/right mouse events to rviz by default
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
+
     // set the camera to be topdownortho
     rviz::ViewManager* view_man_ = manager_->getViewManager();
     view_man_->setCurrentFrom( view_man_->create( "rviz/TopDownOrtho" ) );
 
     // Add support for selection
     selection_tool_ = manager_->getToolManager()->addTool( "rviz/ImageSelectionToolCustom" );
-    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), this, SLOT(enableSelectionTool(bool,int,int)));
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButton(bool,int,int)), this, SLOT(enableSelectionTool(bool,int,int)));
     QObject::connect(this, SIGNAL(unHighlight()), selection_tool_, SLOT(unHighlight()));
+
+    Q_EMIT unHighlight();
 
     // create publisher for grid map
     grid_map_request_pub_ = n_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/gridmap_request", 1, false );
@@ -57,13 +64,22 @@ void MapView::enableSelectionTool(bool activate, int x, int y)
     {
         selected_area_[0] = x;
         selected_area_[1] = y;
+        // change to the selection tool and unblock events
         manager_->getToolManager()->setCurrentTool( selection_tool_ );
+        ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
+        ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+        ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
     }
     else
     {
         selected_area_[2] = x;
         selected_area_[3] = y;
+        // block again and change back
+        ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
+        ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
+        ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
         manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+
     }
 }
 

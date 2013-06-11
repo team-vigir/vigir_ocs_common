@@ -29,8 +29,6 @@ public Q_SLOTS:
   void mousePressEvent( QMouseEvent* event );
   void mouseReleaseEvent( QMouseEvent* event );
 
-private:
-  int xo, yo;
 };
 
 } // namespace rviz

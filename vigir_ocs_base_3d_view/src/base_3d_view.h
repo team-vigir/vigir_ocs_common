@@ -25,6 +25,9 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <mouse_event_handler.h>
 
+#include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
+#include <flor_ocs_msgs/OCSGhostControl.h>
+
 #include <string>
 
 namespace rviz
@@ -51,6 +54,11 @@ public:
     void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
     void processNewSelection( const geometry_msgs::Point::ConstPtr& pose );
     void processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc );
+    void processLeftArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    void processRightArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    void processGhostControlState(const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg);
+
+    void onMarkerFeedback(std::string topic_name, geometry_msgs::PoseStamped pose);
 
 public Q_SLOTS:
     // displays
@@ -86,17 +94,21 @@ Q_SIGNALS:
     // send position of the mouse when clicked to create context menu
     void queryContext( int, int );
     void setMarkerPosition( float, float, float );
+    void enableTemplateMarkers( bool );
 
 protected:
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
+
+    void publishGhostPoses();
 
     rviz::VisualizationManager* manager_;
     rviz::VisualizationManager* manager_simulation_;
     rviz::RenderPanel* render_panel_;
 
     rviz::Display* robot_model_;
-    rviz::Display* interactive_marker_robot_[4];
+    std::vector<rviz::Display*> im_ghost_robot_;
+    std::vector<InteractiveMarkerServerCustom*> im_ghost_robot_server_;
     rviz::Display* interactive_marker_template_;
     rviz::Display* octomap_;
     rviz::Display* laser_scan_;
@@ -123,7 +135,7 @@ protected:
     rviz::Display* ghost_robot_model_;
 
     rviz::Tool* interactive_markers_tool_;
-    rviz::Tool* selection_tool_;
+    //rviz::Tool* selection_tool_;
     rviz::Tool* move_camera_tool_;
     rviz::Tool* set_goal_tool_;
 
@@ -141,6 +153,21 @@ protected:
 
     ros::Subscriber ground_map_sub_;
     ros::Subscriber point_cloud_request_sub_;
+
+    std::vector<ros::Subscriber> end_effector_sub_;
+    ros::Publisher end_effector_pub_;
+    ros::Publisher ghost_root_pose_pub_;
+    std::map<std::string,geometry_msgs::PoseStamped> end_effector_pose_list_;
+
+    ros::Subscriber ghost_control_state_sub_;
+
+    std::vector<unsigned char> saved_state_planning_group_;
+    std::vector<unsigned char> saved_state_pose_source_;
+    std::vector<unsigned char> saved_state_world_lock_;
+    unsigned char saved_state_collision_avoidance_;
+    unsigned char saved_state_lock_pelvis_;
+
+    bool update_markers_;
     
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 

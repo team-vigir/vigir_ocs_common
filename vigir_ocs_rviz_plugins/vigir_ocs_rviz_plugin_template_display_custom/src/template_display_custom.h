@@ -97,6 +97,11 @@ public:
 
   void setVisualizationManager(rviz::VisualizationManager* manager) { vis_manager_ = manager; };
 
+  void onMarkerFeedback(std::string topic_name, geometry_msgs::PoseStamped pose);
+
+public Q_SLOTS:
+  void enableTemplateMarkers( bool );
+
 private Q_SLOTS:
   void updateVisualVisible();
   void updateCollisionVisible();
@@ -138,6 +143,7 @@ private:
   ros::Subscriber template_list_sub_;
   ros::Subscriber template_remove_sub_;
   ros::Publisher template_update_pub_;
+  std::vector<ros::Publisher> template_pose_pub_list_;
 
   std::vector<unsigned char> template_id_list_;
   std::vector<std::string> template_list_;

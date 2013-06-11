@@ -275,6 +275,14 @@ void TemplateDisplayCustom::reset()
   has_new_transforms_ = true;
 }
 
+void TemplateDisplayCustom::enableTemplateMarkers( bool enable )
+{
+    for(int i = 0; i < template_marker_list_.size(); i++)
+    {
+        display_template_marker_list_[i]->setEnabled( enable );
+    }
+}
+
 void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose)
 {
     std::cout << "Processing pose change" << std::endl;
@@ -324,7 +332,7 @@ void TemplateDisplayCustom::addTemplateMarker(unsigned char id, Ogre::Vector3 po
 
     // Add template marker
     rviz::Display* interactive_marker_template = vis_manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker template ")+boost::to_string((unsigned int)id)).c_str(), true );
-    interactive_marker_template->subProp( "Update Topic" )->setValue( (template_pose_string+std::string("/template_pose_marker/update")).c_str() );
+    interactive_marker_template->subProp( "Update Topic" )->setValue( (template_pose_string+std::string("/pose_marker/update")).c_str() );
     interactive_marker_template->setEnabled( true );
     display_template_marker_list_.push_back(interactive_marker_template);
 
@@ -347,7 +355,9 @@ void TemplateDisplayCustom::addTemplateMarker(unsigned char id, Ogre::Vector3 po
         point.x = pos.x;
         point.y = pos.y;
         point.z = pos.z;
-        InteractiveMarkerServerCustom* template_marker_ = new InteractiveMarkerServerCustom(template_pose_string, fixed_frame_.toUtf8().constData(), id, point);
+        InteractiveMarkerServerCustom* template_marker_ = new InteractiveMarkerServerCustom(template_pose_string, template_pose_string, fixed_frame_.toUtf8().constData(), id, point);
+        template_marker_->onFeedback = boost::bind(&TemplateDisplayCustom::onMarkerFeedback, this, _1, _2);
+        template_pose_pub_list_.push_back(nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>(template_pose_string, 1, false));
         template_marker_list_.push_back(template_marker_);
     }
 
@@ -357,9 +367,23 @@ void TemplateDisplayCustom::addTemplateMarker(unsigned char id, Ogre::Vector3 po
     std::cout << "subscribed to topic" << std::endl;
 }
 
+void TemplateDisplayCustom::onMarkerFeedback(std::string topic_name, geometry_msgs::PoseStamped pose)
+{
+    for(int i = 0; i < template_pose_pub_list_.size(); i++)
+    {
+        if(template_pose_pub_list_[i].getTopic() == topic_name)
+        {
+            flor_ocs_msgs::OCSTemplateUpdate out;
+            out.pose = pose;
+            out.template_id = atoi(topic_name.erase(0,std::string("/template_pose_").size()).c_str());
+            template_pose_pub_list_[i].publish(out);
+        }
+    }
+}
+
 void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg)
 {
-    std::cout << "Processing template list" << std::endl;
+    //std::cout << "Processing template list" << std::endl;
     for(int i = 0; i < msg->template_list.size(); i++)
     {
         std::cout << "Template: " << msg->template_list[i] << std::endl;
