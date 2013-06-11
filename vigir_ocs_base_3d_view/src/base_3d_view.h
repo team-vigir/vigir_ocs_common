@@ -23,6 +23,7 @@
 #include <geometry_msgs/Point.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/JointState.h>
 #include <mouse_event_handler.h>
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
@@ -57,6 +58,7 @@ public:
     void processLeftArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
     void processRightArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
     void processGhostControlState(const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg);
+    void processJointStates(const sensor_msgs::JointState::ConstPtr& states);
 
     void onMarkerFeedback(std::string topic_name, geometry_msgs::PoseStamped pose);
 
@@ -161,6 +163,9 @@ protected:
 
     ros::Subscriber ghost_control_state_sub_;
 
+    ros::Publisher ghost_joint_state_pub_;
+    ros::Subscriber joint_states_sub_;
+
     std::vector<unsigned char> saved_state_planning_group_;
     std::vector<unsigned char> saved_state_pose_source_;
     std::vector<unsigned char> saved_state_world_lock_;
@@ -168,6 +173,7 @@ protected:
     unsigned char saved_state_lock_pelvis_;
 
     bool update_markers_;
+    bool snap_ghost_to_robot_;
     
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 

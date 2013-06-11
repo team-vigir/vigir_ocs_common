@@ -41,11 +41,11 @@ namespace vigir_ocs
 // Constructor for Base3DView.  This does most of the work of the class.
 Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     : QWidget( parent )
+    , base_frame_(base_frame)
     , selected_(false)
     , update_markers_(false)
+    , snap_ghost_to_robot_(true)
 {
-    base_frame_ = base_frame;
-
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
@@ -221,6 +221,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ghost_robot_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot simulation model", false );
     ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
     ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
+    ghost_robot_model_->setEnabled(false);
 
     // Add custom interactive markers to control ghost robot
     rviz::Display* im_left_arm = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - left arm", false );
@@ -251,6 +252,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     end_effector_pub_ = n_.advertise<flor_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 1, false );
 
     ghost_root_pose_pub_ = n_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/set_root_pose", 1, false );
+    ghost_joint_state_pub_ = n_.advertise<sensor_msgs::JointState>( "/flor/ghost/set_joint_states", 1, false );
 
     // initialize ghost control config
     saved_state_planning_group_.push_back(0);
@@ -283,6 +285,8 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     global_selection_pos_sub_ = n_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
 
     QObject::connect(this, SIGNAL(setMarkerPosition(float,float,float)), selection_3d_display_, SLOT(setMarkerPosition(float,float,float)));
+
+    joint_states_sub_ = n_.subscribe<sensor_msgs::JointState>( "atlas/joint_states", 2, &Base3DView::processJointStates, this );
 }
 
 // Destructor.
@@ -294,6 +298,8 @@ Base3DView::~Base3DView()
 void Base3DView::robotModelToggled( bool selected )
 {
     robot_model_->setEnabled( selected );
+    ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
+    robot_model_->subProp( "Alpha" )->setValue( 1.0f );
 }
 
 void Base3DView::lidarPointCloudToggled( bool selected )
@@ -339,6 +345,8 @@ void Base3DView::simulationRobotToggled( bool selected )
 
         publishGhostPoses();
     }
+    ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
+    robot_model_->subProp( "Alpha" )->setValue( 1.0f );
 }
 
 void Base3DView::cameraToggled( bool selected )
@@ -778,5 +786,17 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
     saved_state_world_lock_ = msg->world_lock;
     saved_state_collision_avoidance_ = msg->collision_avoidance;
     saved_state_lock_pelvis_ = msg->lock_pelvis;
+
+    if(msg->snap)
+        snap_ghost_to_robot_ = true;
+}
+
+void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &states)
+{
+    if(snap_ghost_to_robot_)
+    {
+        ghost_joint_state_pub_.publish(states);
+        snap_ghost_to_robot_ = false;
+    }
 }
 }
