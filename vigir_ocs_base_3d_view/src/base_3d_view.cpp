@@ -705,20 +705,17 @@ void Base3DView::publishGhostPoses()
 
     flor_planning_msgs::TargetConfigIkRequest cmd;
 
-    cmd.target_poses.resize(saved_state_planning_group_.size());
-    cmd.lock_to_world.resize(saved_state_world_lock_.size());
 
     if(left && end_effector_pose_list_.find( "/l_arm_pose_marker") != end_effector_pose_list_.end())
-    {
-        cmd.target_poses[0] = end_effector_pose_list_["/l_arm_pose_marker"];
-        cmd.lock_to_world[0].data = saved_state_world_lock_[0];
-    }
+        cmd.target_poses.push_back(end_effector_pose_list_["/l_arm_pose_marker"]);
 
     if(right && end_effector_pose_list_.find( "/r_arm_pose_marker") != end_effector_pose_list_.end())
-    {
-        cmd.target_poses[1] = end_effector_pose_list_["/r_arm_pose_marker"];
-        cmd.lock_to_world[1].data = saved_state_world_lock_[1];
-    }
+        cmd.target_poses.push_back(end_effector_pose_list_["/r_arm_pose_marker"]);
+
+    cmd.lock_to_world.resize(cmd.target_poses.size());
+    for(int i = 0; i < cmd.target_poses.size(); i++)
+        cmd.lock_to_world[i].data = saved_state_world_lock_[i];
+
 
     if(left && !right && !torso)
         cmd.planning_group.data = "l_arm_group";

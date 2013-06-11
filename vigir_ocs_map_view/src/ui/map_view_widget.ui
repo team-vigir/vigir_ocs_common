@@ -75,9 +75,9 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>0</y>
+           <y>-124</y>
            <width>242</width>
-           <height>992</height>
+           <height>941</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout">
@@ -215,10 +215,41 @@
                </property>
               </widget>
              </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_2">
+            <property name="title">
+             <string>Map Region Request</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
              <item>
               <widget class="QPushButton" name="request_map">
                <property name="text">
                 <string>Request Area Map</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_6">
+            <property name="title">
+             <string>Octomap Region Request</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_7">
+             <item>
+              <widget class="QPushButton" name="pushButton">
+               <property name="text">
+                <string>Request Octomap</string>
                </property>
               </widget>
              </item>
@@ -255,28 +286,6 @@
                </property>
                <property name="checked">
                 <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="Joystick" name="joystick_widget" native="true">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>150</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>215</width>
-                 <height>16777215</height>
-                </size>
                </property>
               </widget>
              </item>
@@ -389,12 +398,6 @@
     <slot>simulationRobotToggled(bool)</slot>
     <slot>requestMap()</slot>
    </slots>
-  </customwidget>
-  <customwidget>
-   <class>Joystick</class>
-   <extends>QWidget</extends>
-   <header>joystick.h</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
