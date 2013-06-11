@@ -6,6 +6,8 @@
 robotStatus::robotStatus(QWidget *parent) :
     QWidget(parent)
 {
+    maxRows = 100;
+
     bold.setBold(true);
     normal.setBold(false);
     msgTable = new QTableWidget();
@@ -40,7 +42,7 @@ robotStatus::robotStatus(QWidget *parent) :
     msgTable->setColumnWidth(0,140);
     msgTable->setColumnWidth(1,50);
     msgTable->setColumnWidth(2,315);
-    //labels = new QStringList();
+    //labels = new QStringList();opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/
     labels.push_back("Sim Time");
     labels.push_back("Type");
     labels.push_back("Message Contents");
@@ -53,7 +55,7 @@ robotStatus::robotStatus(QWidget *parent) :
     if(nh.getParam("robotErrorFileLocation",fileName))
             messagesFile.setFileName(fileName.c_str());
     else
-            messagesFile.setFileName("/home/messages.csv");
+            messagesFile.setFileName("/opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/messages.csv");
 
     std::cerr << "Reading messages from <" << messagesFile.fileName().toStdString() << ">" << fileName <<std::endl;
     loadFile();
@@ -103,7 +105,7 @@ void robotStatus::on_radioButtons_updated()
     }
 }
 
-QString robotStatus::timeFromMsg(const ros::Time stamp)
+QString robotStatus::timeFromMsg(ros::Time stamp)
 {
 
     double dSec = stamp.toSec();
@@ -138,12 +140,14 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
     //extract information from msg
     uint8_t type, msgNum;
     RobotStatusCodes::codes(msg->code, msgNum,type); //const uint8_t& error, uint8_t& code, uint8_t& severity)
-    //std::cout << "Recieved message. type = " << type << "msgNum = " << msgNum << std::endl;
+    //std::cout << "Recieved message. type = " << topt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/ype << "msgNum = " << msgNum << std::endl;
     QTableWidgetItem* text = new QTableWidgetItem();
     QTableWidgetItem* msgType = new QTableWidgetItem();
     QTableWidgetItem* time = new QTableWidgetItem();
     time->setText(timeFromMsg(msg->stamp));
-
+    text->setFlags(text->flags() ^ Qt::ItemIsEditable);
+    time->setFlags(time->flags() ^ Qt::ItemIsEditable);
+    msgType->setFlags(msgType->flags() ^ Qt::ItemIsEditable);
     switch(type){
     case 0:
         msgType->setText("Ok");
@@ -181,7 +185,7 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
         text->setText(QString::fromStdString(errors[msgNum]));
     else
     {
-        QString tempMessage = "Cannot find data file but recieved msg num ";
+        QString tempMessage = "CaJoint Lisnnot find data file but recieved msg num ";
         tempMessage+= QString::number(msgNum);
         text->setText(tempMessage);
         text->setBackground(Qt::red);
@@ -193,18 +197,42 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
     msgType->setFont(bold);
     time->setFont(bold);
     text->setFont(bold);
-    msgTable->insertRow(msgTable->rowCount());
-    messages.push_back(new completeRow());
-    messages[messages.size()-1]->time = time;
-    messages[messages.size()-1]->priority = msgType;
-    messages[messages.size()-1]->text = text;
-    std::cout << "Adding item to table..." << std::endl;
-    msgTable->setItem(msgTable->rowCount()-1,0,messages[messages.size()-1]->time);
-    msgTable->setItem(msgTable->rowCount()-1,1,messages[messages.size()-1]->priority);
-    msgTable->setItem(msgTable->rowCount()-1,2,messages[messages.size()-1]->text);
+    std::vector<completeRow*>::iterator it;
+    it = messages.begin();
+
+    messages.insert(it,new completeRow());
+    messages[0]->time = time;
+    messages[0]->priority = msgType;
+    messages[0]->text = text;
+    msgTable->insertRow(0);
+    std::cout << "Adding item to table... " << messages.size() <<  " " << messages[0]->text << std::endl;
+    msgTable->setItem(0,0,messages[0]->time);
+    msgTable->setItem(0,1,messages[0]->priority);
+    msgTable->setItem(0,2,messages[0]->text);
     std::cout << "Item added sucessfuly..." << std::endl;
+    if(messages.size() > maxRows)
+    {
+        messages.pop_back();
+        msgTable->removeRow(maxRows);
+    }
     unreadMsgs++;
 }
+//void robotStatus::updateTable()
+//{
+//    for(int i = 0; i <= messages.size(); i++)
+//    {
+//        msgTable->setItem(i,0,new QTableWidgetItem);
+//        msgTable->setItem(i,1,new QTableWidgetItem);
+//        msgTable->setItem(i,2,new QTableWidgetItem);
+//    }
+
+//    for(int i = 0; i <= messages.size(); i++)
+//    {
+//        msgTable->setItem(i,0,messages[i]->time);
+//        msgTable->setItem(i,1,messages[i]->priority);
+//        msgTable->setItem(i,2,messages[i]->text);
+//    }
+//}
 
 void robotStatus::loadFile()
 {

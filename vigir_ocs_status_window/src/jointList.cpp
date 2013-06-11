@@ -258,6 +258,10 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             warn++;
             joints[i]->setBackgroundColor(0,Qt::yellow);
             joints[i]->setBackgroundColor(1,Qt::yellow);
+            if(joints[i]->parent()->background(0) != Qt::red)
+            {
+                joints[i]->parent()->setBackgroundColor(0,Qt::yellow);
+            }
         }
         if(joint_states->position[i] <= errorMin*downPoseLimit[i])
         {
@@ -265,6 +269,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             err++;
             joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(1,Qt::red);
+            joints[i]->parent()->setBackgroundColor(0,Qt::red);
         }
 
         if(joint_states->position[i] >= warnMin*upPoseLimit[i])
@@ -272,6 +277,11 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             warn++;
             joints[i]->setBackgroundColor(0,Qt::yellow);
             joints[i]->setBackgroundColor(1,Qt::yellow);
+            if(joints[i]->parent()->background(0) != Qt::red)
+            {
+                joints[i]->parent()->setBackgroundColor(0,Qt::yellow);
+            }
+
         }
         if(joint_states->position[i] >= errorMin*upPoseLimit[i])
         {
@@ -279,6 +289,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             err++;
             joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(1,Qt::red);
+            joints[i]->parent()->setBackgroundColor(0,Qt::red);
         }
 
         if(joint_states->effort[i] >= warnMin*effortLimits[i])
@@ -286,6 +297,10 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             warn++;
             joints[i]->setBackgroundColor(0,Qt::yellow);
             joints[i]->setBackgroundColor(3,Qt::yellow);
+            if(joints[i]->parent()->background(0) != Qt::red)
+            {
+                joints[i]->parent()->setBackgroundColor(0,Qt::yellow);
+            }
         }
         if(joint_states->effort[i] >= errorMin*effortLimits[i])
         {
@@ -293,6 +308,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             err++;
             joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(3,Qt::red);
+            joints[i]->parent()->setBackgroundColor(0,Qt::red);
         }
 
         if(joint_states->effort[i] <= -(warnMin*effortLimits[i]))
@@ -300,6 +316,10 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             warn++;
             joints[i]->setBackgroundColor(0,Qt::yellow);
             joints[i]->setBackgroundColor(3,Qt::yellow);
+            if(joints[i]->parent()->background(0) != Qt::red)
+            {
+                joints[i]->parent()->setBackgroundColor(0,Qt::yellow);
+            }
         }
         if(joint_states->effort[i] <= -(errorMin*effortLimits[i]))
         {
@@ -307,6 +327,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             err++;
             joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(3,Qt::red);
+            joints[i]->parent()->setBackgroundColor(0,Qt::red);
         }
     }
 }

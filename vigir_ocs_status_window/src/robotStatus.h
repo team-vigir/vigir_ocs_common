@@ -50,6 +50,7 @@ private:
     int unreadMsgs;
     int numError;
     int numWarn;
+    int maxRows;
 
     QTableWidget* msgTable;
     QPushButton* clearButton;
@@ -67,6 +68,7 @@ private:
     ros::Subscriber rosSubscriber;
     QFile messagesFile;
     void loadFile();
+    void updateTable();
     //QTreeWidget* jointTable;
     //QTreeWidgetItem joints[];
     //float positionLimits[];
