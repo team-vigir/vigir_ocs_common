@@ -353,6 +353,8 @@ void CameraViewerCustomWidget::disableImagePanel(bool selected)
 
 void CameraViewerCustomWidget::disableDisplayPanel(bool selected)
 {
+    QCheckBox *check_box = QObject::sender();
+    QGroupBox *group_box = (QGroupBox*)check_box->parent();
     if(!displayBox->isChecked())
     {
         for(int x = 0; x<displayChildren.count(); x++)

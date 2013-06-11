@@ -263,31 +263,31 @@
                 </size>
                </property>
                <property name="currentIndex">
-                <number>4</number>
+                <number>0</number>
                </property>
                <item>
                 <property name="text">
-                 <string>Resolution - Very High</string>
+                 <string>800x800 - Very High</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Resolution - High</string>
+                 <string>400x400 - High</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Resolution - Medium</string>
+                 <string>200x200 - Medium</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Resolution - Low</string>
+                 <string>100x100 - Low</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Resolution - Very Low</string>
+                 <string>50x50 - Very Low</string>
                 </property>
                </item>
               </widget>
