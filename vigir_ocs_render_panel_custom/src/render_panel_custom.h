@@ -23,6 +23,19 @@ public:
 
   //Ogre::Camera* getCamera() {return customCamera;};
 
+  void setEventFilters(int function, bool block, Qt::KeyboardModifiers block_key_mod=Qt::NoModifier, Qt::MouseButtons block_mouse_buttons=Qt::NoButton);
+
+  static enum
+  {
+      MOUSE_MOVE_EVENT=0,
+      MOUSE_PRESS_EVENT=1,
+      MOUSE_RELEASE_EVENT=2,
+      MOUSE_DOUBLE_CLICK_EVENT=3,
+      MOUSE_WHEEL_EVENT=4,
+      MOUSE_LEAVE_EVENT=5,
+      KEY_PRESS_EVENT=6
+  } Events;
+
 Q_SIGNALS:
   void signalMouseMoveEvent( QMouseEvent* event );
   void signalMousePressEvent( QMouseEvent* event );
@@ -44,28 +57,14 @@ protected:
 
 private:
   //Ogre::Camera customCamera;
+
   // define what will be sent over to rviz, gives total flexibility
-  bool block_mouse_move_;
-  Qt::KeyboardModifiers block_mouse_move_key_modifiers_;
-  Qt::MouseButtons block_mouse_move_mouse_buttons_;
-  bool block_mouse_press_;
-  Qt::KeyboardModifiers block_mouse_press_key_modifiers_;
-  Qt::MouseButtons block_mouse_press_mouse_buttons_;
-  bool block_mouse_release_;
-  Qt::KeyboardModifiers block_mouse_release_key_modifiers_;
-  Qt::MouseButtons block_mouse_release_mouse_buttons_;
-  bool block_mouse_double_click_;
-  Qt::KeyboardModifiers block_mouse_double_click_key_modifiers_;
-  Qt::MouseButtons block_mouse_double_click_mouse_buttons_;
-  bool block_mouse_wheel_;
-  Qt::KeyboardModifiers block_mouse_wheel_key_modifiers_;
-  Qt::MouseButtons block_mouse_wheel_mouse_buttons_;
-  bool block_mouse_leave_;
-  Qt::KeyboardModifiers block_mouse_leave_key_modifiers_;
-  Qt::MouseButtons block_mouse_leave_mouse_buttons_;
-  bool block_mouse_key_press_;
-  Qt::KeyboardModifiers block_mouse_key_press_key_modifiers_;
-  Qt::MouseButtons block_mouse_key_press_mouse_buttons_;
+  typedef struct {
+      bool block;
+      Qt::KeyboardModifiers block_key_modifiers;
+      Qt::MouseButtons block_mouse_buttons;
+  } BlockConfig;
+  std::map<int,BlockConfig> block_config_;
 };
 
 } // namespace rviz

@@ -73,6 +73,7 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
 
     QObject::connect(camera_viewer_, SIGNAL(updateFrameID(std::string)), this, SLOT(updateImageFrame(std::string)));
 
+    Q_EMIT unHighlight();
 
     // and advertise the head pitch update function
     head_pitch_update_pub_ = n_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ay", 1, false );
@@ -89,7 +90,7 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     Q_EMIT setMarkerScale(0.001f);
 
     // advertise pointcloud request
-    pointcloud_request_pub_ = n_.advertise<geometry_msgs::PointStamped>( "/flor/worldmodel/ocs/dist_query_pointcloud_request", 1, false );
+    pointcloud_request_pub_ = n_.advertise<geometry_msgs::PointStamped>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_frame", 1, false );
 }
 
 // Destructor.
@@ -312,7 +313,7 @@ void CameraViewerCustom::mouseMoved(int newX, int newY)
 
 void CameraViewerCustom::closeSelectedArea()
 {
-    std::cout<<"This gets hit"<<std::endl;
+    //std::cout<<"This gets hit"<<std::endl;
     ((rviz::CameraDisplayCustom*)camera_viewer_)->closeSelected();
     xButton->hide();
     selectionMade = false;
