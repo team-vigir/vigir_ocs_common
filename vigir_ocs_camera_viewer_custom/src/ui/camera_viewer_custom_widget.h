@@ -42,7 +42,7 @@ public Q_SLOTS:
     void setAreaToSingleImage();
 
     void disableImagePanel(bool);
-    void disableDisplayPanel(bool);
+    void enableDisplayGroup(bool);
     void disableCameraPanel(bool);
     void disableHeadPanel(bool);
     void disableAreaFeedPanel(bool);

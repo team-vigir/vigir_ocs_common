@@ -147,7 +147,7 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
     connect(cameraBox, SIGNAL(toggled(bool)), this, SLOT(disableCameraPanel(bool)));
     connect(areaFeedBox, SIGNAL(toggled(bool)), this, SLOT(disableAreaFeedPanel(bool)));
     connect(feedFPSBox, SIGNAL(toggled(bool)), this, SLOT(disableFeedPanel(bool)));
-    connect(displayBox, SIGNAL(toggled(bool)), this, SLOT(disableDisplayPanel(bool)));
+    connect(displayBox, SIGNAL(toggled(bool)), this, SLOT(enableDisplayGroup(bool)));
     connect(pitchBox, SIGNAL(toggled(bool)), this, SLOT(disableHeadPanel(bool)));
     connect(imageBox, SIGNAL(toggled(bool)), this, SLOT(disableImagePanel(bool)));
 }
@@ -351,27 +351,28 @@ void CameraViewerCustomWidget::disableImagePanel(bool selected)
     }
 }
 
-void CameraViewerCustomWidget::disableDisplayPanel(bool selected)
+void CameraViewerCustomWidget::enableDisplayGroup(bool selected)
 {
-    QCheckBox *check_box = QObject::sender();
-    QGroupBox *group_box = (QGroupBox*)check_box->parent();
-    if(!displayBox->isChecked())
+    QGroupBox *group_box = (QGroupBox*)QObject::sender();
+    QObjectList children = group_box->children();
+    if(!selected)
     {
-        for(int x = 0; x<displayChildren.count(); x++)
+        for(int x = 0; x<children.count(); x++)
         {
-            QWidget * widget = (QWidget *)displayChildren.at(x);
+            QWidget * widget = (QWidget *)children.at(x);
             widget->hide();
         }
     }
     else
     {
-        for(int x = 0; x<displayChildren.count(); x++)
+        for(int x = 0; x<children.count(); x++)
         {
-            QWidget * widget = (QWidget *)displayChildren.at(x);
+            QWidget * widget = (QWidget *)children.at(x);
             widget->show();
         }
     }
 }
+
 void CameraViewerCustomWidget::disableCameraPanel(bool selected)
 {
     if(!cameraBox->isChecked())
