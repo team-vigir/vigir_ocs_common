@@ -45,5 +45,6 @@
       <rviz plugin="${prefix}/grasp_display_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/robot_display_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/map_display_custom_plugin_description.xml"/>
+      <rviz plugin="${prefix}/frustum_display_custom_plugin_description.xml"/>
   </export>
 </package>

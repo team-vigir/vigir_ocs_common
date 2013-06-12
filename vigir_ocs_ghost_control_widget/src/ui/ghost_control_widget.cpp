@@ -31,6 +31,11 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
 
     // advertise the topic to publish state configurations
     state_pub_ = nh_.advertise<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 1, false );
+    reset_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 1, false );
+
+    // advertise set pose buttons
+    set_to_target_pose_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/planning/plan_to_pose_state", 1, false );
+    set_to_target_config_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/planning/plan_to_joint_state", 1, false );
 
     timer.start(33, this);
 }
@@ -131,10 +136,55 @@ void GhostControlWidget::snapClicked()
 
 void GhostControlWidget::sendTargetPoseClicked()
 {
-    ROS_ERROR("Send target pose to planner is not defined yet");
+    std_msgs::String cmd;
+
+    bool left = saved_state_planning_group_[0];
+    bool right = saved_state_planning_group_[1];
+    bool torso = saved_state_planning_group_[2];
+
+    if(left && !right && !torso)
+        cmd.data = "l_arm_group";
+    else if(left && !right && torso)
+        cmd.data = "l_arm_with_torso_group";
+    else if(!left && right && !torso)
+        cmd.data = "r_arm_group";
+    else if(!left && right && torso)
+        cmd.data = "r_arm_with_torso_group";
+    else if(left && right && !torso)
+        cmd.data = "both_arms_group";
+    else if(left && right && torso)
+        cmd.data = "both_arms_with_torso_group";
+
+    set_to_target_pose_pub_.publish(cmd);
 }
 
 void GhostControlWidget::sendTargetConfigClicked()
 {
-    ROS_ERROR("Send target configuration to planner is not defined yet");
+    std_msgs::String cmd;
+
+    bool left = saved_state_planning_group_[0];
+    bool right = saved_state_planning_group_[1];
+    bool torso = saved_state_planning_group_[2];
+
+    if(left && !right && !torso)
+        cmd.data = "l_arm_group";
+    else if(left && !right && torso)
+        cmd.data = "l_arm_with_torso_group";
+    else if(!left && right && !torso)
+        cmd.data = "r_arm_group";
+    else if(!left && right && torso)
+        cmd.data = "r_arm_with_torso_group";
+    else if(left && right && !torso)
+        cmd.data = "both_arms_group";
+    else if(left && right && torso)
+        cmd.data = "both_arms_with_torso_group";
+
+    set_to_target_config_pub_.publish(cmd);
+}
+
+void GhostControlWidget::resetPelvisClicked()
+{
+    std_msgs::Bool cmd;
+    cmd.data = true;
+    reset_pelvis_pub_.publish(cmd);
 }

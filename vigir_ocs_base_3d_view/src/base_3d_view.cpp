@@ -271,6 +271,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     // ghost state
     ghost_control_state_sub_ = n_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
+    reset_pelvis_sub_ = n_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
 
     // Create a RobotModel display.
     robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
@@ -822,6 +823,41 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
     {
         ghost_joint_state_pub_.publish(states);
         snap_ghost_to_robot_ = false;
+    }
+}
+
+void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg )
+{
+    if(end_effector_pose_list_.find( "/pelvis_pose_marker") != end_effector_pose_list_.end())
+    {
+        // trasnfrom current marker pose from world to pelvis
+        geometry_msgs::PoseStamped marker_pose = end_effector_pose_list_["/pelvis_pose_marker"];
+        Ogre::Vector3 position(0,0,0);
+        Ogre::Quaternion orientation(1,0,0,0);
+        transform(position, orientation, "/pelvis", "/world");
+
+        // create pose based on /pelvis frame
+        geometry_msgs::PoseStamped pose;// = end_effector_pose_list_["/pelvis_pose_marker"];
+        pose.pose.position.x = marker_pose.pose.position.x;
+        pose.pose.position.y = marker_pose.pose.position.y;
+        pose.pose.position.z = marker_pose.pose.position.z;
+        pose.pose.orientation.x = orientation.x;
+        pose.pose.orientation.y = orientation.y;
+        pose.pose.orientation.z = orientation.z;
+        pose.pose.orientation.w = orientation.w;
+        pose.header.frame_id = "/world";
+        pose.header.stamp = ros::Time::now();
+
+        ghost_root_pose_pub_.publish(pose);
+
+        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
+        {
+            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Pelvis")
+            {
+                im_ghost_robot_server_[i]->setPose(pose);
+                break;
+            }
+        }
     }
 }
 }
