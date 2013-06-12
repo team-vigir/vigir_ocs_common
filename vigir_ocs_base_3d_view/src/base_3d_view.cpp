@@ -252,7 +252,6 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     static InteractiveMarkerServerCustom* marker_server_pelvis = new InteractiveMarkerServerCustom("Ghost Pelvis", "/pelvis_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
     im_ghost_robot_server_.push_back(marker_server_pelvis);
     im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
-    manager_->getSelectionManager()
 
     // subscribe to the pose topics
     end_effector_sub_.push_back(n_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
