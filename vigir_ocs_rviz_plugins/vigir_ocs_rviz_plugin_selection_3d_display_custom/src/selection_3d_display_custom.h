@@ -44,6 +44,9 @@
 #include "rviz/frame_manager.h"
 
 #include <geometry_msgs/PoseStamped.h>
+#include <std_msgs/Float64.h>
+
+#include <flor_perception_msgs/RaycastRequest.h>
 
 #include <tf/transform_listener.h>
 
@@ -93,6 +96,8 @@ public:
 
   void clear();
 
+  void processDistQuery( const std_msgs::Float64::ConstPtr& distance );
+
 Q_SIGNALS:
   void newSelection(Ogre::Vector3);
   void setContext( int );
@@ -113,6 +118,9 @@ private Q_SLOTS:
   void queryPosition( int, int, Ogre::Vector3& );
   void queryContext( int, int );
 
+  void raycastRequest(bool, int, int);
+  void raycastRequestROI(bool, int, int);
+
 protected:
   virtual void load();
 
@@ -122,12 +130,15 @@ protected:
 
   void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
+  Ogre::Vector3 calculateRaycastPosition(double distance);
+
   //bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
 
   float time_since_last_transform_;
 
   ros::NodeHandle nh_;
-  ros::Subscriber template_pose_;
+  ros::Subscriber raycast_query_sub_;
+  ros::Publisher raycast_query_pub_;
   
   Ogre::SceneNode* ground_;
   Ogre::SceneNode* selection_marker_;
@@ -144,6 +155,16 @@ protected:
   bool initialized_;
 
   float marker_scale_;
+
+  enum
+  {
+      RAYCAST_SELECTION,
+      RAYCAST_SELECTION_ROI
+  } RaycastRequestMode;
+
+  int raycast_request_mode_;
+
+  Ogre::Ray last_ray_;
 };
 
 } // namespace rviz
