@@ -1,0 +1,53 @@
+# Notes can be placed anywhere in file parser ignores lines starting with #
+# Task{Group{primitive
+crawl{
+	babycrawl{
+		babycrawl
+		babycrawl_one_step_final
+		babycrawl_two_steps_final
+		}
+	crawl back{
+		crawl_back_final
+		crawl_back_final_dorian
+		crawl_back_mud
+		crawl_back_obstacles
+		}
+	crawl forward{
+		crawl_forward_final_dorian
+		crawl_forward_mud
+		crawl_forward
+		}
+	crawl turn{
+		crawl_turn_left_final_dorian
+		crawl_turn_left
+		crawl_turn_right_final_dorian
+		}
+	}
+stationary{
+	get up{
+		get_up_from_back
+		get_up_from_back_2
+		get_up_from_back_3
+		get_up_from_back_4
+		get_up_from_back_5
+		get_up_from_back_6
+		get_up_from_back_7
+		get_up_from_sit
+		}
+	sit down{
+		sit_down_final_dorian
+		sit_down_final
+		sit_down
+		sit_up_from_back
+		}
+	Mis.{
+		stretch_feet
+		turn_onto_back_left
+		turn_onto_back_right
+		vi_lean
+		vi_getin
+		vi_getin_2
+		vi_getin_3
+		vi4
+		}
+	}
