@@ -23,8 +23,6 @@ status_window::status_window(QWidget *parent) :
     timerColor.start(100,this);
     oldJointStyleSheet = ui->showJointButton->styleSheet();
     oldRobotStyleSheet = ui->showRobotStatus->styleSheet();
-    jntList->setWindowFlags(Qt::CustomizeWindowHint);
-    rbtStatus->setWindowFlags(Qt::CustomizeWindowHint);
 }
 
 void status_window::controlModeMsgRecieved(const flor_control_msgs::FlorControlMode::ConstPtr& modeMsg)
@@ -165,7 +163,10 @@ void status_window::timerEvent(QTimerEvent *event)
 void status_window::updateButtonColor()
 {
     ui->showJointButton->setStyleSheet(oldJointStyleSheet);
-    ui->showJointButton->setText(QString::fromStdString("Show Joint List"));
+    if(jntList->isVisible())
+        ui->showJointButton->setText(QString::fromStdString("Hide Joint List"));
+    else
+        ui->showJointButton->setText(QString::fromStdString("Show Joint List"));
     if(jntList->getNumWarn() > 0)
     {
         ui->showJointButton->setStyleSheet("QPushButton { background-color : yellow; }");
@@ -178,7 +179,10 @@ void status_window::updateButtonColor()
     }
 
     ui->showRobotStatus->setStyleSheet(oldRobotStyleSheet);
-    ui->showRobotStatus->setText(QString::fromStdString("Show Robot Status"));
+    if(rbtStatus->isVisible())
+        ui->showRobotStatus->setText(QString::fromStdString("Hide Robot Status"));
+    else
+        ui->showRobotStatus->setText(QString::fromStdString("Show Robot Status"));
     if(rbtStatus->getNumWarn() > 0)
     {
         ui->showRobotStatus->setStyleSheet("QPushButton { background-color : yellow; }");
@@ -200,15 +204,27 @@ status_window::~status_window()
 void status_window::on_showJointButton_clicked()
 {
     if(jntList->isVisible())
+    {
+        ui->showJointButton->setText(QString::fromStdString("Show Joint List"));
         jntList->hide();
+    }
     else
+    {
         jntList->show();
+        ui->showJointButton->setText(QString::fromStdString("Hide Joint List"));
+    }
 }
 
 void status_window::on_showRobotStatus_clicked()
 {
     if(rbtStatus->isVisible())
+    {
         rbtStatus->hide();
+        ui->showRobotStatus->setText(QString::fromStdString("Show Robot Status"));
+    }
     else
+    {
         rbtStatus->show();
+        ui->showRobotStatus->setText(QString::fromStdString("Hide Robot Status"));
+    }
 }
