@@ -5,11 +5,10 @@
 #include <ros/ros.h>
 #include <ros/publisher.h>
 #include <QBasicTimer>
-#include "ui_joint_limit.h"
 
-//namespace Ui {
-//class joint_limit;
-//}
+namespace Ui {
+class joint_limit;
+}
 
 class joint_limit : public QWidget
 {
@@ -23,9 +22,23 @@ private:
     Ui::joint_limit *ui;
     ros::NodeHandle nh_;
     ros::Publisher constraints_pub_;
+
+    float lbzMinVal;
+    float lbzMaxVal;
+    float mbyMinVal;
+    float mbyMaxVal;
+    float ubxMinVal;
+    float ubxMaxVal;
+
     QBasicTimer timer;
 public Q_SLOTS:
     void on_apply_clicked();
+    void on_lbzMin_sliderReleased();
+    void on_lbzMax_sliderReleased();
+    void on_mbyMin_sliderReleased();
+    void on_mbyMax_sliderReleased();
+    void on_ubxMin_sliderReleased();
+    void on_ubxMax_sliderReleased();
 protected:
     void timerEvent(QTimerEvent *event);
 };

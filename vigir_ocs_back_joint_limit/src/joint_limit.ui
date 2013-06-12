@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>347</width>
+    <width>430</width>
     <height>270</height>
    </rect>
   </property>
@@ -38,14 +38,24 @@
            </item>
            <item>
             <widget class="QSlider" name="lbzMin">
+             <property name="minimum">
+              <number>-106109</number>
+             </property>
              <property name="maximum">
-              <number>100</number>
+              <number>106109</number>
              </property>
              <property name="value">
-              <number>100</number>
+              <number>-106109</number>
              </property>
              <property name="orientation">
               <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lbzMinLabel">
+             <property name="text">
+              <string>-10.6109</string>
              </property>
             </widget>
            </item>
@@ -62,14 +72,24 @@
            </item>
            <item>
             <widget class="QSlider" name="lbzMax">
+             <property name="minimum">
+              <number>-106109</number>
+             </property>
              <property name="maximum">
-              <number>100</number>
+              <number>106109</number>
              </property>
              <property name="value">
-              <number>100</number>
+              <number>106109</number>
              </property>
              <property name="orientation">
               <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lbzMaxLabel">
+             <property name="text">
+              <string>10.6109</string>
              </property>
             </widget>
            </item>
@@ -101,14 +121,24 @@
            </item>
            <item>
             <widget class="QSlider" name="mbyMin">
+             <property name="minimum">
+              <number>-1120</number>
+             </property>
              <property name="maximum">
-              <number>100</number>
+              <number>1128</number>
              </property>
              <property name="value">
-              <number>100</number>
+              <number>-1120</number>
              </property>
              <property name="orientation">
               <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="mbyMinLabel">
+             <property name="text">
+              <string>-11.2</string>
              </property>
             </widget>
            </item>
@@ -125,14 +155,24 @@
            </item>
            <item>
             <widget class="QSlider" name="mbyMax">
+             <property name="minimum">
+              <number>-1120</number>
+             </property>
              <property name="maximum">
-              <number>100</number>
+              <number>1128</number>
              </property>
              <property name="value">
-              <number>100</number>
+              <number>1128</number>
              </property>
              <property name="orientation">
               <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="mbyMaxLabel">
+             <property name="text">
+              <string>11.28</string>
              </property>
             </widget>
            </item>
@@ -164,14 +204,24 @@
            </item>
            <item>
             <widget class="QSlider" name="ubxMin">
+             <property name="minimum">
+              <number>-107908</number>
+             </property>
              <property name="maximum">
-              <number>100</number>
+              <number>107908</number>
              </property>
              <property name="value">
-              <number>100</number>
+              <number>-107908</number>
              </property>
              <property name="orientation">
               <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="ubxMinLabel">
+             <property name="text">
+              <string>-10.7908</string>
              </property>
             </widget>
            </item>
@@ -188,17 +238,27 @@
            </item>
            <item>
             <widget class="QSlider" name="ubxMax">
+             <property name="minimum">
+              <number>-107908</number>
+             </property>
              <property name="maximum">
-              <number>100</number>
+              <number>107908</number>
              </property>
              <property name="singleStep">
               <number>0</number>
              </property>
              <property name="value">
-              <number>100</number>
+              <number>107908</number>
              </property>
              <property name="orientation">
               <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="ubxMaxLabel">
+             <property name="text">
+              <string>10.7908</string>
              </property>
             </widget>
            </item>
