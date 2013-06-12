@@ -161,7 +161,7 @@ void MapView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
-    manager_->getToolManager()->setCurrentTool( selection_tool_ );
+    manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
     setting_pose_ = false;
 }
 }
