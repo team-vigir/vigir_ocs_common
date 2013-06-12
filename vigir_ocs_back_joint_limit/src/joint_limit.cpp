@@ -99,10 +99,10 @@ void joint_limit::on_apply_clicked()
     msg.back_lbz_min.data = (float)lbzMinVal;
 
     msg.back_mby_max.data = (float)mbyMaxVal;
-    msg.back_mby_max.data = (float)mbyMinVal;
+    msg.back_mby_min.data = (float)mbyMinVal;
 
     msg.back_ubx_max.data = (float)ubxMaxVal;
-    msg.back_ubx_max.data = (float)ubxMinVal;
+    msg.back_ubx_min.data = (float)ubxMinVal;
     std::cout << "The following values were set:" <<std::endl;
     std::cout << "lbz: max = " << ui->lbzMax->value() << " min = " << ui->lbzMin->value() << std::endl;
     std::cout << "mby: max = " << ui->mbyMax->value() << " min = " << ui->mbyMin->value() << std::endl;
