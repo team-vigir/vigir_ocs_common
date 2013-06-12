@@ -41,7 +41,8 @@ void BandwidthWidget::timerEvent(QTimerEvent *event)
 }
 
 void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth::ConstPtr& msg)
-{    
+{
+    int starting_row_count = ui->tableWidget->rowCount();
 	QTableWidgetItem* item;
 
     // get info for the node in the message
@@ -90,10 +91,13 @@ void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth:
 	
 	ui->total_download->setText(QString::number(total_read));
 	ui->total_upload->setText(QString::number(total_sent));
-    
-    ui->tableWidget->setColumnWidth(0,  155);
-    ui->tableWidget->setColumnWidth(1,  170);
-    ui->tableWidget->setColumnWidth(2,  170);
+
+    if(starting_row_count < 2)
+    {
+        ui->tableWidget->setColumnWidth(0,  155);
+        ui->tableWidget->setColumnWidth(1,  170);
+        ui->tableWidget->setColumnWidth(2,  170);
+    }
 }
 
 QString timeFromMsg(const ros::Time& stamp)
