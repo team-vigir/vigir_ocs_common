@@ -9,7 +9,7 @@ joint_limit::joint_limit(QWidget *parent) :
 {
     ui->setupUi(this);
     ros::NodeHandle nh;
-    constraints_pub_ = nh.advertise<flor_planning_msgs::JointPositionConstraints>( "/flor/planning/torso_joint_limits",1,false);
+    constraints_pub_ = nh.advertise<flor_planning_msgs::JointPositionConstraints>( "/flor/planning/torso_position_constraints",1,false);
     timer.start(33, this);
     lbzMinVal = -0.610865;
     lbzMaxVal = 0.610865;
@@ -95,14 +95,14 @@ void joint_limit::on_apply_clicked()
 {
     flor_planning_msgs::JointPositionConstraints msg;
 
-    msg.back_lbz_max.data = (float)ui->lbzMax->value();
-    msg.back_lbz_min.data = (float)ui->lbzMin->value();
+    msg.back_lbz_max.data = (float)lbzMaxVal;
+    msg.back_lbz_min.data = (float)lbzMinVal;
 
-    msg.back_mby_max.data = (float)ui->mbyMax->value();
-    msg.back_mby_max.data = (float)ui->mbyMin->value();
+    msg.back_mby_max.data = (float)mbyMaxVal;
+    msg.back_mby_max.data = (float)mbyMinVal;
 
-    msg.back_ubx_max.data = (float)ui->ubxMax->value();
-    msg.back_ubx_max.data = (float)ui->ubxMin->value();
+    msg.back_ubx_max.data = (float)ubxMaxVal;
+    msg.back_ubx_max.data = (float)ubxMinVal;
     std::cout << "The following values were set:" <<std::endl;
     std::cout << "lbz: max = " << ui->lbzMax->value() << " min = " << ui->lbzMin->value() << std::endl;
     std::cout << "mby: max = " << ui->mbyMax->value() << " min = " << ui->mbyMin->value() << std::endl;
