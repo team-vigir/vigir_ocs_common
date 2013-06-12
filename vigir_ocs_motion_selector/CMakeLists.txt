@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(vigir_ocs_motion_sender)
+project(vigir_ocs_motion_selector)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time

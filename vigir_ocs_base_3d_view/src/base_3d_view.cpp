@@ -228,24 +228,31 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // Add custom interactive markers to control ghost robot
     rviz::Display* im_left_arm = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - left arm", false );
     im_left_arm->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/pose_marker/update" );
+    im_left_arm->subProp( "Show Axes" )->setValue( true );
+    im_left_arm->subProp( "Show Visual Aids" )->setValue( true );
     im_ghost_robot_.push_back(im_left_arm);
     rviz::Display* im_right_arm = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - right arm", false );
     im_right_arm->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/pose_marker/update" );
+    im_right_arm->subProp( "Show Axes" )->setValue( true );
+    im_right_arm->subProp( "Show Visual Aids" )->setValue( true );
     im_ghost_robot_.push_back(im_right_arm);
     rviz::Display* im_pelvis = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - right arm", false );
     im_pelvis->subProp( "Update Topic" )->setValue( "/pelvis_pose_marker/pose_marker/update" );
+    im_pelvis->subProp( "Show Axes" )->setValue( true );
+    im_pelvis->subProp( "Show Visual Aids" )->setValue( true );
     im_ghost_robot_.push_back(im_pelvis);
 
     geometry_msgs::Point point;
-    static InteractiveMarkerServerCustom* marker_server_left_arm = new InteractiveMarkerServerCustom("Ghost Left Arm", "/l_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0, point);
+    static InteractiveMarkerServerCustom* marker_server_left_arm = new InteractiveMarkerServerCustom("Ghost Left Arm", "/l_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
     im_ghost_robot_server_.push_back(marker_server_left_arm);
     im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
-    static InteractiveMarkerServerCustom* marker_server_right_arm = new InteractiveMarkerServerCustom("Ghost Right Arm", "/r_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0, point);
+    static InteractiveMarkerServerCustom* marker_server_right_arm = new InteractiveMarkerServerCustom("Ghost Right Arm", "/r_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
     im_ghost_robot_server_.push_back(marker_server_right_arm);
     im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
-    static InteractiveMarkerServerCustom* marker_server_pelvis = new InteractiveMarkerServerCustom("Ghost Pelvis", "/pelvis_pose_marker", manager_->getFixedFrame().toStdString(), 0, point);
+    static InteractiveMarkerServerCustom* marker_server_pelvis = new InteractiveMarkerServerCustom("Ghost Pelvis", "/pelvis_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
     im_ghost_robot_server_.push_back(marker_server_pelvis);
     im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
+    manager_->getSelectionManager()
 
     // subscribe to the pose topics
     end_effector_sub_.push_back(n_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));

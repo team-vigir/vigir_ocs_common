@@ -355,7 +355,7 @@ void TemplateDisplayCustom::addTemplateMarker(unsigned char id, Ogre::Vector3 po
         point.x = pos.x;
         point.y = pos.y;
         point.z = pos.z;
-        InteractiveMarkerServerCustom* template_marker_ = new InteractiveMarkerServerCustom(template_pose_string, template_pose_string, fixed_frame_.toUtf8().constData(), id, point);
+        InteractiveMarkerServerCustom* template_marker_ = new InteractiveMarkerServerCustom(template_pose_string, template_pose_string, fixed_frame_.toUtf8().constData(), 0.2, point);
         template_marker_->onFeedback = boost::bind(&TemplateDisplayCustom::onMarkerFeedback, this, _1, _2);
         template_pose_pub_list_.push_back(nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>(template_pose_string, 1, false));
         template_marker_list_.push_back(template_marker_);
