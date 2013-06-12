@@ -68,6 +68,8 @@ Selection3DDisplayCustom::Selection3DDisplayCustom()
     //, mCurrentObject(NULL)
     , initialized_(false)
     , marker_scale_(0.0004f)
+    , ray_initialized_(false)
+    , raycast_request_mode_(-1)
 {
 }
 
@@ -81,6 +83,11 @@ void Selection3DDisplayCustom::onInitialize()
     updateVisualVisible();
     updateCollisionVisible();
     updateAlpha();
+
+    raycast_query_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_distance_request_world", 1, false );
+    raycast_query_sub_ = nh_.subscribe<std_msgs::Float64>( "/flor/worldmodel/ocs/dist_query_distance_result", 5, &Selection3DDisplayCustom::processDistQuery, this );
+    ocs_raycast_query_pub_ = nh_.advertise<flor_ocs_msgs::OCSRaycastRequest>( "/flor/ocs/dist_query_request", 1, false );
+    ocs_raycast_query_sub_ = nh_.subscribe<flor_ocs_msgs::OCSRaycastRequest>( "/flor/ocs/dist_query_request", 5, &Selection3DDisplayCustom::processOCSDistQuery, this );
 }
 
 void Selection3DDisplayCustom::updateAlpha()
@@ -566,6 +573,150 @@ void Selection3DDisplayCustom::setMarkerPosition(float x, float y, float z)
     roi_marker_final_->setVisible(false);
     roi_marker_box_->setVisible(false);
     roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
+}
+
+Ogre::Vector3 Selection3DDisplayCustom::calculateRaycastPosition(double distance)
+{
+    Ogre::Vector3 origin = last_ray_.getOrigin();
+    Ogre::Vector3 direction = last_ray_.getDirection();
+    return origin+(direction*distance);
+}
+
+void Selection3DDisplayCustom::processOCSDistQuery( const flor_ocs_msgs::OCSRaycastRequest::ConstPtr &request )
+{
+    Ogre::Vector3 origin(request->origin.x,request->origin.y,request->origin.z);
+    Ogre::Vector3 direction(request->direction.x,request->direction.y,request->direction.z);
+    last_ray_.setOrigin(origin);
+    last_ray_.setDirection(direction);
+    raycast_request_mode_ = request->mode;
+    Q_EMIT setSelectionRay(last_ray_);
+}
+
+void Selection3DDisplayCustom::processDistQuery( const std_msgs::Float64::ConstPtr& distance )
+{
+    if(distance->data < 0)
+        return;
+
+    // prevent losing data in case OCS takes longer than onboard to respond
+    //while(raycast_request_mode_ == -1)
+    //    sleep(0.05);
+
+    if(raycast_request_mode_ == RAYCAST_SELECTION)
+    {
+        /*if(distance->data < 0)
+        {
+            initialized_ = false;
+            selection_marker_->setVisible(false);
+            return;
+        }*/
+
+        Ogre::Vector3 positionFinal = calculateRaycastPosition(distance->data);
+
+        setMarkerPosition(positionFinal.x,positionFinal.y,positionFinal.z);
+
+        raycast_request_mode_ = -1;
+    }
+    else if(raycast_request_mode_ == RAYCAST_SELECTION_ROI)
+    {
+        if(!initialized_)
+            return;
+
+        /*if(distance->data < 0)
+        {
+            //selection_marker_->setVisible(false);
+            roi_marker_final_->setVisible(false);
+            roi_marker_box_->setVisible(false);
+            roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
+            return;
+        }*/
+
+        Ogre::Vector3 positionFinal = calculateRaycastPosition(distance->data);
+
+        selection_marker_->setVisible(true);
+        roi_marker_final_->setPosition(positionFinal);
+        roi_marker_final_->setVisible(true);
+
+        Ogre::Vector3 initial_position = selection_marker_->getPosition();
+        Ogre::Vector3 box_position = (initial_position+positionFinal)/2.0f;
+        roi_marker_box_->setPosition(box_position);
+        Ogre::Vector3 box_scale;
+        box_scale.x = fabs(positionFinal.x-initial_position.x)/100.0f;
+        box_scale.y = fabs(positionFinal.y-initial_position.y)/100.0f;
+        box_scale.z = fabs(positionFinal.z-initial_position.z)/100.0f;
+        roi_marker_box_->setScale(box_scale);
+        std::cout << "box_position: " << box_position.x << ", " << box_position.y << ", " << box_position.z << std::endl;
+        std::cout << "box_scale: " << box_scale.x << ", " << box_scale.y << ", " << box_scale.z << std::endl;
+        roi_marker_box_->setVisible(true);
+
+        Ogre::Quaternion orientation(1,0,0,0);
+        transform(positionFinal,orientation,fixed_frame_.toUtf8().constData(),"/world");
+        selection_position_roi_ = positionFinal;
+
+        raycast_request_mode_ = -1;
+    }
+}
+
+void Selection3DDisplayCustom::publishRayRequest(Ogre::Vector3 origin, Ogre::Vector3 direction)
+{
+    flor_perception_msgs::RaycastRequest request;
+
+    request.origin.x = origin.x;
+    request.origin.y = origin.y;
+    request.origin.z = origin.z;
+
+    request.direction.x = direction.x;
+    request.direction.y = direction.y;
+    request.direction.z = direction.z;
+
+    raycast_query_pub_.publish(request);
+}
+
+void Selection3DDisplayCustom::publishOCSRayRequest(int mode, Ogre::Vector3 origin, Ogre::Vector3 direction)
+{
+    flor_ocs_msgs::OCSRaycastRequest request;
+
+    request.origin.x = origin.x;
+    request.origin.y = origin.y;
+    request.origin.z = origin.z;
+
+    request.direction.x = direction.x;
+    request.direction.y = direction.y;
+    request.direction.z = direction.z;
+
+    request.mode = mode;
+
+    ocs_raycast_query_pub_.publish(request);
+}
+
+void Selection3DDisplayCustom::raycastRequest(bool, int x, int y)
+{
+    float win_width = render_panel_->width();
+    float win_height = render_panel_->height();
+
+    //then send a raycast straight out from the camera at the mouse's position
+    Ogre::Ray mouseRay = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
+
+    // send ray data to other instances of OCS
+    publishOCSRayRequest(RAYCAST_SELECTION, mouseRay.getOrigin(), mouseRay.getDirection());
+
+    // send ray data to onboard
+    publishRayRequest(mouseRay.getOrigin(), mouseRay.getDirection());
+}
+
+void Selection3DDisplayCustom::raycastRequestROI(bool, int x, int y)
+{
+    float win_width = render_panel_->width();
+    float win_height = render_panel_->height();
+
+    //then send a raycast straight out from the camera at the mouse's position
+    Ogre::Ray mouseRay = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
+
+    // send ray data to other instances of OCS
+    publishOCSRayRequest(RAYCAST_SELECTION_ROI, mouseRay.getOrigin(), mouseRay.getDirection());
+
+    // send ray data to onboard
+    publishRayRequest(mouseRay.getOrigin(), mouseRay.getDirection());
+
 }
 
 } // namespace rviz

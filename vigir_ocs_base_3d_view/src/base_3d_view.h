@@ -15,6 +15,7 @@
 #include <QWidget>
 #include <QMouseEvent>
 #include <OGRE/OgreVector3.h>
+#include <OGRE/OgreRay.h>
 
 #include <ros/ros.h>
 
@@ -28,6 +29,7 @@
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
 #include <flor_ocs_msgs/OCSGhostControl.h>
+#include <flor_perception_msgs/RaycastRequest.h>
 
 #include <string>
 
@@ -78,7 +80,7 @@ public Q_SLOTS:
     void select3DToggled( bool );
     void markerRobotToggled( bool );
     void markerTemplateToggled( bool );
-    void vectorPressed();
+    virtual void vectorPressed();
 
     void newSelection( Ogre::Vector3 );
     void insertTemplate( QString );
@@ -88,6 +90,11 @@ public Q_SLOTS:
     void createContextMenu( bool, int, int );
     // sends back the context
     void setContext( int );
+
+    // get the last selection ray
+    void setSelectionRay( Ogre::Ray );
+
+    void publishPointCloudWorldRequest();
 
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
@@ -103,6 +110,7 @@ protected:
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
     void publishGhostPoses();
+
 
     rviz::VisualizationManager* manager_;
     rviz::VisualizationManager* manager_simulation_;
@@ -154,7 +162,9 @@ protected:
     ros::Subscriber global_selection_pos_sub_;
 
     ros::Subscriber ground_map_sub_;
-    ros::Subscriber point_cloud_request_sub_;
+    ros::Subscriber point_cloud_result_sub_;
+
+    ros::Publisher pointcloud_request_world_pub_;
 
     std::vector<ros::Subscriber> end_effector_sub_;
     ros::Publisher end_effector_pub_;
@@ -183,6 +193,8 @@ protected:
     QString selected_template_path_;
 
     int active_context_;
+
+    Ogre::Ray last_selection_ray_;
 };
 }
 #endif // BASE_3D_VIEW_H

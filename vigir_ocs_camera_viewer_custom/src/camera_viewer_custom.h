@@ -82,7 +82,7 @@ private:
     rviz::Tool* selection_tool_;
 
     ros::Publisher head_pitch_update_pub_;
-    ros::Publisher pointcloud_request_pub_;
+    ros::Publisher pointcloud_request_frame_pub_;
 
     int feed_rate_;
     int feed_resolution_;

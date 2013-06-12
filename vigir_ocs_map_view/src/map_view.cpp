@@ -27,6 +27,7 @@ namespace vigir_ocs
 // Constructor for MapView.  This does most of the work of the class.
 MapView::MapView( QWidget* parent )
     : Base3DView( "/world", parent )
+    , setting_pose_(false)
 {
     // block sending left/right mouse events to rviz by default
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
@@ -52,6 +53,9 @@ MapView::MapView( QWidget* parent )
 
     // connect to selection display to query position/raycast
     QObject::connect(this, SIGNAL(queryPosition(int,int,Ogre::Vector3&)), selection_3d_display_, SLOT(queryPosition(int,int,Ogre::Vector3&)));
+
+    // subscribe to goal pose so we can add filters back
+    set_goal_sub_ = n_.subscribe<geometry_msgs::PoseStamped>( "/goalpose", 5, &MapView::processGoalPose, this );
 }
 
 // Destructor.
@@ -62,27 +66,30 @@ MapView::~MapView()
 
 void MapView::enableSelectionTool(bool activate, int x, int y)
 {
-    std::cout << "selection tool: " << activate << std::endl;
-    if(activate)
+    if(!setting_pose_)
     {
-        selected_area_[0] = x;
-        selected_area_[1] = y;
-        // change to the selection tool and unblock events
-        manager_->getToolManager()->setCurrentTool( selection_tool_ );
-        ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
-        ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::RightButton);
-        ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
-    }
-    else
-    {
-        selected_area_[2] = x;
-        selected_area_[3] = y;
-        // block again and change back
-        ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
-        ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
-        ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
-        manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+        std::cout << "selection tool: " << activate << std::endl;
+        if(activate)
+        {
+            selected_area_[0] = x;
+            selected_area_[1] = y;
+            // change to the selection tool and unblock events
+            manager_->getToolManager()->setCurrentTool( selection_tool_ );
+            ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
+            ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+            ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+        }
+        else
+        {
+            selected_area_[2] = x;
+            selected_area_[3] = y;
+            // block again and change back
+            ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
+            ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
+            ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
+            manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
 
+        }
     }
 }
 
@@ -136,6 +143,26 @@ void MapView::requestOctomap(double min_z, double max_z, double resolution)
     octomap_request_pub_.publish(cmd);
 
     Q_EMIT unHighlight();
+}
+
+void MapView::vectorPressed()
+{
+    //ROS_ERROR("vector pressed in map");
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+    manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
+    setting_pose_ = true;
+}
+
+void MapView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+{
+    //ROS_ERROR("goal processed in map");
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
+    manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+    setting_pose_ = false;
 }
 }
 

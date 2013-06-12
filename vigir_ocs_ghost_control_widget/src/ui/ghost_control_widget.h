@@ -50,6 +50,8 @@ private Q_SLOTS:
     void applyClicked();
     void cancelClicked();
     void snapClicked();
+    void sendTargetPoseClicked();
+    void sendTargetConfigClicked();
 
 private:
     Ui::GhostControlWidget* ui;

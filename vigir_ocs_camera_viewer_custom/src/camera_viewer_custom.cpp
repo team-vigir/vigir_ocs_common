@@ -90,7 +90,7 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     Q_EMIT setMarkerScale(0.001f);
 
     // advertise pointcloud request
-    pointcloud_request_pub_ = n_.advertise<geometry_msgs::PointStamped>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_frame", 1, false );
+    pointcloud_request_frame_pub_ = n_.advertise<geometry_msgs::PointStamped>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_frame", 1, false );
 }
 
 // Destructor.
@@ -287,7 +287,7 @@ void CameraViewerCustom::requestPointCloudROI()
     cmd.point.y = direction.y;
     cmd.point.z = direction.z;
 
-    pointcloud_request_pub_.publish(cmd);
+    pointcloud_request_frame_pub_.publish(cmd);
 }
 
 void CameraViewerCustom::changeAlpha(int newAlpha)

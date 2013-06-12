@@ -59,7 +59,7 @@
         <x>0</x>
         <y>0</y>
         <width>268</width>
-        <height>732</height>
+        <height>705</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -108,6 +108,18 @@
              <bool>true</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_2">
+             <property name="spacing">
+              <number>3</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QRadioButton" name="camera_tool">
                <property name="text">
@@ -132,6 +144,13 @@
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QPushButton" name="request_point_cloud_">
+               <property name="text">
+                <string>Request Point Cloud</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>
@@ -144,6 +163,18 @@
              <bool>true</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_3">
+             <property name="spacing">
+              <number>3</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QPushButton" name="insert_waypoint">
                <property name="text">
@@ -219,6 +250,18 @@
           <bool>true</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QCheckBox" name="robot_model_2">
             <property name="text">
@@ -344,6 +387,7 @@
     <slot>footstepPlanningToggled(bool)</slot>
     <slot>simulationRobotToggled(bool)</slot>
     <slot>vectorPressed()</slot>
+    <slot>publishPointCloudWorldRequest()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -582,6 +626,22 @@
     <hint type="sourcelabel">
      <x>649</x>
      <y>434</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>256</x>
+     <y>337</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>request_point_cloud_</sender>
+   <signal>clicked()</signal>
+   <receiver>main_3d_view_</receiver>
+   <slot>publishPointCloudWorldRequest()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>649</x>
+     <y>132</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>

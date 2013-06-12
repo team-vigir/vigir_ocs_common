@@ -128,3 +128,13 @@ void GhostControlWidget::snapClicked()
 {
     publishState(true);
 }
+
+void GhostControlWidget::sendTargetPoseClicked()
+{
+    ROS_ERROR("Send target pose to planner is not defined yet");
+}
+
+void GhostControlWidget::sendTargetConfigClicked()
+{
+    ROS_ERROR("Send target configuration to planner is not defined yet");
+}

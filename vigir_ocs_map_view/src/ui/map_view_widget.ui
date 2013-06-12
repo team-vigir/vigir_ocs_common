@@ -77,7 +77,7 @@
            <x>0</x>
            <y>0</y>
            <width>242</width>
-           <height>1139</height>
+           <height>1082</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout">
@@ -90,6 +90,18 @@
              <bool>true</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_8">
+             <property name="spacing">
+              <number>3</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QRadioButton" name="camera_tool_3">
                <property name="text">
@@ -114,6 +126,13 @@
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QPushButton" name="request_point_cloud_">
+               <property name="text">
+                <string>Request Point Cloud</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>
@@ -126,6 +145,18 @@
              <bool>true</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_3">
+             <property name="spacing">
+              <number>3</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QWidget" name="widget_3" native="true">
                <layout class="QGridLayout" name="gridLayout_2">
@@ -223,6 +254,18 @@
              <bool>true</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_7">
+             <property name="spacing">
+              <number>3</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QWidget" name="widget_2" native="true">
                <layout class="QGridLayout" name="gridLayout">
@@ -311,6 +354,18 @@
              <bool>true</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_2">
+             <property name="spacing">
+              <number>3</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QRadioButton" name="waypoint">
                <property name="text">
@@ -415,6 +470,18 @@
              <bool>true</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_6">
+             <property name="spacing">
+              <number>3</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QCheckBox" name="robot_model_2">
                <property name="text">
@@ -544,6 +611,7 @@
     <slot>footstepPlanningToggled(bool)</slot>
     <slot>simulationRobotToggled(bool)</slot>
     <slot>requestMap()</slot>
+    <slot>publishPointCloudWorldRequest()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -801,6 +869,22 @@
     </hint>
     <hint type="destinationlabel">
      <x>399</x>
+     <y>334</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>request_point_cloud_</sender>
+   <signal>clicked()</signal>
+   <receiver>map_view_</receiver>
+   <slot>publishPointCloudWorldRequest()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>645</x>
+     <y>141</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>256</x>
      <y>334</y>
     </hint>
    </hints>
