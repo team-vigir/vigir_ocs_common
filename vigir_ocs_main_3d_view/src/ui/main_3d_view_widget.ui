@@ -57,9 +57,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-35</y>
+        <y>0</y>
         <width>268</width>
-        <height>675</height>
+        <height>705</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -141,6 +141,13 @@
               <widget class="QRadioButton" name="template_tool">
                <property name="text">
                 <string>Template Manipulation</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="request_point_cloud_">
+               <property name="text">
+                <string>Request Point Cloud</string>
                </property>
               </widget>
              </item>
@@ -380,6 +387,7 @@
     <slot>footstepPlanningToggled(bool)</slot>
     <slot>simulationRobotToggled(bool)</slot>
     <slot>vectorPressed()</slot>
+    <slot>publishPointCloudWorldRequest()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -618,6 +626,22 @@
     <hint type="sourcelabel">
      <x>649</x>
      <y>434</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>256</x>
+     <y>337</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>request_point_cloud_</sender>
+   <signal>clicked()</signal>
+   <receiver>main_3d_view_</receiver>
+   <slot>publishPointCloudWorldRequest()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>649</x>
+     <y>132</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>

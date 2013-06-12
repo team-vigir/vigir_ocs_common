@@ -1,6 +1,7 @@
 #ifndef RVIZ_RENDER_PANEL_CUSTOM_H
 #define RVIZ_RENDER_PANEL_CUSTOM_H
 
+#include <ros/ros.h>
 #include "rviz/render_panel.h"
 
 namespace rviz

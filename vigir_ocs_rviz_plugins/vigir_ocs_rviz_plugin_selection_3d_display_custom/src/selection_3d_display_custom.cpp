@@ -68,6 +68,8 @@ Selection3DDisplayCustom::Selection3DDisplayCustom()
     //, mCurrentObject(NULL)
     , initialized_(false)
     , marker_scale_(0.0004f)
+    , ray_initialized_(false)
+    , raycast_request_mode_(-1)
 {
 }
 
@@ -84,6 +86,8 @@ void Selection3DDisplayCustom::onInitialize()
 
     raycast_query_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_distance_request_world", 1, false );
     raycast_query_sub_ = nh_.subscribe<std_msgs::Float64>( "/flor/worldmodel/ocs/dist_query_distance_result", 5, &Selection3DDisplayCustom::processDistQuery, this );
+    ocs_raycast_query_pub_ = nh_.advertise<flor_ocs_msgs::OCSRaycastRequest>( "/flor/ocs/dist_query_request", 1, false );
+    ocs_raycast_query_sub_ = nh_.subscribe<flor_ocs_msgs::OCSRaycastRequest>( "/flor/ocs/dist_query_request", 5, &Selection3DDisplayCustom::processOCSDistQuery, this );
 }
 
 void Selection3DDisplayCustom::updateAlpha()
@@ -578,10 +582,24 @@ Ogre::Vector3 Selection3DDisplayCustom::calculateRaycastPosition(double distance
     return origin+(direction*distance);
 }
 
+void Selection3DDisplayCustom::processOCSDistQuery( const flor_ocs_msgs::OCSRaycastRequest::ConstPtr &request )
+{
+    Ogre::Vector3 origin(request->origin.x,request->origin.y,request->origin.z);
+    Ogre::Vector3 direction(request->direction.x,request->direction.y,request->direction.z);
+    last_ray_.setOrigin(origin);
+    last_ray_.setDirection(direction);
+    raycast_request_mode_ = request->mode;
+    Q_EMIT setSelectionRay(last_ray_);
+}
+
 void Selection3DDisplayCustom::processDistQuery( const std_msgs::Float64::ConstPtr& distance )
 {
     if(distance->data < 0)
         return;
+
+    // prevent losing data in case OCS takes longer than onboard to respond
+    //while(raycast_request_mode_ == -1)
+    //    sleep(0.05);
 
     if(raycast_request_mode_ == RAYCAST_SELECTION)
     {
@@ -595,6 +613,8 @@ void Selection3DDisplayCustom::processDistQuery( const std_msgs::Float64::ConstP
         Ogre::Vector3 positionFinal = calculateRaycastPosition(distance->data);
 
         setMarkerPosition(positionFinal.x,positionFinal.y,positionFinal.z);
+
+        raycast_request_mode_ = -1;
     }
     else if(raycast_request_mode_ == RAYCAST_SELECTION_ROI)
     {
@@ -631,65 +651,72 @@ void Selection3DDisplayCustom::processDistQuery( const std_msgs::Float64::ConstP
         Ogre::Quaternion orientation(1,0,0,0);
         transform(positionFinal,orientation,fixed_frame_.toUtf8().constData(),"/world");
         selection_position_roi_ = positionFinal;
+
+        raycast_request_mode_ = -1;
     }
+}
+
+void Selection3DDisplayCustom::publishRayRequest(Ogre::Vector3 origin, Ogre::Vector3 direction)
+{
+    flor_perception_msgs::RaycastRequest request;
+
+    request.origin.x = origin.x;
+    request.origin.y = origin.y;
+    request.origin.z = origin.z;
+
+    request.direction.x = direction.x;
+    request.direction.y = direction.y;
+    request.direction.z = direction.z;
+
+    raycast_query_pub_.publish(request);
+}
+
+void Selection3DDisplayCustom::publishOCSRayRequest(int mode, Ogre::Vector3 origin, Ogre::Vector3 direction)
+{
+    flor_ocs_msgs::OCSRaycastRequest request;
+
+    request.origin.x = origin.x;
+    request.origin.y = origin.y;
+    request.origin.z = origin.z;
+
+    request.direction.x = direction.x;
+    request.direction.y = direction.y;
+    request.direction.z = direction.z;
+
+    request.mode = mode;
+
+    ocs_raycast_query_pub_.publish(request);
 }
 
 void Selection3DDisplayCustom::raycastRequest(bool, int x, int y)
 {
-    // set raycast mode to selection
-    raycast_request_mode_ = RAYCAST_SELECTION;
-
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
 
     //then send a raycast straight out from the camera at the mouse's position
     Ogre::Ray mouseRay = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
 
-    Ogre::Vector3 origin = mouseRay.getOrigin();
-    Ogre::Vector3 direction = mouseRay.getDirection();
+    // send ray data to other instances of OCS
+    publishOCSRayRequest(RAYCAST_SELECTION, mouseRay.getOrigin(), mouseRay.getDirection());
 
-    flor_perception_msgs::RaycastRequest request;
-
-    request.origin.x = origin.x;
-    request.origin.y = origin.y;
-    request.origin.z = origin.z;
-
-    request.direction.x = direction.x;
-    request.direction.y = direction.y;
-    request.direction.z = direction.z;
-
-    raycast_query_pub_.publish(request);
-
-    last_ray_ = mouseRay;
+    // send ray data to onboard
+    publishRayRequest(mouseRay.getOrigin(), mouseRay.getDirection());
 }
 
 void Selection3DDisplayCustom::raycastRequestROI(bool, int x, int y)
 {
-    // set raycast mode to selection of region of interest
-    raycast_request_mode_ = RAYCAST_SELECTION_ROI;
-
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
 
     //then send a raycast straight out from the camera at the mouse's position
     Ogre::Ray mouseRay = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
 
-    Ogre::Vector3 origin = mouseRay.getOrigin();
-    Ogre::Vector3 direction = mouseRay.getDirection();
+    // send ray data to other instances of OCS
+    publishOCSRayRequest(RAYCAST_SELECTION_ROI, mouseRay.getOrigin(), mouseRay.getDirection());
 
-    flor_perception_msgs::RaycastRequest request;
+    // send ray data to onboard
+    publishRayRequest(mouseRay.getOrigin(), mouseRay.getDirection());
 
-    request.origin.x = origin.x;
-    request.origin.y = origin.y;
-    request.origin.z = origin.z;
-
-    request.direction.x = direction.x;
-    request.direction.y = direction.y;
-    request.direction.z = direction.z;
-
-    raycast_query_pub_.publish(request);
-
-    last_ray_ = mouseRay;
 }
 
 } // namespace rviz

@@ -3,25 +3,16 @@
 #include "ui/template_loader_widget.h"
 #include "joystick.h"
 
-
-QRadioButton* joystick;
-QRadioButton* wayPoints;
-QPushButton* insertWaypoints;
-
 MapViewWidget::MapViewWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MapViewWidget)
 {
     ui->setupUi(this);
-    joystick = this->findChild<QRadioButton *>("joystick_steering");
-    wayPoints = this->findChild<QRadioButton *>("waypoint");
 
-    insertWaypoints = this->findChild<QPushButton *>("insert_waypoint");
-    insertWaypoints->hide();
-    connect(joystick, SIGNAL(toggled(bool)), this, SLOT(hideWaypointButton()));
-    connect(wayPoints, SIGNAL(toggled(bool)), this, SLOT(hideJoystick()));
+    ui->insert_waypoint->hide();
 
-
+    connect(ui->joystick_steering, SIGNAL(toggled(bool)), this, SLOT(hideWaypointButton()));
+    connect(ui->waypoint, SIGNAL(toggled(bool)), this, SLOT(hideJoystick()));
 }
 
 MapViewWidget::~MapViewWidget()
@@ -31,12 +22,12 @@ MapViewWidget::~MapViewWidget()
 
 void MapViewWidget::hideWaypointButton()
 {
-    insertWaypoints->hide();
+    ui->insert_waypoint->hide();
 }
 
 void MapViewWidget::hideJoystick()
 {
-    insertWaypoints->show();
+    ui->insert_waypoint->show();
 }
 
 void MapViewWidget::requestMap()

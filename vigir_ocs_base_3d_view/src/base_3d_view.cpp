@@ -148,6 +148,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // connect the 3d selection tool to its display
     QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
     QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
+    QObject::connect(selection_3d_display_, SIGNAL(setSelectionRay(Ogre::Ray)), this, SLOT(setSelectionRay(Ogre::Ray)));
     QObject::connect(this, SIGNAL(resetSelection()), selection_3d_display_, SLOT(resetSelection()));
     QObject::connect(this, SIGNAL(setMarkerScale(float)), selection_3d_display_, SLOT(setMarkerScale(float)));
 
@@ -281,13 +282,16 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/ocs/gridmap_result", 5, &Base3DView::processNewMap, this );
 
     // point cloud request/selection publisher
-    point_cloud_request_sub_ =  n_.subscribe<sensor_msgs::PointCloud2>( "/flor/worldmodel/ocs/dist_query_pointcloud_result", 5, &Base3DView::processPointCloud, this );
+    point_cloud_result_sub_ =  n_.subscribe<sensor_msgs::PointCloud2>( "/flor/worldmodel/ocs/dist_query_pointcloud_result", 5, &Base3DView::processPointCloud, this );
     global_selection_pos_pub_ = n_.advertise<geometry_msgs::Point>( "/new_point_cloud_request", 1, false );
     global_selection_pos_sub_ = n_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
 
     QObject::connect(this, SIGNAL(setMarkerPosition(float,float,float)), selection_3d_display_, SLOT(setMarkerPosition(float,float,float)));
 
     joint_states_sub_ = n_.subscribe<sensor_msgs::JointState>( "atlas/joint_states", 2, &Base3DView::processJointStates, this );
+
+    // advertise pointcloud request
+    pointcloud_request_world_pub_ = n_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
 }
 
 // Destructor.
@@ -636,6 +640,26 @@ void Base3DView::setContext(int context)
 {
     active_context_ = context;
     std::cout << "Active context: " << active_context_ << std::endl;
+}
+
+void Base3DView::setSelectionRay( Ogre::Ray ray )
+{
+    last_selection_ray_ = ray;
+}
+
+void Base3DView::publishPointCloudWorldRequest()
+{
+    flor_perception_msgs::RaycastRequest request;
+
+    request.origin.x = last_selection_ray_.getOrigin().x;
+    request.origin.y = last_selection_ray_.getOrigin().y;
+    request.origin.z = last_selection_ray_.getOrigin().z;
+
+    request.direction.x = last_selection_ray_.getDirection().x;
+    request.direction.y = last_selection_ray_.getDirection().y;
+    request.direction.z = last_selection_ray_.getDirection().z;
+
+    pointcloud_request_world_pub_.publish(request);
 }
 
 void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
