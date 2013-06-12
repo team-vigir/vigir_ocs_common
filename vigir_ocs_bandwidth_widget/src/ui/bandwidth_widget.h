@@ -23,7 +23,7 @@ class BandwidthWidget;
 class BandwidthWidget : public QWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit BandwidthWidget(QWidget *parent = 0);
     ~BandwidthWidget();
@@ -37,15 +37,19 @@ private:
     ros::NodeHandle nh_;
     ros::Subscriber ocs_bandwidth_sub_;
     ros::Subscriber vrc_data_sub_;
-    
+
     typedef struct
     {
-    	std::string node_name;
-    	unsigned long total_bytes_read;
-    	unsigned long total_bytes_sent;
-	} BandwidthStruct;
-    
+        std::string node_name;
+        unsigned long total_bytes_read;
+        unsigned long total_bytes_sent;
+    } BandwidthStruct;
+
     std::vector<BandwidthStruct> node_bandwidth_info_;
+
+    QTableWidgetItem* total_bytes_read_item;
+    int foobar;
+    QTableWidgetItem* total_bytes_sent_item;
 
 protected:
     void timerEvent(QTimerEvent *event);

@@ -13,17 +13,26 @@
 BandwidthWidget::BandwidthWidget(QWidget *parent) :
     QWidget(parent)
     , ui(new Ui::BandwidthWidget)
-{    
+{
     ui->setupUi(this);
+    /*
+    ui->tableWidget->setRowCount(1);
+    total_bytes_read_item = new QTableWidgetItem(QString::number(-1));
+    total_bytes_sent_item = new QTableWidgetItem(QString::number(-1));
+    QTableWidgetItem* name = new QTableWidgetItem(QString::fromStdString("TOTAL"));
+
+    ui->tableWidget->setItem(0,0,name);
+    ui->tableWidget->setItem(0,1,total_bytes_read_item);
+    ui->tableWidget->setItem(0,2,total_bytes_sent_item);*/
+
 
     // subscribe to the topic to monitor bandwidth usage
     ocs_bandwidth_sub_ = nh_.subscribe<flor_ocs_msgs::OCSBandwidth>( "/flor_ocs_bandwidth", 5, &BandwidthWidget::processBandwidthMessage, this );
-    
     // subscribe to the topic to load all waypoints
     vrc_data_sub_ = nh_.subscribe<flor_ocs_msgs::VRCdata>( "/vrc_data", 5, &BandwidthWidget::processVRCData, this );
-    
     timer.start(33, this);
-    
+    foobar = 0;
+
     ui->tableWidget->setColumnWidth(0,  155);
     ui->tableWidget->setColumnWidth(1,  170);
     ui->tableWidget->setColumnWidth(2,  170);
@@ -43,54 +52,59 @@ void BandwidthWidget::timerEvent(QTimerEvent *event)
 void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth::ConstPtr& msg)
 {
     int starting_row_count = ui->tableWidget->rowCount();
-	QTableWidgetItem* item;
+    QTableWidgetItem* item;
 
     // get info for the node in the message
     int rcv_index = 0;
     for(; rcv_index < node_bandwidth_info_.size(); rcv_index++)
-    	if(node_bandwidth_info_[rcv_index].node_name.compare(msg->node_name) == 0)
-    		break;
-    
+        if(node_bandwidth_info_[rcv_index].node_name.compare(msg->node_name) == 0)
+            break;
+
     // in case we need a new entry
     if(rcv_index == node_bandwidth_info_.size())
     {
-    	BandwidthStruct new_item;
-    	new_item.node_name = msg->node_name;
-    	new_item.total_bytes_read = msg->bytes_read;
-    	new_item.total_bytes_sent = msg->bytes_sent;
-    	node_bandwidth_info_.push_back(new_item);
-    	
-    	ui->tableWidget->setRowCount( node_bandwidth_info_.size() );
-	
-		// create new items
-		item = new QTableWidgetItem(QString(node_bandwidth_info_[rcv_index].node_name.c_str()));
-		ui->tableWidget->setItem(rcv_index,0,item);
-		item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].total_bytes_read));
-		ui->tableWidget->setItem(rcv_index,1,item);
-		item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].total_bytes_sent));
-		ui->tableWidget->setItem(rcv_index,2,item);
-	}
-	else // if it already exists
-	{
-		node_bandwidth_info_[rcv_index].total_bytes_read = msg->bytes_read;
-		node_bandwidth_info_[rcv_index].total_bytes_sent = msg->bytes_sent;
-		
-		// simply update the existing ones
-		item = ui->tableWidget->item(rcv_index,1);
-		item->setText(QString::number(node_bandwidth_info_[rcv_index].total_bytes_read));
-		item = ui->tableWidget->item(rcv_index,2);
-		item->setText(QString::number(node_bandwidth_info_[rcv_index].total_bytes_sent));
-	}
-	
-	unsigned long total_read = 0, total_sent = 0;	
-	for(int i = 0; i < node_bandwidth_info_.size(); i++)
-	{
-		total_read += node_bandwidth_info_[i].total_bytes_read;
-		total_sent += node_bandwidth_info_[i].total_bytes_sent;
-	}
-	
-	ui->total_download->setText(QString::number(total_read));
-	ui->total_upload->setText(QString::number(total_sent));
+        BandwidthStruct new_item;
+        new_item.node_name = msg->node_name;
+        new_item.total_bytes_read = msg->bytes_read;
+        new_item.total_bytes_sent = msg->bytes_sent;
+        node_bandwidth_info_.push_back(new_item);
+
+        //std::cout << "Adding new item.... rcv_index = " <<rcv_index<<" node bandwith info " << node_bandwidth_info_.size() << " name="<< msg->node_name <<std::endl;
+
+        ui->tableWidget->setRowCount( node_bandwidth_info_.size()+1 );
+        // create new items
+        item = new QTableWidgetItem(QString(node_bandwidth_info_[rcv_index].node_name.c_str()));
+        ui->tableWidget->setItem(rcv_index,0,item);
+        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].total_bytes_read));
+        ui->tableWidget->setItem(rcv_index,1,item);
+        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].total_bytes_sent));
+        ui->tableWidget->setItem(rcv_index,2,item);
+
+    }
+    else // if it already exists
+    {
+        node_bandwidth_info_[rcv_index].total_bytes_read = msg->bytes_read;
+        node_bandwidth_info_[rcv_index].total_bytes_sent = msg->bytes_sent;
+
+        // simply update the existing ones
+        item = ui->tableWidget->item(rcv_index,1);
+        item->setText(QString::number(node_bandwidth_info_[rcv_index].total_bytes_read));
+        item = ui->tableWidget->item(rcv_index,2);
+        item->setText(QString::number(node_bandwidth_info_[rcv_index].total_bytes_sent));
+    }
+
+    unsigned long total_read = 0, total_sent = 0;
+    for(int i = 0; i < node_bandwidth_info_.size(); i++)
+    {
+        total_read += node_bandwidth_info_[i].total_bytes_read;
+        total_sent += node_bandwidth_info_[i].total_bytes_sent;
+    }
+    total_bytes_sent_item = new QTableWidgetItem(QString::number(total_sent));
+    total_bytes_read_item = new QTableWidgetItem(QString::number(total_read));
+    QTableWidgetItem* name = new QTableWidgetItem(QString::fromStdString("TOTAL"));
+    ui->tableWidget->setItem(node_bandwidth_info_.size(),0,name);
+    ui->tableWidget->setItem(node_bandwidth_info_.size(),1,total_bytes_read_item);
+    ui->tableWidget->setItem(node_bandwidth_info_.size(),2,total_bytes_sent_item);
 
     if(starting_row_count < 2)
     {
@@ -127,12 +141,12 @@ QString timeFromMsg(const ros::Time& stamp)
 
 void BandwidthWidget::processVRCData(const flor_ocs_msgs::VRCdata::ConstPtr& msg)
 {
-    ui->sim_time_elapsed->setText(timeFromMsg(msg->sim_time_elapsed));	
-	ui->competition_score->setText(QString::number(msg->competition_score));
-	ui->falls->setText(QString::number(msg->falls));
-	ui->message->setText(QString(msg->message.c_str()));
-	ui->task_type->setText(QString::number(msg->task_type));
-	ui->remaining_download->setText(QString::number(msg->downlink_bytes_remaining));
-	ui->remaining_upload->setText(QString::number(msg->uplink_bytes_remaining));    
+    ui->sim_time_elapsed->setText(timeFromMsg(msg->sim_time_elapsed));
+    ui->competition_score->setText(QString::number(msg->competition_score));
+    ui->falls->setText(QString::number(msg->falls));
+    ui->message->setText(QString(msg->message.c_str()));
+    ui->task_type->setText(QString::number(msg->task_type));
+    ui->remaining_download->setText(QString::number(msg->downlink_bytes_remaining));
+    ui->remaining_upload->setText(QString::number(msg->uplink_bytes_remaining));
 }
 
