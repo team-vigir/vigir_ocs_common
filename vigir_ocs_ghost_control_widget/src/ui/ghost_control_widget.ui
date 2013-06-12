@@ -507,7 +507,7 @@
      <property name="title">
       <string>Send to Ghost</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_4">
+     <layout class="QHBoxLayout" name="horizontalLayout_9">
       <property name="leftMargin">
        <number>0</number>
       </property>
@@ -517,6 +517,13 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
+      <item>
+       <widget class="QPushButton" name="reset_pelvis_button_">
+        <property name="text">
+         <string>Reset Pelvis Orientation</string>
+        </property>
+       </widget>
+      </item>
       <item>
        <widget class="QPushButton" name="snap_button_">
         <property name="text">
@@ -644,6 +651,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>reset_pelvis_button_</sender>
+   <signal>clicked()</signal>
+   <receiver>GhostControlWidget</receiver>
+   <slot>resetPelvisClicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>108</x>
+     <y>256</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>170</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>applyClicked()</slot>
@@ -651,5 +674,6 @@
   <slot>snapClicked()</slot>
   <slot>sendTargetPoseClicked()</slot>
   <slot>sendTargetConfigClicked()</slot>
+  <slot>resetPelvisClicked()</slot>
  </slots>
 </ui>

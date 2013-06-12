@@ -13,6 +13,8 @@
 #include <QtGui>
 
 #include <flor_ocs_msgs/OCSGhostControl.h>
+#include <std_msgs/String.h>
+#include <std_msgs/Bool.h>
 #include <ros/ros.h>
 
 namespace rviz
@@ -52,6 +54,7 @@ private Q_SLOTS:
     void snapClicked();
     void sendTargetPoseClicked();
     void sendTargetConfigClicked();
+    void resetPelvisClicked();
 
 private:
     Ui::GhostControlWidget* ui;
@@ -59,7 +62,9 @@ private:
     ros::NodeHandle nh_;
     ros::Subscriber state_sub_; // need to make sure we subscribe to others in case someone else changes the configuration
     ros::Publisher state_pub_;
-    ros::Publisher snap_pub_;
+    ros::Publisher set_to_target_pose_pub_;
+    ros::Publisher set_to_target_config_pub_;
+    ros::Publisher reset_pelvis_pub_;
 
     // variables that hold saved state of the widget
     static std::vector<unsigned char> saved_state_planning_group_;

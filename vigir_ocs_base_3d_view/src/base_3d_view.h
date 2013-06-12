@@ -22,6 +22,7 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Point.h>
+#include <std_msgs/Bool.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/JointState.h>
@@ -59,8 +60,9 @@ public:
     void processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc );
     void processLeftArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
     void processRightArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
-    void processGhostControlState(const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg);
-    void processJointStates(const sensor_msgs::JointState::ConstPtr& states);
+    void processGhostControlState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
+    void processJointStates( const sensor_msgs::JointState::ConstPtr& states );
+    void processPelvisResetRequest( const std_msgs::Bool::ConstPtr& msg );
 
     void onMarkerFeedback(std::string topic_name, geometry_msgs::PoseStamped pose);
 
@@ -175,6 +177,7 @@ protected:
 
     ros::Publisher ghost_joint_state_pub_;
     ros::Subscriber joint_states_sub_;
+    ros::Subscriber reset_pelvis_sub_;
 
     std::vector<unsigned char> saved_state_planning_group_;
     std::vector<unsigned char> saved_state_pose_source_;
