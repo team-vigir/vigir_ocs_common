@@ -11,14 +11,14 @@ joint_limit::joint_limit(QWidget *parent) :
     ros::NodeHandle nh;
     constraints_pub_ = nh.advertise<flor_planning_msgs::JointPositionConstraints>( "/flor/planning/torso_joint_limits",1,false);
     timer.start(33, this);
-    lbzMinVal = -10.6109;
-    lbzMaxVal = 10.6109;
+    lbzMinVal = -0.610865;
+    lbzMaxVal = 0.610865;
 
-    mbyMinVal = -11.2;
-    mbyMaxVal = 11.28;
+    mbyMinVal = -1.2;
+    mbyMaxVal = 1.28;
 
-    ubxMinVal = -10.7908;
-    ubxMaxVal = 10.7908;
+    ubxMinVal = -0.790809;
+    ubxMaxVal = 0.790809;
 }
 
 joint_limit::~joint_limit()
@@ -27,22 +27,22 @@ joint_limit::~joint_limit()
 }
 void joint_limit::on_lbzMin_sliderReleased()
 {
-    if(ui->lbzMin->value() >= lbzMaxVal*10000.0)
-        ui->lbzMin->setValue(lbzMinVal*10000.0);
+    if(ui->lbzMin->value() >= lbzMaxVal*1000000.0)
+        ui->lbzMin->setValue(lbzMinVal*1000000.0);
     else
     {
-        lbzMinVal = (float)ui->lbzMin->value()/10000.0;
+        lbzMinVal = (float)ui->lbzMin->value()/1000000.0;
         ui->lbzMinLabel->setText(QString::number(lbzMinVal,'g',6));
     }
 }
 
 void joint_limit::on_lbzMax_sliderReleased()
 {
-    if(ui->lbzMax->value() <= lbzMinVal*10000.0)
-        ui->lbzMax->setValue(lbzMaxVal*10000.0);
+    if(ui->lbzMax->value() <= lbzMinVal*1000000.0)
+        ui->lbzMax->setValue(lbzMaxVal*1000000.0);
     else
     {
-        lbzMaxVal = (float)ui->lbzMax->value()/10000.0;
+        lbzMaxVal = (float)ui->lbzMax->value()/1000000.0;
         ui->lbzMaxLabel->setText(QString::number(lbzMaxVal,'g',6));
     }
 }
@@ -71,22 +71,22 @@ void joint_limit::on_mbyMax_sliderReleased()
 
 void joint_limit::on_ubxMin_sliderReleased()
 {
-    if(ui->ubxMin->value() >= ubxMaxVal*10000.0)
-        ui->ubxMin->setValue(ubxMinVal*10000.0);
+    if(ui->ubxMin->value() >= ubxMaxVal*1000000.0)
+        ui->ubxMin->setValue(ubxMinVal*1000000.0);
     else
     {
-        ubxMinVal = (float)ui->ubxMin->value()/10000.0;
+        ubxMinVal = (float)ui->ubxMin->value()/1000000.0;
         ui->ubxMinLabel->setText(QString::number(ubxMinVal,'g',6));
     }
 }
 
 void joint_limit::on_ubxMax_sliderReleased()
 {
-    if(ui->ubxMax->value() <= ubxMinVal*10000.0)
-        ui->ubxMax->setValue(ubxMaxVal*10000.0);
+    if(ui->ubxMax->value() <= ubxMinVal*1000000.0)
+        ui->ubxMax->setValue(ubxMaxVal*1000000.0);
     else
     {
-        ubxMaxVal = (float)ui->ubxMax->value()/10000.0;
+        ubxMaxVal = (float)ui->ubxMax->value()/1000000.0;
         ui->ubxMaxLabel->setText(QString::number(ubxMaxVal,'g',6));
     }
 }
