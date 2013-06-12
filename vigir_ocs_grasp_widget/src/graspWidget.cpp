@@ -739,18 +739,18 @@ int graspWidget::calcWristTarget(const geometry_msgs::Pose& wrist_pose,const geo
     final_pose.pose.position.y = tg_vector.getY();
     final_pose.pose.position.z = tg_vector.getZ();
 
-        ROS_ERROR(" %s wrist: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-                 hand.c_str(), "wrist",
-                 wrist_pose.position.x,wrist_pose.position.y,wrist_pose.position.z,
-                 wrist_pose.orientation.w, wrist_pose.orientation.x, wrist_pose.orientation.y, wrist_pose.orientation.z);
-        ROS_ERROR(" %s template: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-                 hand.c_str(), template_pose.header.frame_id.c_str(),
-                 template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z,
-                 template_pose.pose.orientation.w, template_pose.pose.orientation.x, template_pose.pose.orientation.y, template_pose.pose.orientation.z);
-        ROS_ERROR(" %s target: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-                 hand.c_str(), final_pose.header.frame_id.c_str(),
-                 final_pose.pose.position.x,final_pose.pose.position.y,final_pose.pose.position.z,
-                 final_pose.pose.orientation.w, final_pose.pose.orientation.x, final_pose.pose.orientation.y, final_pose.pose.orientation.z);
+//        ROS_ERROR(" %s wrist: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+//                 hand.c_str(), "wrist",
+//                 wrist_pose.position.x,wrist_pose.position.y,wrist_pose.position.z,
+//                 wrist_pose.orientation.w, wrist_pose.orientation.x, wrist_pose.orientation.y, wrist_pose.orientation.z);
+//        ROS_ERROR(" %s template: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+//                 hand.c_str(), template_pose.header.frame_id.c_str(),
+//                 template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z,
+//                 template_pose.pose.orientation.w, template_pose.pose.orientation.x, template_pose.pose.orientation.y, template_pose.pose.orientation.z);
+//        ROS_ERROR(" %s target: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+//                 hand.c_str(), final_pose.header.frame_id.c_str(),
+//                 final_pose.pose.position.x,final_pose.pose.position.y,final_pose.pose.position.z,
+//                 final_pose.pose.orientation.w, final_pose.pose.orientation.x, final_pose.pose.orientation.y, final_pose.pose.orientation.z);
     return 0;
 }
 
