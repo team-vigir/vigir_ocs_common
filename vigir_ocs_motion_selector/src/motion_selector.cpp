@@ -5,6 +5,8 @@
 #include <QTextStream>
 #include <QTreeWidget>
 #include <QRegExp>
+#include <QStringList>
+#include <QBoxLayout>
 
 motion_selector::motion_selector(QWidget *parent) :
     QMainWindow(parent),
@@ -13,6 +15,7 @@ motion_selector::motion_selector(QWidget *parent) :
     ui->setupUi(this);
     sliderVal = 1.00;
     processTextFile(QString::fromStdString("/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_motion_selector/src/tree.txt"));
+    setupQuickButtons(QString::fromStdString("/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_motion_selector/src/quickButtons.txt"));
     //ros::
     std::cout << "File done processing now populatin the tree." << std::endl;
     populateTree();
@@ -26,6 +29,96 @@ void motion_selector::timerEvent(QTimerEvent *event)
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
 }
+
+void motion_selector::setupQuickButtons(QString path)
+{
+    QFile file(path);
+    std::cout << "Trying to open file at " << path.toStdString() << std::endl;
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        std::cout << "File opened successfully... now parsing." << std::endl;
+        QTextStream in(&file);
+        while(!in.atEnd())
+        {
+            QString line = in.readLine();
+            if(line[0] != '#')
+            {
+                QStringList strings;
+                strings = line.split(',');
+                if(strings.size() == 3)
+                {
+                    if(strings[0] == QString::fromStdString("space") || strings[0] == QString::fromStdString("Space"))
+                    {
+                        switch(strings[1].toInt())
+                        {
+                        case 1:
+                            ui->qb1->insertSpacing(1,strings[2].toInt());
+                            break;
+                        case 2:
+                            ui->qb2->insertSpacing(1,strings[2].toInt());
+                            break;
+                        case 3:
+                            ui->qb3->insertSpacing(1,strings[2].toInt());
+                            break;
+                        default:
+                            std::cout << "malformed spacing in config." << std::endl;
+                        }
+                    }
+                    else
+                    {
+                        quickButton* newQB = new quickButton();
+                        newQB->button = new QPushButton();
+                        newQB->timeFactor = new QDoubleSpinBox();
+                        newQB->button->setText(strings[1]);
+                        newQB->timeFactor->setValue(strings[2].toDouble());
+                        connect(newQB->button, SIGNAL(clicked()),this,SLOT(quickButtonClicked()));
+                        QVBoxLayout* layout = new QVBoxLayout;
+                        layout->setDirection(QBoxLayout::LeftToRight);
+                        layout->addWidget(newQB->button);
+                        layout->addWidget(newQB->timeFactor);
+                        switch(strings[0].toInt())
+                        {
+                        case 1:
+
+                            ui->qb1->insertLayout(1,layout,0);
+                            break;
+                        case 2:
+                            ui->qb2->insertLayout(1,layout,0);
+                            break;
+                        case 3:
+                            ui->qb3->insertLayout(1,layout,0);
+                            break;
+                        default:
+                            std::cout << "unknown entry in config for colum" << std::endl;
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+}
+
+void motion_selector::quickButtonClicked()
+{
+    if(ui->enableQuickButtons->isChecked())
+    {
+        QPushButton *button = (QPushButton *)sender();
+        std::cout << "Pressed button named " << button->text().toStdString() <<std::endl;
+        flor_control_msgs::FlorExecuteMotionRequest msg;
+        msg.motion_name = (button->text().toStdString());
+        for(int i =0; i < quickButtonList.size();i++)
+        {
+            if(quickButtonList[i]->button->text() == button->text())
+            {
+                msg.time_factor = quickButtonList[i]->timeFactor->value();
+                message_pub_.publish(msg);
+                break;
+            }
+        }
+    }
+}
+
 void motion_selector::processTextFile(QString path)
 {
     QFile file(path);

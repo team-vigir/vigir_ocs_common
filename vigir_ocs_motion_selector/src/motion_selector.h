@@ -6,6 +6,9 @@
 #include <ros/publisher.h>
 #include <ros/ros.h>
 #include <QBasicTimer>
+#include <QDoubleSpinBox>
+#include <QPushButton>
+#include <QLayout>
 
 namespace Ui {
 class motion_selector;
@@ -31,9 +34,16 @@ private:
         std::vector<Group> groups;
     } Task;
 
+    typedef struct
+    {
+        QDoubleSpinBox* timeFactor;
+        QPushButton* button;
+    } quickButton;
+    std::vector<quickButton*> quickButtonList;
     Ui::motion_selector *ui;
     QString filePath;
     void processTextFile( QString path);
+    void setupQuickButtons(QString path);
     void printTasks();
     void populateTree();
 
@@ -46,6 +56,7 @@ private:
 public Q_SLOTS:
     void on_sendCommand_clicked();
     void on_timeFactorSlider_valueChanged(int value);
+    void quickButtonClicked();
 
 protected:
     void timerEvent(QTimerEvent *event);
