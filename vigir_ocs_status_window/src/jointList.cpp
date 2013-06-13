@@ -243,6 +243,8 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
     warn = 0;
     err = 0;
     for(int i=0;i<joint_states->name.size(); i++)
+	joints[i]->parent()->setBackground(0,Qt::white);
+    for(int i=0;i<joint_states->name.size(); i++)
     {
         joints[i]->setText(1,QString::number(joint_states->position[i]));
         joints[i]->setText(2,QString::number(joint_states->velocity[i]));
@@ -250,7 +252,8 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
         joints[i]->setBackgroundColor(0,Qt::white);
         joints[i]->setBackgroundColor(1,Qt::white);
         joints[i]->setBackgroundColor(3,Qt::white);
-        //std::cout << "p=" << joint_states->position[i] << " v=" << joint_states->velocity[i];
+        
+	//std::cout << "p=" << joint_states->position[i] << " v=" << joint_states->velocity[i];
         //std::cout << " e=" << joint_states->effort[i] << " dpl=" << downPoseLimit[i];
         //std::cout << " upl=" << upPoseLimit[i] << " el=" << effortLimits[i] << std::endl;
         if(joint_states->position[i] <= warnMin*downPoseLimit[i])
