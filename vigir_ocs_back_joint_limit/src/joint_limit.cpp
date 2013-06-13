@@ -9,7 +9,7 @@ joint_limit::joint_limit(QWidget *parent) :
 {
     ui->setupUi(this);
     ros::NodeHandle nh;
-    constraints_pub_ = nh.advertise<flor_planning_msgs::JointPositionConstraints>( "/flor/planning/upper_body/configuration",1,false);
+    constraints_pub_ = nh.advertise<flor_planning_msgs::PlannerConfiguration>( "/flor/planning/upper_body/configuration",1,false);
     timer.start(33, this);
     lbzMinVal = -0.610865;
     lbzMaxVal = 0.610865;
