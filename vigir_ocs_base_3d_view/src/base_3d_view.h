@@ -106,6 +106,7 @@ Q_SIGNALS:
     void queryContext( int, int );
     void setMarkerPosition( float, float, float );
     void enableTemplateMarkers( bool );
+    void setFrustum( const float &, const float &, const float&, const float& );
 
 protected:
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
@@ -132,6 +133,7 @@ protected:
     rviz::Display* achieved_waypoints_display_;
     rviz::Display* octomap_roi_;
     rviz::Display* point_cloud_request_viewer_;
+    std::map<std::string,rviz::Display*> frustum_viewer_list_;
 
     // new displays for walking
     rviz::Display* footsteps_array_;

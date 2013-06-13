@@ -66,6 +66,7 @@ private:
     void templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr& feedback);
 
     int calcWristTarget( const geometry_msgs::Pose& wrist_pose,const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose );
+    int hideHand();
     int staticTransform(geometry_msgs::Pose& palm_pose);
 
     QString template_dir_path_;

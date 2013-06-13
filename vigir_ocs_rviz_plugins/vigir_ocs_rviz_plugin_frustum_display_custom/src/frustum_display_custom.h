@@ -97,32 +97,13 @@ public:
 
   void clear();
 
-  void processDistQuery( const std_msgs::Float64::ConstPtr& distance );
-  void processOCSDistQuery( const flor_ocs_msgs::OCSRaycastRequest::ConstPtr& request );
-
-Q_SIGNALS:
-  void newSelection( Ogre::Vector3 );
-  void setContext( int );
-  void setSelectionRay( Ogre::Ray );
+public Q_SLOTS:
+  void setFrustum( const float &fovy_rad, const float &aspect_ratio, const float& near, const float& far );
 
 private Q_SLOTS:
   void updateVisualVisible();
   void updateCollisionVisible();
-  void updateTfPrefix();
   void updateAlpha();
-  void updateRobotDescription();
-  void createMarker(int, int, int, int);
-  void createMarker(bool, int, int);
-  void createROISelection(bool,int,int);
-  void resetSelection();
-  void setRenderPanel(rviz::RenderPanel*);
-  void setMarkerScale(float);
-  void setMarkerPosition(float, float, float);
-  void queryPosition( int, int, Ogre::Vector3& );
-  void queryContext( int, int );
-
-  void raycastRequest(bool, int, int);
-  void raycastRequestROI(bool, int, int);
 
 protected:
   virtual void load();
@@ -133,48 +114,10 @@ protected:
 
   void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
-  void publishRayRequest(Ogre::Vector3 origin, Ogre::Vector3 direction);
-  void publishOCSRayRequest(int mode, Ogre::Vector3 origin, Ogre::Vector3 direction);
+  std::vector<Ogre::ManualObject*> manual_objects_;
 
-  Ogre::Vector3 calculateRaycastPosition(double distance);
+  Ogre::Frustum frustum_;
 
-  //bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
-
-  float time_since_last_transform_;
-
-  ros::NodeHandle nh_;
-  ros::Publisher raycast_query_pub_;
-  ros::Publisher ocs_raycast_query_pub_;
-  ros::Subscriber raycast_query_sub_;
-  ros::Subscriber ocs_raycast_query_sub_;
-  
-  Ogre::SceneNode* ground_;
-  Ogre::SceneNode* selection_marker_;
-  Ogre::SceneNode* roi_marker_final_;
-  Ogre::SceneNode* roi_marker_box_;
-
-  RenderPanel* render_panel_;
-
-  RayCastUtils* raycast_utils_;
-
-  Ogre::Vector3 selection_position_;
-  Ogre::Vector3 selection_position_roi_;
-
-  bool initialized_;
-
-  float marker_scale_;
-
-  enum
-  {
-      RAYCAST_SELECTION,
-      RAYCAST_SELECTION_ROI
-  } RaycastRequestMode;
-
-  int raycast_request_mode_;
-
-  Ogre::Ray last_ray_;
-
-  bool ray_initialized_;
 };
 
 } // namespace rviz

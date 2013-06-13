@@ -88,6 +88,9 @@ graspWidget::~graspWidget()
 
 void graspWidget::timerEvent(QTimerEvent *event)
 {
+    if(currentGraspMode != 1)
+        hideHand();
+
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
 }
@@ -210,7 +213,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         }
     }
 
-    if(selected_grasp_id_ != -1)
+    if(selected_grasp_id_ != -1 && currentGraspMode == 1)
         publishHandPose(selected_grasp_id_);
 }
 
@@ -417,6 +420,7 @@ void graspWidget::on_releaseButton_clicked()
 
 void graspWidget::on_templateButton_clicked()
 {
+    hideHand();
     std::cout << "template match requested..." << std::endl;
     flor_grasp_msgs::TemplateSelection msg;
     int graspID = ui->graspBox->currentText().toInt();
@@ -557,6 +561,7 @@ void graspWidget::on_manualRadio_clicked()
     msg.grip.data = ui->userSlider->value();
     grasp_mode_command_pub_.publish(msg);
     std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level to " << hand << " hand" << std::endl;
+
 
 }
 
@@ -705,7 +710,10 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
     {
         joint_states.effort[i] = 0;
         joint_states.velocity[i] = 0;
-        joint_states.position[i] = grasp_db_[grasp_index].finger_joints[i];
+        if(grasp_index == -1)
+            joint_states.position[i] = 0;
+        else
+            joint_states.position[i] = grasp_db_[grasp_index].finger_joints[i];
         //ROS_ERROR("Setting Finger Joint %s to %f",joint_states.name[i].c_str(),joint_states.position[i]);
     }
 
@@ -743,7 +751,7 @@ int graspWidget::calcWristTarget(const geometry_msgs::Pose& wrist_pose,const geo
 //                 hand.c_str(), "wrist",
 //                 wrist_pose.position.x,wrist_pose.position.y,wrist_pose.position.z,
 //                 wrist_pose.orientation.w, wrist_pose.orientation.x, wrist_pose.orientation.y, wrist_pose.orientation.z);
-//        ROS_ERROR(" %s template: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+//        ROS_ERROR("ghost_hand_pub_.publish(hand_transform); %s template: frame=%s p=(%f, %f, %f) q=(%f, %f, %f, %f)",
 //                 hand.c_str(), template_pose.header.frame_id.c_str(),
 //                 template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z,
 //                 template_pose.pose.orientation.w, template_pose.pose.orientation.x, template_pose.pose.orientation.y, template_pose.pose.orientation.z);
@@ -798,4 +806,16 @@ int graspWidget::staticTransform(geometry_msgs::Pose& palm_pose)
     palm_pose.orientation.w = hand_quat.getW();
 
     return 0;
+}
+
+int graspWidget::hideHand()
+{
+    geometry_msgs::PoseStamped hand_transform;
+    hand_transform.pose.position.z = 10000;
+    hand_transform.pose.orientation.w = 1;
+    hand_transform.header.stamp = ros::Time::now();
+    hand_transform.header.frame_id = "/world";
+    ghost_hand_pub_.publish(hand_transform);
+
+    publishHandJointStates(-1);
 }

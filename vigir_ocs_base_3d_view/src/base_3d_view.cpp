@@ -223,6 +223,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ghost_robot_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot simulation model", false );
     ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
     ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.0f );
+    ghost_robot_model_->subProp( "Selectable" )->setValue( false );
     ghost_robot_model_->setEnabled(false);
 
     // Add custom interactive markers to control ghost robot
@@ -299,6 +300,12 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     // advertise pointcloud request
     pointcloud_request_world_pub_ = n_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
+
+    // frustum
+    frustum_viewer_list_["head_left"] = manager_->createDisplay( "rviz/FrustumDisplayCustom", "Frustum - Left Eye", true );
+    QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
+
+
 }
 
 // Destructor.
