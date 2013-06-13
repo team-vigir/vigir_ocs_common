@@ -84,6 +84,7 @@ void robotStatus::on_radioButtons_updated()
     std::cout <<"Radio buttons changed updating list..." <<std::endl;
     for(int i=0;i<messages.size();i++)
     {
+        msgTable->hideRow(i);
         if(messages[i]->priority->text() == "Ok" && showOk->isChecked())
         {
             msgTable->showRow(i);
@@ -100,8 +101,6 @@ void robotStatus::on_radioButtons_updated()
         {
             msgTable->showRow(i);
         }
-        else
-            msgTable->hideRow(i);
     }
 }
 
@@ -209,6 +208,25 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
     msgTable->setItem(0,0,messages[0]->time);
     msgTable->setItem(0,1,messages[0]->priority);
     msgTable->setItem(0,2,messages[0]->text);
+
+    if(messages[0]->priority->text() == "Ok" && showOk->isChecked())
+    {
+        msgTable->showRow(0);
+    }
+    else if(messages[0]->priority->text() == "Debug" && showDebug->isChecked())
+    {
+        msgTable->showRow(0);
+    }
+    else if(messages[0]->priority->text() == "Warn" && showWarn->isChecked())
+    {
+        msgTable->showRow(0);
+    }
+    else if(messages[0]->priority->text() == "Error" && showError->isChecked())
+    {
+        msgTable->showRow(0);
+    }
+    else
+        msgTable->hideRow(0);
     std::cout << "Item added sucessfuly..." << std::endl;
     if(messages.size() > maxRows)
     {
