@@ -1,0 +1,8 @@
+<!-- OpenNI driver nodelet publisher -->
+<library path="libvigir_ocs_image_nodelet">
+  <class name="vigir_ocs_image_nodelet/ImageNodelet" type="ocs_image::ImageNodelet" base_class_type="nodelet::Nodelet">
+    <description>
+      Image nodelet
+    </description>
+  </class>
+</library>
