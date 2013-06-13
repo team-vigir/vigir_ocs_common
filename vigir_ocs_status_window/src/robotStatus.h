@@ -60,13 +60,12 @@ private:
     QCheckBox* showError;
 
     QStringList labels;
-
+    std::string messagesPath;
     std::vector<completeRow*> messages;
     std::vector<std::string> errors;
     QFont bold;
     QFont normal;
     ros::Subscriber rosSubscriber;
-    QFile messagesFile;
     void loadFile();
     void updateTable();
     //QTreeWidget* jointTable;
