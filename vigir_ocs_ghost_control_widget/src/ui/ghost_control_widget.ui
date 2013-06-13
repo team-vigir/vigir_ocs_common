@@ -456,20 +456,6 @@
               </property>
              </widget>
             </item>
-            <item row="0" column="3">
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>Use Collision Avoidance</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="4">
-             <widget class="QCheckBox" name="collision_">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
            </layout>
           </widget>
          </item>

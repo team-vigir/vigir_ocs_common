@@ -1,7 +1,7 @@
 #include "joint_limit.h"
 #include "ui_joint_limit.h"
 #include <ros/package.h>
-#include <flor_planning_msgs/JointPositionConstraints.h>
+#include <flor_planning_msgs/PlannerConfiguration.h>
 
 joint_limit::joint_limit(QWidget *parent) :
     QWidget(parent),
@@ -9,7 +9,7 @@ joint_limit::joint_limit(QWidget *parent) :
 {
     ui->setupUi(this);
     ros::NodeHandle nh;
-    constraints_pub_ = nh.advertise<flor_planning_msgs::JointPositionConstraints>( "/flor/planning/torso_position_constraints",1,false);
+    constraints_pub_ = nh.advertise<flor_planning_msgs::JointPositionConstraints>( "/flor/planning/upper_body/configuration",1,false);
     timer.start(33, this);
     lbzMinVal = -0.610865;
     lbzMaxVal = 0.610865;
@@ -93,20 +93,24 @@ void joint_limit::on_ubxMax_sliderReleased()
 
 void joint_limit::on_apply_clicked()
 {
-    flor_planning_msgs::JointPositionConstraints msg;
+    flor_planning_msgs::PlannerConfiguration msg;
 
-    msg.back_lbz_max.data = (float)lbzMaxVal;
-    msg.back_lbz_min.data = (float)lbzMinVal;
+    msg.joint_position_constraints.back_lbz_max.data = (float)lbzMaxVal;
+    msg.joint_position_constraints.back_lbz_min.data = (float)lbzMinVal;
 
-    msg.back_mby_max.data = (float)mbyMaxVal;
-    msg.back_mby_min.data = (float)mbyMinVal;
+    msg.joint_position_constraints.back_mby_max.data = (float)mbyMaxVal;
+    msg.joint_position_constraints.back_mby_min.data = (float)mbyMinVal;
 
-    msg.back_ubx_max.data = (float)ubxMaxVal;
-    msg.back_ubx_min.data = (float)ubxMinVal;
+    msg.joint_position_constraints.back_ubx_max.data = (float)ubxMaxVal;
+    msg.joint_position_constraints.back_ubx_min.data = (float)ubxMinVal;
     std::cout << "The following values were set:" <<std::endl;
     std::cout << "lbz: max = " << ui->lbzMax->value() << " min = " << ui->lbzMin->value() << std::endl;
     std::cout << "mby: max = " << ui->mbyMax->value() << " min = " << ui->mbyMin->value() << std::endl;
     std::cout << "ubx: max = " << ui->ubxMax->value() << " min = " << ui->ubxMin->value() << std::endl << std::endl;
+
+    msg.disable_collision_avoidance.data = !ui->collision_avoidance_->isChecked();
+    msg.robot_collision_padding.data = ui->padding_->value();
+
     constraints_pub_.publish(msg);
 }
 

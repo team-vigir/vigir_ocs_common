@@ -66,7 +66,7 @@ void GhostControlWidget::publishState( bool snap )
     cmd.planning_group = saved_state_planning_group_;
     cmd.pose_source = saved_state_pose_source_;
     cmd.world_lock = saved_state_world_lock_;
-    cmd.collision_avoidance = saved_state_collision_avoidance_;
+    //cmd.collision_avoidance = saved_state_collision_avoidance_;
     cmd.lock_pelvis = saved_state_lock_pelvis_;
     cmd.snap = snap;
     state_pub_.publish(cmd);
@@ -90,7 +90,7 @@ void GhostControlWidget::saveState()
     saved_state_world_lock_.push_back(ui->lock_right_->isChecked());
     saved_state_world_lock_.push_back(ui->lock_torso_->isChecked());
 
-    saved_state_collision_avoidance_ = ui->collision_->isChecked();
+    //saved_state_collision_avoidance_ = ui->collision_->isChecked();
 
     saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();
 
@@ -113,7 +113,7 @@ void GhostControlWidget::loadState(std::vector<unsigned char> planning_group, st
     ui->lock_right_->setChecked(world_lock[1]);
     ui->lock_torso_->setChecked(world_lock[2]);
 
-    ui->collision_->setChecked(collision_avoidance);
+    //ui->collision_->setChecked(collision_avoidance);
 
     ui->lock_pelvis_->setChecked(lock_pelvis);
 }

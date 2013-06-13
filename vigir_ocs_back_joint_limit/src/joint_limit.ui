@@ -6,269 +6,342 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>430</width>
-    <height>270</height>
+    <width>440</width>
+    <height>301</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>joint_limit</string>
+   <string>PlannerConfigurationWidget</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>yaw(back_lbz)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_5">
-           <item>
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>min</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="lbzMin">
-             <property name="minimum">
-              <number>-610865</number>
-             </property>
-             <property name="maximum">
-              <number>610865</number>
-             </property>
-             <property name="value">
-              <number>-610865</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="lbzMinLabel">
-             <property name="text">
-              <string>-0.610865</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_7">
-           <item>
-            <widget class="QLabel" name="label_3">
-             <property name="text">
-              <string>max</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="lbzMax">
-             <property name="minimum">
-              <number>-610865</number>
-             </property>
-             <property name="maximum">
-              <number>610865</number>
-             </property>
-             <property name="value">
-              <number>610865</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="lbzMaxLabel">
-             <property name="text">
-              <string>0.610865</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <item>
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>pitch(back_mby)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_8">
-           <item>
-            <widget class="QLabel" name="label_6">
-             <property name="text">
-              <string>min</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="mbyMin">
-             <property name="minimum">
-              <number>-120</number>
-             </property>
-             <property name="maximum">
-              <number>128</number>
-             </property>
-             <property name="value">
-              <number>-120</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="mbyMinLabel">
-             <property name="text">
-              <string>-1.2</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_9">
-           <item>
-            <widget class="QLabel" name="label_7">
-             <property name="text">
-              <string>max</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="mbyMax">
-             <property name="minimum">
-              <number>-120</number>
-             </property>
-             <property name="maximum">
-              <number>128</number>
-             </property>
-             <property name="value">
-              <number>128</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="mbyMaxLabel">
-             <property name="text">
-              <string>1.28</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>roll(back_ubx)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_5">
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_10">
-           <item>
-            <widget class="QLabel" name="label_8">
-             <property name="text">
-              <string>min</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="ubxMin">
-             <property name="minimum">
-              <number>-790809</number>
-             </property>
-             <property name="maximum">
-              <number>790809</number>
-             </property>
-             <property name="value">
-              <number>-790809</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="ubxMinLabel">
-             <property name="text">
-              <string>-0.790809</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_11">
-           <item>
-            <widget class="QLabel" name="label_9">
-             <property name="text">
-              <string>max</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="ubxMax">
-             <property name="minimum">
-              <number>-790809</number>
-             </property>
-             <property name="maximum">
-              <number>790809</number>
-             </property>
-             <property name="singleStep">
-              <number>0</number>
-             </property>
-             <property name="value">
-              <number>790809</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="ubxMaxLabel">
-             <property name="text">
-              <string>0.790809</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </item>
-    </layout>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Torso Constraints</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>9</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>yaw(back_lbz)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <item>
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>min</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="lbzMin">
+                <property name="minimum">
+                 <number>-610865</number>
+                </property>
+                <property name="maximum">
+                 <number>610865</number>
+                </property>
+                <property name="value">
+                 <number>-610865</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="lbzMinLabel">
+                <property name="text">
+                 <string>-0.610865</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_7">
+              <item>
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>max</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="lbzMax">
+                <property name="minimum">
+                 <number>-610865</number>
+                </property>
+                <property name="maximum">
+                 <number>610865</number>
+                </property>
+                <property name="value">
+                 <number>610865</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="lbzMaxLabel">
+                <property name="text">
+                 <string>0.610865</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>pitch(back_mby)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_8">
+              <item>
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>min</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="mbyMin">
+                <property name="minimum">
+                 <number>-120</number>
+                </property>
+                <property name="maximum">
+                 <number>128</number>
+                </property>
+                <property name="value">
+                 <number>-120</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="mbyMinLabel">
+                <property name="text">
+                 <string>-1.2</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_9">
+              <item>
+               <widget class="QLabel" name="label_7">
+                <property name="text">
+                 <string>max</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="mbyMax">
+                <property name="minimum">
+                 <number>-120</number>
+                </property>
+                <property name="maximum">
+                 <number>128</number>
+                </property>
+                <property name="value">
+                 <number>128</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="mbyMaxLabel">
+                <property name="text">
+                 <string>1.28</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>roll(back_ubx)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_10">
+              <item>
+               <widget class="QLabel" name="label_8">
+                <property name="text">
+                 <string>min</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="ubxMin">
+                <property name="minimum">
+                 <number>-790809</number>
+                </property>
+                <property name="maximum">
+                 <number>790809</number>
+                </property>
+                <property name="value">
+                 <number>-790809</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="ubxMinLabel">
+                <property name="text">
+                 <string>-0.790809</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_11">
+              <item>
+               <widget class="QLabel" name="label_9">
+                <property name="text">
+                 <string>max</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="ubxMax">
+                <property name="minimum">
+                 <number>-790809</number>
+                </property>
+                <property name="maximum">
+                 <number>790809</number>
+                </property>
+                <property name="singleStep">
+                 <number>0</number>
+                </property>
+                <property name="value">
+                 <number>790809</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="ubxMaxLabel">
+                <property name="text">
+                 <string>0.790809</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widget" native="true">
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <item row="1" column="1">
+       <widget class="QDoubleSpinBox" name="padding_">
+        <property name="minimum">
+         <double>-0.200000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.010000000000000</double>
+        </property>
+        <property name="value">
+         <double>0.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string>Link Padding</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Collision Avoidance</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="collision_avoidance_">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item>
     <widget class="QPushButton" name="apply">
