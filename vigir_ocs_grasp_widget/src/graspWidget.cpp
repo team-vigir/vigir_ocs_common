@@ -88,7 +88,7 @@ graspWidget::~graspWidget()
 
 void graspWidget::timerEvent(QTimerEvent *event)
 {
-    if(currentGraspMode != 1)
+    if(currentGraspMode != 1 || !ui->graspBox->isEnabled())
         hideHand();
 
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
