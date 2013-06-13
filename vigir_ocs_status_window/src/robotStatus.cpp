@@ -271,7 +271,7 @@ void robotStatus::loadFile()
             {
                 QStringList strings;
                 strings = line.split(',');
-                if(strings.size() == 2)
+                if(strings.size() > 1)
                 {
                     errors[strings[0].toInt()] = strings[1].toStdString();
                     std::cout << "Msg # " << strings[0].toStdString() << ":" << strings[1].toStdString() <<std::endl;

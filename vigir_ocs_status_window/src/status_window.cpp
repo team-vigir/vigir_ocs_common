@@ -46,8 +46,9 @@ void status_window::controlModeMsgRecieved(const flor_control_msgs::FlorControlM
     case flor_control_msgs::FlorControlMode::UPRIGHT:
         ui->postureLabel->setText(QString::fromStdString("Upright"));
         break;
-    case flor_control_msgs::FlorControlMode::VERTICAL:
-        ui->postureLabel->setText(QString::fromStdString("Verticle"));
+    case flor_control_msgs::FlorControlMode::VERTICAL: // posture can be Upright and Vertical
+    case (flor_control_msgs::FlorControlMode::VERTICAL + flor_control_msgs::FlorControlMode::UPRIGHT):
+        ui->postureLabel->setText(QString::fromStdString("Vertical"));
         break;
     case flor_control_msgs::FlorControlMode::HEAD_STAND:
         ui->postureLabel->setText(QString::fromStdString("Head Stand"));
