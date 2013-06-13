@@ -146,15 +146,30 @@ void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth:
     }
     ui->downTotalLabel->setText(QString::number(total_read));
     ui->upTotalLabel->setText(QString::number(total_sent));
+
 //    total_bytes_sent_item = new QTableWidgetItem(QString::number(total_sent));
 //    total_bytes_read_item = new QTableWidgetItem(QString::number(total_read));
 //    QTableWidgetItem* name = new QTableWidgetItem(QString::fromStdString("TOTAL"));
 //    ui->tableWidget->setItem(node_bandwidth_info_.size(),0,name);
 //    ui->tableWidget->setItem(node_bandwidth_info_.size(),1,total_bytes_read_item);
 //    ui->tableWidget->setItem(node_bandwidth_info_.size(),2,total_bytes_sent_item);
+    if(total_read > 0 )
+    {
+        double temp = (double)(node_bandwidth_info_[rcv_index].total_bytes_read)/(double)total_read;
+        QString percent = QString::number(node_bandwidth_info_[rcv_index].total_bytes_read);
+        percent.append(QString::fromStdString(" (")).append(QString::number(temp)).append(QString::fromStdString(" %)"));
+        item = new QTableWidgetItem(percent);
+        ui->tableWidget->setItem(rcv_index,1,item);
+    }
+    if(total_sent > 0 )
+    {
+        double temp = (double)(node_bandwidth_info_[rcv_index].total_bytes_sent)/(double)total_sent;
+        QString percent = QString::number(node_bandwidth_info_[rcv_index].total_bytes_sent);
+        percent.append(QString::fromStdString(" (")).append(QString::number(temp)).append(QString::fromStdString(" %)"));
+        item = new QTableWidgetItem(percent);
+        ui->tableWidget->setItem(rcv_index,2,item);
+    }
 
-    //double temp = (double)(node_bandwidth_info_[rcv_index].total_bytes_read)/(double)total_read;
-    //item = new QTableWidgetItem(QString::number(temp));
     //ui->tableWidget->setItem(rcv_index,4,item);
     //item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].total_bytes_sent/total_sent));
     //ui->tableWidget->setItem(rcv_index,3,item);
@@ -200,14 +215,18 @@ void BandwidthWidget::processVRCData(const flor_ocs_msgs::VRCdata::ConstPtr& msg
     ui->message->setText(QString(msg->message.c_str()));
     if(!bytes_remaining_initialized && msg->downlink_bytes_remaining < UINT_MAX)
     {
+        std::cout << "got max upload = " << msg->uplink_bytes_remaining << " max download = " <<msg->downlink_bytes_remaining <<std::endl;
         down_max = msg->downlink_bytes_remaining;
-        up_max = msg->downlink_bytes_remaining;
+        up_max = msg->uplink_bytes_remaining;
         bytes_remaining_initialized = true;
     }
     else if (bytes_remaining_initialized)
     {
-        ui->down_remaining_bar->setValue((msg->downlink_bytes_remaining/down_max)*1000);
-        ui->up_remaining_bar->setValue((msg->uplink_bytes_remaining/up_max)*1000);
+        float down = (msg->downlink_bytes_remaining / (double)down_max)*1000.0;
+        float up = msg->uplink_bytes_remaining/up_max*1000.0;
+        std::cout << "new usage message recieved up = " << up << " down = " <<down <<  " dwn_raw = " << msg->downlink_bytes_remaining << std::endl;
+        ui->down_remaining_bar->setValue((msg->downlink_bytes_remaining/(double)down_max)*1000.0);
+        ui->up_remaining_bar->setValue((msg->uplink_bytes_remaining/(double)up_max)*1000.0);
     }
     //ui->remaining_download->setText(QString::number(msg->downlink_bytes_remaining));
     //ui->remaining_upload->setText(QString::number(msg->uplink_bytes_remaining));
