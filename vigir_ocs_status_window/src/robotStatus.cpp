@@ -60,7 +60,7 @@ robotStatus::robotStatus(QWidget *parent) :
     std::cerr << "Reading messages from <" << messagesFile.fileName().toStdString() << ">" << fileName <<std::endl;
     loadFile();
 
-    rosSubscriber = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/robot_status", 100, &robotStatus::recievedMessage, this );
+    rosSubscriber = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &robotStatus::recievedMessage, this );
     std::cout << "Done setting up waiting for messages." << std::endl;
     ros::spinOnce();
     clearButton->connect(clearButton,SIGNAL(clicked()),this,SLOT(on_clearButton_clicked()));
