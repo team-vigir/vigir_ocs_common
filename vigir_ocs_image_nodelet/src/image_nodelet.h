@@ -26,8 +26,8 @@ namespace ocs_image
       public:
         virtual void onInit();
 
-        void processImage( const ros::MessageEvent<sensor_msgs::Image const>& event );
-        void processCameraInfo( const ros::MessageEvent<sensor_msgs::CameraInfo const>& event );
+        void processImage( const ros::MessageEvent<sensor_msgs::Image const>& event, const std::string& topic );
+        void processCameraInfo( const ros::MessageEvent<sensor_msgs::CameraInfo const>& event, const std::string& topic );
         void processImageListRequest( const std_msgs::Bool::ConstPtr& msg );
         void processImageSelected( const std_msgs::UInt64::ConstPtr& msg );
 
@@ -58,5 +58,7 @@ namespace ocs_image
         std::vector<ImageStruct> image_history_;
 
         unsigned long id_counter_;
+
+        boost::mutex image_history_mutex_;
     };
 }
