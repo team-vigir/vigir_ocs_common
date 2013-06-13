@@ -57,6 +57,7 @@ public Q_SLOTS:
     void on_sendCommand_clicked();
     void on_timeFactorSlider_valueChanged(int value);
     void quickButtonClicked();
+    void on_enableQuickButtons_clicked();
 
 protected:
     void timerEvent(QTimerEvent *event);

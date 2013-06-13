@@ -30,6 +30,15 @@ void motion_selector::timerEvent(QTimerEvent *event)
     ros::spinOnce();
 }
 
+void motion_selector::on_enableQuickButtons_clicked()
+{
+    for(int i=0;i<quickButtonList.size();i++)
+    {
+        quickButtonList[i]->button->setEnabled(ui->enableQuickButtons->isChecked());
+        quickButtonList[i]->timeFactor->setEnabled(ui->enableQuickButtons->isChecked());
+    }
+}
+
 void motion_selector::setupQuickButtons(QString path)
 {
     QFile file(path);
@@ -71,11 +80,14 @@ void motion_selector::setupQuickButtons(QString path)
                         newQB->timeFactor = new QDoubleSpinBox();
                         newQB->button->setText(strings[1]);
                         newQB->timeFactor->setValue(strings[2].toDouble());
+                        newQB->button->setEnabled(false);
+                        newQB->timeFactor->setEnabled(false);
                         connect(newQB->button, SIGNAL(clicked()),this,SLOT(quickButtonClicked()));
                         QVBoxLayout* layout = new QVBoxLayout;
                         layout->setDirection(QBoxLayout::LeftToRight);
                         layout->addWidget(newQB->button);
                         layout->addWidget(newQB->timeFactor);
+                        quickButtonList.push_back(newQB);
                         switch(strings[0].toInt())
                         {
                         case 1:
