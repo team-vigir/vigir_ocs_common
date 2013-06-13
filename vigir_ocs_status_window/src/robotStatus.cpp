@@ -230,6 +230,10 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
     //std::cout << "Item added sucessfuly..." << std::endl;
     if(messages.size() > maxRows)
     {
+        if(messages[messages.size()-1]->priority->text() == "Warn")
+            numWarn--;
+        else if(messages[messages.size()-1]->priority->text() == "Error")
+            numError--;
         messages.pop_back();
         msgTable->removeRow(maxRows);
     }
@@ -244,7 +248,7 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
 //        msgTable->setItem(i,2,new QTableWidgetItem);
 //    }
 
-//    for(int i = 0; i <= messages.size(); i++)
+//    for(int i = 0; i(messages[row]) <= messages.size(); i++)
 //    {
 //        msgTable->setItem(i,0,messages[i]->time);
 //        msgTable->setItem(i,1,messages[i]->priority);
