@@ -60,7 +60,7 @@ robotStatus::robotStatus(QWidget *parent) :
     std::cerr << "Reading messages from <" << messagesFile.fileName().toStdString() << ">" << fileName <<std::endl;
     loadFile();
 
-    rosSubscriber = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/robot_status", 100, &robotStatus::recievedMessage, this );
+    rosSubscriber = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &robotStatus::recievedMessage, this );
     std::cout << "Done setting up waiting for messages." << std::endl;
     ros::spinOnce();
     clearButton->connect(clearButton,SIGNAL(clicked()),this,SLOT(on_clearButton_clicked()));
@@ -184,7 +184,7 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
         text->setText(QString::fromStdString(errors[msgNum]));
     else
     {
-        QString tempMessage = "CaJoint Lisnnot find data file but recieved msg num ";
+        QString tempMessage = "Cannot find data file but recieved msg num ";
         tempMessage+= QString::number(msgNum);
         text->setText(tempMessage);
         text->setBackground(Qt::red);
@@ -204,7 +204,7 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
     messages[0]->priority = msgType;
     messages[0]->text = text;
     msgTable->insertRow(0);
-    std::cout << "Adding item to table... " << messages.size() <<  " " << messages[0]->text << std::endl;
+    //std::cout << "Adding item to table... " << messages.size() <<  " " << messages[0]->text << std::endl;
     msgTable->setItem(0,0,messages[0]->time);
     msgTable->setItem(0,1,messages[0]->priority);
     msgTable->setItem(0,2,messages[0]->text);
@@ -227,9 +227,13 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
     }
     else
         msgTable->hideRow(0);
-    std::cout << "Item added sucessfuly..." << std::endl;
+    //std::cout << "Item added sucessfuly..." << std::endl;
     if(messages.size() > maxRows)
     {
+        if(messages[messages.size()-1]->priority->text() == "Warn")
+            numWarn--;
+        else if(messages[messages.size()-1]->priority->text() == "Error")
+            numError--;
         messages.pop_back();
         msgTable->removeRow(maxRows);
     }
@@ -244,7 +248,7 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
 //        msgTable->setItem(i,2,new QTableWidgetItem);
 //    }
 
-//    for(int i = 0; i <= messages.size(); i++)
+//    for(int i = 0; i(messages[row]) <= messages.size(); i++)
 //    {
 //        msgTable->setItem(i,0,messages[i]->time);
 //        msgTable->setItem(i,1,messages[i]->priority);

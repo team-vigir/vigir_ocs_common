@@ -7,6 +7,7 @@
 #include <QRegExp>
 #include <QStringList>
 #include <QBoxLayout>
+#include <ros/package.h>
 
 motion_selector::motion_selector(QWidget *parent) :
     QMainWindow(parent),
@@ -14,8 +15,8 @@ motion_selector::motion_selector(QWidget *parent) :
 {
     ui->setupUi(this);
     sliderVal = 1.00;
-    processTextFile(QString::fromStdString("/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_motion_selector/src/tree.txt"));
-    setupQuickButtons(QString::fromStdString("/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_motion_selector/src/quickButtons.txt"));
+    processTextFile(QString::fromStdString(ros::package::getPath("vigir_ocs_motion_selector") + "/src/tree.txt"));
+    setupQuickButtons(QString::fromStdString(ros::package::getPath("vigir_ocs_motion_selector") + "/src/quickButtons.txt"));
     //ros::
     std::cout << "File done processing now populatin the tree." << std::endl;
     populateTree();

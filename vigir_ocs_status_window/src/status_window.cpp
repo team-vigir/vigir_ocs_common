@@ -1,3 +1,4 @@
+
 #include "status_window.h"
 #include "ui_status_window.h"
 #include "jointList.h"
@@ -50,9 +51,6 @@ void status_window::controlModeMsgRecieved(const flor_control_msgs::FlorControlM
         break;
     case flor_control_msgs::FlorControlMode::HEAD_STAND:
         ui->postureLabel->setText(QString::fromStdString("Head Stand"));
-        break;
-    case flor_control_msgs::FlorControlMode::STABLE:
-        ui->postureLabel->setText(QString::fromStdString("Stable"));
         break;
     default:
         ui->postureLabel->setText(QString::fromStdString("Unknown Posture"));
