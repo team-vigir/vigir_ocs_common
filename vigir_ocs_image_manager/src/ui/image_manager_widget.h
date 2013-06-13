@@ -13,9 +13,6 @@
 #include <QtGui>
 
 #include <flor_ocs_msgs/OCSImageList.h>
-#include <flor_ocs_msgs/OCSImageRemove.h>
-#include <flor_grasp_msgs/GraspSelection.h>
-#include <flor_grasp_msgs/ImageSelection.h>
 #include <geometry_msgs/Pose.h>
 #include <ros/ros.h>
 
@@ -37,7 +34,7 @@ public:
     explicit ImageManagerWidget(QWidget *parent = 0);
     ~ImageManagerWidget();
 
-    void processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg);
+    /*void processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg);
     void removeImage(int id);
 
     void initImageIdMap();
@@ -45,16 +42,16 @@ public:
 
     std::vector< std::vector<QString> > readTextDBFile(QString path);
 
-    void configureGrasps(std::string image_name, QComboBox* combo_box);
+    void configureGrasps(std::string image_name, QComboBox* combo_box);*/
 
 public Q_SLOTS:
-    void editSlot(int,int);
+    //void editSlot(int,int);
     
 private:
 
     Ui::ImageManagerWidget* ui;
 
-    QString image_dir_path_;
+    /*QString image_dir_path_;
     QString grasp_db_path_;
     QString image_id_db_path_;
 
@@ -76,7 +73,7 @@ private:
     ros::Subscriber image_list_sub_;
     ros::Publisher image_remove_pub_;
     ros::Publisher image_match_request_pub_;
-    ros::Publisher grasp_request_pub_;
+    ros::Publisher grasp_request_pub_;*/
 
 protected:
     void timerEvent(QTimerEvent *event);

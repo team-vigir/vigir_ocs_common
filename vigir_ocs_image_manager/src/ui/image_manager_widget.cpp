@@ -14,7 +14,7 @@ ImageManagerWidget::ImageManagerWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ImageManagerWidget)
 {    
-    // Use "images" package.  @TODO make this a parameter
+/*    // Use "images" package.  @TODO make this a parameter
     std::string image_path = ros::package::getPath("images")+"/";//vigir_grasp_control") + "/../images/";
     std::cout << "--------------<" << image_path << ">\n" << std::endl;
 
@@ -40,7 +40,7 @@ ImageManagerWidget::ImageManagerWidget(QWidget *parent) :
     image_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSImageRemove>( "/image/remove", 1, false );
 
     // advertise the grasp selection
-    grasp_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/image/grasp_request", 1, false );
+    grasp_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/image/grasp_request", 1, false );*/
 
     timer.start(33, this);
 }
@@ -55,7 +55,7 @@ void ImageManagerWidget::timerEvent(QTimerEvent *event)
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
 }
-
+/*
 void ImageManagerWidget::initImageIdMap()
 {
     std::vector< std::vector<QString> > db = readTextDBFile(image_id_db_path_);
@@ -289,4 +289,4 @@ void ImageManagerWidget::editSlot(int row, int col)
             }
         }
     }
-}
+}*/
