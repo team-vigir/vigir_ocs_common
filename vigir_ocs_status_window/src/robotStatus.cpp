@@ -184,7 +184,7 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
         text->setText(QString::fromStdString(errors[msgNum]));
     else
     {
-        QString tempMessage = "CaJoint Lisnnot find data file but recieved msg num ";
+        QString tempMessage = "Cannot find data file but recieved msg num ";
         tempMessage+= QString::number(msgNum);
         text->setText(tempMessage);
         text->setBackground(Qt::red);
@@ -204,7 +204,7 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
     messages[0]->priority = msgType;
     messages[0]->text = text;
     msgTable->insertRow(0);
-    std::cout << "Adding item to table... " << messages.size() <<  " " << messages[0]->text << std::endl;
+    //std::cout << "Adding item to table... " << messages.size() <<  " " << messages[0]->text << std::endl;
     msgTable->setItem(0,0,messages[0]->time);
     msgTable->setItem(0,1,messages[0]->priority);
     msgTable->setItem(0,2,messages[0]->text);
@@ -227,7 +227,7 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
     }
     else
         msgTable->hideRow(0);
-    std::cout << "Item added sucessfuly..." << std::endl;
+    //std::cout << "Item added sucessfuly..." << std::endl;
     if(messages.size() > maxRows)
     {
         messages.pop_back();
