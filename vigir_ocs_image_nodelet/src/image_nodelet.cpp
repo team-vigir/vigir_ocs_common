@@ -8,7 +8,6 @@ void ImageNodelet::onInit()
     image_list_pub_ = nh_.advertise<flor_ocs_msgs::OCSImageList>( "/flor/ocs/image_history/list", 1, false );
     image_added_pub_ = nh_.advertise<flor_ocs_msgs::OCSImageAdd>( "/flor/ocs/image_history/add", 1, false );
 
-
     // initialize subscribers for image manager topics
     image_list_request_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/image_history/list_request", 5, &ImageNodelet::processImageListRequest, this );
     image_selected_sub_ = nh_.subscribe<std_msgs::UInt64>( "/flor/ocs/image_history/select_image", 5, &ImageNodelet::processImageSelected, this );
@@ -44,14 +43,31 @@ void ImageNodelet::onInit()
 
 }
 
-void ImageNodelet::publishImageAdded()
+void ImageNodelet::publishImageAdded(const unsigned long &id)
 {
+    flor_ocs_msgs::OCSImageAdd msg;
 
+    msg.id = image_history_[id].id;
+    msg.topic = image_history_[id].topic;
+    msg.image = image_history_[id].image;
+    msg.camera_info = image_history_[id].camera_info;
+
+    image_list_pub_.publish(msg);
 }
 
 void ImageNodelet::publishImageList()
 {
+    flor_ocs_msgs::OCSImageList msg;
 
+    for(int i = 0; i < image_history_.size(); i++)
+    {
+        msg.id.push_back(image_history_[i].id);
+        msg.topic.push_back(image_history_[i].topic);
+        msg.image.push_back(image_history_[i].image);
+        msg.camera_info.push_back(image_history_[i].camera_info);
+    }
+
+    image_list_pub_.publish(msg);
 }
 
 void ImageNodelet::publishImageToOCS(const unsigned long &id)
@@ -105,6 +121,7 @@ void ImageNodelet::processImage( const ros::MessageEvent<sensor_msgs::Image cons
     {
         std::cout << "Adding Image to existing history image (" << image_history_[image_index].id << ")." << std::endl;
         image_history_[image_index].image = *msg;
+        publishImageAdded(image_index);
     }
 }
 
@@ -142,6 +159,7 @@ void ImageNodelet::processCameraInfo( const ros::MessageEvent<sensor_msgs::Camer
     {
         std::cout << "Adding CameraInfo to existing history image (" << image_history_[image_index].id << ")." << std::endl;
         image_history_[image_index].camera_info = *msg;
+        publishImageAdded(image_index);
     }
 }
 
@@ -158,8 +176,6 @@ void ImageNodelet::processImageSelected(const std_msgs::UInt64::ConstPtr &msg)
 
     publishImageToOCS(msg->data);
 }
-
-
 }
 
 PLUGINLIB_DECLARE_CLASS (vigir_ocs_image_nodelet, ImageNodelet, ocs_image::ImageNodelet, nodelet::Nodelet);

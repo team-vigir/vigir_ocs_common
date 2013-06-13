@@ -13,7 +13,14 @@
 #include <QtGui>
 
 #include <flor_ocs_msgs/OCSImageList.h>
-#include <geometry_msgs/Pose.h>
+#include <flor_ocs_msgs/OCSImageAdd.h>
+
+#include <std_msgs/Bool.h>
+#include <std_msgs/UInt64.h>
+
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/CameraInfo.h>
+
 #include <ros/ros.h>
 
 namespace rviz
@@ -34,8 +41,9 @@ public:
     explicit ImageManagerWidget(QWidget *parent = 0);
     ~ImageManagerWidget();
 
-    /*void processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg);
-    void removeImage(int id);
+    void processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr& msg);
+    void processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg);
+    /*void removeImage(int id);
 
     void initImageIdMap();
     void initGraspDB();
@@ -50,6 +58,14 @@ public Q_SLOTS:
 private:
 
     Ui::ImageManagerWidget* ui;
+
+    ros::NodeHandle nh_;
+
+    ros::Publisher image_list_request_pub_;
+    ros::Publisher image_selected_pub_;
+
+    ros::Subscriber image_list_sub_;
+    ros::Subscriber image_added_sub_;
 
     /*QString image_dir_path_;
     QString grasp_db_path_;

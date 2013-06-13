@@ -32,7 +32,7 @@ namespace ocs_image
         void processImageSelected( const std_msgs::UInt64::ConstPtr& msg );
 
         void publishImageList();
-        void publishImageAdded();
+        void publishImageAdded( const unsigned long& id );
         void publishImageToOCS( const unsigned long& id );
 
       private:
