@@ -224,7 +224,6 @@ void CameraViewerCustom::requestSingleFeedImage()
 
 void CameraViewerCustom::requestSingleAreaImage()
 {
-    disableSelection();
     area_rate_ = 0;
     applyAreaChanges();
 }

@@ -798,9 +798,9 @@ void CameraDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
     crop_height_ = ((_y2-_y1) * full_image_height_) / (rect_dim_y2_-rect_dim_y1_);
 
     // create image request message
-    publishCropImageRequest();
+    //publishCropImageRequest();
 
-    std::cout << "   image selection rect: " << crop_x_offset_ << ", " << crop_y_offset_ << " -> " << (crop_x_offset_+crop_width_) << ", " << (crop_y_offset_+crop_height_) << std::endl;
+    //std::cout << "   image selection rect: " << crop_x_offset_ << ", " << crop_y_offset_ << " -> " << (crop_x_offset_+crop_width_) << ", " << (crop_y_offset_+crop_height_) << std::endl;
 }
 
 void CameraDisplayCustom::changeFullImageResolution( int t )
