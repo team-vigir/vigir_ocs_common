@@ -53,7 +53,7 @@ public:
     void configureGrasps(std::string image_name, QComboBox* combo_box);*/
 
 public Q_SLOTS:
-    //void editSlot(int,int);
+    void imageClicked(int,int);
     
 private:
 
@@ -67,29 +67,6 @@ private:
     ros::Subscriber image_list_sub_;
     ros::Subscriber image_added_sub_;
 
-    /*QString image_dir_path_;
-    QString grasp_db_path_;
-    QString image_id_db_path_;
-
-    std::map<unsigned char,std::string> image_id_map_;
-    typedef struct
-    {
-        unsigned short grasp_id;
-        unsigned char image_type;
-        std::string image_name;
-        std::string hand;
-        std::string initial_grasp_type;
-        float finger_joints[12];
-        geometry_msgs::Pose final_pose;
-        geometry_msgs::Pose pre_grasp_pose;
-    } GraspDBItem;
-    std::vector<GraspDBItem> grasp_db_;
-
-    ros::NodeHandle nh_;
-    ros::Subscriber image_list_sub_;
-    ros::Publisher image_remove_pub_;
-    ros::Publisher image_match_request_pub_;
-    ros::Publisher grasp_request_pub_;*/
 
 protected:
     void timerEvent(QTimerEvent *event);

@@ -52,7 +52,7 @@ void ImageNodelet::publishImageAdded(const unsigned long &id)
     msg.image = image_history_[id].image;
     msg.camera_info = image_history_[id].camera_info;
 
-    image_list_pub_.publish(msg);
+    image_added_pub_.publish(msg);
 }
 
 void ImageNodelet::publishImageList()
@@ -74,6 +74,9 @@ void ImageNodelet::publishImageToOCS(const unsigned long &id)
 {
     if(id >= image_history_.size())
         return;
+
+    ROS_ERROR("(%ld) Sending to topic %s",id,(image_history_[id].topic+"/history/image_raw").c_str());
+    ROS_ERROR("(%ld) Sending to topic %s",id,(image_history_[id].topic+"/history/camera_info").c_str());
 
     // update timestamp and publish
     ros::Time now = ros::Time::now();

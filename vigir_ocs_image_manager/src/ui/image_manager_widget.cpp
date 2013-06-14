@@ -9,7 +9,6 @@
 #include <QSignalMapper>
 
 
-
 ImageManagerWidget::ImageManagerWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ImageManagerWidget)
@@ -44,58 +43,65 @@ void ImageManagerWidget::timerEvent(QTimerEvent *event)
 
 void ImageManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
 {
-    int row = ui->tableWidget->rowCount()+1;
-    ui->tableWidget->setRowCount(row);
+    unsigned char image_data[1000*1000*3];
+    int row = ui->tableWidget->rowCount();
+    ui->tableWidget->setRowCount(row+1);
+    ui->tableWidget->setRowHeight(row,100);
 
     // add info about images to the table
     QSignalMapper* signalMapper = new QSignalMapper(this);
     QTableWidgetItem * item;
 
-    //std::cout << "Image: " << msg->image_list[i] << std::endl;
+    // image
+    item = new QTableWidgetItem();
 
-    /*float px,py,pz;
-    px = msg->pose[i].pose.position.x;
-    py = msg->pose[i].pose.position.y;
-    pz = msg->pose[i].pose.position.z;
-    float qx,qy,qz,qw;
-    qw= msg->pose[i].pose.orientation.w;
-    qx= msg->pose[i].pose.orientation.x;
-    qy= msg->pose[i].pose.orientation.y;
-    qz= msg->pose[i].pose.orientation.z;
+    ROS_ERROR("Encoding: %s", msg->image.encoding.c_str());
 
-    // remove   id   name   position   orientation   parentframe   grasp   confirmgrasp
-    item = new QTableWidgetItem(QString("REMOVE"));
-    item->setBackground(QBrush(QColor(200,200,200)));
-    item->setForeground(QBrush(QColor(20,20,20)));
-    item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEditable);
-    ui->tableWidget->setItem(i,0,item);
-    item = new QTableWidgetItem(QString::number(msg->image_id_list[i]));
-    ui->tableWidget->setItem(i,1,item);
-    item = new QTableWidgetItem(QString::fromUtf8(msg->image_list[i].substr(0,msg->image_list[i].size()-5).c_str()));
-    ui->tableWidget->setItem(i,2,item);
-    item = new QTableWidgetItem(QString::number(px)+", "+QString::number(py)+", "+QString::number(pz));
-    ui->tableWidget->setItem(i,3,item);
-    item = new QTableWidgetItem(QString::number(qx)+", "+QString::number(qy)+", "+QString::number(qz)+", "+QString::number(qw));
-    ui->tableWidget->setItem(i,4,item);
-    item = new QTableWidgetItem(QString::fromUtf8(msg->pose[i].header.frame_id.c_str()));
-    ui->tableWidget->setItem(i,5,item);
-    QComboBox *combo = new QComboBox();
-    configureGrasps(msg->image_list[i].substr(0,msg->image_list[i].size()-5), combo);
-    // TODO: need to create changed function to keep track of what's being visualized
-    //connect(combo, SIGNAL(currentIndexChanged(int)), signalMapper, SLOT(map()));
-    //signalMapper->setMapping(combo, QString("%1").arg(i));
-    ui->tableWidget->setCellWidget(i, 6, combo);
-    //ui->tableWidget->setItem(i,6,item);
-    item = new QTableWidgetItem(QString("MATCH"));
-    item->setBackground(QBrush(QColor(200,200,200)));
-    item->setForeground(QBrush(QColor(20,20,20)));
-    item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEditable);
-    ui->tableWidget->setItem(i,7,item);
-    item = new QTableWidgetItem(QString("GRASP"));
-    item->setBackground(QBrush(QColor(200,200,200)));
-    item->setForeground(QBrush(QColor(20,20,20)));
-    item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEditable);
-    ui->tableWidget->setItem(i,8,item);*/
+    double aspect_ratio = (double)msg->image.width/(double)msg->image.height;
+    ROS_ERROR("Size: %dx%d aspect %f", msg->image.width, msg->image.height, aspect_ratio);
+
+    QImage image;
+
+    if(msg->image.encoding == "rgb8")
+    {
+        ROS_ERROR("rgb");
+
+        // hack for the vrc
+        for(int i = 0; i < msg->image.data.size(); i++)
+            image_data[i] = msg->image.data[i];
+        QImage tmp(&image_data[0],msg->image.width,msg->image.height,QImage::Format_RGB888);
+        QPixmap pixmap = QPixmap::fromImage(tmp).scaled((unsigned int)100, (unsigned int)100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        item->setData(Qt::DecorationRole, pixmap);
+    }
+    else if(msg->image.encoding == "mono8")
+    {
+        ROS_ERROR("mono");
+
+        for(int i = 0, j = 0; i < msg->image.data.size(); i++)
+        {
+            image_data[j++] = msg->image.data[i];
+            image_data[j++] = msg->image.data[i];
+            image_data[j++] = msg->image.data[i];
+        }
+        QImage tmp(&image_data[0],msg->image.width,msg->image.height,QImage::Format_RGB888);
+        QPixmap pixmap = QPixmap::fromImage(tmp).scaled((unsigned int)100, (unsigned int)100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        item->setData(Qt::DecorationRole, pixmap);
+    }
+
+    item->setToolTip(QString::number(msg->id));
+    ui->tableWidget->setItem(row,0,item);
+
+    ROS_ERROR("Added %ld to the table",msg->id);
+
+    // source
+    item = new QTableWidgetItem(QString(msg->topic.c_str()));
+    ui->tableWidget->setItem(row,1,item);
+    // width
+    item = new QTableWidgetItem(QString::number(msg->image.width));
+    ui->tableWidget->setItem(row,2,item);
+    // height
+    item = new QTableWidgetItem(QString::number(msg->image.height));
+    ui->tableWidget->setItem(row,3,item);
 }
 
 void ImageManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg)
@@ -115,78 +121,12 @@ void ImageManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::Con
 
     image_list_sub_.shutdown();
 }
-/*
-void ImageManagerWidget::configureGrasps(std::string image_name, QComboBox* combo_box)
+
+void ImageManagerWidget::imageClicked(int row, int column)
 {
-    //std::cout << "looking for grasps for image " << image_name << std::endl;
-    // add all grasp ids to the combo box
-    for(int i = 0; i < grasp_db_.size(); i++)
-    {
-        if(image_name.compare(grasp_db_[i].image_name) == 0)
-        {
-            //std::cout << "  found " << (unsigned int)grasp_db_[i].grasp_id << std::endl;
-            combo_box->addItem(QString::number((unsigned int)grasp_db_[i].grasp_id));
-        }
-    }
+    std_msgs::UInt64 request;
+    request.data = ui->tableWidget->item(row,0)->toolTip().toULong();
+    ROS_ERROR("Clicked at %d %d    %s  %ld",row,column,ui->tableWidget->item(row,0)->toolTip().toStdString().c_str(),request.data);
+
+    image_selected_pub_.publish(request);
 }
-
-void ImageManagerWidget::removeImage(int id)
-{
-    flor_ocs_msgs::OCSImageRemove cmd;
-
-    cmd.image_id = id;
-
-    // publish image to be removed
-    image_remove_pub_.publish( cmd );
-}
-
-void ImageManagerWidget::editSlot(int row, int col)
-{
-    if(col == 0)
-    {
-        removeImage(ui->tableWidget->item(row,1)->text().toUInt() & 0x000000ff);
-    }
-    else if(col == 7)
-    {
-        flor_grasp_msgs::ImageSelection cmd;
-
-        cmd.image_id.data = ui->tableWidget->item(row,1)->text().toUInt() & 0x000000ff;
-        std::string image_name = ui->tableWidget->item(row,2)->text().toUtf8().constData();
-
-        for(int i = 0; i < grasp_db_.size(); i++)
-        {
-            if(grasp_db_[i].image_name.compare(image_name) == 0)
-            {
-                cmd.image_type.data = grasp_db_[i].image_type;
-                break;
-            }
-        }
-        cmd.pose.header.frame_id = "/world";
-
-        // publish image to be matched
-        image_match_request_pub_.publish( cmd );
-    }
-    else if(col == 8)
-    {
-        QComboBox* combo = (QComboBox*)ui->tableWidget->cellWidget(row, 6);
-        unsigned short grasp_id = combo->itemText(combo->currentIndex()).toUInt() & 0x0000ffff;
-
-        for(int i = 0; i < grasp_db_.size(); i++)
-        {
-            if(grasp_id == grasp_db_[i].grasp_id)
-            {
-                flor_grasp_msgs::GraspSelection cmd;
-
-                cmd.grasp_id.data = grasp_id;
-                cmd.image_id.data = ui->tableWidget->item(row,1)->text().toUInt() & 0x000000ff;
-                cmd.image_type.data = grasp_db_[i].image_type;
-                cmd.header.frame_id = "/world";
-
-                // publish image to be matched
-                grasp_request_pub_.publish( cmd );
-
-                break;
-            }
-        }
-    }
-}*/

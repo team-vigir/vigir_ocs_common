@@ -6,15 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>920</width>
-    <height>200</height>
+    <width>460</width>
+    <height>522</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>920</width>
-    <height>200</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>ImageManagerWidget</string>
@@ -33,47 +27,22 @@
        <widget class="QTableWidget" name="tableWidget">
         <column>
          <property name="text">
-          <string/>
+          <string>Image</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>id</string>
+          <string>Source</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>Name</string>
+          <string>Width</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>Position</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Orientation</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Parent Frame</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Grasp Pose</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string/>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string/>
+          <string>Height</string>
          </property>
         </column>
        </widget>
@@ -85,9 +54,25 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>tableWidget</sender>
+   <signal>cellClicked(int,int)</signal>
+   <receiver>ImageManagerWidget</receiver>
+   <slot>imageClicked(int,int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>229</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>229</x>
+     <y>260</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
  <slots>
-  <slot>treeItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)</slot>
-  <slot>insertButtonPressed()</slot>
+  <slot>imageClicked(int,int)</slot>
  </slots>
 </ui>
