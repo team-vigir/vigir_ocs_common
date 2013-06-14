@@ -493,10 +493,16 @@
        <property name="layoutDirection">
         <enum>Qt::LeftToRight</enum>
        </property>
+       <property name="minimum">
+        <number>-50</number>
+       </property>
        <property name="maximum">
-        <number>100</number>
+        <number>50</number>
        </property>
        <property name="value">
+        <number>0</number>
+       </property>
+       <property name="sliderPosition">
         <number>0</number>
        </property>
        <property name="orientation">
@@ -523,8 +529,11 @@
 	background-color: #05B8CC;
 }</string>
          </property>
+         <property name="minimum">
+          <number>-50</number>
+         </property>
          <property name="maximum">
-          <number>100</number>
+          <number>50</number>
          </property>
          <property name="value">
           <number>0</number>

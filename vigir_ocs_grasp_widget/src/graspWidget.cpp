@@ -116,6 +116,7 @@ void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPt
     uint8_t mode  = (graspState->grasp_state.data&0xF0) >> 4;
     uint8_t state = graspState->grasp_state.data&0x0F;
     setProgressLevel(graspState->grip.data);
+    ui->thumbGraf->setValue(graspState->thumb_effort.data);
 
     ui->userSlider->setValue(graspState->grip.data);
     ui->userSlider_2->setValue(graspState->thumb_effort.data);
