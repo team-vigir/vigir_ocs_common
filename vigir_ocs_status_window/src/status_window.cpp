@@ -29,7 +29,7 @@ status_window::status_window(QWidget *parent) :
 void status_window::controlModeMsgRecieved(const flor_control_msgs::FlorControlMode::ConstPtr& modeMsg)
 {rbtStatus->show();
     //flor_control_msgs::FlorControlMode::LEFT_SIDE_DOWN
-    switch(modeMsg->posture & 0x80)
+    switch(modeMsg->posture & 0x7F)
     {
     case flor_control_msgs::FlorControlMode::LEFT_SIDE_DOWN:
         ui->postureLabel->setText(QString::fromStdString("Left Side Down"));
@@ -56,8 +56,9 @@ void status_window::controlModeMsgRecieved(const flor_control_msgs::FlorControlM
     default:
         ui->postureLabel->setText(QString::fromStdString("Unknown Posture"));
     }
-    if(modeMsg->posture && 0x80)
+    if(modeMsg->posture & 0x80)
         ui->postureLabel->setStyleSheet("QLabel { color: green; }");
+
     ui->l_armLabel->setText(getControllerStatus(modeMsg->left_arm));
     ui->l_legLabel->setText(getControllerStatus(modeMsg->left_leg));
     ui->r_armLabel->setText(getControllerStatus(modeMsg->right_arm));
