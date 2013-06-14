@@ -195,7 +195,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     planner_start_->subProp( "Shape" )->setValue( "Axes" );
 
     planned_path_ = manager_->createDisplay( "rviz/Path", "Planned path", true );
-    planned_path_->subProp( "Topic" )->setValue( "/ros_footstep_planner/path" );
+    planned_path_->subProp( "Topic" )->setValue( "/flor/path" );
 
     set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goalpose" );
 
