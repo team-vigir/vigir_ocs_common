@@ -118,6 +118,7 @@ void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPt
     setProgressLevel(graspState->grip.data);
 
     ui->userSlider->setValue(graspState->grip.data);
+    ui->userSlider_2->setValue(graspState->thumb_effort.data);
     //std::cout << "     mode=" << uint32_t(mode) << "   state="<< uint32_t(state) << std::endl;
     switch(mode)
     {
@@ -354,17 +355,18 @@ void graspWidget::initGraspDB()
 }
 
 
-void graspWidget::sendManualMsg(uint8_t level)
+void graspWidget::sendManualMsg(uint8_t level, uint8_t thumb)
 {
     flor_grasp_msgs::GraspState cmd;
-    cmd.grip.data = level;
+    cmd.grip.data         = level;
+    cmd.thumb_effort.data = thumb;
     cmd.grasp_state.data = 4; // leave as current command
     if (ui->graspBox->currentText() == QString("CYLINDRICAL"))  cmd.grasp_state.data = 0;
     if (ui->graspBox->currentText() == QString("PRISMATIC"))    cmd.grasp_state.data = 1;
     if (ui->graspBox->currentText() == QString("SPHERICAL"))    cmd.grasp_state.data = 2;
     cmd.grasp_state.data += (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
     grasp_mode_command_pub_.publish(cmd);
-    std::cout << "Sent Manual mode message ("<< uint32_t(cmd.grasp_state.data) << ") with " <<  uint32_t(cmd.grip.data) << " manual grip level to " << hand << " hand" << std::endl;
+    std::cout << "Sent Manual mode message ("<< uint32_t(cmd.grasp_state.data) << ") with " <<  uint32_t(cmd.grip.data) << " manual grip level and " << uint32_t(cmd.thumb_effort.data) <<  " thumb effort to " << hand << " hand" << std::endl;
 }
 
 void graspWidget::on_userSlider_sliderReleased()
@@ -372,7 +374,7 @@ void graspWidget::on_userSlider_sliderReleased()
     if(ui->manualRadio->isChecked())
     {
         setProgressLevel(ui->userSlider->value());
-        sendManualMsg(ui->userSlider->value());
+        sendManualMsg(ui->userSlider->value(), ui->userSlider_2->value());
     }
     else if (ui->templateRadio->isChecked())
     {
@@ -380,7 +382,8 @@ void graspWidget::on_userSlider_sliderReleased()
         {
             flor_grasp_msgs::GraspState msg;
             msg.grasp_state.data = ((flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4) + 4;
-            msg.grip.data = ui->userSlider->value();
+            msg.grip.data        = ui->userSlider->value();
+            msg.thumb_effort.data= ui->userSlider_2->value();
             grasp_mode_command_pub_.publish(msg);
             std::cout << "Adjust feedforward to " << int32_t(ui->userSlider->value()) << " with state=" << uint32_t(msg.grasp_state.data) << std::endl;
         }
@@ -389,7 +392,8 @@ void graspWidget::on_userSlider_sliderReleased()
             std::cout << "Only relevant in template mode if the feedforward is set!  New position is " << ui->userSlider->value() << std::endl;
             flor_grasp_msgs::GraspState msg;
             msg.grasp_state.data = ((flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4) + 4;
-            msg.grip.data = 100; // can't undo grasp closure in template mode, but need to send message to clear feedforward
+            msg.grip.data        = 100; // can't undo grasp closure in template mode, but need to send message to clear feedforward
+            msg.thumb_effort.data= ui->userSlider_2->value();
             grasp_mode_command_pub_.publish(msg);
         }
     }
@@ -399,10 +403,45 @@ void graspWidget::on_userSlider_sliderReleased()
     }
 }
 
+void graspWidget::on_userSlider_2_sliderReleased()
+{
+    if(ui->manualRadio->isChecked())
+    {
+        ui->thumbGraf->setValue(ui->userSlider_2->value());
+        sendManualMsg(ui->userSlider->value(), ui->userSlider_2->value());
+    }
+    else if (ui->templateRadio->isChecked())
+    {
+        if(ui->userSlider->value() > 100)
+        {
+            flor_grasp_msgs::GraspState msg;
+            msg.grasp_state.data  = ((flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4) + 4;
+            msg.grip.data         = ui->userSlider->value();
+            msg.thumb_effort.data = ui->userSlider_2->value();
+            grasp_mode_command_pub_.publish(msg);
+            std::cout << "Adjust thumb feedforward to " << int32_t(ui->userSlider_2->value()) << " with state=" << uint32_t(msg.grasp_state.data) << std::endl;
+        }
+        else
+        {
+            std::cout << "Only relevant in template mode if the thumb feedforward is set!  New position is " << ui->userSlider_2->value() << std::endl;
+            flor_grasp_msgs::GraspState msg;
+            msg.grasp_state.data  = ((flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4) + 4;
+            msg.grip.data         = 100; // can't undo grasp closure in template mode, but need to send message to clear feedforward
+            msg.thumb_effort.data = ui->userSlider_2->value();
+            grasp_mode_command_pub_.publish(msg);
+        }
+    }
+    else
+    {
+        std::cout << "slider changed while not in any control mode. New position is " << ui->userSlider_2->value() << std::endl;
+    }
+}
+
 void graspWidget::on_releaseButton_clicked()
 {
     std::cout << "Release the grasp requested" << std::endl;
     ui->userSlider->setValue(0);
+    ui->userSlider_2->setValue(0);
     //flor_grasp_msgs::GraspState msg;
     //msg.grasp_state.data = 0;
     //msg.grip.data = 0;
@@ -495,9 +534,10 @@ void graspWidget::on_graspBox_activated(const QString &arg1)
         if (arg1 == QString("PRISMATIC"))    msg.grasp_state.data = 1;
         if (arg1 == QString("SPHERICAL"))    msg.grasp_state.data = 2;
         msg.grasp_state.data += (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
-        msg.grip.data = ui->userSlider->value();
+        msg.grip.data         = ui->userSlider->value();
+        msg.thumb_effort.data = ui->userSlider_2->value();
         grasp_mode_command_pub_.publish(msg);
-        std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level to " << hand << " hand" << std::endl;
+        std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " << uint32_t(msg.thumb_effort.data) <<  " thumb effort to " << hand << " hand" << std::endl;
     }
     else
     {
@@ -527,10 +567,11 @@ void graspWidget::on_templateRadio_clicked()
         ui->graspBox->setDisabled(true); // nothing to select
     }
     flor_grasp_msgs::GraspState msg;
-    msg.grasp_state.data = (flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4;
-    msg.grip.data = 0;
+    msg.grasp_state.data  = (flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4;
+    msg.grip.data         = 0;
+    msg.thumb_effort.data = 0;
     grasp_mode_command_pub_.publish(msg);
-    std::cout << "Sent Template mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level to " << hand << " hand" << std::endl;
+    std::cout << "Sent Template mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " << uint32_t(msg.thumb_effort.data) <<  " thumb effort to " << hand << " hand" << std::endl;
 
 }
 
@@ -556,11 +597,12 @@ void graspWidget::on_manualRadio_clicked()
 
 
     flor_grasp_msgs::GraspState msg;
-    msg.grasp_state.data = (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
+    msg.grasp_state.data  = (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
     msg.grasp_state.data += 4; // no grasp type chosen (force selection) (default to keeping old terminal values)
-    msg.grip.data = ui->userSlider->value();
+    msg.grip.data         = ui->userSlider->value();
+    msg.thumb_effort.data = ui->userSlider_2->value();
     grasp_mode_command_pub_.publish(msg);
-    std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level to " << hand << " hand" << std::endl;
+    std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " << uint32_t(msg.thumb_effort.data) <<  " thumb effort to " << hand << " hand" << std::endl;
 
 
 }
