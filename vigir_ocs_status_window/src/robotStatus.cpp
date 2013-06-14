@@ -61,6 +61,8 @@ robotStatus::robotStatus(QWidget *parent) :
     loadFile();
 
     rosSubscriber = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &robotStatus::recievedMessage, this );
+    clearCalled   = nh.subscribe<std_msgs::Bool>("/flor_robot_status/clear", 1, &robotStatus::clearCalledMsg, this);
+    callClear_pub = nh.advertise<std_msgs::Bool>("/flor_robot_status/clear",1,false);
     std::cout << "Done setting up waiting for messages." << std::endl;
     ros::spinOnce();
     clearButton->connect(clearButton,SIGNAL(clicked()),this,SLOT(on_clearButton_clicked()));
@@ -283,15 +285,27 @@ void robotStatus::loadFile()
         }
     }
 }
+void robotStatus::clearCalledMsg(const std_msgs::Bool::ConstPtr& msg)
+{
+    std::cout << "Clear called by another status window. Now clearing my window." << std::endl;
+    clearTable();
+}
 
 void robotStatus::on_clearButton_clicked()
 {
-    std::cout << "Clear button pressed..." << std::endl;
+    std::cout << "Clear button pressed. Clearing local window and informing other instances to clear as well." << std::endl;
    // msgTable->hideRow(0);
     //msgTable = new QTableWidget();
     //msgTable->setColumnCount(2);
     //msgTable->setColumnWidth(0,50);
     //msgTable->setHorizontalHeaderLabels(labels);
+    clearTable();
+    std_msgs::Bool foo;
+    callClear_pub.publish(foo);
+}
+
+void robotStatus::clearTable()
+{
     msgTable->clearContents();
     while(msgTable->rowCount() > 0)
         msgTable->removeRow(0);
