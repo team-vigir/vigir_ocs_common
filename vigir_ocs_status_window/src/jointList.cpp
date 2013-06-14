@@ -222,6 +222,11 @@ void jointList::processRobotInfo(std::string robotInfo)
             }
         }
     }
+
+    for(int i=0;i<joints.size();i++)
+    {
+        std::cout << " Joint["<< i <<"]  limits pos(" << downPoseLimit[i] << ", " << upPoseLimit[i] << ") effort=" << effortLimits[i] << std::endl;
+    }
     std::cout << "Finished setting up limits. Now subscribing to joint information...." << std::endl;
 }
 
