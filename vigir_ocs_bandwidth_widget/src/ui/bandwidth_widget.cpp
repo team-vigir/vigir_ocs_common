@@ -227,8 +227,8 @@ void BandwidthWidget::processVRCData(const flor_ocs_msgs::VRCdata::ConstPtr& msg
         std::cout << "new usage message recieved up = " << up << " down = " <<down <<  " dwn_raw = " << msg->downlink_bytes_remaining << std::endl;
         ui->down_remaining_bar->setValue((msg->downlink_bytes_remaining/(double)down_max)*1000.0);
         ui->up_remaining_bar->setValue((msg->uplink_bytes_remaining/(double)up_max)*1000.0);
-        ui->upLabel->setText(QString::number(up/10.0).append(QString::fromStdString("%")));
-        ui->downLabel->setText(QString::number(down/10.0).append(QString::fromStdString("%")));
+        ui->upLabel->setText(QString::number(msg->uplink_bytes_remaining));
+        ui->downLabel->setText(QString::number(msg->downlink_bytes_remaining));
     }
     //ui->remaining_download->setText(QString::number(msg->downlink_bytes_remaining));
     //ui->remaining_upload->setText(QString::number(msg->uplink_bytes_remaining));
