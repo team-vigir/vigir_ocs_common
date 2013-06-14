@@ -41,7 +41,7 @@ void ImageManagerWidget::timerEvent(QTimerEvent *event)
     ros::spinOnce();
 }
 
-void ImageManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+void ImageManagerWidget::addImage(const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info)
 {
     unsigned char image_data[1000*1000*3];
     int row = ui->tableWidget->rowCount();
@@ -55,53 +55,56 @@ void ImageManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::Const
     // image
     item = new QTableWidgetItem();
 
-    ROS_ERROR("Encoding: %s", msg->image.encoding.c_str());
+    ROS_ERROR("Encoding: %s", image.encoding.c_str());
 
-    double aspect_ratio = (double)msg->image.width/(double)msg->image.height;
-    ROS_ERROR("Size: %dx%d aspect %f", msg->image.width, msg->image.height, aspect_ratio);
+    double aspect_ratio = (double)image.width/(double)image.height;
+    ROS_ERROR("Size: %dx%d aspect %f", image.width, image.height, aspect_ratio);
 
-    QImage image;
-
-    if(msg->image.encoding == "rgb8")
+    if(image.encoding == "rgb8")
     {
         ROS_ERROR("rgb");
 
         // hack for the vrc
-        for(int i = 0; i < msg->image.data.size(); i++)
-            image_data[i] = msg->image.data[i];
-        QImage tmp(&image_data[0],msg->image.width,msg->image.height,QImage::Format_RGB888);
+        for(int i = 0; i < image.data.size(); i++)
+            image_data[i] = image.data[i];
+        QImage tmp(&image_data[0],image.width,image.height,QImage::Format_RGB888);
         QPixmap pixmap = QPixmap::fromImage(tmp).scaled((unsigned int)100, (unsigned int)100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         item->setData(Qt::DecorationRole, pixmap);
     }
-    else if(msg->image.encoding == "mono8")
+    else if(image.encoding == "mono8")
     {
         ROS_ERROR("mono");
 
-        for(int i = 0, j = 0; i < msg->image.data.size(); i++)
+        for(int i = 0, j = 0; i < image.data.size(); i++)
         {
-            image_data[j++] = msg->image.data[i];
-            image_data[j++] = msg->image.data[i];
-            image_data[j++] = msg->image.data[i];
+            image_data[j++] = image.data[i];
+            image_data[j++] = image.data[i];
+            image_data[j++] = image.data[i];
         }
-        QImage tmp(&image_data[0],msg->image.width,msg->image.height,QImage::Format_RGB888);
+        QImage tmp(&image_data[0],image.width,image.height,QImage::Format_RGB888);
         QPixmap pixmap = QPixmap::fromImage(tmp).scaled((unsigned int)100, (unsigned int)100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         item->setData(Qt::DecorationRole, pixmap);
     }
 
-    item->setToolTip(QString::number(msg->id));
+    item->setToolTip(QString::number(id));
     ui->tableWidget->setItem(row,0,item);
 
-    ROS_ERROR("Added %ld to the table",msg->id);
+    ROS_ERROR("Added %ld to the table",id);
 
     // source
-    item = new QTableWidgetItem(QString(msg->topic.c_str()));
+    item = new QTableWidgetItem(QString(topic.c_str()));
     ui->tableWidget->setItem(row,1,item);
     // width
-    item = new QTableWidgetItem(QString::number(msg->image.width));
+    item = new QTableWidgetItem(QString::number(image.width));
     ui->tableWidget->setItem(row,2,item);
     // height
-    item = new QTableWidgetItem(QString::number(msg->image.height));
+    item = new QTableWidgetItem(QString::number(image.height));
     ui->tableWidget->setItem(row,3,item);
+}
+
+void ImageManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+{
+    addImage(msg->id,msg->topic,msg->image,msg->camera_info);
 }
 
 void ImageManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg)
@@ -110,14 +113,7 @@ void ImageManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::Con
     ui->tableWidget->clearContents();
 
     for(int i = 0; i < msg->image.size(); i++)
-    {
-        flor_ocs_msgs::OCSImageAdd add_image;
-        add_image.id = msg->id[i];
-        add_image.topic = msg->topic[i];
-        add_image.camera_info = msg->camera_info[i];
-        add_image.image = msg->image[i];
-        //processImageAdd(add_image);
-    }
+        addImage(msg->id[i],msg->topic[i],msg->image[i],msg->camera_info[i]);
 
     image_list_sub_.shutdown();
 }

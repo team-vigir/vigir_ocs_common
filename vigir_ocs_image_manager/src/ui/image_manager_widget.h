@@ -56,6 +56,7 @@ public Q_SLOTS:
     void imageClicked(int,int);
     
 private:
+    void addImage(const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info);
 
     Ui::ImageManagerWidget* ui;
 
