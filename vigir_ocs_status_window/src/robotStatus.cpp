@@ -53,11 +53,11 @@ robotStatus::robotStatus(QWidget *parent) :
     ros::NodeHandle nh("~");
     std::string fileName;
     if(nh.getParam("robotErrorFileLocation",fileName))
-            messagesFile.setFileName(fileName.c_str());
+            messagesPath = fileName;
     else
-            messagesFile.setFileName("/opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/messages.csv");
+            messagesPath = "/opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/messages.csv";
 
-    std::cerr << "Reading messages from <" << messagesFile.fileName().toStdString() << ">" << fileName <<std::endl;
+    std::cerr << "Reading messages from <" << messagesPath << ">" << std::endl;
     loadFile();
 
     rosSubscriber = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &robotStatus::recievedMessage, this );
@@ -139,7 +139,7 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
     //extract information from msg
     uint8_t type, msgNum;
     RobotStatusCodes::codes(msg->code, msgNum,type); //const uint8_t& error, uint8_t& code, uint8_t& severity)
-    //std::cout << "Recieved message. type = " << topt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/ype << "msgNum = " << msgNum << std::endl;
+    std::cout << "Recieved message. type = " << (int)type << " msgNum = " << (int)msgNum << std::endl;
     QTableWidgetItem* text = new QTableWidgetItem();
     QTableWidgetItem* msgType = new QTableWidgetItem();
     QTableWidgetItem* time = new QTableWidgetItem();
@@ -171,9 +171,8 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
 
     if(msgNum >= errors.size() && errors.size() != 0)
     {
-        QString tempMessage = "Recieved message number";
+        QString tempMessage = QString::fromStdString("Default Message");
         tempMessage+=QString::number(msgNum);
-        tempMessage += QString::fromStdString(" not in list");
         text->setText(tempMessage);
         text->setBackgroundColor(Qt::red);
         time->setBackgroundColor(Qt::red);
@@ -258,32 +257,29 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
 
 void robotStatus::loadFile()
 {
-    std::cout << "Reading in csv File for error list at " << messagesFile.fileName().toStdString() << std::endl;
     errors.resize(RobotStatusCodes::MAX_ERROR_MESSAGES,"Default Error Message");
-    QStringList splitList;
-    if(messagesFile.open(QIODevice::ReadOnly))
+    QFile file(QString::fromStdString(messagesPath));
+    std::cout << "Trying to open file at " << messagesPath << std::endl;
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        QString data;
-        data = messagesFile.readAll();
-        splitList = data.split(',');
-        messagesFile.close();
-        std::cout << "Done reading in file" << std::endl;
-    }
-    else
-        std::cout << "Failed to read in file" << std::endl;
-    for(int index=0;index<splitList.size(); index++)
-    {
-
-        //std::cout << "index " << index << "= " << splitList.at(index).toStdString() << " Size = " << splitList.at(index).length() << std::endl;
-        QString token = splitList.at(index);
-        if(token.size() == 1 || token.at(0) == '#');
-        else if(token.toInt() <= errors.size() && token.toInt() >=0)
+        std::cout << "File opened successfully... now parsing. Will print valid messages" << std::endl;
+        QTextStream in(&file);
+        while(!in.atEnd())
         {
-            errors[token.toInt()] = splitList.at(index+1).toStdString();
-            index++;
+            QString line = in.readLine();
+            if(line[0] != '#')
+            {
+                QStringList strings;
+                strings = line.split(',');
+                if(strings.size() > 1)
+                {
+                    errors[strings[0].toInt()] = strings[1].toStdString();
+                    std::cout << "Msg # " << strings[0].toStdString() << ":" << strings[1].toStdString() <<std::endl;
+                }
+            }
         }
     }
- }
+}
 
 void robotStatus::on_clearButton_clicked()
 {
