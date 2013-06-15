@@ -11,10 +11,10 @@
 #include <QFile>
 #include <QComboBox>
 #include <QtGui>
-
+#include <ros/publisher.h>
 #include <ros/subscriber.h>
 #include <ros/time.h>
-
+#include <std_msgs/Bool.h>
 #include <flor_ocs_msgs/OCSRobotStatus.h>
 
 class completeRow
@@ -41,11 +41,13 @@ public:
     int getNumWarn();
     QString timeFromMsg(const ros::Time msg);
     void recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
-
+    void clearCalledMsg(const std_msgs::Bool::ConstPtr& msg);
+    void clearTable();
 private Q_SLOTS:
     void on_clearButton_clicked();
     void on_msgTable_cellClicked(int row, int column);
     void on_radioButtons_updated();
+
 private:
     int unreadMsgs;
     int numError;
@@ -66,6 +68,8 @@ private:
     QFont bold;
     QFont normal;
     ros::Subscriber rosSubscriber;
+    ros::Subscriber clearCalled;
+    ros::Publisher callClear_pub;
     void loadFile();
     void updateTable();
     //QTreeWidget* jointTable;

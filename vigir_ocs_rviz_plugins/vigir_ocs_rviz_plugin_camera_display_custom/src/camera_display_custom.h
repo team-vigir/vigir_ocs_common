@@ -162,7 +162,7 @@ private:
     
     void clear();
     void updateStatus();
-    bool updateCamera();
+    bool updateCamera(bool update_image);
     void caminfoCallback( const sensor_msgs::CameraInfo::ConstPtr& msg );
 
     // variables that define the full image rendering surface
@@ -251,6 +251,10 @@ private:
     RosTopicProperty* cropped_topic_property_;
     RosTopicProperty* img_req_full_topic_property_;
     RosTopicProperty* img_req_cropped_topic_property_;
+
+    // changing it so we hold the last information received
+    sensor_msgs::CameraInfo::ConstPtr last_info_;
+    sensor_msgs::Image::ConstPtr last_image_;
 
 };
 

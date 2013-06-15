@@ -2,6 +2,7 @@
 #include <QVBoxLayout>
 #include <QRegExp>
 #include <ros/ros.h>
+#include <urdf/model.h>
 #include <QDebug>
 
 jointList::jointList(QWidget *parent) :
@@ -132,8 +133,8 @@ jointList::jointList(QWidget *parent) :
     errorMin=.90;
 
     std::cout << "JointList Widget setup now starting subscribing to Ros topic." << std::endl;
-    ros::NodeHandle nh;
     std::string robotInfo;
+    ros::NodeHandle nh;
     nh.getParam("/robot_description",robotInfo);
     processRobotInfo(robotInfo);
     joint_states = nh.subscribe<sensor_msgs::JointState>( "/atlas/joint_states", 2, &jointList::updateList, this );
@@ -153,76 +154,53 @@ void jointList::processRobotInfo(std::string robotInfo)
 {
     std::cout << "Setting up limits from ros param..." << std::endl;
 
-    QRegExp effort("<limit effort=\\\"\\d+.\\d+");
-    QRegExp lowLimit("soft_lower_limit=\\\"(\\)*-)\\d+.\\d+");
-    QRegExp upLimit("soft_upper_limit=\\\"(\\)*)\\d+.\\d+");
-    QRegExp names("<joint name=\\\"([a-z]|_){7,9}");
-    QString foo = QString::fromStdString(robotInfo);
-    int pos = 0;
-    while((pos = effort.indexIn(foo,pos)) != -1)
-    {
-        effortLimits.push_back((effort.cap(0).remove(0,15)).toDouble());
-        pos += effort.matchedLength();
-    }
-    pos = 0;
-    while((pos = lowLimit.indexIn(foo,pos)) != -1)
-    {
-        downPoseLimit.push_back((lowLimit.cap(0).remove(0,18)).toDouble());
-        pos += lowLimit.matchedLength();
-    }
-    pos = 0;
-    while((pos = upLimit.indexIn(foo,pos)) != -1)
-    {
-        upPoseLimit.push_back((upLimit.cap(0).remove(0,18)).toDouble());
-        pos += upLimit.matchedLength();
-    }
-    pos = 0;
-    int cur=0;
-    int order[joints.size()];
-    while((pos = names.indexIn(foo,pos)) != -1 && cur < 28)
-    {
 
-        for(int i=0;i<joints.size();i++)
+
+        QRegExp effort("<limit effort=\\\"[0-9]*.[0-9]*\\\"");
+        QRegExp lowLimit("soft_lower_limit=\\\"(-)*[0-9]*.[0-9]*\\\"");
+        QRegExp upLimit("soft_upper_limit=\\\"(-)*[0-9]*.[0-9]*\\\"");
+        QRegExp names("name=\\\"[a-z_]*\\\"");
+        QString robotString = QString::fromStdString(robotInfo);
+
+        for(int i = 0;i < joints.size(); i++)
         {
-            if(joints[i]->text(0) == names.cap(0).remove(0,13))
+            int pos = 0;
+            while((pos = names.indexIn(robotString,pos)) != -1)
             {
-                order[cur] = i;
-
-                i = 99;
+                if(names.cap(0).remove(0,6).toStdString() == joints[i]->text(0).toStdString().append("\""))
+                {
+                    int tempPos = pos;
+                    QString tempString;
+                    tempPos = effort.indexIn(robotString,tempPos);
+                    if(tempPos != -1)
+                    {
+                        tempString = effort.cap(0).remove(0,15);
+                        tempString.resize(tempString.size()-1);
+                        effortLimits.push_back(tempString.toDouble());
+                    }
+                    tempPos = pos;
+                    tempPos = lowLimit.indexIn(robotString,tempPos);
+                    if(tempPos != -1)
+                    {
+                        tempString = lowLimit.cap(0).remove(0,18);
+                        tempString.resize(tempString.size()-1);
+                        downPoseLimit.push_back(tempString.toDouble());
+                    }
+                    tempPos = pos;
+                    pos = robotInfo.size()-100;
+                    tempPos = upLimit.indexIn(robotString,tempPos);
+                    if(tempPos != -1)
+                    {
+                        tempString = upLimit.cap(0).remove(0,18);
+                        tempString.resize(tempString.size()-1);
+                        upPoseLimit.push_back(tempString.toDouble());
+                    }
+                }
+                pos += names.matchedLength();
             }
+
+
         }
-        //std::cout << (names.cap(0).remove(0,13)).toStdString() << std::endl;
-        pos += names.matchedLength();
-
-        cur++;
-    }
-    for(int i=0;i<joints.size();i++)
-    {
-        for(int j =i;j<joints.size();j++)
-        {
-            if(order[j] == i)
-            {
-                float temp;
-                temp = downPoseLimit[i];
-                downPoseLimit[i] = downPoseLimit[j];
-                downPoseLimit[j] =temp;
-
-                temp = upPoseLimit[i];
-                upPoseLimit[i] = upPoseLimit[j];
-                upPoseLimit[j] = temp;
-
-                temp = effortLimits[i];
-                effortLimits[i] = effortLimits[j];
-                effortLimits[j] = temp;
-
-                temp = order[i];
-                order[i] = order[j];
-                order[j]=temp;
-                j=99;
-            }
-        }
-    }
-
     for(int i=0;i<joints.size();i++)
     {
         std::cout << " Joint["<< i <<"]  limits pos(" << downPoseLimit[i] << ", " << upPoseLimit[i] << ") effort=" << effortLimits[i] << std::endl;
@@ -248,7 +226,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
     warn = 0;
     err = 0;
     for(int i=0;i<joint_states->name.size(); i++)
-	joints[i]->parent()->setBackground(0,Qt::white);
+    joints[i]->parent()->setBackground(0,Qt::white);
     for(int i=0;i<joint_states->name.size(); i++)
     {
         joints[i]->setText(1,QString::number(joint_states->position[i]));
@@ -257,8 +235,8 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
         joints[i]->setBackgroundColor(0,Qt::white);
         joints[i]->setBackgroundColor(1,Qt::white);
         joints[i]->setBackgroundColor(3,Qt::white);
-        
-	//std::cout << "p=" << joint_states->position[i] << " v=" << joint_states->velocity[i];
+
+    //std::cout << "p=" << joint_states->position[i] << " v=" << joint_states->velocity[i];
         //std::cout << " e=" << joint_states->effort[i] << " dpl=" << downPoseLimit[i];
         //std::cout << " upl=" << upPoseLimit[i] << " el=" << effortLimits[i] << std::endl;
         if(joint_states->position[i] <= warnMin*downPoseLimit[i])

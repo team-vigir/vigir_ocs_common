@@ -43,20 +43,17 @@ public:
 
     void processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr& msg);
     void processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg);
+    void processSelectedImage(const sensor_msgs::Image::ConstPtr& msg);
     /*void removeImage(int id);
 
-    void initImageIdMap();
-    void initGraspDB();
-
-    std::vector< std::vector<QString> > readTextDBFile(QString path);
-
-    void configureGrasps(std::string image_name, QComboBox* combo_box);*/
+    void initImageIdMap();*/
 
 public Q_SLOTS:
     void imageClicked(int,int);
     
 private:
     void addImage(const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info);
+    QString timeFromMsg(const ros::Time& stamp);
 
     Ui::ImageManagerWidget* ui;
 
@@ -67,6 +64,7 @@ private:
 
     ros::Subscriber image_list_sub_;
     ros::Subscriber image_added_sub_;
+    ros::Subscriber image_selected_sub_;
 
 
 protected:

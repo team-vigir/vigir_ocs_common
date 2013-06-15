@@ -48,6 +48,9 @@ namespace ocs_image
         std::map<std::string,ros::Subscriber> image_topic_sub_list_;
         std::map<std::string,ros::Subscriber> image_info_sub_list_;
 
+        ros::Publisher image_topic_pub_;
+        ros::Publisher image_info_pub_;
+
         typedef struct
         {
             unsigned long id;

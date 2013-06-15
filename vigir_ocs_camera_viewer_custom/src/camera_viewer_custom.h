@@ -75,6 +75,7 @@ private Q_SLOTS:
 
 private:
     int selected_area_[4];
+    int last_selected_area_[4];
     std::string camera_frame_topic_;
 
     rviz::Display* camera_viewer_;

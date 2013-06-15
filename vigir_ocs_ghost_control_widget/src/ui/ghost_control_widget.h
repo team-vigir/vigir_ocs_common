@@ -56,6 +56,34 @@ private Q_SLOTS:
     void sendTargetConfigClicked();
     void resetPelvisClicked();
 
+    void on_planning_left__clicked();
+
+    void on_planning_torso__clicked();
+
+    void on_planning_right__clicked();
+
+    void on_lock_left__clicked();
+
+    void on_lock_torso__clicked();
+
+    void on_lock_right__clicked();
+
+    void on_pose_left__currentIndexChanged(int index);
+
+    void on_pose_torso__currentIndexChanged(int index);
+
+    void on_pose_right__currentIndexChanged(int index);
+
+    void on_lock_pelvis__clicked();
+
+    void on_send_left_pose_button__clicked();
+
+    void on_send_left_torso_pose_button__clicked();
+
+    void on_send_right_pose_button__clicked();
+
+    void on_send_right_torso_pose_button__clicked();
+
 private:
     Ui::GhostControlWidget* ui;
 
