@@ -1,0 +1,9 @@
+<library path="libvigir_ocs_rviz_plugin_interaction_tool_custom">
+  <class name="rviz/InteractionToolCustom"
+         type="rviz::InteractionToolCustom"
+         base_class_type="rviz::Tool">
+    <description>
+      Customized tool plugin for interactions.
+    </description>
+  </class>
+</library>

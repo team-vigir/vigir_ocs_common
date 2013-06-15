@@ -80,7 +80,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // First remove all existin tools
     manager_->getToolManager()->removeAll();
     // Add support for interactive markers
-    interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/Interact" );
+    interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/InteractionToolCustom" );
     // Add support for selection
     //selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
     // Add support for camera movement
@@ -237,7 +237,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     im_right_arm->subProp( "Show Axes" )->setValue( true );
     im_right_arm->subProp( "Show Visual Aids" )->setValue( true );
     im_ghost_robot_.push_back(im_right_arm);
-    rviz::Display* im_pelvis = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - right arm", false );
+    rviz::Display* im_pelvis = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - pelvis", false );
     im_pelvis->subProp( "Update Topic" )->setValue( "/pelvis_pose_marker/pose_marker/update" );
     im_pelvis->subProp( "Show Axes" )->setValue( true );
     im_pelvis->subProp( "Show Visual Aids" )->setValue( true );

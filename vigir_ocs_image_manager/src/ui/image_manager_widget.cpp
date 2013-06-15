@@ -65,13 +65,11 @@ QImage Mat2QImage(const cv::Mat3b &src)
 
 void ImageManagerWidget::addImage(const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info)
 {
-    unsigned char image_data[1000*1000*3];
     int row = 0;
     ui->tableWidget->insertRow(row);
     ui->tableWidget->setRowHeight(row,100);
 
     // add info about images to the table
-    QSignalMapper* signalMapper = new QSignalMapper(this);
     QTableWidgetItem * item;
 
     // image
