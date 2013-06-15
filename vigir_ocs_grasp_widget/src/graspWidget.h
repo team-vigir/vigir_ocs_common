@@ -42,6 +42,7 @@ public:
 
 public Q_SLOTS:
     void on_userSlider_sliderReleased();
+    void on_userSlider_2_sliderReleased();
     void on_templateBox_activated(const QString &arg1);
     void on_graspBox_activated(const QString &arg1);
     void on_performButton_clicked();
@@ -52,7 +53,7 @@ public Q_SLOTS:
 
 private:
     void setProgressLevel(uint8_t level);
-    void sendManualMsg(uint8_t level);
+    void sendManualMsg(uint8_t level, uint8_t thumb);
     void initTemplateMode();
     void initTemplateIdMap();
     std::vector< std::vector<QString> > readTextDBFile(QString path);
