@@ -35,6 +35,7 @@
 #include <ros/subscriber.h>
 
 #include <rviz/interactive_object.h>
+#include <OGRE/OgreSceneNode.h>
 
 #include "move_tool.h"
 
@@ -57,6 +58,9 @@ public:
 
     virtual int processMouseEvent( ViewportMouseEvent& event );
     virtual int processKeyEvent( QKeyEvent* event, RenderPanel* panel );
+
+    void setChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility, bool visibility);
+    void restoreChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility);
 
 public Q_SLOTS:
 

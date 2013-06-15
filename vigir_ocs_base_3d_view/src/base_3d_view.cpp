@@ -265,8 +265,8 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     // initialize ghost control config
     saved_state_planning_group_.push_back(0);
-    saved_state_planning_group_.push_back(0);
-    saved_state_planning_group_.push_back(0);
+    saved_state_planning_group_.push_back(1);
+    saved_state_planning_group_.push_back(1);
     saved_state_pose_source_.push_back(0);
     saved_state_pose_source_.push_back(0);
     saved_state_pose_source_.push_back(0);
@@ -826,8 +826,7 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
     saved_state_collision_avoidance_ = msg->collision_avoidance;
     saved_state_lock_pelvis_ = msg->lock_pelvis;
 
-    if(msg->snap)
-        snap_ghost_to_robot_ = true;
+    snap_ghost_to_robot_ = msg->snap;
 }
 
 void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &states)

@@ -80,28 +80,62 @@ void InteractionToolCustom::deactivate()
     context_->getSelectionManager()->enableInteraction(false);
 }
 
+void InteractionToolCustom::setChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility, bool visibility)
+{
+    // traverse objects attached to this scene node
+    Ogre::SceneNode::ObjectIterator it_object = node->getAttachedObjectIterator();
+    while (it_object.hasMoreElements())
+    {
+        Ogre::MovableObject * obj = it_object.getNext();
+        last_visibility.push_back(obj->getVisible());
+        obj->setVisible(visibility);
+    }
+
+    // traverse all other child scene nodes
+    Ogre::SceneNode::ChildNodeIterator it_children =  node->getChildIterator();
+    while (it_children.hasMoreElements())
+    {
+        Ogre::SceneNode * child = (Ogre::SceneNode*)it_children.getNext();
+        setChildrenVisibility(child, last_visibility, visibility);
+    }
+
+}
+
+void InteractionToolCustom::restoreChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility)
+{
+    Ogre::SceneNode::ObjectIterator it_object = node->getAttachedObjectIterator();
+    while (it_object.hasMoreElements())
+    {
+        Ogre::MovableObject * obj = it_object.getNext();
+        obj->setVisible(*last_visibility.begin());
+        last_visibility.erase(last_visibility.begin());
+    }
+    Ogre::SceneNode::ChildNodeIterator it_children =  node->getChildIterator();
+    while (it_children.hasMoreElements())
+    {
+        Ogre::SceneNode * child = (Ogre::SceneNode*)it_children.getNext();
+        restoreChildrenVisibility(child, last_visibility);
+    }
+}
+
 void InteractionToolCustom::updateFocus( const ViewportMouseEvent& event )
 {
-    ROS_ERROR("UPDATE FOCUS");
+    //ROS_ERROR("UPDATE FOCUS");
+
+    std::map<Ogre::SceneNode*,std::vector<bool> > display_config;
 
     int num_displays = context_->getRootDisplayGroup()->numDisplays();
-    ROS_ERROR("  num displays: %d", num_displays);
+    //ROS_ERROR("  num displays: %d", num_displays);
     for(int i = 0; i < num_displays; i++)
     {
         rviz::Display* display = context_->getRootDisplayGroup()->getDisplayAt(i);
         std::string display_name = display->getNameStd();
-        ROS_ERROR("    display name: %s", display_name.c_str());
+        //ROS_ERROR("    display name: %s", display_name.c_str());
         if(display_name.find("Robot") != std::string::npos)
         {
-            display->getSceneNode()->setVisible(false);
-//            Ogre::SceneNode::ObjectIterator it = display->getSceneNode()->getAttachedObjectIterator();
-//            while (it.hasMoreElements())
-//            {
-//                Ogre::MovableObject * obj = it.getNext();
-//               // do whatever there is to do with the entity...
-//               obj->setVisible(false);
-//            }
-            //display->getSceneNode()->getParentSceneNode()->detachObject(display->getSceneNode()->getName());
+            // traverse scene graph below scene node
+            //display_config[display->getSceneNode()] = std::vector<bool>();
+            setChildrenVisibility(display->getSceneNode(), display_config[display->getSceneNode()], false);
         }
     }
 
@@ -119,7 +153,8 @@ void InteractionToolCustom::updateFocus( const ViewportMouseEvent& event )
         std::string display_name = display->getNameStd();
         if(display_name.find("Robot") != std::string::npos)
         {
-            display->getSceneNode()->setVisible(true);
+            //display->getSceneNode()->setVisible(true);
+            restoreChildrenVisibility(display->getSceneNode(),display_config[display->getSceneNode()]);
         }
     }
 
