@@ -58,7 +58,7 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
     ui->setupUi(this);
     this->setMouseTracking(true);
     camera = this->findChild<QComboBox *>("comboBox_7");
-    connect(camera, SIGNAL(currentIndexChanged(int)), this, SLOT(alterDisplay(int)));
+    //connect(camera, SIGNAL(currentIndexChanged(int)), this, SLOT(alterDisplay(int)));
 
     pitchLabel = this->findChild<QLabel *>("label_8");
     pitch = this->findChild<QSlider *>("horizontalSlider");
@@ -102,7 +102,7 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
     scrollLayout = scrollingArea->layout();
 //    int headControlIndex = scrollLayout.indexOf(pitchBox);
     //handBox = new QGroupBox("Hand Controls", pitchBox);
-    handBox = new QGroupBox("Hand Control", scrollingArea);
+    //handBox = new QGroupBox("Hand Control", scrollingArea);
    // scrollingArea->setWidget(handBox);
 
     width = pitchBox->size().width();
@@ -110,27 +110,27 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
 
 
     //handBox->move(x,y);
-    handBox->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
-    handBox->setMinimumSize(width,height);
-    handBox->setMaximumSize(width,height);
-    QGridLayout *mainLayout = new QGridLayout;
+    //handBox->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
+    //handBox->setMinimumSize(width,height);
+    //handBox->setMaximumSize(width,height);
+    //QGridLayout *mainLayout = new QGridLayout;
 
 
-    undoButton = new QPushButton("Undo", handBox);
+    //undoButton = new QPushButton("Undo", handBox);
 
-    actionBox = new QComboBox(handBox);
+    //actionBox = new QComboBox(handBox);
     //int id = actionBox.itemData(0);
-    actionBox->addItem(QString("Open up hand"), 0);
-    actionBox->addItem(QString("Look at feet"), 1);
-    actionBox->addItem(QString("Option 3"), 2);
-    actionBox->addItem(QString("Option 4"), 3);
-    actionBox->addItem(QString("Option 5"), 4);
+    //actionBox->addItem(QString("Open up hand"), 0);
+    //actionBox->addItem(QString("Look at feet"), 1);
+    //actionBox->addItem(QString("Option 3"), 2);
+    //actionBox->addItem(QString("Option 4"), 3);
+    //actionBox->addItem(QString("Option 5"), 4);
 
-    mainLayout->addWidget(actionBox, 0,0,Qt::AlignCenter);
-    mainLayout->addWidget(undoButton, 1,0,Qt::AlignCenter);
+    //mainLayout->addWidget(actionBox, 0,0,Qt::AlignCenter);
+    //mainLayout->addWidget(undoButton, 1,0,Qt::AlignCenter);
 
-    handBox->setLayout(mainLayout);
-    handBox->hide();
+    //handBox->setLayout(mainLayout);
+    //handBox->hide();
 
     displayBox= this->findChild<QGroupBox *>("groupBox_3");
     cameraBox= this->findChild<QGroupBox *>("Selection_3");
@@ -177,35 +177,35 @@ void sliderValues(int lockedValue)
 void CameraViewerCustomWidget::alterDisplay(int num)
 {
 
-    if(num== 0 || num == 1)
-    {
-        if(handBox != NULL)
-        {
-            scrollLayout->removeWidget(handBox);
-            scrollLayout->removeWidget(scanButton);
-            handBox->hide();
+//    if(num== 0 || num == 1)
+//    {
+//        if(handBox != NULL)
+//        {
+//            scrollLayout->removeWidget(handBox);
+//            scrollLayout->removeWidget(scanButton);
+//            handBox->hide();
 
-        }
-        scrollLayout->addWidget(pitchBox);
-        scrollLayout->addWidget(scanButton);
-        pitchBox->show();
+//        }
+//        scrollLayout->addWidget(pitchBox);
+//        scrollLayout->addWidget(scanButton);
+//        pitchBox->show();
 
-    }
-    else
-    {
-       // pitchBox->hide();
-        scrollLayout->removeWidget(pitchBox);
-        scrollLayout->removeWidget(scanButton);
-        pitchBox->hide();
-
-
-     //   handBox->show();
-        scrollLayout->addWidget(handBox);
-        scrollLayout->addWidget(scanButton);
-        handBox->show();
+//    }
+//    else
+//    {
+//       // pitchBox->hide();
+//        scrollLayout->removeWidget(pitchBox);
+//        scrollLayout->removeWidget(scanButton);
+//        pitchBox->hide();
 
 
-    }
+//     //   handBox->show();
+//        scrollLayout->addWidget(handBox);
+//        scrollLayout->addWidget(scanButton);
+//        handBox->show();
+
+
+//    }
 }
 
 /**

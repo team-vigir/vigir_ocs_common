@@ -8,6 +8,11 @@
 #include <QtGui>
 #include <QSignalMapper>
 
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
 
 ImageManagerWidget::ImageManagerWidget(QWidget *parent) :
     QWidget(parent),
@@ -60,6 +65,23 @@ void ImageManagerWidget::addImage(const unsigned long& id, const std::string& to
     double aspect_ratio = (double)image.width/(double)image.height;
     ROS_ERROR("Size: %dx%d aspect %f", image.width, image.height, aspect_ratio);
 
+//    cv_bridge::CvImagePtr cv_ptr;
+//    try
+//    {
+//      cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::RGB8);
+//    }
+//    catch (cv_bridge::Exception& e)
+//    {
+//      ROS_ERROR("cv_bridge exception: %s", e.what());
+//      return;
+//    }
+//    cv::Size2i img_size(100,100);
+//    cv::resize(cv_ptr->image, cv_ptr->image, img_size);
+//    unsigned char *input = (unsigned char*)(cv_ptr->image.data);
+//    QImage tmp(&input[0],image.width,image.height,QImage::Format_RGB888);
+//    QPixmap pixmap = QPixmap::fromImage(tmp).scaled((unsigned int)100, (unsigned int)100, Qt::KeepAspectRatio);
+//    item->setData(Qt::DecorationRole, pixmap);
+
     if(image.encoding == "rgb8")
     {
         ROS_ERROR("rgb");
@@ -91,15 +113,18 @@ void ImageManagerWidget::addImage(const unsigned long& id, const std::string& to
 
     ROS_ERROR("Added %ld to the table",id);
 
+    // stamp
+    item = new QTableWidgetItem(timeFromMsg(image.header.stamp));
+    ui->tableWidget->setItem(row,1,item);
     // source
     item = new QTableWidgetItem(QString(topic.c_str()));
-    ui->tableWidget->setItem(row,1,item);
+    ui->tableWidget->setItem(row,2,item);
     // width
     item = new QTableWidgetItem(QString::number(image.width));
-    ui->tableWidget->setItem(row,2,item);
+    ui->tableWidget->setItem(row,3,item);
     // height
     item = new QTableWidgetItem(QString::number(image.height));
-    ui->tableWidget->setItem(row,3,item);
+    ui->tableWidget->setItem(row,4,item);
 }
 
 void ImageManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
@@ -125,4 +150,27 @@ void ImageManagerWidget::imageClicked(int row, int column)
     ROS_ERROR("Clicked at %d %d    %s  %ld",row,column,ui->tableWidget->item(row,0)->toolTip().toStdString().c_str(),request.data);
 
     image_selected_pub_.publish(request);
+}
+
+QString ImageManagerWidget::timeFromMsg(const ros::Time& stamp)
+{
+    int sec = stamp.toSec();
+    std::stringstream stream;
+
+    stream.str("");
+    int day = sec/86400;
+    sec -= day * 86400;
+
+    int hour = sec / 3600;
+    sec -= hour * 3600;
+
+    int min = sec / 60;
+    sec -= min * 60;
+    uint32_t nano = (stamp.toSec() - (int)stamp.toSec())*1000;
+    stream << std::setw(2) << std::setfill('0') << day << " ";
+    stream << std::setw(2) << std::setfill('0') << hour << ":";
+    stream << std::setw(2) << std::setfill('0') << min << ":";
+    stream << std::setw(2) << std::setfill('0') << sec << ".";
+    stream << std::setw(3) << std::setfill('0') << nano;
+    return QString::fromStdString(stream.str());
 }

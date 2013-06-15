@@ -57,6 +57,7 @@ public Q_SLOTS:
     
 private:
     void addImage(const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info);
+    QString timeFromMsg(const ros::Time& stamp);
 
     Ui::ImageManagerWidget* ui;
 

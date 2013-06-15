@@ -213,7 +213,15 @@ void CameraViewerCustom::applyAreaChanges()
     disableSelection();
     Q_EMIT setCropImageResolution( area_resolution_ );
     Q_EMIT setCropCameraSpeed( area_rate_ );
-    Q_EMIT publishCropImageRequest();
+    if(selected_area_[0] != selected_area_[2] || selected_area_[1] != selected_area_[3])
+    {
+        for(int i = 0; i < 4; i++)
+            last_selected_area_[i] = selected_area_[i];
+
+        Q_EMIT publishCropImageRequest();
+    }
+    else
+        selectionMade = false;
 }
 
 void CameraViewerCustom::requestSingleFeedImage()
@@ -296,10 +304,10 @@ void CameraViewerCustom::changeAlpha(int newAlpha)
 
 void CameraViewerCustom::mouseMoved(int newX, int newY)
 {
-    if(((newX<selected_area_[0] && newX>selected_area_[2]) ||
-       (newX>selected_area_[0] && newX<selected_area_[2])) &&
-       ((newY<selected_area_[1] && newY>selected_area_[3]) ||
-       (newY>selected_area_[1] && newY<selected_area_[3])) && selectionMade)
+    if(((newX<last_selected_area_[0] && newX>last_selected_area_[2]) ||
+       (newX>last_selected_area_[0] && newX<last_selected_area_[2])) &&
+       ((newY<last_selected_area_[1] && newY>last_selected_area_[3]) ||
+       (newY>last_selected_area_[1] && newY<last_selected_area_[3])) && selectionMade)
     {
         xButton->show();
     }
