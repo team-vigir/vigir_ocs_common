@@ -22,7 +22,8 @@ class CameraViewerCustomWidget : public QWidget
 public:
     explicit CameraViewerCustomWidget(QWidget *parent = 0);
     ~CameraViewerCustomWidget();
-    
+
+    virtual bool eventFilter( QObject * o, QEvent * e );
 private:
     Ui::CameraViewerCustomWidget*ui;
 

@@ -167,6 +167,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::TabFocus</enum>
+            </property>
             <property name="insertPolicy">
              <enum>QComboBox::InsertAtTop</enum>
             </property>
@@ -336,6 +339,9 @@
               <width>181</width>
               <height>24</height>
              </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::WheelFocus</enum>
             </property>
             <property name="maximum">
              <number>30</number>

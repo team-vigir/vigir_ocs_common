@@ -15,6 +15,8 @@ class MapViewWidget : public QWidget
 public:
     explicit MapViewWidget(QWidget *parent = 0);
     ~MapViewWidget();
+
+    virtual bool eventFilter( QObject * o, QEvent * e );
     
 private:
     Ui::MapViewWidget *ui;

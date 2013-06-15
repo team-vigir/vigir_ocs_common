@@ -13,6 +13,19 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
 
     connect(ui->joystick_steering, SIGNAL(toggled(bool)), this, SLOT(hideWaypointButton()));
     connect(ui->waypoint, SIGNAL(toggled(bool)), this, SLOT(hideJoystick()));
+
+    Q_FOREACH( QSpinBox * sp, findChildren<QSpinBox*>() ) {
+        sp->installEventFilter( this );
+        sp->setFocusPolicy( Qt::StrongFocus );
+    }
+    Q_FOREACH( QComboBox * sp, findChildren<QComboBox*>() ) {
+        sp->installEventFilter( this );
+        sp->setFocusPolicy( Qt::StrongFocus );
+    }
+    Q_FOREACH( QSlider * sp, findChildren<QSlider*>() ) {
+        sp->installEventFilter( this );
+        sp->setFocusPolicy( Qt::StrongFocus );
+    }
 }
 
 MapViewWidget::~MapViewWidget()
@@ -38,4 +51,15 @@ void MapViewWidget::requestMap()
 void MapViewWidget::requestOctomap()
 {
     ui->map_view_->requestOctomap(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->oct_res->value());
+}
+
+bool MapViewWidget::eventFilter( QObject * o, QEvent * e )
+{
+    if ( e->type() == QEvent::Wheel &&
+         (qobject_cast<QAbstractSpinBox*>( o ) || qobject_cast<QAbstractSlider*>( o ) || qobject_cast<QComboBox*>( o )))
+    {
+        e->ignore();
+        return true;
+    }
+    return QWidget::eventFilter( o, e );
 }

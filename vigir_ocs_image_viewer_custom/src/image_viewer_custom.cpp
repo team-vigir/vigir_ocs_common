@@ -60,20 +60,20 @@ ImageViewerCustom::ImageViewerCustom( QWidget* parent )
 
   // Add support for selection
   //selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
-  selection_tool_ = manager_->getToolManager()->addTool( "rviz/ImageSelectionToolCustom" );
+  //selection_tool_ = manager_->getToolManager()->addTool( "rviz/ImageSelectionToolCustom" );
 
-  manager_->getToolManager()->setCurrentTool( selection_tool_ );
+  //manager_->getToolManager()->setCurrentTool( selection_tool_ );
 
   // connect the selection tool select signal to this
-  QObject::connect(selection_tool_, SIGNAL(select(int,int,int,int)), this, SLOT(select(int,int,int,int)));
+  //QObject::connect(selection_tool_, SIGNAL(select(int,int,int,int)), this, SLOT(select(int,int,int,int)));
 
   // Set image topic
   //camera_viewer_->subProp( "Image Topic" )->setValue( "/multisense_sl/camera/left/image_raw" );
-  camera_viewer_->subProp( "Image Topic" )->setValue( "/l_image_full/image_raw" );
+  camera_viewer_->subProp( "Image Topic" )->setValue( "/flor/ocs/history/image_raw" );
 
-  QObject::connect(this, SIGNAL(setFullImageResolution(int)), camera_viewer_, SLOT(changeFullImageResolution(int)));
-  QObject::connect(this, SIGNAL(setCropImageResolution(int)), camera_viewer_, SLOT(changeCropImageResolution(int)));
-  QObject::connect(this, SIGNAL(setCameraSpeed(int)), camera_viewer_, SLOT(changeCameraSpeed(int)));
+  //QObject::connect(this, SIGNAL(setFullImageResolution(int)), camera_viewer_, SLOT(changeFullImageResolution(int)));
+  //QObject::connect(this, SIGNAL(setCropImageResolution(int)), camera_viewer_, SLOT(changeCropImageResolution(int)));
+  //QObject::connect(this, SIGNAL(setCameraSpeed(int)), camera_viewer_, SLOT(changeCameraSpeed(int)));
 }
 
 // Destructor.
@@ -97,7 +97,6 @@ void ImageViewerCustom::changeCameraTopic( int t )
     //
     //}
 }
-
 
 void ImageViewerCustom::changeFullImageResolution( int t )
 {

@@ -150,6 +150,19 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
     connect(displayBox, SIGNAL(toggled(bool)), this, SLOT(enableDisplayGroup(bool)));
     connect(pitchBox, SIGNAL(toggled(bool)), this, SLOT(disableHeadPanel(bool)));
     connect(imageBox, SIGNAL(toggled(bool)), this, SLOT(disableImagePanel(bool)));
+
+    Q_FOREACH( QSpinBox * sp, findChildren<QSpinBox*>() ) {
+        sp->installEventFilter( this );
+        sp->setFocusPolicy( Qt::StrongFocus );
+    }
+    Q_FOREACH( QComboBox * sp, findChildren<QComboBox*>() ) {
+        sp->installEventFilter( this );
+        sp->setFocusPolicy( Qt::StrongFocus );
+    }
+    Q_FOREACH( QSlider * sp, findChildren<QSlider*>() ) {
+        sp->installEventFilter( this );
+        sp->setFocusPolicy( Qt::StrongFocus );
+    }
 }
 
 CameraViewerCustomWidget::~CameraViewerCustomWidget()
@@ -461,29 +474,13 @@ void CameraViewerCustomWidget::disableFeedPanel(bool selected)
 
 }
 
-
-
-/**
-void CameraViewerCustomWidget::mouseMoveEvent(QMouseEvent *event)
+bool CameraViewerCustomWidget::eventFilter( QObject * o, QEvent * e )
 {
-    QPoint point = event->pos();
-    std::cout<<"Prints when mouse is moved"<<std::endl;
-    int x = this->size().width();
-    int y = this->size().height();
-    std::cout<<"width is "<<x<<std::endl;
-    std::cout<<"height is "<<y<<std::endl;
-
-/**
-    if(((point.x()<selectedArea[0] && point.x()>selectedArea[2]) ||
-       (point.x()>selectedArea[0] && point.x()<selectedArea[2])) &&
-       ((point.y()<selectedArea[1] && point.y()>selectedArea[3]) ||
-       (point.y()>selectedArea[1] && point.y()<selectedArea[3])))
+    if ( e->type() == QEvent::Wheel &&
+         (qobject_cast<QAbstractSpinBox*>( o ) || qobject_cast<QAbstractSlider*>( o ) || qobject_cast<QComboBox*>( o )))
     {
-    //    xButton->show();
-    }8
-    else
-    {
-    //    xButton->hide();
+        e->ignore();
+        return true;
     }
-
-}**/
+    return QWidget::eventFilter( o, e );
+}

@@ -15,6 +15,8 @@ class Main3DViewWidget : public QWidget
 public:
     explicit Main3DViewWidget(QWidget *parent = 0);
     ~Main3DViewWidget();
+
+    virtual bool eventFilter( QObject * o, QEvent * e );
     
 private:
     Ui::Main3DViewWidget *ui;

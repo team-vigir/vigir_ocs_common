@@ -39,6 +39,10 @@ void ImageNodelet::onInit()
         image_info_sub_list_[topics[i]+"/camera_info"] = nh_.subscribe<sensor_msgs::CameraInfo>( topics[i]+"/camera_info", 100, boost::bind(&ImageNodelet::processCameraInfo, this, _1, topics[i]+"/camera_info"));
     }
 
+    // this are the extra topic that publishes all images
+    image_topic_pub_ = nh_.advertise<sensor_msgs::Image>( "/flor/ocs/history/image_raw", 1, false );
+    image_info_pub_ = nh_.advertise<sensor_msgs::CameraInfo>( "/flor/ocs/history/camera_info", 1, false );
+
     id_counter_ = 0;
 
 }
@@ -84,10 +88,12 @@ void ImageNodelet::publishImageToOCS(const unsigned long &id)
     sensor_msgs::Image tmp_img = image_history_[id].image;
     tmp_img.header.stamp = now;
     image_topic_pub_list_[image_history_[id].topic+"/history/image_raw"].publish(tmp_img);
+    image_topic_pub_.publish(tmp_img);
 
     sensor_msgs::CameraInfo tmp_info = image_history_[id].camera_info;
     tmp_info.header.stamp = now;
     image_info_pub_list_[image_history_[id].topic+"/history/camera_info"].publish(tmp_info);
+    image_info_pub_.publish(tmp_info);
 }
 
 void ImageNodelet::processImage( const ros::MessageEvent<sensor_msgs::Image const>& event, const std::string& topic )
