@@ -18,7 +18,7 @@ graspWidget::graspWidget(QWidget *parent)
     ui->graspBox->setDisabled(true);
     ui->performButton->setDisabled(true);
     ui->templateButton->setDisabled(true);
-    ui->releaseButton->setDisabled(true);
+    //ui->releaseButton->setDisabled(true);
     templateMatchDone = false;
 
     std::string templatePath = (ros::package::getPath("templates"))+"/";//vigir_grasp_control") + "/../templates/";
@@ -415,7 +415,7 @@ void graspWidget::on_releaseButton_clicked()
     grasp_msg.template_type.data = 0;
     grasp_release_pub_.publish(grasp_msg);
     ui->templateButton->setDisabled(true); // unable to move
-    ui->releaseButton->setDisabled(true);
+    //ui->releaseButton->setDisabled(true);
 }
 
 void graspWidget::on_templateButton_clicked()
@@ -450,7 +450,7 @@ void graspWidget::on_performButton_clicked()
     }
     grasp_selection_pub_.publish(msg);
     ui->templateButton->setEnabled(true); // able to move
-    ui->releaseButton->setEnabled(true); // able to release
+    //ui->releaseButton->setEnabled(true); // able to release
 }
 
 void graspWidget::on_templateBox_activated(const QString &arg1)
@@ -569,6 +569,7 @@ void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& m
 {
 	uint8_t code, severity;
 	RobotStatusCodes::codes(msg->code,code,severity);
+    //ROS_INFO("  grasp widget code=%d, severity=%d",code,severity);
 	ui->robot_status_->setText(robot_status_codes_.str(code).c_str());
 }
 
