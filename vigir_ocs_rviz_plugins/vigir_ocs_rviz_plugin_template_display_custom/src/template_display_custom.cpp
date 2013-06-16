@@ -155,29 +155,6 @@ void TemplateDisplayCustom::updateTfPrefix()
 
 void TemplateDisplayCustom::load()
 {
-    Ogre::SceneNode* lightSceneNode = NULL;
-    Ogre::Light* light = this->scene_manager_->createLight();
-
-    // I can set some attributes of the light.
-    // The basic light type can be :
-    //		pointlight (like a candle?)
-    //		spotlight (kind of 'conic' light)
-    //		directional light (like the sun in an outdoor scene).
-    // Directional light is like parallel rays coming from 1 direction.
-    light->setType(Ogre::Light::LT_DIRECTIONAL);
-
-    // Here I choose the color of the light.
-    // The diffuse color is the main color of the light.
-    // The specular color is its color when reflected on an imperfect surface.
-    // For example, when my bald head skin reflect the sun, it makes a bright round of specular color.
-    //
-    // The final color of an object also depends on its material.
-    // Color values vary between 0.0(minimum) to 1.0 (maximum).
-    light->setDiffuseColour(0.8f, 0.8f, 0.8f); // this will be a red light
-    light->setSpecularColour(1.0f, 1.0f, 1.0f);// color of 'reflected' light
-
-    lightSceneNode = this->scene_node_->createChildSceneNode();
-    lightSceneNode->attachObject(light);
 
     // I add an ambient color. The ambient color is managed in the scenemanager.
     // If you want to learn more about ambient/specular/diffuse color, check the 'basic material tutorial'
@@ -242,12 +219,19 @@ void TemplateDisplayCustom::load()
 void TemplateDisplayCustom::onEnable()
 {
     load();
-    //robot_->setVisible( true );
+    for(int i = 0; i < template_node_list_.size(); i++)
+    {
+        template_node_list_[i]->setVisible(true);
+    }
 }
 
 void TemplateDisplayCustom::onDisable()
 {
-    //robot_->setVisible( false );
+    for(int i = 0; i < template_node_list_.size(); i++)
+    {
+        template_node_list_[i]->setVisible(false);
+    }
+
     clear();
 }
 

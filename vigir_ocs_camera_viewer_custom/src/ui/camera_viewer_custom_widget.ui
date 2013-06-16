@@ -87,9 +87,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-433</y>
         <width>264</width>
-        <height>1008</height>
+        <height>1058</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -1173,7 +1173,7 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string>Display</string>
+          <string>Visibility</string>
          </property>
          <property name="flat">
           <bool>false</bool>
@@ -1197,10 +1197,20 @@
           <item>
            <widget class="QCheckBox" name="robot_model">
             <property name="text">
-             <string>Robot Model</string>
+             <string>Robot</string>
             </property>
             <property name="checked">
              <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="grasp_model">
+            <property name="text">
+             <string>Grasp</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -1211,6 +1221,16 @@
             </property>
             <property name="checked">
              <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="templates">
+            <property name="text">
+             <string>Templates</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -1321,6 +1341,8 @@
     <slot>requestSingleFeedImage()</slot>
     <slot>requestSingleAreaImage()</slot>
     <slot>vectorPressed()</slot>
+    <slot>graspModelToggled(bool)</slot>
+    <slot>templatesToggled(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -1674,6 +1696,38 @@
     </hint>
     <hint type="destinationlabel">
      <x>220</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>grasp_model</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget</receiver>
+   <slot>graspModelToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>539</x>
+     <y>429</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>223</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>templates</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget</receiver>
+   <slot>templatesToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>539</x>
+     <y>454</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>223</x>
      <y>299</y>
     </hint>
    </hints>

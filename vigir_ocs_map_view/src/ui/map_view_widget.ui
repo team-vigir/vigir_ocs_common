@@ -54,9 +54,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-460</y>
         <width>242</width>
-        <height>1078</height>
+        <height>1128</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -443,7 +443,7 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string>Display</string>
+          <string>Visibility</string>
          </property>
          <property name="flat">
           <bool>false</bool>
@@ -467,7 +467,17 @@
           <item>
            <widget class="QCheckBox" name="robot_model_2">
             <property name="text">
-             <string>Robot Model</string>
+             <string>Robot</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="grasp_model">
+            <property name="text">
+             <string>Grasp</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -481,6 +491,16 @@
             </property>
             <property name="checked">
              <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="templates">
+            <property name="text">
+             <string>Templates</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -591,6 +611,8 @@
     <slot>simulationRobotToggled(bool)</slot>
     <slot>requestMap()</slot>
     <slot>publishPointCloudWorldRequest()</slot>
+    <slot>graspModelToggled(bool)</slot>
+    <slot>templatesToggled(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -864,6 +886,38 @@
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
+     <y>334</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>grasp_model</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>map_view_</receiver>
+   <slot>graspModelToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>647</x>
+     <y>498</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>276</x>
+     <y>334</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>templates</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>map_view_</receiver>
+   <slot>templatesToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>647</x>
+     <y>498</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>276</x>
      <y>334</y>
     </hint>
    </hints>

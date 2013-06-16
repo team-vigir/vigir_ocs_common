@@ -72,6 +72,30 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     manager_ = new rviz::VisualizationManager( render_panel_ );
     render_panel_->initialize( manager_->getSceneManager(), manager_ );
 
+    Ogre::SceneNode* lightSceneNode = NULL;
+    Ogre::Light* light = manager_->getSceneManager()->createLight();
+
+    // I can set some attributes of the light.
+    // The basic light type can be :
+    //		pointlight (like a candle?)
+    //		spotlight (kind of 'conic' light)
+    //		directional light (like the sun in an outdoor scene).
+    // Directional light is like parallel rays coming from 1 direction.
+    light->setType(Ogre::Light::LT_DIRECTIONAL);
+
+    // Here I choose the color of the light.
+    // The diffuse color is the main color of the light.
+    // The specular color is its color when reflected on an imperfect surface.
+    // For example, when my bald head skin reflect the sun, it makes a bright round of specular color.
+    //
+    // The final color of an object also depends on its material.
+    // Color values vary between 0.0(minimum) to 1.0 (maximum).
+    light->setDiffuseColour(0.25f, 0.25f, 0.25f); // this will be a red light
+    light->setSpecularColour(1.0f, 1.0f, 1.0f);// color of 'reflected' light
+
+    lightSceneNode = manager_->getSceneManager()->getRootSceneNode()->createChildSceneNode();
+    lightSceneNode->attachObject(light);
+
     // Set topic that will be used as 0,0,0 -> reference for all the other transforms
     // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
     manager_->setFixedFrame(base_frame_.c_str());
@@ -311,8 +335,6 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // frustum
     frustum_viewer_list_["head_left"] = manager_->createDisplay( "rviz/FrustumDisplayCustom", "Frustum - Left Eye", true );
     QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
-
-
 }
 
 // Destructor.
@@ -324,6 +346,17 @@ Base3DView::~Base3DView()
 void Base3DView::robotModelToggled( bool selected )
 {
     robot_model_->setEnabled( selected );
+}
+
+void Base3DView::graspModelToggled( bool selected )
+{
+    left_hand_model_->setEnabled( selected );
+    right_hand_model_->setEnabled( selected );
+}
+
+void Base3DView::templatesToggled( bool selected )
+{
+    template_display_->setEnabled( selected );
 }
 
 void Base3DView::lidarPointCloudToggled( bool selected )

@@ -72,6 +72,8 @@ public:
 public Q_SLOTS:
     // displays
     void robotModelToggled( bool );
+    void graspModelToggled( bool );
+    void templatesToggled( bool );
     void lidarPointCloudToggled( bool );
     void stereoPointCloudToggled( bool );
     void laserScanToggled( bool );
