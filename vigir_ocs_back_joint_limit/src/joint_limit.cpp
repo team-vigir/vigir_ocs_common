@@ -110,6 +110,8 @@ void joint_limit::on_apply_clicked()
 
     msg.disable_collision_avoidance.data = !ui->collision_avoidance_->isChecked();
     msg.robot_collision_padding.data = ui->padding_->value();
+    msg.trajectory_time_factor.data = ui->time_factor_->value();
+
 
     constraints_pub_.publish(msg);
 }

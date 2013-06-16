@@ -261,7 +261,7 @@ void CameraViewerCustom::disableSelection()
     {
         topSide = selected_area_[3];
     }
-    xButton->setGeometry(rightSide-10, topSide+10, 20,20);
+    xButton->setGeometry(rightSide-20, topSide, 20,20);
 }
 
 void CameraViewerCustom::requestPointCloudROI()

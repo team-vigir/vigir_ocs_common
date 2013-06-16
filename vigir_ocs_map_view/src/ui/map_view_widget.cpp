@@ -14,6 +14,10 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
     connect(ui->joystick_steering, SIGNAL(toggled(bool)), this, SLOT(hideWaypointButton()));
     connect(ui->waypoint, SIGNAL(toggled(bool)), this, SLOT(hideJoystick()));
 
+    Q_FOREACH( QDoubleSpinBox * sp, findChildren<QDoubleSpinBox*>() ) {
+        sp->installEventFilter( this );
+        sp->setFocusPolicy( Qt::StrongFocus );
+    }
     Q_FOREACH( QSpinBox * sp, findChildren<QSpinBox*>() ) {
         sp->installEventFilter( this );
         sp->setFocusPolicy( Qt::StrongFocus );
