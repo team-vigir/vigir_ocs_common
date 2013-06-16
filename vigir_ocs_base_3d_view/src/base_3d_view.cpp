@@ -129,6 +129,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // Create a template display to display all templates listed by the template nodelet
     template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
     ((rviz::TemplateDisplayCustom*)template_display_)->setVisualizationManager(manager_);
+    QObject::connect(this, SIGNAL(enableTemplateMarkers(bool)), template_display_, SLOT(enableTemplateMarkers(bool)));
 
     // Create a display for 3D selection
     selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
@@ -974,7 +975,7 @@ void Base3DView::publishMarkers()
     marker_server_left_arm.name = "Ghost Left Arm";
     marker_server_left_arm.topic = "/l_arm_pose_marker";
     marker_server_left_arm.frame = manager_->getFixedFrame().toStdString();
-    marker_server_left_arm.scale = 0.4;
+    marker_server_left_arm.scale = 0.2;
     marker_server_left_arm.point = point;
     interactive_marker_add_pub_.publish(marker_server_left_arm);
 
@@ -982,7 +983,7 @@ void Base3DView::publishMarkers()
     marker_server_right_arm.name = "Ghost Right Arm";
     marker_server_right_arm.topic = "/r_arm_pose_marker";
     marker_server_right_arm.frame = manager_->getFixedFrame().toStdString();
-    marker_server_right_arm.scale = 0.4;
+    marker_server_right_arm.scale = 0.2;
     marker_server_right_arm.point = point;
     interactive_marker_add_pub_.publish(marker_server_right_arm);
 
@@ -990,7 +991,7 @@ void Base3DView::publishMarkers()
     marker_server_pelvis.name = "Ghost Pelvis";
     marker_server_pelvis.topic = "/pelvis_pose_marker";
     marker_server_pelvis.frame = manager_->getFixedFrame().toStdString();
-    marker_server_pelvis.scale = 0.4;
+    marker_server_pelvis.scale = 0.2;
     marker_server_pelvis.point = point;
     interactive_marker_add_pub_.publish(marker_server_pelvis);
 }
