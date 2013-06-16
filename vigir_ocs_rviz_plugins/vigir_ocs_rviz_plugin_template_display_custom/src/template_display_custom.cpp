@@ -282,7 +282,8 @@ void TemplateDisplayCustom::reset()
 
 void TemplateDisplayCustom::enableTemplateMarkers( bool enable )
 {
-    for(int i = 0; i < template_marker_list_.size(); i++)
+    //ROS_ERROR("Disabling the template markers");
+    for(int i = 0; i < display_template_marker_list_.size(); i++)
     {
         display_template_marker_list_[i]->setEnabled( enable );
     }
@@ -371,7 +372,7 @@ void TemplateDisplayCustom::addTemplateMarker(unsigned char id, Ogre::Vector3 po
     point.y = pos.y;
     point.z = pos.z;
     flor_ocs_msgs::OCSInteractiveMarkerAdd marker_server_template;
-    marker_server_template.name  = template_pose_string;
+    marker_server_template.name  = std::string("Template ")+boost::to_string((unsigned int)id);
     marker_server_template.topic = template_pose_string;
     marker_server_template.frame = fixed_frame_.toUtf8().constData();
     marker_server_template.scale = 0.2;
