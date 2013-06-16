@@ -31,11 +31,16 @@
 #define RVIZ_ROBOT_MODEL_DISPLAY_H
 
 #include "rviz/display.h"
+
 #include <geometry_msgs/PoseStamped.h>
+
+#include <std_msgs/String.h>
 
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSTemplateUpdate.h>
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
+#include <flor_ocs_msgs/OCSInteractiveMarkerAdd.h>
+#include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
 
@@ -77,83 +82,87 @@ class VisualizationManager;
  */
 class TemplateDisplayCustom: public Display
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-  TemplateDisplayCustom();
-  virtual ~TemplateDisplayCustom();
+    TemplateDisplayCustom();
+    virtual ~TemplateDisplayCustom();
 
-  // Overrides from Display
-  virtual void onInitialize();
-  virtual void update( float wall_dt, float ros_dt );
-  virtual void fixedFrameChanged();
-  virtual void reset();
+    // Overrides from Display
+    virtual void onInitialize();
+    virtual void update( float wall_dt, float ros_dt );
+    virtual void fixedFrameChanged();
+    virtual void reset();
 
-  void clear();
+    void clear();
 
-  void processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose);
-  void processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg);
-  void publishTemplateUpdate(const unsigned char& id, const geometry_msgs::PoseStamped& pose);
-  void processTemplateRemove(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
+    void processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose);
+    void processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg);
+    void publishTemplateUpdate(const unsigned char& id, const geometry_msgs::PoseStamped& pose);
+    void processTemplateRemove(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
 
-  void setVisualizationManager(rviz::VisualizationManager* manager) { vis_manager_ = manager; };
+    void setVisualizationManager(rviz::VisualizationManager* manager) { vis_manager_ = manager; };
 
-  void onMarkerFeedback(std::string topic_name, geometry_msgs::PoseStamped pose);
+    void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
 public Q_SLOTS:
-  void enableTemplateMarkers( bool );
+    void enableTemplateMarkers( bool );
 
 private Q_SLOTS:
-  void updateVisualVisible();
-  void updateCollisionVisible();
-  void updateTfPrefix();
-  void updateAlpha();
-  void updateRobotDescription();
+    void updateVisualVisible();
+    void updateCollisionVisible();
+    void updateTfPrefix();
+    void updateAlpha();
+    void updateRobotDescription();
 
 protected:
-  /** @brief Loads a URDF from the ros-param named by our
+    /** @brief Loads a URDF from the ros-param named by our
    * "Robot Description" property, iterates through the links, and
    * loads any necessary models. */
-  virtual void load();
+    virtual void load();
 
-  // overrides from Display
-  virtual void onEnable();
-  virtual void onDisable();
+    // overrides from Display
+    virtual void onEnable();
+    virtual void onDisable();
 
-  bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
+    bool has_new_transforms_;      ///< Callback sets this to tell our update function it needs to update the transforms
 
-  float time_since_last_transform_;
+    float time_since_last_transform_;
 
-  std::string robot_description_;
+    std::string robot_description_;
 
-  Property* visual_enabled_property_;
-  Property* collision_enabled_property_;
-  FloatProperty* update_rate_property_;
-  StringProperty* robot_description_property_;
-  FloatProperty* alpha_property_;
-  StringProperty* tf_prefix_property_;
+    Property* visual_enabled_property_;
+    Property* collision_enabled_property_;
+    FloatProperty* update_rate_property_;
+    StringProperty* robot_description_property_;
+    FloatProperty* alpha_property_;
+    StringProperty* tf_prefix_property_;
 
 private:
-  void addTemplate(int index, std::string path, Ogre::Vector3 pos, Ogre::Quaternion quat);
-  void addTemplateMarker(unsigned char id, Ogre::Vector3 pos);
+    void addTemplate(int index, std::string path, Ogre::Vector3 pos, Ogre::Quaternion quat);
+    void addTemplateMarker(unsigned char id, Ogre::Vector3 pos);
 
-  void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
+    void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
 
-  ros::NodeHandle nh_;
-  std::vector<ros::Subscriber> template_pose_sub_list_;
-  ros::Subscriber template_list_sub_;
-  ros::Subscriber template_remove_sub_;
-  ros::Publisher template_update_pub_;
-  std::vector<ros::Publisher> template_pose_pub_list_;
+    ros::NodeHandle nh_;
+    std::vector<ros::Subscriber> template_pose_sub_list_;
+    ros::Subscriber template_list_sub_;
+    ros::Subscriber template_remove_sub_;
+    ros::Publisher template_update_pub_;
+    std::vector<ros::Publisher> template_pose_pub_list_;
+    ros::Publisher interactive_marker_add_pub_;
+    ros::Publisher interactive_marker_update_pub_;
+    ros::Subscriber interactive_marker_feedback_sub_;
+    ros::Publisher interactive_marker_remove_pub_;
 
-  std::vector<unsigned char> template_id_list_;
-  std::vector<std::string> template_list_;
-  std::vector<Ogre::SceneNode*> template_node_list_;
+    std::vector<unsigned char> template_id_list_;
+    std::vector<std::string> template_list_;
+    std::vector<Ogre::SceneNode*> template_node_list_;
 
-  static std::vector<InteractiveMarkerServerCustom*> template_marker_list_;
-  std::vector<rviz::Display*> display_template_marker_list_;
-  //InteractiveMarkerServerCustom *template_marker_;
+    static std::vector<InteractiveMarkerServerCustom*> template_marker_list_;
+    std::vector<rviz::Display*> display_template_marker_list_;
+    //InteractiveMarkerServerCustom *template_marker_;
 
-  rviz::VisualizationManager* vis_manager_;
+    rviz::VisualizationManager* vis_manager_;
 
 };
 

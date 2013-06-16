@@ -68,127 +68,126 @@ void linkUpdaterStatusFunction( StatusProperty::Level level,
                                 const std::string& text,
                                 TemplateDisplayCustom* display )
 {
-  display->setStatus( level, QString::fromStdString( link_name ), QString::fromStdString( text ));
+    display->setStatus( level, QString::fromStdString( link_name ), QString::fromStdString( text ));
 }
 
 TemplateDisplayCustom::TemplateDisplayCustom()
-  : Display()
-  , has_new_transforms_( false )
-  , time_since_last_transform_( 0.0f )
-  //, lNode_(NULL)
+    : Display()
+    , has_new_transforms_( false )
+    , time_since_last_transform_( 0.0f )
+    //, lNode_(NULL)
 {
-  visual_enabled_property_ = new Property( "Visual Enabled", true,
-                                           "Whether to display the visual representation of the robot.",
-                                           this, SLOT( updateVisualVisible() ));
+    visual_enabled_property_ = new Property( "Visual Enabled", true,
+                                             "Whether to display the visual representation of the robot.",
+                                             this, SLOT( updateVisualVisible() ));
 
-  collision_enabled_property_ = new Property( "Collision Enabled", false,
-                                              "Whether to display the collision representation of the robot.",
-                                              this, SLOT( updateCollisionVisible() ));
+    collision_enabled_property_ = new Property( "Collision Enabled", false,
+                                                "Whether to display the collision representation of the robot.",
+                                                this, SLOT( updateCollisionVisible() ));
 
-  update_rate_property_ = new FloatProperty( "Update Interval", 0,
-                                             "Interval at which to update the links, in seconds. "
-                                             " 0 means to update every update cycle.",
-                                             this );
-  update_rate_property_->setMin( 0 );
+    update_rate_property_ = new FloatProperty( "Update Interval", 0,
+                                               "Interval at which to update the links, in seconds. "
+                                               " 0 means to update every update cycle.",
+                                               this );
+    update_rate_property_->setMin( 0 );
 
-  alpha_property_ = new FloatProperty( "Alpha", 1,
-                                       "Amount of transparency to apply to the links.",
-                                       this, SLOT( updateAlpha() ));
-  alpha_property_->setMin( 0.0 );
-  alpha_property_->setMax( 1.0 );
+    alpha_property_ = new FloatProperty( "Alpha", 1,
+                                         "Amount of transparency to apply to the links.",
+                                         this, SLOT( updateAlpha() ));
+    alpha_property_->setMin( 0.0 );
+    alpha_property_->setMax( 1.0 );
 
-  robot_description_property_ = new StringProperty( "Robot Description", "robot_description",
-                                                    "Name of the parameter to search for to load the robot description.",
-                                                    this, SLOT( updateRobotDescription() ));
+    robot_description_property_ = new StringProperty( "Robot Description", "robot_description",
+                                                      "Name of the parameter to search for to load the robot description.",
+                                                      this, SLOT( updateRobotDescription() ));
 
-  tf_prefix_property_ = new StringProperty( "TF Prefix", "",
-                                            "Robot Model normally assumes the link name is the same as the tf frame name. "
-                                            " This option allows you to set a prefix.  Mainly useful for multi-robot situations.",
-                                            this, SLOT( updateTfPrefix() ));
+    tf_prefix_property_ = new StringProperty( "TF Prefix", "",
+                                              "Robot Model normally assumes the link name is the same as the tf frame name. "
+                                              " This option allows you to set a prefix.  Mainly useful for multi-robot situations.",
+                                              this, SLOT( updateTfPrefix() ));
 }
 
 TemplateDisplayCustom::~TemplateDisplayCustom()
 {
-  //delete robot_;
+    //delete robot_;
 }
 
 void TemplateDisplayCustom::onInitialize()
 {
-  //robot_ = new Robot( scene_node_, context_, "Robot: " + getName().toStdString(), this );
-
-  updateVisualVisible();
-  updateCollisionVisible();
-  updateAlpha();
+    //robot_ = new Robot( scene_node_, context_, "Robot: " + getName().toStdString(), this );
+    updateVisualVisible();
+    updateCollisionVisible();
+    updateAlpha();
 }
 
 void TemplateDisplayCustom::updateAlpha()
 {
-  //robot_->setAlpha( alpha_property_->getFloat() );
-  context_->queueRender();
+    //robot_->setAlpha( alpha_property_->getFloat() );
+    context_->queueRender();
 }
 
 void TemplateDisplayCustom::updateRobotDescription()
 {
-  if( isEnabled() )
-  {
-    load();
-    context_->queueRender();
-  }
+    if( isEnabled() )
+    {
+        load();
+        context_->queueRender();
+    }
 }
 
 void TemplateDisplayCustom::updateVisualVisible()
 {
-  //robot_->setVisualVisible( visual_enabled_property_->getValue().toBool() );
-  context_->queueRender();
+    //robot_->setVisualVisible( visual_enabled_property_->getValue().toBool() );
+    context_->queueRender();
 }
 
 void TemplateDisplayCustom::updateCollisionVisible()
 {
-  //robot_->setCollisionVisible( collision_enabled_property_->getValue().toBool() );
-  context_->queueRender();
+    //robot_->setCollisionVisible( collision_enabled_property_->getValue().toBool() );
+    context_->queueRender();
 }
 
 void TemplateDisplayCustom::updateTfPrefix()
 {
-  clearStatuses();
-  context_->queueRender();
+    clearStatuses();
+    context_->queueRender();
 }
 
 void TemplateDisplayCustom::load()
 {
-	Ogre::SceneNode* lightSceneNode = NULL;
-	Ogre::Light* light = this->scene_manager_->createLight();
+    Ogre::SceneNode* lightSceneNode = NULL;
+    Ogre::Light* light = this->scene_manager_->createLight();
 
-	// I can set some attributes of the light.
-	// The basic light type can be : 
-	//		pointlight (like a candle?)
-	//		spotlight (kind of 'conic' light)
-	//		directional light (like the sun in an outdoor scene).
-	// Directional light is like parallel rays coming from 1 direction.
-	light->setType(Ogre::Light::LT_DIRECTIONAL);
+    // I can set some attributes of the light.
+    // The basic light type can be :
+    //		pointlight (like a candle?)
+    //		spotlight (kind of 'conic' light)
+    //		directional light (like the sun in an outdoor scene).
+    // Directional light is like parallel rays coming from 1 direction.
+    light->setType(Ogre::Light::LT_DIRECTIONAL);
 
-	// Here I choose the color of the light.
-	// The diffuse color is the main color of the light.
-	// The specular color is its color when reflected on an imperfect surface.
-	// For example, when my bald head skin reflect the sun, it makes a bright round of specular color.
-	//
-	// The final color of an object also depends on its material.
-	// Color values vary between 0.0(minimum) to 1.0 (maximum).
-	light->setDiffuseColour(0.8f, 0.8f, 0.8f); // this will be a red light
-	light->setSpecularColour(1.0f, 1.0f, 1.0f);// color of 'reflected' light
+    // Here I choose the color of the light.
+    // The diffuse color is the main color of the light.
+    // The specular color is its color when reflected on an imperfect surface.
+    // For example, when my bald head skin reflect the sun, it makes a bright round of specular color.
+    //
+    // The final color of an object also depends on its material.
+    // Color values vary between 0.0(minimum) to 1.0 (maximum).
+    light->setDiffuseColour(0.8f, 0.8f, 0.8f); // this will be a red light
+    light->setSpecularColour(1.0f, 1.0f, 1.0f);// color of 'reflected' light
 
-	lightSceneNode = this->scene_node_->createChildSceneNode();
-	lightSceneNode->attachObject(light);
- 
-	// I add an ambient color. The ambient color is managed in the scenemanager.
-	// If you want to learn more about ambient/specular/diffuse color, check the 'basic material tutorial'
-	// from this serie.
-	Ogre::ColourValue ambientColour(0.2f, 0.2f, 0.2f, 1.0f);
-	this->scene_manager_->setAmbientLight(ambientColour);
+    lightSceneNode = this->scene_node_->createChildSceneNode();
+    lightSceneNode->attachObject(light);
 
-	// create a new resource group for all our templates
-	Ogre::String nameOfResourceGroup = "templates";
-	Ogre::ResourceGroupManager& resourceManager = Ogre::ResourceGroupManager::getSingleton();
+    // I add an ambient color. The ambient color is managed in the scenemanager.
+    // If you want to learn more about ambient/specular/diffuse color, check the 'basic material tutorial'
+    // from this serie.
+    Ogre::ColourValue ambientColour(0.2f, 0.2f, 0.2f, 1.0f);
+    this->scene_manager_->setAmbientLight(ambientColour);
+
+    // create a new resource group for all our templates
+    Ogre::String nameOfResourceGroup = "templates";
+    Ogre::ResourceGroupManager& resourceManager = Ogre::ResourceGroupManager::getSingleton();
     if(!resourceManager.resourceGroupExists(nameOfResourceGroup))
     {
         resourceManager.createResourceGroup(nameOfResourceGroup);
@@ -206,19 +205,19 @@ void TemplateDisplayCustom::load()
         // parse scripts
         resourceManager.initialiseResourceGroup(nameOfResourceGroup);
     }
-	// loads files into our resource manager
-	resourceManager.loadResourceGroup(nameOfResourceGroup);
+    // loads files into our resource manager
+    resourceManager.loadResourceGroup(nameOfResourceGroup);
 
-	// Now the loaded Mesh is available from its ResourceGroup,
-	// as well as from the Ogre::MeshManager. A shared pointer to
-	// it can be accessed by : Ogre::MeshManager::getSingleton().getByName(name_of_the_mesh);
+    // Now the loaded Mesh is available from its ResourceGroup,
+    // as well as from the Ogre::MeshManager. A shared pointer to
+    // it can be accessed by : Ogre::MeshManager::getSingleton().getByName(name_of_the_mesh);
 
     /*// create entity for mesh and attach it to the scene node
-	Ogre::String lNameOfTheMesh = "vehicle/steering_wheel_mm.mesh";
-	Ogre::Entity* lEntity = this->scene_manager_->createEntity(lNameOfTheMesh);
+    Ogre::String lNameOfTheMesh = "vehicle/steering_wheel_mm.mesh";
+    Ogre::Entity* lEntity = this->scene_manager_->createEntity(lNameOfTheMesh);
     lNode_ = this->scene_node_->createChildSceneNode();
     lNode_->attachObject(lEntity);
-	// change position and scale (from mm to m)
+    // change position and scale (from mm to m)
     lNode_->setPosition(1.0f, 0.0f, 0.0f);
     //lNode_->scale(0.001f,0.001f,0.001f);
     // The loaded mesh will be white. This is normal.*/
@@ -232,47 +231,53 @@ void TemplateDisplayCustom::load()
     // and advertise the template update to update the manipulator
     template_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "/template/update", 1, false );
 
+    // advertise/subscribe to the interactive marker topics
+    interactive_marker_add_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 1, true );
+    interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
+    interactive_marker_feedback_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback", 5, &TemplateDisplayCustom::onMarkerFeedback, this );;
+    interactive_marker_remove_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 1, false );
+
 }
 
 void TemplateDisplayCustom::onEnable()
 {
-  load();
-  //robot_->setVisible( true );
+    load();
+    //robot_->setVisible( true );
 }
 
 void TemplateDisplayCustom::onDisable()
 {
-  //robot_->setVisible( false );
-  clear();
+    //robot_->setVisible( false );
+    clear();
 }
 
 void TemplateDisplayCustom::update( float wall_dt, float ros_dt )
 {
-  time_since_last_transform_ += wall_dt;
-  float rate = update_rate_property_->getFloat();
-  bool update = rate < 0.0001f || time_since_last_transform_ >= rate;
+    time_since_last_transform_ += wall_dt;
+    float rate = update_rate_property_->getFloat();
+    bool update = rate < 0.0001f || time_since_last_transform_ >= rate;
 
-  //std::cout << "update" << std::endl;
+    //std::cout << "update" << std::endl;
 
-  context_->queueRender();
+    context_->queueRender();
 }
 
 void TemplateDisplayCustom::fixedFrameChanged()
 {
-  has_new_transforms_ = true;
+    has_new_transforms_ = true;
 }
 
 void TemplateDisplayCustom::clear()
 {
-  //robot_->clear();
-  clearStatuses();
-  robot_description_.clear();
+    //robot_->clear();
+    clearStatuses();
+    robot_description_.clear();
 }
 
 void TemplateDisplayCustom::reset()
 {
-  Display::reset();
-  has_new_transforms_ = true;
+    Display::reset();
+    has_new_transforms_ = true;
 }
 
 void TemplateDisplayCustom::enableTemplateMarkers( bool enable )
@@ -286,12 +291,12 @@ void TemplateDisplayCustom::enableTemplateMarkers( bool enable )
 void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose)
 {
     std::cout << "Processing pose change" << std::endl;
-//    printf(" Template pose change (%f, %f, %f) quat(%f, %f, %f, %f)\n",
-//             pose->pose.position.x,pose->pose.position.y,pose->pose.position.z,
-//             pose->pose.orientation.w,
-//             pose->pose.orientation.x,
-//             pose->pose.orientation.y,
-//             pose->pose.orientation.z );
+    //    printf(" Template pose change (%f, %f, %f) quat(%f, %f, %f, %f)\n",
+    //             pose->pose.position.x,pose->pose.position.y,pose->pose.position.z,
+    //             pose->pose.orientation.w,
+    //             pose->pose.orientation.x,
+    //             pose->pose.orientation.y,
+    //             pose->pose.orientation.z );
 
     /*template_node_list_[id]->setPosition(pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
     Ogre::Quaternion quat;
@@ -337,44 +342,60 @@ void TemplateDisplayCustom::addTemplateMarker(unsigned char id, Ogre::Vector3 po
     display_template_marker_list_.push_back(interactive_marker_template);
 
     // initialize template interactive marker server if it doesn't exist yet
-    bool exists = false;
-    for(int i = 0; i < template_marker_list_.size(); i++)
-    {
-        if(template_marker_list_[i]->getTopicName().compare(template_pose_string) == 0)
-        {
-            exists = true;
-            break;
-        }
-    }
+    //    bool exists = false;
+    //    for(int i = 0; i < template_marker_list_.size(); i++)
+    //    {
+    //        if(template_marker_list_[i]->getTopicName().compare(template_pose_string) == 0)
+    //        {
+    //            exists = true;
+    //            break;
+    //        }
+    //    }
 
-    std::cout << "Need to create template marker server? " << !exists << std::endl;
+    //    std::cout << "Need to create template marker server? " << !exists << std::endl;
 
-    if(!exists)
-    {
-        geometry_msgs::Point point;
-        point.x = pos.x;
-        point.y = pos.y;
-        point.z = pos.z;
-        InteractiveMarkerServerCustom* template_marker_ = new InteractiveMarkerServerCustom(template_pose_string, template_pose_string, fixed_frame_.toUtf8().constData(), 0.2, point);
-        template_marker_->onFeedback = boost::bind(&TemplateDisplayCustom::onMarkerFeedback, this, _1, _2);
-        template_pose_pub_list_.push_back(nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>(template_pose_string, 1, false));
-        template_marker_list_.push_back(template_marker_);
-    }
+    //    if(!exists)
+    //    {
+    //        geometry_msgs::Point point;
+    //        point.x = pos.x;
+    //        point.y = pos.y;
+    //        point.z = pos.z;
+    //        InteractiveMarkerServerCustom* template_marker_ = new InteractiveMarkerServerCustom(template_pose_string, template_pose_string, fixed_frame_.toUtf8().constData(), 0.2, point);
+    //        template_marker_->onFeedback = boost::bind(&TemplateDisplayCustom::onMarkerFeedback, this, _1, _2);
+    //        template_pose_pub_list_.push_back(nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>(template_pose_string, 1, false));
+    //        template_marker_list_.push_back(template_marker_);
+    //    }
 
-    // subscribe to the template marker feedback loop
+    geometry_msgs::Point point;
+    point.x = pos.x;
+    point.y = pos.y;
+    point.z = pos.z;
+    flor_ocs_msgs::OCSInteractiveMarkerAdd marker_server_template;
+    marker_server_template.name  = template_pose_string;
+    marker_server_template.topic = template_pose_string;
+    marker_server_template.frame = fixed_frame_.toUtf8().constData();
+    marker_server_template.scale = 0.2;
+    marker_server_template.point = point;
+    interactive_marker_add_pub_.publish(marker_server_template);
+
+    // add the template pose publisher
+    template_pose_pub_list_.push_back( nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 1, false) );
+
+    // and subscribe to the template marker feedback loop
     ros::Subscriber template_pose_sub = nh_.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
     template_pose_sub_list_.push_back(template_pose_sub);
     std::cout << "subscribed to topic" << std::endl;
 }
 
-void TemplateDisplayCustom::onMarkerFeedback(std::string topic_name, geometry_msgs::PoseStamped pose)
+void TemplateDisplayCustom::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
 {
+    std::string topic_name = msg->topic;
     for(int i = 0; i < template_pose_pub_list_.size(); i++)
     {
         if(template_pose_pub_list_[i].getTopic() == topic_name)
         {
             flor_ocs_msgs::OCSTemplateUpdate out;
-            out.pose = pose;
+            out.pose = msg->pose;
             out.template_id = atoi(topic_name.erase(0,std::string("/template_pose_").size()).c_str());
             template_pose_pub_list_[i].publish(out);
         }
@@ -414,7 +435,12 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
         {
             template_node_list_[i]->setPosition(pos);
             template_node_list_[i]->setOrientation(quat);
-            template_marker_list_[i]->setPose(pose);
+            //template_marker_list_[i]->setPose(pose);
+
+            flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+            cmd.topic = template_pose_pub_list_[i].getTopic();
+            cmd.pose = pose;
+            interactive_marker_update_pub_.publish(cmd);
         }
     }
     //template_list_
@@ -443,22 +469,27 @@ void TemplateDisplayCustom::processTemplateRemove(const flor_ocs_msgs::OCSTempla
             break;
     if(index < template_id_list_.size())
     {
-        // remove template id and template pointer
-        template_id_list_.erase(template_id_list_.begin()+index);
-        template_list_.erase(template_list_.begin()+index);
         // remove from ogre
         this->scene_manager_->destroyEntity((Ogre::Entity*)template_node_list_[index]->getAttachedObject(0));
         //template_node_list_[index]->detachObject(0);
         this->scene_node_->removeChild(template_node_list_[index]);
         template_node_list_.erase(template_node_list_.begin()+index);
         // make sure we also remove the marker server
-        delete template_marker_list_[index];
-        template_marker_list_.erase(template_marker_list_.begin()+index);
+        //delete template_marker_list_[index];
+        //template_marker_list_.erase(template_marker_list_.begin()+index);
+        std_msgs::String topic;
+        topic.data = template_pose_pub_list_[index].getTopic();
+        interactive_marker_remove_pub_.publish(topic);
         // and the marker display
         //vis_manager_->removeDisplay(display_template_marker_list_[index]);
         display_template_marker_list_.erase(display_template_marker_list_.begin()+index);
+        // and the publisher
+        template_pose_pub_list_.erase(template_pose_pub_list_.begin()+index);
         // and finally remove the subscriber
         template_pose_sub_list_.erase(template_pose_sub_list_.begin()+index);
+        // remove template id and template pointer
+        template_id_list_.erase(template_id_list_.begin()+index);
+        template_list_.erase(template_list_.begin()+index);
     }
 }
 
