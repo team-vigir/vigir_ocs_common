@@ -113,6 +113,7 @@ void RobotDisplayCustom::onInitialize()
 
 void RobotDisplayCustom::updateAlpha()
 {
+    //ROS_ERROR("UPDATING ALPHA TO %f",alpha_property_->getFloat());
     robot_->setAlpha( alpha_property_->getFloat() );
     context_->queueRender();
 }
@@ -226,6 +227,9 @@ void RobotDisplayCustom::onDisable()
 
 void RobotDisplayCustom::update( float wall_dt, float ros_dt )
 {
+    updateColor();
+    updateAlpha();
+
     time_since_last_transform_ += wall_dt;
     float rate = update_rate_property_->getFloat();
     bool update = rate < 0.0001f || time_since_last_transform_ >= rate;

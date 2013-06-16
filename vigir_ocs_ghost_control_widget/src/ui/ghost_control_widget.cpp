@@ -22,7 +22,7 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
 
     ui->pose_left_->setCurrentIndex(0);
     ui->pose_right_->setCurrentIndex(0);
-    ui->pose_torso_->setCurrentIndex(0);
+    //ui->pose_torso_->setCurrentIndex(0);
 
     saveState();
 
@@ -84,11 +84,11 @@ void GhostControlWidget::saveState()
 
     saved_state_pose_source_.push_back(ui->pose_left_->currentIndex());
     saved_state_pose_source_.push_back(ui->pose_right_->currentIndex());
-    saved_state_pose_source_.push_back(ui->pose_torso_->currentIndex());
+    //saved_state_pose_source_.push_back(ui->pose_torso_->currentIndex());
 
-    saved_state_world_lock_.push_back(ui->lock_left_->isChecked());
-    saved_state_world_lock_.push_back(ui->lock_right_->isChecked());
-    saved_state_world_lock_.push_back(ui->lock_torso_->isChecked());
+    //saved_state_world_lock_.push_back(ui->lock_left_->isChecked());
+    //saved_state_world_lock_.push_back(ui->lock_right_->isChecked());
+    //saved_state_world_lock_.push_back(ui->lock_torso_->isChecked());
 
     //saved_state_collision_avoidance_ = ui->collision_->isChecked();
 
@@ -107,11 +107,11 @@ void GhostControlWidget::loadState(std::vector<unsigned char> planning_group, st
 
     ui->pose_left_->setCurrentIndex(pose_source[0]);
     ui->pose_right_->setCurrentIndex(pose_source[1]);
-    ui->pose_torso_->setCurrentIndex(pose_source[2]);
+    //ui->pose_torso_->setCurrentIndex(pose_source[2]);
 
-    ui->lock_left_->setChecked(world_lock[0]);
-    ui->lock_right_->setChecked(world_lock[1]);
-    ui->lock_torso_->setChecked(world_lock[2]);
+    //ui->lock_left_->setChecked(world_lock[0]);
+    //ui->lock_right_->setChecked(world_lock[1]);
+    //ui->lock_torso_->setChecked(world_lock[2]);
 
     //ui->collision_->setChecked(collision_avoidance);
 

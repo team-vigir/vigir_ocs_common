@@ -331,7 +331,7 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
     template_node_list_.push_back(lNode);
 }
 
-void TemplateDisplayCustom::addTemplateMarker(unsigned char id, Ogre::Vector3 pos)
+void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char id, Ogre::Vector3 pos)
 {
     std::cout << "Adding template marker " << id << std::endl;
     std::string template_pose_string = std::string("/template_pose_")+boost::to_string((unsigned int)id); // one for each template
@@ -372,7 +372,10 @@ void TemplateDisplayCustom::addTemplateMarker(unsigned char id, Ogre::Vector3 po
     point.y = pos.y;
     point.z = pos.z;
     flor_ocs_msgs::OCSInteractiveMarkerAdd marker_server_template;
-    marker_server_template.name  = std::string("Template ")+boost::to_string((unsigned int)id);
+    std::string template_name = label;
+    if(template_name.size() > 5 && template_name.substr(template_name.size()-5,5) == ".mesh")
+        template_name = template_name.substr(0,template_name.size()-5);
+    marker_server_template.name  = std::string("Template ")+boost::to_string((unsigned int)id)+std::string("\n")+template_name;
     marker_server_template.topic = template_pose_string;
     marker_server_template.frame = fixed_frame_.toUtf8().constData();
     marker_server_template.scale = 0.2;
@@ -430,7 +433,7 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
             addTemplate(msg->template_id_list[i],path,pos,quat);
             template_list_.push_back(path);
             template_id_list_.push_back(msg->template_id_list[i]);
-            addTemplateMarker(msg->template_id_list[i],pos);
+            addTemplateMarker(path,msg->template_id_list[i],pos);
         }
         else // just update position
         {

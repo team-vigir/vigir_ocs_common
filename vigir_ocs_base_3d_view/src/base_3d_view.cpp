@@ -324,8 +324,6 @@ Base3DView::~Base3DView()
 void Base3DView::robotModelToggled( bool selected )
 {
     robot_model_->setEnabled( selected );
-    ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
-    robot_model_->subProp( "Alpha" )->setValue( 1.0f );
 }
 
 void Base3DView::lidarPointCloudToggled( bool selected )
@@ -371,8 +369,8 @@ void Base3DView::simulationRobotToggled( bool selected )
 
         publishGhostPoses();
     }
+
     ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
-    robot_model_->subProp( "Alpha" )->setValue( 1.0f );
 }
 
 void Base3DView::cameraToggled( bool selected )
@@ -802,7 +800,6 @@ void Base3DView::publishGhostPoses()
     bool pelvis = saved_state_planning_group_[2];
 
     flor_planning_msgs::TargetConfigIkRequest cmd;
-
 
     if(left && end_effector_pose_list_.find( "/l_arm_pose_marker") != end_effector_pose_list_.end())
         cmd.target_poses.push_back(end_effector_pose_list_["/l_arm_pose_marker"]);

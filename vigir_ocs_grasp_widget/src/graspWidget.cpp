@@ -194,6 +194,9 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         ui->performButton->setDisabled(false);
     }
 
+    QString currentItem = ui->templateBox->currentText();
+    //ui->templateBox->clear();
+
     // populate template combobox
     for(int i = 0; i < list->template_list.size(); i++)
     {
@@ -201,6 +204,8 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         std::string templateName = list->template_list[i];
         if(templateName.size() > 5 && templateName.substr(templateName.size()-5,5) == ".mesh")
             templateName = templateName.substr(0,templateName.size()-5);
+        // add the template
+        templateName = boost::to_string((int)list->template_id_list[i])+std::string(": ")+templateName;
 
         std::cout << "template item " << (int)list->template_id_list[i] << " has name " << templateName << std::endl;
 
@@ -215,8 +220,20 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         }
     }
 
+    for(int i = list->template_list.size(); i < ui->templateBox->count(); i++)
+        ui->templateBox->removeItem(i);
+
     if(selected_grasp_id_ != -1 && currentGraspMode == 1)
         publishHandPose(selected_grasp_id_);
+
+    if(selected_template_id_ != -1 && ui->templateBox->findText(currentItem) == -1)
+    {
+        hideHand();
+        ui->graspBox->clear();
+        selected_template_id_ = -1;
+        selected_grasp_id_ = -1;
+        ui->graspBox->setEnabled(false);
+    }
 }
 
 void graspWidget::initTemplateMode()
@@ -496,7 +513,9 @@ void graspWidget::on_performButton_clicked()
 void graspWidget::on_templateBox_activated(const QString &arg1)
 {
     // update the selected template id
-    selected_template_id_ = ui->templateBox->currentIndex();
+    QString template_id = ui->templateBox->currentText();
+    template_id.remove(template_id.indexOf(": "),template_id.length()-template_id.indexOf(": "));
+    selected_template_id_ = template_id.toInt();
 
     std::cout << "updating the grasp widget grasp selection box contents" << std::endl;
     // clean grasp box
@@ -507,14 +526,19 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
     // add grasps to the grasp combo box
     for(int index = 0; index < grasp_db_.size(); index++)
     {
-        std::cout << "comparing db " << grasp_db_[index].template_name << " to " << arg1.toStdString() << std::endl;
+        QString tmp = arg1;
+        tmp.remove(0,tmp.indexOf(": ")+2);
+        std::cout << "comparing db " << grasp_db_[index].template_name << " to " << tmp.toStdString() << std::endl;
 
-        if(grasp_db_[index].template_name == arg1.toStdString() && grasp_db_[index].hand == hand)
+        if(grasp_db_[index].template_name == tmp.toStdString() && grasp_db_[index].hand == hand)
         {
             std::cout << "Found grasp for template" << std::endl;
             ui->graspBox->addItem(QString::number(grasp_db_[index].grasp_id));
         }
     }
+
+    if(ui->templateBox->count() > 0)
+        selected_grasp_id_ = ui->graspBox->itemText(0).toInt();
 
     if (ui->manualRadio->isChecked())
     {
@@ -563,6 +587,7 @@ void graspWidget::on_templateRadio_clicked()
             --ndx;
         }
     }
+    selected_template_id_ = -1;
     if (ui->graspBox->count() < 1)
     {
         ui->graspBox->setDisabled(true); // nothing to select

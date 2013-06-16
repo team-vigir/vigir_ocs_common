@@ -139,7 +139,7 @@ protected:
 
 private:
     void addTemplate(int index, std::string path, Ogre::Vector3 pos, Ogre::Quaternion quat);
-    void addTemplateMarker(unsigned char id, Ogre::Vector3 pos);
+    void addTemplateMarker(std::string label, unsigned char id, Ogre::Vector3 pos);
 
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
 
