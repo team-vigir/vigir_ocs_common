@@ -45,6 +45,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     , selected_(false)
     , update_markers_(false)
     , snap_ghost_to_robot_(true)
+    , marker_published_(0)
 {
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
@@ -223,7 +224,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ghost_robot_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot simulation model", false );
     ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
     ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.0f );
-    ghost_robot_model_->subProp( "Selectable" )->setValue( false );
+    //ghost_robot_model_->subProp( "Selectable" )->setValue( false );
     ghost_robot_model_->setEnabled(false);
 
     // Add custom interactive markers to control ghost robot
@@ -243,16 +244,20 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     im_pelvis->subProp( "Show Visual Aids" )->setValue( true );
     im_ghost_robot_.push_back(im_pelvis);
 
-    geometry_msgs::Point point;
-    static InteractiveMarkerServerCustom* marker_server_left_arm = new InteractiveMarkerServerCustom("Ghost Left Arm", "/l_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
-    im_ghost_robot_server_.push_back(marker_server_left_arm);
-    im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
-    static InteractiveMarkerServerCustom* marker_server_right_arm = new InteractiveMarkerServerCustom("Ghost Right Arm", "/r_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
-    im_ghost_robot_server_.push_back(marker_server_right_arm);
-    im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
-    static InteractiveMarkerServerCustom* marker_server_pelvis = new InteractiveMarkerServerCustom("Ghost Pelvis", "/pelvis_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
-    im_ghost_robot_server_.push_back(marker_server_pelvis);
-    im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
+    //geometry_msgs::Point point;
+    //static InteractiveMarkerServerCustom* marker_server_left_arm = new InteractiveMarkerServerCustom("Ghost Left Arm", "/l_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
+    //im_ghost_robot_server_.push_back(marker_server_left_arm);
+    //im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
+    //static InteractiveMarkerServerCustom* marker_server_right_arm = new InteractiveMarkerServerCustom("Ghost Right Arm", "/r_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
+    //im_ghost_robot_server_.push_back(marker_server_right_arm);
+    //im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
+    //static InteractiveMarkerServerCustom* marker_server_pelvis = new InteractiveMarkerServerCustom("Ghost Pelvis", "/pelvis_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
+    //.push_back(marker_server_pelvis);
+    //im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
+
+    interactive_marker_add_pub_ = n_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 1, true );
+    interactive_marker_update_pub_ = n_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
+    interactive_marker_feedback_sub_ = n_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );;
 
     // subscribe to the pose topics
     end_effector_sub_.push_back(n_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
@@ -706,7 +711,7 @@ void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
 void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
     //if(update_markers_)
-    {
+    /*{
         for(int i = 0; i < im_ghost_robot_server_.size(); i++)
         {
             if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Left Arm")
@@ -716,13 +721,20 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
             }
         }
         update_markers_ = false;
-    }
+    }*/
+    if(marker_published_ < 3)
+        publishMarkers();
+
+    flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+    cmd.topic = "/l_arm_pose_marker";
+    cmd.pose = *pose;
+    interactive_marker_update_pub_.publish(cmd);
 }
 
 void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
     //if(update_markers_)
-    {
+    /*{
         for(int i = 0; i < im_ghost_robot_server_.size(); i++)
         {
             if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Right Arm")
@@ -732,23 +744,60 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
             }
         }
         update_markers_ = false;
-    }
+    }*/
+    if(marker_published_ < 3)
+        publishMarkers();
+
+    flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+    cmd.topic = "/r_arm_pose_marker";
+    cmd.pose = *pose;
+    interactive_marker_update_pub_.publish(cmd);
 }
 
-void Base3DView::onMarkerFeedback(std::string topic_name, geometry_msgs::PoseStamped pose)
+void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
 {
-    //ROS_ERROR("Marker feedback on topic %s, have %d markers instantiated",topic_name.c_str(),(unsigned int)im_ghost_robot_.size());
-    end_effector_pose_list_[topic_name] = pose;
+    //end_effector_pose_list_[topic_name] = pose;
+    //if(end_effector_pose_list_.find(msg->topic) != end_effector_pose_list_.end())
+    //if(msg->topic == )
+    {
+        //ROS_ERROR("Marker feedback on topic %s, have markers instantiated",msg->topic.c_str());
+        if(msg->topic == "/l_arm_pose_marker")
+        {
+            saved_state_planning_group_[0] = 1;
+            saved_state_planning_group_[1] = 0;
+        }
+        else if(msg->topic == "/r_arm_pose_marker")
+        {
+            saved_state_planning_group_[0] = 0;
+            saved_state_planning_group_[1] = 1;
+        }
+        end_effector_pose_list_[msg->topic] = msg->pose;
 
+    }
+
+
+    if(marker_published_ < 3)
+    {
+        publishMarkers();
+
+        if(msg->topic == "/l_arm_pose_marker" && marker_published_ == 0)
+            marker_published_++;
+        else if(msg->topic == "/r_arm_pose_marker" && marker_published_ == 1)
+            marker_published_++;
+        else if(msg->topic == "/pelvis_pose_marker" && marker_published_ == 2)
+            marker_published_++;
+    }
+
+    //else
+    //    ROS_ERROR("Marker feedback on topic %s, have no markers instantiated",msg->topic.c_str());
     publishGhostPoses();
-
 }
 
 void Base3DView::publishGhostPoses()
 {
     bool left = saved_state_planning_group_[0];
     bool right = saved_state_planning_group_[1];
-    bool torso = saved_state_planning_group_[2];
+    bool pelvis = saved_state_planning_group_[2];
 
     flor_planning_msgs::TargetConfigIkRequest cmd;
 
@@ -764,17 +813,17 @@ void Base3DView::publishGhostPoses()
         cmd.lock_to_world[i].data = saved_state_world_lock_[i];
 
 
-    if(left && !right && !torso)
+    if(left && !right && !pelvis)
         cmd.planning_group.data = "l_arm_group";
-    else if(left && !right && torso)
+    else if(left && !right && pelvis)
         cmd.planning_group.data = "l_arm_with_torso_group";
-    else if(!left && right && !torso)
+    else if(!left && right && !pelvis)
         cmd.planning_group.data = "r_arm_group";
-    else if(!left && right && torso)
+    else if(!left && right && pelvis)
         cmd.planning_group.data = "r_arm_with_torso_group";
-    else if(left && right && !torso)
+    else if(left && right && !pelvis)
         cmd.planning_group.data = "both_arms_group";
-    else if(left && right && torso)
+    else if(left && right && pelvis)
         cmd.planning_group.data = "both_arms_with_torso_group";
 
     end_effector_pub_.publish(cmd);
@@ -798,14 +847,19 @@ void Base3DView::publishGhostPoses()
 
         ghost_root_pose_pub_.publish(pose);
 
-        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
-        {
-            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Pelvis")
-            {
-                im_ghost_robot_server_[i]->setPose(pose);
-                break;
-            }
-        }
+//        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
+//        {
+//            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Pelvis")
+//            {
+//                im_ghost_robot_server_[i]->setPose(pose);
+//                break;
+//            }
+//        }
+
+        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.topic = "/pelvis_pose_marker";
+        cmd.pose = pose;
+        interactive_marker_update_pub_.publish(cmd);
     }
     else
     {
@@ -816,6 +870,11 @@ void Base3DView::publishGhostPoses()
 
 void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::ConstPtr &msg)
 {
+    if(msg->snap)
+    {
+        snap_ghost_to_robot_ = true;
+        return;
+    }
     saved_state_planning_group_.clear();
     saved_state_pose_source_.clear();
     saved_state_world_lock_.clear();
@@ -834,6 +893,29 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
     if(snap_ghost_to_robot_)
     {
         ghost_joint_state_pub_.publish(states);
+
+        Ogre::Vector3 position(0,0,0);
+        Ogre::Quaternion orientation(1,0,0,0);
+        transform(position, orientation, "/pelvis", "/world");
+
+        geometry_msgs::PoseStamped pose;
+        pose.pose.position.x = position.x;
+        pose.pose.position.y = position.y;
+        pose.pose.position.z = position.z;
+        pose.pose.orientation.x = orientation.x;
+        pose.pose.orientation.y = orientation.y;
+        pose.pose.orientation.z = orientation.z;
+        pose.pose.orientation.w = orientation.w;
+        pose.header.frame_id = "/world";
+        pose.header.stamp = ros::Time::now();
+
+        ghost_root_pose_pub_.publish(pose);
+
+        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.topic = "/pelvis_pose_marker";
+        cmd.pose = pose;
+        interactive_marker_update_pub_.publish(cmd);
+
         snap_ghost_to_robot_ = false;
     }
 }
@@ -844,32 +926,72 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
     {
         // trasnfrom current marker pose from world to pelvis
         geometry_msgs::PoseStamped marker_pose = end_effector_pose_list_["/pelvis_pose_marker"];
+        Ogre::Quaternion original_orientation(marker_pose.pose.orientation.w,marker_pose.pose.orientation.x,marker_pose.pose.orientation.y,marker_pose.pose.orientation.z);
         Ogre::Vector3 position(0,0,0);
         Ogre::Quaternion orientation(1,0,0,0);
         transform(position, orientation, "/pelvis", "/world");
+
+        ROS_ERROR("ROTATION PELVIS: %f %f %f",orientation.getPitch().valueDegrees(),orientation.getYaw().valueDegrees(),orientation.getRoll().valueDegrees());
+        ROS_ERROR("ROTATION GHOST : %f %f %f",original_orientation.getPitch().valueDegrees(),original_orientation.getYaw().valueDegrees(),original_orientation.getRoll().valueDegrees());
+
+        Ogre::Quaternion final_orientation = Ogre::Quaternion(original_orientation.getRoll(), Ogre::Vector3::UNIT_Z) * Ogre::Quaternion(orientation.getPitch(), Ogre::Vector3::UNIT_X) * Ogre::Quaternion(orientation.getYaw(), Ogre::Vector3::UNIT_Y);
 
         // create pose based on /pelvis frame
         geometry_msgs::PoseStamped pose;// = end_effector_pose_list_["/pelvis_pose_marker"];
         pose.pose.position.x = marker_pose.pose.position.x;
         pose.pose.position.y = marker_pose.pose.position.y;
         pose.pose.position.z = marker_pose.pose.position.z;
-        pose.pose.orientation.x = orientation.x;
-        pose.pose.orientation.y = orientation.y;
-        pose.pose.orientation.z = orientation.z;
-        pose.pose.orientation.w = orientation.w;
+        pose.pose.orientation.x = final_orientation.x;
+        pose.pose.orientation.y = final_orientation.y;
+        pose.pose.orientation.z = final_orientation.z;
+        pose.pose.orientation.w = final_orientation.w;
         pose.header.frame_id = "/world";
         pose.header.stamp = ros::Time::now();
 
         ghost_root_pose_pub_.publish(pose);
 
-        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
-        {
-            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Pelvis")
-            {
-                im_ghost_robot_server_[i]->setPose(pose);
-                break;
-            }
-        }
+//        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
+//        {
+//            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Pelvis")
+//            {
+//                im_ghost_robot_server_[i]->setPose(pose);
+//                break;
+//            }
+//        }
+
+        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.topic = "/pelvis_pose_marker";
+        cmd.pose = pose;
+        interactive_marker_update_pub_.publish(cmd);
     }
+}
+
+void Base3DView::publishMarkers()
+{
+    geometry_msgs::Point point;
+
+    flor_ocs_msgs::OCSInteractiveMarkerAdd marker_server_left_arm;
+    marker_server_left_arm.name = "Ghost Left Arm";
+    marker_server_left_arm.topic = "/l_arm_pose_marker";
+    marker_server_left_arm.frame = manager_->getFixedFrame().toStdString();
+    marker_server_left_arm.scale = 0.4;
+    marker_server_left_arm.point = point;
+    interactive_marker_add_pub_.publish(marker_server_left_arm);
+
+    flor_ocs_msgs::OCSInteractiveMarkerAdd marker_server_right_arm;
+    marker_server_right_arm.name = "Ghost Right Arm";
+    marker_server_right_arm.topic = "/r_arm_pose_marker";
+    marker_server_right_arm.frame = manager_->getFixedFrame().toStdString();
+    marker_server_right_arm.scale = 0.4;
+    marker_server_right_arm.point = point;
+    interactive_marker_add_pub_.publish(marker_server_right_arm);
+
+    flor_ocs_msgs::OCSInteractiveMarkerAdd marker_server_pelvis;
+    marker_server_pelvis.name = "Ghost Pelvis";
+    marker_server_pelvis.topic = "/pelvis_pose_marker";
+    marker_server_pelvis.frame = manager_->getFixedFrame().toStdString();
+    marker_server_pelvis.scale = 0.4;
+    marker_server_pelvis.point = point;
+    interactive_marker_add_pub_.publish(marker_server_pelvis);
 }
 }

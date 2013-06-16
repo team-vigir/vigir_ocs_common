@@ -1,0 +1,8 @@
+<!-- OpenNI driver nodelet publisher -->
+<library path="libvigir_ocs_interactive_marker_server_nodelet">
+  <class name="vigir_ocs_interactive_marker_server_nodelet/InteractiveMarkerServerNodelet" type="ocs_interactive_marker_server::InteractiveMarkerServerNodelet" base_class_type="nodelet::Nodelet">
+    <description>
+      Interactive Marker server nodelet
+    </description>
+  </class>
+</library>

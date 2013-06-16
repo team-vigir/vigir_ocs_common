@@ -17,6 +17,7 @@
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
 
+
 #include <ros/ros.h>
 
 #include <geometry_msgs/Pose.h>
@@ -30,6 +31,8 @@
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
 #include <flor_ocs_msgs/OCSGhostControl.h>
+#include <flor_ocs_msgs/OCSInteractiveMarkerAdd.h>
+#include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <flor_perception_msgs/RaycastRequest.h>
 
 #include <string>
@@ -64,7 +67,7 @@ public:
     void processJointStates( const sensor_msgs::JointState::ConstPtr& states );
     void processPelvisResetRequest( const std_msgs::Bool::ConstPtr& msg );
 
-    void onMarkerFeedback(std::string topic_name, geometry_msgs::PoseStamped pose);
+    void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
 public Q_SLOTS:
     // displays
@@ -98,6 +101,8 @@ public Q_SLOTS:
 
     void publishPointCloudWorldRequest();
 
+    void publishMarkers();
+
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
     void resetSelection();
@@ -121,7 +126,7 @@ protected:
 
     rviz::Display* robot_model_;
     std::vector<rviz::Display*> im_ghost_robot_;
-    std::vector<InteractiveMarkerServerCustom*> im_ghost_robot_server_;
+    //std::vector<InteractiveMarkerServerCustom*> im_ghost_robot_server_;
     rviz::Display* interactive_marker_template_;
     rviz::Display* octomap_;
     rviz::Display* laser_scan_;
@@ -181,6 +186,11 @@ protected:
     ros::Subscriber joint_states_sub_;
     ros::Subscriber reset_pelvis_sub_;
 
+    ros::Publisher interactive_marker_add_pub_;
+    ros::Publisher interactive_marker_update_pub_;
+    ros::Subscriber interactive_marker_feedback_sub_;
+
+
     std::vector<unsigned char> saved_state_planning_group_;
     std::vector<unsigned char> saved_state_pose_source_;
     std::vector<unsigned char> saved_state_world_lock_;
@@ -200,6 +210,8 @@ protected:
     int active_context_;
 
     Ogre::Ray last_selection_ray_;
+
+    int marker_published_;
 };
 }
 #endif // BASE_3D_VIEW_H
