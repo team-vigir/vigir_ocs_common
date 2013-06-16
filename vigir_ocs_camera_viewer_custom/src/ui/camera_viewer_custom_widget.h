@@ -31,7 +31,6 @@ Q_SIGNALS:
     void pitchChanged(int);
 
 public Q_SLOTS:
-    void alterDisplay(int);
     void updatePitch(int);
     void updateFeedFPS(int);
     void updateSelectedFPS(int);
@@ -42,16 +41,9 @@ public Q_SLOTS:
     void setFeedToSingleImage();
     void setAreaToSingleImage();
 
-    void disableImagePanel(bool);
-    void enableDisplayGroup(bool);
-    void disableCameraPanel(bool);
-    void disableHeadPanel(bool);
-    void disableAreaFeedPanel(bool);
-    void disableFeedPanel(bool);
-/**
-protected:
-    void mouseMoveEvent(QMouseEvent*);**/
+    void enableGroup(bool);
 
+    void sliderValues(int lockedValue);
 
 };
 

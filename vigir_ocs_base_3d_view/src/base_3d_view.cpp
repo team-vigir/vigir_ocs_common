@@ -54,6 +54,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
 
     QVBoxLayout* main_layout = new QVBoxLayout;
+    main_layout->setMargin(0);
     main_layout->addWidget( render_panel_ );
 
     // Set the top-level layout for this MyViz widget.

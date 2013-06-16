@@ -52,8 +52,6 @@
      <property name="styleSheet">
       <string notr="true"/>
      </property>
-     <zorder>widget_6</zorder>
-     <zorder>scrollArea</zorder>
     </widget>
    </item>
    <item>
@@ -85,7 +83,7 @@
      <property name="widgetResizable">
       <bool>true</bool>
      </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents">
+     <widget class="QWidget" name="scrolling_area">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -112,7 +110,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="Selection_3">
+        <widget class="QGroupBox" name="camera_box">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>0</horstretch>
@@ -157,7 +155,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QComboBox" name="comboBox_7">
+           <widget class="QComboBox" name="camera">
             <property name="enabled">
              <bool>true</bool>
             </property>
@@ -209,7 +207,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="Mode_3">
+        <widget class="QGroupBox" name="feed_fps_box">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>0</horstretch>
@@ -251,7 +249,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QComboBox" name="comboBox_9">
+           <widget class="QComboBox" name="feed_resolution">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -305,7 +303,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="checkBox">
+              <widget class="QCheckBox" name="lock_box">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
                  <horstretch>0</horstretch>
@@ -327,7 +325,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QSlider" name="horizontalSlider_2">
+           <widget class="QSlider" name="feed_slider">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -462,7 +460,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_2">
+        <widget class="QGroupBox" name="area_feed_box">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -507,7 +505,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QComboBox" name="comboBox_8">
+           <widget class="QComboBox" name="selected_resolution">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -549,7 +547,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QSlider" name="horizontalSlider_3">
+           <widget class="QSlider" name="selected_slider">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
               <horstretch>0</horstretch>
@@ -681,7 +679,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox">
+        <widget class="QGroupBox" name="image_box">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
            <horstretch>0</horstretch>
@@ -863,12 +861,12 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="Orientation_3">
+        <widget class="QGroupBox" name="pitch_box">
          <property name="enabled">
           <bool>true</bool>
          </property>
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -877,12 +875,6 @@
           <size>
            <width>0</width>
            <height>0</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>221</width>
-           <height>191</height>
           </size>
          </property>
          <property name="title">
@@ -941,17 +933,23 @@
               <number>9</number>
              </property>
              <item>
-              <widget class="QSlider" name="horizontalSlider">
+              <widget class="QSlider" name="pitch">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>34</width>
+                 <height>116</height>
+                </size>
+               </property>
                <property name="maximumSize">
                 <size>
                  <width>34</width>
-                 <height>128</height>
+                 <height>116</height>
                 </size>
                </property>
                <property name="minimum">
@@ -1081,7 +1079,7 @@
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_6">
                 <item>
-                 <widget class="QLabel" name="label_8">
+                 <widget class="QLabel" name="pitch_label">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
                     <horstretch>0</horstretch>
@@ -1151,7 +1149,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="start_scanning">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
               <horstretch>0</horstretch>
@@ -1167,7 +1165,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_3">
+        <widget class="QGroupBox" name="display_box">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
            <horstretch>0</horstretch>
@@ -1329,7 +1327,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>comboBox_9</sender>
+   <sender>feed_resolution</sender>
    <signal>currentIndexChanged(int)</signal>
    <receiver>widget</receiver>
    <slot>changeFullImageResolution(int)</slot>
@@ -1345,7 +1343,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>comboBox_8</sender>
+   <sender>selected_resolution</sender>
    <signal>currentIndexChanged(int)</signal>
    <receiver>widget</receiver>
    <slot>changeCropImageResolution(int)</slot>
@@ -1361,7 +1359,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>comboBox_7</sender>
+   <sender>camera</sender>
    <signal>currentIndexChanged(int)</signal>
    <receiver>widget</receiver>
    <slot>changeCameraTopic(int)</slot>
@@ -1377,7 +1375,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>horizontalSlider_2</sender>
+   <sender>feed_slider</sender>
    <signal>valueChanged(int)</signal>
    <receiver>widget</receiver>
    <slot>changeCameraSpeed(int)</slot>
@@ -1553,7 +1551,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>horizontalSlider_3</sender>
+   <sender>selected_slider</sender>
    <signal>valueChanged(int)</signal>
    <receiver>widget</receiver>
    <slot>changeCropCameraSpeed(int)</slot>

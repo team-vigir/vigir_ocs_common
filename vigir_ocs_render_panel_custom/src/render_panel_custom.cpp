@@ -25,8 +25,8 @@ void RenderPanelCustom::setEventFilters(int function, bool block, Qt::KeyboardMo
 }
 
 void RenderPanelCustom::mouseMoveEvent( QMouseEvent* event ) 
-{ 
-	Q_EMIT signalMouseMoveEvent( event );
+{
+    Q_EMIT signalMouseMoveEvent( event );
     if(block_config_.find(MOUSE_MOVE_EVENT) != block_config_.end())
     {
         if(!block_config_[MOUSE_MOVE_EVENT].block &&
@@ -41,8 +41,8 @@ void RenderPanelCustom::mouseMoveEvent( QMouseEvent* event )
 }
 
 void RenderPanelCustom::mousePressEvent( QMouseEvent* event ) 
-{ 
-	Q_EMIT signalMousePressEvent( event );
+{
+    Q_EMIT signalMousePressEvent( event );
     //if( !(event->buttons() & Qt::RightButton) ) // ignore right button events
     if(block_config_.find(MOUSE_PRESS_EVENT) != block_config_.end())
     {
@@ -58,8 +58,8 @@ void RenderPanelCustom::mousePressEvent( QMouseEvent* event )
 }
 
 void RenderPanelCustom::mouseReleaseEvent( QMouseEvent* event ) 
-{ 
-	Q_EMIT signalMouseReleaseEvent( event );
+{
+    Q_EMIT signalMouseReleaseEvent( event );
     //if( !(event->buttons() & Qt::RightButton) ) // ignore right button events
     if(block_config_.find(MOUSE_RELEASE_EVENT) != block_config_.end())
     {
@@ -75,8 +75,8 @@ void RenderPanelCustom::mouseReleaseEvent( QMouseEvent* event )
 }
 
 void RenderPanelCustom::mouseDoubleClickEvent( QMouseEvent* event ) 
-{ 
-	Q_EMIT signalMouseDoubleClickEvent( event );
+{
+    Q_EMIT signalMouseDoubleClickEvent( event );
     //if( !(event->buttons() & Qt::RightButton) ) // ignore right button events
     if(block_config_.find(MOUSE_DOUBLE_CLICK_EVENT) != block_config_.end())
     {
@@ -94,7 +94,7 @@ void RenderPanelCustom::mouseDoubleClickEvent( QMouseEvent* event )
 
 void RenderPanelCustom::leaveEvent ( QEvent * event )
 {
-	Q_EMIT signalMouseLeaveEvent( event );
+    Q_EMIT signalMouseLeaveEvent( event );
     if(block_config_.find(MOUSE_LEAVE_EVENT) != block_config_.end())
     {
         if(!block_config_[MOUSE_LEAVE_EVENT].block/* &&
@@ -110,7 +110,7 @@ void RenderPanelCustom::leaveEvent ( QEvent * event )
 
 void RenderPanelCustom::wheelEvent( QWheelEvent* event )
 {
- 	Q_EMIT signalMouseWheelEvent( event );
+    Q_EMIT signalMouseWheelEvent( event );
     if(block_config_.find(MOUSE_WHEEL_EVENT) != block_config_.end())
     {
         if(!block_config_[MOUSE_WHEEL_EVENT].block &&
@@ -126,7 +126,7 @@ void RenderPanelCustom::wheelEvent( QWheelEvent* event )
 
 void RenderPanelCustom::keyPressEvent( QKeyEvent* event )
 {
-	Q_EMIT signalKeyPressEvent( event );
+    Q_EMIT signalKeyPressEvent( event );
     if(block_config_.find(KEY_PRESS_EVENT) != block_config_.end())
     {
         if(!block_config_[KEY_PRESS_EVENT].block &&

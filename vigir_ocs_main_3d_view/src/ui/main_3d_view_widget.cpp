@@ -8,6 +8,10 @@ Main3DViewWidget::Main3DViewWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    Q_FOREACH( QDoubleSpinBox * sp, findChildren<QDoubleSpinBox*>() ) {
+        sp->installEventFilter( this );
+        sp->setFocusPolicy( Qt::StrongFocus );
+    }
     Q_FOREACH( QSpinBox * sp, findChildren<QSpinBox*>() ) {
         sp->installEventFilter( this );
         sp->setFocusPolicy( Qt::StrongFocus );

@@ -44,6 +44,7 @@ Q_SIGNALS:
 public Q_SLOTS:
     void enableSelectionTool(bool, int, int);
     virtual void vectorPressed();
+    void keyPressEvent( QKeyEvent* event );
 
 private:
     rviz::Tool* selection_tool_;
