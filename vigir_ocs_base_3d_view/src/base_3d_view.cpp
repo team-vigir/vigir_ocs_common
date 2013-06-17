@@ -46,6 +46,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     , update_markers_(false)
     , snap_ghost_to_robot_(true)
     , marker_published_(0)
+    , stored_maps_(30) // determines how many maps will be stored
 {
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
@@ -125,7 +126,6 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // Create a MarkerArray display.
     octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", false );
     ROS_ASSERT( octomap_ != NULL );
-
     octomap_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
 
     // Create a point cloud display.
@@ -196,15 +196,6 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     waypoint_add_pub_   = n_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
 
     selection_position_ = Ogre::Vector3(0,0,0);
-
-    // this will all go to a separate nodelet that processes octomaps
-
-    //octomap_roi_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", true );
-    //ROS_ASSERT( octomap_roi_ != NULL );
-
-    //octomap_roi_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
-
-    //octomap_roi_pub_ = n_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/waypoint/add", 1, false );
 
     // Make the move camera tool the currently selected one
     manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
@@ -359,6 +350,12 @@ void Base3DView::templatesToggled( bool selected )
     template_display_->setEnabled( selected );
 }
 
+void Base3DView::requestedPointCloudToggled( bool selected )
+{
+    // we can't enable/disable point cloud requests, since the existing ones are lost if we disable them
+    point_cloud_request_viewer_->subProp("Alpha")->setValue(selected ? 1.0f : 0.0f);
+}
+
 void Base3DView::lidarPointCloudToggled( bool selected )
 {
     lidar_point_cloud_viewer_->setEnabled( selected );
@@ -376,13 +373,32 @@ void Base3DView::laserScanToggled( bool selected )
 
 void Base3DView::markerArrayToggled( bool selected )
 {
-    octomap_->setEnabled( selected );
+    // we can't enable/disable octomaps, since the existing ones are lost if we disable them
+    //octomap_->subProp("Alpha")->setValue(selected ? 1.0f : 0.0f);
+    octomap_->setEnabled(selected);
 }
 
 void Base3DView::gridMapToggled( bool selected )
 {
-    for(int i = 0; i < ground_map_.size(); i++)
-        ground_map_[i]->setEnabled( selected );
+    // we can't enable/disable gridmaps, since the existing ones are lost if we disable them
+    if(!selected)
+    {
+        for(int i = 0; i < ground_map_.size(); i++)
+        {
+            ground_map_[i]->subProp("Alpha")->setValue(0.0f);
+        }
+    }
+    else
+    {
+        float alpha = 1.0f, step = (0.95f/stored_maps_);
+        unsigned short priority = stored_maps_-1;
+        for(int i = ground_map_.size()-1; i >= 0; i--,alpha-=step)
+        {
+            //std::cout << i << " " << alpha << std::endl;
+            ground_map_[i]->subProp("Alpha")->setValue(alpha);
+            ((rviz::MapDisplayCustom*)ground_map_[i])->setPriority(priority--);
+        }
+    }
 }
 
 void Base3DView::footstepPlanningToggled( bool selected )
@@ -722,8 +738,7 @@ void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
     rviz::Display* ground_map = manager_->createDisplay( "rviz/MapDisplayCustom", "Ground map", true );
     ((rviz::MapDisplayCustom*)ground_map)->incomingMap(map);
     ground_map_.push_back(ground_map);
-    int stored_maps = 30;// THIS VALUE DETERMINES HOW MANY WE STORE
-    if(ground_map_.size() > stored_maps)
+    if(ground_map_.size() > stored_maps_)
     {
         rviz::Display* tmp = ground_map_[0];
         tmp->setEnabled(false);
@@ -731,8 +746,8 @@ void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
         manager_->notifyConfigChanged();
         ground_map_.erase(ground_map_.begin());
     }
-    float alpha = 1.0f, step = (0.95f/stored_maps);
-    unsigned short priority = stored_maps-1;
+    float alpha = 1.0f, step = (0.95f/stored_maps_);
+    unsigned short priority = stored_maps_-1;
     for(int i = ground_map_.size()-1; i >= 0; i--,alpha-=step)
     {
         //std::cout << i << " " << alpha << std::endl;

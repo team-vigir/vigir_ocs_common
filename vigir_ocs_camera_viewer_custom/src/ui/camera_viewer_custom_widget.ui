@@ -87,9 +87,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-433</y>
+        <y>-483</y>
         <width>264</width>
-        <height>1058</height>
+        <height>1083</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -1235,6 +1235,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="point_cloud_request">
+            <property name="text">
+             <string>Point Cloud Request</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="lidar_point_cloud">
             <property name="text">
              <string>LIDAR Point Cloud</string>
@@ -1343,6 +1353,7 @@
     <slot>vectorPressed()</slot>
     <slot>graspModelToggled(bool)</slot>
     <slot>templatesToggled(bool)</slot>
+    <slot>requestedPointCloudToggled(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -1725,6 +1736,22 @@
     <hint type="sourcelabel">
      <x>539</x>
      <y>454</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>223</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>point_cloud_request</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget</receiver>
+   <slot>requestedPointCloudToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>545</x>
+     <y>429</y>
     </hint>
     <hint type="destinationlabel">
      <x>223</x>

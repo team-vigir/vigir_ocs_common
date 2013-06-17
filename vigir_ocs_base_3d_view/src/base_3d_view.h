@@ -74,6 +74,7 @@ public Q_SLOTS:
     void robotModelToggled( bool );
     void graspModelToggled( bool );
     void templatesToggled( bool );
+    void requestedPointCloudToggled( bool );
     void lidarPointCloudToggled( bool );
     void stereoPointCloudToggled( bool );
     void laserScanToggled( bool );
@@ -192,7 +193,6 @@ protected:
     ros::Publisher interactive_marker_update_pub_;
     ros::Subscriber interactive_marker_feedback_sub_;
 
-
     std::vector<unsigned char> saved_state_planning_group_;
     std::vector<unsigned char> saved_state_pose_source_;
     std::vector<unsigned char> saved_state_world_lock_;
@@ -214,6 +214,7 @@ protected:
     Ogre::Ray last_selection_ray_;
 
     int marker_published_;
+    int stored_maps_;// THIS VALUE DETERMINES HOW MANY WE STORE
 };
 }
 #endif // BASE_3D_VIEW_H

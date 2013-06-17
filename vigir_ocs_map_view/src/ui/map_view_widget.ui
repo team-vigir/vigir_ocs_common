@@ -56,7 +56,7 @@
         <x>0</x>
         <y>-460</y>
         <width>242</width>
-        <height>1128</height>
+        <height>1153</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -505,6 +505,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="point_cloud_request">
+            <property name="text">
+             <string>Point Cloud Request</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="lidar_point_cloud_2">
             <property name="text">
              <string>LIDAR Point Cloud</string>
@@ -613,6 +623,7 @@
     <slot>publishPointCloudWorldRequest()</slot>
     <slot>graspModelToggled(bool)</slot>
     <slot>templatesToggled(bool)</slot>
+    <slot>requestedPointCloudToggled(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -915,6 +926,22 @@
     <hint type="sourcelabel">
      <x>647</x>
      <y>498</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>276</x>
+     <y>334</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>point_cloud_request</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>map_view_</receiver>
+   <slot>cameraToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>653</x>
+     <y>523</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>

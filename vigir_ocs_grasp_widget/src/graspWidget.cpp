@@ -12,6 +12,7 @@ graspWidget::graspWidget(QWidget *parent)
     , ui(new Ui::graspWidget)
     , selected_template_id_(-1)
     , selected_grasp_id_(-1)
+    , show_grasp_(false)
 {
     ui->setupUi(this);
     ui->templateBox->setDisabled(true);
@@ -88,7 +89,7 @@ graspWidget::~graspWidget()
 
 void graspWidget::timerEvent(QTimerEvent *event)
 {
-    if(currentGraspMode != 1 || !ui->graspBox->isEnabled())
+    if(currentGraspMode == 2 || !ui->graspBox->isEnabled() || !show_grasp_)
         hideHand();
 
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
@@ -194,6 +195,8 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         ui->performButton->setDisabled(false);
     }
 
+    bool was_empty = ui->templateBox->count() == 0 ? true : false;
+
     QString currentItem = ui->templateBox->currentText();
     //ui->templateBox->clear();
 
@@ -223,9 +226,6 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
     for(int i = list->template_list.size(); i < ui->templateBox->count(); i++)
         ui->templateBox->removeItem(i);
 
-    if(selected_grasp_id_ != -1 && currentGraspMode == 1)
-        publishHandPose(selected_grasp_id_);
-
     if(selected_template_id_ != -1 && ui->templateBox->findText(currentItem) == -1)
     {
         hideHand();
@@ -233,6 +233,20 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         selected_template_id_ = -1;
         selected_grasp_id_ = -1;
         ui->graspBox->setEnabled(false);
+    }
+    else
+    {
+        if(was_empty && ui->templateBox->count() > 0)
+        {
+            ROS_ERROR("Seleting template 0");
+            ui->templateBox->setCurrentIndex(0);
+            on_templateBox_activated(ui->templateBox->itemText(0));
+            on_templateRadio_clicked();
+            selected_template_id_ = 0;
+        }
+
+        if(selected_grasp_id_ != -1 && currentGraspMode == 1 && show_grasp_)
+            publishHandPose(selected_grasp_id_);
     }
 }
 
@@ -519,8 +533,7 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
 
     std::cout << "updating the grasp widget grasp selection box contents" << std::endl;
     // clean grasp box
-    while(ui->graspBox->count() > 0)
-        ui->graspBox->removeItem(0);
+    ui->graspBox->clear();
     selected_grasp_id_ = -1;
 
     // add grasps to the grasp combo box
@@ -887,4 +900,9 @@ int graspWidget::hideHand()
     ghost_hand_pub_.publish(hand_transform);
 
     publishHandJointStates(-1);
+}
+
+void graspWidget::on_show_grasp_toggled(bool checked)
+{
+    show_grasp_ = checked;
 }
