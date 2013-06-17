@@ -83,6 +83,7 @@ void motion_selector::setupQuickButtons(QString path)
                         newQB->timeFactor->setValue(strings[2].toDouble());
                         newQB->button->setEnabled(false);
                         newQB->timeFactor->setEnabled(false);
+                        newQB->timeFactor->setMaximumWidth(70);
                         connect(newQB->button, SIGNAL(clicked()),this,SLOT(quickButtonClicked()));
                         QVBoxLayout* layout = new QVBoxLayout;
                         layout->setDirection(QBoxLayout::LeftToRight);
