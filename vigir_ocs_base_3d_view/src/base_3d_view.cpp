@@ -286,6 +286,10 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ghost_root_pose_pub_ = n_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/set_root_pose", 1, false );
     ghost_joint_state_pub_ = n_.advertise<sensor_msgs::JointState>( "/flor/ghost/set_joint_states", 1, false );
 
+    // subscribe to the ghost hands pose
+    ghost_hand_left_sub_ = n_.subscribe<geometry_msgs::PoseStamped>( "/ghost_left_hand_pose", 5, &Base3DView::processLeftGhostHandPose, this );
+    ghost_hand_right_sub_ = n_.subscribe<geometry_msgs::PoseStamped>( "/ghost_right_hand_pose", 5, &Base3DView::processRightGhostHandPose, this );
+
     // initialize ghost control config
     saved_state_planning_group_.push_back(0);
     saved_state_planning_group_.push_back(1);
@@ -302,6 +306,8 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // ghost state
     ghost_control_state_sub_ = n_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
     reset_pelvis_sub_ = n_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
+    send_pelvis_sub_ = n_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
+    send_footstep_goal_pub_ = n_.advertise<geometry_msgs::PoseStamped>( "/goalpose", 1, false );
 
     // Create a RobotModel display.
     robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
@@ -767,7 +773,10 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
     cmd.pose = *pose;
     interactive_marker_update_pub_.publish(cmd);
 
-    if(!moving_pelvis_)
+    //ROS_ERROR("LEFT ARM POSE:");
+    //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
+    //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
+    if(!moving_pelvis_ && saved_state_pose_source_[0] == 0)
         end_effector_pose_list_[cmd.topic] = cmd.pose;
 }
 
@@ -781,8 +790,83 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
     cmd.pose = *pose;
     interactive_marker_update_pub_.publish(cmd);
 
-    if(!moving_pelvis_)
+    //ROS_ERROR("RIGHT ARM POSE:");
+    //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
+    //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
+    if(!moving_pelvis_ && saved_state_pose_source_[1] == 0)
         end_effector_pose_list_[cmd.topic] = cmd.pose;
+}
+
+int staticTransform(geometry_msgs::Pose& palm_pose, std::string hand)
+{
+    tf::Transform o_T_hand;    //describes hand in object's frame
+    tf::Transform o_T_pg;       //describes palm_from_graspit in object's frame
+    tf::Transform pg_T_rhand;   //describes r_hand in palm_from_graspit frame
+    tf::Transform pg_T_lhand;   //describes l_hand in palm_from_graspit frame
+
+    o_T_pg.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
+    o_T_pg.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
+
+    pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0,0,0,-1,1,0,0),tf::Vector3(-0.1,0,0));
+    pg_T_lhand = tf::Transform(tf::Matrix3x3(0,0,-1,0,1,0,1,0,0),tf::Vector3(-0.1,0,0));
+    tf::Quaternion left_quat = pg_T_lhand.getRotation();
+    tf::Quaternion tmp_quad(0,-1.57079633,0);
+    left_quat *= tmp_quad;
+    tf::Vector3 left_pos = pg_T_rhand.getOrigin();
+    //left_pos.setX(-left_pos.x());
+    pg_T_lhand = tf::Transform(left_quat,left_pos); // but we need to got to left_palm
+
+    if(hand == "right")
+    {
+        o_T_hand = o_T_pg * pg_T_rhand;
+    }
+    else
+    {
+        o_T_hand = o_T_pg * pg_T_lhand;
+    }
+
+    tf::Quaternion hand_quat;
+    tf::Vector3    hand_vector;
+    hand_quat   = o_T_hand.getRotation();
+    hand_vector = o_T_hand.getOrigin();
+
+    palm_pose.position.x = hand_vector.getX();
+    palm_pose.position.y = hand_vector.getY();
+    palm_pose.position.z = hand_vector.getZ();
+    palm_pose.orientation.x = hand_quat.getX();
+    palm_pose.orientation.y = hand_quat.getY();
+    palm_pose.orientation.z = hand_quat.getZ();
+    palm_pose.orientation.w = hand_quat.getW();
+
+    return 0;
+}
+
+void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+{
+    //ROS_ERROR("LEFT GHOST HAND POSE:");
+    //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
+    //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
+    if(!moving_pelvis_ && saved_state_pose_source_[0] == 1)
+    {
+        geometry_msgs::Pose transformed_pose = pose->pose;
+        staticTransform(transformed_pose,"left");
+        end_effector_pose_list_["/l_arm_pose_marker"].pose = transformed_pose;
+        publishGhostPoses();
+    }
+}
+
+void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+{
+    //ROS_ERROR("RIGHT GHOST HAND POSE:");
+    //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
+    //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
+    if(!moving_pelvis_ && saved_state_pose_source_[1] == 1)
+    {
+        geometry_msgs::Pose transformed_pose = pose->pose;
+        staticTransform(transformed_pose,"right");
+        end_effector_pose_list_["/r_arm_pose_marker"].pose = transformed_pose;
+        publishGhostPoses();
+    }
 }
 
 void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
@@ -803,6 +887,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
     }
     else if(msg->topic == "/pelvis_pose_marker")
         moving_pelvis_ = true;
+
     end_effector_pose_list_[msg->topic] = msg->pose;
 
     if(marker_published_ < 3)
@@ -826,38 +911,60 @@ void Base3DView::publishGhostPoses()
 {
     bool left = saved_state_planning_group_[0];
     bool right = saved_state_planning_group_[1];
-    bool pelvis = saved_state_planning_group_[2];
+    bool torso = saved_state_planning_group_[2];
 
     bool left_lock = saved_state_world_lock_[0];
     bool right_lock = saved_state_world_lock_[1];
+    ROS_ERROR("Left lock: %s Right lock: %s",left_lock?"yes":"no",right_lock?"yes":"no");
 
-    if(moving_pelvis_ && !left_lock && left)
-        left = false;
-    if(moving_pelvis_ && !right_lock && right)
-        right = false;
+    if(moving_pelvis_ || right_lock || left_lock)
+    {
+        if(!left_lock && left)
+            left = false;
+        else if(left_lock)
+            left = true;
+        if(!right_lock && right)
+            right = false;
+        else if(right_lock)
+            right = true;
+        moving_pelvis_ = false;
+    }
+
+    ROS_ERROR("Left: %s Right:%s Pelvis: %s",left?"yes":"no",right?"yes":"no",torso?"yes":"no");
 
     flor_planning_msgs::TargetConfigIkRequest cmd;
 
     if(left && end_effector_pose_list_.find( "/l_arm_pose_marker") != end_effector_pose_list_.end())
+    {
         cmd.target_poses.push_back(end_effector_pose_list_["/l_arm_pose_marker"]);
+//        ROS_ERROR("PUBLISHING LEFT ARM POSE:");
+//        ROS_ERROR("  position: %.2f %.2f %.2f",end_effector_pose_list_["/l_arm_pose_marker"].pose.position.x,end_effector_pose_list_["/l_arm_pose_marker"].pose.position.y,end_effector_pose_list_["/l_arm_pose_marker"].pose.position.z);
+//        ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.w,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.x,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.y,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.z);
+    }
+
     if(right && end_effector_pose_list_.find( "/r_arm_pose_marker") != end_effector_pose_list_.end())
+    {
         cmd.target_poses.push_back(end_effector_pose_list_["/r_arm_pose_marker"]);
+//        ROS_ERROR("PUBLISHING RIGHT ARM POSE:");
+//        ROS_ERROR("  position: %.2f %.2f %.2f",end_effector_pose_list_["/r_arm_pose_marker"].pose.position.x,end_effector_pose_list_["/r_arm_pose_marker"].pose.position.y,end_effector_pose_list_["/r_arm_pose_marker"].pose.position.z);
+//        ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",end_effector_pose_list_["/r_arm_pose_marker"].pose.orientation.w,end_effector_pose_list_["/r_arm_pose_marker"].pose.orientation.x,end_effector_pose_list_["/r_arm_pose_marker"].pose.orientation.y,end_effector_pose_list_["/r_arm_pose_marker"].pose.orientation.z);
+    }
 
     cmd.lock_to_world.resize(cmd.target_poses.size());
     for(int i = 0; i < cmd.target_poses.size(); i++)
-        cmd.lock_to_world[i].data = saved_state_world_lock_[i];
+        cmd.lock_to_world[i].data = 0;//saved_state_world_lock_[i];
 
-    if(left && !right && !pelvis)
+    if(left && !right && !torso)
         cmd.planning_group.data = "l_arm_group";
-    else if(left && !right && pelvis)
+    else if(left && !right && torso)
         cmd.planning_group.data = "l_arm_with_torso_group";
-    else if(!left && right && !pelvis)
+    else if(!left && right && !torso)
         cmd.planning_group.data = "r_arm_group";
-    else if(!left && right && pelvis)
+    else if(!left && right && torso)
         cmd.planning_group.data = "r_arm_with_torso_group";
-    else if(left && right && !pelvis)
+    else if(left && right && !torso)
         cmd.planning_group.data = "both_arms_group";
-    else if(left && right && pelvis)
+    else if(left && right && torso)
         cmd.planning_group.data = "both_arms_with_torso_group";
 
     if(left || right)
@@ -999,6 +1106,11 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
         cmd.pose = pose;
         interactive_marker_update_pub_.publish(cmd);
     }
+}
+
+void Base3DView::processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg )
+{
+    send_footstep_goal_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 }
 
 void Base3DView::publishMarkers()

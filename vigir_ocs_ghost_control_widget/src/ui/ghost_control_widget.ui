@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>316</height>
+    <height>328</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -49,209 +49,91 @@
            <property name="styleSheet">
             <string notr="true">border-color: rgb(194, 194, 194);</string>
            </property>
-           <layout class="QGridLayout" name="gridLayout" columnstretch="2,0,0,0">
+           <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0">
             <property name="leftMargin">
              <number>0</number>
             </property>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Pose Source</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QComboBox" name="pose_left_">
-              <item>
-               <property name="text">
-                <string>Marker</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Grasp</string>
-               </property>
-              </item>
-             </widget>
-            </item>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
             <item row="0" column="0">
-             <widget class="QLabel" name="label_4">
+             <widget class="QLabel" name="label_5">
               <property name="text">
-               <string/>
+               <string>Left Arm   </string>
               </property>
              </widget>
             </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label">
+            <item row="0" column="2">
+             <widget class="QRadioButton" name="left_marker_lock">
               <property name="text">
-               <string>World Lock</string>
+               <string>Marker</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="3">
+             <widget class="QRadioButton" name="left_template_lock">
+              <property name="text">
+               <string>Grasp</string>
               </property>
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QLabel" name="label_5">
+             <widget class="QRadioButton" name="left_no_lock">
               <property name="text">
-               <string>Left Arm</string>
+               <string>No Lock</string>
               </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
+              <property name="checked">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
-            <item row="2" column="3">
-             <widget class="QComboBox" name="pose_right_">
-              <item>
-               <property name="text">
-                <string>Marker</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Grasp</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="0" column="3">
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget" native="true">
+           <layout class="QGridLayout" name="gridLayout_4">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>9</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item row="0" column="0">
              <widget class="QLabel" name="label_7">
               <property name="text">
                <string>Right Arm</string>
               </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QRadioButton" name="right_no_lock">
+              <property name="text">
+               <string>No Lock</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
-             <widget class="QWidget" name="widget" native="true">
-              <layout class="QHBoxLayout" name="horizontalLayout">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <property name="margin">
-                <number>0</number>
-               </property>
-               <item>
-                <spacer name="horizontalSpacer">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>0</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="planning_left_">
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="checked">
-                  <bool>false</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer_2">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>0</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-              </layout>
+            <item row="0" column="2">
+             <widget class="QRadioButton" name="right_marker_lock">
+              <property name="text">
+               <string>Marker</string>
+              </property>
              </widget>
             </item>
-            <item row="1" column="2">
-             <widget class="QWidget" name="widget_4" native="true">
-              <layout class="QHBoxLayout" name="horizontalLayout_3">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <property name="margin">
-                <number>0</number>
-               </property>
-              </layout>
-             </widget>
-            </item>
-            <item row="1" column="3">
-             <widget class="QWidget" name="widget_5" native="true">
-              <layout class="QHBoxLayout" name="horizontalLayout_4">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <property name="margin">
-                <number>0</number>
-               </property>
-               <item>
-                <spacer name="horizontalSpacer_5">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>0</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="planning_right_">
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="checked">
-                  <bool>false</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer_6">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>0</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item row="3" column="2">
-             <widget class="QWidget" name="widget_7" native="true">
-              <layout class="QHBoxLayout" name="horizontalLayout_6">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <property name="margin">
-                <number>0</number>
-               </property>
-              </layout>
-             </widget>
-            </item>
-            <item row="3" column="3">
-             <widget class="QWidget" name="widget_8" native="true">
-              <layout class="QHBoxLayout" name="horizontalLayout_7">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <property name="margin">
-                <number>0</number>
-               </property>
-              </layout>
+            <item row="0" column="3">
+             <widget class="QRadioButton" name="right_template_lock">
+              <property name="text">
+               <string>Grasp</string>
+              </property>
              </widget>
             </item>
            </layout>
@@ -272,16 +154,6 @@
             <property name="spacing">
              <number>0</number>
             </property>
-            <item row="0" column="1">
-             <widget class="QCheckBox" name="lock_pelvis_">
-              <property name="text">
-               <string>Lock Ghost Pelvis</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="0">
              <widget class="QCheckBox" name="planning_torso_">
               <property name="text">
@@ -295,15 +167,16 @@
               </property>
              </widget>
             </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="widget_10" native="true">
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <property name="margin">
-             <number>0</number>
-            </property>
+            <item row="0" column="1">
+             <widget class="QCheckBox" name="lock_pelvis_">
+              <property name="text">
+               <string>Lock Ghost Pelvis</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -348,7 +221,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Send to Planner</string>
+      <string>Send to Robot</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <property name="leftMargin">
@@ -385,6 +258,31 @@
        <widget class="QPushButton" name="send_right_torso_pose_button_">
         <property name="text">
          <string>Send Right Arm + Torso</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="title">
+      <string>Send to Footstep Planner</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="pushButton">
+        <property name="text">
+         <string>Send Target Pose</string>
         </property>
        </widget>
       </item>

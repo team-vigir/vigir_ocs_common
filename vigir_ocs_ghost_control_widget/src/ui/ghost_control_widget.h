@@ -55,34 +55,27 @@ private Q_SLOTS:
     void sendTargetPoseClicked();
     void sendTargetConfigClicked();
     void resetPelvisClicked();
-
     void on_planning_left__clicked();
-
     void on_planning_torso__clicked();
-
     void on_planning_right__clicked();
-
     void on_lock_left__clicked();
-
     void on_lock_torso__clicked();
-
     void on_lock_right__clicked();
-
     void on_pose_left__currentIndexChanged(int index);
-
     void on_pose_torso__currentIndexChanged(int index);
-
     void on_pose_right__currentIndexChanged(int index);
-
     void on_lock_pelvis__clicked();
-
     void on_send_left_pose_button__clicked();
-
     void on_send_left_torso_pose_button__clicked();
-
     void on_send_right_pose_button__clicked();
-
     void on_send_right_torso_pose_button__clicked();
+    void on_pushButton_clicked();
+    void on_left_no_lock_toggled(bool checked);
+    void on_left_marker_lock_toggled(bool checked);
+    void on_left_template_lock_toggled(bool checked);
+    void on_right_no_lock_toggled(bool checked);
+    void on_right_marker_lock_toggled(bool checked);
+    void on_right_template_lock_toggled(bool checked);
 
 private:
     Ui::GhostControlWidget* ui;
@@ -93,6 +86,7 @@ private:
     ros::Publisher set_to_target_pose_pub_;
     ros::Publisher set_to_target_config_pub_;
     ros::Publisher reset_pelvis_pub_;
+    ros::Publisher send_pelvis_pub_;
 
     // variables that hold saved state of the widget
     static std::vector<unsigned char> saved_state_planning_group_;

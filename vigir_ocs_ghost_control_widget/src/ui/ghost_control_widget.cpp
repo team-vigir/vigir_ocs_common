@@ -20,10 +20,6 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
 {    
     ui->setupUi(this);
 
-    ui->pose_left_->setCurrentIndex(0);
-    ui->pose_right_->setCurrentIndex(0);
-    //ui->pose_torso_->setCurrentIndex(0);
-
     saveState();
 
     // subscribe to the topic to load state configurations
@@ -32,6 +28,7 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     // advertise the topic to publish state configurations
     state_pub_ = nh_.advertise<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 1, false );
     reset_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 1, false );
+    send_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 1, false );
 
     // advertise set pose buttons
     set_to_target_pose_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/planning/plan_to_pose_state", 1, false );
@@ -78,21 +75,31 @@ void GhostControlWidget::saveState()
     saved_state_pose_source_.clear();
     saved_state_world_lock_.clear();
 
-    saved_state_planning_group_.push_back(ui->planning_left_->isChecked());
-    saved_state_planning_group_.push_back(ui->planning_right_->isChecked());
+    saved_state_planning_group_.push_back(false);
+    saved_state_planning_group_.push_back(false);
     saved_state_planning_group_.push_back(ui->planning_torso_->isChecked());
 
-    saved_state_pose_source_.push_back(ui->pose_left_->currentIndex());
-    saved_state_pose_source_.push_back(ui->pose_right_->currentIndex());
-    //saved_state_pose_source_.push_back(ui->pose_torso_->currentIndex());
+    if(ui->left_template_lock->isChecked())
+    {
+        saved_state_pose_source_.push_back(1);
+        saved_state_world_lock_.push_back(1);
+    }
+    else
+    {
+        saved_state_pose_source_.push_back(0);
+        saved_state_world_lock_.push_back(ui->left_marker_lock->isChecked());
+    }
 
-    saved_state_world_lock_.push_back(ui->planning_left_->isChecked());
-    saved_state_world_lock_.push_back(ui->planning_right_->isChecked());
-    //saved_state_world_lock_.push_back(ui->lock_left_->isChecked());
-    //saved_state_world_lock_.push_back(ui->lock_right_->isChecked());
-    //saved_state_world_lock_.push_back(ui->lock_torso_->isChecked());
-
-    //saved_state_collision_avoidance_ = ui->collision_->isChecked();
+    if(ui->right_template_lock->isChecked())
+    {
+        saved_state_pose_source_.push_back(1);
+        saved_state_world_lock_.push_back(1);
+    }
+    else
+    {
+        saved_state_pose_source_.push_back(0);
+        saved_state_world_lock_.push_back(ui->right_marker_lock->isChecked());
+    }
 
     saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();
 
@@ -103,7 +110,7 @@ void GhostControlWidget::loadState(std::vector<unsigned char> planning_group, st
                                    std::vector<unsigned char> world_lock, unsigned char collision_avoidance,
                                    unsigned char lock_pelvis)
 {
-    ui->planning_left_->setChecked(planning_group[0]);
+    /*ui->planning_left_->setChecked(planning_group[0]);
     ui->planning_right_->setChecked(planning_group[1]);
     ui->planning_torso_->setChecked(planning_group[2]);
 
@@ -117,7 +124,7 @@ void GhostControlWidget::loadState(std::vector<unsigned char> planning_group, st
 
     //ui->collision_->setChecked(collision_avoidance);
 
-    ui->lock_pelvis_->setChecked(lock_pelvis);
+    ui->lock_pelvis_->setChecked(lock_pelvis);*/
 }
 
 void GhostControlWidget::applyClicked()
@@ -286,4 +293,47 @@ void GhostControlWidget::on_send_right_torso_pose_button__clicked()
     cmd.data = "r_arm_with_torso_group";
 
     set_to_target_pose_pub_.publish(cmd);
+}
+
+void GhostControlWidget::on_pushButton_clicked()
+{
+    std_msgs::Bool cmd;
+    cmd.data = true;
+    send_pelvis_pub_.publish(cmd);
+}
+
+void GhostControlWidget::on_left_no_lock_toggled(bool checked)
+{
+    saveState();
+    publishState();
+}
+
+void GhostControlWidget::on_left_marker_lock_toggled(bool checked)
+{
+    saveState();
+    publishState();
+}
+
+void GhostControlWidget::on_left_template_lock_toggled(bool checked)
+{
+    saveState();
+    publishState();
+}
+
+void GhostControlWidget::on_right_no_lock_toggled(bool checked)
+{
+    saveState();
+    publishState();
+}
+
+void GhostControlWidget::on_right_marker_lock_toggled(bool checked)
+{
+    saveState();
+    publishState();
+}
+
+void GhostControlWidget::on_right_template_lock_toggled(bool checked)
+{
+    saveState();
+    publishState();
 }
