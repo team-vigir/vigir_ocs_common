@@ -48,6 +48,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     , marker_published_(0)
     , stored_maps_(30) // determines how many maps will be stored
     , moving_pelvis_(false)
+    , visualize_grid_map_(true)
 {
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
@@ -388,6 +389,7 @@ void Base3DView::markerArrayToggled( bool selected )
 void Base3DView::gridMapToggled( bool selected )
 {
     // we can't enable/disable gridmaps, since the existing ones are lost if we disable them
+    visualize_grid_map_ = selected;
     if(!selected)
     {
         for(int i = 0; i < ground_map_.size(); i++)
@@ -753,14 +755,7 @@ void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
         manager_->notifyConfigChanged();
         ground_map_.erase(ground_map_.begin());
     }
-    float alpha = 1.0f, step = (0.95f/stored_maps_);
-    unsigned short priority = stored_maps_-1;
-    for(int i = ground_map_.size()-1; i >= 0; i--,alpha-=step)
-    {
-        //std::cout << i << " " << alpha << std::endl;
-        ground_map_[i]->subProp("Alpha")->setValue(alpha);
-        ((rviz::MapDisplayCustom*)ground_map_[i])->setPriority(priority--);
-    }
+    gridMapToggled(visualize_grid_map_);
 }
 
 void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)

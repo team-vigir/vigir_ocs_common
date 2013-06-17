@@ -226,6 +226,8 @@ protected:
     int stored_maps_;// THIS VALUE DETERMINES HOW MANY WE STORE
 
     bool moving_pelvis_;
+
+    bool visualize_grid_map_;
 };
 }
 #endif // BASE_3D_VIEW_H
