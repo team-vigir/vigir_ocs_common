@@ -47,6 +47,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     , snap_ghost_to_robot_(true)
     , marker_published_(0)
     , stored_maps_(30) // determines how many maps will be stored
+    , moving_pelvis_(false)
 {
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
@@ -758,18 +759,6 @@ void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
 
 void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
-    //if(update_markers_)
-    /*{
-        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
-        {
-            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Left Arm")
-            {
-                im_ghost_robot_server_[i]->setPose(*pose);
-                break;
-            }
-        }
-        update_markers_ = false;
-    }*/
     if(marker_published_ < 3)
         publishMarkers();
 
@@ -777,22 +766,13 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
     cmd.topic = "/l_arm_pose_marker";
     cmd.pose = *pose;
     interactive_marker_update_pub_.publish(cmd);
+
+    if(!moving_pelvis_)
+        end_effector_pose_list_[cmd.topic] = cmd.pose;
 }
 
 void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
-    //if(update_markers_)
-    /*{
-        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
-        {
-            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Right Arm")
-            {
-                im_ghost_robot_server_[i]->setPose(*pose);
-                break;
-            }
-        }
-        update_markers_ = false;
-    }*/
     if(marker_published_ < 3)
         publishMarkers();
 
@@ -800,29 +780,30 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
     cmd.topic = "/r_arm_pose_marker";
     cmd.pose = *pose;
     interactive_marker_update_pub_.publish(cmd);
+
+    if(!moving_pelvis_)
+        end_effector_pose_list_[cmd.topic] = cmd.pose;
 }
 
 void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
 {
-    //end_effector_pose_list_[topic_name] = pose;
-    //if(end_effector_pose_list_.find(msg->topic) != end_effector_pose_list_.end())
-    //if(msg->topic == )
+
+    //ROS_ERROR("Marker feedback on topic %s, have markers instantiated",msg->topic.c_str());
+    if(msg->topic == "/l_arm_pose_marker")
     {
-        //ROS_ERROR("Marker feedback on topic %s, have markers instantiated",msg->topic.c_str());
-        if(msg->topic == "/l_arm_pose_marker")
-        {
-            saved_state_planning_group_[0] = 1;
-            saved_state_planning_group_[1] = 0;
-        }
-        else if(msg->topic == "/r_arm_pose_marker")
-        {
-            saved_state_planning_group_[0] = 0;
-            saved_state_planning_group_[1] = 1;
-        }
-        end_effector_pose_list_[msg->topic] = msg->pose;
-
+        saved_state_planning_group_[0] = 1;
+        saved_state_planning_group_[1] = 0;
+        moving_pelvis_ = false;
     }
-
+    else if(msg->topic == "/r_arm_pose_marker")
+    {
+        saved_state_planning_group_[0] = 0;
+        saved_state_planning_group_[1] = 1;
+        moving_pelvis_ = false;
+    }
+    else if(msg->topic == "/pelvis_pose_marker")
+        moving_pelvis_ = true;
+    end_effector_pose_list_[msg->topic] = msg->pose;
 
     if(marker_published_ < 3)
     {
@@ -847,18 +828,24 @@ void Base3DView::publishGhostPoses()
     bool right = saved_state_planning_group_[1];
     bool pelvis = saved_state_planning_group_[2];
 
+    bool left_lock = saved_state_world_lock_[0];
+    bool right_lock = saved_state_world_lock_[1];
+
+    if(moving_pelvis_ && !left_lock && left)
+        left = false;
+    if(moving_pelvis_ && !right_lock && right)
+        right = false;
+
     flor_planning_msgs::TargetConfigIkRequest cmd;
 
     if(left && end_effector_pose_list_.find( "/l_arm_pose_marker") != end_effector_pose_list_.end())
         cmd.target_poses.push_back(end_effector_pose_list_["/l_arm_pose_marker"]);
-
     if(right && end_effector_pose_list_.find( "/r_arm_pose_marker") != end_effector_pose_list_.end())
         cmd.target_poses.push_back(end_effector_pose_list_["/r_arm_pose_marker"]);
 
     cmd.lock_to_world.resize(cmd.target_poses.size());
     for(int i = 0; i < cmd.target_poses.size(); i++)
         cmd.lock_to_world[i].data = saved_state_world_lock_[i];
-
 
     if(left && !right && !pelvis)
         cmd.planning_group.data = "l_arm_group";
@@ -873,7 +860,8 @@ void Base3DView::publishGhostPoses()
     else if(left && right && pelvis)
         cmd.planning_group.data = "both_arms_with_torso_group";
 
-    end_effector_pub_.publish(cmd);
+    if(left || right)
+        end_effector_pub_.publish(cmd);
 
     if(saved_state_lock_pelvis_)
     {

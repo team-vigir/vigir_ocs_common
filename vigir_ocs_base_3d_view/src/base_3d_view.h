@@ -215,6 +215,8 @@ protected:
 
     int marker_published_;
     int stored_maps_;// THIS VALUE DETERMINES HOW MANY WE STORE
+
+    bool moving_pelvis_;
 };
 }
 #endif // BASE_3D_VIEW_H

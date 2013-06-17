@@ -86,6 +86,8 @@ void GhostControlWidget::saveState()
     saved_state_pose_source_.push_back(ui->pose_right_->currentIndex());
     //saved_state_pose_source_.push_back(ui->pose_torso_->currentIndex());
 
+    saved_state_world_lock_.push_back(ui->planning_left_->isChecked());
+    saved_state_world_lock_.push_back(ui->planning_right_->isChecked());
     //saved_state_world_lock_.push_back(ui->lock_left_->isChecked());
     //saved_state_world_lock_.push_back(ui->lock_right_->isChecked());
     //saved_state_world_lock_.push_back(ui->lock_torso_->isChecked());

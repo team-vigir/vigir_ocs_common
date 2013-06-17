@@ -227,7 +227,7 @@ void RobotDisplayCustom::onDisable()
 
 void RobotDisplayCustom::update( float wall_dt, float ros_dt )
 {
-    updateColor();
+    //updateColor();
     updateAlpha();
 
     time_since_last_transform_ += wall_dt;
