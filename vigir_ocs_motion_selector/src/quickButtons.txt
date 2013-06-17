@@ -16,7 +16,7 @@ space,2,20
 2,crawl_back_obstacles,1.00
 2,crawl_back_final_dorian,1.00
 2,crawl_back_final_dorian,0.1
-2,crawl_back_frog_sk_1.,0.1
+2,crawl_back_frog_sk_1,0.1
 space,2,10
 2,sit_up_from_back
 2,sit_up_from_back_no_null
