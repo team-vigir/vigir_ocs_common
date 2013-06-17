@@ -300,8 +300,18 @@
       <property name="margin">
        <number>0</number>
       </property>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_13">
+        <property name="text">
+         <string>Octomap Max Height</string>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="1">
        <widget class="QDoubleSpinBox" name="padding_">
+        <property name="decimals">
+         <number>3</number>
+        </property>
         <property name="minimum">
          <double>-0.200000000000000</double>
         </property>
@@ -349,6 +359,9 @@
       </item>
       <item row="2" column="1">
        <widget class="QDoubleSpinBox" name="time_factor_">
+        <property name="decimals">
+         <number>3</number>
+        </property>
         <property name="minimum">
          <double>0.010000000000000</double>
         </property>
@@ -360,6 +373,48 @@
         </property>
         <property name="value">
          <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QDoubleSpinBox" name="octomap_height_">
+        <property name="decimals">
+         <number>3</number>
+        </property>
+        <property name="minimum">
+         <double>-10.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>100.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.010000000000000</double>
+        </property>
+        <property name="value">
+         <double>2.500000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_14">
+        <property name="text">
+         <string>Octomap Clearance Cube</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QDoubleSpinBox" name="octomap_clearance_cube_dimensions_">
+        <property name="decimals">
+         <number>3</number>
+        </property>
+        <property name="maximum">
+         <double>5.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.001000000000000</double>
+        </property>
+        <property name="value">
+         <double>0.100000000000000</double>
         </property>
        </widget>
       </item>
