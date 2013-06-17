@@ -1,6 +1,6 @@
 #row,name,default time factor
-1,turn_onto_back_over_left,1.00
-1,turn_onto_back_over_left_no_null,1.00
+1,roll_onto_back_over_left,1.00
+1,roll_onto_back_over_left_no_null,1.00
 space,1,10
 1,roll_onto_face_over_left, 1.00
 1,roll_onto_face_over_left_no_null, 1.00
@@ -25,8 +25,8 @@ space,2,10
 2,sit_up_from_back,1.00
 
 #row,name,default time factor
-3,turn_onto_back_over_right,1.00
-3,turn_onto_back_over_right_no_null,1.00
+3,roll_onto_back_over_right,1.00
+3,roll_onto_back_over_right_no_null,1.00
 space,3,10
 3,roll_onto_face_over_right, 1.00
 3,roll_onto_face_over_right_no_null, 1.00
