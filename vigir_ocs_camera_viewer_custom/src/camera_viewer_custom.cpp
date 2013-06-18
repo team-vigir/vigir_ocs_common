@@ -38,6 +38,7 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     , feed_resolution_(4)
     , area_rate_(0)
     , area_resolution_(0)
+    , setting_pose_(false)
 {
     // Create a camera/image display.
     camera_viewer_ = manager_->createDisplay( "rviz/CameraDisplayCustom", "Camera image", true ); // this would use the plugin instead of manually adding the display object to the manager
@@ -91,6 +92,16 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
 
     // advertise pointcloud request
     pointcloud_request_frame_pub_ = n_.advertise<geometry_msgs::PointStamped>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_frame", 1, false );
+
+    reset_view_button_->setParent(0);
+    delete reset_view_button_;
+    reset_view_button_ = NULL;
+
+    // subscribe to goal pose so we can add filters back
+    set_goal_sub_ = n_.subscribe<geometry_msgs::PoseStamped>( "/goalpose", 5, &CameraViewerCustom::processGoalPose, this );
+
+    // make sure we're still able to cancel set goal pose
+    QObject::connect(render_panel_, SIGNAL(signalKeyPressEvent(QKeyEvent*)), this, SLOT(keyPressEvent(QKeyEvent*)));
 }
 
 // Destructor.
@@ -315,7 +326,6 @@ void CameraViewerCustom::mouseMoved(int newX, int newY)
     {
         xButton->hide();
     }
-
 }
 
 void CameraViewerCustom::closeSelectedArea()
@@ -329,6 +339,27 @@ void CameraViewerCustom::closeSelectedArea()
 void CameraViewerCustom::updateImageFrame(std::string frame)
 {
     camera_frame_topic_ = frame;
+}
+
+void CameraViewerCustom::vectorPressed()
+{
+    //ROS_ERROR("vector pressed in map");
+    manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
+    setting_pose_ = true;
+}
+
+void CameraViewerCustom::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+{
+    //ROS_ERROR("goal processed in map");
+    manager_->getToolManager()->setCurrentTool( selection_tool_ );
+    setting_pose_ = false;
+}
+
+void CameraViewerCustom::keyPressEvent( QKeyEvent* event )
+{
+    // block events and change to camera tool
+    manager_->getToolManager()->setCurrentTool( selection_tool_ );
+    setting_pose_ = false;
 }
 }
 

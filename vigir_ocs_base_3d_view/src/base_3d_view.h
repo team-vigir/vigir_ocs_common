@@ -14,6 +14,10 @@
 
 #include <QWidget>
 #include <QMouseEvent>
+#include <QLabel>
+#include <QPushButton>
+#include <QFrame>
+#include <QLineEdit>
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
 
@@ -47,6 +51,18 @@ class VisualizationManager;
 class FrameManager;
 }
 
+class QLineEditSmall : public QLineEdit
+{
+    Q_OBJECT
+public:
+    QLineEditSmall( const QString & contents, QWidget* parent = 0 ) : QLineEdit(contents,parent) { size_ = QSize(-1,-1); }
+    virtual ~QLineEditSmall() {}
+    void setSizeHint(const QSize& size) { size_ = size; }
+    QSize sizeHint() const { return size_; }
+private:
+    QSize size_;
+};
+
 namespace vigir_ocs
 {
 
@@ -69,7 +85,6 @@ public:
     void processJointStates( const sensor_msgs::JointState::ConstPtr& states );
     void processPelvisResetRequest( const std_msgs::Bool::ConstPtr& msg );
     void processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg );
-
 
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
@@ -110,6 +125,8 @@ public Q_SLOTS:
 
     void publishMarkers();
 
+    void resetView();
+
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
     void resetSelection();
@@ -125,7 +142,6 @@ protected:
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
     void publishGhostPoses();
-
 
     rviz::VisualizationManager* manager_;
     rviz::VisualizationManager* manager_simulation_;
@@ -226,8 +242,14 @@ protected:
     int stored_maps_;// THIS VALUE DETERMINES HOW MANY WE STORE
 
     bool moving_pelvis_;
+    bool moving_l_arm_;
+    bool moving_r_arm_;
 
     bool visualize_grid_map_;
+    QWidget* position_widget_;
+    QLineEdit* position_label_;
+
+    QPushButton* reset_view_button_;
 };
 }
 #endif // BASE_3D_VIEW_H

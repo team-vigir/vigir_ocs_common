@@ -126,7 +126,6 @@ void RenderPanelCustom::wheelEvent( QWheelEvent* event )
 
 void RenderPanelCustom::keyPressEvent( QKeyEvent* event )
 {
-    Q_EMIT signalKeyPressEvent( event );
     if(block_config_.find(KEY_PRESS_EVENT) != block_config_.end())
     {
         if(!block_config_[KEY_PRESS_EVENT].block &&
@@ -138,6 +137,7 @@ void RenderPanelCustom::keyPressEvent( QKeyEvent* event )
     }
     else
         RenderPanel::keyPressEvent( event );
+    Q_EMIT signalKeyPressEvent( event );
 }
 
 } // namespace rviz

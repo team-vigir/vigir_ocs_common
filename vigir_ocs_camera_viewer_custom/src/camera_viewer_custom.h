@@ -44,6 +44,8 @@ public:
 
     void setCameraPitch( int );
 
+    void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
+
 Q_SIGNALS:
     void setFullImageResolution( int );
     void setCropImageResolution( int );
@@ -70,6 +72,9 @@ public Q_SLOTS:
     void requestPointCloudROI();
     void updateImageFrame(std::string);
 
+    virtual void vectorPressed();
+    void keyPressEvent( QKeyEvent* event );
+
 private Q_SLOTS:
     void select( int, int, int, int );
 
@@ -85,10 +90,14 @@ private:
     ros::Publisher head_pitch_update_pub_;
     ros::Publisher pointcloud_request_frame_pub_;
 
+    ros::Subscriber set_goal_sub_;
+
     int feed_rate_;
     int feed_resolution_;
     int area_rate_;
     int area_resolution_;
+
+    bool setting_pose_;
 };
 }
 #endif // CAMERA_VIEWER_H

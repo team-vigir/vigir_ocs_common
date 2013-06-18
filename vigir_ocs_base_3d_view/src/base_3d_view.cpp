@@ -27,6 +27,9 @@
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
 #include "rviz/tool_manager.h"
+#include "rviz/view_manager.h"
+#include "rviz/default_plugin/view_controllers/fixed_orientation_ortho_view_controller.h"
+#include "rviz/default_plugin/view_controllers/orbit_view_controller.h"
 #include <template_display_custom.h>
 #include "map_display_custom.h"
 #include "base_3d_view.h"
@@ -48,6 +51,8 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     , marker_published_(0)
     , stored_maps_(30) // determines how many maps will be stored
     , moving_pelvis_(false)
+    , moving_l_arm_(false)
+    , moving_r_arm_(false)
     , visualize_grid_map_(true)
 {
     // Construct and lay out render panel.
@@ -334,6 +339,29 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // frustum
     frustum_viewer_list_["head_left"] = manager_->createDisplay( "rviz/FrustumDisplayCustom", "Frustum - Left Eye", true );
     QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
+
+    position_widget_ = new QWidget(this);
+    position_widget_->setStyleSheet("background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
+    position_widget_->setMaximumHeight(18);
+    position_label_ = new QLineEditSmall("",position_widget_);
+    position_label_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    position_label_->setReadOnly(true);
+    position_label_->setStyleSheet("background-color: rgb(0, 0, 0);font: 8pt \"MS Shell Dlg 2\";color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
+    position_label_->setFrame(false);
+
+    reset_view_button_ = new QPushButton("Reset View", this);
+    reset_view_button_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
+    reset_view_button_->setMaximumSize(68,18);
+    reset_view_button_->adjustSize();
+    QObject::connect(reset_view_button_, SIGNAL(clicked()), this, SLOT(resetView()));
+
+    QHBoxLayout* position_layout = new QHBoxLayout(position_widget_);
+    position_layout->setMargin(0);
+    position_layout->addWidget(reset_view_button_);
+    position_layout->addWidget(position_label_);
+    position_widget_->setLayout(position_layout);
+    //main_layout->addWidget(position_widget_);
+
 }
 
 // Destructor.
@@ -524,6 +552,17 @@ void Base3DView::processNewSelection( const geometry_msgs::Point::ConstPtr& pose
 
 void Base3DView::newSelection( Ogre::Vector3 position )
 {
+    QString new_label = QString::number(position.x,'f',2)+", "+QString::number(position.y,'f',2)+", "+QString::number(position.z,'f',2);
+    //position_label_->setReadOnly(false);
+    position_label_->setText(new_label);
+    //position_label_->adjustSize();
+    //position_widget_->setGeometry(this->geometry().bottomLeft().x()+68,
+    //                              this->geometry().bottomRight().y()-18,
+    //                              this->geometry().bottomRight().x()-this->geometry().bottomLeft().x()-68,
+    //                              18);
+    //position_label_->setGeometry(0,0,position_label_->geometry().width(),18);
+    //position_label_->setReadOnly(true);
+
     selection_position_ = position;
     selected_ = true;
 }
@@ -841,7 +880,7 @@ void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::Cons
     //ROS_ERROR("LEFT GHOST HAND POSE:");
     //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
     //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
-    if(!moving_pelvis_ && saved_state_pose_source_[0] == 1)
+    if(!moving_pelvis_ && saved_state_world_lock_[0] == 1)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
         staticTransform(transformed_pose,"left");
@@ -855,7 +894,7 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
     //ROS_ERROR("RIGHT GHOST HAND POSE:");
     //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
     //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
-    if(!moving_pelvis_ && saved_state_pose_source_[1] == 1)
+    if(!moving_pelvis_ && saved_state_world_lock_[1] == 1)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
         staticTransform(transformed_pose,"right");
@@ -873,15 +912,23 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         saved_state_planning_group_[0] = 1;
         saved_state_planning_group_[1] = 0;
         moving_pelvis_ = false;
+        moving_l_arm_ = true;
+        moving_r_arm_ = false;
     }
     else if(msg->topic == "/r_arm_pose_marker")
     {
         saved_state_planning_group_[0] = 0;
         saved_state_planning_group_[1] = 1;
         moving_pelvis_ = false;
+        moving_l_arm_ = false;
+        moving_r_arm_ = true;
     }
     else if(msg->topic == "/pelvis_pose_marker")
+    {
         moving_pelvis_ = true;
+        moving_l_arm_ = false;
+        moving_r_arm_ = false;
+    }
 
     end_effector_pose_list_[msg->topic] = msg->pose;
 
@@ -910,7 +957,8 @@ void Base3DView::publishGhostPoses()
 
     bool left_lock = saved_state_world_lock_[0];
     bool right_lock = saved_state_world_lock_[1];
-    ROS_ERROR("Left lock: %s Right lock: %s",left_lock?"yes":"no",right_lock?"yes":"no");
+    //ROS_ERROR("Moving marker? %s",moving_pelvis_?"Yes, Pelvis":(moving_l_arm_?"Yes, Left Arm":(moving_r_arm_?"Yes, Right Arm":"No")));
+    //ROS_ERROR("Left lock: %s Right lock: %s",left_lock?"yes":"no",right_lock?"yes":"no");
 
     if(moving_pelvis_ || right_lock || left_lock)
     {
@@ -923,9 +971,24 @@ void Base3DView::publishGhostPoses()
         else if(right_lock)
             right = true;
         moving_pelvis_ = false;
+
+        if(moving_l_arm_ && right_lock)
+        {
+            left = true;
+            right = false;
+            torso = false;
+            moving_l_arm_ = false;
+        }
+        if(moving_r_arm_ && left_lock)
+        {
+            left = false;
+            right = true;
+            torso = false;
+            moving_l_arm_ = false;
+        }
     }
 
-    ROS_ERROR("Left: %s Right:%s Pelvis: %s",left?"yes":"no",right?"yes":"no",torso?"yes":"no");
+    //ROS_ERROR("Left: %s Right:%s Pelvis: %s",left?"yes":"no",right?"yes":"no",torso?"yes":"no");
 
     flor_planning_msgs::TargetConfigIkRequest cmd;
 
@@ -1055,6 +1118,22 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
 
         snap_ghost_to_robot_ = false;
     }
+
+    // make sure the selection point is visible
+    //if(selected_)
+    {
+        position_widget_->setGeometry(this->geometry().bottomLeft().x(),
+                                      this->geometry().bottomLeft().y()-18,
+                                      this->geometry().bottomRight().x()-this->geometry().bottomLeft().x(),
+                                      18);
+//        position_label_->setGeometry(0,0,position_label_->geometry().width(),position_label_->geometry().height());
+    }
+
+//    if(reset_view_button_)
+//        reset_view_button_->setGeometry(this->geometry().bottomLeft().x(),
+//                                        this->geometry().bottomLeft().y()-reset_view_button_->geometry().height(),
+//                                        reset_view_button_->geometry().width(),
+//                                        reset_view_button_->geometry().height());
 }
 
 void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg )
@@ -1135,5 +1214,19 @@ void Base3DView::publishMarkers()
     marker_server_pelvis.scale = 0.2;
     marker_server_pelvis.point = point;
     interactive_marker_add_pub_.publish(marker_server_pelvis);
+}
+
+void Base3DView::resetView()
+{
+    ROS_ERROR("RESET VIEW");
+    manager_->getViewManager()->getCurrent()->reset();
+    Ogre::Vector3 position(0,0,0);
+    Ogre::Quaternion orientation(1,0,0,0);
+    transform(position, orientation, "/pelvis", "/world");
+    manager_->getViewManager()->getCurrent()->lookAt(position);
+    //if(dynamic_cast<rviz::OrbitViewController*>(manager_->getViewManager()->getCurrent()) == NULL)
+    //    ((rviz::OrbitViewController*)manager_->getViewManager()->getCurrent())->lookAt(position);
+    //else if(dynamic_cast<rviz::FixedOrientationOrthoViewController*>(manager_->getViewManager()->getCurrent()) == NULL)
+    //    ((rviz::FixedOrientationOrthoViewController*)manager_->getViewManager()->getCurrent())->lookAt(position);
 }
 }
