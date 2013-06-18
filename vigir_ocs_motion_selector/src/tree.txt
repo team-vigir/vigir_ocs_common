@@ -49,5 +49,8 @@ stationary{
 		vi_getin_2
 		vi_getin_3
 		vi4
+		get_in_car_torso_prep
+		get_in_car_entry
+		get_in_car_push_back
 		}
 	}
