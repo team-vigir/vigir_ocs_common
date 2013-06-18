@@ -1040,6 +1040,11 @@ void CameraDisplayCustom::setZoom(float newZoom)
 void CameraDisplayCustom::closeSelected()
 {
     selectionProcessed(0,0,0,0);
+    if(crop_publish_frequency_ > 0)
+    {
+        crop_publish_frequency_ = 0;
+        publishCropImageRequest();
+    }
 }
 
 void CameraDisplayCustom::updateCroppedTopic()
