@@ -111,6 +111,8 @@ void joint_limit::on_apply_clicked()
     msg.disable_collision_avoidance.data = !ui->collision_avoidance_->isChecked();
     msg.robot_collision_padding.data = ui->padding_->value();
     msg.trajectory_time_factor.data = ui->time_factor_->value();
+    msg.octomap_max_height.data = ui->octomap_height_->value();
+    msg.goal_cube_clearance.data = ui->octomap_clearance_cube_dimensions_->value();
 
 
     constraints_pub_.publish(msg);

@@ -63,9 +63,13 @@ public:
     void processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc );
     void processLeftArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
     void processRightArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    void processLeftGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    void processRightGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     void processGhostControlState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
     void processJointStates( const sensor_msgs::JointState::ConstPtr& states );
     void processPelvisResetRequest( const std_msgs::Bool::ConstPtr& msg );
+    void processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg );
+
 
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
@@ -188,10 +192,15 @@ protected:
     ros::Publisher ghost_joint_state_pub_;
     ros::Subscriber joint_states_sub_;
     ros::Subscriber reset_pelvis_sub_;
+    ros::Subscriber send_pelvis_sub_;
+    ros::Publisher send_footstep_goal_pub_;
 
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;
     ros::Subscriber interactive_marker_feedback_sub_;
+
+    ros::Subscriber ghost_hand_left_sub_;
+    ros::Subscriber ghost_hand_right_sub_;
 
     std::vector<unsigned char> saved_state_planning_group_;
     std::vector<unsigned char> saved_state_pose_source_;
@@ -217,6 +226,8 @@ protected:
     int stored_maps_;// THIS VALUE DETERMINES HOW MANY WE STORE
 
     bool moving_pelvis_;
+
+    bool visualize_grid_map_;
 };
 }
 #endif // BASE_3D_VIEW_H
