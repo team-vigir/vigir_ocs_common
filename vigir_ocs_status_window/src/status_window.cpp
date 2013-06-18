@@ -86,6 +86,36 @@ void status_window::controlModeMsgRecieved(const flor_control_msgs::FlorControlM
     case flor_control_msgs::FlorControlModeCommand::MANIPULATE:
         ui->behaviorLabel->setText(QString::fromStdString("Manipulate"));
         break;
+    case flor_control_msgs::FlorControlModeCommand::FLOR_DANCE:
+        ui->behaviorLabel->setText(QString::fromStdString("Flor Dance"));
+        break;
+    case flor_control_msgs::FlorControlModeCommand::FLOR_WALK:
+        ui->behaviorLabel->setText(QString::fromStdString("Flor Walk"));
+        break;
+    case flor_control_msgs::FlorControlModeCommand::FLOR_MANIPULATE:
+        ui->behaviorLabel->setText(QString::fromStdString("Flor Manipulate"));
+        break;
+    case flor_control_msgs::FlorControlModeCommand::FLOR_OFF:
+        ui->behaviorLabel->setText(QString::fromStdString("Flor Off"));
+        break;
+    case flor_control_msgs::FlorControlModeCommand::FLOR_STAND:
+        ui->behaviorLabel->setText(QString::fromStdString("Flor Stand"));
+        break;
+    case flor_control_msgs::FlorControlModeCommand::FLOR_STEP:
+        ui->behaviorLabel->setText(QString::fromStdString("Flor Step"));
+        break;
+    case flor_control_msgs::FlorControlModeCommand::FLOR_STEP_MANI:
+        ui->behaviorLabel->setText(QString::fromStdString("Flor Step/Manipulate"));
+        break;
+    case flor_control_msgs::FlorControlModeCommand::FLOR_STOP:
+        ui->behaviorLabel->setText(QString::fromStdString("Flor Stop"));
+        break;
+    case flor_control_msgs::FlorControlModeCommand::FLOR_WALK_MANI:
+        ui->behaviorLabel->setText(QString::fromStdString("Flor Walk/Manipulate"));
+        break;
+    case flor_control_msgs::FlorControlModeCommand::FLOR_WBC:
+        ui->behaviorLabel->setText(QString::fromStdString("Flor Whole Body Control"));
+        break;
     default:
         ui->behaviorLabel->setText(QString::fromStdString("Unknown"));
         break;
