@@ -52,5 +52,7 @@ stationary{
 		get_in_car_torso_prep
 		get_in_car_entry
 		get_in_car_push_back
+		get_in_car_push_back_left
+		get_in_car_push_back_right
 		}
 	}
