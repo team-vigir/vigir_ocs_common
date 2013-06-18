@@ -1230,4 +1230,22 @@ void Base3DView::resetView()
     //else if(dynamic_cast<rviz::FixedOrientationOrthoViewController*>(manager_->getViewManager()->getCurrent()) == NULL)
     //    ((rviz::FixedOrientationOrthoViewController*)manager_->getViewManager()->getCurrent())->lookAt(position);
 }
+
+void Base3DView::clearPointCloudRequests()
+{
+    point_cloud_request_viewer_->setEnabled(false);
+    point_cloud_request_viewer_->setEnabled(true);
+}
+
+void Base3DView::clearMapRequests()
+{
+    while(ground_map_.size() > 0)
+    {
+        rviz::Display* tmp = ground_map_[0];
+        tmp->setEnabled(false);
+        delete tmp;
+        manager_->notifyConfigChanged();
+        ground_map_.erase(ground_map_.begin());
+    }
+}
 }

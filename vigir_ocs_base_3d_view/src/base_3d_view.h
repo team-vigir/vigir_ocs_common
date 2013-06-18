@@ -127,6 +127,9 @@ public Q_SLOTS:
 
     void resetView();
 
+    void clearPointCloudRequests();
+    void clearMapRequests();
+
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
     void resetSelection();
