@@ -337,3 +337,48 @@ void GhostControlWidget::on_right_template_lock_toggled(bool checked)
     saveState();
     publishState();
 }
+
+void GhostControlWidget::on_send_left_configuration_button__clicked()
+{
+    std_msgs::String cmd;
+
+    cmd.data = "l_arm_group";
+
+    set_to_target_config_pub_.publish(cmd);
+}
+
+void GhostControlWidget::on_send_left_torso_configuration_button__clicked()
+{
+    std_msgs::String cmd;
+
+    cmd.data = "l_arm_with_torso_group";
+
+    set_to_target_config_pub_.publish(cmd);
+}
+
+void GhostControlWidget::on_send_right_configuration_button__clicked()
+{
+    std_msgs::String cmd;
+
+    cmd.data = "r_arm_group";
+
+    set_to_target_config_pub_.publish(cmd);
+}
+
+void GhostControlWidget::on_send_right_torso_configuration_button__clicked()
+{
+    std_msgs::String cmd;
+
+    cmd.data = "r_arm_with_torso_group";
+
+    set_to_target_config_pub_.publish(cmd);
+}
+
+void GhostControlWidget::on_send_upper_body_button__clicked()
+{
+    std_msgs::String cmd;
+
+    cmd.data = "both_arms_with_torso_group";
+
+    set_to_target_config_pub_.publish(cmd);
+}
