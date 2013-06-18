@@ -62,7 +62,7 @@ void Widget::updateTime()
     else
     {
         std::stringstream time;
-        time << std::setprecision(2) << tm->tm_hour << ":" <<std::setprecision(2) << tm->tm_min << ":" << std::setprecision(2) << tm->tm_sec;
+        time << std::setw(2) << std::setfill('0') << tm->tm_hour << ":" << std::setw(2) << std::setfill('0') << tm->tm_min << ":" << std::setw(2) << std::setfill('0') << tm->tm_sec;
         ui->timeDisp->setText(QString::fromStdString(time.str()));
     }
 }
