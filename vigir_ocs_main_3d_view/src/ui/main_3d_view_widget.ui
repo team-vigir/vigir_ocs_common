@@ -63,7 +63,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-99</y>
+        <y>0</y>
         <width>264</width>
         <height>782</height>
        </rect>
@@ -196,6 +196,9 @@
                <property name="text">
                 <string>Define Target Pose</string>
                </property>
+               <property name="shortcut">
+                <string>G</string>
+               </property>
               </widget>
              </item>
             </layout>
@@ -276,6 +279,9 @@
             <property name="text">
              <string>Robot</string>
             </property>
+            <property name="shortcut">
+             <string>Q</string>
+            </property>
             <property name="checked">
              <bool>true</bool>
             </property>
@@ -295,6 +301,9 @@
            <widget class="QCheckBox" name="simulation_robot">
             <property name="text">
              <string>Simulation Robot</string>
+            </property>
+            <property name="shortcut">
+             <string>W</string>
             </property>
             <property name="checked">
              <bool>false</bool>

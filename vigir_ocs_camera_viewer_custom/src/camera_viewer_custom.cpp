@@ -182,6 +182,7 @@ void CameraViewerCustom::changeCameraTopic( int t )
     }
     }
     //applyFeedChanges();
+    closeSelectedArea();
 }
 
 void CameraViewerCustom::changeFullImageResolution( int t )

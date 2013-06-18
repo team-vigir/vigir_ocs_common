@@ -87,7 +87,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-483</y>
+        <y>0</y>
         <width>264</width>
         <height>1083</height>
        </rect>
@@ -451,6 +451,9 @@
                <property name="text">
                 <string>Get Feed</string>
                </property>
+               <property name="shortcut">
+                <string>F</string>
+               </property>
               </widget>
              </item>
             </layout>
@@ -670,6 +673,9 @@
                <property name="text">
                 <string>Get Selected</string>
                </property>
+               <property name="shortcut">
+                <string>S</string>
+               </property>
               </widget>
              </item>
             </layout>
@@ -854,6 +860,9 @@
            <widget class="QPushButton" name="footstep_pose">
             <property name="text">
              <string>Define Target Pose</string>
+            </property>
+            <property name="shortcut">
+             <string>G</string>
             </property>
            </widget>
           </item>
@@ -1199,6 +1208,9 @@
             <property name="text">
              <string>Robot</string>
             </property>
+            <property name="shortcut">
+             <string>Q</string>
+            </property>
             <property name="checked">
              <bool>false</bool>
             </property>
@@ -1218,6 +1230,9 @@
            <widget class="QCheckBox" name="simulation_robot">
             <property name="text">
              <string>Simulation Robot</string>
+            </property>
+            <property name="shortcut">
+             <string>W</string>
             </property>
             <property name="checked">
              <bool>false</bool>
