@@ -356,7 +356,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     reset_view_button_->adjustSize();
     QObject::connect(reset_view_button_, SIGNAL(clicked()), this, SLOT(resetView()));
 
-    QHBoxLayout* position_layout = new QHBoxLayout(position_widget_);
+    QHBoxLayout* position_layout = new QHBoxLayout();
     position_layout->setMargin(0);
     position_layout->addWidget(reset_view_button_);
     position_layout->addWidget(position_label_);
