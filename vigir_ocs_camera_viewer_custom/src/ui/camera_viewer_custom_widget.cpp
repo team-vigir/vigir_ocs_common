@@ -49,6 +49,11 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
         sp->installEventFilter( this );
         sp->setFocusPolicy( Qt::StrongFocus );
     }
+
+    ui->octomap->hide();
+    ui->lidar_point_cloud->hide();
+    ui->stereo_point_cloud->hide();
+    ui->laser_scan->hide();
 }
 
 CameraViewerCustomWidget::~CameraViewerCustomWidget()
@@ -208,6 +213,11 @@ void CameraViewerCustomWidget::enableGroup(bool selected)
             widget->show();
         }
     }
+
+    ui->octomap->hide();
+    ui->lidar_point_cloud->hide();
+    ui->stereo_point_cloud->hide();
+    ui->laser_scan->hide();
 }
 
 bool CameraViewerCustomWidget::eventFilter( QObject * o, QEvent * e )

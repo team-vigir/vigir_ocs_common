@@ -63,7 +63,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-112</y>
         <width>264</width>
         <height>782</height>
        </rect>
@@ -246,12 +246,6 @@
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox_4">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
          <property name="title">
           <string>Visibility</string>
          </property>
@@ -288,16 +282,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="grasp_model">
-            <property name="text">
-             <string>Grasp</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QCheckBox" name="simulation_robot">
             <property name="text">
              <string>Simulation Robot</string>
@@ -307,6 +291,52 @@
             </property>
             <property name="checked">
              <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widget" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QCheckBox" name="grid_map">
+               <property name="text">
+                <string>Map</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="reset_map">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>18</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
+color: rgb(255, 26, 26);</string>
+               </property>
+               <property name="text">
+                <string>reset</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="footstep_planning">
+            <property name="text">
+             <string>Footstep Planning</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -321,13 +351,49 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="point_cloud_request">
+           <widget class="QCheckBox" name="grasp_model">
             <property name="text">
-             <string>Point Cloud Request</string>
+             <string>Grasp</string>
             </property>
             <property name="checked">
              <bool>true</bool>
             </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widget_2" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QCheckBox" name="point_cloud_request">
+               <property name="text">
+                <string>Point Cloud Request</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="reset_point_cloud">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>18</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
+color: rgb(255, 26, 26);</string>
+               </property>
+               <property name="text">
+                <string>reset</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>
@@ -367,26 +433,6 @@
             </property>
             <property name="checked">
              <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="grid_map">
-            <property name="text">
-             <string>Map</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="footstep_planning">
-            <property name="text">
-             <string>Footstep Planning</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -452,6 +498,8 @@
     <slot>graspModelToggled(bool)</slot>
     <slot>templatesToggled(bool)</slot>
     <slot>requestedPointCloudToggled(bool)</slot>
+    <slot>clearMapRequests()</slot>
+    <slot>clearPointCloudRequests()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -754,6 +802,38 @@
     <hint type="sourcelabel">
      <x>619</x>
      <y>507</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>337</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>reset_map</sender>
+   <signal>clicked()</signal>
+   <receiver>main_3d_view_</receiver>
+   <slot>clearMapRequests()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>757</x>
+     <y>444</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>337</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>reset_point_cloud</sender>
+   <signal>clicked()</signal>
+   <receiver>main_3d_view_</receiver>
+   <slot>clearPointCloudRequests()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>757</x>
+     <y>544</y>
     </hint>
     <hint type="destinationlabel">
      <x>259</x>
