@@ -18,7 +18,7 @@ graspWidget::graspWidget(QWidget *parent)
     ui->templateBox->setDisabled(true);
     ui->graspBox->setDisabled(true);
     ui->performButton->setDisabled(true);
-    ui->templateButton->setDisabled(true);
+    //ui->templateButton->setDisabled(true);
     //ui->releaseButton->setDisabled(true);
     templateMatchDone = false;
 
@@ -89,7 +89,7 @@ graspWidget::~graspWidget()
 
 void graspWidget::timerEvent(QTimerEvent *event)
 {
-    if(currentGraspMode == 2 || !ui->graspBox->isEnabled() || !show_grasp_)
+    if(!ui->graspBox->isEnabled() || !show_grasp_)
         hideHand();
 
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
@@ -245,7 +245,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
             selected_template_id_ = 0;
         }
 
-        if(selected_grasp_id_ != -1 && currentGraspMode == 1 && show_grasp_)
+        if(selected_grasp_id_ != -1 && show_grasp_)
             publishHandPose(selected_grasp_id_);
     }
 }
@@ -485,7 +485,7 @@ void graspWidget::on_releaseButton_clicked()
     grasp_msg.template_id.data   = 0;
     grasp_msg.template_type.data = 0;
     grasp_release_pub_.publish(grasp_msg);
-    ui->templateButton->setDisabled(true); // unable to move
+    //ui->templateButton->setDisabled(true); // unable to move
     //ui->releaseButton->setDisabled(true);
 }
 
@@ -520,7 +520,7 @@ void graspWidget::on_performButton_clicked()
             msg.template_type.data = grasp_db_[index].template_type;
     }
     grasp_selection_pub_.publish(msg);
-    ui->templateButton->setEnabled(true); // able to move
+    //ui->templateButton->setEnabled(true); // able to move
     //ui->releaseButton->setEnabled(true); // able to release
 }
 
