@@ -54,5 +54,6 @@ stationary{
 		get_in_car_push_back
 		get_in_car_push_back_left
 		get_in_car_push_back_right
+		drive_car_lift_leg
 		}
 	}
