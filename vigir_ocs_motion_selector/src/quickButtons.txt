@@ -9,7 +9,7 @@ space,1,10
 1,crawl_turn_left_final_dorian,1.00
 1,sit_turn_left,1.00
 2,null,1.00
-2,vi6_kal_sk,1.00
+2,drive_car_lift_leg,1.00
 2,sit_down_final_dorian,1.00
 space,2,20
 2,crawl_back_mud,1.00
