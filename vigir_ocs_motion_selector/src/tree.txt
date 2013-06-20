@@ -58,7 +58,7 @@ stationary{
 		drive_car_only_lift_leg
 		drive_car_only_lift_arm
 		drive_car_pull_right
-		drive_car_hand_break
+		drive_car_hand_brake
 		drive_car_pedal_left_empty
 		drive_car_pedal_left_half
 		drive_car_pedal_left_full
