@@ -57,5 +57,14 @@ stationary{
 		drive_car_lift_leg
 		drive_car_only_lift_leg
 		drive_car_only_lift_arm
+		drive_car_pedal_left_empty
+		drive_car_pedal_left_half
+		drive_car_pedal_left_full
+		drive_car_pedal_middle_empty
+		drive_car_pedal_middle_half
+		drive_car_pedal_middle_full
+		drive_car_pedal_right_empty
+		drive_car_pedal_right_half
+		drive_car_pedal_right_full
 		}
 	}
