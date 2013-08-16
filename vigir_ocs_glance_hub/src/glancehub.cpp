@@ -24,7 +24,7 @@ void glanceHub::timerEvent(QTimerEvent *event)
 
 void glanceHub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr &msg)
 {
-    if(msg->code != RobotStatusCodes::PLANNER_MOVEIT_PLAN_ACTIVE)
+    if(msg->status != RobotStatusCodes::PLANNER_MOVEIT_PLAN_ACTIVE)
         ui->plannerLight->setStyleSheet("QLabel { background-color: red; }");
     else
         ui->plannerLight->setStyleSheet("QLabel { background-color: green; }");
@@ -32,7 +32,7 @@ void glanceHub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr 
 
 void glanceHub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr &msg)
 {
-    switch(msg->code)
+    switch(msg->status)
     {
     case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE:
         ui->footLight->setStyleSheet("QLabel { background-color: yellow; }");

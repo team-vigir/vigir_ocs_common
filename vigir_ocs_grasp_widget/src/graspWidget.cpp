@@ -648,10 +648,11 @@ void graspWidget::on_manualRadio_clicked()
 
 void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
 {
-	uint8_t code, severity;
-	RobotStatusCodes::codes(msg->code,code,severity);
+    uint16_t code;
+    uint8_t  severity;
+    RobotStatusCodes::codes(msg->status,code,severity);
     //ROS_INFO("  grasp widget code=%d, severity=%d",code,severity);
-	ui->robot_status_->setText(robot_status_codes_.str(code).c_str());
+    ui->robot_status_->setText(robot_status_codes_.str(code).c_str());
 }
 
 void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_states )

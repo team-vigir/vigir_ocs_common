@@ -139,9 +139,10 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
 {
 
     //extract information from msg
-    uint8_t type, msgNum;
-    RobotStatusCodes::codes(msg->code, msgNum,type); //const uint8_t& error, uint8_t& code, uint8_t& severity)
-    //std::cout << "Recieved message. type = " << (int)type << " msgNum = " << (int)msgNum << std::endl;
+    uint8_t  level;
+    uint16_t code;
+    RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
+    //std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
     QTableWidgetItem* text = new QTableWidgetItem();
     QTableWidgetItem* msgType = new QTableWidgetItem();
     QTableWidgetItem* time = new QTableWidgetItem();
@@ -149,7 +150,7 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
     text->setFlags(text->flags() ^ Qt::ItemIsEditable);
     time->setFlags(time->flags() ^ Qt::ItemIsEditable);
     msgType->setFlags(msgType->flags() ^ Qt::ItemIsEditable);
-    switch(type){
+    switch(level){
     case 0:
         msgType->setText("Ok");
         break;
@@ -171,11 +172,11 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
         numError++;
     }
 
-    if(msgNum >= errors.size() && errors.size() != 0)
+    if(code >= errors.size() && errors.size() != 0)
     {
-        std::cout << "Recieved message (Default Message). type = " << (int)type << " msgNum = " << (int)msgNum << std::endl;
+        std::cout << "Recieved message (Default Message). level = " << (int)level << " code = " << (int)code << std::endl;
         QString tempMessage = QString::fromStdString("Default Message");
-        tempMessage+=QString::number(msgNum);
+        tempMessage+=QString::number(code);
         text->setText(tempMessage);
         text->setBackgroundColor(Qt::red);
         time->setBackgroundColor(Qt::red);
@@ -183,13 +184,13 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
         numError++;
     }
     else if(errors.size() > 0)
-        text->setText(QString::fromStdString(errors[msgNum]));
+        text->setText(QString::fromStdString(errors[code]));
     else
     {
-        std::cout << "Cannot find data file but recieved msg type = " << (int)type << " msgNum = " << (int)msgNum << std::endl;
+        std::cout << "Cannot find data file but recieved msg level = " << (int)level << " code = " << (int)code << std::endl;
 
         QString tempMessage = "Cannot find data file but recieved msg  num";
-        tempMessage+= QString::number(msgNum);
+        tempMessage+= QString::number(code);
         text->setText(tempMessage);
         text->setBackground(Qt::red);
         msgType->setBackgroundColor(Qt::red);
