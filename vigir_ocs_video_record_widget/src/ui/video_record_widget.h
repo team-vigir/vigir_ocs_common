@@ -3,8 +3,6 @@
 
 #include <QWidget>
 #include "ros/ros.h"
-//#include "AtlasInterface.h"
-//#include "AtlasInterfaceTypes.h"
 
 namespace Ui {
 class video_record_widget;
@@ -26,14 +24,9 @@ private:
     Ui::video_record_widget *ui;
     void createExperimentFile();
     void startFfmpegRecordingScript(int cameraNum);
-    void getRobotLogs(double durration, std::string location);
+    void getRobotLogs(double duration, std::string location);
     void startRawRecordingScript(int cameraNum);
-   // void displayRobotError(AtlasErrorCode err);
 
-    ros::NodeHandle nh_;
-    int robotSendPort;
-    int robotRecievePort;
-    std::string robotAddress;
 
     pid_t recordCam1;
     pid_t recordCam2;
@@ -42,9 +35,6 @@ private:
 
     time_t endTime;
     time_t startTime;
-
-    //AtlasInterface* the_atlas;
-
 };
 
 #endif // VIDEO_RECORD_WIDGET_H

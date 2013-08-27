@@ -10,18 +10,14 @@
 #include "QMessageBox"
 #include "fstream"
 
+#define ROBOT_IP "10.66.171.30"
+
 video_record_widget::video_record_widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::video_record_widget)
 {
     ui->setupUi(this);
     ui->recordButton->setEnabled(false);
-
-    ros::NodeHandle nh_("~");
-    nh_.param<int>("video_record_widget/robot/sendPort",robotSendPort,3025);
-    nh_.param<int>("video_record_widget/robot/recievePort",robotRecievePort,3024);
-    nh_.param<std::string>("video_record_widget/robot/address",robotAddress,"10.66.171.30");
-    //the_atlas = new AtlasInterface;
 }
 
 video_record_widget::~video_record_widget()
@@ -90,8 +86,9 @@ void video_record_widget::on_saveButton_clicked()
             ui->camera3Box->setEnabled(true);
             ui->camera4Box->setEnabled(true);
             ui->saveButton->setText(QString::fromStdString("Save"));
-	    ui->experimentName->setEnabled(true);
-
+            ui->experimentName->setEnabled(true);
+            ui->results->document()->clear();
+            ui->experimentName->clear();
             QMessageBox::StandardButton getLogs;
             getLogs = QMessageBox::question(this,"Video Record Widget", "Download Robot Logs?",QMessageBox::Yes|QMessageBox::No);
             if(getLogs == QMessageBox::Yes)
@@ -99,30 +96,14 @@ void video_record_widget::on_saveButton_clicked()
         }
     }
 }
-void video_record_widget::getRobotLogs(double durration, std::string location)
+void video_record_widget::getRobotLogs(double duration, std::string location)
 {
     std::cout << "Getting robot logs...." << std::endl;
-    /*AtlasErrorCode robotError;
-    robotError =  the_atlas->open_net_connection_to_robot(robotAddress,robotSendPort,robotRecievePort);
-    if(robotError == AtlasRobot ::NO_ERRORS)
-    {
-        robotError = the_atlas->download_robot_log_file(location,durration);
-        if(robotError != AtlasRobot::NO_ERRORS)
-            displayRobotError(robotError);
-        else
-            std::cout << "Robot Logs saved successfully." << std::endl;
-    }
-    else
-        displayRobotError(robotError);
-*/
+    std::string scriptLoc = "/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_video_record_widget/src/scripts/atlas_log_downloader.py";
+    std::string systemCall = "python "+scriptLoc+" "+ROBOT_IP+" "+location+" "+boost::lexical_cast<std::string>(duration);
+    std::cout << "calling the following... " << systemCall << std::endl;
+    system(systemCall.c_str());
 }
-
-/*void video_record_widget::displayRobotError(AtlasErrorCode err)
-{
-    QMessageBox msg;
-    msg.setWindowTitle(QString::fromStdString("Video Recorder Error"));
-    msg.setInformativeText(QString::fromStdString(the_atlas->get_error_code_text(err)));
-}*/
 
 void video_record_widget::on_recordButton_clicked()
 {
