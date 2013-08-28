@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib std_msgs)
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS src
-	LIBRARIES ${PROJECT_NAME} AtlasRobotInterface
+	LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS roscpp rospy roslib std_msgs
 )
 
@@ -19,10 +19,6 @@ include(${QT_USE_FILE})
 ## I prefer the Qt signals and slots to avoid defining "emit", "slots",
 ## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
 add_definitions(-DQT_NO_KEYWORDS)
-
-set(ATLAS_ROBOT_INTERFACE
-  /opt/vigir/AtlasRobotInterface
-)
 
 include(${LD_LIBRARY_PATH}/lib64)
 
@@ -41,16 +37,12 @@ set(SOURCE_FILES
   src/ui/video_record_widget.cpp
   src/main.cpp
   ${MOC_FILES}
-  ${ATLAS_ROBOT_INTERFACE}/include/AtlasControlTypes.h
-  ${ATLAS_ROBOT_INTERFACE}/include/AtlasInterface.h
-  ${ATLAS_ROBOT_INTERFACE}/include/AtlasInterfaceTypes.h
-  ${ATLAS_ROBOT_INTERFACE}/include/AtlasVectorTypes.h
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src)
 
 add_executable(video_record_widget ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(video_record_widget ${catkin_LIBRARIES} ${QT_LIBRARIES} )
-## ${ATLAS_ROBOT_INTERFACE}/lib64/AtlasRobotInterface.so
+
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
