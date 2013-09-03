@@ -144,8 +144,8 @@ QString status_window::getControllerStatus(uint8_t flag)
         return QString::fromStdString("Track");
     case flor_control_msgs::FlorControlMode::BDI:
         return QString::fromStdString("BDI");
-    case flor_control_msgs::FlorControlMode::COMPLIANT:
-        return QString::fromStdString("Compliant");
+    case flor_control_msgs::FlorControlMode::FORCE:
+        return QString::fromStdString("Force");
     }
 }
 

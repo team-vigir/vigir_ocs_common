@@ -3,7 +3,7 @@ project(vigir_ocs_status_window)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz flor_ocs_msgs)# vigir_perception_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz flor_ocs_msgs flor_control_msgs)# vigir_perception_msgs)
 
 ## Declare things to be passed to other projects
 catkin_package(	
