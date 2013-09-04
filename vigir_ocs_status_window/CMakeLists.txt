@@ -68,13 +68,20 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} s
 add_executable(status_window ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(status_window ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
+add_dependencies(status_window ${catkin_EXPORTED_TARGETS})
+
 add_executable(joint_list ${SOURCE_JOINT_WIDGET})
 target_link_libraries(joint_list ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
+add_dependencies(joint_list ${catkin_EXPORTED_TARGETS})
+
 add_executable(robot_status_widget ${SOURCE_ROBOT_WIDGET})
-target_link_libraries(robot_status_widget ${catkin_LIBRARIES}
-${QT_LIBRARIES} flor_ocs_msgs)
+target_link_libraries(robot_status_widget ${catkin_LIBRARIES} ${QT_LIBRARIES} flor_ocs_msgs)
+
+add_dependencies(robot_status_widget ${catkin_EXPORTED_TARGETS})
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 

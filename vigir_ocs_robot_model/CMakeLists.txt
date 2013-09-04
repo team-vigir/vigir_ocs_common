@@ -38,5 +38,9 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 add_executable(robot_model ${SOURCE_FILES})
 target_link_libraries(robot_model ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
+add_dependencies(robot_model ${catkin_EXPORTED_TARGETS})
+
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})

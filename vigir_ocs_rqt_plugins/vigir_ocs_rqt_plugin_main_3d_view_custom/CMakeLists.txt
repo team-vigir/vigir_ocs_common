@@ -7,6 +7,8 @@ set(LIB_NAME vigir_ocs_rqt_plugin_main_3d_view_custom)
 add_library(${LIB_NAME} src/main_3d_view_custom.cpp ${MOC_SOURCES})
 target_link_libraries(${LIB_NAME} ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
 
+add_dependencies(${LIB_NAME} ${catkin_EXPORTED_TARGETS})
+
 find_package(class_loader)
 class_loader_hide_library_symbols(${LIB_NAME})
 

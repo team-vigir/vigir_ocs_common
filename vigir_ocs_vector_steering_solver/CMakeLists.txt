@@ -24,5 +24,9 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 add_executable(vector_steering_solver ${SOURCE_FILES})
 target_link_libraries(vector_steering_solver ${catkin_LIBRARIES})
 
+add_dependencies(vector_steering_solver ${catkin_EXPORTED_TARGETS})
+
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})

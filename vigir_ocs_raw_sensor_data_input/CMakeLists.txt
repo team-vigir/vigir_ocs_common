@@ -38,5 +38,9 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 add_executable(raw_sensor_data_input ${SOURCE_FILES})
 target_link_libraries(raw_sensor_data_input ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
+add_dependencies(raw_sensor_data_input ${catkin_EXPORTED_TARGETS})
+
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})

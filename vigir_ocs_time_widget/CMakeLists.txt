@@ -48,4 +48,6 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} s
 add_executable(time_widget ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(time_widget ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
+add_dependencies(time_widget ${catkin_EXPORTED_TARGETS})
+
 

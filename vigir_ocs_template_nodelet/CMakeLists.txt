@@ -27,8 +27,12 @@ include_directories(${catkin_INCLUDE_DIRS} src)
 add_library(${PROJECT_NAME} ${SOURCE_FILES_LIB})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+
 add_executable(template_nodelet ${SOURCE_FILES})
 target_link_libraries(template_nodelet ${catkin_LIBRARIES} ${PROJECT_NAME})
+
+add_dependencies(template_nodelet ${catkin_EXPORTED_TARGETS})
 
 install(FILES
   vigir_template_nodelet.xml
