@@ -65,10 +65,7 @@ void Widget::on_connect_clicked()
     conlab->setText("CONNECT");
     if (conlab->text()==ui->connect->text())
     {
-        ui->connect->setText("DISCONNECT");
-        ui->connect->setStyleSheet("background-color: red; color: black");
-        ui->start->setStyleSheet("background-color: green; color: black");
-        ui->start->setEnabled(true);
+
         //publishing command "CONNECT"
         flor_control_msgs::FlorRobotStateCommand connect ;
         connect.state_command=flor_control_msgs::FlorRobotStateCommand::CONNECT;
@@ -96,6 +93,13 @@ void Widget::on_connect_clicked()
      ui->sump->setText(QString::number(msg->air_sump_pressure));
      ui->return_2->setText(QString::number(msg->pump_return_pressure));
      ui->supply->setText(QString::number(msg->pump_supply_pressure));
+     if(msg->robot_connected==1)
+     {
+         ui->connect->setText("DISCONNECT");
+         ui->connect->setStyleSheet("background-color: red; color: black");
+         ui->start->setStyleSheet("background-color: green; color: black");
+         ui->start->setEnabled(true);
+     }
 
  }
 void Widget:: behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg )
