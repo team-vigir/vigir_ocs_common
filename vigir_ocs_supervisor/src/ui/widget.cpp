@@ -38,7 +38,10 @@ Widget::Widget(QWidget *parent) :
     ui->sump->setEnabled(false);
     ui->supply->setEnabled(false);
     ui->inlet->setEnabled(false);
-    sub_control = nh.subscribe<flor_control_msgs::FlorRobotStateCommand>("/flor/controller/robot_state_command", 5, &Widget::controlstate, this);
+    //sub_control = nh.subscribe<flor_control_msgs::FlorRobotStateCommand>("/flor/controller/robot_state_command", 5, &Widget::controlstate, this);
+    pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
+    sub_state = nh.subscribe<flor_control_msgs::FlorRobotStatus>("/flor/controller/robot_status", 5, &Widget::robotstate, this);
+    sub_behav = nh.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode", 5, &Widget::behavstate, this);
 
 }
 
@@ -56,15 +59,13 @@ void Widget::on_connect_clicked()
     {
         ui->connect->setText("DISCONNECT");
     ui->connect->setStyleSheet("background-color: red; color: black");
-    sub_behav = nh.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode", 5, &Widget::behavstate, this);
     ui->start->setStyleSheet("background-color: green; color: black");
     ui->start->setEnabled(true);
     //publishing command "CONNECT"
-    pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
     flor_control_msgs::FlorRobotStateCommand connect ;
     connect.state_command=flor_control_msgs::FlorRobotStateCommand::CONNECT;
     pub.publish(connect);
-    ros::spinOnce();
+    //ros::spinOnce();
 
     }
     else
@@ -77,7 +78,7 @@ void Widget::on_connect_clicked()
     flor_control_msgs::FlorRobotStateCommand disconnect ;
     disconnect.state_command=flor_control_msgs::FlorRobotStateCommand::DISCONNECT;
     pub.publish(disconnect);
-    ros::spinOnce();
+    //ros::spinOnce();
     }
 
 
@@ -139,37 +140,29 @@ void Widget::on_start_clicked()
     ui->psump->setEnabled(true);
     ui->psupply->setEnabled(true);
     ui->preturn->setEnabled(true);
-    sub_state = nh.subscribe<flor_control_msgs::FlorRobotStatus>("/flor/controller/robot_status", 5, &Widget::robotstate, this);
-    sub_behav = nh.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode", 5, &Widget::behavstate, this);
 
     }
 }
 
 void Widget::on_off_clicked()
 {
-    pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
     flor_control_msgs::FlorRobotStateCommand off ;
-   off.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_OFF;
+    off.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_OFF;
     pub.publish(off);
-    ros::spinOnce();
 }
 
 void Widget::on_low_clicked()
 {
-    pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
     flor_control_msgs::FlorRobotStateCommand low ;
     low.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_LOW;
     pub.publish(low);
-    ros::spinOnce();
 }
 
 void Widget::on_high_clicked()
 {
-    pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
     flor_control_msgs::FlorRobotStateCommand high ;
-   high.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_HIGH;
+    high.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_HIGH;
     pub.publish(high);
-    ros::spinOnce();
 }
 
 
