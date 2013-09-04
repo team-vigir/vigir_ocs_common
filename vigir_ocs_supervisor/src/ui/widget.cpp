@@ -38,16 +38,24 @@ Widget::Widget(QWidget *parent) :
     ui->sump->setEnabled(false);
     ui->supply->setEnabled(false);
     ui->inlet->setEnabled(false);
+    
     //sub_control = nh.subscribe<flor_control_msgs::FlorRobotStateCommand>("/flor/controller/robot_state_command", 5, &Widget::controlstate, this);
     pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
     sub_state = nh.subscribe<flor_control_msgs::FlorRobotStatus>("/flor/controller/robot_status", 5, &Widget::robotstate, this);
-    sub_behav = nh.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode", 5, &Widget::behavstate, this);
+    sub_behav = nh.subscribe<atlas_msgs::AtlasSimInterfaceState>("/atlas/atlas_sim_interface_state", 5, &Widget::behavstate, this);
 
+    timer.start(33, this);
 }
 
 Widget::~Widget()
 {
     delete ui;
+}
+
+void Widget::timerEvent(QTimerEvent *event)
+{
+    //Spin at beginning of Qt timer callback, so current ROS time is retrieved
+    ros::spinOnce();
 }
 
 
@@ -58,27 +66,24 @@ void Widget::on_connect_clicked()
     if (conlab->text()==ui->connect->text())
     {
         ui->connect->setText("DISCONNECT");
-    ui->connect->setStyleSheet("background-color: red; color: black");
-    ui->start->setStyleSheet("background-color: green; color: black");
-    ui->start->setEnabled(true);
-    //publishing command "CONNECT"
-    flor_control_msgs::FlorRobotStateCommand connect ;
-    connect.state_command=flor_control_msgs::FlorRobotStateCommand::CONNECT;
-    pub.publish(connect);
-    //ros::spinOnce();
-
+        ui->connect->setStyleSheet("background-color: red; color: black");
+        ui->start->setStyleSheet("background-color: green; color: black");
+        ui->start->setEnabled(true);
+        //publishing command "CONNECT"
+        flor_control_msgs::FlorRobotStateCommand connect ;
+        connect.state_command=flor_control_msgs::FlorRobotStateCommand::CONNECT;
+        pub.publish(connect);
     }
     else
     {
-    ui->connect->setText("CONNECT");
-    ui->connect->setStyleSheet("background-color: green; color: black");
-    ui->start->setStyleSheet("background-color: gray; color: black");
-    ui->start->setEnabled(false);
-    pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
-    flor_control_msgs::FlorRobotStateCommand disconnect ;
-    disconnect.state_command=flor_control_msgs::FlorRobotStateCommand::DISCONNECT;
-    pub.publish(disconnect);
-    //ros::spinOnce();
+        ui->connect->setText("CONNECT");
+        ui->connect->setStyleSheet("background-color: green; color: black");
+        ui->start->setStyleSheet("background-color: gray; color: black");
+        ui->start->setEnabled(false);
+        //publishing command "DISCONNECT"
+        flor_control_msgs::FlorRobotStateCommand disconnect ;
+        disconnect.state_command=flor_control_msgs::FlorRobotStateCommand::DISCONNECT;
+        pub.publish(disconnect);
     }
 
 
@@ -93,10 +98,10 @@ void Widget::on_connect_clicked()
      ui->supply->setText(QString::number(msg->pump_supply_pressure));
 
  }
-void Widget:: behavstate( const flor_control_msgs::FlorControlMode::ConstPtr& msg )
+void Widget:: behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg )
 {
-    ui->cur_st->setText(QString::number(msg->bdi_current_behavior));
-    ui->d_state->setText(QString::number(msg->bdi_desired_behavior));
+    ui->cur_st->setText(QString::number(msg->current_behavior));
+    ui->d_state->setText(QString::number(msg->desired_behavior));
 
 }
 void Widget:: controlstate(const flor_control_msgs::FlorRobotStateCommand::ConstPtr& msg)
@@ -118,28 +123,28 @@ void Widget::on_start_clicked()
     conlab->setText("START");
     if (conlab->text()==ui->start->text())
     {
-    ui->start->setText("STOP");
-    ui->start->setStyleSheet("background-color: red; color: black");
-    ui->cs->setEnabled(true);
-    ui->cs_list->setEnabled(true);
-    ui->cur_st->setEnabled(true);
-    ui->high->setEnabled(true);
-    ui->last_stat->setEnabled(true);
-    ui->pr->setEnabled(true);
-    ui->curst->setEnabled(true);
-    ui->stat->setEnabled(true);
-    ui->robo_st->setEnabled(true);
-     ui->d_label->setEnabled(true);
-    ui->d_state->setEnabled(true);
-     ui->r_state->setEnabled(true);
-    ui->send_mode->setEnabled(true);
-    //ui->start->setEnabled(true);
-    ui->off->setEnabled(true);
-    ui->low->setEnabled(true);
-    ui->pinlet->setEnabled(true);
-    ui->psump->setEnabled(true);
-    ui->psupply->setEnabled(true);
-    ui->preturn->setEnabled(true);
+        ui->start->setText("STOP");
+        ui->start->setStyleSheet("background-color: red; color: black");
+        ui->cs->setEnabled(true);
+        ui->cs_list->setEnabled(true);
+        ui->cur_st->setEnabled(true);
+        ui->high->setEnabled(true);
+        ui->last_stat->setEnabled(true);
+        ui->pr->setEnabled(true);
+        ui->curst->setEnabled(true);
+        ui->stat->setEnabled(true);
+        ui->robo_st->setEnabled(true);
+         ui->d_label->setEnabled(true);
+        ui->d_state->setEnabled(true);
+         ui->r_state->setEnabled(true);
+        ui->send_mode->setEnabled(true);
+        //ui->start->setEnabled(true);
+        ui->off->setEnabled(true);
+        ui->low->setEnabled(true);
+        ui->pinlet->setEnabled(true);
+        ui->psump->setEnabled(true);
+        ui->psupply->setEnabled(true);
+        ui->preturn->setEnabled(true);
 
     }
 }
@@ -171,29 +176,23 @@ void Widget::on_send_mode_clicked()
 {
     if (ui->cs_list->currentItem()->text()=="FREEZE")
     {
-     pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
         flor_control_msgs::FlorRobotStateCommand freeze ;
        freeze.state_command  = flor_control_msgs::FlorRobotStateCommand::FREEZE;
         pub.publish(freeze);
-        ros::spinOnce();
    }
 
    if (ui->cs_list->currentItem()->text()=="STAND")
-   {pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
+   {
         flor_control_msgs::FlorRobotStateCommand stand ;
        stand.state_command  = flor_control_msgs::FlorRobotStateCommand::STAND;
         pub.publish(stand);
-        ros::spinOnce();
    }
 
 
     if (ui->cs_list->currentItem()->text()=="STAND_PREP")
     {
-        pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
         flor_control_msgs::FlorRobotStateCommand stand_prep ;
        stand_prep.state_command= flor_control_msgs::FlorRobotStateCommand::STAND_PREP;
         pub.publish(stand_prep);
-        ros::spinOnce();
-
     }
 }

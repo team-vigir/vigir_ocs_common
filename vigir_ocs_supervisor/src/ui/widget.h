@@ -4,10 +4,11 @@
 #include <flor_control_msgs/FlorRobotStatus.h>
 #include <flor_control_msgs/FlorControlMode.h>
 #include <flor_control_msgs/FlorRobotStateCommand.h>
-
+#include <atlas_msgs/AtlasSimInterfaceState.h>
 
 #include <QWidget>
 #include<QAbstractButton>
+#include <QBasicTimer>
 
 namespace Ui {
 class Widget;
@@ -21,9 +22,12 @@ public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
     void robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& msg );
-    void behavstate( const flor_control_msgs::FlorControlMode::ConstPtr& msg );
+    void behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg );
     void controlstate(const flor_control_msgs::FlorRobotStateCommand::ConstPtr& msg);
 
+
+protected:
+    void timerEvent(QTimerEvent *event);
 
 private Q_SLOTS:
 
@@ -47,6 +51,8 @@ private:
     ros::Subscriber sub_behav;
     ros::Subscriber sub_control;
     ros::Publisher pub;
+
+    QBasicTimer timer;
 
 };
 
