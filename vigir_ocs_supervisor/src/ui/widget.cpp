@@ -7,6 +7,7 @@
 #include <ros/package.h>
 
 
+
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
@@ -97,8 +98,28 @@ void Widget::on_connect_clicked()
      {
          ui->connect->setText("DISCONNECT");
          ui->connect->setStyleSheet("background-color: red; color: black");
-         ui->start->setStyleSheet("background-color: green; color: black");
+
+         ui->pr->setEnabled(true);
+         ui->high->setEnabled(true);
+         ui->off->setEnabled(true);
+         ui->low->setEnabled(true);
+     }
+     if(msg->robot_run_state==0 && (ui->low->isChecked() || ui->off->isChecked() || ui->high->isChecked()))
+     {
+
+     ui->start->setEnabled(true);
+     ui->start->setStyleSheet("background-color: green; color: black");
+     ui->pr->setEnabled(false);
+     ui->high->setEnabled(false);
+     ui->off->setEnabled(false);
+     ui->low->setEnabled(false);
+     }
+     if(msg->robot_run_state!=0)
+     {
          ui->start->setEnabled(true);
+         ui->start->setText("STOP");
+         ui->start->setStyleSheet("background-color: red; color: black");
+
      }
 
  }
@@ -127,14 +148,14 @@ void Widget::on_start_clicked()
     conlab->setText("START");
     if (conlab->text()==ui->start->text())
     {
-        ui->start->setText("STOP");
-        ui->start->setStyleSheet("background-color: red; color: black");
+       // ui->start->setText("STOP");
+       // ui->start->setStyleSheet("background-color: red; color: black");
         ui->cs->setEnabled(true);
         ui->cs_list->setEnabled(true);
         ui->cur_st->setEnabled(true);
-        ui->high->setEnabled(true);
+        ui->high->setEnabled(false);
         ui->last_stat->setEnabled(true);
-        ui->pr->setEnabled(true);
+        ui->pr->setEnabled(false);
         ui->curst->setEnabled(true);
         ui->stat->setEnabled(true);
         ui->robo_st->setEnabled(true);
@@ -143,14 +164,42 @@ void Widget::on_start_clicked()
          ui->r_state->setEnabled(true);
         ui->send_mode->setEnabled(true);
         //ui->start->setEnabled(true);
-        ui->off->setEnabled(true);
-        ui->low->setEnabled(true);
+       ui->off->setEnabled(false);
+        ui->low->setEnabled(false);
         ui->pinlet->setEnabled(true);
         ui->psump->setEnabled(true);
         ui->psupply->setEnabled(true);
         ui->preturn->setEnabled(true);
 
     }
+    else
+    {
+        ui->start->setText("START");
+        ui->start->setStyleSheet("background-color: green; color: black");
+        ui->cs->setEnabled(false);
+        ui->cs_list->setEnabled(false);
+        ui->cur_st->setEnabled(false);
+        ui->high->setEnabled(true);
+        ui->last_stat->setEnabled(false);
+        ui->pr->setEnabled(true);
+        ui->curst->setEnabled(false);
+        ui->stat->setEnabled(false);
+        ui->robo_st->setEnabled(false);
+         ui->d_label->setEnabled(false);
+        ui->d_state->setEnabled(false);
+         ui->r_state->setEnabled(false);
+        ui->send_mode->setEnabled(false);
+        //ui->start->setEnabled(true);
+        ui->off->setEnabled(true);
+        ui->low->setEnabled(true);
+        ui->pinlet->setEnabled(false);
+        ui->psump->setEnabled(false);
+        ui->psupply->setEnabled(false);
+        ui->preturn->setEnabled(false);
+
+
+    }
+
 }
 
 void Widget::on_off_clicked()
