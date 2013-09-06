@@ -45,7 +45,7 @@ Widget::Widget(QWidget *parent) :
     sub_state = nh.subscribe<flor_control_msgs::FlorRobotStatus>("/flor/controller/robot_status", 5, &Widget::robotstate, this);
     sub_behav = nh.subscribe<atlas_msgs::AtlasSimInterfaceState>("/atlas/atlas_sim_interface_state", 5, &Widget::behavstate, this);
 
-    timer.start(33, this);
+    timer.start(1, this);
 }
 
 Widget::~Widget()
