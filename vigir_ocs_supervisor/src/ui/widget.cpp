@@ -94,7 +94,7 @@ void Widget::on_connect_clicked()
      ui->sump->setText(QString::number(msg->air_sump_pressure));
      ui->return_2->setText(QString::number(msg->pump_return_pressure));
      ui->supply->setText(QString::number(msg->pump_supply_pressure));
-     // check if we are connected to the robot
+     // check if we are connected to the robotfalse
      if(msg->robot_connected==1)
      {
          ui->connect->setText("DISCONNECT");
@@ -106,6 +106,7 @@ void Widget::on_connect_clicked()
          ui->low->setEnabled(true);
      }
      // check if we need to enable start
+     if(msg->robot_run_state==0)
      enableStart();
      // check if run_state is different than idle to enable stop and all the other options in the UI
      if(msg->robot_run_state!=0)
@@ -133,6 +134,7 @@ void Widget::on_connect_clicked()
          ui->low->setEnabled(false);
          ui->high->setEnabled(false);
      }
+
  }
 void Widget:: behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg )
 {
@@ -174,7 +176,8 @@ void Widget::on_start_clicked()
     if (ui->start->text()=="STOP")
     {
         ui->start->setText("START");
-        ui->start->setStyleSheet("background-color: green; color: black");
+        ui->start->setEnabled(false);
+        ui->start->setStyleSheet("background-color: gray; color: black");
         ui->cs->setEnabled(false);
         ui->cs_list->setEnabled(false);
         ui->cur_st->setEnabled(false);
@@ -191,11 +194,14 @@ void Widget::on_start_clicked()
         ui->psump->setEnabled(false);
         ui->psupply->setEnabled(false);
         ui->preturn->setEnabled(false);
-        ui->pr->setEnabled(true);
-        ui->off->setEnabled(true);
-        ui->low->setEnabled(true);
-        ui->high->setEnabled(true);
-
+        ui->pr->setEnabled(false);
+        ui->off->setEnabled(false);
+        ui->low->setEnabled(false);
+        ui->high->setEnabled(false);
+        ui->pr->setEnabled(false);
+        ui->high->setEnabled(false);
+        ui->off->setEnabled(false);
+        ui->low->setEnabled(false);
         // NEED TO SEND STOP MESSAGE HERE
         flor_control_msgs::FlorRobotStateCommand stop ;
         stop.state_command = flor_control_msgs::FlorRobotStateCommand::STOP;
