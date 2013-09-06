@@ -62,9 +62,7 @@ void Widget::timerEvent(QTimerEvent *event)
 
 void Widget::on_connect_clicked()
 {
-    QLabel *conlab = new QLabel();
-    conlab->setText("CONNECT");
-    if (conlab->text()==ui->connect->text())
+    if (ui->connect->text()=="CONNECT")
     {
 
         //publishing command "CONNECT"
@@ -88,12 +86,15 @@ void Widget::on_connect_clicked()
 }
  void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& msg )
  {
+     // save the last status message
+     last_run_state = msg->robot_run_state;
 
      ui->r_state->setText(QString::number(msg->robot_run_state));
      ui->inlet->setText(QString::number(msg->pump_inlet_pressure));
      ui->sump->setText(QString::number(msg->air_sump_pressure));
      ui->return_2->setText(QString::number(msg->pump_return_pressure));
      ui->supply->setText(QString::number(msg->pump_supply_pressure));
+     // check if we are connected to the robot
      if(msg->robot_connected==1)
      {
          ui->connect->setText("DISCONNECT");
@@ -104,24 +105,34 @@ void Widget::on_connect_clicked()
          ui->off->setEnabled(true);
          ui->low->setEnabled(true);
      }
-     if(msg->robot_run_state==0 && (ui->low->isChecked() || ui->off->isChecked() || ui->high->isChecked()))
-     {
-
-     ui->start->setEnabled(true);
-     ui->start->setStyleSheet("background-color: green; color: black");
-     ui->pr->setEnabled(false);
-     ui->high->setEnabled(false);
-     ui->off->setEnabled(false);
-     ui->low->setEnabled(false);
-     }
+     // check if we need to enable start
+     enableStart();
+     // check if run_state is different than idle to enable stop and all the other options in the UI
      if(msg->robot_run_state!=0)
      {
          ui->start->setEnabled(true);
          ui->start->setText("STOP");
          ui->start->setStyleSheet("background-color: red; color: black");
-
+         ui->cs->setEnabled(true);
+         ui->cs_list->setEnabled(true);
+         ui->cur_st->setEnabled(true);
+         ui->last_stat->setEnabled(true);
+         ui->curst->setEnabled(true);
+         ui->stat->setEnabled(true);
+         ui->robo_st->setEnabled(true);
+         ui->d_label->setEnabled(true);
+         ui->d_state->setEnabled(true);
+         ui->r_state->setEnabled(true);
+         ui->send_mode->setEnabled(true);
+         ui->pinlet->setEnabled(true);
+         ui->psump->setEnabled(true);
+         ui->psupply->setEnabled(true);
+         ui->preturn->setEnabled(true);
+         ui->pr->setEnabled(false);
+         ui->off->setEnabled(false);
+         ui->low->setEnabled(false);
+         ui->high->setEnabled(false);
      }
-
  }
 void Widget:: behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg )
 {
@@ -133,97 +144,93 @@ void Widget:: controlstate(const flor_control_msgs::FlorRobotStateCommand::Const
 {
     if(msg->state_command==flor_control_msgs::FlorRobotStateCommand::FREEZE)
         ui->cs_list->setCurrentItem(ui->cs_list->findItems("FREEZE",Qt::MatchExactly)[0]);
-
-    else
-        if(msg->state_command==flor_control_msgs::FlorRobotStateCommand::STAND)
-            ui->cs_list->setCurrentItem(ui->cs_list->findItems("STAND",Qt::MatchExactly)[0]);
-    else
-            if(msg->state_command==flor_control_msgs::FlorRobotStateCommand::STAND_PREP)
-                ui->cs_list->setCurrentItem(ui->cs_list->findItems("STAND PREP",Qt::MatchExactly)[0]);
+    else if(msg->state_command==flor_control_msgs::FlorRobotStateCommand::STAND)
+        ui->cs_list->setCurrentItem(ui->cs_list->findItems("STAND",Qt::MatchExactly)[0]);
+    else if(msg->state_command==flor_control_msgs::FlorRobotStateCommand::STAND_PREP)
+        ui->cs_list->setCurrentItem(ui->cs_list->findItems("STAND PREP",Qt::MatchExactly)[0]);
 
 }
 void Widget::on_start_clicked()
 {
-    QLabel *conlab = new QLabel();
-    conlab->setText("START");
-    if (conlab->text()==ui->start->text())
+    if(ui->off)
     {
-       // ui->start->setText("STOP");
-       // ui->start->setStyleSheet("background-color: red; color: black");
-        ui->cs->setEnabled(true);
-        ui->cs_list->setEnabled(true);
-        ui->cur_st->setEnabled(true);
-        ui->high->setEnabled(false);
-        ui->last_stat->setEnabled(true);
-        ui->pr->setEnabled(false);
-        ui->curst->setEnabled(true);
-        ui->stat->setEnabled(true);
-        ui->robo_st->setEnabled(true);
-         ui->d_label->setEnabled(true);
-        ui->d_state->setEnabled(true);
-         ui->r_state->setEnabled(true);
-        ui->send_mode->setEnabled(true);
-        //ui->start->setEnabled(true);
-       ui->off->setEnabled(false);
-        ui->low->setEnabled(false);
-        ui->pinlet->setEnabled(true);
-        ui->psump->setEnabled(true);
-        ui->psupply->setEnabled(true);
-        ui->preturn->setEnabled(true);
-
+        flor_control_msgs::FlorRobotStateCommand off ;
+        off.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_OFF;
+        pub.publish(off);
     }
-    else
+    else if(ui->low)
+    {
+        flor_control_msgs::FlorRobotStateCommand low ;
+        low.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_LOW;
+        pub.publish(low);
+    }
+    else if(ui->high)
+    {
+        flor_control_msgs::FlorRobotStateCommand high ;
+        high.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_HIGH;
+        pub.publish(high);
+    }
+
+    if (ui->start->text()=="STOP")
     {
         ui->start->setText("START");
         ui->start->setStyleSheet("background-color: green; color: black");
         ui->cs->setEnabled(false);
         ui->cs_list->setEnabled(false);
         ui->cur_st->setEnabled(false);
-        ui->high->setEnabled(true);
         ui->last_stat->setEnabled(false);
-        ui->pr->setEnabled(true);
         ui->curst->setEnabled(false);
         ui->stat->setEnabled(false);
         ui->robo_st->setEnabled(false);
-         ui->d_label->setEnabled(false);
+        ui->d_label->setEnabled(false);
         ui->d_state->setEnabled(false);
-         ui->r_state->setEnabled(false);
+        ui->r_state->setEnabled(false);
         ui->send_mode->setEnabled(false);
         //ui->start->setEnabled(true);
-        ui->off->setEnabled(true);
-        ui->low->setEnabled(true);
         ui->pinlet->setEnabled(false);
         ui->psump->setEnabled(false);
         ui->psupply->setEnabled(false);
         ui->preturn->setEnabled(false);
+        ui->pr->setEnabled(true);
+        ui->off->setEnabled(true);
+        ui->low->setEnabled(true);
+        ui->high->setEnabled(true);
 
-
+        // NEED TO SEND STOP MESSAGE HERE
+        flor_control_msgs::FlorRobotStateCommand stop ;
+        stop.state_command = flor_control_msgs::FlorRobotStateCommand::STOP;
+        pub.publish(stop);
     }
+}
 
+// Checks if start should be enabled
+void Widget::enableStart()
+{
+    if(last_run_state==0 && (ui->low->isChecked() || ui->off->isChecked() || ui->high->isChecked()))
+    {
+        ui->start->setEnabled(true);
+        ui->start->setStyleSheet("background-color: green; color: black");
+        //ui->pr->setEnabled(false);
+        //ui->high->setEnabled(false);
+        //ui->off->setEnabled(false);
+        //ui->low->setEnabled(false);
+    }
 }
 
 void Widget::on_off_clicked()
 {
-    flor_control_msgs::FlorRobotStateCommand off ;
-    off.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_OFF;
-    pub.publish(off);
+    enableStart();
 }
 
 void Widget::on_low_clicked()
 {
-    flor_control_msgs::FlorRobotStateCommand low ;
-    low.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_LOW;
-    pub.publish(low);
+    enableStart();
 }
 
 void Widget::on_high_clicked()
 {
-    flor_control_msgs::FlorRobotStateCommand high ;
-    high.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_HIGH;
-    pub.publish(high);
+    enableStart();
 }
-
-
 
 void Widget::on_send_mode_clicked()
 {
