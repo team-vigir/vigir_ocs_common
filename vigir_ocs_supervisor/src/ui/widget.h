@@ -43,6 +43,8 @@ private Q_SLOTS:
 
     void on_send_mode_clicked();
 
+    void enableStart();
+
 private:
 
     Ui::Widget *ui;
@@ -53,6 +55,8 @@ private:
     ros::Publisher pub;
 
     QBasicTimer timer;
+
+    int last_run_state;
 
 };
 
