@@ -154,19 +154,19 @@ void Widget:: controlstate(const flor_control_msgs::FlorRobotStateCommand::Const
 }
 void Widget::on_start_clicked()
 {
-    if(ui->off)
+    if(ui->off->isChecked())
     {
         flor_control_msgs::FlorRobotStateCommand off ;
         off.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_OFF;
         pub.publish(off);
     }
-    else if(ui->low)
+    else if(ui->low->isChecked())
     {
         flor_control_msgs::FlorRobotStateCommand low ;
         low.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_LOW;
         pub.publish(low);
     }
-    else if(ui->high)
+    else if(ui->high->isChecked())
     {
         flor_control_msgs::FlorRobotStateCommand high ;
         high.state_command = flor_control_msgs::FlorRobotStateCommand::START_HYDRAULIC_PRESSURE_HIGH;
