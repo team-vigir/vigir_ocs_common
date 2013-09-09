@@ -255,7 +255,7 @@ void Widget::on_send_mode_clicked()
    }
 
 
-    if (ui->cs_list->currentItem()->text()=="STAND_PREP")
+    if (ui->cs_list->currentItem()->text()=="STAND PREP")
     {
         flor_control_msgs::FlorRobotStateCommand stand_prep ;
        stand_prep.state_command= flor_control_msgs::FlorRobotStateCommand::STAND_PREP;
