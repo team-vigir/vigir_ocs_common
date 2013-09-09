@@ -215,6 +215,7 @@ void Widget::enableStart()
     if(last_run_state==0 && (ui->low->isChecked() || ui->off->isChecked() || ui->high->isChecked()))
     {
         ui->start->setEnabled(true);
+        ui->start->setText("START");
         ui->start->setStyleSheet("background-color: green; color: black");
         //ui->pr->setEnabled(false);
         //ui->high->setEnabled(false);
