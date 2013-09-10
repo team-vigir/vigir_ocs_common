@@ -8,8 +8,12 @@ set(VIGIR_SELECTION_CUSTOM_LIB_NAME vigir_ocs_rviz_plugin_selection_3d_tool_cust
 add_library(${VIGIR_SELECTION_CUSTOM_LIB_NAME}_core src/selection_3d_tool_custom.cpp	${MOC_SOURCES})
 target_link_libraries(${VIGIR_SELECTION_CUSTOM_LIB_NAME}_core ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
+add_dependencies(${VIGIR_SELECTION_CUSTOM_LIB_NAME}_core ${catkin_EXPORTED_TARGETS})
+
 add_library(${VIGIR_SELECTION_CUSTOM_LIB_NAME} src/plugin_init.cpp)
 target_link_libraries(${VIGIR_SELECTION_CUSTOM_LIB_NAME} ${VIGIR_SELECTION_CUSTOM_LIB_NAME}_core ${catkin_LIBRARIES})
+
+add_dependencies(${VIGIR_SELECTION_CUSTOM_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 install(DIRECTORY include/ DESTINATION include)
 

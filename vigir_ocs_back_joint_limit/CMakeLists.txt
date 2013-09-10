@@ -47,4 +47,6 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} s
 add_executable(joint_limit ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(joint_limit ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
+add_dependencies(joint_limit ${catkin_EXPORTED_TARGETS})
+
 

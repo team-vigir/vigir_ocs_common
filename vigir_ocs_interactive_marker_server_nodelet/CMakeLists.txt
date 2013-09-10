@@ -27,8 +27,12 @@ include_directories(${catkin_INCLUDE_DIRS} src)
 add_library(${PROJECT_NAME} ${SOURCE_FILES_LIB})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+
 add_executable(interactive_marker_server_nodelet ${SOURCE_FILES})
 target_link_libraries(interactive_marker_server_nodelet ${catkin_LIBRARIES} ${PROJECT_NAME})
+
+add_dependencies(interactive_marker_server_nodelet ${catkin_EXPORTED_TARGETS})
 
 install(FILES
   vigir_interactive_marker_server_nodelet.xml

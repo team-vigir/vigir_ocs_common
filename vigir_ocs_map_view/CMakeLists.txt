@@ -56,8 +56,14 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} s
 add_executable(map_view ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(map_view ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
+add_dependencies(map_view ${catkin_EXPORTED_TARGETS})
+
 add_executable(map_view_widget ${SOURCE_FILES_WIDGET})
 target_link_libraries(map_view_widget ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
+add_dependencies(map_view_widget ${catkin_EXPORTED_TARGETS})
+
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})

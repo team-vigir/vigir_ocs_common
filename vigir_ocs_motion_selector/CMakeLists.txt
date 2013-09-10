@@ -47,4 +47,6 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} s
 add_executable(motion_selector ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(motion_selector ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
+add_dependencies(motion_selector ${catkin_EXPORTED_TARGETS})
+
 

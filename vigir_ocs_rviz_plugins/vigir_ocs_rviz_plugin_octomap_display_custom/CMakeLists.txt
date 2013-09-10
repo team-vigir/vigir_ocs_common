@@ -8,8 +8,12 @@ set(VIGIR_OCTOMAP_LIB_NAME vigir_ocs_rviz_plugin_octomap_display_custom)
 add_library(${VIGIR_OCTOMAP_LIB_NAME}_core src/octomap_display_custom.cpp src/marker_display_custom.cpp src/points_marker_custom.cpp src/point_cloud_custom.cpp src/marker_base_custom.cpp src/marker_selection_handler_custom.cpp ${MOC_SOURCES})
 target_link_libraries(${VIGIR_OCTOMAP_LIB_NAME}_core ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
+add_dependencies(${VIGIR_OCTOMAP_LIB_NAME}_core ${catkin_EXPORTED_TARGETS})
+
 add_library(${VIGIR_OCTOMAP_LIB_NAME} src/plugin_init.cpp)
 target_link_libraries(${VIGIR_OCTOMAP_LIB_NAME} ${VIGIR_OCTOMAP_LIB_NAME}_core ${catkin_LIBRARIES})
+
+add_dependencies(${VIGIR_OCTOMAP_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 install(DIRECTORY include/ DESTINATION include)
 

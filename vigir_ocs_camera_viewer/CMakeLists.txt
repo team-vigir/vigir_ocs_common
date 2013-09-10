@@ -38,5 +38,9 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 add_executable(camera_viewer ${SOURCE_FILES})
 target_link_libraries(camera_viewer ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
+add_dependencies(camera_viewer ${catkin_EXPORTED_TARGETS})
+
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
