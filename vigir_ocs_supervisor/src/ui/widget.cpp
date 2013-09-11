@@ -12,6 +12,12 @@ Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
 {
+    last_inlet_pr = -1;
+    last_air_sump_pressure= -1;
+    last_pump_rpm=-1;
+    last_pump_return_pressure=-1;
+    last_pump_supply_pressure=-1;
+    last_pump_time_meter=-1;
     ui->setupUi(this);
     ui->cs->setEnabled(false);
     ui->cs_list->setEnabled(false);
@@ -45,7 +51,7 @@ Widget::Widget(QWidget *parent) :
     ui->ptimemeter->setEnabled(false);
     ui->rfault->setEnabled(false);
     ui->fault->setEnabled(false);
-    
+
     //sub_control = nh.subscribe<flor_control_msgs::FlorRobotStateCommand>("/flor/controller/robot_state_command", 5, &Widget::controlstate, this);
     pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
     sub_state = nh.subscribe<flor_control_msgs::FlorRobotStatus>("/flor/controller/robot_status", 5, &Widget::robotstate, this);
@@ -82,32 +88,44 @@ void Widget::on_connect_clicked()
         ui->connect->setStyleSheet("background-color: green; color: black");
         ui->start->setStyleSheet("background-color: gray; color: black");
         ui->start->setEnabled(false);
-        //publishing command "DISCONNECT"
+        //publishing command "DISCONNECT"last_run_state
         flor_control_msgs::FlorRobotStateCommand disconnect ;
         disconnect.state_command=flor_control_msgs::FlorRobotStateCommand::DISCONNECT;
         pub.publish(disconnect);
     }
-
-
 }
+
  void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& msg )
  {
      // save the last status message
      last_run_state = msg->robot_run_state;
+     if(last_inlet_pr==-1)
+         last_inlet_pr=msg->pump_inlet_pressure;
+     if(last_air_sump_pressure==-1)
+    last_air_sump_pressure = msg->air_sump_pressure;
+     if(last_pump_rpm==-1)
+     last_pump_rpm=msg->current_pump_rpm;
+     if(last_pump_return_pressure==-1)
+     last_pump_return_pressure=msg->pump_return_pressure;
+     if(last_pump_supply_pressure==-1)
+     last_pump_supply_pressure=msg->pump_supply_pressure;
+     if(last_pump_time_meter==-1)
+     last_pump_time_meter=msg->pump_time_meter;
      switch(msg->robot_run_state)
      {
-     case 0:ui->r_state->setText("RUN STATE IS IDLE");break;
-     case 1:ui->r_state->setText("RUN STATE START");break;
-     case 3:ui->r_state->setText("RUN_STATE_CONTROL,");break;
-     case 5:ui->r_state->setText("RUN_STATE_STOP");break;
+     case 0:ui->r_state->setText("IDLE");break;
+     case 1:ui->r_state->setText("START");break;
+     case 3:ui->r_state->setText("CONTROL,");break;
+     case 5:ui->r_state->setText("STOP");break;
      }
+ float pumpinlet = 0.1*msg->pump_inlet_pressure+0.9*last_inlet_pr;
 
-     ui->inlet->setText(QString::number(msg->pump_inlet_pressure));
-     ui->sump->setText(QString::number(msg->air_sump_pressure));
-     ui->timemeter->setText(QString::number(msg->pump_time_meter/60));
-     ui->rpm->setText(QString::number(msg->current_pump_rpm));
-     ui->return_2->setText(QString::number(msg->pump_return_pressure));
-     ui->supply->setText(QString::number(msg->pump_supply_pressure));
+ ui->inlet->setText(QString::number(pumpinlet,'g',2));
+ ui->sump->setText(QString::number(0.1*msg->air_sump_pressure+0.9*last_air_sump_pressure,'g',2));
+ ui->timemeter->setText(QString::number(0.1*msg->pump_time_meter+0.9*last_pump_time_meter,'g',2));
+ ui->rpm->setText(QString::number(0.1*msg->current_pump_rpm+0.9*last_pump_rpm,'g',2));
+ ui->return_2->setText(QString::number(0.1*msg->pump_return_pressure+0.9*last_pump_return_pressure,'g',2));
+ ui->supply->setText(QString::number(0.1*msg->pump_supply_pressure+0.9*last_pump_supply_pressure,'g',2));
      // check if we are connected to the robotfalse
      if(msg->robot_connected==1)
      {
@@ -154,7 +172,7 @@ void Widget::on_connect_clicked()
          ui->rfault->setEnabled(true);
          ui->fault->setEnabled(true);
      }
-     if(msg->robot_critical_fault>0)
+     if(msg->robot_critical_fault==1)
      {
 
          QLabel *fault_label = new QLabel();
@@ -166,12 +184,18 @@ void Widget::on_connect_clicked()
 
 
      }
+     last_inlet_pr = msg->pump_inlet_pressure;
+     last_air_sump_pressure = msg->air_sump_pressure;
+     last_pump_rpm=msg->current_pump_rpm;
+     last_pump_return_pressure=msg->pump_return_pressure;
+     last_pump_supply_pressure=msg->pump_supply_pressure;
+     last_pump_time_meter=msg->pump_time_meter;
 
  }
  void Widget::robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg)
  {
 
-     ui->fault->setText(QString::number(msg->fault));
+     ui->fault->setText(msg->message.c_str());
 
  }
 

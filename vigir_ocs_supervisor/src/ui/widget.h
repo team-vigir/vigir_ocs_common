@@ -30,7 +30,6 @@ public:
 
 protected:
     void timerEvent(QTimerEvent *event);
-
 private Q_SLOTS:
 
     void on_connect_clicked();
@@ -57,8 +56,14 @@ private:
     ros::Publisher pub;
     ros::Subscriber sub_fault;
     QBasicTimer timer;
-
+    int last_inlet_pr;
     int last_run_state;
+    int last_air_sump_pressure;
+    int last_pump_rpm;
+   int last_pump_return_pressure;
+   int last_pump_supply_pressure;
+   int last_pump_time_meter;
+
 
 };
 
