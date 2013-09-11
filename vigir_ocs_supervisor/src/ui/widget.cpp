@@ -5,7 +5,7 @@
 #include<QLabel>
 #include<ros/ros.h>
 #include <ros/package.h>
-
+#include<QHBoxLayout>
 
 
 Widget::Widget(QWidget *parent) :
@@ -153,6 +153,18 @@ void Widget::on_connect_clicked()
          ui->ptimemeter->setEnabled(true);
          ui->rfault->setEnabled(true);
          ui->fault->setEnabled(true);
+     }
+     if(msg->robot_critical_fault>0)
+     {
+
+         QLabel *fault_label = new QLabel();
+         fault_label->setStyleSheet("background-color:yellow");
+         QHBoxLayout *h = new QHBoxLayout();
+         h->addWidget(fault_label);
+         h->addWidget(ui->connect);
+         ui->widget->setLayout(h);
+
+
      }
 
  }
