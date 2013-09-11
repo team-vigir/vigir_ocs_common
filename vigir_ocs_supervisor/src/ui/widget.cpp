@@ -39,12 +39,18 @@ Widget::Widget(QWidget *parent) :
     ui->sump->setEnabled(false);
     ui->supply->setEnabled(false);
     ui->inlet->setEnabled(false);
+    ui->rpm->setEnabled(false);
+    ui->prpm->setEnabled(false);
+    ui->timemeter->setEnabled(false);
+    ui->ptimemeter->setEnabled(false);
+    ui->rfault->setEnabled(false);
+    ui->fault->setEnabled(false);
     
     //sub_control = nh.subscribe<flor_control_msgs::FlorRobotStateCommand>("/flor/controller/robot_state_command", 5, &Widget::controlstate, this);
     pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
     sub_state = nh.subscribe<flor_control_msgs::FlorRobotStatus>("/flor/controller/robot_status", 5, &Widget::robotstate, this);
     sub_behav = nh.subscribe<atlas_msgs::AtlasSimInterfaceState>("/atlas/atlas_sim_interface_state", 5, &Widget::behavstate, this);
-
+    sub_fault = nh.subscribe<flor_control_msgs::FlorRobotFault >("/flor/controller/robot_fault", 5, &Widget::robotfault, this);
     timer.start(1, this);
 }
 
@@ -88,10 +94,18 @@ void Widget::on_connect_clicked()
  {
      // save the last status message
      last_run_state = msg->robot_run_state;
+     switch(msg->robot_run_state)
+     {
+     case 0:ui->r_state->setText("RUN STATE IS IDLE");break;
+     case 1:ui->r_state->setText("RUN STATE START");break;
+     case 3:ui->r_state->setText("RUN_STATE_CONTROL,");break;
+     case 5:ui->r_state->setText("RUN_STATE_STOP");break;
+     }
 
-     ui->r_state->setText(QString::number(msg->robot_run_state));
      ui->inlet->setText(QString::number(msg->pump_inlet_pressure));
      ui->sump->setText(QString::number(msg->air_sump_pressure));
+     ui->timemeter->setText(QString::number(msg->pump_time_meter/60));
+     ui->rpm->setText(QString::number(msg->current_pump_rpm));
      ui->return_2->setText(QString::number(msg->pump_return_pressure));
      ui->supply->setText(QString::number(msg->pump_supply_pressure));
      // check if we are connected to the robotfalse
@@ -133,13 +147,44 @@ void Widget::on_connect_clicked()
          ui->off->setEnabled(false);
          ui->low->setEnabled(false);
          ui->high->setEnabled(false);
+         ui->rpm->setEnabled(true);
+         ui->prpm->setEnabled(true);
+         ui->timemeter->setEnabled(true);
+         ui->ptimemeter->setEnabled(true);
+         ui->rfault->setEnabled(true);
+         ui->fault->setEnabled(true);
      }
 
  }
+ void Widget::robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg)
+ {
+
+     ui->fault->setText(QString::number(msg->fault));
+
+ }
+
 void Widget:: behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg )
 {
-    ui->cur_st->setText(QString::number(msg->current_behavior));
-    ui->d_state->setText(QString::number(msg->desired_behavior));
+    switch(msg->current_behavior)
+    {
+    case 0: ui->cur_st->setText("STAND"); break;
+    case 1: ui->cur_st->setText("USER"); break;
+    case 2: ui->cur_st->setText("FREEZE"); break;
+    case 3: ui->cur_st->setText("STAND_PREP"); break;
+    case 4: ui->cur_st->setText("WALK"); break;
+    case 5: ui->cur_st->setText("STEP"); break;
+    case 6: ui->cur_st->setText("MANIPULATE"); break;
+    }
+    switch(msg->desired_behavior)
+    {
+    case 0: ui->d_state->setText("STAND"); break;
+    case 1: ui->d_state->setText("USER"); break;
+    case 2: ui->d_state->setText("FREEZE"); break;
+    case 3: ui->d_state->setText("STAND_PREP"); break;
+    case 4: ui->d_state->setText("WALK"); break;
+    case 5: ui->d_state->setText("STEP"); break;
+    case 6: ui->d_state->setText("MANIPULATE"); break;
+    }
 
 }
 void Widget:: controlstate(const flor_control_msgs::FlorRobotStateCommand::ConstPtr& msg)
@@ -202,6 +247,12 @@ void Widget::on_start_clicked()
         ui->high->setEnabled(false);
         ui->off->setEnabled(false);
         ui->low->setEnabled(false);
+        ui->rpm->setEnabled(false);
+        ui->prpm->setEnabled(false);
+        ui->timemeter->setEnabled(false);
+        ui->ptimemeter->setEnabled(false);
+        ui->rfault->setEnabled(false);
+        ui->fault->setEnabled(false);
         // NEED TO SEND STOP MESSAGE HERE
         flor_control_msgs::FlorRobotStateCommand stop ;
         stop.state_command = flor_control_msgs::FlorRobotStateCommand::STOP;

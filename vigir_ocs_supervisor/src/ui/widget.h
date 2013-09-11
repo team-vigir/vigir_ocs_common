@@ -4,6 +4,7 @@
 #include <flor_control_msgs/FlorRobotStatus.h>
 #include <flor_control_msgs/FlorControlMode.h>
 #include <flor_control_msgs/FlorRobotStateCommand.h>
+#include <flor_control_msgs/FlorRobotFault.h>
 #include <atlas_msgs/AtlasSimInterfaceState.h>
 
 #include <QWidget>
@@ -17,13 +18,14 @@ class Widget;
 class Widget : public QWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
     void robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& msg );
     void behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg );
     void controlstate(const flor_control_msgs::FlorRobotStateCommand::ConstPtr& msg);
+    void robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg);
 
 
 protected:
@@ -53,7 +55,7 @@ private:
     ros::Subscriber sub_behav;
     ros::Subscriber sub_control;
     ros::Publisher pub;
-
+    ros::Subscriber sub_fault;
     QBasicTimer timer;
 
     int last_run_state;

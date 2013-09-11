@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>694</height>
+    <height>757</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -29,9 +29,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>330</y>
+     <y>340</y>
      <width>451</width>
-     <height>91</height>
+     <height>152</height>
     </rect>
    </property>
    <property name="maximumSize">
@@ -83,16 +83,32 @@
       </item>
      </layout>
     </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_12">
+      <item>
+       <widget class="QLabel" name="rfault">
+        <property name="text">
+         <string>ROBOT FAULT</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="fault"/>
+      </item>
+     </layout>
+    </item>
    </layout>
    <zorder></zorder>
    <zorder></zorder>
    <zorder></zorder>
+   <zorder>fault</zorder>
+   <zorder>rfault</zorder>
   </widget>
   <widget class="QWidget" name="widget_5" native="true">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>430</y>
+     <y>490</y>
      <width>451</width>
      <height>151</height>
     </rect>
@@ -351,9 +367,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>580</y>
+     <y>620</y>
      <width>472</width>
-     <height>101</height>
+     <height>134</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -448,6 +464,56 @@
       </item>
       <item>
        <widget class="QLineEdit" name="supply">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>25</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>25</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_10">
+      <item>
+       <widget class="QLabel" name="ptimemeter">
+        <property name="text">
+         <string>PUMP TIME METER</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="timemeter">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>25</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>25</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="prpm">
+        <property name="text">
+         <string>PUMP RPM</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="rpm">
         <property name="minimumSize">
          <size>
           <width>100</width>
