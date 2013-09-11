@@ -57,6 +57,7 @@ Widget::Widget(QWidget *parent) :
     sub_state = nh.subscribe<flor_control_msgs::FlorRobotStatus>("/flor/controller/robot_status", 5, &Widget::robotstate, this);
     sub_behav = nh.subscribe<atlas_msgs::AtlasSimInterfaceState>("/atlas/atlas_sim_interface_state", 5, &Widget::behavstate, this);
     sub_fault = nh.subscribe<flor_control_msgs::FlorRobotFault >("/flor/controller/robot_fault", 5, &Widget::robotfault, this);
+    //status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &robotStatus::recievedMessage, this );
     timer.start(1, this);
 }
 
@@ -75,7 +76,10 @@ void Widget::timerEvent(QTimerEvent *event)
 void Widget::on_connect_clicked()
 {
     if (ui->connect->text()=="CONNECT")
-    {
+    {ui->connect->setText("CONNECT");
+        ui->connect->setStyleSheet("background-color: green; color: black");
+        ui->start->setStyleSheet("background-color: gray; color: black");
+        ui->start->setEnabled(false);
 
         //publishing command "CONNECT"
         flor_control_msgs::FlorRobotStateCommand connect ;
@@ -84,10 +88,10 @@ void Widget::on_connect_clicked()
     }
     else
     {
-        ui->connect->setText("CONNECT");
+        /*ui->connect->setText("CONNECT");
         ui->connect->setStyleSheet("background-color: green; color: black");
         ui->start->setStyleSheet("background-color: gray; color: black");
-        ui->start->setEnabled(false);
+        ui->start->setEnabled(false);*/
         //publishing command "DISCONNECT"last_run_state
         flor_control_msgs::FlorRobotStateCommand disconnect ;
         disconnect.state_command=flor_control_msgs::FlorRobotStateCommand::DISCONNECT;
@@ -95,6 +99,36 @@ void Widget::on_connect_clicked()
     }
 }
 
+/*void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
+{
+
+    uint8_t  level;
+    uint16_t code;
+    RobotStatusCodes::codes(msg->status, code,level);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}*/
  void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& msg )
  {
      // save the last status message
@@ -136,6 +170,13 @@ void Widget::on_connect_clicked()
          ui->high->setEnabled(true);
          ui->off->setEnabled(true);
          ui->low->setEnabled(true);
+     }
+     if(msg->robot_connected ==0)
+     {
+         ui->connect->setText("CONNECT");
+         ui->connect->setStyleSheet("background-color: green; color: black");
+         ui->start->setStyleSheet("background-color: gray; color: black");
+         ui->start->setEnabled(false);
      }
      // check if we need to enable start
      if(msg->robot_run_state==0)

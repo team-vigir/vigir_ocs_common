@@ -26,7 +26,7 @@ public:
     void behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg );
     void controlstate(const flor_control_msgs::FlorRobotStateCommand::ConstPtr& msg);
     void robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg);
-
+   // void recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
 
 protected:
     void timerEvent(QTimerEvent *event);
@@ -55,6 +55,7 @@ private:
     ros::Subscriber sub_control;
     ros::Publisher pub;
     ros::Subscriber sub_fault;
+    //ros::Subscriber status_msg_sub;
     QBasicTimer timer;
     int last_inlet_pr;
     int last_run_state;
