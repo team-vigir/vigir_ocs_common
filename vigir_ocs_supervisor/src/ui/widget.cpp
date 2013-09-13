@@ -6,12 +6,34 @@
 #include<ros/ros.h>
 #include <ros/package.h>
 #include<QHBoxLayout>
+#include<QGridLayout>
 
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
 {
+    /*QGridLayout * grid = new QGridLayout();
+    grid->addWidget(ui->pinlet,0,0);
+    grid->addWidget(ui->inlet,0,1);
+    grid->addWidget(ui->preturn,0,2);
+    grid->addWidget(ui->return_2,0,3);
+    grid->addWidget(ui->psump,1,0);
+    grid->addWidget(ui->sump,1,1);
+    grid->addWidget(ui->psupply,1,2);
+    grid->addWidget(ui->supply,1,3);
+    grid->addWidget(ui->ptimemeter,2,0);
+    grid->addWidget(ui->timemeter,2,1);
+    grid->addWidget(ui->prpm,2,2);
+    grid->addWidget(ui->rpm,2,3);
+    grid->addWidget(ui->ppst,3,0);
+    grid->addWidget(ui->pst,3,1);
+    grid->addWidget(ui->pmt,3,2);
+    grid->addWidget(ui->mt,3,3);
+    grid->addWidget(ui->pmdt,4,0);
+    grid->addWidget(ui->mdt,4,1);
+    ui->widget_6->setLayout(grid);
+    */
     last_inlet_pr = -1;
     last_air_sump_pressure= -1;
     last_pump_rpm=-1;

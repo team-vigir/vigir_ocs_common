@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>861</height>
+    <height>1000</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -364,10 +364,10 @@
   <widget class="QWidget" name="widget_6" native="true">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>630</y>
-     <width>472</width>
-     <height>201</height>
+     <x>0</x>
+     <y>650</y>
+     <width>473</width>
+     <height>200</height>
     </rect>
    </property>
    <widget class="QLabel" name="param">
@@ -384,6 +384,14 @@
     </property>
    </widget>
    <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>9</x>
+      <y>32</y>
+      <width>454</width>
+      <height>27</height>
+     </rect>
+    </property>
     <layout class="QHBoxLayout" name="horizontalLayout_8">
      <item>
       <widget class="QLabel" name="pinlet">
@@ -434,30 +442,15 @@
     </layout>
    </widget>
    <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>9</x>
+      <y>65</y>
+      <width>431</width>
+      <height>27</height>
+     </rect>
+    </property>
     <layout class="QHBoxLayout" name="horizontalLayout_9">
-     <item>
-      <widget class="QLabel" name="psump">
-       <property name="text">
-        <string>AIR SUMP PR.</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="sump">
-       <property name="minimumSize">
-        <size>
-         <width>100</width>
-         <height>25</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>25</height>
-        </size>
-       </property>
-      </widget>
-     </item>
      <item>
       <widget class="QLabel" name="psupply">
        <property name="text">
@@ -481,42 +474,15 @@
        </property>
       </widget>
      </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="">
-    <layout class="QHBoxLayout" name="horizontalLayout_10">
      <item>
-      <widget class="QLabel" name="ptimemeter">
+      <widget class="QLabel" name="psump">
        <property name="text">
-        <string>PUMP TIME METER</string>
+        <string>AIR SUMP PR.</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="timemeter">
-       <property name="minimumSize">
-        <size>
-         <width>100</width>
-         <height>25</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>25</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="prpm">
-       <property name="text">
-        <string>PUMP RPM</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="rpm">
+      <widget class="QLineEdit" name="sump">
        <property name="minimumSize">
         <size>
          <width>100</width>
@@ -536,36 +502,13 @@
    <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>130</y>
+      <x>9</x>
+      <y>98</y>
       <width>455</width>
       <height>27</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_13">
-     <item>
-      <widget class="QLabel" name="ppst">
-       <property name="text">
-        <string>PUMP SUPPLY TEMP.</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="pst">
-       <property name="minimumSize">
-        <size>
-         <width>100</width>
-         <height>25</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>25</height>
-        </size>
-       </property>
-      </widget>
-     </item>
+    <layout class="QHBoxLayout" name="horizontalLayout_10">
      <item>
       <widget class="QLabel" name="pmt">
        <property name="text">
@@ -589,18 +532,99 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QLabel" name="ppst">
+       <property name="text">
+        <string>PUMP SUPPLY TEMP.</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="pst">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>25</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>9</x>
+      <y>131</y>
+      <width>424</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_13">
+     <item>
+      <widget class="QLabel" name="prpm">
+       <property name="text">
+        <string>PUMP RPM</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="rpm">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>25</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="ptimemeter">
+       <property name="text">
+        <string>PUMP TIME METER</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="timemeter">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>25</height>
+        </size>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
    <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>160</y>
+      <y>165</y>
       <width>260</width>
       <height>27</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_14">
+    <layout class="QHBoxLayout" name="horizontalLayout_18">
      <item>
       <widget class="QLabel" name="pmdt">
        <property name="text">
@@ -626,6 +650,15 @@
      </item>
     </layout>
    </widget>
+   <zorder>param</zorder>
+   <zorder>ppst</zorder>
+   <zorder>pst</zorder>
+   <zorder>mt</zorder>
+   <zorder>mdt</zorder>
+   <zorder>pmdt</zorder>
+   <zorder>pmt</zorder>
+   <zorder>ptimemeter</zorder>
+   <zorder>return_2</zorder>
   </widget>
   <zorder>layoutWidget</zorder>
   <zorder>layoutWidget</zorder>
