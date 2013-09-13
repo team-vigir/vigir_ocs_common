@@ -46,7 +46,7 @@
       <item>
        <widget class="QLabel" name="robo_st">
         <property name="text">
-         <string>ROBOT STATE:</string>
+         <string>ROBOT RUN STATE:</string>
         </property>
        </widget>
       </item>
@@ -101,8 +101,6 @@
    <zorder></zorder>
    <zorder></zorder>
    <zorder></zorder>
-   <zorder>fault</zorder>
-   <zorder>rfault</zorder>
   </widget>
   <widget class="QWidget" name="widget_5" native="true">
    <property name="geometry">
@@ -136,7 +134,7 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>30</y>
+      <y>20</y>
       <width>441</width>
       <height>101</height>
      </rect>
