@@ -104,7 +104,7 @@ void Widget::on_connect_clicked()
 
      ui->inlet->setText(QString::number(msg->pump_inlet_pressure));
      ui->sump->setText(QString::number(msg->air_sump_pressure));
-     ui->timemeter->setText(QString::number(msg->pump_time_meter/60));
+     ui->timemeter->setText(QString::number(msg->pump_time_meter));
      ui->rpm->setText(QString::number(msg->current_pump_rpm));
      ui->return_2->setText(QString::number(msg->pump_return_pressure));
      ui->supply->setText(QString::number(msg->pump_supply_pressure));
@@ -154,7 +154,7 @@ void Widget::on_connect_clicked()
          ui->rfault->setEnabled(true);
          ui->fault->setEnabled(true);
      }
-     if(msg->robot_critical_fault>0)
+     if(msg->robot_critical_fault==1)
      {
 
          QLabel *fault_label = new QLabel();
@@ -171,7 +171,7 @@ void Widget::on_connect_clicked()
  void Widget::robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg)
  {
 
-     ui->fault->setText(QString::number(msg->fault));
+     ui->fault->setText(msg->message);
 
  }
 
