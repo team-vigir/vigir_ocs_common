@@ -10,7 +10,6 @@
   <buildtool_depend>catkin</buildtool_depend>
   
   <build_depend>pcl_ros</build_depend> 
-  <build_depend>pcl</build_depend> 
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
@@ -24,7 +23,6 @@
   <build_depend>flor_interactive_marker_server_custom</build_depend>
   
   <run_depend>pcl_ros</run_depend> 
-  <run_depend>pcl</run_depend> 
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
