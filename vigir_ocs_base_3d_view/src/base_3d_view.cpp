@@ -15,11 +15,12 @@
 #include <QPoint>
 #include <QMenu>
 
-#include <pcl/ros/conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/common/common.h>
 #include <pcl/common/transforms.h>
+
+#include <pcl_conversions/pcl_conversions.h>
 
 #include "rviz/visualization_manager.h"
 //#include "rviz/render_panel.h"
