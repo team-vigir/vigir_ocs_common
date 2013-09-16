@@ -338,5 +338,3 @@ void RobotDisplayCustom::processLinkColorChange(const flor_ocs_msgs::OCSLinkColo
 
 } // namespace rviz
 
-//#include <pluginlib/class_list_macros.h>
-//#PLUGINLIB_EXPORT_CLASS( rviz::RobotDisplayCustom, rviz::Display )
