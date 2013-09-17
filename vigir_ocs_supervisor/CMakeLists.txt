@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vigir_ocs_supervisor)
+set(ROS_BUILD_TYPE RelWithDebInfo)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time

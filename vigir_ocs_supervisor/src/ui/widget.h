@@ -70,22 +70,21 @@ private:
     ros::Subscriber sub_fault;
     ros::Subscriber status_msg_sub;
     QBasicTimer timer;
-    float last_inlet_pr;
-    float last_run_state;
-    float last_air_sump_pressure;
-    float last_pump_rpm;
-   float last_pump_return_pressure;
-   float last_pump_supply_pressure;
-   float last_pump_time_meter;
-   float last_pt;
-   float last_mt;
-   float last_mdt;
-   int unreadMsgs;
-   int numError;
-   int numWarn;
-   int maxRows;
-   QFont bold;
-   QFont normal;
+    int   last_run_state;
+    float avg_inlet_pr;
+    float avg_air_sump_pressure;
+    float avg_pump_rpm;
+    float avg_pump_return_pressure;
+    float avg_pump_supply_pressure;
+    float avg_pump_supply_temperature;
+    float avg_motor_temperature      ;
+    float avg_motor_driver_temp      ;
+    int unreadMsgs;
+    int numError;
+    int numWarn;
+    int maxRows;
+    QFont bold;
+    QFont normal;
 
 
 
