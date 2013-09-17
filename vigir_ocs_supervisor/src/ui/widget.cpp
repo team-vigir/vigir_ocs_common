@@ -18,6 +18,9 @@ Widget::Widget(QWidget *parent) :
     normal.setBold(false);
 //    ui->stat->setColumnCount(3);
     maxRows = 100;
+    unreadMsgs=0;
+    numError = 0;
+    numWarn = 0;
     avg_inlet_pr = -1;
     avg_air_sump_pressure= -1;
     avg_pump_rpm=-1;
@@ -68,7 +71,7 @@ Widget::Widget(QWidget *parent) :
     sub_behav = nh.subscribe<atlas_msgs::AtlasSimInterfaceState>("/atlas/atlas_sim_interface_state", 5, &Widget::behavstate, this);
     sub_fault = nh.subscribe<flor_control_msgs::FlorRobotFault >("/flor/controller/robot_fault", 5, &Widget::robotfault, this);
     //changed here
-//    status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &Widget::recievedMessage, this );
+    status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &Widget::recievedMessage, this );
     timer.start(1, this);
 }
 
@@ -87,7 +90,8 @@ void Widget::timerEvent(QTimerEvent *event)
 void Widget::on_connect_clicked()
 {
     if (ui->connect->text()=="CONNECT")
-    {ui->connect->setText("CONNECT");
+    {
+        ui->connect->setText("CONNECT");
         ui->connect->setStyleSheet("background-color: green; color: black");
         ui->start->setStyleSheet("background-color: gray; color: black");
         ui->start->setEnabled(false);
@@ -112,7 +116,7 @@ void Widget::on_connect_clicked()
 
 void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
 {
-    uint8_t  level;
+       uint8_t  level;
        uint16_t code;
        RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
        //std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
@@ -143,6 +147,7 @@ void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
            time->setBackgroundColor(Qt::red);
            msgType->setBackgroundColor(Qt::red);
            numError++;
+           break;
        }
 
        if(code >= errors.size() && errors.size() != 0)
@@ -175,6 +180,7 @@ void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
        time->setFont(bold);
        text->setFont(bold);
        std::vector<completeRow*>::iterator it;
+
        it = messages.begin();
 
        messages.insert(it,new completeRow());
@@ -504,7 +510,7 @@ void Widget::on_start_clicked()
         ui->d_state->setEnabled(false);
         ui->r_state->setEnabled(false);
         ui->send_mode->setEnabled(false);
-        //ui->start->setEnabled(true);
+        ui->start->setEnabled(true);
         ui->pinlet->setEnabled(false);
         ui->psump->setEnabled(false);
         ui->psupply->setEnabled(false);
