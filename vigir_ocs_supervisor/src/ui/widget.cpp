@@ -258,42 +258,49 @@ QString Widget::timeFromMsg(ros::Time stamp)
      float last_pt;
      float last_mt;
      float last_mdt;
-     // save the last status message
-     last_run_state = msg->robot_run_state;
-     if(last_inlet_pr==-1)
-         last_inlet_pr=msg->pump_inlet_pressure;
-     if(last_air_sump_pressure==-1)
-    last_air_sump_pressure = msg->air_sump_pressure;
-     if(last_pump_rpm==-1)
-     last_pump_rpm=msg->current_pump_rpm;
-     if(last_pump_return_pressure==-1)
-     last_pump_return_pressure=msg->pump_return_pressure;
-     if(last_pump_supply_pressure==-1)
-         last_pump_supply_pressure= msg->pump_supply_pressure;
-
-
-     if(last_pump_time_meter==-1)
-     last_pump_time_meter=msg->pump_time_meter;
-     if(last_pt==-1)
-         last_pt = msg->pump_supply_temperature;
-     if(last_mt==-1)
-         last_mt = msg->motor_temperature;
-     if (last_mdt==-1)
-         last_mdt= msg->motor_driver_temperature;
-     switch(msg->robot_run_state)
+          switch(msg->robot_run_state)
      {
      case 0:ui->r_state->setText("IDLE");break;
      case 1:ui->r_state->setText("START");break;
      case 3:ui->r_state->setText("CONTROL");break;
      case 5:ui->r_state->setText("STOP");break;
      }
+          // save the last status message
+          last_run_state = msg->robot_run_state;
+          if(last_inlet_pr==-1)
+              last_inlet_pr=msg->pump_inlet_pressure;
+          if(last_air_sump_pressure==-1)
+         last_air_sump_pressure = msg->air_sump_pressure;
+          if(last_pump_rpm==-1)
+          last_pump_rpm=msg->current_pump_rpm;
+          if(last_pump_return_pressure==-1)
+          last_pump_return_pressure=msg->pump_return_pressure;
+          if(last_pump_supply_pressure==-1)
+          last_pump_supply_pressure= msg->pump_supply_pressure;
+          if(last_pump_time_meter==-1)
+          last_pump_time_meter=msg->pump_time_meter;
+          if(last_pt==-1)
+              last_pt = msg->pump_supply_temperature;
+          if(last_mt==-1)
+              last_mt = msg->motor_temperature;
+          if (last_mdt==-1)
+              last_mdt= msg->motor_driver_temperature;
+
  float pumpinlet = 0.1*msg->pump_inlet_pressure+0.9*last_inlet_pr;
  float pst = 0.1*msg->pump_supply_temperature+0.9*last_pt;
  float mt = 0.1*msg->motor_temperature+0.9*last_mt;
  float mdt = 0.1*msg->motor_driver_temperature+0.9*last_mdt;
+ float airsump= 0.1*msg->air_sump_pressure+0.9*last_air_sump_pressure;
+ float pumpsupply= 0.1*msg->pump_supply_pressure+0.9*last_pump_supply_pressure;
  ui->pst->setText(QString::number(pst,'f',2));
  ui->mt->setText(QString::number(mt,'f',2));
  ui->mdt->setText(QString::number(mdt,'f',2));
+ ui->sump->setText(QString::number(0.1*msg->air_sump_pressure+0.9*last_air_sump_pressure,'f',2));
+ ui->inlet->setText(QString::number(pumpinlet,'f',2));
+ ui->timemeter->setText(QString::number(0.1*msg->pump_time_meter+0.9*last_pump_time_meter,'f',2));
+ ui->rpm->setText(QString::number(0.1*msg->current_pump_rpm+0.9*last_pump_rpm,'f',2));
+ ui->return_2->setText(QString::number(0.1*msg->pump_return_pressure+0.9*last_pump_return_pressure,'f',2));
+
  if (pst>94)
      ui->ppst->setStyleSheet("background-color: red");
  else if(89<pst<94)
@@ -317,6 +324,13 @@ QString Widget::timeFromMsg(ros::Time stamp)
  else
      if (mdt <54)
          ui->pmdt->setStyleSheet("background-color: grey");
+ if (pumpsupply<1500)
+     ui->psupply->setStyleSheet("background-color: red");
+ else if(1500<pumpsupply<2700)
+     ui->psupply->setStyleSheet("background-color: yellow");
+ else
+     if (pumpsupply >2700)
+         ui->psupply->setStyleSheet("background-color: grey");
 
 
 
@@ -331,8 +345,8 @@ QString Widget::timeFromMsg(ros::Time stamp)
      if (pumpinlet >70)
          ui->pinlet->setStyleSheet("background-color: grey");
 
- ui->sump->setText(QString::number(0.1*msg->air_sump_pressure+0.9*last_air_sump_pressure,'f',2));
- float airsump= 0.1*msg->air_sump_pressure+0.9*last_air_sump_pressure;
+
+
  if (airsump<50)
      ui->psump->setStyleSheet("background-color: red");
  else if(50<airsump<70)
@@ -340,10 +354,6 @@ QString Widget::timeFromMsg(ros::Time stamp)
  else
      if (airsump >70)
          ui->psump->setStyleSheet("background-color: grey");
- ui->inlet->setText(QString::number(pumpinlet,'f',2));
- ui->timemeter->setText(QString::number(0.1*msg->pump_time_meter+0.9*last_pump_time_meter,'f',2));
- ui->rpm->setText(QString::number(0.1*msg->current_pump_rpm+0.9*last_pump_rpm,'f',2));
- ui->return_2->setText(QString::number(0.1*msg->pump_return_pressure+0.9*last_pump_return_pressure,'f',2));
  float pumpreturn = 0.1*msg->pump_return_pressure+0.9*last_pump_return_pressure;
  if (pumpreturn<50)
      ui->preturn->setStyleSheet("background-color: red");
@@ -355,16 +365,7 @@ QString Widget::timeFromMsg(ros::Time stamp)
 
 
  ui->supply->setText(QString::number(0.1*msg->pump_supply_pressure+0.9*last_pump_supply_pressure,'f',2));
- float pumpsupply= 0.1*msg->pump_supply_pressure+0.9*last_pump_supply_pressure;
- if (pumpsupply<1500)
-     ui->psupply->setStyleSheet("background-color: red");
- else if(1500<pumpsupply<2700)
-     ui->psupply->setStyleSheet("background-color: yellow");
- else
-     if (pumpsupply >2700)
-         ui->psupply->setStyleSheet("background-color: grey");
-
-     // check if we are connected to the robotfalse
+      // check if we are connected to the robotfalse
      if(msg->robot_connected==1)
      {
          ui->connect->setText("DISCONNECT");
