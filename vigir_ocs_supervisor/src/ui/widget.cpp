@@ -16,17 +16,13 @@ Widget::Widget(QWidget *parent) :
 {
     bold.setBold(true);
     normal.setBold(false);
-    ui->stat->setColumnCount(3);
+//    ui->stat->setColumnCount(3);
     maxRows = 100;
-    last_inlet_pr = -1;
-    last_air_sump_pressure= -1;
-    last_pump_rpm=-1;
-    last_pump_return_pressure=-1;
-    last_pump_supply_pressure=-1;
-    last_pump_time_meter=-1;
-    last_pt = -1;
-    last_mt = -1;
-    last_mdt = -1;
+    avg_inlet_pr = -1;
+    avg_air_sump_pressure= -1;
+    avg_pump_rpm=-1;
+    avg_pump_return_pressure=-1;
+    avg_pump_supply_pressure=-1;
     ui->setupUi(this);
     ui->cs->setEnabled(false);
     ui->cs_list->setEnabled(false);
@@ -36,7 +32,7 @@ Widget::Widget(QWidget *parent) :
     ui->last_stat->setEnabled(false);
     ui->pr->setEnabled(false);
     ui->curst->setEnabled(false);
-    ui->stat->setEnabled(false);
+//    ui->stat->setEnabled(false);
     ui->robo_st->setEnabled(false);
     ui->send_mode->setEnabled(false);
     ui->start->setEnabled(false);
@@ -72,7 +68,7 @@ Widget::Widget(QWidget *parent) :
     sub_behav = nh.subscribe<atlas_msgs::AtlasSimInterfaceState>("/atlas/atlas_sim_interface_state", 5, &Widget::behavstate, this);
     sub_fault = nh.subscribe<flor_control_msgs::FlorRobotFault >("/flor/controller/robot_fault", 5, &Widget::robotfault, this);
     //changed here
-    status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_sinttatus", 100, &Widget::recievedMessage, this );
+//    status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &Widget::recievedMessage, this );
     timer.start(1, this);
 }
 
@@ -255,31 +251,8 @@ QString Widget::timeFromMsg(ros::Time stamp)
 }
  void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& msg )
  {
-     float last_pt;
-     float last_mt;
-     float last_mdt;
      // save the last status message
      last_run_state = msg->robot_run_state;
-     if(last_inlet_pr==-1)
-         last_inlet_pr=msg->pump_inlet_pressure;
-     if(last_air_sump_pressure==-1)
-    last_air_sump_pressure = msg->air_sump_pressure;
-     if(last_pump_rpm==-1)
-     last_pump_rpm=msg->current_pump_rpm;
-     if(last_pump_return_pressure==-1)
-     last_pump_return_pressure=msg->pump_return_pressure;
-     if(last_pump_supply_pressure==-1)
-         last_pump_supply_pressure= msg->pump_supply_pressure;
-
-
-     if(last_pump_time_meter==-1)
-     last_pump_time_meter=msg->pump_time_meter;
-     if(last_pt==-1)
-         last_pt = msg->pump_supply_temperature;
-     if(last_mt==-1)
-         last_mt = msg->motor_temperature;
-     if (last_mdt==-1)
-         last_mdt= msg->motor_driver_temperature;
      switch(msg->robot_run_state)
      {
      case 0:ui->r_state->setText("IDLE");break;
@@ -287,82 +260,96 @@ QString Widget::timeFromMsg(ros::Time stamp)
      case 3:ui->r_state->setText("CONTROL");break;
      case 5:ui->r_state->setText("STOP");break;
      }
- float pumpinlet = 0.1*msg->pump_inlet_pressure+0.9*last_inlet_pr;
- float pst = 0.1*msg->pump_supply_temperature+0.9*last_pt;
- float mt = 0.1*msg->motor_temperature+0.9*last_mt;
- float mdt = 0.1*msg->motor_driver_temperature+0.9*last_mdt;
- ui->pst->setText(QString::number(pst,'f',2));
- ui->mt->setText(QString::number(mt,'f',2));
- ui->mdt->setText(QString::number(mdt,'f',2));
- if (pst>94)
-     ui->ppst->setStyleSheet("background-color: red");
- else if(89<pst<94)
-     ui->ppst->setStyleSheet("background-color: yellow");
- else
-     if (pst <89)
-         ui->ppst->setStyleSheet("background-color: grey");
 
- if (mt>149)
-     ui->pmt->setStyleSheet("background-color: red");
- else if(124<mt<149)
-     ui->pmt->setStyleSheet("background-color: yellow");
- else
-     if (mt <124)
-         ui->pmt->setStyleSheet("background-color: grey");
-
- if (mdt>59)
-     ui->pmdt->setStyleSheet("background-color: red");
- else if(54<mdt<59)
-     ui->pmdt->setStyleSheet("background-color: yellow");
- else
-     if (mdt <54)
-         ui->pmdt->setStyleSheet("background-color: grey");
+     // Initialize the averages on first pass
+     if(avg_inlet_pr==-1)
+     {
+         avg_inlet_pr                = msg->pump_inlet_pressure;
+         avg_air_sump_pressure       = msg->air_sump_pressure;
+         avg_pump_rpm                = msg->current_pump_rpm;
+         avg_pump_return_pressure    = msg->pump_return_pressure;
+         avg_pump_supply_pressure    = msg->pump_supply_pressure;
+         avg_pump_supply_temperature = msg->pump_supply_temperature;
+         avg_motor_temperature       = msg->motor_temperature;
+         avg_motor_driver_temp       = msg->motor_driver_temperature;
+     }
 
 
+     // Average the noisy signals
+     avg_inlet_pr               = 0.1*msg->pump_inlet_pressure      + 0.9*avg_inlet_pr            ;
+     avg_air_sump_pressure      = 0.1*msg->air_sump_pressure        + 0.9*avg_air_sump_pressure   ;
+     avg_pump_rpm               = 0.1*msg->current_pump_rpm         + 0.9*avg_pump_rpm            ;
+     avg_pump_return_pressure   = 0.1*msg->pump_return_pressure     + 0.9*avg_pump_return_pressure;
+     avg_pump_supply_pressure   = 0.1*msg->pump_supply_pressure     + 0.9*avg_pump_supply_pressure;
+     avg_pump_supply_temperature= 0.1*msg->pump_supply_temperature  + 0.9*avg_pump_supply_temperature;
+     avg_motor_temperature      = 0.1*msg->motor_temperature        + 0.9*avg_motor_temperature      ;
+     avg_motor_driver_temp      = 0.1*msg->motor_driver_temperature + 0.9*avg_motor_driver_temp      ;
+
+     // Update the text
+     ui->inlet->setText(QString::number(avg_inlet_pr,'f',2));
+     ui->sump->setText(QString::number(avg_air_sump_pressure,'f',2));
+     ui->rpm->setText(QString::number(avg_pump_rpm,'f',2));
+     ui->return_2->setText(QString::number(avg_pump_return_pressure,'f',2));
+     ui->supply->setText(QString::number(avg_pump_supply_pressure,'f',2));
+     ui->pst->setText(QString::number(avg_pump_supply_temperature,'f',2));
+     ui->mt->setText(QString::number(avg_motor_temperature,'f',2));
+     ui->mdt->setText(QString::number(avg_motor_driver_temp,'f',2));
+
+     // Just set the time meter (no averaging)
+     ui->timemeter->setText(QString::number(msg->pump_time_meter,'f',2));
 
 
- // code to detect fault in inlet pressure
+     // Set the alarm colors on raw values
+     if (msg->pump_supply_temperature>94.0)
+         ui->pst->setStyleSheet("background-color: red");
+     else if ((89.0 < msg->pump_supply_temperature) && (msg->pump_supply_temperature <= 94.0))
+         ui->pst->setStyleSheet("background-color: yellow");
+     else
+         ui->pst->setStyleSheet("background-color: white");
 
- if (pumpinlet<50)
-     ui->pinlet->setStyleSheet("background-color: red");
- else if(50<pumpinlet<70)
-     ui->pinlet->setStyleSheet("background-color: yellow");
- else
-     if (pumpinlet >70)
-         ui->pinlet->setStyleSheet("background-color: grey");
+     if (msg->motor_temperature>149.0)
+         ui->mt->setStyleSheet("background-color: red");
+     else if((124.0<msg->motor_temperature) && (msg->motor_temperature <=149.0))
+         ui->mt->setStyleSheet("background-color: yellow");
+     else
+         ui->mt->setStyleSheet("background-color: white");
 
- ui->sump->setText(QString::number(0.1*msg->air_sump_pressure+0.9*last_air_sump_pressure,'f',2));
- float airsump= 0.1*msg->air_sump_pressure+0.9*last_air_sump_pressure;
- if (airsump<50)
-     ui->psump->setStyleSheet("background-color: red");
- else if(50<airsump<70)
-     ui->psump->setStyleSheet("background-color: yellow");
- else
-     if (airsump >70)
-         ui->psump->setStyleSheet("background-color: grey");
- ui->inlet->setText(QString::number(pumpinlet,'f',2));
- ui->timemeter->setText(QString::number(0.1*msg->pump_time_meter+0.9*last_pump_time_meter,'f',2));
- ui->rpm->setText(QString::number(0.1*msg->current_pump_rpm+0.9*last_pump_rpm,'f',2));
- ui->return_2->setText(QString::number(0.1*msg->pump_return_pressure+0.9*last_pump_return_pressure,'f',2));
- float pumpreturn = 0.1*msg->pump_return_pressure+0.9*last_pump_return_pressure;
- if (pumpreturn<50)
-     ui->preturn->setStyleSheet("background-color: red");
- else if(50<pumpreturn<70)
-     ui->preturn->setStyleSheet("background-color: yellow");
- else
-     if (pumpreturn >70)
-         ui->preturn->setStyleSheet("background-color: grey");
+     if (msg->motor_driver_temperature>59.0)
+         ui->mdt->setStyleSheet("background-color: red");
+     else if ((54.0 < msg->motor_driver_temperature) && (msg->motor_driver_temperature<59.0))
+         ui->mdt->setStyleSheet("background-color: yellow");
+     else
+         ui->mdt->setStyleSheet("background-color: white");
+
+     // code to detect fault in inlet pressure
+     if (msg->pump_inlet_pressure<50.0)
+         ui->inlet->setStyleSheet("background-color: red");
+     else if((50.0<msg->pump_inlet_pressure) && (msg->pump_inlet_pressure <70.0))
+         ui->inlet->setStyleSheet("background-color: yellow");
+     else
+         ui->inlet->setStyleSheet("background-color: white");
+
+     if (avg_air_sump_pressure<50.0)
+         ui->sump->setStyleSheet("background-color: red");
+     else if((50.0 <avg_air_sump_pressure) && (avg_air_sump_pressure<70.0))
+         ui->sump->setStyleSheet("background-color: yellow");
+     else
+         ui->sump->setStyleSheet("background-color: white");
+
+     if (msg->pump_return_pressure<50)
+         ui->return_2->setStyleSheet("background-color: red");
+     else if((50.0 <msg->pump_return_pressure) && (msg->pump_return_pressure<70.0))
+         ui->return_2->setStyleSheet("background-color: yellow");
+     else
+         ui->return_2->setStyleSheet("background-color: white");
 
 
- ui->supply->setText(QString::number(0.1*msg->pump_supply_pressure+0.9*last_pump_supply_pressure,'f',2));
- float pumpsupply= 0.1*msg->pump_supply_pressure+0.9*last_pump_supply_pressure;
- if (pumpsupply<1500)
-     ui->psupply->setStyleSheet("background-color: red");
- else if(1500<pumpsupply<2700)
-     ui->psupply->setStyleSheet("background-color: yellow");
- else
-     if (pumpsupply >2700)
-         ui->psupply->setStyleSheet("background-color: grey");
+     if (msg->pump_supply_pressure<1500.0)
+         ui->supply->setStyleSheet("background-color: red");
+     else if ((1500.0 <msg->pump_supply_pressure) && (msg->pump_supply_pressure<2700.0))
+         ui->supply->setStyleSheet("background-color: yellow");
+     else
+         ui->supply->setStyleSheet("background-color: white");
 
      // check if we are connected to the robotfalse
      if(msg->robot_connected==1)
@@ -384,7 +371,8 @@ QString Widget::timeFromMsg(ros::Time stamp)
      }
      // check if we need to enable start
      if(msg->robot_run_state==0)
-     enableStart();
+       enableStart();
+
      // check if run_state is different than idle to enable stop and all the other options in the UI
      if(msg->robot_run_state!=0)
      {
@@ -423,6 +411,7 @@ QString Widget::timeFromMsg(ros::Time stamp)
          ui->pmdt->setEnabled(true);
          ui->pmt->setEnabled(true);
      }
+
      if(msg->robot_critical_fault==1)
      {
 
@@ -435,12 +424,6 @@ QString Widget::timeFromMsg(ros::Time stamp)
 
 
      }
-     last_inlet_pr = msg->pump_inlet_pressure;
-     last_air_sump_pressure = msg->air_sump_pressure;
-     last_pump_rpm=msg->current_pump_rpm;
-     last_pump_return_pressure=msg->pump_return_pressure;
-     last_pump_supply_pressure=msg->pump_supply_pressure;
-     last_pump_time_meter=msg->pump_time_meter;
 
  }
  void Widget::robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg)
