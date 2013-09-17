@@ -1,33 +1,46 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 #include <ros/ros.h>
+#include <flor_ocs_msgs/RobotStatusCodes.h>
 #include <flor_control_msgs/FlorRobotStatus.h>
+#include<flor_ocs_msgs/OCSRobotStatus.h>
 #include <flor_control_msgs/FlorControlMode.h>
 #include <flor_control_msgs/FlorRobotStateCommand.h>
 #include <flor_control_msgs/FlorRobotFault.h>
 #include <atlas_msgs/AtlasSimInterfaceState.h>
-
+#include<QTableWidget>
+#include<QTableWidgetItem>
 #include <QWidget>
 #include<QAbstractButton>
 #include <QBasicTimer>
 
 namespace Ui {
 class Widget;
+class completeRow;
 }
+class completeRow
+{
+public:
+    QTableWidgetItem* text;
+    QTableWidgetItem* time;
+    QTableWidgetItem* priority;
 
+};
 class Widget : public QWidget
 {
     Q_OBJECT
 
 public:
+    std::vector<completeRow*> messages;
+    std::vector<std::string> errors;
     explicit Widget(QWidget *parent = 0);
     ~Widget();
     void robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& msg );
     void behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg );
     void controlstate(const flor_control_msgs::FlorRobotStateCommand::ConstPtr& msg);
     void robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg);
-   // void recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
-
+    void recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
+    QString timeFromMsg(const ros::Time msg);
 protected:
     void timerEvent(QTimerEvent *event);
 private Q_SLOTS:
@@ -55,7 +68,7 @@ private:
     ros::Subscriber sub_control;
     ros::Publisher pub;
     ros::Subscriber sub_fault;
-    //ros::Subscriber status_msg_sub;
+    ros::Subscriber status_msg_sub;
     QBasicTimer timer;
     float last_inlet_pr;
     float last_run_state;
@@ -67,6 +80,13 @@ private:
    float last_pt;
    float last_mt;
    float last_mdt;
+   int unreadMsgs;
+   int numError;
+   int numWarn;
+   int maxRows;
+   QFont bold;
+   QFont normal;
+
 
 
 };

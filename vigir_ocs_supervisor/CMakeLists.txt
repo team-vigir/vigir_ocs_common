@@ -38,7 +38,7 @@ set(SOURCE_FILES
   ${MOC_FILES}
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src /usr/share/drcsim-2.7/ros/atlas_msgs/msg_gen/cpp/include)
+include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src /usr/share/drcsim-3.0/ros/atlas_msgs/msg_gen/cpp/include)
 
 add_executable(supervisor ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(supervisor ${catkin_LIBRARIES} ${QT_LIBRARIES})

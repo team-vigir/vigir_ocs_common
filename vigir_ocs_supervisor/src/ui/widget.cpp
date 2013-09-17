@@ -7,33 +7,17 @@
 #include <ros/package.h>
 #include<QHBoxLayout>
 #include<QGridLayout>
+#include<QTableWidgetItem>
 
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
 {
-    /*QGridLayout * grid = new QGridLayout();
-    grid->addWidget(ui->pinlet,0,0);
-    grid->addWidget(ui->inlet,0,1);
-    grid->addWidget(ui->preturn,0,2);
-    grid->addWidget(ui->return_2,0,3);
-    grid->addWidget(ui->psump,1,0);
-    grid->addWidget(ui->sump,1,1);
-    grid->addWidget(ui->psupply,1,2);
-    grid->addWidget(ui->supply,1,3);
-    grid->addWidget(ui->ptimemeter,2,0);
-    grid->addWidget(ui->timemeter,2,1);
-    grid->addWidget(ui->prpm,2,2);
-    grid->addWidget(ui->rpm,2,3);
-    grid->addWidget(ui->ppst,3,0);
-    grid->addWidget(ui->pst,3,1);
-    grid->addWidget(ui->pmt,3,2);
-    grid->addWidget(ui->mt,3,3);
-    grid->addWidget(ui->pmdt,4,0);
-    grid->addWidget(ui->mdt,4,1);
-    ui->widget_6->setLayout(grid);
-    */
+    bold.setBold(true);
+    normal.setBold(false);
+    ui->stat->setColumnCount(3);
+    maxRows = 100;
     last_inlet_pr = -1;
     last_air_sump_pressure= -1;
     last_pump_rpm=-1;
@@ -87,7 +71,8 @@ Widget::Widget(QWidget *parent) :
     sub_state = nh.subscribe<flor_control_msgs::FlorRobotStatus>("/flor/controller/robot_status", 5, &Widget::robotstate, this);
     sub_behav = nh.subscribe<atlas_msgs::AtlasSimInterfaceState>("/atlas/atlas_sim_interface_state", 5, &Widget::behavstate, this);
     sub_fault = nh.subscribe<flor_control_msgs::FlorRobotFault >("/flor/controller/robot_fault", 5, &Widget::robotfault, this);
-    //status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_sinttatus", 100, &robotStatus::recievedMessage, this );
+    //changed here
+    status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_sinttatus", 100, &Widget::recievedMessage, this );
     timer.start(1, this);
 }
 
@@ -129,38 +114,150 @@ void Widget::on_connect_clicked()
     }
 }
 
-/*void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
+void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
+{
+    uint8_t  level;
+       uint16_t code;
+       RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
+       //std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
+       QTableWidgetItem* text = new QTableWidgetItem();
+       QTableWidgetItem* msgType = new QTableWidgetItem();
+       QTableWidgetItem* time = new QTableWidgetItem();
+       time->setText(timeFromMsg(msg->stamp));
+       text->setFlags(text->flags() ^ Qt::ItemIsEditable);
+       time->setFlags(time->flags() ^ Qt::ItemIsEditable);
+       msgType->setFlags(msgType->flags() ^ Qt::ItemIsEditable);
+       switch(level){
+       case 0:
+           msgType->setText("Ok");
+           break;
+       case 1:
+           msgType->setText("Debug");
+           break;
+       case 2:
+           msgType->setText("Warn");
+           text->setBackgroundColor(Qt::yellow);
+           time->setBackgroundColor(Qt::yellow);
+           msgType->setBackgroundColor(Qt::yellow);
+           numWarn++;
+           break;
+       case 3:
+           msgType->setText("Error");
+           text->setBackgroundColor(Qt::red);
+           time->setBackgroundColor(Qt::red);
+           msgType->setBackgroundColor(Qt::red);
+           numError++;
+       }
+
+       if(code >= errors.size() && errors.size() != 0)
+       {
+           std::cout << "Recieved message (Default Message). level = " << (int)level << " code = " << (int)code << std::endl;
+           QString tempMessage = QString::fromStdString("Default Message");
+           tempMessage+=QString::number(code);
+           text->setText(tempMessage);
+           text->setBackgroundColor(Qt::red);
+           time->setBackgroundColor(Qt::red);
+           msgType->setBackgroundColor(Qt::red);
+           numError++;
+       }
+       else if(errors.size() > 0)
+           text->setText(QString::fromStdString(errors[code]));
+       else
+       {
+           std::cout << "Cannot find data file but recieved msg level = " << (int)level << " code = " << (int)code << std::endl;
+
+           QString tempMessage = "Cannot find data file but recieved msg  num";
+           tempMessage+= QString::number(code);
+           text->setText(tempMessage);
+           text->setBackground(Qt::red);
+           msgType->setBackgroundColor(Qt::red);
+           time->setBackgroundColor(Qt::red);
+           numError++;
+       }
+
+       msgType->setFont(bold);
+       time->setFont(bold);
+       text->setFont(bold);
+       std::vector<completeRow*>::iterator it;
+       it = messages.begin();
+
+       messages.insert(it,new completeRow());
+       messages[0]->time = time;
+       messages[0]->priority = msgType;
+       messages[0]->text = text;
+       ui->stat->insertRow(0);
+       //std::cout << "Adding item to table... " << messages.size() <<  " " << messages[0]->text << std::endl;
+       ui->stat->setItem(0,0,messages[0]->time);
+       ui->stat->setItem(0,1,messages[0]->priority);
+       ui->stat->setItem(0,2,messages[0]->text);
+       for(int i=0;i<5;i++)
+           ui->stat->showRow(i);
+
+      /* if(messages[0]->priority->text() == "Ok" && showOk->isChecked())
+       {
+           msgTable->showRow(0);
+       }
+       else if(messages[0]->priority->text() == "Debug" && showDebug->isChecked())
+       {
+           msgTable->showRow(0);
+       }
+       else if(messages[0]->priority->text() == "Warn" && showWarn->isChecked())
+       {
+           msgTable->showRow(0);
+       }
+       else if(messages[0]->priority->text() == "Error" && showError->isChecked())
+       {
+           msgTable->showRow(0);
+       }
+       else
+           msgTable->hideRow(0);
+           */
+       //std::cout << "Item added sucessfuly..." << std::endl;
+       if(messages.size() > maxRows)
+       {
+           if(messages[messages.size()-1]->priority->text() == "Warn")
+               numWarn--;
+           else if(messages[messages.size()-1]->priority->text() == "Error")
+               numError--;
+           messages.pop_back();
+           ui->stat->removeRow(maxRows);
+       }
+       unreadMsgs++;
+
+}
+QString Widget::timeFromMsg(ros::Time stamp)
 {
 
-    uint8_t  level;
-    uint16_t code;
-    RobotStatusCodes::codes(msg->status, code,level);
+    double dSec = stamp.toSec();
+    int sec = dSec;
+    std::stringstream stream;
 
+    stream.str("");
+    int day = sec/86400;
+    sec -= day * 86400;
 
+    int hour = sec / 3600;
+    sec -= hour * 3600;
 
+    int min = sec / 60;
+    sec -= min * 60;
 
+    int iSec = dSec;
+    dSec -= iSec;
+    int ms = (dSec*1000.0);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}*/
+    stream << std::setw(2) << std::setfill('0') << day << " ";
+    stream << std::setw(2) << std::setfill('0') << hour << ":";
+    stream << std::setw(2) << std::setfill('0') << min << ":";
+    stream << std::setw(2) << std::setfill('0') << sec << ".";
+    stream << std::setw(3) << std::setfill('0') << ms ;
+    return QString::fromStdString(stream.str());
+}
  void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& msg )
  {
+     float last_pt;
+     float last_mt;
+     float last_mdt;
      // save the last status message
      last_run_state = msg->robot_run_state;
      if(last_inlet_pr==-1)
@@ -171,10 +268,10 @@ void Widget::on_connect_clicked()
      last_pump_rpm=msg->current_pump_rpm;
      if(last_pump_return_pressure==-1)
      last_pump_return_pressure=msg->pump_return_pressure;
-     if(last_pump_supply_pressure==-1)float last_pt;
-     float last_mt;
-     float last_mdt;
-     last_pump_supply_pressure=msg->pump_supply_pressure;
+     if(last_pump_supply_pressure==-1)
+         last_pump_supply_pressure= msg->pump_supply_pressure;
+
+
      if(last_pump_time_meter==-1)
      last_pump_time_meter=msg->pump_time_meter;
      if(last_pt==-1)
