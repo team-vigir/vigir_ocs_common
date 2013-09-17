@@ -510,7 +510,7 @@ void Widget::on_start_clicked()
         ui->d_state->setEnabled(false);
         ui->r_state->setEnabled(false);
         ui->send_mode->setEnabled(false);
-        //ui->start->setEnabled(true);
+        ui->start->setEnabled(true);
         ui->pinlet->setEnabled(false);
         ui->psump->setEnabled(false);
         ui->psupply->setEnabled(false);
