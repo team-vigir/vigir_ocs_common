@@ -31,6 +31,7 @@ class Widget : public QWidget
     Q_OBJECT
 
 public:
+    int count_row;
     std::vector<completeRow*> messages;
     std::vector<std::string> errors;
     explicit Widget(QWidget *parent = 0);
@@ -41,6 +42,8 @@ public:
     void robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg);
     void recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
     QString timeFromMsg(const ros::Time msg);
+    void loadFile();
+
 protected:
     void timerEvent(QTimerEvent *event);
 private Q_SLOTS:
@@ -85,6 +88,8 @@ private:
     int maxRows;
     QFont bold;
     QFont normal;
+    QStringList labels;
+    std::string messagesPath;
 
 
 
