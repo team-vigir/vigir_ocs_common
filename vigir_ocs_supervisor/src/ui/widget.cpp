@@ -8,7 +8,9 @@
 #include<QHBoxLayout>
 #include<QGridLayout>
 #include<QTableWidgetItem>
-
+#include<QFile>
+#include<QTextStream>
+#include<QDebug>
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
@@ -16,7 +18,25 @@ Widget::Widget(QWidget *parent) :
 {
     bold.setBold(true);
     normal.setBold(false);
-//    ui->stat->setColumnCount(3);
+   /* ui->stat->setColumnCount(3);
+    ui->stat->setRowCount(5);*/
+    count_row=0;// keep track of table rows
+   /* ui->stat->setColumnWidth(0,145);
+    ui->stat->setColumnWidth(1,50);
+    ui->stat->setColumnWidth(2,300);
+    std::cout << "Set width" << std::endl;
+    labels.push_back("Sim Time");
+    labels.push_back("Type");
+    labels.push_back("Message Contents");
+    ui->stat->setHorizontalHeaderLabels(labels);*/
+
+    std::string fileName;
+    if(nh.getParam("robotErrorFileLocation",fileName))
+    messagesPath = fileName;
+    else
+    messagesPath = "/opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/messages.csv";
+    std::cerr << "Reading messages from <" << messagesPath << ">" << std::endl;
+    loadFile();
     maxRows = 100;
     unreadMsgs=0;
     numError = 0;
@@ -35,7 +55,7 @@ Widget::Widget(QWidget *parent) :
     ui->last_stat->setEnabled(false);
     ui->pr->setEnabled(false);
     ui->curst->setEnabled(false);
-//    ui->stat->setEnabled(false);
+    ui->stat->setEnabled(false);
     ui->robo_st->setEnabled(false);
     ui->send_mode->setEnabled(false);
     ui->start->setEnabled(false);
@@ -71,7 +91,7 @@ Widget::Widget(QWidget *parent) :
     sub_behav = nh.subscribe<atlas_msgs::AtlasSimInterfaceState>("/atlas/atlas_sim_interface_state", 5, &Widget::behavstate, this);
     sub_fault = nh.subscribe<flor_control_msgs::FlorRobotFault >("/flor/controller/robot_fault", 5, &Widget::robotfault, this);
     //changed here
-    status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &Widget::recievedMessage, this );
+    status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor/controller/status", 5, &Widget::recievedMessage, this );
     timer.start(1, this);
 }
 
@@ -116,6 +136,17 @@ void Widget::on_connect_clicked()
 
 void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
 {
+        ui->stat->setColumnCount(3);
+        ui->stat->setRowCount(5);
+        //count_row=0;// keep track of table rows
+        ui->stat->setColumnWidth(0,145);
+        ui->stat->setColumnWidth(1,50);
+        ui->stat->setColumnWidth(2,300);
+        std::cout << "Set width" << std::endl;
+        labels.push_back("Sim Time");
+        labels.push_back("Type");
+        labels.push_back("Message Contents");
+        ui->stat->setHorizontalHeaderLabels(labels);
        uint8_t  level;
        uint16_t code;
        RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
@@ -179,23 +210,27 @@ void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
        msgType->setFont(bold);
        time->setFont(bold);
        text->setFont(bold);
-       std::vector<completeRow*>::iterator it;
+       //std::vector<completeRow*>::iterator it;
 
-       it = messages.begin();
+       //it = messages.begin();
 
-       messages.insert(it,new completeRow());
-       messages[0]->time = time;
-       messages[0]->priority = msgType;
-       messages[0]->text = text;
-       ui->stat->insertRow(0);
+       //messages.insert(it,new completeRow());
+      // messages[0]->time = time;
+       //messages[0]->priority = msgType;
+      // messages[0]->text out>
+
+       count_row=count_row%5;
+       //ui->stat->insertRow(count_row%5);
+
        //std::cout << "Adding item to table... " << messages.size() <<  " " << messages[0]->text << std::endl;
-       ui->stat->setItem(0,0,messages[0]->time);
-       ui->stat->setItem(0,1,messages[0]->priority);
-       ui->stat->setItem(0,2,messages[0]->text);
-       for(int i=0;i<5;i++)
+      ui->stat->setItem(count_row,0,time);
+      ui->stat->setItem(count_row,1,msgType);
+      ui->stat->setItem(count_row,2,text);
+      count_row++;
+      qDebug() << count_row;
+       /*for(int i=4;i>=0;i--)
            ui->stat->showRow(i);
-
-      /* if(messages[0]->priority->text() == "Ok" && showOk->isChecked())
+      if(messages[0]->priority->text() == "Ok" && showOk->isChecked())
        {
            msgTable->showRow(0);
        }
@@ -213,7 +248,7 @@ void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
        }
        else
            msgTable->hideRow(0);
-           */
+
        //std::cout << "Item added sucessfuly..." << std::endl;
        if(messages.size() > maxRows)
        {
@@ -222,10 +257,35 @@ void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
            else if(messages[messages.size()-1]->priority->text() == "Error")
                numError--;
            messages.pop_back();
-           ui->stat->removeRow(maxRows);
-       }
+           //ui->stat->removeRow(maxRows);
+       } */
        unreadMsgs++;
 
+}
+void Widget::loadFile()
+{
+    errors.resize(RobotStatusCodes::MAX_ERROR_MESSAGES,"Default Error Message");
+    QFile file(QString::fromStdString(messagesPath));
+    std::cout << "Trying to open file at " << messagesPath << std::endl;
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        std::cout << "File opened successfully... now parsing. Will print valid messages" << std::endl;
+        QTextStream in(&file);
+        while(!in.atEnd())
+        {
+            QString line = in.readLine();
+            if(line[0] != '#')
+            {
+                QStringList strings;
+                strings = line.split(',');
+                if(strings.size() > 1)
+                {
+                    errors[strings[0].toInt()] = strings[1].toStdString();
+                    std::cout << "Msg # " << strings[0].toStdString() << ":" << strings[1].toStdString() <<std::endl;
+                }
+            }
+        }
+    }
 }
 QString Widget::timeFromMsg(ros::Time stamp)
 {
