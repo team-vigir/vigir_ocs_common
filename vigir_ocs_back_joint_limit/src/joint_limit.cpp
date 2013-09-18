@@ -95,14 +95,14 @@ void joint_limit::on_apply_clicked()
 {
     flor_planning_msgs::PlannerConfiguration msg;
 
-    msg.joint_position_constraints.back_lbz_max.data = (float)lbzMaxVal;
-    msg.joint_position_constraints.back_lbz_min.data = (float)lbzMinVal;
+    msg.joint_position_constraints.back_bkz_max.data = (float)lbzMaxVal;
+    msg.joint_position_constraints.back_bkz_min.data = (float)lbzMinVal;
 
-    msg.joint_position_constraints.back_mby_max.data = (float)mbyMaxVal;
-    msg.joint_position_constraints.back_mby_min.data = (float)mbyMinVal;
+    msg.joint_position_constraints.back_bky_max.data = (float)mbyMaxVal;
+    msg.joint_position_constraints.back_bky_min.data = (float)mbyMinVal;
 
-    msg.joint_position_constraints.back_ubx_max.data = (float)ubxMaxVal;
-    msg.joint_position_constraints.back_ubx_min.data = (float)ubxMinVal;
+    msg.joint_position_constraints.back_bkx_max.data = (float)ubxMaxVal;
+    msg.joint_position_constraints.back_bkx_min.data = (float)ubxMinVal;
     std::cout << "The following values were set:" <<std::endl;
     std::cout << "lbz: max = " << ui->lbzMax->value() << " min = " << ui->lbzMin->value() << std::endl;
     std::cout << "mby: max = " << ui->mbyMax->value() << " min = " << ui->mbyMin->value() << std::endl;

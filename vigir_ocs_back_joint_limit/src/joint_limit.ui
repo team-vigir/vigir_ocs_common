@@ -42,7 +42,7 @@
           <item>
            <widget class="QLabel" name="label">
             <property name="text">
-             <string>yaw(back_lbz)</string>
+             <string>yaw(back_bkz)</string>
             </property>
            </widget>
           </item>
@@ -125,7 +125,7 @@
           <item>
            <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>pitch(back_mby)</string>
+             <string>pitch(back_bky)</string>
             </property>
            </widget>
           </item>
@@ -208,7 +208,7 @@
           <item>
            <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>roll(back_ubx)</string>
+             <string>roll(back_bkx)</string>
             </property>
            </widget>
           </item>
