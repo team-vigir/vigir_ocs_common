@@ -16,7 +16,7 @@ Widget::Widget(QWidget *parent) :
 {
     bold.setBold(true);
     normal.setBold(false);
-//    ui->stat->setColumnCount(3);
+    //ui->stat->setColumnCount(3);
     maxRows = 100;
     unreadMsgs=0;
     numError = 0;
@@ -35,7 +35,7 @@ Widget::Widget(QWidget *parent) :
     ui->last_stat->setEnabled(false);
     ui->pr->setEnabled(false);
     ui->curst->setEnabled(false);
-//    ui->stat->setEnabled(false);
+    //ui->stat->setEnabled(false);
     ui->robo_st->setEnabled(false);
     ui->send_mode->setEnabled(false);
     ui->start->setEnabled(false);
@@ -71,7 +71,7 @@ Widget::Widget(QWidget *parent) :
     sub_behav = nh.subscribe<atlas_msgs::AtlasSimInterfaceState>("/atlas/atlas_sim_interface_state", 5, &Widget::behavstate, this);
     sub_fault = nh.subscribe<flor_control_msgs::FlorRobotFault >("/flor/controller/robot_fault", 5, &Widget::robotfault, this);
     //changed here
-    status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &Widget::recievedMessage, this );
+    status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor/controller/status", 100, &Widget::recievedMessage, this );
     timer.start(1, this);
 }
 
@@ -119,7 +119,7 @@ void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
        uint8_t  level;
        uint16_t code;
        RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
-       //std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
+       std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
        QTableWidgetItem* text = new QTableWidgetItem();
        QTableWidgetItem* msgType = new QTableWidgetItem();
        QTableWidgetItem* time = new QTableWidgetItem();
@@ -281,15 +281,15 @@ QString Widget::timeFromMsg(ros::Time stamp)
      }
 
 
-     // Average the noisy signals
-     avg_inlet_pr               = 0.1*msg->pump_inlet_pressure      + 0.9*avg_inlet_pr            ;
-     avg_air_sump_pressure      = 0.1*msg->air_sump_pressure        + 0.9*avg_air_sump_pressure   ;
-     avg_pump_rpm               = 0.1*msg->current_pump_rpm         + 0.9*avg_pump_rpm            ;
-     avg_pump_return_pressure   = 0.1*msg->pump_return_pressure     + 0.9*avg_pump_return_pressure;
-     avg_pump_supply_pressure   = 0.1*msg->pump_supply_pressure     + 0.9*avg_pump_supply_pressure;
-     avg_pump_supply_temperature= 0.1*msg->pump_supply_temperature  + 0.9*avg_pump_supply_temperature;
-     avg_motor_temperature      = 0.1*msg->motor_temperature        + 0.9*avg_motor_temperature      ;
-     avg_motor_driver_temp      = 0.1*msg->motor_driver_temperature + 0.9*avg_motor_driver_temp      ;
+     // Average the noisy signals (at 200Hz after 10 seconds only 0.002 remaining)
+     avg_inlet_pr               = 0.003*msg->pump_inlet_pressure      + 0.997*avg_inlet_pr            ;
+     avg_air_sump_pressure      = 0.003*msg->air_sump_pressure        + 0.997*avg_air_sump_pressure   ;
+     avg_pump_rpm               = 0.003*msg->current_pump_rpm         + 0.997*avg_pump_rpm            ;
+     avg_pump_return_pressure   = 0.003*msg->pump_return_pressure     + 0.997*avg_pump_return_pressure;
+     avg_pump_supply_pressure   = 0.003*msg->pump_supply_pressure     + 0.997*avg_pump_supply_pressure;
+     avg_pump_supply_temperature= 0.003*msg->pump_supply_temperature  + 0.997*avg_pump_supply_temperature;
+     avg_motor_temperature      = 0.003*msg->motor_temperature        + 0.997*avg_motor_temperature      ;
+     avg_motor_driver_temp      = 0.003*msg->motor_driver_temperature + 0.997*avg_motor_driver_temp      ;
 
      // Update the text
      ui->inlet->setText(QString::number(avg_inlet_pr,'f',2));
