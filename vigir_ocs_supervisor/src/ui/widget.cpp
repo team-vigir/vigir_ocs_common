@@ -72,6 +72,8 @@ Widget::Widget(QWidget *parent) :
     ui->return_2->setEnabled(false);
     ui->sump->setEnabled(false);
     ui->supply->setEnabled(false);
+    ui->pressure->setEnabled(false);
+    ui->temperature->setEnabled(false);
     ui->inlet->setEnabled(false);
     ui->rpm->setEnabled(false);
     ui->prpm->setEnabled(false);
@@ -136,7 +138,7 @@ void Widget::on_connect_clicked()
 void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
 {
         ui->stat->setColumnCount(3);
-        ui->stat->setRowCount(5);
+        //ui->stat->setRowCount(5);
         //count_row=0;// keep track of table rows
         ui->stat->setColumnWidth(0,145);
         ui->stat->setColumnWidth(1,50);
@@ -218,13 +220,13 @@ void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
        //messages[0]->priority = msgType;
       // messages[0]->text out>
 
-       count_row=count_row%5;
-       //ui->stat->insertRow(count_row%5);
+
+       ui->stat->insertRow(0);
 
        //std::cout << "Adding item to table... " << messages.size() <<  " " << messages[0]->text << std::endl;
-      ui->stat->setItem(count_row,0,time);
-      ui->stat->setItem(count_row,1,msgType);
-      ui->stat->setItem(count_row,2,text);
+      ui->stat->setItem(0,0,time);
+      ui->stat->setItem(0,1,msgType);
+      ui->stat->setItem(0,2,text);
       count_row++;
       qDebug() << count_row;
        /*for(int i=4;i>=0;i--)
@@ -249,6 +251,7 @@ void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
            msgTable->hideRow(0);
 
        //std::cout << "Item added sucessfuly..." << std::endl;
+
        if(messages.size() > maxRows)
        {
            if(messages[messages.size()-1]->priority->text() == "Warn")
@@ -257,7 +260,15 @@ void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
                numError--;
            messages.pop_back();
            //ui->stat->removeRow(maxRows);
-       } */
+       }*/
+        if(count_row>maxRows)
+        {
+            if(msgType->text()=="Warn")
+                numWarn--;
+            if(msgType->text()=="Error")
+                numError--;
+            ui->stat->removeRow(maxRows);
+        }
        unreadMsgs++;
 
 }
@@ -456,9 +467,16 @@ QString Widget::timeFromMsg(ros::Time stamp)
          ui->r_state->setEnabled(true);
          ui->send_mode->setEnabled(true);
          ui->pinlet->setEnabled(true);
+         ui->inlet->setEnabled(true);
          ui->psump->setEnabled(true);
          ui->psupply->setEnabled(true);
          ui->preturn->setEnabled(true);
+         ui->return_2->setEnabled(true);
+         ui->pressure->setEnabled(true);
+         ui->temperature->setEnabled(true);
+         ui->sump->setEnabled(true);
+         ui->supply->setEnabled(true);
+         ui->inlet->setEnabled(true);
          ui->pr->setEnabled(false);
          ui->off->setEnabled(false);
          ui->low->setEnabled(false);
