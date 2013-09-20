@@ -73,5 +73,6 @@ stationary{
 		demo_1
 		demo_2
 		wave
+		flex
 		}
 	}
