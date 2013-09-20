@@ -77,7 +77,7 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     Q_EMIT unHighlight();
 
     // and advertise the head pitch update function
-    head_pitch_update_pub_ = n_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ay", 1, false );
+    head_pitch_update_pub_ = n_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ry", 1, false );
 
     rviz::EmptyViewController* camera_controller = new rviz::EmptyViewController();
     camera_controller->initialize( render_panel_->getManager() );
