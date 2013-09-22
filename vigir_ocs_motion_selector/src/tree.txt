@@ -69,4 +69,10 @@ stationary{
 		drive_car_pedal_right_half
 		drive_car_pedal_right_full
 		}
+	Demo{
+		demo_1
+		demo_2
+		wave
+		flex
+		}
 	}

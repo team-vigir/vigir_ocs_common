@@ -38,61 +38,61 @@ jointList::jointList(QWidget *parent) :
 
     //Torso Joints
     QTreeWidgetItem *joint = new QTreeWidgetItem(torso);
-    joint->setText(0,"back_lbz");
+    joint->setText(0,"back_bkz");
     joints.push_back(joint);
     joint= new QTreeWidgetItem(torso);
-    joint->setText(0,"back_mby");
+    joint->setText(0,"back_bky");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(torso);
-    joint->setText(0,"back_ubx");
+    joint->setText(0,"back_bkx");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(torso);
-    joint->setText(0,"neck_ay");
+    joint->setText(0,"neck_ry");
     joints.push_back(joint);
 
     //Left Leg Joints
     joint = new QTreeWidgetItem(left_leg);
-    joint->setText(0,"l_leg_uhz");
+    joint->setText(0,"l_leg_hpz");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(left_leg);
-    joint->setText(0,"l_leg_mhx");
+    joint->setText(0,"l_leg_hpx");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(left_leg);
-    joint->setText(0,"l_leg_lhy");
+    joint->setText(0,"l_leg_hpy");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(left_leg);
     joint->setText(0,"l_leg_kny");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(left_leg);
-    joint->setText(0,"l_leg_uay");
+    joint->setText(0,"l_leg_aky");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(left_leg);
-    joint->setText(0,"l_leg_lax");
+    joint->setText(0,"l_leg_akx");
     joints.push_back(joint);
 
     //Right Leg Joints
     joint= new QTreeWidgetItem(right_leg);
-    joint->setText(0,"r_leg_uhz");
+    joint->setText(0,"r_leg_hpz");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(right_leg);
-    joint->setText(0,"r_leg_mhx");
+    joint->setText(0,"r_leg_hpx");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(right_leg);
-    joint->setText(0,"r_leg_lhy");
+    joint->setText(0,"r_leg_hpy");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(right_leg);
     joint->setText(0,"r_leg_kny");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(right_leg);
-    joint->setText(0,"r_leg_uay");
+    joint->setText(0,"r_leg_aky");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(right_leg);
-    joint->setText(0,"r_leg_lax");
+    joint->setText(0,"r_leg_akx");
     joints.push_back(joint);
 
     //Left Arm Joints
     joint = new QTreeWidgetItem(left_arm);
-    joint->setText(0,"l_arm_usy");
+    joint->setText(0,"l_arm_shy");
     joints.push_back(joint);
     joint= new QTreeWidgetItem(left_arm);
     joint->setText(0,"l_arm_shx");
@@ -104,14 +104,14 @@ jointList::jointList(QWidget *parent) :
     joint->setText(0,"l_arm_elx");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(left_arm);
-    joint->setText(0,"l_arm_uwy");
+    joint->setText(0,"l_arm_wry");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(left_arm);
-    joint->setText(0,"l_arm_mwx");
+    joint->setText(0,"l_arm_wrx");
     joints.push_back(joint);
     //Right Arm Joints
     joint= new QTreeWidgetItem(right_arm);
-    joint->setText(0,"r_arm_usy");
+    joint->setText(0,"r_arm_shy");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(right_arm);
     joint->setText(0,"r_arm_shx");
@@ -123,10 +123,10 @@ jointList::jointList(QWidget *parent) :
     joint->setText(0,"r_arm_elx");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(right_arm);
-    joint->setText(0,"r_arm_uwy");
+    joint->setText(0,"r_arm_wry");
     joints.push_back(joint);
     joint = new QTreeWidgetItem(right_arm);
-    joint->setText(0,"r_arm_mwx");
+    joint->setText(0,"r_arm_wrx");
     joints.push_back(joint);
 
     warnMin=.75;
