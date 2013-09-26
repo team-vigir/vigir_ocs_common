@@ -14,6 +14,9 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
     ui(new Ui::CameraViewerCustomWidget)
 {
     ui->setupUi(this);
+
+    ui->camera_view_->init();
+
     this->setMouseTracking(true);
 
     connect(ui->pitch, SIGNAL(valueChanged(int)), this, SLOT(updatePitch(int)));
@@ -88,7 +91,7 @@ void CameraViewerCustomWidget::updatePitch(int value)
         QString label = QString::fromStdString(string);
         ui->pitch_label->setText(label);
 
-        ui->widget->setCameraPitch(value);
+        ui->camera_view_->setCameraPitch(value);
     }
 }
 

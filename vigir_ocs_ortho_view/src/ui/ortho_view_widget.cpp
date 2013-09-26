@@ -1,7 +1,6 @@
 #include "ortho_view_widget.h"
 #include "ui_ortho_view_widget.h"
 #include "ui/template_loader_widget.h"
-#include "joystick.h"
 
 OrthoViewWidget::OrthoViewWidget(QWidget *parent) :
     QWidget(parent),

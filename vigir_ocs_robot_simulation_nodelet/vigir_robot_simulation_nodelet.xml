@@ -1,8 +1,0 @@
-<!-- OpenNI driver nodelet publisher -->
-<library path="libvigir_ocs_robot_simulation_nodelet">
-  <class name="vigir_ocs_robot_simulation_nodelet/RobotSimulationNodelet" type="ocs_robot_simulation::RobotSimulationNodelet" base_class_type="nodelet::Nodelet">
-    <description>
-      Robot simulation nodelet
-    </description>
-  </class>
-</library>

@@ -1,13 +1,14 @@
 #include "map_view_widget.h"
 #include "ui_map_view_widget.h"
 #include "ui/template_loader_widget.h"
-#include "joystick.h"
 
 MapViewWidget::MapViewWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MapViewWidget)
 {
     ui->setupUi(this);
+
+    ui->map_view_->init();
 
     ui->insert_waypoint->hide();
 

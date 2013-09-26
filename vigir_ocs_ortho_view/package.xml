@@ -14,8 +14,7 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>rviz</build_depend>
   <build_depend>flor_perception_msgs</build_depend>
-  <build_depend>vigir_ocs_base_3d_view</build_depend>
-  <build_depend>vigir_ocs_joystick</build_depend>  
+  <build_depend>vigir_ocs_base_3d_view</build_depend>  
 
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
@@ -23,7 +22,6 @@
   <run_depend>rviz</run_depend>
   <run_depend>flor_perception_msgs</run_depend>
   <run_depend>vigir_ocs_base_3d_view</run_depend>
-  <run_depend>vigir_ocs_joystick</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

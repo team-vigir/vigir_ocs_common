@@ -13,6 +13,9 @@
 #include <QMouseEvent>
 #include <QPushButton>
 
+#include <sys/types.h> /* See NOTES */
+#include <sys/socket.h>
+
 #include "rviz/visualization_manager.h"
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
@@ -31,6 +34,32 @@ QPushButton* xButton;
 bool selectionMade = false;
 namespace vigir_ocs
 {
+
+int CameraViewerCustom::sighupFd[2];
+int CameraViewerCustom::sigtermFd[2];
+
+static int setup_unix_signal_handlers()
+{
+    struct sigaction hup, term;
+
+    hup.sa_handler = CameraViewerCustom::hupSignalHandler;
+    sigemptyset(&hup.sa_mask);
+    hup.sa_flags = 0;
+    hup.sa_flags |= SA_RESTART;
+
+    if (sigaction(SIGINT, &hup, 0) > 0)
+        return 1;
+
+    term.sa_handler = CameraViewerCustom::termSignalHandler;
+    sigemptyset(&term.sa_mask);
+    term.sa_flags |= SA_RESTART;
+
+    if (sigaction(SIGTERM, &term, 0) > 0)
+        return 2;
+
+    return 0;
+}
+
 CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     : Base3DView( "/world", parent )
     , camera_frame_topic_("")
@@ -40,6 +69,23 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     , area_resolution_(0)
     , setting_pose_(false)
 {
+    /*
+    if (::socketpair(AF_UNIX, SOCK_STREAM, 0, CameraViewerCustom::sighupFd))
+        qFatal("Couldn't create INT socketpair");
+
+    if (::socketpair(AF_UNIX, SOCK_STREAM, 0, CameraViewerCustom::sigtermFd))
+        qFatal("Couldn't create TERM socketpair");
+
+    snHup = new QSocketNotifier(sighupFd[1], QSocketNotifier::Read, this);
+    connect(snHup, SIGNAL(activated(int)), this, SLOT(handleSigHup()));
+
+    snTerm = new QSocketNotifier(sigtermFd[1], QSocketNotifier::Read, this);
+    connect(snTerm, SIGNAL(activated(int)), this, SLOT(handleSigTerm()));
+
+    setup_unix_signal_handlers();
+    */
+    init();
+
     // Create a camera/image display.
     camera_viewer_ = manager_->createDisplay( "rviz/CameraDisplayCustom", "Camera image", true ); // this would use the plugin instead of manually adding the display object to the manager
     ROS_ASSERT( camera_viewer_ != NULL );
@@ -107,7 +153,42 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
 // Destructor.
 CameraViewerCustom::~CameraViewerCustom()
 {
-    delete manager_;
+}
+
+void CameraViewerCustom::hupSignalHandler(int)
+{
+    char a = 1;
+    ::write(sighupFd[0], &a, sizeof(a));
+}
+
+void CameraViewerCustom::termSignalHandler(int)
+{
+    char a = 1;
+    ::write(sigtermFd[0], &a, sizeof(a));
+}
+
+void CameraViewerCustom::handleSigTerm()
+{
+    snTerm->setEnabled(false);
+    char tmp;
+    ::read(sigtermFd[1], &tmp, sizeof(tmp));
+
+    // do Qt stuff
+
+    snTerm->setEnabled(true);
+}
+
+void CameraViewerCustom::handleSigHup()
+{
+    snHup->setEnabled(false);
+    char tmp;
+    ::read(sighupFd[1], &tmp, sizeof(tmp));
+
+    // do Qt stuff
+
+    std::cout << "sigint detected" << std::endl;
+
+    snHup->setEnabled(true);
 }
 
 void CameraViewerCustom::setCameraPitch( int degrees )

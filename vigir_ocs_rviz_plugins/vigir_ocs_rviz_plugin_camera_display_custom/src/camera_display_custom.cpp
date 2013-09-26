@@ -542,9 +542,9 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
         return false;
     }
 
-    std::cout << "CameraInfo dimensions: " << last_info_->width << " x " << last_info_->height << std::endl;
-    std::cout << "Texture dimensions: " << last_image_->width << " x " << last_image_->height << std::endl;
-    std::cout << "Original image dimensions: " << last_image_->width*full_image_binning_ << " x " << last_image_->height*full_image_binning_ << std::endl;
+    //std::cout << "CameraInfo dimensions: " << last_info_->width << " x " << last_info_->height << std::endl;
+    //std::cout << "Texture dimensions: " << last_image_->width << " x " << last_image_->height << std::endl;
+    //std::cout << "Original image dimensions: " << last_image_->width*full_image_binning_ << " x " << last_image_->height*full_image_binning_ << std::endl;
     full_image_width_  = last_info_->width;//image->width*full_image_binning_;
     full_image_height_ = last_info_->height;//image->height*full_image_binning_;
 
@@ -774,7 +774,7 @@ void CameraDisplayCustom::setRenderPanel( RenderPanel* rp )
 
 void CameraDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
 {
-    std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
+    //std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
     //std::cout << "   full image rect: " << rect_dim_x1_ << ", " << rect_dim_y1_ << " -> " << rect_dim_x2_ << ", " << rect_dim_y2_ << std::endl;
     //std::cout << "   window dimensions: " << render_panel_->width() << ", " << render_panel_->height() << std::endl;
 
@@ -804,7 +804,7 @@ void CameraDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
 
 void CameraDisplayCustom::changeFullImageResolution( int t )
 {
-    std::cout << "Full image resolution changed:" << t << std::endl;
+    //std::cout << "Full image resolution changed:" << t << std::endl;
     switch( t )
     {
     case IMAGE_RESOLUTION_FULL:
@@ -839,7 +839,7 @@ void CameraDisplayCustom::changeFullImageResolution( int t )
 
 void CameraDisplayCustom::changeCropImageResolution( int t )
 {
-    std::cout << "Crop image resolution changed:" << t << std::endl;
+    //std::cout << "Crop image resolution changed:" << t << std::endl;
     switch( t )
     {
     case IMAGE_RESOLUTION_FULL:
@@ -874,7 +874,7 @@ void CameraDisplayCustom::changeCropImageResolution( int t )
 
 void CameraDisplayCustom::changeCameraSpeed( int t )
 {
-    std::cout << "Camera speed changed:" << t << std::endl;//(15.0f/(float)pow(3,t)) << std::endl;
+    //std::cout << "Camera speed changed:" << t << std::endl;//(15.0f/(float)pow(3,t)) << std::endl;
 
     publish_frequency_ = t;//15.0f/(float)pow(3,t); // 15 or whatever the max fps is
 
@@ -883,7 +883,7 @@ void CameraDisplayCustom::changeCameraSpeed( int t )
 
 void CameraDisplayCustom::changeCropCameraSpeed( int t )
 {
-    std::cout << "Camera speed changed:" << t << std::endl;//(15.0f/(float)pow(3,t)) << std::endl;
+    //std::cout << "Camera speed changed:" << t << std::endl;//(15.0f/(float)pow(3,t)) << std::endl;
 
     crop_publish_frequency_ = t;//15.0f/(float)pow(3,t); // 15 or whatever the max fps is
 

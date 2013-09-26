@@ -89,6 +89,10 @@ graspWidget::~graspWidget()
 
 void graspWidget::timerEvent(QTimerEvent *event)
 {
+	// check if ros is still running; if not, just kill the application
+    if(!ros::ok())
+        qApp->quit();
+    
     if(!ui->graspBox->isEnabled() || !show_grasp_)
         hideHand();
 

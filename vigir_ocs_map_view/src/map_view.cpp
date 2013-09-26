@@ -29,6 +29,8 @@ MapView::MapView( QWidget* parent )
     : Base3DView( "/world", parent )
     , setting_pose_(false)
 {
+	init();
+
     // block sending left/right mouse events to rviz by default
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
@@ -65,7 +67,6 @@ MapView::MapView( QWidget* parent )
 // Destructor.
 MapView::~MapView()
 {
-
 }
 
 void MapView::enableSelectionTool(bool activate, int x, int y)

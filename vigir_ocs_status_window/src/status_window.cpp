@@ -185,6 +185,10 @@ void status_window::stabilityMsgRecieved(const flor_ocs_msgs::OCSRobotStability:
 
 void status_window::timerEvent(QTimerEvent *event)
 {
+	// check if ros is still running; if not, just kill the application
+    if(!ros::ok())
+        qApp->quit();
+    
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     if(event->timerId() == timer.timerId())
         ros::spinOnce();

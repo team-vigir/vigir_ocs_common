@@ -12,8 +12,11 @@
 #define CAMERA_VIEWER_H
 
 #include <QWidget>
-#include <std_msgs/Float64.h>
+#include <QSocketNotifier>
+
 #include <ros/ros.h>
+
+#include <std_msgs/Float64.h>
 
 #include "base_3d_view.h"
 
@@ -98,6 +101,23 @@ private:
     int area_resolution_;
 
     bool setting_pose_;
+
+public:
+  // Unix signal handlers.
+  static void hupSignalHandler(int unused);
+  static void termSignalHandler(int unused);
+
+public Q_SLOTS:
+  // Qt signal handlers.
+  void handleSigHup();
+  void handleSigTerm();
+
+private:
+  static int sighupFd[2];
+  static int sigtermFd[2];
+
+  QSocketNotifier *snHup;
+  QSocketNotifier *snTerm;
 };
 }
 #endif // CAMERA_VIEWER_H

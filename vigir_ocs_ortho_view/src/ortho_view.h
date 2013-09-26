@@ -20,6 +20,7 @@
 namespace rviz
 {
 class RenderPanelCustom;
+class ViewController;
 }
 
 namespace vigir_ocs
@@ -36,6 +37,8 @@ public:
     void requestOctomap(double min_z, double max_z, double resolution);
 
     void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    
+    void setViewPlane(const QString& view_plane);
 
 Q_SIGNALS:
     void queryPosition( int, int, Ogre::Vector3& );
@@ -48,6 +51,7 @@ public Q_SLOTS:
 
 private:
     rviz::Tool* selection_tool_;
+    rviz::ViewController* ortho_view_controller_;
 
     ros::Publisher grid_map_request_pub_;
     ros::Publisher octomap_request_pub_;

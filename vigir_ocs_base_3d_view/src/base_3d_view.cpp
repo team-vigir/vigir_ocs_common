@@ -22,6 +22,7 @@
 #include <pcl/common/transforms.h>
 
 #include "rviz/visualization_manager.h"
+#include "rviz/visualization_frame.h"
 //#include "rviz/render_panel.h"
 #include <render_panel_custom.h>
 #include "rviz/display.h"
@@ -41,6 +42,7 @@
 
 namespace vigir_ocs
 {
+ 
 // Constructor for Base3DView.  This does most of the work of the class.
 Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     : QWidget( parent )
@@ -363,12 +365,57 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     position_widget_->setLayout(position_layout);
     //main_layout->addWidget(position_widget_);
 
+    // this is only used to make sure we close window if ros::shutdown has already been called
+    timer.start(33, this);
 }
 
 // Destructor.
 Base3DView::~Base3DView()
 {
     delete manager_;
+}
+
+void Base3DView::timerEvent(QTimerEvent *event)
+{
+    // check if ros is still running; if not, just kill the application
+    if(!ros::ok())
+        qApp->quit();
+
+    // no need to spin as rviz is already doing that for us.
+    //ros::spinOnce();
+}
+
+/*void Base3DView::init(rviz::VisualizationManager *manager)
+{
+    // Construct and lay out render panel.
+    render_panel_ = new rviz::RenderPanelCustom();
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+
+    QVBoxLayout* main_layout = new QVBoxLayout;
+    main_layout->setMargin(0);
+    main_layout->addWidget( render_panel_ );
+
+    // Set the top-level layout for this MyViz widget.
+    setLayout( main_layout );
+
+    // Make signal/slot connections.
+    //connect( collision_checkbox, SIGNAL( valueChanged( int )), this, SLOT( setCollision( bool )));
+
+    // Next we initialize the main RViz classes.
+    //
+    // The VisualizationManager is the container for Display objects,
+    // holds the main Ogre scene, holds the ViewController, etc.  It is
+    // very central and we will probably need one in every usage of
+    // librviz.
+    manager_ = new rviz::VisualizationManager( render_panel_ );
+    render_panel_->initialize( manager_->getSceneManager(), manager_ );
+}*/
+
+void Base3DView::init()
+{
+
 }
 
 void Base3DView::robotModelToggled( bool selected )

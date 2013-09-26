@@ -13,6 +13,7 @@
 #include <QHBoxLayout>
 
 #include "rviz/visualization_manager.h"
+#include "rviz/view_controller.h"
 #include "rviz/tool_manager.h"
 #include "rviz/view_manager.h"
 #include "rviz/display.h"
@@ -37,7 +38,8 @@ OrthoView::OrthoView( QWidget* parent )
 
     // set the camera to be topdownortho
     rviz::ViewManager* view_man_ = manager_->getViewManager();
-    view_man_->setCurrentFrom( view_man_->create( "rviz/TopDownOrtho" ) );
+    ortho_view_controller_ = view_man_->create( "rviz/OrthoViewControllerCustom" );
+    view_man_->setCurrentFrom( ortho_view_controller_ );
 
     // Add support for selection
     selection_tool_ = manager_->getToolManager()->addTool( "rviz/ImageSelectionToolCustom" );
@@ -66,6 +68,13 @@ OrthoView::OrthoView( QWidget* parent )
 OrthoView::~OrthoView()
 {
 
+}
+
+void OrthoView::setViewPlane(const QString& view_plane)
+{
+    rviz::ViewManager* view_man_ = manager_->getViewManager();
+    ortho_view_controller_->subProp( "View Plane" )->setValue( view_plane.toStdString().c_str() );
+    view_man_->setCurrentFrom( ortho_view_controller_ );
 }
 
 void OrthoView::enableSelectionTool(bool activate, int x, int y)

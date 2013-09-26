@@ -18,9 +18,10 @@
 #include <QPushButton>
 #include <QFrame>
 #include <QLineEdit>
+#include <QBasicTimer>
+
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
-
 
 #include <ros/ros.h>
 
@@ -73,6 +74,8 @@ class Base3DView: public QWidget
 public:
     Base3DView( std::string base_frame = "/pelvis", QWidget* parent = 0 );
     virtual ~Base3DView();
+
+    void init();
 
     void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
     void processNewSelection( const geometry_msgs::Point::ConstPtr& pose );
@@ -141,6 +144,8 @@ Q_SIGNALS:
     void setFrustum( const float &, const float &, const float&, const float& );
 
 protected:
+    void timerEvent(QTimerEvent *event);
+
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
@@ -253,6 +258,8 @@ protected:
     QLineEdit* position_label_;
 
     QPushButton* reset_view_button_;
+
+    QBasicTimer timer;
 };
 }
 #endif // BASE_3D_VIEW_H

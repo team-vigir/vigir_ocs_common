@@ -36,7 +36,7 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="vigir_ocs::CameraViewerCustom" name="widget" native="true">
+    <widget class="vigir_ocs::CameraViewerCustom" name="camera_view_" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -87,7 +87,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-381</y>
+        <y>0</y>
         <width>264</width>
         <height>1083</height>
        </rect>
@@ -1425,7 +1425,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>feed_resolution</sender>
    <signal>currentIndexChanged(int)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>changeFullImageResolution(int)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1441,7 +1441,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>selected_resolution</sender>
    <signal>currentIndexChanged(int)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>changeCropImageResolution(int)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1457,7 +1457,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>camera</sender>
    <signal>currentIndexChanged(int)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>changeCameraTopic(int)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1473,7 +1473,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>feed_slider</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>changeCameraSpeed(int)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1489,7 +1489,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>robot_model</sender>
    <signal>toggled(bool)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>robotModelToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1505,7 +1505,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>lidar_point_cloud</sender>
    <signal>toggled(bool)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>lidarPointCloudToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1521,7 +1521,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>stereo_point_cloud</sender>
    <signal>toggled(bool)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>stereoPointCloudToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1537,7 +1537,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>octomap</sender>
    <signal>toggled(bool)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>markerArrayToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1553,7 +1553,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>laser_scan</sender>
    <signal>toggled(bool)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>laserScanToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1569,7 +1569,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>horizontalSlider_4</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>changeAlpha(int)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1585,7 +1585,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>grid_map</sender>
    <signal>toggled(bool)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>gridMapToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1601,7 +1601,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>footstep_planning</sender>
    <signal>toggled(bool)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>footstepPlanningToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1617,7 +1617,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>simulation_robot</sender>
    <signal>toggled(bool)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>simulationRobotToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1633,7 +1633,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>requestPointCloudROI</sender>
    <signal>clicked()</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>requestPointCloudROI()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1649,7 +1649,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>selected_slider</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>changeCropCameraSpeed(int)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1665,7 +1665,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>applyAreaFeed</sender>
    <signal>clicked()</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>applyAreaChanges()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1681,7 +1681,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>applyCameraFeed</sender>
    <signal>clicked()</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>applyFeedChanges()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1697,7 +1697,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>getCameraImage</sender>
    <signal>clicked()</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>requestSingleFeedImage()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1713,7 +1713,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>getAreaImage</sender>
    <signal>clicked()</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>requestSingleAreaImage()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1761,7 +1761,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>footstep_pose</sender>
    <signal>clicked()</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>vectorPressed()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1777,7 +1777,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>grasp_model</sender>
    <signal>toggled(bool)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>graspModelToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1793,7 +1793,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>templates</sender>
    <signal>toggled(bool)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>templatesToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1809,7 +1809,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>point_cloud_request</sender>
    <signal>toggled(bool)</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>requestedPointCloudToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1825,7 +1825,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>reset_map</sender>
    <signal>clicked()</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>clearMapRequests()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1841,7 +1841,7 @@ color: rgb(255, 26, 26);</string>
   <connection>
    <sender>reset_point_cloud</sender>
    <signal>clicked()</signal>
-   <receiver>widget</receiver>
+   <receiver>camera_view_</receiver>
    <slot>clearPointCloudRequests()</slot>
    <hints>
     <hint type="sourcelabel">

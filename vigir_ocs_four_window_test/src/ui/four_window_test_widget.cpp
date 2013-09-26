@@ -30,8 +30,9 @@ FourWindowTestWidget::FourWindowTestWidget(QWidget *parent) :
     ui->stereo_point_cloud_2->hide();
     ui->laser_scan_2->hide();
 
-    ui->camera_view_->changeCameraSpeed(10);
-    ui->camera_view_->applyFeedChanges();
+    ui->ortho_view_top_->setViewPlane("XY");
+    ui->ortho_view_right_->setViewPlane("XZ");
+    ui->ortho_view_front_->setViewPlane("YZ");
 }
 
 FourWindowTestWidget::~FourWindowTestWidget()
