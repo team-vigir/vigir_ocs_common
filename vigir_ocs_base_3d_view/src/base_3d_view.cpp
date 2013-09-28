@@ -127,9 +127,11 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // Create a LaserScan display.
     laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
     ROS_ASSERT( laser_scan_ != NULL );
-    laser_scan_->subProp( "Topic" )->setValue( "/multisense_sl/laser/scan" );
+    laser_scan_->subProp( "Topic" )->setValue( "/laser/scan" );
     laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
-    laser_scan_->subProp( "Decay Time" )->setValue( 1 );
+    laser_scan_->subProp( "Decay Time" )->setValue( 5 );
+    laser_scan_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+    laser_scan_->subProp( "Axis" )->setValue( "Z" );
     laser_scan_->subProp( "Selectable" )->setValue( false );
 
     // Create a MarkerArray display.
