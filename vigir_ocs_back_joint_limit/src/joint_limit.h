@@ -2,9 +2,15 @@
 #define joint_limit_H
 
 #include <QWidget>
+#include <QBasicTimer>
+
+#include <vector>
+#include <algorithm>
+
 #include <ros/ros.h>
 #include <ros/publisher.h>
-#include <QBasicTimer>
+
+#include <flor_ocs_msgs/OCSKeyEvent.h>
 
 namespace Ui {
 class joint_limit;
@@ -17,6 +23,8 @@ class joint_limit : public QWidget
 public:
     explicit joint_limit(QWidget *parent = 0);
     ~joint_limit();
+
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
 private:
     Ui::joint_limit *ui;
@@ -31,6 +39,10 @@ private:
     float ubxMaxVal;
 
     QBasicTimer timer;
+
+    std::vector<int> keys_pressed_list_;
+
+    ros::Subscriber key_event_sub_;
 public Q_SLOTS:
     void on_apply_clicked();
     void on_lbzMin_sliderReleased();

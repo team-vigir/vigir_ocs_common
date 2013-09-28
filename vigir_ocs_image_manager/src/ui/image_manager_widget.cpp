@@ -28,6 +28,8 @@ ImageManagerWidget::ImageManagerWidget(QWidget *parent) :
     image_list_sub_     = nh_.subscribe<flor_ocs_msgs::OCSImageList>( "/flor/ocs/image_history/list", 100, &ImageManagerWidget::processImageList, this );
     image_selected_sub_ = nh_.subscribe<sensor_msgs::Image>( "/flor/ocs/history/image_raw", 5, &ImageManagerWidget::processSelectedImage, this );
 
+    key_event_sub_      = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &ImageManagerWidget::processNewKeyEvent, this );
+
     //connect(ui->tableWidget, SIGNAL(cellClicked(int,int)), this, SLOT(editSlot(int, int)));
     std_msgs::Bool list_request;
     list_request.data = true;
@@ -212,4 +214,30 @@ QString ImageManagerWidget::timeFromMsg(const ros::Time& stamp)
     stream << std::setw(2) << std::setfill('0') << sec << ".";
     stream << std::setw(3) << std::setfill('0') << nano;
     return QString::fromStdString(stream.str());
+}
+
+void ImageManagerWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+{
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator key_is_pressed;
+
+    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    if(key_event->key == 15 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+6
+    {
+        if(this->isVisible())
+        {
+            this->hide();
+        }
+        else
+        {
+            //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+            this->show();
+        }
+    }
 }

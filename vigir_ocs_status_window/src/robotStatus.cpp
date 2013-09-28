@@ -53,16 +53,17 @@ robotStatus::robotStatus(QWidget *parent) :
     ros::NodeHandle nh("~");
     std::string fileName;
     if(nh.getParam("robotErrorFileLocation",fileName))
-            messagesPath = fileName;
+        messagesPath = fileName;
     else
-            messagesPath = "/opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/messages.csv";
+        messagesPath = "/opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/messages.csv";
 
     std::cerr << "Reading messages from <" << messagesPath << ">" << std::endl;
     loadFile();
 
-    rosSubscriber = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &robotStatus::recievedMessage, this );
-    clearCalled   = nh.subscribe<std_msgs::Bool>("/flor_robot_status/clear", 1, &robotStatus::clearCalledMsg, this);
-    callClear_pub = nh.advertise<std_msgs::Bool>("/flor_robot_status/clear",1,false);
+    rosSubscriber = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &robotStatus::receivedMessage, this );
+    clearCalled   = nh_.subscribe<std_msgs::Bool>("/flor_robot_status/clear", 1, &robotStatus::clearCalledMsg, this);
+    callClear_pub = nh_.advertise<std_msgs::Bool>("/flor_robot_status/clear",1,false);
+    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &robotStatus::processNewKeyEvent, this );
     std::cout << "Done setting up waiting for messages." << std::endl;
     ros::spinOnce();
     clearButton->connect(clearButton,SIGNAL(clicked()),this,SLOT(on_clearButton_clicked()));
@@ -75,9 +76,14 @@ robotStatus::robotStatus(QWidget *parent) :
     timer.start(33, this);
 }
 
+robotStatus::~robotStatus()
+{
+    //delete ui;
+}
+
 void robotStatus::timerEvent(QTimerEvent *event)
 {
-	// check if ros is still running; if not, just kill the application
+    // check if ros is still running; if not, just kill the application
     if(!ros::ok())
         qApp->quit();
     
@@ -139,7 +145,7 @@ QString robotStatus::timeFromMsg(ros::Time stamp)
     return QString::fromStdString(stream.str());
 }
 
-void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
+void robotStatus::receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
 {
 
     //extract information from msg
@@ -248,22 +254,6 @@ void robotStatus::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
     }
     unreadMsgs++;
 }
-//void robotStatus::updateTable()
-//{
-//    for(int i = 0; i <= messages.size(); i++)
-//    {
-//        msgTable->setItem(i,0,new QTableWidgetItem);
-//        msgTable->setItem(i,1,new QTableWidgetItem);
-//        msgTable->setItem(i,2,new QTableWidgetItem);
-//    }
-
-//    for(int i = 0; i(messages[row]) <= messages.size(); i++)
-//    {
-//        msgTable->setItem(i,0,messages[i]->time);
-//        msgTable->setItem(i,1,messages[i]->priority);
-//        msgTable->setItem(i,2,messages[i]->text);
-//    }
-//}
 
 void robotStatus::loadFile()
 {
@@ -299,7 +289,7 @@ void robotStatus::clearCalledMsg(const std_msgs::Bool::ConstPtr& msg)
 void robotStatus::on_clearButton_clicked()
 {
     std::cout << "Clear button pressed. Clearing local window and informing other instances to clear as well." << std::endl;
-   // msgTable->hideRow(0);
+    // msgTable->hideRow(0);
     //msgTable = new QTableWidget();
     //msgTable->setColumnCount(2);
     //msgTable->setColumnWidth(0,50);
@@ -337,16 +327,39 @@ int robotStatus::getNumUnread()
 {
     return unreadMsgs;
 }
+
 int robotStatus::getNumError()
 {
     return numError;
 }
+
 int robotStatus::getNumWarn()
 {
     return numWarn;
 }
 
-robotStatus::~robotStatus()
+void robotStatus::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 {
-    //delete ui;
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator key_is_pressed;
+
+    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    if(key_event->key == 19 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+0
+    {
+        if(this->isVisible())
+        {
+            this->hide();
+        }
+        else
+        {
+            //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+            this->show();
+        }
+    }
 }

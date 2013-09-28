@@ -34,6 +34,30 @@ OrthoViewWidget::OrthoViewWidget(QWidget *parent) :
     ui->lidar_point_cloud_2->hide();
     ui->stereo_point_cloud_2->hide();
     ui->laser_scan_2->hide();
+
+    // connect UI buttons to
+    QObject::connect(ui->camera_tool_3, SIGNAL(toggled(bool)), ui->ortho_view_, SLOT(cameraToggled(bool)));
+    QObject::connect(ui->footstep_planning, SIGNAL(toggled(bool)), ui->ortho_view_, SLOT(footstepPlanningToggled(bool)));
+    QObject::connect(ui->footstep_pose, SIGNAL(pressed()), ui->ortho_view_, SLOT(vectorPressed()));
+    QObject::connect(ui->grasp_model, SIGNAL(toggled(bool)), ui->ortho_view_, SLOT(graspModelToggled(bool)));
+    QObject::connect(ui->grid_map, SIGNAL(toggled(bool)), ui->ortho_view_, SLOT(gridMapToggled(bool)));
+    QObject::connect(ui->insert_waypoint, SIGNAL(pressed()), ui->ortho_view_, SLOT(insertWaypoint()));
+    QObject::connect(ui->laser_scan_2, SIGNAL(toggled(bool)), ui->ortho_view_, SLOT(laserScanToggled(bool)));
+    QObject::connect(ui->lidar_point_cloud_2, SIGNAL(toggled(bool)), ui->ortho_view_, SLOT(lidarPointCloudToggled(bool)));
+    QObject::connect(ui->octomap_2, SIGNAL(toggled(bool)), ui->ortho_view_, SLOT(markerArrayToggled(bool)));
+    QObject::connect(ui->point_cloud_request, SIGNAL(toggled(bool)), ui->ortho_view_, SLOT(cameraToggled(bool)));
+    QObject::connect(ui->request_map, SIGNAL(clicked()), this, SLOT(requestMap()));
+    QObject::connect(ui->request_octomap, SIGNAL(clicked()), this, SLOT(requestOctomap()));
+    QObject::connect(ui->request_point_cloud_, SIGNAL(clicked()), ui->ortho_view_, SLOT(publishPointCloudWorldRequest()));
+    QObject::connect(ui->reset_map, SIGNAL(clicked()), ui->ortho_view_, SLOT(clearMapRequests()));
+    QObject::connect(ui->reset_point_cloud, SIGNAL(clicked()), ui->ortho_view_, SLOT(clearPointCloudRequests()));
+    QObject::connect(ui->robot_model_2, SIGNAL(toggled(bool)), ui->ortho_view_, SLOT(robotModelToggled(bool)));
+    QObject::connect(ui->simulation_robot, SIGNAL(toggled(bool)), ui->ortho_view_, SLOT(simulationRobotToggled(bool)));
+    QObject::connect(ui->stereo_point_cloud_2, SIGNAL(toggled(bool)), ui->ortho_view_, SLOT(stereoPointCloudToggled(bool)));
+    QObject::connect(ui->template_tool_3, SIGNAL(toggled(bool)), ui->ortho_view_, SLOT(markerTemplateToggled(bool)));
+    QObject::connect(ui->template_widget_3, SIGNAL(insertTemplate(QString)), ui->ortho_view_, SLOT(insertTemplate(QString)));
+    QObject::connect(ui->template_widget_3, SIGNAL(templatePathChanged(QString)), ui->ortho_view_, SLOT(templatePathChanged(QString)));
+    QObject::connect(ui->templates, SIGNAL(toggled(bool)), ui->ortho_view_, SLOT(templatesToggled(bool)));
 }
 
 OrthoViewWidget::~OrthoViewWidget()

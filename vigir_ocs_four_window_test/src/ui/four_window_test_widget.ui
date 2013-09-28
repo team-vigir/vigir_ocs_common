@@ -62,7 +62,7 @@
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
-            <widget class="vigir_ocs::OrthoView" name="ortho_view_top_" native="true">
+            <widget class="vigir_ocs::PerspectiveView" name="perspective_view_" native="true">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -70,7 +70,7 @@
               </sizepolicy>
              </property>
             </widget>
-            <widget class="vigir_ocs::PerspectiveView" name="perspective_view_" native="true">
+            <widget class="vigir_ocs::OrthoView" name="ortho_view_top_" native="true">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -552,16 +552,69 @@ color: rgb(255, 26, 26);</string>
    </slots>
   </customwidget>
   <customwidget>
-   <class>vigir_ocs::PerspectiveView</class>
-   <extends>QWidget</extends>
-   <header>perspective_view.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>vigir_ocs::OrthoView</class>
    <extends>QWidget</extends>
    <header>ortho_view.h</header>
    <container>1</container>
+   <slots>
+    <slot>robotModelToggled(bool)</slot>
+    <slot>lidarPointCloudToggled(bool)</slot>
+    <slot>laserScanToggled(bool)</slot>
+    <slot>markerArrayToggled(bool)</slot>
+    <slot>joystickToggled(bool)</slot>
+    <slot>waypointToggled(bool)</slot>
+    <slot>vectorPressed()</slot>
+    <slot>stereoPointCloudToggled(bool)</slot>
+    <slot>insertTemplate(QString)</slot>
+    <slot>insertWaypoint()</slot>
+    <slot>markerRobotToggled(bool)</slot>
+    <slot>markerTemplateToggled(bool)</slot>
+    <slot>cameraToggled(bool)</slot>
+    <slot>selectToggled(bool)</slot>
+    <slot>templatePathChanged(QString)</slot>
+    <slot>gridMapToggled(bool)</slot>
+    <slot>footstepPlanningToggled(bool)</slot>
+    <slot>simulationRobotToggled(bool)</slot>
+    <slot>requestMap()</slot>
+    <slot>publishPointCloudWorldRequest()</slot>
+    <slot>graspModelToggled(bool)</slot>
+    <slot>templatesToggled(bool)</slot>
+    <slot>requestedPointCloudToggled(bool)</slot>
+    <slot>clearPointCloudRequests()</slot>
+    <slot>clearMapRequests()</slot>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>vigir_ocs::PerspectiveView</class>
+   <extends>QWidget</extends>
+   <header>perspective_view.h</header>
+   <container>1</container>
+   <slots>
+    <slot>robotModelToggled(bool)</slot>
+    <slot>lidarPointCloudToggled(bool)</slot>
+    <slot>laserScanToggled(bool)</slot>
+    <slot>markerArrayToggled(bool)</slot>
+    <slot>cameraToggled(bool)</slot>
+    <slot>selectToggled(bool)</slot>
+    <slot>markerRobotToggled(bool)</slot>
+    <slot>vectorToggled(bool)</slot>
+    <slot>stereoPointCloudToggled(bool)</slot>
+    <slot>markerTemplateToggled(bool)</slot>
+    <slot>select3DToggled(bool)</slot>
+    <slot>insertTemplate(QString)</slot>
+    <slot>insertWaypoint()</slot>
+    <slot>templatePathChanged(QString)</slot>
+    <slot>gridMapToggled(bool)</slot>
+    <slot>footstepPlanningToggled(bool)</slot>
+    <slot>simulationRobotToggled(bool)</slot>
+    <slot>vectorPressed()</slot>
+    <slot>publishPointCloudWorldRequest()</slot>
+    <slot>graspModelToggled(bool)</slot>
+    <slot>templatesToggled(bool)</slot>
+    <slot>requestedPointCloudToggled(bool)</slot>
+    <slot>clearMapRequests()</slot>
+    <slot>clearPointCloudRequests()</slot>
+   </slots>
   </customwidget>
  </customwidgets>
  <resources/>

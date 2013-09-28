@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 
-#include <std_msgs/Int32.h>
+#include <flor_ocs_msgs/OCSKeyEvent.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-namespace ocs_global_hotkey
+namespace vigir_ocs
 {
     class GlobalHotkey
     {
@@ -18,17 +18,21 @@ namespace ocs_global_hotkey
         
         void onUpdate();
 
-        void publishKeyPressed(int k);
-        void publishKeyReleased(int k);
+        void calculateCursorPosition(int &x, int &y);
+
+        void publishKeyPressed(int k, int x, int y);
+        void publishKeyReleased(int k, int x, int y);
+
+        bool isActive();
 
       private:
         ros::NodeHandle n_;
         
-        ros::Publisher hotkey_pressed_pub_;
-        ros::Publisher hotkey_released_pub_;
+        ros::Publisher key_event_pub_;
 
         Display *display_name_;
         
-        bool keys[4096];
+        bool old_keys_[4096];
+        bool registering_keystrokes_;
     };
 }

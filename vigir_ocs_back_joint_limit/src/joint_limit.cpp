@@ -8,9 +8,9 @@ joint_limit::joint_limit(QWidget *parent) :
     ui(new Ui::joint_limit)
 {
     ui->setupUi(this);
-    ros::NodeHandle nh;
-    constraints_pub_ = nh.advertise<flor_planning_msgs::PlannerConfiguration>( "/flor/planning/upper_body/configuration",1,false);
-    timer.start(33, this);
+
+    constraints_pub_ = nh_.advertise<flor_planning_msgs::PlannerConfiguration>( "/flor/planning/upper_body/configuration",1,false);
+
     lbzMinVal = -0.610865;
     lbzMaxVal = 0.610865;
 
@@ -19,12 +19,17 @@ joint_limit::joint_limit(QWidget *parent) :
 
     ubxMinVal = -0.790809;
     ubxMaxVal = 0.790809;
+
+    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &joint_limit::processNewKeyEvent, this );
+
+    timer.start(33, this);
 }
 
 joint_limit::~joint_limit()
 {
     delete ui;
 }
+
 void joint_limit::on_lbzMin_sliderReleased()
 {
     if(ui->lbzMin->value() >= lbzMaxVal*1000000.0)
@@ -126,4 +131,30 @@ void joint_limit::timerEvent(QTimerEvent *event)
         
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
+}
+
+void joint_limit::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+{
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator key_is_pressed;
+
+    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    if(key_event->key == 13 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+4
+    {
+        if(this->isVisible())
+        {
+            this->hide();
+        }
+        else
+        {
+            this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+            this->show();
+        }
+    }
 }

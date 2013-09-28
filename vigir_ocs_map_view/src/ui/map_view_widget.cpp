@@ -32,10 +32,12 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
         sp->setFocusPolicy( Qt::StrongFocus );
     }
 
-    ui->octomap_2->hide();
+    /*ui->octomap_2->hide();
     ui->lidar_point_cloud_2->hide();
     ui->stereo_point_cloud_2->hide();
-    ui->laser_scan_2->hide();
+    ui->laser_scan_2->hide();*/
+
+    key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MapViewWidget::processNewKeyEvent, this );
 }
 
 MapViewWidget::~MapViewWidget()
@@ -72,4 +74,23 @@ bool MapViewWidget::eventFilter( QObject * o, QEvent * e )
         return true;
     }
     return QWidget::eventFilter( o, e );
+}
+
+void MapViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+{
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator key_is_pressed;
+
+    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    if(key_event->key == 32 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+o
+        requestOctomap();
+    if(key_event->key == 58 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+m
+        requestMap();
+
 }

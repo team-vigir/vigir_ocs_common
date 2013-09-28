@@ -12,6 +12,10 @@
 #include <QPainter>
 #include <QtGui>
 
+#include <vector>
+#include <algorithm>
+
+#include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSGhostControl.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Bool.h>
@@ -36,6 +40,7 @@ public:
     ~GhostControlWidget();
 
     void processState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
     void publishState( bool snap=false );
 
     void saveState();
@@ -106,6 +111,10 @@ private:
     static unsigned char saved_state_lock_pelvis_;
 
     QBasicTimer timer;
+
+    std::vector<int> keys_pressed_list_;
+
+    ros::Subscriber key_event_sub_;
 };
 
 #endif // GhostControlWidget_H

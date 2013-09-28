@@ -3,13 +3,13 @@
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "vigir_ocs_hotkey_nodelet");
+    ros::init(argc, argv, "vigir_ocs_hotkey_node");
 
-    ocs_global_hotkey::GlobalHotkey global_hotkey;
+    vigir_ocs::GlobalHotkey global_hotkey;
     
-    while(1)
+    while(ros::ok())
     {
-    	global_hotkey.onUpdate();
+        global_hotkey.onUpdate();
 	    ros::spinOnce();
 		usleep(30000);
     }

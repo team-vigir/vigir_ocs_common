@@ -3,12 +3,18 @@
 
 #include <QMainWindow>
 #include <QTreeWidgetItem>
-#include <ros/publisher.h>
-#include <ros/ros.h>
 #include <QBasicTimer>
 #include <QDoubleSpinBox>
 #include <QPushButton>
 #include <QLayout>
+
+#include <vector>
+#include <algorithm>
+
+#include <ros/publisher.h>
+#include <ros/ros.h>
+
+#include <flor_ocs_msgs/OCSKeyEvent.h>
 
 namespace Ui {
 class motion_selector;
@@ -21,6 +27,8 @@ class motion_selector : public QMainWindow
 public:
     explicit motion_selector(QWidget *parent = 0);
     ~motion_selector();
+
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
 private:
     typedef struct
@@ -53,6 +61,10 @@ private:
     std::vector<Task> taskList;
     std::vector<QTreeWidgetItem*> treeItems;
     QBasicTimer timer;
+
+    std::vector<int> keys_pressed_list_;
+
+    ros::Subscriber key_event_sub_;
 public Q_SLOTS:
     void on_sendCommand_clicked();
     void on_timeFactorSlider_valueChanged(int value);

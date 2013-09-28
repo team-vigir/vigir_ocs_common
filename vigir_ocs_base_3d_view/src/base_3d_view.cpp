@@ -1170,7 +1170,7 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
     // make sure the selection point is visible
     //if(selected_)
     {
-        position_widget_->setGeometry(this->geometry().bottomLeft().x(),
+        position_widget_->setGeometry(0,
                                       this->geometry().bottomLeft().y()-18,
                                       this->geometry().bottomRight().x()-this->geometry().bottomLeft().x(),
                                       18);

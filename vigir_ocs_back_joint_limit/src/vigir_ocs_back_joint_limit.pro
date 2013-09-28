@@ -11,8 +11,11 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        jointlimit.cpp
+        jointlimit.cpp \
+    joint_limit.cpp
 
-HEADERS  += jointlimit.h
+HEADERS  += jointlimit.h \
+    joint_limit.h
 
-FORMS    += jointlimit.ui
+FORMS    += jointlimit.ui \
+    joint_limit.ui

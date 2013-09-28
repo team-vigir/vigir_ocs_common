@@ -11,11 +11,17 @@
 #include <QFile>
 #include <QComboBox>
 #include <QtGui>
+#include <vector>
+#include <algorithm>
+
+#include <ros/ros.h>
 #include <ros/publisher.h>
 #include <ros/subscriber.h>
 #include <ros/time.h>
+
 #include <std_msgs/Bool.h>
 #include <flor_ocs_msgs/OCSRobotStatus.h>
+#include <flor_ocs_msgs/OCSKeyEvent.h>
 
 class completeRow
 {
@@ -40,9 +46,10 @@ public:
     int getNumError();
     int getNumWarn();
     QString timeFromMsg(const ros::Time msg);
-    void recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
+    void receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
     void clearCalledMsg(const std_msgs::Bool::ConstPtr& msg);
     void clearTable();
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 private Q_SLOTS:
     void on_clearButton_clicked();
     void on_msgTable_cellClicked(int row, int column);
@@ -77,6 +84,12 @@ private:
     //float positionLimits[];
     //float velocityLimits[];
     //float effortLimits[];
+
+    std::vector<int> keys_pressed_list_;
+
+    ros::NodeHandle nh_;
+
+    ros::Subscriber key_event_sub_;
 
 protected:
     void timerEvent(QTimerEvent *event);

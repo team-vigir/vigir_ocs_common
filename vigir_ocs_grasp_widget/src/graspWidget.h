@@ -10,6 +10,9 @@
 #include <QPainter>
 #include <QtGui>
 
+#include <vector>
+#include <algorithm>
+
 #include <ros/ros.h>
 
 #include "tf/transform_listener.h"
@@ -21,12 +24,13 @@
 
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
-#include <flor_grasp_msgs/GraspState.h>
-#include <flor_grasp_msgs/GraspSelection.h>
-#include <flor_grasp_msgs/TemplateSelection.h>
 #include <flor_ocs_msgs/OCSRobotStatus.h>
 #include <flor_ocs_msgs/RobotStatusCodes.h>
 #include <flor_ocs_msgs/OCSLinkColor.h>
+#include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <flor_grasp_msgs/GraspState.h>
+#include <flor_grasp_msgs/GraspSelection.h>
+#include <flor_grasp_msgs/TemplateSelection.h>
 
 namespace Ui {
 class graspWidget;
@@ -39,6 +43,8 @@ class graspWidget : public QWidget
 public:
     explicit graspWidget(QWidget *parent = 0);
     ~graspWidget();
+
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
 public Q_SLOTS:
     void on_userSlider_sliderReleased();
@@ -140,6 +146,10 @@ private:
     void jointStatesCB(const sensor_msgs::JointState::ConstPtr& joint_states);
 
     bool show_grasp_;
+
+    std::vector<int> keys_pressed_list_;
+
+    ros::Subscriber key_event_sub_;
 
 protected:
     void timerEvent(QTimerEvent *event);

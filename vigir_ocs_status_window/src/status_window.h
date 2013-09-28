@@ -1,14 +1,22 @@
 #ifndef STATUS_WINDOW_H
 #define STATUS_WINDOW_H
 
-#include<QPainter>
+#include <QPainter>
 #include <QPalette>
 #include <QWidget>
-#include <jointList.h>
-#include <robotStatus.h>
+
+#include <vector>
+#include <algorithm>
+
+#include <ros/ros.h>
+#include <ros/subscriber.h>
+
 #include <flor_control_msgs/FlorControlMode.h>
 #include <flor_ocs_msgs/OCSRobotStability.h>
-#include <ros/subscriber.h>
+#include <flor_ocs_msgs/OCSKeyEvent.h>
+
+#include <jointList.h>
+#include <robotStatus.h>
 
 namespace Ui {
 class status_window;
@@ -20,11 +28,14 @@ class status_window : public QWidget
 
 public:
     explicit status_window(QWidget *parent = 0);
-    void controlModeMsgRecieved(const flor_control_msgs::FlorControlMode::ConstPtr& modeMsg);
-    void stabilityMsgRecieved(const flor_ocs_msgs::OCSRobotStability::ConstPtr& stabilityMsg);
+    ~status_window();
+
+    void controlModeMsgReceived(const flor_control_msgs::FlorControlMode::ConstPtr& modeMsg);
+    void stabilityMsgReceived(const flor_ocs_msgs::OCSRobotStability::ConstPtr& stabilityMsg);
     void updateButtonColor();
     QString getControllerStatus(uint8_t flag);
-    ~status_window();
+
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
 private Q_SLOTS:
     void on_showJointButton_clicked();
@@ -41,6 +52,12 @@ private:
     QBasicTimer timerColor;
     QString oldJointStyleSheet;
     QString oldRobotStyleSheet;
+
+    std::vector<int> keys_pressed_list_;
+
+    ros::NodeHandle nh_;
+
+    ros::Subscriber key_event_sub_;
 };
 
 #endif // STATUS_WINDOW_H

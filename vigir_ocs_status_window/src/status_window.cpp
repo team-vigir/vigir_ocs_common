@@ -13,21 +13,26 @@ status_window::status_window(QWidget *parent) :
     ui(new Ui::status_window)
 {
     ui->setupUi(this);
-    ros::NodeHandle nh;
-    mode_subscriber = nh.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode",1,&status_window::controlModeMsgRecieved, this);
-    stability_subscriber = nh.subscribe<flor_ocs_msgs::OCSRobotStability>("/flor/controller/stability",1,&status_window::stabilityMsgRecieved, this);
+
+    mode_subscriber = nh_.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode",1,&status_window::controlModeMsgReceived, this);
+    stability_subscriber = nh_.subscribe<flor_ocs_msgs::OCSRobotStability>("/flor/controller/stability",1,&status_window::stabilityMsgReceived, this);
+
     jntList = new jointList(NULL);
     jntList->hide();
     rbtStatus = new robotStatus(NULL);
     rbtStatus->hide();
-    timer.start(33, this);
     timerColor.start(100,this);
     oldJointStyleSheet = ui->showJointButton->styleSheet();
     oldRobotStyleSheet = ui->showRobotStatus->styleSheet();
+
+    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &status_window::processNewKeyEvent, this );
+
+    timer.start(33, this);
 }
 
-void status_window::controlModeMsgRecieved(const flor_control_msgs::FlorControlMode::ConstPtr& modeMsg)
-{rbtStatus->show();
+void status_window::controlModeMsgReceived(const flor_control_msgs::FlorControlMode::ConstPtr& modeMsg)
+{
+    rbtStatus->show();
     //flor_control_msgs::FlorControlMode::LEFT_SIDE_DOWN
     switch(modeMsg->posture & 0x7F)
     {
@@ -149,7 +154,7 @@ QString status_window::getControllerStatus(uint8_t flag)
     }
 }
 
-void status_window::stabilityMsgRecieved(const flor_ocs_msgs::OCSRobotStability::ConstPtr& stabilityMsg)
+void status_window::stabilityMsgReceived(const flor_ocs_msgs::OCSRobotStability::ConstPtr& stabilityMsg)
 {
     ui->stabilityLabel->setText(QString::number(stabilityMsg->stability));
     if(stabilityMsg->stability >= 193)
@@ -262,5 +267,31 @@ void status_window::on_showRobotStatus_clicked()
     {
         rbtStatus->show();
         ui->showRobotStatus->setText(QString::fromStdString("Hide Robot Status"));
+    }
+}
+
+void status_window::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+{
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator key_is_pressed;
+
+    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    if(key_event->key == 18 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+9
+    {
+        if(this->isVisible())
+        {
+            this->hide();
+        }
+        else
+        {
+            //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+            this->show();
+        }
     }
 }

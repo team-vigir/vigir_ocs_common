@@ -6,18 +6,22 @@
 
 QT       += core gui
 
-TARGET = waypoint_manager_widget
+TARGET = camera_view_widget
 TEMPLATE = app
 
 
 SOURCES += \
-    waypoint_manager_widget.cpp \
-    ../main.cpp
+    camera_view_widget.cpp \
+    ../main.cpp \
+    ../camera_view.cpp \
+
 
 HEADERS  += \
-    waypoint_manager_widget.h
+    camera_view_widget.h \
+    ../camera_view.h \
+
 
 FORMS    += \
-    waypoint_manager_widget.ui
+    camera_view_widget.ui
 
 RESOURCES +=

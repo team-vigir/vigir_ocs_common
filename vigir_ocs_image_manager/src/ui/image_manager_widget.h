@@ -12,8 +12,12 @@
 #include <QPainter>
 #include <QtGui>
 
+#include <vector>
+#include <algorithm>
+
 #include <flor_ocs_msgs/OCSImageList.h>
 #include <flor_ocs_msgs/OCSImageAdd.h>
+#include <flor_ocs_msgs/OCSKeyEvent.h>
 
 #include <std_msgs/Bool.h>
 #include <std_msgs/UInt64.h>
@@ -44,6 +48,7 @@ public:
     void processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr& msg);
     void processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg);
     void processSelectedImage(const sensor_msgs::Image::ConstPtr& msg);
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
     /*void removeImage(int id);
 
     void initImageIdMap();*/
@@ -65,6 +70,10 @@ private:
     ros::Subscriber image_list_sub_;
     ros::Subscriber image_added_sub_;
     ros::Subscriber image_selected_sub_;
+
+    std::vector<int> keys_pressed_list_;
+
+    ros::Subscriber key_event_sub_;
 
 
 protected:

@@ -20,9 +20,17 @@ motion_selector::motion_selector(QWidget *parent) :
     //ros::
     std::cout << "File done processing now populatin the tree." << std::endl;
     populateTree();
-    ros::NodeHandle nh;
-    message_pub_ = nh.advertise<flor_control_msgs::FlorExecuteMotionRequest>( "/flor/motion_service/motion_command",1,false);
+
+    message_pub_ = nh_.advertise<flor_control_msgs::FlorExecuteMotionRequest>( "/flor/motion_service/motion_command",1,false);
+
+    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &motion_selector::processNewKeyEvent, this );
+
     timer.start(33, this);
+}
+
+motion_selector::~motion_selector()
+{
+    delete ui;
 }
 
 void motion_selector::timerEvent(QTimerEvent *event)
@@ -253,13 +261,35 @@ void motion_selector::printTasks()
     }
 }
 
-motion_selector::~motion_selector()
-{
-    delete ui;
-}
 void motion_selector::on_timeFactorSlider_valueChanged(int value)
 {
     sliderVal = (float)value/100.0;
     //std::cout << "slider value changed. now " << sliderVal << std::endl;
     ui->timeFactorLabel->setText(QString::number(sliderVal,'g',3));
+}
+
+void motion_selector::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+{
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator key_is_pressed;
+
+    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    if(key_event->key == 14 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+5
+    {
+        if(this->isVisible())
+        {
+            this->hide();
+        }
+        else
+        {
+            this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+            this->show();
+        }
+    }
 }

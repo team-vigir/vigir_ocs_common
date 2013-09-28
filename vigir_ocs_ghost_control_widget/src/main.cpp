@@ -13,8 +13,9 @@ int main(int argc, char **argv)
   QApplication a( argc, argv );
 
   GhostControlWidget w;
-  w.show();
+  //w.show();
   w.setMinimumSize(300,100);
+  w.hide();
 
   return a.exec();
 }

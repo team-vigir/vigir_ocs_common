@@ -78,6 +78,8 @@ graspWidget::graspWidget(QWidget *parent)
     std::cout << code_path_ << std::endl;
     robot_status_codes_.loadErrorMessages(code_path_);
 
+    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &graspWidget::processNewKeyEvent, this );
+
     timer.start(33, this);
 }
 //SetStylesheet to change on the fly
@@ -910,4 +912,30 @@ int graspWidget::hideHand()
 void graspWidget::on_show_grasp_toggled(bool checked)
 {
     show_grasp_ = checked;
+}
+
+void graspWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+{
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator key_is_pressed;
+
+    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    if(key_event->key == 16 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+7
+    {
+        if(this->isVisible())
+        {
+            this->hide();
+        }
+        else
+        {
+            //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+            this->show();
+        }
+    }
 }
