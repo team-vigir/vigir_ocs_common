@@ -75,4 +75,7 @@ stationary{
 		wave
 		flex
 		}
+	Calibration{
+		test_bag_motion_1
+		}
 	}
