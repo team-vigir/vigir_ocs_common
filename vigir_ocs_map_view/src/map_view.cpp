@@ -26,7 +26,7 @@ namespace vigir_ocs
 {
 // Constructor for MapView.  This does most of the work of the class.
 MapView::MapView( QWidget* parent )
-    : Base3DView( "/world", parent )
+    : Base3DView( NULL, "/world", parent )
     , setting_pose_(false)
 {
 	init();
