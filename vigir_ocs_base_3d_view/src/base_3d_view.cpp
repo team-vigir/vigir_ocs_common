@@ -906,14 +906,8 @@ int staticTransform(geometry_msgs::Pose& palm_pose, std::string hand)
     o_T_pg.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
     o_T_pg.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
 
-    pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0,0,0,-1,1,0,0),tf::Vector3(-0.1,0,0));
-    pg_T_lhand = tf::Transform(tf::Matrix3x3(0,0,-1,0,1,0,1,0,0),tf::Vector3(-0.1,0,0));
-    tf::Quaternion left_quat = pg_T_lhand.getRotation();
-    tf::Quaternion tmp_quad(0,-1.57079633,0);
-    left_quat *= tmp_quad;
-    tf::Vector3 left_pos = pg_T_rhand.getOrigin();
-    //left_pos.setX(-left_pos.x());
-    pg_T_lhand = tf::Transform(left_quat,left_pos); // but we need to got to left_palm
+    pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176));
+    pg_T_lhand = tf::Transform(tf::Matrix3x3(0,1,0,-1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176));
 
     if(hand == "right")
     {
