@@ -21,6 +21,7 @@ namespace rviz
 {
 class RenderPanelCustom;
 class ViewController;
+class VisualizationManager;
 }
 
 namespace vigir_ocs
@@ -30,7 +31,7 @@ class OrthoView: public Base3DView
 {
     Q_OBJECT
 public:
-    OrthoView( QWidget* parent = 0 );
+    OrthoView( QWidget* parent = 0, rviz::VisualizationManager* context = NULL );
     virtual ~OrthoView();
 
     void requestMap(double min_z, double max_z, double resolution);

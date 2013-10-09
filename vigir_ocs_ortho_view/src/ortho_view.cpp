@@ -26,8 +26,8 @@
 namespace vigir_ocs
 {
 // Constructor for OrthoView.  This does most of the work of the class.
-OrthoView::OrthoView( QWidget* parent )
-    : Base3DView( NULL, "/world", parent )
+OrthoView::OrthoView( QWidget* parent, rviz::VisualizationManager* context )
+    : Base3DView( context, "/world", parent )
     , setting_pose_(false)
 {
     // block sending left/right mouse events to rviz by default

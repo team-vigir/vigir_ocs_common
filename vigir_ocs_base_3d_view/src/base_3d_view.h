@@ -92,6 +92,8 @@ public:
 
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
+    rviz::VisualizationManager* getVisualizationManager() {return manager_;};
+
 public Q_SLOTS:
     // displays
     void robotModelToggled( bool );
@@ -153,7 +155,6 @@ protected:
     void publishGhostPoses();
 
     rviz::VisualizationManager* manager_;
-    rviz::VisualizationManager* manager_simulation_;
     rviz::RenderPanel* render_panel_;
 
     rviz::Display* robot_model_;
@@ -184,6 +185,8 @@ protected:
 
     // for simulation
     rviz::Display* ghost_robot_model_;
+
+    std::map<std::string,rviz::Display*> display_list_;
 
     rviz::Tool* interactive_markers_tool_;
     //rviz::Tool* selection_tool_;

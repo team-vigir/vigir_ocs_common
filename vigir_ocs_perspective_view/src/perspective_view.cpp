@@ -18,8 +18,8 @@
 namespace vigir_ocs
 {
 // Constructor for PerspectiveView.  This does most of the work of the class.
-PerspectiveView::PerspectiveView( QWidget* parent )
-    : Base3DView( NULL, "/world", parent )
+PerspectiveView::PerspectiveView( QWidget* parent, rviz::VisualizationManager* context )
+    : Base3DView( context, "/world", parent )
 {
 }
 

@@ -79,6 +79,8 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     {
         manager_ = context;
         render_panel_->initialize( manager_->getSceneManager(), manager_ );
+        //manager_ = new rviz::VisualizationManager( render_panel_ );
+        //render_panel_->initialize( context->getSceneManager(), manager_ );
     }
     else // need to create everything
     {
@@ -275,7 +277,7 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         // frustum
         frustum_viewer_list_["head_left"] = manager_->createDisplay( "rviz/FrustumDisplayCustom", "Frustum - Left Eye", true );
         ROS_ASSERT( frustum_viewer_list_["head_left"] != NULL );
-    }
+    //}
 
     // connect the 3d selection tool to its display
     QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
@@ -381,7 +383,7 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
 
     // advertise pointcloud request
     pointcloud_request_world_pub_ = n_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
-
+    }
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
 }

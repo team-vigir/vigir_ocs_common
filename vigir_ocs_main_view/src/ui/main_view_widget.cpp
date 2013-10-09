@@ -44,6 +44,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     aux_layout->addWidget(views_list["Top Left"]);
     ui->center_parent_->setLayout(aux_layout);
 
+    //views_list["Top Right"] = new vigir_ocs::OrthoView(0,((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
     views_list["Top Right"] = new vigir_ocs::OrthoView();
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);

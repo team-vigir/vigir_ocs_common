@@ -16,6 +16,11 @@
 
 #include "base_3d_view.h"
 
+namespace rviz
+{
+class VisualizationManager;
+}
+
 namespace vigir_ocs
 {
 // Class "PerspectiveView" implements the RobotModel class with joint manipulation that can be added to any QT application.
@@ -23,7 +28,7 @@ class PerspectiveView: public Base3DView
 {
     Q_OBJECT
 public:
-    PerspectiveView( QWidget* parent = 0 );
+    PerspectiveView( QWidget* parent = 0, rviz::VisualizationManager* context = NULL );
     virtual ~PerspectiveView();
 };
 }
