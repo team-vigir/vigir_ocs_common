@@ -22,6 +22,7 @@
 
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
+#include <OGRE/OgreSceneManager.h>
 
 #include <ros/ros.h>
 
@@ -72,7 +73,7 @@ class Base3DView: public QWidget
 {
     Q_OBJECT
 public:
-    Base3DView( std::string base_frame = "/pelvis", QWidget* parent = 0 );
+    Base3DView( rviz::VisualizationManager* context = NULL, std::string base_frame = "/pelvis", QWidget* parent = 0 );
     virtual ~Base3DView();
 
     void init();
