@@ -128,12 +128,14 @@ void ImageManagerWidget::addImage(const unsigned long& id, const std::string& to
 
 void ImageManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
 {
+    ROS_ERROR("process image add");
     addImage(msg->id,msg->topic,msg->image,msg->camera_info);
 }
 
 void ImageManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg)
 {
     // reset table
+    ROS_ERROR("process image list");
     ui->tableWidget->clearContents();
 
     for(int i = 0; i < msg->image.size(); i++)
