@@ -9,7 +9,6 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
     ui->setupUi(this);
 
     ui->map_view_->init();
-
     ui->insert_waypoint->hide();
 
     connect(ui->joystick_steering, SIGNAL(toggled(bool)), this, SLOT(hideWaypointButton()));
@@ -92,5 +91,4 @@ void MapViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPt
         requestOctomap();
     if(key_event->key == 58 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+m
         requestMap();
-
 }

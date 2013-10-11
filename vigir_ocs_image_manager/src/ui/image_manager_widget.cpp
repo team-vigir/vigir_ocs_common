@@ -81,10 +81,10 @@ void ImageManagerWidget::addImage(const unsigned long& id, const std::string& to
     // image
     item = new QTableWidgetItem();
 
-    ROS_ERROR("Encoding: %s", image.encoding.c_str());
+    //ROS_ERROR("Encoding: %s", image.encoding.c_str());
 
     double aspect_ratio = (double)image.width/(double)image.height;
-    ROS_ERROR("Size: %dx%d aspect %f", image.width, image.height, aspect_ratio);
+    //ROS_ERROR("Size: %dx%d aspect %f", image.width, image.height, aspect_ratio);
 
     cv_bridge::CvImagePtr cv_ptr;
     try
@@ -93,7 +93,7 @@ void ImageManagerWidget::addImage(const unsigned long& id, const std::string& to
     }
     catch (cv_bridge::Exception& e)
     {
-        ROS_ERROR("cv_bridge exception: %s", e.what());
+        //ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
 
@@ -116,7 +116,7 @@ void ImageManagerWidget::addImage(const unsigned long& id, const std::string& to
     item->setToolTip(QString::number(id));
     ui->tableWidget->setItem(row,0,item);
 
-    ROS_ERROR("Added %ld to the table",id);
+    //ROS_ERROR("Added %ld to the table",id);
 
     // stamp
     item = new QTableWidgetItem(timeFromMsg(image.header.stamp));
@@ -134,12 +134,14 @@ void ImageManagerWidget::addImage(const unsigned long& id, const std::string& to
 
 void ImageManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
 {
+    //ROS_ERROR("process image add");
     addImage(msg->id,msg->topic,msg->image,msg->camera_info);
 }
 
 void ImageManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg)
 {
     // reset table
+    //ROS_ERROR("process image list");
     ui->tableWidget->clearContents();
 
     for(int i = 0; i < msg->image.size(); i++)
@@ -151,10 +153,10 @@ void ImageManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::Con
 void ImageManagerWidget::processSelectedImage(const sensor_msgs::Image::ConstPtr &msg)
 {
     // image
-    ROS_ERROR("Encoding: %s", msg->encoding.c_str());
+    //ROS_ERROR("Encoding: %s", msg->encoding.c_str());
 
     double aspect_ratio = (double)msg->width/(double)msg->height;
-    ROS_ERROR("Size: %dx%d aspect %f", msg->width, msg->height, aspect_ratio);
+    //ROS_ERROR("Size: %dx%d aspect %f", msg->width, msg->height, aspect_ratio);
 
     cv_bridge::CvImagePtr cv_ptr;
     try
@@ -163,7 +165,7 @@ void ImageManagerWidget::processSelectedImage(const sensor_msgs::Image::ConstPtr
     }
     catch (cv_bridge::Exception& e)
     {
-        ROS_ERROR("cv_bridge exception: %s", e.what());
+        //ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
 
