@@ -391,7 +391,7 @@ Ogre::MaterialPtr RobotLinkCustom::getMaterialForLink( const urdf::LinkConstPtr&
             }
             catch (resource_retriever::Exception& e)
             {
-                ROS_ERROR("%s", e.what());
+                //ROS_ERROR("%s", e.what());
             }
 
             if (res.size != 0)
@@ -412,7 +412,7 @@ Ogre::MaterialPtr RobotLinkCustom::getMaterialForLink( const urdf::LinkConstPtr&
                 }
                 catch (Ogre::Exception& e)
                 {
-                    ROS_ERROR("Could not load texture [%s]: %s", filename.c_str(), e.what());
+                    //ROS_ERROR("Could not load texture [%s]: %s", filename.c_str(), e.what());
                 }
             }
         }
@@ -499,7 +499,7 @@ void RobotLinkCustom::createEntityForGeometryElement(const urdf::LinkConstPtr& l
         }
         catch( Ogre::Exception& e )
         {
-            ROS_ERROR( "Could not load model '%s' for link '%s': %s\n", model_name.c_str(), link->name.c_str(), e.what() );
+            //ROS_ERROR( "Could not load model '%s' for link '%s': %s\n", model_name.c_str(), link->name.c_str(), e.what() );
         }
         break;
     }

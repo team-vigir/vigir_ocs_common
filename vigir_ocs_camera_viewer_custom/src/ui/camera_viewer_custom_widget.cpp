@@ -50,10 +50,10 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
         sp->setFocusPolicy( Qt::StrongFocus );
     }
 
-    ui->octomap->hide();
-    ui->lidar_point_cloud->hide();
-    ui->stereo_point_cloud->hide();
-    ui->laser_scan->hide();
+    //ui->octomap->hide();
+    //ui->lidar_point_cloud->hide();
+    //ui->stereo_point_cloud->hide();
+    //ui->laser_scan->hide();
 }
 
 CameraViewerCustomWidget::~CameraViewerCustomWidget()

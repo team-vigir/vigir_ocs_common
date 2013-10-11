@@ -193,7 +193,7 @@ void GhostControlWidget::sendTargetConfigClicked()
 
 void GhostControlWidget::resetPelvisClicked()
 {
-    ROS_ERROR("RESET PELVIS!");
+    //ROS_ERROR("RESET PELVIS!");
     std_msgs::Bool cmd;
     cmd.data = true;
     reset_pelvis_pub_.publish(cmd);

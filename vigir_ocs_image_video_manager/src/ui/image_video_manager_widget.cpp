@@ -266,7 +266,7 @@ void ImageVideoManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::
 {
 
 
-    ROS_ERROR("In Process Image Add%f",feed_rate);
+    //ROS_ERROR("In Process Image Add%f",feed_rate);
     if(feed_rate==0.0f)
       {
         imagecount++;
@@ -309,7 +309,7 @@ void ImageVideoManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList
 {
     // reset table
     //ui->treeWidget->clear();
-    ROS_ERROR("in process image list");
+    //ROS_ERROR("in process image list");
 
 
 
@@ -319,7 +319,7 @@ void ImageVideoManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList
 void ImageVideoManagerWidget::processSelectedImage(const sensor_msgs::Image::ConstPtr &msg)
 {
     // image
-    ROS_ERROR("Encoding: %s", msg->encoding.c_str());
+    //ROS_ERROR("Encoding: %s", msg->encoding.c_str());
 
     double aspect_ratio = (double)msg->width/(double)msg->height;
    // ROS_ERROR("Size: %dx%d aspect %f", msg->width, msg->height, aspect_ratio);
@@ -378,7 +378,7 @@ void ImageVideoManagerWidget::processvideoimage (const flor_perception_msgs::Dow
 {
     //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate = msg->publish_frequency;
-    ROS_ERROR("in process video image.feed rate = %f", feed_rate);
+    //ROS_ERROR("in process video image.feed rate = %f", feed_rate);
 
 }
 
