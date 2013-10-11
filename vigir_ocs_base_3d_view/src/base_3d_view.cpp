@@ -31,7 +31,6 @@
 #include "rviz/view_manager.h"
 #include "rviz/default_plugin/view_controllers/fixed_orientation_ortho_view_controller.h"
 #include "rviz/default_plugin/view_controllers/orbit_view_controller.h"
-
 #include <template_display_custom.h>
 #include "map_display_custom.h"
 #include "base_3d_view.h"
@@ -135,15 +134,17 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         // Add support for goal specification/vector navigation
         set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
 
-        // Create a LaserScan display.
-        laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
-        ROS_ASSERT( laser_scan_ != NULL );
-        laser_scan_->subProp( "Topic" )->setValue( "/laser/scan" );
-        laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
-        laser_scan_->subProp( "Decay Time" )->setValue( 5 );
-        laser_scan_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-        laser_scan_->subProp( "Axis" )->setValue( "Z" );
-        laser_scan_->subProp( "Selectable" )->setValue( false );
+    // Create a LaserScan display.
+    laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
+    ROS_ASSERT( laser_scan_ != NULL );
+    laser_scan_->subProp( "Topic" )->setValue( "/laser/scan" );
+    laser_scan_->subProp( "Style" )->setValue( "Points" );
+    laser_scan_->subProp( "Size (Pixels)" )->setValue( 3 );
+    //laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
+    laser_scan_->subProp( "Decay Time" )->setValue( 5 );
+    laser_scan_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+    laser_scan_->subProp( "Axis" )->setValue( "Z" );
+    laser_scan_->subProp( "Selectable" )->setValue( false );
 
         // Create a MarkerArray display.
         octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", false );
@@ -347,6 +348,7 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     saved_state_lock_pelvis_ = 1;
 
     // initialize all publishers and subscribers
+
     interactive_marker_add_pub_ = n_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 1, true );
     interactive_marker_update_pub_ = n_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
     interactive_marker_feedback_sub_ = n_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );
@@ -364,11 +366,13 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     ghost_hand_left_sub_ = n_.subscribe<geometry_msgs::PoseStamped>( "/ghost_left_hand_pose", 5, &Base3DView::processLeftGhostHandPose, this );
     ghost_hand_right_sub_ = n_.subscribe<geometry_msgs::PoseStamped>( "/ghost_right_hand_pose", 5, &Base3DView::processRightGhostHandPose, this );
 
+
     // ghost state
     ghost_control_state_sub_ = n_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
     reset_pelvis_sub_ = n_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
     send_pelvis_sub_ = n_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
     send_footstep_goal_pub_ = n_.advertise<geometry_msgs::PoseStamped>( "/goalpose", 1, false );
+
 
     // ground map middle man
     //ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
@@ -379,11 +383,14 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     global_selection_pos_pub_ = n_.advertise<geometry_msgs::Point>( "/new_point_cloud_request", 1, false );
     global_selection_pos_sub_ = n_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
 
+
     joint_states_sub_ = n_.subscribe<sensor_msgs::JointState>( "atlas/joint_states", 2, &Base3DView::processJointStates, this );
 
     // advertise pointcloud request
     pointcloud_request_world_pub_ = n_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
+
     }
+
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
 }

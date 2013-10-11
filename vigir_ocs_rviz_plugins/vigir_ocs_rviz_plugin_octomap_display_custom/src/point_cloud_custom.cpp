@@ -332,7 +332,7 @@ void PointCloudCustom::setRenderMode(RenderMode mode)
     geom_support_changed = true;
     current_mode_supports_geometry_shader_ = false;
 
-    ROS_ERROR("No techniques available for material [%s]", current_material_->getName().c_str());
+    //ROS_ERROR("No techniques available for material [%s]", current_material_->getName().c_str());
   }
 
   if (geom_support_changed)

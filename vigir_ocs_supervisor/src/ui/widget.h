@@ -40,7 +40,7 @@ public:
     void behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg );
     void controlstate(const flor_control_msgs::FlorRobotStateCommand::ConstPtr& msg);
     void robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg);
-    void recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
+    void receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
     QString timeFromMsg(const ros::Time msg);
     void loadFile();
 

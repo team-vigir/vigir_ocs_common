@@ -272,7 +272,8 @@ void MarkerDisplayCustom::processMessage( const visualization_msgs::Marker::Cons
     break;
 
   default:
-    ROS_ERROR( "Unknown marker action: %d\n", message->action );
+    //ROS_ERROR( "Unknown marker action: %d\n", message->action );
+      break;
   }
 }
 
@@ -363,7 +364,8 @@ void MarkerDisplayCustom::processAdd( const visualization_msgs::Marker::ConstPtr
     }
     break;
     default:
-      ROS_ERROR( "Unknown marker type: %d", message->type );
+        break;
+      //ROS_ERROR( "Unknown marker type: %d", message->type );
     }
 
     markers_.insert(std::make_pair(MarkerID(message->ns, message->id), marker));

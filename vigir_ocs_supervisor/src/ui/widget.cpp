@@ -18,10 +18,10 @@ Widget::Widget(QWidget *parent) :
 {
     bold.setBold(true);
     normal.setBold(false);
-   /* ui->stat->setColumnCount(3);
+    /* ui->stat->setColumnCount(3);
     ui->stat->setRowCount(5);*/
     count_row=0;// keep track of table rows
-   /* ui->stat->setColumnWidth(0,145);
+    /* ui->stat->setColumnWidth(0,145);
     ui->stat->setColumnWidth(1,50);
     ui->stat->setColumnWidth(2,300);
     std::cout << "Set width" << std::endl;
@@ -32,11 +32,13 @@ Widget::Widget(QWidget *parent) :
 
     std::string fileName;
     if(nh.getParam("robotErrorFileLocation",fileName))
-    messagesPath = fileName;
+        messagesPath = fileName;
     else
-    messagesPath = "/opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/messages.csv";
-    std::cerr << "Reading messages from <" << messagesPath << ">" << std::endl;
+        messagesPath = "/opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/messages.csv";
+    std::cout << "Reading messages from <" << messagesPath << ">" << std::endl;
+
     loadFile();
+
     maxRows = 100;
     unreadMsgs=0;
     numError = 0;
@@ -46,6 +48,7 @@ Widget::Widget(QWidget *parent) :
     avg_pump_rpm=-1;
     avg_pump_return_pressure=-1;
     avg_pump_supply_pressure=-1;
+
     ui->setupUi(this);
     ui->cs->setEnabled(false);
     ui->cs_list->setEnabled(false);
@@ -87,13 +90,15 @@ Widget::Widget(QWidget *parent) :
     ui->mdt->setEnabled(false);
     ui->pmdt->setEnabled(false);
     ui->pmt->setEnabled(false);
+
     //sub_control = nh.subscribe<flor_control_msgs::FlorRobotStateCommand>("/flor/controller/robot_state_command", 5, &Widget::controlstate, this);
     pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
     sub_state = nh.subscribe<flor_control_msgs::FlorRobotStatus>("/flor/controller/robot_status", 5, &Widget::robotstate, this);
     sub_behav = nh.subscribe<atlas_msgs::AtlasSimInterfaceState>("/atlas/atlas_sim_interface_state", 5, &Widget::behavstate, this);
     sub_fault = nh.subscribe<flor_control_msgs::FlorRobotFault >("/flor/controller/robot_fault", 5, &Widget::robotfault, this);
-    status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor/controller/status", 100, &Widget::recievedMessage, this );
-    timer.start(1, this);
+    status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor/controller/status", 100, &Widget::receivedMessage, this );
+
+    timer.start(33, this);
 }
 
 Widget::~Widget()
@@ -139,101 +144,101 @@ void Widget::on_connect_clicked()
     }
 }
 
-void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
+void Widget::receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
 {
-        ui->stat->setColumnCount(3);
-        //ui->stat->setRowCount(5);
-        //count_row=0;// keep track of table rows
-        ui->stat->setColumnWidth(0,145);
-        ui->stat->setColumnWidth(1,50);
-        ui->stat->setColumnWidth(2,300);
-        std::cout << "Set width" << std::endl;
-        labels.push_back("Sim Time");
-        labels.push_back("Type");
-        labels.push_back("Message Contents");
-        ui->stat->setHorizontalHeaderLabels(labels);
-       uint8_t  level;
-       uint16_t code;
-       RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
-       std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
-       QTableWidgetItem* text = new QTableWidgetItem();
-       QTableWidgetItem* msgType = new QTableWidgetItem();
-       QTableWidgetItem* time = new QTableWidgetItem();
-       time->setText(timeFromMsg(msg->stamp));
-       text->setFlags(text->flags() ^ Qt::ItemIsEditable);
-       time->setFlags(time->flags() ^ Qt::ItemIsEditable);
-       msgType->setFlags(msgType->flags() ^ Qt::ItemIsEditable);
-       switch(level){
-       case 0:
-           msgType->setText("Ok");
-           break;
-       case 1:
-           msgType->setText("Debug");
-           break;
-       case 2:
-           msgType->setText("Warn");
-           text->setBackgroundColor(Qt::yellow);
-           time->setBackgroundColor(Qt::yellow);
-           msgType->setBackgroundColor(Qt::yellow);
-           numWarn++;
-           break;
-       case 3:
-           msgType->setText("Error");
-           text->setBackgroundColor(Qt::red);
-           time->setBackgroundColor(Qt::red);
-           msgType->setBackgroundColor(Qt::red);
-           numError++;
-           break;
-       }
+    ui->stat->setColumnCount(3);
+    //ui->stat->setRowCount(5);
+    //count_row=0;// keep track of table rows
+    ui->stat->setColumnWidth(0,145);
+    ui->stat->setColumnWidth(1,50);
+    ui->stat->setColumnWidth(2,300);
+    std::cout << "Set width" << std::endl;
+    labels.push_back("Sim Time");
+    labels.push_back("Type");
+    labels.push_back("Message Contents");
+    ui->stat->setHorizontalHeaderLabels(labels);
+    uint8_t  level;
+    uint16_t code;
+    RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
+    std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
+    QTableWidgetItem* text = new QTableWidgetItem();
+    QTableWidgetItem* msgType = new QTableWidgetItem();
+    QTableWidgetItem* time = new QTableWidgetItem();
+    time->setText(timeFromMsg(msg->stamp));
+    text->setFlags(text->flags() ^ Qt::ItemIsEditable);
+    time->setFlags(time->flags() ^ Qt::ItemIsEditable);
+    msgType->setFlags(msgType->flags() ^ Qt::ItemIsEditable);
+    switch(level){
+    case 0:
+        msgType->setText("Ok");
+        break;
+    case 1:
+        msgType->setText("Debug");
+        break;
+    case 2:
+        msgType->setText("Warn");
+        text->setBackgroundColor(Qt::yellow);
+        time->setBackgroundColor(Qt::yellow);
+        msgType->setBackgroundColor(Qt::yellow);
+        numWarn++;
+        break;
+    case 3:
+        msgType->setText("Error");
+        text->setBackgroundColor(Qt::red);
+        time->setBackgroundColor(Qt::red);
+        msgType->setBackgroundColor(Qt::red);
+        numError++;
+        break;
+    }
 
-       if(code >= errors.size() && errors.size() != 0)
-       {
-           std::cout << "Recieved message (Default Message). level = " << (int)level << " code = " << (int)code << std::endl;
-           QString tempMessage = QString::fromStdString("Default Message");
-           tempMessage+=QString::number(code);
-           text->setText(tempMessage);
-           text->setBackgroundColor(Qt::red);
-           time->setBackgroundColor(Qt::red);
-           msgType->setBackgroundColor(Qt::red);
-           numError++;
-       }
-       else if(errors.size() > 0)
-           text->setText(QString::fromStdString(errors[code]));
-       else
-       {
-           std::cout << "Cannot find data file but recieved msg level = " << (int)level << " code = " << (int)code << std::endl;
+    if(code >= errors.size() && errors.size() != 0)
+    {
+        std::cout << "Received message (Default Message). level = " << (int)level << " code = " << (int)code << std::endl;
+        QString tempMessage = QString::fromStdString("Default Message");
+        tempMessage+=QString::number(code);
+        text->setText(tempMessage);
+        text->setBackgroundColor(Qt::red);
+        time->setBackgroundColor(Qt::red);
+        msgType->setBackgroundColor(Qt::red);
+        numError++;
+    }
+    else if(errors.size() > 0)
+        text->setText(QString::fromStdString(errors[code]));
+    else
+    {
+        std::cout << "Cannot find data file but recieved msg level = " << (int)level << " code = " << (int)code << std::endl;
 
-           QString tempMessage = "Cannot find data file but recieved msg  num";
-           tempMessage+= QString::number(code);
-           text->setText(tempMessage);
-           text->setBackground(Qt::red);
-           msgType->setBackgroundColor(Qt::red);
-           time->setBackgroundColor(Qt::red);
-           numError++;
-       }
+        QString tempMessage = "Cannot find data file but recieved msg  num";
+        tempMessage+= QString::number(code);
+        text->setText(tempMessage);
+        text->setBackground(Qt::red);
+        msgType->setBackgroundColor(Qt::red);
+        time->setBackgroundColor(Qt::red);
+        numError++;
+    }
 
-       msgType->setFont(bold);
-       time->setFont(bold);
-       text->setFont(bold);
-       //std::vector<completeRow*>::iterator it;
+    msgType->setFont(bold);
+    time->setFont(bold);
+    text->setFont(bold);
+    //std::vector<completeRow*>::iterator it;
 
-       //it = messages.begin();
+    //it = messages.begin();
 
-       //messages.insert(it,new completeRow());
-      // messages[0]->time = time;
-       //messages[0]->priority = msgType;
-      // messages[0]->text out>
+    //messages.insert(it,new completeRow());
+    // messages[0]->time = time;
+    //messages[0]->priority = msgType;
+    // messages[0]->text out>
 
 
-       ui->stat->insertRow(0);
+    ui->stat->insertRow(0);
 
-       //std::cout << "Adding item to table... " << messages.size() <<  " " << messages[0]->text << std::endl;
-      ui->stat->setItem(0,0,time);
-      ui->stat->setItem(0,1,msgType);
-      ui->stat->setItem(0,2,text);
-      count_row++;
-      qDebug() << count_row;
-       /*for(int i=4;i>=0;i--)
+    //std::cout << "Adding item to table... " << messages.size() <<  " " << messages[0]->text << std::endl;
+    ui->stat->setItem(0,0,time);
+    ui->stat->setItem(0,1,msgType);
+    ui->stat->setItem(0,2,text);
+    count_row++;
+    qDebug() << count_row;
+    /*for(int i=4;i>=0;i--)
            ui->stat->showRow(i);
       if(messages[0]->priority->text() == "Ok" && showOk->isChecked())
        {
@@ -265,15 +270,15 @@ void Widget::recievedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
            messages.pop_back();
            //ui->stat->removeRow(maxRows);
        }*/
-        if(count_row>maxRows)
-        {
-            if(msgType->text()=="Warn")
-                numWarn--;
-            if(msgType->text()=="Error")
-                numError--;
-            ui->stat->removeRow(maxRows);
-        }
-       unreadMsgs++;
+    if(count_row>maxRows)
+    {
+        if(msgType->text()=="Warn")
+            numWarn--;
+        if(msgType->text()=="Error")
+            numError--;
+        ui->stat->removeRow(maxRows);
+    }
+    unreadMsgs++;
 
 }
 void Widget::loadFile()
@@ -329,196 +334,196 @@ QString Widget::timeFromMsg(ros::Time stamp)
     stream << std::setw(3) << std::setfill('0') << ms ;
     return QString::fromStdString(stream.str());
 }
- void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& msg )
- {
-     // save the last status message
-     last_run_state = msg->robot_run_state;
-     switch(msg->robot_run_state)
-     {
-     case 0:ui->r_state->setText("IDLE");break;
-     case 1:ui->r_state->setText("START");break;
-     case 3:ui->r_state->setText("CONTROL");break;
-     case 5:ui->r_state->setText("STOP");break;
-     }
+void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& msg )
+{
+    // save the last status message
+    last_run_state = msg->robot_run_state;
+    switch(msg->robot_run_state)
+    {
+    case 0:ui->r_state->setText("IDLE");break;
+    case 1:ui->r_state->setText("START");break;
+    case 3:ui->r_state->setText("CONTROL");break;
+    case 5:ui->r_state->setText("STOP");break;
+    }
 
-     // Initialize the averages on first pass
-     if(avg_inlet_pr==-1)
-     {
-         avg_inlet_pr                = msg->pump_inlet_pressure;
-         avg_air_sump_pressure       = msg->air_sump_pressure;
-         avg_pump_rpm                = msg->current_pump_rpm;
-         avg_pump_return_pressure    = msg->pump_return_pressure;
-         avg_pump_supply_pressure    = msg->pump_supply_pressure;
-         avg_pump_supply_temperature = msg->pump_supply_temperature;
-         avg_motor_temperature       = msg->motor_temperature;
-         avg_motor_driver_temp       = msg->motor_driver_temperature;
-     }
-
-
-     // Average the noisy signals (at 200Hz after 10 seconds only 0.002 remaining)
-     avg_inlet_pr               = 0.003*msg->pump_inlet_pressure      + 0.997*avg_inlet_pr            ;
-     avg_air_sump_pressure      = 0.003*msg->air_sump_pressure        + 0.997*avg_air_sump_pressure   ;
-     avg_pump_rpm               = 0.003*msg->current_pump_rpm         + 0.997*avg_pump_rpm            ;
-     avg_pump_return_pressure   = 0.003*msg->pump_return_pressure     + 0.997*avg_pump_return_pressure;
-     avg_pump_supply_pressure   = 0.003*msg->pump_supply_pressure     + 0.997*avg_pump_supply_pressure;
-     avg_pump_supply_temperature= 0.003*msg->pump_supply_temperature  + 0.997*avg_pump_supply_temperature;
-     avg_motor_temperature      = 0.003*msg->motor_temperature        + 0.997*avg_motor_temperature      ;
-     avg_motor_driver_temp      = 0.003*msg->motor_driver_temperature + 0.997*avg_motor_driver_temp      ;
-
-     // Update the text
-     ui->inlet->setText(QString::number(avg_inlet_pr,'f',2));
-     ui->sump->setText(QString::number(avg_air_sump_pressure,'f',2));
-     ui->rpm->setText(QString::number(avg_pump_rpm,'f',2));
-     ui->return_2->setText(QString::number(avg_pump_return_pressure,'f',2));
-     ui->supply->setText(QString::number(avg_pump_supply_pressure,'f',2));
-     ui->pst->setText(QString::number(avg_pump_supply_temperature,'f',2));
-     ui->mt->setText(QString::number(avg_motor_temperature,'f',2));
-     ui->mdt->setText(QString::number(avg_motor_driver_temp,'f',2));
-
-     // Just set the time meter (no averaging)
-     ui->timemeter->setText(QString::number(msg->pump_time_meter,'f',2));
+    // Initialize the averages on first pass
+    if(avg_inlet_pr==-1)
+    {
+        avg_inlet_pr                = msg->pump_inlet_pressure;
+        avg_air_sump_pressure       = msg->air_sump_pressure;
+        avg_pump_rpm                = msg->current_pump_rpm;
+        avg_pump_return_pressure    = msg->pump_return_pressure;
+        avg_pump_supply_pressure    = msg->pump_supply_pressure;
+        avg_pump_supply_temperature = msg->pump_supply_temperature;
+        avg_motor_temperature       = msg->motor_temperature;
+        avg_motor_driver_temp       = msg->motor_driver_temperature;
+    }
 
 
-     // Set the alarm colors on raw values
-     if (msg->pump_supply_temperature>94.0)
-         ui->pst->setStyleSheet("background-color: red");
-     else if ((89.0 < msg->pump_supply_temperature) && (msg->pump_supply_temperature <= 94.0))
-         ui->pst->setStyleSheet("background-color: yellow");
-     else
-         ui->pst->setStyleSheet("background-color: white");
+    // Average the noisy signals (at 200Hz after 10 seconds only 0.002 remaining)
+    avg_inlet_pr               = 0.003*msg->pump_inlet_pressure      + 0.997*avg_inlet_pr            ;
+    avg_air_sump_pressure      = 0.003*msg->air_sump_pressure        + 0.997*avg_air_sump_pressure   ;
+    avg_pump_rpm               = 0.003*msg->current_pump_rpm         + 0.997*avg_pump_rpm            ;
+    avg_pump_return_pressure   = 0.003*msg->pump_return_pressure     + 0.997*avg_pump_return_pressure;
+    avg_pump_supply_pressure   = 0.003*msg->pump_supply_pressure     + 0.997*avg_pump_supply_pressure;
+    avg_pump_supply_temperature= 0.003*msg->pump_supply_temperature  + 0.997*avg_pump_supply_temperature;
+    avg_motor_temperature      = 0.003*msg->motor_temperature        + 0.997*avg_motor_temperature      ;
+    avg_motor_driver_temp      = 0.003*msg->motor_driver_temperature + 0.997*avg_motor_driver_temp      ;
 
-     if (msg->motor_temperature>149.0)
-         ui->mt->setStyleSheet("background-color: red");
-     else if((124.0<msg->motor_temperature) && (msg->motor_temperature <=149.0))
-         ui->mt->setStyleSheet("background-color: yellow");
-     else
-         ui->mt->setStyleSheet("background-color: white");
+    // Update the text
+    ui->inlet->setText(QString::number(avg_inlet_pr,'f',2));
+    ui->sump->setText(QString::number(avg_air_sump_pressure,'f',2));
+    ui->rpm->setText(QString::number(avg_pump_rpm,'f',2));
+    ui->return_2->setText(QString::number(avg_pump_return_pressure,'f',2));
+    ui->supply->setText(QString::number(avg_pump_supply_pressure,'f',2));
+    ui->pst->setText(QString::number(avg_pump_supply_temperature,'f',2));
+    ui->mt->setText(QString::number(avg_motor_temperature,'f',2));
+    ui->mdt->setText(QString::number(avg_motor_driver_temp,'f',2));
 
-     if (msg->motor_driver_temperature>59.0)
-         ui->mdt->setStyleSheet("background-color: red");
-     else if ((54.0 < msg->motor_driver_temperature) && (msg->motor_driver_temperature<59.0))
-         ui->mdt->setStyleSheet("background-color: yellow");
-     else
-         ui->mdt->setStyleSheet("background-color: white");
-
-     // code to detect fault in inlet pressure
-     if (msg->pump_inlet_pressure<50.0)
-         ui->inlet->setStyleSheet("background-color: red");
-     else if((50.0<msg->pump_inlet_pressure) && (msg->pump_inlet_pressure <70.0))
-         ui->inlet->setStyleSheet("background-color: yellow");
-     else
-         ui->inlet->setStyleSheet("background-color: white");
-
-     if (avg_air_sump_pressure<50.0)
-         ui->sump->setStyleSheet("background-color: red");
-     else if((50.0 <avg_air_sump_pressure) && (avg_air_sump_pressure<70.0))
-         ui->sump->setStyleSheet("background-color: yellow");
-     else
-         ui->sump->setStyleSheet("background-color: white");
-
-     if (msg->pump_return_pressure<50)
-         ui->return_2->setStyleSheet("background-color: red");
-     else if((50.0 <msg->pump_return_pressure) && (msg->pump_return_pressure<70.0))
-         ui->return_2->setStyleSheet("background-color: yellow");
-     else
-         ui->return_2->setStyleSheet("background-color: white");
+    // Just set the time meter (no averaging)
+    ui->timemeter->setText(QString::number(msg->pump_time_meter,'f',2));
 
 
-     if (msg->pump_supply_pressure<1500.0)
-         ui->supply->setStyleSheet("background-color: red");
-     else if ((1500.0 <msg->pump_supply_pressure) && (msg->pump_supply_pressure<2700.0))
-         ui->supply->setStyleSheet("background-color: yellow");
-     else
-         ui->supply->setStyleSheet("background-color: white");
+    // Set the alarm colors on raw values
+    if (msg->pump_supply_temperature>94.0)
+        ui->pst->setStyleSheet("background-color: red");
+    else if ((89.0 < msg->pump_supply_temperature) && (msg->pump_supply_temperature <= 94.0))
+        ui->pst->setStyleSheet("background-color: yellow");
+    else
+        ui->pst->setStyleSheet("background-color: white");
 
-     // check if we are connected to the robotfalse
-     if(msg->robot_connected==1)
-     {
-         ui->connect->setText("DISCONNECT");
-         ui->connect->setStyleSheet("background-color: red; color: black");
+    if (msg->motor_temperature>149.0)
+        ui->mt->setStyleSheet("background-color: red");
+    else if((124.0<msg->motor_temperature) && (msg->motor_temperature <=149.0))
+        ui->mt->setStyleSheet("background-color: yellow");
+    else
+        ui->mt->setStyleSheet("background-color: white");
 
-         ui->pr->setEnabled(true);
-         ui->high->setEnabled(true);
-         ui->off->setEnabled(true);
-         ui->low->setEnabled(true);
-     }
-     if(msg->robot_connected ==0)
-     {
-         ui->connect->setText("CONNECT");
-         ui->connect->setStyleSheet("background-color: green; color: black");
-         ui->start->setStyleSheet("background-color: gray; color: black");
-         ui->start->setEnabled(false);
-     }
-     // check if we need to enable start
-     if(msg->robot_run_state==0)
-       enableStart();
+    if (msg->motor_driver_temperature>59.0)
+        ui->mdt->setStyleSheet("background-color: red");
+    else if ((54.0 < msg->motor_driver_temperature) && (msg->motor_driver_temperature<59.0))
+        ui->mdt->setStyleSheet("background-color: yellow");
+    else
+        ui->mdt->setStyleSheet("background-color: white");
 
-     // check if run_state is different than idle to enable stop and all the other options in the UI
-     if(msg->robot_run_state!=0)
-     {
-         ui->start->setEnabled(true);
-         ui->start->setText("STOP");
-         ui->start->setStyleSheet("background-color: red; color: black");
-         ui->cs->setEnabled(true);
-         ui->cs_list->setEnabled(true);
-         ui->cur_st->setEnabled(true);
-         ui->last_stat->setEnabled(true);
-         ui->curst->setEnabled(true);
-         ui->stat->setEnabled(true);
-         ui->robo_st->setEnabled(true);
-         ui->d_label->setEnabled(true);
-         ui->d_state->setEnabled(true);
-         ui->r_state->setEnabled(true);
-         ui->send_mode->setEnabled(true);
-         ui->pinlet->setEnabled(true);
-         ui->inlet->setEnabled(true);
-         ui->psump->setEnabled(true);
-         ui->psupply->setEnabled(true);
-         ui->preturn->setEnabled(true);
-         ui->return_2->setEnabled(true);
-         ui->pressure->setEnabled(true);
-         ui->temperature->setEnabled(true);
-         ui->sump->setEnabled(true);
-         ui->supply->setEnabled(true);
-         ui->inlet->setEnabled(true);
-         ui->pr->setEnabled(false);
-         ui->off->setEnabled(false);
-         ui->low->setEnabled(false);
-         ui->high->setEnabled(false);
-         ui->rpm->setEnabled(true);
-         ui->prpm->setEnabled(true);
-         ui->timemeter->setEnabled(true);
-         ui->ptimemeter->setEnabled(true);
-         ui->rfault->setEnabled(true);
-         ui->fault->setEnabled(true);
-         ui->pst->setEnabled(true);
-         ui->ppst->setEnabled(true);
-         ui->mt->setEnabled(true);
-         ui->mdt->setEnabled(true);
-         ui->pmdt->setEnabled(true);
-         ui->pmt->setEnabled(true);
-     }
+    // code to detect fault in inlet pressure
+    if (msg->pump_inlet_pressure<50.0)
+        ui->inlet->setStyleSheet("background-color: red");
+    else if((50.0<msg->pump_inlet_pressure) && (msg->pump_inlet_pressure <70.0))
+        ui->inlet->setStyleSheet("background-color: yellow");
+    else
+        ui->inlet->setStyleSheet("background-color: white");
 
-     if(msg->robot_critical_fault==1)
-     {
+    if (avg_air_sump_pressure<50.0)
+        ui->sump->setStyleSheet("background-color: red");
+    else if((50.0 <avg_air_sump_pressure) && (avg_air_sump_pressure<70.0))
+        ui->sump->setStyleSheet("background-color: yellow");
+    else
+        ui->sump->setStyleSheet("background-color: white");
 
-         QLabel *fault_label = new QLabel();
-         fault_label->setStyleSheet("background-color:yellow");
-         QHBoxLayout *h = new QHBoxLayout();
-         h->addWidget(fault_label);
-         h->addWidget(ui->connect);
-         ui->widget->setLayout(h);
+    if (msg->pump_return_pressure<50)
+        ui->return_2->setStyleSheet("background-color: red");
+    else if((50.0 <msg->pump_return_pressure) && (msg->pump_return_pressure<70.0))
+        ui->return_2->setStyleSheet("background-color: yellow");
+    else
+        ui->return_2->setStyleSheet("background-color: white");
 
 
-     }
+    if (msg->pump_supply_pressure<1500.0)
+        ui->supply->setStyleSheet("background-color: red");
+    else if ((1500.0 <msg->pump_supply_pressure) && (msg->pump_supply_pressure<2700.0))
+        ui->supply->setStyleSheet("background-color: yellow");
+    else
+        ui->supply->setStyleSheet("background-color: white");
 
- }
- void Widget::robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg)
- {
+    // check if we are connected to the robotfalse
+    if(msg->robot_connected==1)
+    {
+        ui->connect->setText("DISCONNECT");
+        ui->connect->setStyleSheet("background-color: red; color: black");
 
-     ui->fault->setText(msg->message.c_str());
+        ui->pr->setEnabled(true);
+        ui->high->setEnabled(true);
+        ui->off->setEnabled(true);
+        ui->low->setEnabled(true);
+    }
+    if(msg->robot_connected ==0)
+    {
+        ui->connect->setText("CONNECT");
+        ui->connect->setStyleSheet("background-color: green; color: black");
+        ui->start->setStyleSheet("background-color: gray; color: black");
+        ui->start->setEnabled(false);
+    }
+    // check if we need to enable start
+    if(msg->robot_run_state==0)
+        enableStart();
 
- }
+    // check if run_state is different than idle to enable stop and all the other options in the UI
+    if(msg->robot_run_state!=0)
+    {
+        ui->start->setEnabled(true);
+        ui->start->setText("STOP");
+        ui->start->setStyleSheet("background-color: red; color: black");
+        ui->cs->setEnabled(true);
+        ui->cs_list->setEnabled(true);
+        ui->cur_st->setEnabled(true);
+        ui->last_stat->setEnabled(true);
+        ui->curst->setEnabled(true);
+        ui->stat->setEnabled(true);
+        ui->robo_st->setEnabled(true);
+        ui->d_label->setEnabled(true);
+        ui->d_state->setEnabled(true);
+        ui->r_state->setEnabled(true);
+        ui->send_mode->setEnabled(true);
+        ui->pinlet->setEnabled(true);
+        ui->inlet->setEnabled(true);
+        ui->psump->setEnabled(true);
+        ui->psupply->setEnabled(true);
+        ui->preturn->setEnabled(true);
+        ui->return_2->setEnabled(true);
+        ui->pressure->setEnabled(true);
+        ui->temperature->setEnabled(true);
+        ui->sump->setEnabled(true);
+        ui->supply->setEnabled(true);
+        ui->inlet->setEnabled(true);
+        ui->pr->setEnabled(false);
+        ui->off->setEnabled(false);
+        ui->low->setEnabled(false);
+        ui->high->setEnabled(false);
+        ui->rpm->setEnabled(true);
+        ui->prpm->setEnabled(true);
+        ui->timemeter->setEnabled(true);
+        ui->ptimemeter->setEnabled(true);
+        ui->rfault->setEnabled(true);
+        ui->fault->setEnabled(true);
+        ui->pst->setEnabled(true);
+        ui->ppst->setEnabled(true);
+        ui->mt->setEnabled(true);
+        ui->mdt->setEnabled(true);
+        ui->pmdt->setEnabled(true);
+        ui->pmt->setEnabled(true);
+    }
+
+    if(msg->robot_critical_fault==1)
+    {
+
+        QLabel *fault_label = new QLabel();
+        fault_label->setStyleSheet("background-color:yellow");
+        QHBoxLayout *h = new QHBoxLayout();
+        h->addWidget(fault_label);
+        h->addWidget(ui->connect);
+        ui->widget->setLayout(h);
+
+
+    }
+
+}
+void Widget::robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg)
+{
+
+    ui->fault->setText(msg->message.c_str());
+
+}
 
 void Widget:: behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg )
 {
@@ -652,22 +657,22 @@ void Widget::on_send_mode_clicked()
     if (ui->cs_list->currentItem()->text()=="FREEZE")
     {
         flor_control_msgs::FlorRobotStateCommand freeze ;
-       freeze.state_command  = flor_control_msgs::FlorRobotStateCommand::FREEZE;
+        freeze.state_command  = flor_control_msgs::FlorRobotStateCommand::FREEZE;
         pub.publish(freeze);
-   }
+    }
 
-   if (ui->cs_list->currentItem()->text()=="STAND")
-   {
+    if (ui->cs_list->currentItem()->text()=="STAND")
+    {
         flor_control_msgs::FlorRobotStateCommand stand ;
-       stand.state_command  = flor_control_msgs::FlorRobotStateCommand::STAND;
+        stand.state_command  = flor_control_msgs::FlorRobotStateCommand::STAND;
         pub.publish(stand);
-   }
+    }
 
 
     if (ui->cs_list->currentItem()->text()=="STAND PREP")
     {
         flor_control_msgs::FlorRobotStateCommand stand_prep ;
-       stand_prep.state_command= flor_control_msgs::FlorRobotStateCommand::STAND_PREP;
+        stand_prep.state_command= flor_control_msgs::FlorRobotStateCommand::STAND_PREP;
         pub.publish(stand_prep);
     }
 }

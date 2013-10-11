@@ -926,7 +926,7 @@ void CameraDisplayCustom::publishFullImageRequest()
     else
         cmd.mode = 1;
     cmd.publish_frequency = publish_frequency_;
-
+    
     // publish image request for full image
     img_req_pub_full_.publish( cmd );
 

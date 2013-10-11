@@ -14,9 +14,6 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
     ui(new Ui::CameraViewerCustomWidget)
 {
     ui->setupUi(this);
-
-    ui->camera_view_->init();
-
     this->setMouseTracking(true);
 
     connect(ui->pitch, SIGNAL(valueChanged(int)), this, SLOT(updatePitch(int)));
@@ -252,5 +249,4 @@ void CameraViewerCustomWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEve
         ui->camera_view_->requestSingleFeedImage();
     if(key_event->key == 54 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+c
         ui->camera_view_->requestSingleAreaImage();
-
 }
