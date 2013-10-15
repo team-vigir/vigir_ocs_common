@@ -44,8 +44,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     aux_layout->addWidget(views_list["Top Left"]);
     ui->center_parent_->setLayout(aux_layout);
 
-    //views_list["Top Right"] = new vigir_ocs::OrthoView(0,((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
-    views_list["Top Right"] = new vigir_ocs::OrthoView();
+    views_list["Top Right"] = new vigir_ocs::OrthoView(0,((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
+    //views_list["Top Right"] = new vigir_ocs::OrthoView();
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
     aux_layout->addWidget(views_list["Top Right"]);
@@ -69,8 +69,11 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     std::map<std::string, QWidget*>::iterator iter;
 
-    for (iter = views_list.begin(); iter != views_list.end(); ++iter)
+    int hack = 0;
+    for (iter = views_list.begin(); iter != views_list.end(); ++iter, hack++)
     {
+        if(iter->second != views_list["Top Right"])
+        {
         ((vigir_ocs::Base3DView*)iter->second)->simulationRobotToggled(true);
         ((vigir_ocs::Base3DView*)iter->second)->simulationRobotToggled(false);
 
@@ -96,6 +99,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
         QObject::connect(ui->template_widget, SIGNAL(templatePathChanged(QString)), iter->second, SLOT(templatePathChanged(QString)));
         QObject::connect(ui->templates, SIGNAL(toggled(bool)), iter->second, SLOT(templatesToggled(bool)));
         QObject::connect(ui->widget_tool, SIGNAL(toggled(bool)), iter->second, SLOT(markerRobotToggled(bool)));
+        }
     }
 
     std::string ip = ros::package::getPath("vigir_ocs_main_view")+"/icons/";

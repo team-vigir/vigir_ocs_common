@@ -244,7 +244,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
     {
         if(was_empty && ui->templateBox->count() > 0)
         {
-            ROS_ERROR("Seleting template 0");
+            //ROS_ERROR("Seleting template 0");
             ui->templateBox->setCurrentIndex(0);
             on_templateBox_activated(ui->templateBox->itemText(0));
             on_templateRadio_clicked();

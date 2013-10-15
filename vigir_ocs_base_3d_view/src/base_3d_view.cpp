@@ -80,6 +80,33 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         render_panel_->initialize( manager_->getSceneManager(), manager_ );
         //manager_ = new rviz::VisualizationManager( render_panel_ );
         //render_panel_->initialize( context->getSceneManager(), manager_ );
+
+        // Set topic that will be used as 0,0,0 -> reference for all the other transforms
+        // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
+        //manager_->setFixedFrame(base_frame_.c_str());
+
+        //manager_->initialize();
+        //manager_->startUpdate();
+
+        // First remove all existin tools
+        //manager_->getToolManager()->removeAll();
+        // Add support for interactive markers
+        //interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/InteractionToolCustom" );
+        // Add support for selection
+        //selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
+        // Add support for camera movement
+        //move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
+        // Add support for goal specification/vector navigation
+        //set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
+
+        // Make the move camera tool the currently selected one
+        //manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+
+        // Create a RobotModel display.
+        //robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
+        //ROS_ASSERT( robot_model_ != NULL );
+        //robot_model_->subProp( "Color" )->setValue( QColor( 200, 200, 200 ) );
+        //robot_model_->subProp( "Alpha" )->setValue( 1.0f );*/
     }
     else // need to create everything
     {
@@ -134,17 +161,17 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         // Add support for goal specification/vector navigation
         set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
 
-    // Create a LaserScan display.
-    laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
-    ROS_ASSERT( laser_scan_ != NULL );
-    laser_scan_->subProp( "Topic" )->setValue( "/laser/scan" );
-    laser_scan_->subProp( "Style" )->setValue( "Points" );
-    laser_scan_->subProp( "Size (Pixels)" )->setValue( 3 );
-    //laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
-    laser_scan_->subProp( "Decay Time" )->setValue( 5 );
-    laser_scan_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-    laser_scan_->subProp( "Axis" )->setValue( "Z" );
-    laser_scan_->subProp( "Selectable" )->setValue( false );
+        // Create a LaserScan display.
+        laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
+        ROS_ASSERT( laser_scan_ != NULL );
+        laser_scan_->subProp( "Topic" )->setValue( "/laser/scan" );
+        laser_scan_->subProp( "Style" )->setValue( "Points" );
+        laser_scan_->subProp( "Size (Pixels)" )->setValue( 3 );
+        //laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
+        laser_scan_->subProp( "Decay Time" )->setValue( 5 );
+        laser_scan_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+        laser_scan_->subProp( "Axis" )->setValue( "Z" );
+        laser_scan_->subProp( "Selectable" )->setValue( false );
 
         // Create a MarkerArray display.
         octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", false );
@@ -388,7 +415,6 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
 
     // advertise pointcloud request
     pointcloud_request_world_pub_ = n_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
-
     }
 
     // this is only used to make sure we close window if ros::shutdown has already been called
@@ -410,34 +436,6 @@ void Base3DView::timerEvent(QTimerEvent *event)
     // no need to spin as rviz is already doing that for us.
     //ros::spinOnce();
 }
-
-/*void Base3DView::init(rviz::VisualizationManager *manager)
-{
-    // Construct and lay out render panel.
-    render_panel_ = new rviz::RenderPanelCustom();
-    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
-    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::RightButton);
-    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
-
-    QVBoxLayout* main_layout = new QVBoxLayout;
-    main_layout->setMargin(0);
-    main_layout->addWidget( render_panel_ );
-
-    // Set the top-level layout for this MyViz widget.
-    setLayout( main_layout );
-
-    // Make signal/slot connections.
-    //connect( collision_checkbox, SIGNAL( valueChanged( int )), this, SLOT( setCollision( bool )));
-
-    // Next we initialize the main RViz classes.
-    //
-    // The VisualizationManager is the container for Display objects,
-    // holds the main Ogre scene, holds the ViewController, etc.  It is
-    // very central and we will probably need one in every usage of
-    // librviz.
-    manager_ = new rviz::VisualizationManager( render_panel_ );
-    render_panel_->initialize( manager_->getSceneManager(), manager_ );
-}*/
 
 void Base3DView::init()
 {
@@ -542,7 +540,7 @@ void Base3DView::cameraToggled( bool selected )
         // enable robot IK markers
         for( int i = 0; i < im_ghost_robot_.size(); i++ )
         {
-            im_ghost_robot_[i]->setEnabled( false );
+            //im_ghost_robot_[i]->setEnabled( false );
         }
 
         // disable template marker
@@ -590,7 +588,7 @@ void Base3DView::markerTemplateToggled( bool selected )
         // disable robot IK markers
         for( int i = 0; i < im_ghost_robot_.size(); i++ )
         {
-            im_ghost_robot_[i]->setEnabled( false );
+            //im_ghost_robot_[i]->setEnabled( false );
         }
         // enable template markers
         Q_EMIT enableTemplateMarkers( true );
