@@ -863,14 +863,14 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
         joint_states.header.frame_id = std::string("/")+hand+std::string("_hand_model/")+hand+"_palm";
 
         // must match the order used in the .grasp file
-        joint_states.name.push_back(hand+"_finger[0]_proximal");
-        joint_states.name.push_back(hand+"_finger[1]_proximal");
-        joint_states.name.push_back(hand+"_finger[2]_proximal");
-        joint_states.name.push_back(hand+"_finger[0]_base_rotation"); // .grasp finger position [4] -> IGNORE [3], use [4] for both
-        joint_states.name.push_back(hand+"_finger[1]_base_rotation");// .grasp finger position [4]
-        joint_states.name.push_back(hand+"_finger[0]_distal"); // 0 for now
-        joint_states.name.push_back(hand+"_finger[1]_distal");// 0 for now
-        joint_states.name.push_back(hand+"_finger[2]_distal");// 0 for now
+        joint_states.name.push_back(hand+"_f0_j1");
+        joint_states.name.push_back(hand+"_f1_j1");
+        joint_states.name.push_back(hand+"_f2_j1");
+        joint_states.name.push_back(hand+"_f0_j0"); // .grasp finger position [4] -> IGNORE [3], use [4] for both
+        joint_states.name.push_back(hand+"_f1_j0"); // .grasp finger position [4]
+        joint_states.name.push_back(hand+"_f0_j3"); // 0 for now
+        joint_states.name.push_back(hand+"_f1_j3"); // 0 for now
+        joint_states.name.push_back(hand+"_f2_j3"); // 0 for now
 
         joint_states.position.resize(joint_states.name.size());
         joint_states.effort.resize(joint_states.name.size());
@@ -987,20 +987,22 @@ int graspWidget::staticTransform(geometry_msgs::Pose& palm_pose)
 
     if(hand_type == "irobot")
     {
-        pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0, 1,0,0,0,0,1),tf::Vector3(0.0173,-0.0587,-0.0061)); // but we need to got to right_palm
+
+        pg_T_rhand = tf::Transform(tf::Matrix3x3(1,0,0,0,1,0,0,0,1),tf::Vector3(0.0,0.0,0.0)); // but we need to got to right_palm
+        pg_T_lhand = tf::Transform(tf::Matrix3x3(-1,0,0,0,-1,0,0,0,1),tf::Vector3(0.0,0.0,0.0)); // but we need to got to left_palm
     }
     else
     {
         pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0, 1,0,0,0,0,1),tf::Vector3(0.0173,-0.0587,-0.0061)); // but we need to got to right_palm
-    }
-    pg_T_rhand.inverse();
+        pg_T_rhand.inverse();
 
-    tf::Quaternion left_quat = pg_T_rhand.getRotation();
-    //left_quat.setW(-left_quat.w());
-    left_quat.setX(-left_quat.x());
-    tf::Vector3 left_pos = pg_T_rhand.getOrigin();
-    left_pos.setX(-left_pos.x());
-    pg_T_lhand = tf::Transform(left_quat,left_pos); // but we need to got to left_palm
+        tf::Quaternion left_quat = pg_T_rhand.getRotation();
+        //left_quat.setW(-left_quat.w());
+        left_quat.setX(-left_quat.x());
+        tf::Vector3 left_pos = pg_T_rhand.getOrigin();
+        left_pos.setX(-left_pos.x());
+        pg_T_lhand = tf::Transform(left_quat,left_pos); // but we need to got to left_palm
+    }
 
     if(hand == "right")
     {
