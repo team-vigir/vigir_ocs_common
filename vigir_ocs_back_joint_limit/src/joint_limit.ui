@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>440</width>
-    <height>301</height>
+    <height>562</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -300,14 +300,14 @@
       <property name="margin">
        <number>0</number>
       </property>
-      <item row="3" column="0">
+      <item row="4" column="0">
        <widget class="QLabel" name="label_13">
         <property name="text">
          <string>Octomap Max Height</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
+      <item row="2" column="1">
        <widget class="QDoubleSpinBox" name="padding_">
         <property name="decimals">
          <number>3</number>
@@ -326,7 +326,7 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
+      <item row="2" column="0">
        <widget class="QLabel" name="label_10">
         <property name="text">
          <string>Link Padding</string>
@@ -350,14 +350,14 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="3" column="0">
        <widget class="QLabel" name="label_12">
         <property name="text">
          <string>Trajectory Time Factor</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="3" column="1">
        <widget class="QDoubleSpinBox" name="time_factor_">
         <property name="decimals">
          <number>3</number>
@@ -376,7 +376,7 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="4" column="1">
        <widget class="QDoubleSpinBox" name="octomap_height_">
         <property name="decimals">
          <number>3</number>
@@ -395,14 +395,14 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
+      <item row="5" column="0">
        <widget class="QLabel" name="label_14">
         <property name="text">
          <string>Octomap Clearance Cube</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="5" column="1">
        <widget class="QDoubleSpinBox" name="octomap_clearance_cube_dimensions_">
         <property name="decimals">
          <number>3</number>
@@ -416,6 +416,35 @@
         <property name="value">
          <double>0.100000000000000</double>
         </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_15">
+        <property name="text">
+         <string>Constraints Presets</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="Presets_comboBox">
+        <property name="currentIndex">
+         <number>2</number>
+        </property>
+        <item>
+         <property name="text">
+          <string>All open</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>All Closed</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Free Yaw, Fwd Pitch, Small Roll</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
