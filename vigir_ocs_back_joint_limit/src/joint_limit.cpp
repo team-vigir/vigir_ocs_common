@@ -8,9 +8,7 @@ joint_limit::joint_limit(QWidget *parent) :
     ui(new Ui::joint_limit)
 {
     ui->setupUi(this);
-
     constraints_pub_ = nh_.advertise<flor_planning_msgs::PlannerConfiguration>( "/flor/planning/upper_body/configuration",1,false);
-
     lbzMinVal = -0.610865;
     lbzMaxVal = 0.610865;
 
@@ -19,7 +17,6 @@ joint_limit::joint_limit(QWidget *parent) :
 
     ubxMinVal = -0.790809;
     ubxMaxVal = 0.790809;
-
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &joint_limit::processNewKeyEvent, this );
 
     timer.start(33, this);
@@ -29,7 +26,6 @@ joint_limit::~joint_limit()
 {
     delete ui;
 }
-
 void joint_limit::on_lbzMin_sliderReleased()
 {
     if(ui->lbzMin->value() >= lbzMaxVal*1000000.0)
@@ -133,28 +129,48 @@ void joint_limit::timerEvent(QTimerEvent *event)
     ros::spinOnce();
 }
 
-void joint_limit::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
 {
-    // store key state
-    if(key_event->state)
-        keys_pressed_list_.push_back(key_event->key);
-    else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
-
-    // process hotkeys
-    std::vector<int>::iterator key_is_pressed;
-
-    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    if(key_event->key == 13 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+4
-    {
-        if(this->isVisible())
-        {
-            this->hide();
-        }
-        else
-        {
-            this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
-            this->show();
-        }
+    switch(index){
+    case 0:
+        lbzMinVal = -0.610865;
+        lbzMaxVal = 0.610865;
+        mbyMinVal = -1.2;
+        mbyMaxVal = 1.28;
+        ubxMinVal = -0.790809;
+        ubxMaxVal = 0.790809;
+        break;
+    case 1:
+        lbzMinVal = 0.0;
+        lbzMaxVal = 0.0;
+        mbyMinVal = 0.0;
+        mbyMaxVal = 0.0;
+        ubxMinVal = 0.0;
+        ubxMaxVal = 0.0;
+        break;
+    case 2:
+        lbzMinVal = -0.610865;
+        lbzMaxVal = 0.610865;
+        mbyMinVal = 0.0;
+        mbyMaxVal = 0.28;
+        ubxMinVal = -0.2;
+        ubxMaxVal = 0.2;
+        break;
+    default: break;
     }
+
+    ui->lbzMin->setValue(lbzMinVal*1000000.0);
+    ui->lbzMinLabel->setText(QString::number(lbzMinVal,'g',6));
+    ui->lbzMax->setValue(lbzMaxVal*1000000.0);
+    ui->lbzMaxLabel->setText(QString::number(lbzMaxVal,'g',6));
+
+    ui->mbyMin->setValue(mbyMinVal*100.0);
+    ui->mbyMinLabel->setText(QString::number(mbyMinVal,'g',6));
+    ui->mbyMax->setValue(mbyMaxVal*100.0);
+    ui->mbyMaxLabel->setText(QString::number(mbyMaxVal,'g',6));
+
+    ui->ubxMin->setValue(ubxMinVal*1000000.0);
+    ui->ubxMinLabel->setText(QString::number(ubxMinVal,'g',6));
+    ui->ubxMax->setValue(ubxMaxVal*1000000.0);
+    ui->ubxMaxLabel->setText(QString::number(ubxMaxVal,'g',6));
 }
