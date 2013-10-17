@@ -37,7 +37,7 @@ class ImageVideoManagerWidget;
 class ImageVideoManagerWidget : public QWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit ImageVideoManagerWidget(QWidget *parent = 0);
     ~ImageVideoManagerWidget();
@@ -159,7 +159,7 @@ private:
     ros::Subscriber img_req_sub_crop_lhr_ ;
     ros::Subscriber img_req_sub_crop_rhl_ ;
     ros::Subscriber img_req_sub_crop_rhr_ ;
-    
+
 
 
 
@@ -170,6 +170,10 @@ private Q_SLOTS:
     void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
     void on_timeslider_valueChanged(int value);
     //void on_pushButton_clicked();
+
+
+
+    void on_cameralist_currentIndexChanged(int index);
 
 private:
     QBasicTimer timer;

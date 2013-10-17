@@ -21,7 +21,7 @@
 ImageVideoManagerWidget::ImageVideoManagerWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ImageVideoManagerWidget)
-{    
+{
     ui->setupUi(this);
     feed_rate_l=feed_rate_r=feed_rate_lhl=feed_rate_lhr=feed_rate_rhl=feed_rate_rhr= -1;
     feed_rate_prev_l=feed_rate_prev_r=feed_rate_prev_lhl=feed_rate_prev_lhr=feed_rate_prev_rhl=feed_rate_prev_rhr = -1;
@@ -398,7 +398,6 @@ void ImageVideoManagerWidget:: imageaddfunction_r(const flor_ocs_msgs::OCSImageA
         ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
       }
 
-<<<<<<< HEAD
     else
         if(feed_rate_r>0.0f)
     {
@@ -445,10 +444,6 @@ void ImageVideoManagerWidget:: imageaddfunction_lhl(const flor_ocs_msgs::OCSImag
 {
     ROS_ERROR("in lhl image");
     if(feed_rate_lhl==0.0f)
-=======
-    //ROS_ERROR("In Process Image Add%f",feed_rate);
-    if(feed_rate==0.0f)
->>>>>>> c60073c70667efc6298fb4329ce837aa1e8d0624
       {
         imagecount_lhl++;
         item_lhl = addimageitem(imagecount_lhl,msg->image);
@@ -662,7 +657,7 @@ void ImageVideoManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList
 {
     // reset table
     //ui->treeWidget->clear();
-    //ROS_ERROR("in process image list");
+    ROS_ERROR("in process image list");
 
 
 
@@ -672,7 +667,7 @@ void ImageVideoManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList
 void ImageVideoManagerWidget::processSelectedImage(const sensor_msgs::Image::ConstPtr &msg)
 {
     // image
-    //ROS_ERROR("Encoding: %s", msg->encoding.c_str());
+    ROS_ERROR("Encoding: %s", msg->encoding.c_str());
 
     double aspect_ratio = (double)msg->width/(double)msg->height;
    // ROS_ERROR("Size: %dx%d aspect %f", msg->width, msg->height, aspect_ratio);
@@ -758,13 +753,8 @@ void ImageVideoManagerWidget::processvideoimage_lhr (const flor_perception_msgs:
 void ImageVideoManagerWidget::processvideoimage_rhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
 {
     //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
-<<<<<<< HEAD
         feed_rate_rhl = msg->publish_frequency;
     ROS_ERROR("in process video imagerhl.feed rate = %f", feed_rate_rhl);
-=======
-        feed_rate = msg->publish_frequency;
-    //ROS_ERROR("in process video image.feed rate = %f", feed_rate);
->>>>>>> c60073c70667efc6298fb4329ce837aa1e8d0624
 
 }
 void ImageVideoManagerWidget::processvideoimage_rhr (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
@@ -887,3 +877,32 @@ void ImageVideoManagerWidget::on_pushButton_clicked()
         }
 
 }*/
+
+
+
+
+
+void ImageVideoManagerWidget::on_cameralist_currentIndexChanged(int index)
+{
+    int toplevelitemcount = ui->treeWidget->topLevelItemCount();
+    QString camera;
+    QTreeWidgetItem * item;
+    switch(index)
+    {
+    case 0: camera="l_image_full";break;
+    case 1: camera = "r_image_full"; break;
+    case 2: camera = "lhl_image_full"; break;
+    case 3: camera = "lhr_image_full"; break;
+    case 4: camera = "rhr_image_full";break;
+    case 5: camera = "rhl_image_full";break;
+    }
+    for (int i =0;i<toplevelitemcount;i++)
+    {
+        if(ui->treeWidget->topLevelItem(i)->text(2)!=camera)
+        {
+            item=ui->treeWidget->topLevelItem(i);
+            item->setHidden(true);
+
+        }
+    }
+}
