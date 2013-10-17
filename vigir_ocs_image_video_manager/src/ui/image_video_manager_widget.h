@@ -45,33 +45,97 @@ public:
     void processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr& msg);
     void processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg);
     void processSelectedImage(const sensor_msgs::Image::ConstPtr& msg);
-    void processvideoimage (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
+    void processvideoimage_l (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
+    void processvideoimage_r (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
+    void processvideoimage_lhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
+    void processvideoimage_lhr (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
+    void processvideoimage_rhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
+    void processvideoimage_rhr(const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
+
     void addImageChild(QTreeWidgetItem *parent, const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info);
     QTreeWidgetItem* addvideoitem(int videocount,const sensor_msgs::Image& image);
     QTreeWidgetItem* addimageitem(int imagecount,const sensor_msgs::Image& image);
     bool check_item_time(QTreeWidgetItem *item, int time);
     void settree_show();
-    QTreeWidgetItem* add_time_child(QTreeWidgetItem *pitem);
-    int video_start_time, subseq_video_time;
-    int video_start_time_nano, subseq_video_time_nano;
+    QTreeWidgetItem* add_time_child(QTreeWidgetItem *pitem, int cnt);
+    void thumbnail(const sensor_msgs::Image& image,QTreeWidgetItem *item);
+    void imageaddfunction_l(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg);
+    void imageaddfunction_r(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg);
+    void imageaddfunction_lhl(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg);
+    void imageaddfunction_lhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg);
+    void imageaddfunction_rhl(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg);
+    void imageaddfunction_rhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg);
 
-    /*void removeImage(int id);
+// for adding images to widget
 
-    void initImageIdMap();*/
+    int video_start_time_l, subseq_video_time_l,childtimeitem_start_time_l;
+    int video_start_time_r, subseq_video_time_r,childtimeitem_start_time_r;
+    int video_start_time_lhr, subseq_video_time_lhr,childtimeitem_start_time_lhr;
+    int video_start_time_lhl, subseq_video_time_lhl,childtimeitem_start_time_lhl;
+    int video_start_time_rhr, subseq_video_time_rhr,childtimeitem_start_time_rhr;
+    int video_start_time_rhl, subseq_video_time_rhl,childtimeitem_start_time_rhl;
+
+
 
 
 private:
     void addImage(const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info);
     QString timeFromMsg(const ros::Time& stamp);
-    float feed_rate;
-    float feed_rate_prev;
+    float feed_rate_l;
+    float feed_rate_r;
+    float feed_rate_lhl;
+    float feed_rate_lhr;
+    float feed_rate_rhl;
+    float feed_rate_rhr;
+    float feed_rate_prev_l;
+    float feed_rate_prev_r;
+    float feed_rate_prev_lhl;
+    float feed_rate_prev_lhr;
+    float feed_rate_prev_rhl;
+    float feed_rate_prev_rhr;
     Ui::ImageVideoManagerWidget* ui;
-    QTreeWidgetItem *item;
-    QTreeWidgetItem *parentitem;
-    QTreeWidgetItem *timeitem;
-    int videocount;
-    int imagecount;
-    int interval_count;
+    QTreeWidgetItem *item_l;
+    QTreeWidgetItem *parentitem_l;
+    QTreeWidgetItem *timeitem_l;
+    QTreeWidgetItem *childtimeitem_l;
+    QTreeWidgetItem *item_r;
+    QTreeWidgetItem *parentitem_r;
+    QTreeWidgetItem *timeitem_r;
+    QTreeWidgetItem *childtimeitem_r;
+    QTreeWidgetItem *item_lhl;
+    QTreeWidgetItem *parentitem_lhl;
+    QTreeWidgetItem *timeitem_lhl;
+    QTreeWidgetItem *childtimeitem_lhl;
+    QTreeWidgetItem *item_lhr;
+    QTreeWidgetItem *parentitem_lhr;
+    QTreeWidgetItem *timeitem_lhr;
+    QTreeWidgetItem *childtimeitem_lhr;
+    QTreeWidgetItem *item_rhl;
+    QTreeWidgetItem *parentitem_rhl;
+    QTreeWidgetItem *timeitem_rhl;
+    QTreeWidgetItem *childtimeitem_rhl;
+    QTreeWidgetItem *item_rhr;
+    QTreeWidgetItem *parentitem_rhr;
+    QTreeWidgetItem *timeitem_rhr;
+    QTreeWidgetItem *childtimeitem_rhr;
+    int videocount_l;
+    int imagecount_l;
+    int interval_count_l;
+    int videocount_lhl;
+    int imagecount_lhl;
+    int interval_count_lhl;
+    int videocount_lhr;
+    int imagecount_lhr;
+    int interval_count_lhr;
+    int videocount_r;
+    int imagecount_r;
+    int interval_count_r;
+    int videocount_rhr;
+    int imagecount_rhr;
+    int interval_count_rhr;
+    int videocount_rhl;
+    int imagecount_rhl;
+    int interval_count_rhl;
 
     ros::NodeHandle nh_;
 
@@ -105,7 +169,7 @@ protected:
 private Q_SLOTS:
     void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
     void on_timeslider_valueChanged(int value);
-    void on_pushButton_clicked();
+    //void on_pushButton_clicked();
 
 private:
     QBasicTimer timer;
