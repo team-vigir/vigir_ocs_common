@@ -31,10 +31,10 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
         sp->setFocusPolicy( Qt::StrongFocus );
     }
 
-    ui->octomap_2->hide();
-    ui->lidar_point_cloud_2->hide();
-    ui->stereo_point_cloud_2->hide();
-    ui->laser_scan_2->hide();
+    //ui->octomap_2->hide();
+    //ui->lidar_point_cloud_2->hide();
+    //ui->stereo_point_cloud_2->hide();
+    //ui->laser_scan_2->hide();
 }
 
 MapViewWidget::~MapViewWidget()

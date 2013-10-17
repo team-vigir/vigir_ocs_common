@@ -398,6 +398,7 @@ void ImageVideoManagerWidget:: imageaddfunction_r(const flor_ocs_msgs::OCSImageA
         ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
       }
 
+<<<<<<< HEAD
     else
         if(feed_rate_r>0.0f)
     {
@@ -444,6 +445,10 @@ void ImageVideoManagerWidget:: imageaddfunction_lhl(const flor_ocs_msgs::OCSImag
 {
     ROS_ERROR("in lhl image");
     if(feed_rate_lhl==0.0f)
+=======
+    //ROS_ERROR("In Process Image Add%f",feed_rate);
+    if(feed_rate==0.0f)
+>>>>>>> c60073c70667efc6298fb4329ce837aa1e8d0624
       {
         imagecount_lhl++;
         item_lhl = addimageitem(imagecount_lhl,msg->image);
@@ -657,7 +662,7 @@ void ImageVideoManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList
 {
     // reset table
     //ui->treeWidget->clear();
-    ROS_ERROR("in process image list");
+    //ROS_ERROR("in process image list");
 
 
 
@@ -667,7 +672,7 @@ void ImageVideoManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList
 void ImageVideoManagerWidget::processSelectedImage(const sensor_msgs::Image::ConstPtr &msg)
 {
     // image
-    ROS_ERROR("Encoding: %s", msg->encoding.c_str());
+    //ROS_ERROR("Encoding: %s", msg->encoding.c_str());
 
     double aspect_ratio = (double)msg->width/(double)msg->height;
    // ROS_ERROR("Size: %dx%d aspect %f", msg->width, msg->height, aspect_ratio);
@@ -753,8 +758,13 @@ void ImageVideoManagerWidget::processvideoimage_lhr (const flor_perception_msgs:
 void ImageVideoManagerWidget::processvideoimage_rhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
 {
     //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
+<<<<<<< HEAD
         feed_rate_rhl = msg->publish_frequency;
     ROS_ERROR("in process video imagerhl.feed rate = %f", feed_rate_rhl);
+=======
+        feed_rate = msg->publish_frequency;
+    //ROS_ERROR("in process video image.feed rate = %f", feed_rate);
+>>>>>>> c60073c70667efc6298fb4329ce837aa1e8d0624
 
 }
 void ImageVideoManagerWidget::processvideoimage_rhr (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)

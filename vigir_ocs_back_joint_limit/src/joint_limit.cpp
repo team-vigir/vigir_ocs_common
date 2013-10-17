@@ -123,3 +123,49 @@ void joint_limit::timerEvent(QTimerEvent *event)
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
 }
+
+void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
+{
+    switch(index){
+    case 0:
+        lbzMinVal = -0.610865;
+        lbzMaxVal = 0.610865;
+        mbyMinVal = -1.2;
+        mbyMaxVal = 1.28;
+        ubxMinVal = -0.790809;
+        ubxMaxVal = 0.790809;
+        break;
+    case 1:
+        lbzMinVal = 0.0;
+        lbzMaxVal = 0.0;
+        mbyMinVal = 0.0;
+        mbyMaxVal = 0.0;
+        ubxMinVal = 0.0;
+        ubxMaxVal = 0.0;
+        break;
+    case 2:
+        lbzMinVal = -0.610865;
+        lbzMaxVal = 0.610865;
+        mbyMinVal = 0.0;
+        mbyMaxVal = 0.28;
+        ubxMinVal = -0.2;
+        ubxMaxVal = 0.2;
+        break;
+    default: break;
+    }
+
+    ui->lbzMin->setValue(lbzMinVal*1000000.0);
+    ui->lbzMinLabel->setText(QString::number(lbzMinVal,'g',6));
+    ui->lbzMax->setValue(lbzMaxVal*1000000.0);
+    ui->lbzMaxLabel->setText(QString::number(lbzMaxVal,'g',6));
+
+    ui->mbyMin->setValue(mbyMinVal*100.0);
+    ui->mbyMinLabel->setText(QString::number(mbyMinVal,'g',6));
+    ui->mbyMax->setValue(mbyMaxVal*100.0);
+    ui->mbyMaxLabel->setText(QString::number(mbyMaxVal,'g',6));
+
+    ui->ubxMin->setValue(ubxMinVal*1000000.0);
+    ui->ubxMinLabel->setText(QString::number(ubxMinVal,'g',6));
+    ui->ubxMax->setValue(ubxMaxVal*1000000.0);
+    ui->ubxMaxLabel->setText(QString::number(ubxMaxVal,'g',6));
+}

@@ -126,7 +126,9 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
     ROS_ASSERT( laser_scan_ != NULL );
     laser_scan_->subProp( "Topic" )->setValue( "/laser/scan" );
-    laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
+    laser_scan_->subProp( "Style" )->setValue( "Points" );
+    laser_scan_->subProp( "Size (Pixels)" )->setValue( 3 );
+    //laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
     laser_scan_->subProp( "Decay Time" )->setValue( 5 );
     laser_scan_->subProp( "Color Transformer" )->setValue( "AxisColor" );
     laser_scan_->subProp( "Axis" )->setValue( "Z" );
@@ -1144,8 +1146,8 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
         Ogre::Quaternion orientation(1,0,0,0);
         transform(position, orientation, "/pelvis", "/world");
 
-        ROS_ERROR("ROTATION PELVIS: %f %f %f",orientation.getPitch().valueDegrees(),orientation.getYaw().valueDegrees(),orientation.getRoll().valueDegrees());
-        ROS_ERROR("ROTATION GHOST : %f %f %f",original_orientation.getPitch().valueDegrees(),original_orientation.getYaw().valueDegrees(),original_orientation.getRoll().valueDegrees());
+        //ROS_ERROR("ROTATION PELVIS: %f %f %f",orientation.getPitch().valueDegrees(),orientation.getYaw().valueDegrees(),orientation.getRoll().valueDegrees());
+        //ROS_ERROR("ROTATION GHOST : %f %f %f",original_orientation.getPitch().valueDegrees(),original_orientation.getYaw().valueDegrees(),original_orientation.getRoll().valueDegrees());
 
         Ogre::Quaternion final_orientation = Ogre::Quaternion(original_orientation.getRoll(), Ogre::Vector3::UNIT_Z) * Ogre::Quaternion(orientation.getPitch(), Ogre::Vector3::UNIT_X) * Ogre::Quaternion(orientation.getYaw(), Ogre::Vector3::UNIT_Y);
 
@@ -1215,7 +1217,7 @@ void Base3DView::publishMarkers()
 
 void Base3DView::resetView()
 {
-    ROS_ERROR("RESET VIEW");
+    //ROS_ERROR("RESET VIEW");
     manager_->getViewManager()->getCurrent()->reset();
     Ogre::Vector3 position(0,0,0);
     Ogre::Quaternion orientation(1,0,0,0);
