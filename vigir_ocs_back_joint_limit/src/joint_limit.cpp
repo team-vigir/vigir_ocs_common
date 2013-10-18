@@ -174,3 +174,29 @@ void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
     ui->ubxMax->setValue(ubxMaxVal*1000000.0);
     ui->ubxMaxLabel->setText(QString::number(ubxMaxVal,'g',6));
 }
+
+void joint_limit::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+{
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator key_is_pressed;
+
+    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    if(key_event->key == 13 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+4
+    {
+        if(this->isVisible())
+        {
+            this->hide();
+        }
+        else
+        {
+            this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+            this->show();
+        }
+    }
+}
