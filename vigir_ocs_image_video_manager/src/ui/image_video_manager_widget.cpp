@@ -268,12 +268,13 @@ void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsig
     //parent->setText(2,QString(topic.c_str()));
     //parent->parent()->setText(1,timeFromMsg(image.header.stamp));
     parent->addChild(item);
-     while(parent->parent())
+    while(parent)
       {
-        parent= parent->parent();
+
         parent->setText(1,timeFromMsg(image.header.stamp));
         parent->setText(2,QString(topic.c_str()));
         thumbnail(image,parent);
+        parent= parent->parent();
       }
 }
 
@@ -334,7 +335,7 @@ void ImageVideoManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::
  }
 void ImageVideoManagerWidget:: imageaddfunction_l(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
 {
-    ROS_ERROR("in l image");
+
     if(feed_rate_l==0.0f)
       {
         imagecount_l++;
@@ -345,12 +346,13 @@ void ImageVideoManagerWidget:: imageaddfunction_l(const flor_ocs_msgs::OCSImageA
 
     else
         if(feed_rate_l>0.0f)
-    {
+    {   ROS_ERROR("in l image");
         subseq_video_time_l=(int)msg->image.header.stamp.toSec();
         //subseq_video_time_nano= ((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
         qDebug()<<subseq_video_time_l;
         if(feed_rate_l!=feed_rate_prev_l)
         {
+
             videocount_l++;
             parentitem_l=addvideoitem(videocount_l,msg->image);
             interval_count_l=1;
@@ -510,7 +512,7 @@ void ImageVideoManagerWidget:: imageaddfunction_lhr(const flor_ocs_msgs::OCSImag
         subseq_video_time_lhr=(int)msg->image.header.stamp.toSec();
         //subseq_video_time_nano= ((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
         qDebug()<<subseq_video_time_lhr;
-        if(feed_rate_l!=feed_rate_prev_lhr)
+        if(feed_rate_lhr!=feed_rate_prev_lhr)
         {
             videocount_lhr++;
             parentitem_lhr=addvideoitem(videocount_lhr,msg->image);
@@ -887,22 +889,35 @@ void ImageVideoManagerWidget::on_cameralist_currentIndexChanged(int index)
     int toplevelitemcount = ui->treeWidget->topLevelItemCount();
     QString camera;
     QTreeWidgetItem * item;
+    for(int k=0;k<toplevelitemcount;k++)
+    {
+        ui->treeWidget->topLevelItem(k)->setHidden(false);
+    }
     switch(index)
     {
-    case 0: camera="l_image_full";break;
-    case 1: camera = "r_image_full"; break;
-    case 2: camera = "lhl_image_full"; break;
-    case 3: camera = "lhr_image_full"; break;
-    case 4: camera = "rhr_image_full";break;
-    case 5: camera = "rhl_image_full";break;
+    case 0: camera="/l_image_full";break;
+    case 1: camera = "/r_image_full"; break;
+    case 2: camera = "/lhl_image_full"; break;
+    case 3: camera = "/lhr_image_full"; break;
+    case 4: camera = "/rhr_image_full";break;
+    case 5: camera = "/rhl_image_full";break;
     }
     for (int i =0;i<toplevelitemcount;i++)
     {
+        if(index==6)
+            for(int k=0;k<toplevelitemcount;k++)
+            {
+                ui->treeWidget->topLevelItem(k)->setHidden(false);
+            }
+        else{
+        //ui->image_view->setText(ui->treeWidget->topLevelItem(i)->text(2));
         if(ui->treeWidget->topLevelItem(i)->text(2)!=camera)
         {
             item=ui->treeWidget->topLevelItem(i);
             item->setHidden(true);
+           // ui->image_view->setText(ui->treeWidget->topLevelItem(i)->text(2));
 
+        }
         }
     }
 }
