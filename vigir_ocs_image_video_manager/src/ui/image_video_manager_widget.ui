@@ -107,7 +107,7 @@
           <height>50</height>
          </size>
         </property>
-        <widget class="QWidget" name="">
+        <widget class="QWidget" name="layoutWidget">
          <property name="geometry">
           <rect>
            <x>1</x>
@@ -152,61 +152,43 @@
             </property>
             <item>
              <property name="text">
-              <string>l_image_full</string>
+              <string>Head Camera Left</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>r_image_full</string>
+              <string>Head Camera Right</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>lhl_image_full</string>
+              <string>Left Hand Camera Left</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>lhr_image_full</string>
+              <string>Left Hand Camera Right</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>rhl_image_full</string>
+              <string>Right Hand Camera Left</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>rhr_image_full</string>
+              <string>Right Hand Camera Right</string>
              </property>
             </item>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="gobutton">
-            <property name="minimumSize">
-             <size>
-              <width>50</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>50</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Go</string>
-            </property>
+            <item>
+             <property name="text">
+              <string>All</string>
+             </property>
+            </item>
            </widget>
           </item>
          </layout>
         </widget>
-        <zorder>widget_3</zorder>
-        <zorder>cameralist</zorder>
-        <zorder>gobutton</zorder>
-        <zorder>label</zorder>
        </widget>
       </item>
       <item>
@@ -308,7 +290,7 @@
        <string>Get History</string>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>1</x>
