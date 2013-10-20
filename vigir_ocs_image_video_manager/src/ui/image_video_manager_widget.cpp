@@ -199,7 +199,8 @@ void ImageVideoManagerWidget::thumbnail(const sensor_msgs::Image& image,QTreeWid
 
 
 }
-void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info)
+void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info,int flag)
+// flag to distinguish between image and video
 {
     /*int row = 0;
     ui->treeWidget->add;
@@ -262,6 +263,13 @@ void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsig
     // height
    // item = new QTreeWidgetItem(QString::number(image.height));
     item->setText(4,QString::number(image.height));
+    if(flag==0)
+    {
+       parent=item;
+       ui->treeWidget->insertTopLevelItem(0,item);
+    }
+    else
+    {
     parent->setText(1,timeFromMsg(image.header.stamp));
     thumbnail(image,parent);
 
@@ -276,6 +284,7 @@ void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsig
         thumbnail(image,parent);
         parent= parent->parent();
       }
+    }
 }
 
 QTreeWidgetItem* ImageVideoManagerWidget::addvideoitem(int videocount,const sensor_msgs::Image& image)
@@ -300,19 +309,19 @@ QTreeWidgetItem* ImageVideoManagerWidget::add_time_child(QTreeWidgetItem *pitem,
     pitem->addChild(iteml);
     return iteml;
 }
-QTreeWidgetItem* ImageVideoManagerWidget::addimageitem(int imagecount,const sensor_msgs::Image& image)
+/*QTreeWidgetItem* ImageVideoManagerWidget::addimageitem(int imagecount,const sensor_msgs::Image& image)
 // adding image events on getfeed()
 {
     ROS_ERROR("in add image");
     QTreeWidgetItem * item;
-    item = new QTreeWidgetItem();
-    thumbnail(image,item);
+   // item = new QTreeWidgetItem();
+    //thumbnail(image,item);
     //item->setText(0,"Image"+QString::number(imagecount));
-    item->setText(1,timeFromMsg(image.header.stamp));
-    item->setToolTip(1,QString::number((int)image.header.stamp.toSec()));
+    //item->setText(1,timeFromMsg(image.header.stamp));
+   // item->setToolTip(1,QString::number((int)image.header.stamp.toSec()));
     ui->treeWidget->insertTopLevelItem(0,item);
     return item;
-}
+}*/
 void ImageVideoManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
 {
 
@@ -339,8 +348,8 @@ void ImageVideoManagerWidget:: imageaddfunction_l(const flor_ocs_msgs::OCSImageA
     if(feed_rate_l==0.0f)
       {
         imagecount_l++;
-        item_l = addimageitem(imagecount_l,msg->image);
-        addImageChild(item_l,msg->id,msg->topic,msg->image,msg->camera_info);
+      //  item_l = addimageitem(imagecount_l,msg->image);
+        addImageChild(item_l,msg->id,msg->topic,msg->image,msg->camera_info,0);
         ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
       }
 
@@ -380,7 +389,7 @@ void ImageVideoManagerWidget:: imageaddfunction_l(const flor_ocs_msgs::OCSImageA
             childtimeitem_start_time_l = (int)msg->image.header.stamp.toSec();
 
      }
-     addImageChild(childtimeitem_l,msg->id,msg->topic,msg->image,msg->camera_info);
+     addImageChild(childtimeitem_l,msg->id,msg->topic,msg->image,msg->camera_info,1);
      ui->timeslider->setMaximum((msg->image).header.stamp.toSec());
 
      }
@@ -395,8 +404,8 @@ void ImageVideoManagerWidget:: imageaddfunction_r(const flor_ocs_msgs::OCSImageA
       {
         ROS_ERROR("in r image");
         imagecount_r++;
-        item_r = addimageitem(imagecount_r,msg->image);
-        addImageChild(item_r,msg->id,msg->topic,msg->image,msg->camera_info);
+        //item_r = addimageitem(imagecount_r,msg->image);
+        addImageChild(item_r,msg->id,msg->topic,msg->image,msg->camera_info,0);
         ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
       }
 
@@ -435,7 +444,7 @@ void ImageVideoManagerWidget:: imageaddfunction_r(const flor_ocs_msgs::OCSImageA
             childtimeitem_start_time_r = (int)msg->image.header.stamp.toSec();
 
      }
-     addImageChild(childtimeitem_r,msg->id,msg->topic,msg->image,msg->camera_info);
+     addImageChild(childtimeitem_r,msg->id,msg->topic,msg->image,msg->camera_info,1);
      ui->timeslider->setMaximum((msg->image).header.stamp.toSec());
 
      }
@@ -448,8 +457,8 @@ void ImageVideoManagerWidget:: imageaddfunction_lhl(const flor_ocs_msgs::OCSImag
     if(feed_rate_lhl==0.0f)
       {
         imagecount_lhl++;
-        item_lhl = addimageitem(imagecount_lhl,msg->image);
-        addImageChild(item_lhl,msg->id,msg->topic,msg->image,msg->camera_info);
+        //item_lhl = addimageitem(imagecount_lhl,msg->image);
+        addImageChild(item_lhl,msg->id,msg->topic,msg->image,msg->camera_info,0);
         ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
       }
 
@@ -488,7 +497,7 @@ void ImageVideoManagerWidget:: imageaddfunction_lhl(const flor_ocs_msgs::OCSImag
             childtimeitem_start_time_lhl = (int)msg->image.header.stamp.toSec();
 
      }
-     addImageChild(childtimeitem_lhl,msg->id,msg->topic,msg->image,msg->camera_info);
+     addImageChild(childtimeitem_lhl,msg->id,msg->topic,msg->image,msg->camera_info,1);
      ui->timeslider->setMaximum((msg->image).header.stamp.toSec());
 
      }
@@ -501,8 +510,8 @@ void ImageVideoManagerWidget:: imageaddfunction_lhr(const flor_ocs_msgs::OCSImag
     if(feed_rate_lhr==0.0f)
       {
         imagecount_lhr++;
-        item_lhr = addimageitem(imagecount_lhr,msg->image);
-        addImageChild(item_lhr,msg->id,msg->topic,msg->image,msg->camera_info);
+       // item_lhr = addimageitem(imagecount_lhr,msg->image);
+        addImageChild(item_lhr,msg->id,msg->topic,msg->image,msg->camera_info,0);
         ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
       }
 
@@ -541,7 +550,7 @@ void ImageVideoManagerWidget:: imageaddfunction_lhr(const flor_ocs_msgs::OCSImag
             childtimeitem_start_time_lhr = (int)msg->image.header.stamp.toSec();
 
      }
-     addImageChild(childtimeitem_lhr,msg->id,msg->topic,msg->image,msg->camera_info);
+     addImageChild(childtimeitem_lhr,msg->id,msg->topic,msg->image,msg->camera_info,1);
      ui->timeslider->setMaximum((msg->image).header.stamp.toSec());
 
      }
@@ -554,8 +563,8 @@ void ImageVideoManagerWidget:: imageaddfunction_rhr(const flor_ocs_msgs::OCSImag
     if(feed_rate_rhr==0.0f)
       {
         imagecount_rhr++;
-        item_rhr = addimageitem(imagecount_rhr,msg->image);
-        addImageChild(item_rhr,msg->id,msg->topic,msg->image,msg->camera_info);
+        //item_rhr = addimageitem(imagecount_rhr,msg->image);
+        addImageChild(item_rhr,msg->id,msg->topic,msg->image,msg->camera_info,0);
         ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
       }
 
@@ -594,7 +603,7 @@ void ImageVideoManagerWidget:: imageaddfunction_rhr(const flor_ocs_msgs::OCSImag
             childtimeitem_start_time_rhr = (int)msg->image.header.stamp.toSec();
 
      }
-     addImageChild(childtimeitem_rhr,msg->id,msg->topic,msg->image,msg->camera_info);
+     addImageChild(childtimeitem_rhr,msg->id,msg->topic,msg->image,msg->camera_info,1);
      ui->timeslider->setMaximum((msg->image).header.stamp.toSec());
 
      }
@@ -607,8 +616,8 @@ void ImageVideoManagerWidget:: imageaddfunction_rhl(const flor_ocs_msgs::OCSImag
     if(feed_rate_rhl==0.0f)
       {
         imagecount_rhl++;
-        item_rhl = addimageitem(imagecount_rhl,msg->image);
-        addImageChild(item_rhl,msg->id,msg->topic,msg->image,msg->camera_info);
+        //item_rhl = addimageitem(imagecount_rhl,msg->image);
+        addImageChild(item_rhl,msg->id,msg->topic,msg->image,msg->camera_info,0);
         ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
       }
 
@@ -647,7 +656,7 @@ void ImageVideoManagerWidget:: imageaddfunction_rhl(const flor_ocs_msgs::OCSImag
             childtimeitem_start_time_rhl = (int)msg->image.header.stamp.toSec();
 
      }
-     addImageChild(childtimeitem_rhl,msg->id,msg->topic,msg->image,msg->camera_info);
+     addImageChild(childtimeitem_rhl,msg->id,msg->topic,msg->image,msg->camera_info,1);
      ui->timeslider->setMaximum((msg->image).header.stamp.toSec());
 
      }
@@ -717,8 +726,8 @@ QString ImageVideoManagerWidget::timeFromMsg(const ros::Time& stamp)
     int min = sec / 60;
     sec -= min * 60;
     uint32_t nano = (stamp.toSec() - (int)stamp.toSec())*1000;
-    stream << std::setw(2) << std::setfill('0') << day << " ";
-    stream << std::setw(2) << std::setfill('0') << hour << ":";
+    //stream << std::setw(2) << std::setfill('0') << day << " ";
+    //stream << std::setw(2) << std::setfill('0') << hour << ":";
     stream << std::setw(2) << std::setfill('0') << min << ":";
     stream << std::setw(2) << std::setfill('0') << sec << ".";
     stream << std::setw(3) << std::setfill('0') << nano;

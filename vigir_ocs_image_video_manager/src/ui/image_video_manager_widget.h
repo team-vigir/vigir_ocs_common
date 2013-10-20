@@ -52,9 +52,9 @@ public:
     void processvideoimage_rhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
     void processvideoimage_rhr(const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
 
-    void addImageChild(QTreeWidgetItem *parent, const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info);
+    void addImageChild(QTreeWidgetItem *parent, const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info,int flag);
     QTreeWidgetItem* addvideoitem(int videocount,const sensor_msgs::Image& image);
-    QTreeWidgetItem* addimageitem(int imagecount,const sensor_msgs::Image& image);
+   // QTreeWidgetItem* addimageitem(int imagecount,const sensor_msgs::Image& image);
     bool check_item_time(QTreeWidgetItem *item, int time);
     void settree_show();
     QTreeWidgetItem* add_time_child(QTreeWidgetItem *pitem, int cnt);
