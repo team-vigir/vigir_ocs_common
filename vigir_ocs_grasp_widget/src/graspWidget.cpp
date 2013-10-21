@@ -53,7 +53,7 @@ graspWidget::graspWidget(QWidget *parent)
 
     grasp_selection_pub_        = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/template/grasp_selection",        1, false);
     grasp_release_pub_          = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/template/release_grasp" ,         1, false);
-    grasp_mode_command_pub_     = nh_.advertise<flor_grasp_msgs::GraspState>(         "/template/grasp_mode_command",     1, false);
+    grasp_mode_command_pub_     = nh_.advertise<flor_grasp_msgs::GraspState>(        "/template/grasp_mode_command",     1, false);
     template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/template_match_request", 1, false );
 
     // create subscribers for grasp status
@@ -61,22 +61,36 @@ graspWidget::graspWidget(QWidget *parent)
     if(hand == "left")
     {
         this->setWindowTitle(QString::fromStdString("Left Hand Grasp Widget"));
-        robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/l_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
+        robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>(  "/grasp_control/l_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
         ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_left_hand_pose",             1, false);
-        ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_left_hand/joint_states",     1, false); // /ghost_left_hand/joint_states
+        //ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_left_hand/joint_states",     1, false); // /ghost_left_hand/joint_states
+
+        hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("left_hand_robot_description"));
+        hand_robot_model_ = hand_model_loader_->getModel();
+        hand_robot_state_.reset(new robot_state::RobotState(hand_robot_model_));
 
         // We first subscribe to the JointState messages
         joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/l_hand/sandia_states", 2, &graspWidget::jointStatesCB, this );
+
+        // Publisher for hand position/state
+        robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_left_hand",1, true);
     }
     else
     {
         this->setWindowTitle(QString::fromStdString("Right Hand Grasp Widget"));
-        robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/r_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
+        robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>(  "/grasp_control/r_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
         ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_right_hand_pose",            1, false);
-        ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_right_hand/joint_states",    1, false); // /ghost_right_hand/joint_states
+        //ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_right_hand/joint_states",    1, false); // /ghost_right_hand/joint_states
+
+        hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("right_hand_robot_description"));
+        hand_robot_model_ = hand_model_loader_->getModel();
+        hand_robot_state_.reset(new robot_state::RobotState(hand_robot_model_));
 
         // We first subscribe to the JointState messages
         joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/r_hand/sandia_states", 2, &graspWidget::jointStatesCB, this );
+
+        // Publisher for hand position/state
+        robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_right_hand",1, true);
     }
 
     // publisher to color the hand links
@@ -855,13 +869,13 @@ void graspWidget::publishHandPose(unsigned int id)
 
 void graspWidget::publishHandJointStates(unsigned int grasp_index)
 {
+    sensor_msgs::JointState joint_states;
+
+    joint_states.header.stamp = ros::Time::now();
+    joint_states.header.frame_id = std::string("/")+hand+std::string("_hand_model/")+hand+"_palm";
+
     if(hand_type == "irobot")
     {
-        sensor_msgs::JointState joint_states;
-
-        joint_states.header.stamp = ros::Time::now();
-        joint_states.header.frame_id = std::string("/")+hand+std::string("_hand_model/")+hand+"_palm";
-
         // must match the order used in the .grasp file
         joint_states.name.push_back(hand+"_f0_j1");
         joint_states.name.push_back(hand+"_f1_j1");
@@ -871,31 +885,9 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
         joint_states.name.push_back(hand+"_f0_j3"); // 0 for now
         joint_states.name.push_back(hand+"_f1_j3"); // 0 for now
         joint_states.name.push_back(hand+"_f2_j3"); // 0 for now
-
-        joint_states.position.resize(joint_states.name.size());
-        joint_states.effort.resize(joint_states.name.size());
-        joint_states.velocity.resize(joint_states.name.size());
-
-        for(unsigned int i = 0; i < joint_states.position.size(); ++i)
-        {
-            joint_states.effort[i] = 0;
-            joint_states.velocity[i] = 0;
-            if(grasp_index == -1)
-                joint_states.position[i] = 0;
-            else
-                joint_states.position[i] = grasp_db_[grasp_index].finger_joints[i];
-            //ROS_ERROR("Setting Finger Joint %s to %f",joint_states.name[i].c_str(),joint_states.position[i]);
-        }
-
-        ghost_hand_joint_state_pub_.publish(joint_states);
     }
     else
     {
-        sensor_msgs::JointState joint_states;
-
-        joint_states.header.stamp = ros::Time::now();
-        joint_states.header.frame_id = std::string("/")+hand+std::string("_hand_model/")+hand+"_palm";
-
         // must match those inside of the /sandia_hands/?_hand/joint_states/[right_/left_]+
         joint_states.name.push_back(hand+"_f0_j0");
         joint_states.name.push_back(hand+"_f0_j1");
@@ -909,24 +901,28 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
         joint_states.name.push_back(hand+"_f3_j0");
         joint_states.name.push_back(hand+"_f3_j1");
         joint_states.name.push_back(hand+"_f3_j2");
-
-        joint_states.position.resize(joint_states.name.size());
-        joint_states.effort.resize(joint_states.name.size());
-        joint_states.velocity.resize(joint_states.name.size());
-
-        for(unsigned int i = 0; i < joint_states.position.size(); ++i)
-        {
-            joint_states.effort[i] = 0;
-            joint_states.velocity[i] = 0;
-            if(grasp_index == -1)
-                joint_states.position[i] = 0;
-            else
-                joint_states.position[i] = grasp_db_[grasp_index].finger_joints[i];
-            //ROS_ERROR("Setting Finger Joint %s to %f",joint_states.name[i].c_str(),joint_states.position[i]);
-        }
-
-        ghost_hand_joint_state_pub_.publish(joint_states);
     }
+
+    joint_states.position.resize(joint_states.name.size());
+    joint_states.effort.resize(joint_states.name.size());
+    joint_states.velocity.resize(joint_states.name.size());
+
+    for(unsigned int i = 0; i < joint_states.position.size(); ++i)
+    {
+        joint_states.effort[i] = 0;
+        joint_states.velocity[i] = 0;
+        if(grasp_index == -1)
+            joint_states.position[i] = 0;
+        else
+            joint_states.position[i] = grasp_db_[grasp_index].finger_joints[i];
+        //ROS_ERROR("Setting Finger Joint %s to %f",joint_states.name[i].c_str(),joint_states.position[i]);
+    }
+
+    //ghost_hand_joint_state_pub_.publish(joint_states);
+    hand_robot_state_->setStateValues(joint_states);
+    robot_state::robotStateToRobotStateMsg(*hand_robot_state_, display_state_msg_.state);
+    robot_state_vis_pub_.publish(display_state_msg_);
+
 }
 
 // assume this function is called within mutex block
