@@ -18,7 +18,7 @@ Widget::Widget(QWidget *parent) :
 {
     bold.setBold(true);
     normal.setBold(false);
-    /* ui->stat->setColumnCount(3);
+    /* stat->setColumnCount(3);
     ui->stat->setRowCount(5);*/
     count_row=0;// keep track of table rows
     /* ui->stat->setColumnWidth(0,145);
