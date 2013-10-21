@@ -108,9 +108,11 @@ private:
     ros::Publisher grasp_release_pub_;
 
     geometry_msgs::Pose feedbackPose;
+
     bool templateMatchDone;
+
     std::string hand;
-//    uint8_t currentGraspState;
+    std::string hand_type;
     uint8_t currentGraspMode;
 
     // **************************
