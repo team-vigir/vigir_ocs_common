@@ -995,8 +995,8 @@ int graspWidget::staticTransform(geometry_msgs::Pose& palm_pose)
     if(hand_type == "irobot")
     {
 
-        pg_T_rhand = tf::Transform(tf::Matrix3x3(1,0,0,0,1,0,0,0,1),tf::Vector3(0.0,0.0,0.0)); // but we need to got to right_palm
-        pg_T_lhand = tf::Transform(tf::Matrix3x3(-1,0,0,0,-1,0,0,0,1),tf::Vector3(0.0,0.0,0.0)); // but we need to got to left_palm
+        pg_T_rhand = tf::Transform(tf::Matrix3x3(1,0,0,0,1,0,0,0,1),tf::Vector3(0.0,0.0,0.0));
+        pg_T_lhand = tf::Transform(tf::Matrix3x3(-1,0,0,0,-1,0,0,0,1),tf::Vector3(0.0,0.0,0.0));
     }
     else
     {

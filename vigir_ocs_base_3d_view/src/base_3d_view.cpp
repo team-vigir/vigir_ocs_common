@@ -859,10 +859,8 @@ int staticTransform(geometry_msgs::Pose& palm_pose, std::string hand)
 
     //pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
     //pg_T_lhand = tf::Transform(tf::Matrix3x3(0,1,0,-1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
-    //pg_T_rhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,1,0,-1,0),tf::Vector3(0.00179,-0.01176,-0.13)); // irobot
-    pg_T_rhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,1,0,-1,0),tf::Vector3(0.00179,0,-0.13)); // irobot
-    //pg_T_lhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,-1,0,1,0),tf::Vector3(0.00179,-0.01176,-0.13)); // irobot
-    pg_T_lhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,-1,0,1,0),tf::Vector3(0.00179,0,-0.13)); // irobot
+    pg_T_rhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,1,0,-1,0),tf::Vector3(0.00179,-0.01176,-0.13)); // irobot
+    pg_T_lhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,-1,0,1,0),tf::Vector3(0.00179,-0.01176,-0.13)); // irobot
 
     if(hand == "right")
     {
