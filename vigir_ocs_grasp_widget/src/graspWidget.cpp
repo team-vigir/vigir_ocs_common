@@ -93,6 +93,17 @@ graspWidget::graspWidget(QWidget *parent)
         robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_right_hand",1, true);
     }
 
+    // this is for publishing the hand position in world coordinates for moveit
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_x");
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_y");
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_z");
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_x");
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_y");
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_z");
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_w");
+    virtual_link_joint_states_.position.resize(7);
+
+
     // publisher to color the hand links
     hand_link_color_pub_        = nh_.advertise<flor_ocs_msgs::OCSLinkColor>("/link_color", 1, false);
 
@@ -851,20 +862,20 @@ void graspWidget::publishHandPose(unsigned int id)
     hand_transform.header.stamp = ros::Time::now();
     hand_transform.header.frame_id = "/world";
 
-    //try
-    {
-        // transform to world
-        //tf_.transformPose("/world", grasp_transform, hand_transform);
+    // publish
+    ghost_hand_pub_.publish(hand_transform);
 
-        // publish
-        ghost_hand_pub_.publish(hand_transform);
+    virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
+    virtual_link_joint_states_.position[1] = hand_transform.pose.position.y;
+    virtual_link_joint_states_.position[2] = hand_transform.pose.position.z;
+    virtual_link_joint_states_.position[3] = hand_transform.pose.orientation.x;
+    virtual_link_joint_states_.position[4] = hand_transform.pose.orientation.y;
+    virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
+    virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
 
-        publishHandJointStates(grasp_index);
-    }
-    /*catch(tf::TransformException e)
-    {
-        ROS_ERROR("Tf Pose Republisher: Transform from %s to %s failed: %s \n", grasp_transform.header.frame_id.c_str(), "/world", e.what() );
-    }*/
+    hand_robot_state_->setStateValues(virtual_link_joint_states_);
+
+    publishHandJointStates(grasp_index);
 }
 
 void graspWidget::publishHandJointStates(unsigned int grasp_index)
@@ -1033,6 +1044,16 @@ int graspWidget::hideHand()
     hand_transform.header.stamp = ros::Time::now();
     hand_transform.header.frame_id = "/world";
     ghost_hand_pub_.publish(hand_transform);
+
+    virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
+    virtual_link_joint_states_.position[1] = hand_transform.pose.position.y;
+    virtual_link_joint_states_.position[2] = hand_transform.pose.position.z;
+    virtual_link_joint_states_.position[3] = hand_transform.pose.orientation.x;
+    virtual_link_joint_states_.position[4] = hand_transform.pose.orientation.y;
+    virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
+    virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
+
+    hand_robot_state_->setStateValues(virtual_link_joint_states_);
 
     publishHandJointStates(-1);
 }

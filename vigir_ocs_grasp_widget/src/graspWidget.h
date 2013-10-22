@@ -158,6 +158,10 @@ private:
     moveit_msgs::DisplayRobotState display_state_msg_;
     ros::Publisher robot_state_vis_pub_;
 
+    // Used to make setting virtual joint positions (-> hand pose) easier
+    sensor_msgs::JointState virtual_link_joint_states_;
+
+
 protected:
     void timerEvent(QTimerEvent *event);
 
