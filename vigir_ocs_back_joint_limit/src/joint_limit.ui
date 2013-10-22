@@ -428,7 +428,7 @@
       <item row="1" column="1">
        <widget class="QComboBox" name="Presets_comboBox">
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <item>
          <property name="text">
@@ -443,6 +443,11 @@
         <item>
          <property name="text">
           <string>Free Yaw, Fwd Pitch, Small Roll</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Only Yaw</string>
          </property>
         </item>
        </widget>
