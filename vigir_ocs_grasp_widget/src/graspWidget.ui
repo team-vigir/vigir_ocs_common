@@ -84,7 +84,7 @@
              <enum>QFrame::WinPanel</enum>
             </property>
             <property name="text">
-             <string>IIdle</string>
+             <string>Idle</string>
             </property>
             <property name="textInteractionFlags">
              <set>Qt::NoTextInteraction</set>
