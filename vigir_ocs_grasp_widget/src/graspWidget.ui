@@ -197,9 +197,16 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="performButton">
+        <widget class="QRadioButton" name="radioButton_2">
          <property name="text">
-          <string>Grasp!</string>
+          <string>Grasp</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="radioButton">
+         <property name="text">
+          <string>Pre-grasp</string>
          </property>
         </widget>
        </item>
@@ -234,9 +241,16 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="templateButton">
+        <widget class="QPushButton" name="performButton">
          <property name="text">
-          <string>Move to Template</string>
+          <string>Grasp!</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="releaseButton">
+         <property name="text">
+          <string>Release</string>
          </property>
         </widget>
        </item>
@@ -274,9 +288,9 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="releaseButton">
+        <widget class="QPushButton" name="templateButton">
          <property name="text">
-          <string>Release</string>
+          <string>Move to Template</string>
          </property>
         </widget>
        </item>
