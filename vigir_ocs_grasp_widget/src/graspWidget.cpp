@@ -807,7 +807,7 @@ void graspWidget::publishHandPose(unsigned int id)
 
     // get the selected grasp pose
     geometry_msgs::Pose grasp_transform;//geometry_msgs::PoseStamped grasp_transform;
-    if(ui->show_grasp_radio)
+    if(ui->show_grasp_radio->isChecked())
         grasp_transform = grasp_db_[grasp_index].final_pose;//grasp_transform.pose = grasp_db_[grasp_index].final_pose;
     else
         grasp_transform = grasp_db_[grasp_index].pre_grasp_pose;//grasp_transform.pose = grasp_db_[grasp_index].pre_grasp_pose;
