@@ -883,7 +883,7 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
         {
             joint_states.effort[i] = 0;
             joint_states.velocity[i] = 0;
-            if(grasp_index == -1)
+            if(grasp_index == -1 || ui->show_pre_grasp_radio->isChecked())
                 joint_states.position[i] = 0;
             else
                 joint_states.position[i] = grasp_db_[grasp_index].finger_joints[i];
