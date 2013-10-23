@@ -22,6 +22,14 @@
 
 #include <sensor_msgs/JointState.h>
 
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/robot_state.h>
+
+#include <moveit_msgs/RobotState.h>
+#include <moveit_msgs/DisplayRobotState.h>
+#include <moveit/robot_state/conversions.h>
+
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
 #include <flor_ocs_msgs/OCSRobotStatus.h>
@@ -152,6 +160,16 @@ private:
     std::vector<int> keys_pressed_list_;
 
     ros::Subscriber key_event_sub_;
+
+    robot_model_loader::RobotModelLoaderPtr hand_model_loader_;
+    robot_model::RobotModelPtr hand_robot_model_;
+    robot_state::RobotStatePtr hand_robot_state_;
+
+    moveit_msgs::DisplayRobotState display_state_msg_;
+    ros::Publisher robot_state_vis_pub_;
+
+    // Used to make setting virtual joint positions (-> hand pose) easier
+    sensor_msgs::JointState virtual_link_joint_states_;
 
 protected:
     void timerEvent(QTimerEvent *event);

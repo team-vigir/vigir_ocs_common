@@ -21,19 +21,19 @@
 ImageVideoManagerWidget::ImageVideoManagerWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ImageVideoManagerWidget)
-{    
+{
     ui->setupUi(this);
-    feed_rate= -1;
-    feed_rate_prev = -1;
+    feed_rate_l=feed_rate_r=feed_rate_lhl=feed_rate_lhr=feed_rate_rhl=feed_rate_rhr= -1;
+    feed_rate_prev_l=feed_rate_prev_r=feed_rate_prev_lhl=feed_rate_prev_lhr=feed_rate_prev_rhl=feed_rate_prev_rhr = -1;
     ui->timeslider->setMinimum(0);
     ui->timeslider->setMaximum(0);
-    imagecount=0;
-    videocount=0;
-    interval_count=0;
-    video_start_time=0;
-    subseq_video_time=0;
-    video_start_time_nano=0;
-    subseq_video_time_nano=0;
+    imagecount_l=imagecount_r=imagecount_lhl=imagecount_lhr=imagecount_rhl=imagecount_rhr=0;
+    videocount_l=videocount_lhl=videocount_lhr=videocount_r=videocount_rhr=videocount_rhl=0;
+    interval_count_l=interval_count_lhl=interval_count_lhr=interval_count_r=interval_count_rhr=interval_count_rhl=0;
+    video_start_time_l=video_start_time_r=video_start_time_lhr=video_start_time_lhl=video_start_time_rhr=video_start_time_rhl=0;
+    subseq_video_time_l=subseq_video_time_r=subseq_video_time_lhr=subseq_video_time_lhl=subseq_video_time_rhr=subseq_video_time_rhl=0;
+
+    ui->treeWidget->setColumnWidth(0,120);
 
     // initialize publishers for communication with nodelet
     image_list_request_pub_ = nh_.advertise<std_msgs::Bool>(   "/flor/ocs/image_history/list_request", 1, true );
@@ -47,19 +47,19 @@ ImageVideoManagerWidget::ImageVideoManagerWidget(QWidget *parent) :
 
     // sunscribers for video stream
 
-    img_req_sub_full_l_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage, this );
-    img_req_sub_full_r_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/r_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage, this );
-    img_req_sub_full_lhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhl_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage, this );
-    img_req_sub_full_lhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhr_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage, this );
-    img_req_sub_full_rhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhl_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage, this );
-    img_req_sub_full_rhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhr_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage, this );
+    img_req_sub_full_l_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_l, this );
+    img_req_sub_full_r_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/r_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_r, this );
+    img_req_sub_full_lhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhl_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_lhl, this );
+    img_req_sub_full_lhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhr_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_lhr, this );
+    img_req_sub_full_rhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhl_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhl, this );
+    img_req_sub_full_rhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhr_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhr, this );
 
-    img_req_sub_crop_l_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage, this );
-    img_req_sub_crop_r_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/r_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage, this );
-    img_req_sub_crop_lhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhl_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage, this );
-    img_req_sub_crop_lhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhr_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage, this );
-    img_req_sub_crop_rhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhl_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage, this );
-    img_req_sub_crop_rhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhr_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage, this );
+    img_req_sub_crop_l_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_l, this );
+    img_req_sub_crop_r_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/r_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_r, this );
+    img_req_sub_crop_lhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhl_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_lhl, this );
+    img_req_sub_crop_lhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhr_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_lhr, this );
+    img_req_sub_crop_rhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhl_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhl, this );
+    img_req_sub_crop_rhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhr_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhr, this );
     //connect(ui->treeWidget, SIGNAL(cellClicked(int,int)), this, SLOT(editSlot(int, int)));
     std_msgs::Bool list_request;
     list_request.data = true;
@@ -127,13 +127,15 @@ void ImageVideoManagerWidget::addImage(const unsigned long& id, const std::strin
     cv::Size2i img_size;
     if(aspect_ratio > 1)
     {
-        img_size.width = 100.0f;
-        img_size.height = 100.0f/aspect_ratio;
+        //img_size.width = 100.0f;
+        //img_size.height = 100.0f/aspect_ratio;
+        img_size.width = 50.0f;
+        img_size.height = 50.0f/aspect_ratio;
     }
     else
     {
-        img_size.width = 100.0f/aspect_ratio;
-        img_size.height = 100.0f;
+        img_size.width = 50.0f/aspect_ratio;
+        img_size.height = 50.0f;
     }
     cv::resize(cv_ptr->image, cv_ptr->image, img_size, 0, 0, cv::INTER_NEAREST);
     QImage tmp = Mat2QImage(cv_ptr->image);
@@ -159,8 +161,46 @@ void ImageVideoManagerWidget::addImage(const unsigned long& id, const std::strin
     item->setText(4,QString::number(image.height));
     ui->treeWidget->addTopLevelItem(item);
 }
+void ImageVideoManagerWidget::thumbnail(const sensor_msgs::Image& image,QTreeWidgetItem *item)
+{
 
-void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info)
+
+    //ROS_ERROR("Encoding: %s", image.encoding.c_str());
+
+    double aspect_ratio = (double)image.width/(double)image.height;
+   // ROS_ERROR("Size: %dx%d aspect %f", image.width, image.height, aspect_ratio);
+
+    cv_bridge::CvImagePtr cv_ptr;
+    try
+    {
+        cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
+    }
+    catch (cv_bridge::Exception& e)
+    {
+       // ROS_ERROR("cv_bridge exception: %s", e.what());
+        return;
+    }
+
+    cv::Size2i img_size;
+    if(aspect_ratio > 1)
+    {
+        img_size.width = 50.0f;
+        img_size.height = 50.0f/aspect_ratio;
+    }
+    else
+    {
+        img_size.width = 50.0f/aspect_ratio;
+        img_size.height = 50.0f;
+    }
+    cv::resize(cv_ptr->image, cv_ptr->image, img_size, 0, 0, cv::INTER_NEAREST);
+    QImage tmp = Mat2QImage(cv_ptr->image);
+    QPixmap pixmap = QPixmap::fromImage(tmp);
+    item->setData(0,Qt::DecorationRole, pixmap);
+
+
+}
+void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info,int flag)
+// flag to distinguish between image and video
 {
     /*int row = 0;
     ui->treeWidget->add;
@@ -192,13 +232,13 @@ void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsig
     cv::Size2i img_size;
     if(aspect_ratio > 1)
     {
-        img_size.width = 100.0f;
-        img_size.height = 100.0f/aspect_ratio;
+        img_size.width = 50.0f;
+        img_size.height = 50.0f/aspect_ratio;
     }
     else
     {
-        img_size.width = 100.0f/aspect_ratio;
-        img_size.height = 100.0f;
+        img_size.width = 50.0f/aspect_ratio;
+        img_size.height = 50.0f;
     }
     cv::resize(cv_ptr->image, cv_ptr->image, img_size, 0, 0, cv::INTER_NEAREST);
     QImage tmp = Mat2QImage(cv_ptr->image);
@@ -223,10 +263,28 @@ void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsig
     // height
    // item = new QTreeWidgetItem(QString::number(image.height));
     item->setText(4,QString::number(image.height));
+    if(flag==0)
+    {
+       parent=item;
+       ui->treeWidget->insertTopLevelItem(0,item);
+    }
+    else
+    {
     parent->setText(1,timeFromMsg(image.header.stamp));
-    parent->setText(2,QString(topic.c_str()));
+    thumbnail(image,parent);
+
+    //parent->setText(2,QString(topic.c_str()));
     //parent->parent()->setText(1,timeFromMsg(image.header.stamp));
     parent->addChild(item);
+    while(parent)
+      {
+
+        parent->setText(1,timeFromMsg(image.header.stamp));
+        parent->setText(2,QString(topic.c_str()));
+        thumbnail(image,parent);
+        parent= parent->parent();
+      }
+    }
 }
 
 QTreeWidgetItem* ImageVideoManagerWidget::addvideoitem(int videocount,const sensor_msgs::Image& image)
@@ -234,82 +292,383 @@ QTreeWidgetItem* ImageVideoManagerWidget::addvideoitem(int videocount,const sens
 {
     QTreeWidgetItem * item;
     item = new QTreeWidgetItem();
-    item->setText(0,"Video"+QString::number(videocount));
+    //item->setText(0,"Video"+QString::number(videocount));
     item->setText(1,timeFromMsg(image.header.stamp));
     item->setToolTip(1,QString::number((int)image.header.stamp.toSec()));
     ui->treeWidget->insertTopLevelItem(0,item);
     return item;
 }
-QTreeWidgetItem* ImageVideoManagerWidget::add_time_child(QTreeWidgetItem *pitem)
+QTreeWidgetItem* ImageVideoManagerWidget::add_time_child(QTreeWidgetItem *pitem,int count_n)
 
 {
     QTreeWidgetItem * iteml;
     iteml = new QTreeWidgetItem();
-    iteml->setText(0,QString::number(10*interval_count));
+    //iteml->setText(0,QString::number(count_n));
    // item->setText(1,timeFromMsg(image.header.stamp));
    // item->setToolTip(1,QString::number((int)image.header.stamp.toSec()));
     pitem->addChild(iteml);
     return iteml;
 }
-QTreeWidgetItem* ImageVideoManagerWidget::addimageitem(int imagecount,const sensor_msgs::Image& image)
-
+/*QTreeWidgetItem* ImageVideoManagerWidget::addimageitem(int imagecount,const sensor_msgs::Image& image)
+// adding image events on getfeed()
 {
+    ROS_ERROR("in add image");
     QTreeWidgetItem * item;
-    item = new QTreeWidgetItem();
-    item->setText(0,"Image"+QString::number(imagecount));
-    item->setText(1,timeFromMsg(image.header.stamp));
-    item->setToolTip(1,QString::number((int)image.header.stamp.toSec()));
+   // item = new QTreeWidgetItem();
+    //thumbnail(image,item);
+    //item->setText(0,"Image"+QString::number(imagecount));
+    //item->setText(1,timeFromMsg(image.header.stamp));
+   // item->setToolTip(1,QString::number((int)image.header.stamp.toSec()));
     ui->treeWidget->insertTopLevelItem(0,item);
     return item;
-}
+}*/
 void ImageVideoManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
 {
 
+    //ROS_ERROR(msg->topic.c_str());
 
-    //ROS_ERROR("In Process Image Add%f",feed_rate);
-    if(feed_rate==0.0f)
+    if(QString(msg->topic.c_str())=="/l_image_full" || QString(msg->topic.c_str())=="/l_image_cropped")
+        imageaddfunction_l(msg);
+   if(QString(msg->topic.c_str())=="/r_image_full" || QString(msg->topic.c_str())=="/r_image_cropped")
+        imageaddfunction_r(msg);
+    if(QString(msg->topic.c_str())=="/lhl_image_full" || QString(msg->topic.c_str())=="/lhl_image_cropped")
+        imageaddfunction_lhl(msg);
+    if(QString(msg->topic.c_str())=="/lhr_image_full" || QString(msg->topic.c_str())=="/lhr_image_cropped")
+        imageaddfunction_lhr(msg);
+    if(QString(msg->topic.c_str())=="/rhl_image_full" || QString(msg->topic.c_str())=="/rhl_image_cropped")
+        imageaddfunction_rhl(msg);
+    if(QString(msg->topic.c_str())=="/rhr_image_full" || QString(msg->topic.c_str())=="/rhr_image_cropped")
+        imageaddfunction_rhr(msg);
+
+
+ }
+void ImageVideoManagerWidget:: imageaddfunction_l(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+{
+
+    if(feed_rate_l==0.0f)
       {
-        imagecount++;
-        item = addimageitem(imagecount,msg->image);
-        addImageChild(item,msg->id,msg->topic,msg->image,msg->camera_info);
+        imagecount_l++;
+      //  item_l = addimageitem(imagecount_l,msg->image);
+        addImageChild(item_l,msg->id,msg->topic,msg->image,msg->camera_info,0);
         ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
       }
 
     else
-        if(feed_rate>0.0f)
-    {
-        subseq_video_time=(int)msg->image.header.stamp.toSec();
+        if(feed_rate_l>0.0f)
+    {   ROS_ERROR("in l image");
+        subseq_video_time_l=(int)msg->image.header.stamp.toSec();
         //subseq_video_time_nano= ((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
-        qDebug()<<subseq_video_time;
-        if(feed_rate!=feed_rate_prev)
+        qDebug()<<subseq_video_time_l;
+        if(feed_rate_l!=feed_rate_prev_l)
         {
-            videocount++;
-            parentitem=addvideoitem(videocount,msg->image);
-            interval_count=1;
-            video_start_time=(int)msg->image.header.stamp.toSec();
-            timeitem=add_time_child(parentitem);
+
+            videocount_l++;
+            parentitem_l=addvideoitem(videocount_l,msg->image);
+            interval_count_l=1;
+            video_start_time_l=(int)msg->image.header.stamp.toSec();
+            timeitem_l=add_time_child(parentitem_l,5);
+            childtimeitem_l = add_time_child(timeitem_l,1);
+            childtimeitem_start_time_l = (int)msg->image.header.stamp.toSec();
             //video_start_time_nano=((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
 
         }
 
-        if((subseq_video_time-video_start_time)>10)
+        if((subseq_video_time_l-video_start_time_l)>300)
      {
-         interval_count++;
-         timeitem=add_time_child(parentitem);
-         video_start_time=(int)msg->image.header.stamp.toSec();
+         interval_count_l++;
+         timeitem_l=add_time_child(parentitem_l,5);
+         video_start_time_l=(int)msg->image.header.stamp.toSec();
+         childtimeitem_l = add_time_child(timeitem_l,1);
+         childtimeitem_start_time_l = (int)msg->image.header.stamp.toSec();
+
      }
-     addImageChild(timeitem,msg->id,msg->topic,msg->image,msg->camera_info);
+        if((subseq_video_time_l-childtimeitem_start_time_l)>60)
+     {
+
+            childtimeitem_l = add_time_child(timeitem_l,1);
+            childtimeitem_start_time_l = (int)msg->image.header.stamp.toSec();
+
+     }
+     addImageChild(childtimeitem_l,msg->id,msg->topic,msg->image,msg->camera_info,1);
      ui->timeslider->setMaximum((msg->image).header.stamp.toSec());
 
      }
-       feed_rate_prev = feed_rate;
+       feed_rate_prev_l = feed_rate_l;
 
 }
+
+void ImageVideoManagerWidget:: imageaddfunction_r(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+{
+
+    if(feed_rate_r==0.0f)
+      {
+        ROS_ERROR("in r image");
+        imagecount_r++;
+        //item_r = addimageitem(imagecount_r,msg->image);
+        addImageChild(item_r,msg->id,msg->topic,msg->image,msg->camera_info,0);
+        ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
+      }
+
+    else
+        if(feed_rate_r>0.0f)
+    {
+        subseq_video_time_r=(int)msg->image.header.stamp.toSec();
+        //subseq_video_time_nano= ((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
+        qDebug()<<subseq_video_time_r;
+        if(feed_rate_r!=feed_rate_prev_r)
+        {
+            videocount_r++;
+            parentitem_r=addvideoitem(videocount_r,msg->image);
+            interval_count_r=1;
+            video_start_time_r=(int)msg->image.header.stamp.toSec();
+            timeitem_r=add_time_child(parentitem_r,5);
+            childtimeitem_r = add_time_child(timeitem_r,1);
+            childtimeitem_start_time_r = (int)msg->image.header.stamp.toSec();
+            //video_start_time_nano=((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
+
+        }
+
+        if((subseq_video_time_r-video_start_time_r)>300)
+     {
+         interval_count_r++;
+         timeitem_r=add_time_child(parentitem_r,5);
+         video_start_time_r=(int)msg->image.header.stamp.toSec();
+         childtimeitem_r = add_time_child(timeitem_r,1);
+         childtimeitem_start_time_r = (int)msg->image.header.stamp.toSec();
+
+     }
+        if((subseq_video_time_r-childtimeitem_start_time_r)>60)
+     {
+
+            childtimeitem_r = add_time_child(timeitem_r,1);
+            childtimeitem_start_time_r = (int)msg->image.header.stamp.toSec();
+
+     }
+     addImageChild(childtimeitem_r,msg->id,msg->topic,msg->image,msg->camera_info,1);
+     ui->timeslider->setMaximum((msg->image).header.stamp.toSec());
+
+     }
+       feed_rate_prev_r = feed_rate_r;
+
+}
+void ImageVideoManagerWidget:: imageaddfunction_lhl(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+{
+    ROS_ERROR("in lhl image");
+    if(feed_rate_lhl==0.0f)
+      {
+        imagecount_lhl++;
+        //item_lhl = addimageitem(imagecount_lhl,msg->image);
+        addImageChild(item_lhl,msg->id,msg->topic,msg->image,msg->camera_info,0);
+        ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
+      }
+
+    else
+        if(feed_rate_lhl>0.0f)
+    {
+        subseq_video_time_lhl=(int)msg->image.header.stamp.toSec();
+        //subseq_video_time_nano= ((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
+        qDebug()<<subseq_video_time_lhl;
+        if(feed_rate_lhl!=feed_rate_prev_lhl)
+        {
+            videocount_lhl++;
+            parentitem_lhl=addvideoitem(videocount_lhl,msg->image);
+            interval_count_lhl=1;
+            video_start_time_lhl=(int)msg->image.header.stamp.toSec();
+            timeitem_lhl=add_time_child(parentitem_lhl,5);
+            childtimeitem_lhl = add_time_child(timeitem_lhl,1);
+            childtimeitem_start_time_lhl = (int)msg->image.header.stamp.toSec();
+            //video_start_time_nano=((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
+
+        }
+
+        if((subseq_video_time_lhl-video_start_time_lhl)>300)
+     {
+         interval_count_lhl++;
+         timeitem_lhl=add_time_child(parentitem_lhl,5);
+         video_start_time_lhl=(int)msg->image.header.stamp.toSec();
+         childtimeitem_lhl = add_time_child(timeitem_lhl,1);
+         childtimeitem_start_time_lhl = (int)msg->image.header.stamp.toSec();
+
+     }
+        if((subseq_video_time_lhl-childtimeitem_start_time_lhl)>60)
+     {
+
+            childtimeitem_lhl = add_time_child(timeitem_lhl,1);
+            childtimeitem_start_time_lhl = (int)msg->image.header.stamp.toSec();
+
+     }
+     addImageChild(childtimeitem_lhl,msg->id,msg->topic,msg->image,msg->camera_info,1);
+     ui->timeslider->setMaximum((msg->image).header.stamp.toSec());
+
+     }
+       feed_rate_prev_lhl = feed_rate_lhl;
+
+}
+void ImageVideoManagerWidget:: imageaddfunction_lhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+{
+    ROS_ERROR("in lhr image");
+    if(feed_rate_lhr==0.0f)
+      {
+        imagecount_lhr++;
+       // item_lhr = addimageitem(imagecount_lhr,msg->image);
+        addImageChild(item_lhr,msg->id,msg->topic,msg->image,msg->camera_info,0);
+        ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
+      }
+
+    else
+        if(feed_rate_lhr>0.0f)
+    {
+        subseq_video_time_lhr=(int)msg->image.header.stamp.toSec();
+        //subseq_video_time_nano= ((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
+        qDebug()<<subseq_video_time_lhr;
+        if(feed_rate_lhr!=feed_rate_prev_lhr)
+        {
+            videocount_lhr++;
+            parentitem_lhr=addvideoitem(videocount_lhr,msg->image);
+            interval_count_lhr=1;
+            video_start_time_lhr=(int)msg->image.header.stamp.toSec();
+            timeitem_lhr=add_time_child(parentitem_lhr,5);
+            childtimeitem_lhr = add_time_child(timeitem_lhr,1);
+            childtimeitem_start_time_lhr = (int)msg->image.header.stamp.toSec();
+            //video_start_time_nano=((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
+
+        }
+
+        if((subseq_video_time_lhr-video_start_time_lhr)>300)
+     {
+         interval_count_lhr++;
+         timeitem_lhr=add_time_child(parentitem_lhr,5);
+         video_start_time_lhr=(int)msg->image.header.stamp.toSec();
+         childtimeitem_lhr = add_time_child(timeitem_lhr,1);
+         childtimeitem_start_time_lhr = (int)msg->image.header.stamp.toSec();
+
+     }
+        if((subseq_video_time_lhr-childtimeitem_start_time_lhr)>60)
+     {
+
+            childtimeitem_lhr = add_time_child(timeitem_lhr,1);
+            childtimeitem_start_time_lhr = (int)msg->image.header.stamp.toSec();
+
+     }
+     addImageChild(childtimeitem_lhr,msg->id,msg->topic,msg->image,msg->camera_info,1);
+     ui->timeslider->setMaximum((msg->image).header.stamp.toSec());
+
+     }
+       feed_rate_prev_lhr = feed_rate_lhr;
+
+}
+void ImageVideoManagerWidget:: imageaddfunction_rhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+{
+    ROS_ERROR("in rhr image");
+    if(feed_rate_rhr==0.0f)
+      {
+        imagecount_rhr++;
+        //item_rhr = addimageitem(imagecount_rhr,msg->image);
+        addImageChild(item_rhr,msg->id,msg->topic,msg->image,msg->camera_info,0);
+        ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
+      }
+
+    else
+        if(feed_rate_rhr>0.0f)
+    {
+        subseq_video_time_rhr=(int)msg->image.header.stamp.toSec();
+        //subseq_video_time_nano= ((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
+        qDebug()<<subseq_video_time_rhr;
+        if(feed_rate_rhr!=feed_rate_prev_rhr)
+        {
+            videocount_rhr++;
+            parentitem_rhr=addvideoitem(videocount_rhr,msg->image);
+            interval_count_rhr=1;
+            video_start_time_rhr=(int)msg->image.header.stamp.toSec();
+            timeitem_rhr=add_time_child(parentitem_rhr,5);
+            childtimeitem_rhr = add_time_child(timeitem_rhr,1);
+            childtimeitem_start_time_rhr = (int)msg->image.header.stamp.toSec();
+            //video_start_time_nano=((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
+
+        }
+
+        if((subseq_video_time_rhr-video_start_time_rhr)>300)
+     {
+         interval_count_rhr++;
+         timeitem_rhr=add_time_child(parentitem_rhr,5);
+         video_start_time_rhr=(int)msg->image.header.stamp.toSec();
+         childtimeitem_rhr = add_time_child(timeitem_rhr,1);
+         childtimeitem_start_time_rhr = (int)msg->image.header.stamp.toSec();
+
+     }
+        if((subseq_video_time_rhr-childtimeitem_start_time_rhr)>60)
+     {
+
+            childtimeitem_rhr = add_time_child(timeitem_rhr,1);
+            childtimeitem_start_time_rhr = (int)msg->image.header.stamp.toSec();
+
+     }
+     addImageChild(childtimeitem_rhr,msg->id,msg->topic,msg->image,msg->camera_info,1);
+     ui->timeslider->setMaximum((msg->image).header.stamp.toSec());
+
+     }
+       feed_rate_prev_rhr = feed_rate_rhr;
+
+}
+void ImageVideoManagerWidget:: imageaddfunction_rhl(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+{
+   ROS_ERROR("in rhl image");
+    if(feed_rate_rhl==0.0f)
+      {
+        imagecount_rhl++;
+        //item_rhl = addimageitem(imagecount_rhl,msg->image);
+        addImageChild(item_rhl,msg->id,msg->topic,msg->image,msg->camera_info,0);
+        ui->timeslider->setMaximum((msg->image).header.stamp.toSec());// in seconds. nano seconds not counted
+      }
+
+    else
+        if(feed_rate_rhl>0.0f)
+    {
+        subseq_video_time_rhl=(int)msg->image.header.stamp.toSec();
+        //subseq_video_time_nano= ((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
+        qDebug()<<subseq_video_time_rhl;
+        if(feed_rate_rhl!=feed_rate_prev_rhl)
+        {
+            videocount_rhl++;
+            parentitem_rhl=addvideoitem(videocount_rhl,msg->image);
+            interval_count_rhl=1;
+            video_start_time_rhl=(int)msg->image.header.stamp.toSec();
+            timeitem_rhl=add_time_child(parentitem_rhl,5);
+            childtimeitem_rhl = add_time_child(timeitem_rhl,1);
+            childtimeitem_start_time_rhl = (int)msg->image.header.stamp.toSec();
+            //video_start_time_nano=((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
+
+        }
+
+        if((subseq_video_time_rhl-video_start_time_rhl)>300)
+     {
+         interval_count_rhl++;
+         timeitem_rhl=add_time_child(parentitem_rhl,5);
+         video_start_time_rhl=(int)msg->image.header.stamp.toSec();
+         childtimeitem_rhl = add_time_child(timeitem_rhl,1);
+         childtimeitem_start_time_rhl = (int)msg->image.header.stamp.toSec();
+
+     }
+        if((subseq_video_time_rhl-childtimeitem_start_time_rhl)>60)
+     {
+
+            childtimeitem_rhl = add_time_child(timeitem_rhl,1);
+            childtimeitem_start_time_rhl = (int)msg->image.header.stamp.toSec();
+
+     }
+     addImageChild(childtimeitem_rhl,msg->id,msg->topic,msg->image,msg->camera_info,1);
+     ui->timeslider->setMaximum((msg->image).header.stamp.toSec());
+
+     }
+       feed_rate_prev_rhl = feed_rate_rhl;
+
+}
+
 void ImageVideoManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg)
 {
     // reset table
     //ui->treeWidget->clear();
-    //ROS_ERROR("in process image list");
+    ROS_ERROR("in process image list");
 
 
 
@@ -319,7 +678,7 @@ void ImageVideoManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList
 void ImageVideoManagerWidget::processSelectedImage(const sensor_msgs::Image::ConstPtr &msg)
 {
     // image
-    //ROS_ERROR("Encoding: %s", msg->encoding.c_str());
+    ROS_ERROR("Encoding: %s", msg->encoding.c_str());
 
     double aspect_ratio = (double)msg->width/(double)msg->height;
    // ROS_ERROR("Size: %dx%d aspect %f", msg->width, msg->height, aspect_ratio);
@@ -367,21 +726,55 @@ QString ImageVideoManagerWidget::timeFromMsg(const ros::Time& stamp)
     int min = sec / 60;
     sec -= min * 60;
     uint32_t nano = (stamp.toSec() - (int)stamp.toSec())*1000;
-    stream << std::setw(2) << std::setfill('0') << day << " ";
-    stream << std::setw(2) << std::setfill('0') << hour << ":";
+    //stream << std::setw(2) << std::setfill('0') << day << " ";
+    //stream << std::setw(2) << std::setfill('0') << hour << ":";
     stream << std::setw(2) << std::setfill('0') << min << ":";
     stream << std::setw(2) << std::setfill('0') << sec << ".";
     stream << std::setw(3) << std::setfill('0') << nano;
     return QString::fromStdString(stream.str());
 }
-void ImageVideoManagerWidget::processvideoimage (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+void ImageVideoManagerWidget::processvideoimage_l (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
 {
     //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
-        feed_rate = msg->publish_frequency;
-    //ROS_ERROR("in process video image.feed rate = %f", feed_rate);
+        feed_rate_l = msg->publish_frequency;
+    ROS_ERROR("in process video imagel.feed rate = %f", feed_rate_l);
 
 }
+void ImageVideoManagerWidget::processvideoimage_r (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+{
+    //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
+        feed_rate_r = msg->publish_frequency;
+    ROS_ERROR("in process video imager.feed rate = %f", feed_rate_r);
 
+}
+void ImageVideoManagerWidget::processvideoimage_lhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+{
+    //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
+        feed_rate_lhl = msg->publish_frequency;
+    ROS_ERROR("in process video imagelhl.feed rate = %f", feed_rate_lhl);
+
+}
+void ImageVideoManagerWidget::processvideoimage_lhr (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+{
+    //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
+        feed_rate_lhr = msg->publish_frequency;
+    ROS_ERROR("in process video imagelhr.feed rate = %f", feed_rate_lhr);
+
+}
+void ImageVideoManagerWidget::processvideoimage_rhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+{
+    //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
+        feed_rate_rhl = msg->publish_frequency;
+    ROS_ERROR("in process video imagerhl.feed rate = %f", feed_rate_rhl);
+
+}
+void ImageVideoManagerWidget::processvideoimage_rhr (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+{
+    //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
+        feed_rate_rhr = msg->publish_frequency;
+    ROS_ERROR("in process video imagerhr.feed rate = %f", feed_rate_rhr);
+
+}
 
 
 
@@ -423,6 +816,7 @@ bool ImageVideoManagerWidget::check_item_time(QTreeWidgetItem *item, int time)
 
 
 }
+/*
 void ImageVideoManagerWidget:: settree_show()
 {
     for(int j=0;j<videocount+imagecount;j++)
@@ -437,6 +831,7 @@ void ImageVideoManagerWidget:: settree_show()
     }
 
 }
+
 void ImageVideoManagerWidget::on_pushButton_clicked()
 {
     bool flag=0,ok;
@@ -490,6 +885,48 @@ void ImageVideoManagerWidget::on_pushButton_clicked()
                  //  ROS_ERROR("more");
            it++;
 
-        }*/
+        }
 
+}*/
+
+
+
+
+
+void ImageVideoManagerWidget::on_cameralist_currentIndexChanged(int index)
+{
+    int toplevelitemcount = ui->treeWidget->topLevelItemCount();
+    QString camera;
+    QTreeWidgetItem * item;
+    for(int k=0;k<toplevelitemcount;k++)
+    {
+        ui->treeWidget->topLevelItem(k)->setHidden(false);
+    }
+    switch(index)
+    {
+    case 0: camera="/l_image_full";break;
+    case 1: camera = "/r_image_full"; break;
+    case 2: camera = "/lhl_image_full"; break;
+    case 3: camera = "/lhr_image_full"; break;
+    case 4: camera = "/rhr_image_full";break;
+    case 5: camera = "/rhl_image_full";break;
+    }
+    for (int i =0;i<toplevelitemcount;i++)
+    {
+        if(index==6)
+            for(int k=0;k<toplevelitemcount;k++)
+            {
+                ui->treeWidget->topLevelItem(k)->setHidden(false);
+            }
+        else{
+        //ui->image_view->setText(ui->treeWidget->topLevelItem(i)->text(2));
+        if(ui->treeWidget->topLevelItem(i)->text(2)!=camera)
+        {
+            item=ui->treeWidget->topLevelItem(i);
+            item->setHidden(true);
+           // ui->image_view->setText(ui->treeWidget->topLevelItem(i)->text(2));
+
+        }
+        }
+    }
 }

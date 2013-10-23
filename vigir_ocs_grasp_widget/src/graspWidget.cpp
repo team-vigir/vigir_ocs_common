@@ -24,9 +24,9 @@ graspWidget::graspWidget(QWidget *parent)
 
     // initialize arguments from parameter server
     ros::NodeHandle nhp("~");
-    nhp.param<std::string>("grasp_widget/hand",hand,"left");
-    nhp.param<std::string>("grasp_widget/hand_type",hand_type,"sandia");
-    ROS_INFO("  Grasp widget using %s hand (%s)",hand.c_str(), hand_type.c_str());
+    nhp.param<std::string>("/grasp_widget/hand",hand,"left"); // private parameter
+    nh_.param<std::string>("/flor/ocs/grasp/hand_type",hand_type,"sandia"); // global parameter
+    ROS_ERROR("  Grasp widget using %s hand (%s)",hand.c_str(), hand_type.c_str());
 
     // initialize path variables for template/grasp databases
     std::string templatePath = (ros::package::getPath("templates"))+"/";
@@ -63,21 +63,42 @@ graspWidget::graspWidget(QWidget *parent)
         this->setWindowTitle(QString::fromStdString("Left Hand Grasp Widget"));
         robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/l_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
         ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_left_hand_pose",             1, false);
-        ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_left_hand/joint_states",     1, false); // /ghost_left_hand/joint_states
+        //ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_left_hand/joint_states",     1, false); // /ghost_left_hand/joint_states
+
+        hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("left_hand_robot_description"));
+        hand_robot_model_ = hand_model_loader_->getModel();
+        hand_robot_state_.reset(new robot_state::RobotState(hand_robot_model_));
 
         // We first subscribe to the JointState messages
         joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/l_hand/sandia_states", 2, &graspWidget::jointStatesCB, this );
+        // Publisher for hand position/state
+        robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_left_hand",1, true);
     }
     else
     {
         this->setWindowTitle(QString::fromStdString("Right Hand Grasp Widget"));
-        robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/r_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
+        robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>(  "/grasp_control/r_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
         ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_right_hand_pose",            1, false);
-        ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_right_hand/joint_states",    1, false); // /ghost_right_hand/joint_states
+        //ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_right_hand/joint_states",    1, false); // /ghost_right_hand/joint_states
+
+        hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("right_hand_robot_description"));
+        hand_robot_model_ = hand_model_loader_->getModel();
+        hand_robot_state_.reset(new robot_state::RobotState(hand_robot_model_));
 
         // We first subscribe to the JointState messages
         joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/r_hand/sandia_states", 2, &graspWidget::jointStatesCB, this );
+        // Publisher for hand position/state
+        robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_right_hand",1, true);
     }
+    // this is for publishing the hand position in world coordinates for moveit
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_x");
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_y");
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_z");
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_x");
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_y");
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_z");
+    virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_w");
+    virtual_link_joint_states_.position.resize(7);
 
     // publisher to color the hand links
     hand_link_color_pub_        = nh_.advertise<flor_ocs_msgs::OCSLinkColor>("/link_color", 1, false);
@@ -730,8 +751,6 @@ void graspWidget::on_manualRadio_clicked()
     msg.thumb_effort.data = ui->userSlider_2->value();
     grasp_mode_command_pub_.publish(msg);
     std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " << uint32_t(msg.thumb_effort.data) <<  " thumb effort to " << hand << " hand" << std::endl;
-
-
 }
 
 void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
@@ -933,7 +952,6 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
 
         ghost_hand_joint_state_pub_.publish(joint_states);
     }
-
 }
 
 // assume this function is called within mutex block
@@ -944,11 +962,14 @@ int graspWidget::calcWristTarget(const geometry_msgs::Pose& wrist_pose,const geo
     tf::Transform wt_pose;
     tf::Transform tp_pose;
     tf::Transform target_pose;
+
     wt_pose.setRotation(tf::Quaternion(wrist_pose.orientation.x,wrist_pose.orientation.y,wrist_pose.orientation.z,wrist_pose.orientation.w));
     wt_pose.setOrigin(tf::Vector3(wrist_pose.position.x,wrist_pose.position.y,wrist_pose.position.z) );
     tp_pose.setRotation(tf::Quaternion(template_pose.pose.orientation.x,template_pose.pose.orientation.y,template_pose.pose.orientation.z,template_pose.pose.orientation.w));
     tp_pose.setOrigin(tf::Vector3(template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z) );
+
     target_pose = tp_pose * wt_pose;  //I assume this works
+
     tf::Quaternion tg_quat;
     tf::Vector3    tg_vector;
     tg_quat   = target_pose.getRotation();
@@ -1041,6 +1062,15 @@ int graspWidget::hideHand()
     hand_transform.header.stamp = ros::Time::now();
     hand_transform.header.frame_id = "/world";
     ghost_hand_pub_.publish(hand_transform);
+    virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
+    virtual_link_joint_states_.position[1] = hand_transform.pose.position.y;
+    virtual_link_joint_states_.position[2] = hand_transform.pose.position.z;
+    virtual_link_joint_states_.position[3] = hand_transform.pose.orientation.x;
+    virtual_link_joint_states_.position[4] = hand_transform.pose.orientation.y;
+    virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
+    virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
+
+    hand_robot_state_->setStateValues(virtual_link_joint_states_);
 
     publishHandJointStates(-1);
 }

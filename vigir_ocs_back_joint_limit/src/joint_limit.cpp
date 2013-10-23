@@ -142,19 +142,27 @@ void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
         break;
     case 1:
         lbzMinVal = 0.0;
-        lbzMaxVal = 0.0;
+        lbzMaxVal = 0.001;
         mbyMinVal = 0.0;
-        mbyMaxVal = 0.0;
+        mbyMaxVal = 0.001;
         ubxMinVal = 0.0;
-        ubxMaxVal = 0.0;
+        ubxMaxVal = 0.001;
         break;
     case 2:
         lbzMinVal = -0.610865;
         lbzMaxVal = 0.610865;
         mbyMinVal = 0.0;
-        mbyMaxVal = 0.28;
-        ubxMinVal = -0.2;
-        ubxMaxVal = 0.2;
+        mbyMaxVal = 0.15;
+        ubxMinVal = -0.15;
+        ubxMaxVal = 0.15;
+        break;
+    case 3:
+        lbzMinVal = -0.610865;
+        lbzMaxVal = 0.610865;
+        mbyMinVal = 0.0;
+        mbyMaxVal = 0.001;
+        ubxMinVal = -0.0;
+        ubxMaxVal = 0.001;
         break;
     default: break;
     }

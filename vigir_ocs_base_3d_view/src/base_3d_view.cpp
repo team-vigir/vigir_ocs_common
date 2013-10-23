@@ -232,17 +232,29 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goalpose" );
 
     // create the hands displays
-    left_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot left hand model", true );
-    left_hand_model_->subProp( "TF Prefix" )->setValue( "/left_hand_model" );
-    left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
-    left_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
-    left_hand_model_->subProp( "Color" )->setValue( QColor( 255, 255, 0 ) );
+    //left_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot left hand model", true );
+    //left_hand_model_->subProp( "TF Prefix" )->setValue( "/left_hand_model" );
+    //left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
+    //left_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
+    //left_hand_model_->subProp( "Color" )->setValue( QColor( 255, 255, 0 ) );
 
-    right_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot right hand model", true );
-    right_hand_model_->subProp( "TF Prefix" )->setValue( "/right_hand_model" );
+    left_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left hand model", true );
+    left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
+    left_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_left_hand" );
+    left_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
+    left_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
+
+    //right_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot right hand model", true );
+    //right_hand_model_->subProp( "TF Prefix" )->setValue( "/right_hand_model" );
+    //right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
+    //right_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
+    //right_hand_model_->subProp( "Color" )->setValue( QColor( 0, 255, 255 ) );
+
+    right_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot right hand model", true );
     right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
-    right_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
-    right_hand_model_->subProp( "Color" )->setValue( QColor( 0, 255, 255 ) );
+    right_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_right_hand" );
+    right_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
+    right_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
 
     // create the simulation robot display
     //ghost_robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot simulation model", false );
@@ -255,7 +267,6 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ghost_robot_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot simulation model", false );
     ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
     ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.0f );
-    //ghost_robot_model_->subProp( "Selectable" )->setValue( false );
     ghost_robot_model_->setEnabled(false);
 
     // Add custom interactive markers to control ghost robot
@@ -893,10 +904,16 @@ int staticTransform(geometry_msgs::Pose& palm_pose, std::string hand)
     o_T_pg.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
     o_T_pg.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
 
-    //pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
-    //pg_T_lhand = tf::Transform(tf::Matrix3x3(0,1,0,-1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
-    pg_T_rhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,1,0,-1,0),tf::Vector3(0.00179,-0.01176,-0.13)); // irobot
-    pg_T_lhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,-1,0,1,0),tf::Vector3(-0.00179,0.01176,-0.13)); // irobot
+    if(hand_type_ == "sandia")
+    {
+        pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
+        pg_T_lhand = tf::Transform(tf::Matrix3x3(0,1,0,-1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
+    }
+    else
+    {
+        pg_T_rhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,1,0,-1,0),tf::Vector3(0.00179,-0.01176,-0.13)); // irobot
+        pg_T_lhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,-1,0,1,0),tf::Vector3(-0.00179,0.01176,-0.13)); // irobot
+    }
 
     if(hand == "right")
     {
