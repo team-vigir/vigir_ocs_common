@@ -8,9 +8,7 @@ joint_limit::joint_limit(QWidget *parent) :
     ui(new Ui::joint_limit)
 {
     ui->setupUi(this);
-
     constraints_pub_ = nh_.advertise<flor_planning_msgs::PlannerConfiguration>( "/flor/planning/upper_body/configuration",1,false);
-
     lbzMinVal = -0.610865;
     lbzMaxVal = 0.610865;
 
@@ -19,7 +17,6 @@ joint_limit::joint_limit(QWidget *parent) :
 
     ubxMinVal = -0.790809;
     ubxMaxVal = 0.790809;
-
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &joint_limit::processNewKeyEvent, this );
 
     timer.start(33, this);
@@ -29,7 +26,6 @@ joint_limit::~joint_limit()
 {
     delete ui;
 }
-
 void joint_limit::on_lbzMin_sliderReleased()
 {
     if(ui->lbzMin->value() >= lbzMaxVal*1000000.0)
@@ -131,6 +127,60 @@ void joint_limit::timerEvent(QTimerEvent *event)
         
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
+}
+
+void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
+{
+    switch(index){
+    case 0:
+        lbzMinVal = -0.610865;
+        lbzMaxVal = 0.610865;
+        mbyMinVal = -1.2;
+        mbyMaxVal = 1.28;
+        ubxMinVal = -0.790809;
+        ubxMaxVal = 0.790809;
+        break;
+    case 1:
+        lbzMinVal = 0.0;
+        lbzMaxVal = 0.001;
+        mbyMinVal = 0.0;
+        mbyMaxVal = 0.001;
+        ubxMinVal = 0.0;
+        ubxMaxVal = 0.001;
+        break;
+    case 2:
+        lbzMinVal = -0.610865;
+        lbzMaxVal = 0.610865;
+        mbyMinVal = 0.0;
+        mbyMaxVal = 0.15;
+        ubxMinVal = -0.15;
+        ubxMaxVal = 0.15;
+        break;
+    case 3:
+        lbzMinVal = -0.610865;
+        lbzMaxVal = 0.610865;
+        mbyMinVal = 0.0;
+        mbyMaxVal = 0.001;
+        ubxMinVal = -0.0;
+        ubxMaxVal = 0.001;
+        break;
+    default: break;
+    }
+
+    ui->lbzMin->setValue(lbzMinVal*1000000.0);
+    ui->lbzMinLabel->setText(QString::number(lbzMinVal,'g',6));
+    ui->lbzMax->setValue(lbzMaxVal*1000000.0);
+    ui->lbzMaxLabel->setText(QString::number(lbzMaxVal,'g',6));
+
+    ui->mbyMin->setValue(mbyMinVal*100.0);
+    ui->mbyMinLabel->setText(QString::number(mbyMinVal,'g',6));
+    ui->mbyMax->setValue(mbyMaxVal*100.0);
+    ui->mbyMaxLabel->setText(QString::number(mbyMaxVal,'g',6));
+
+    ui->ubxMin->setValue(ubxMinVal*1000000.0);
+    ui->ubxMinLabel->setText(QString::number(ubxMinVal,'g',6));
+    ui->ubxMax->setValue(ubxMaxVal*1000000.0);
+    ui->ubxMaxLabel->setText(QString::number(ubxMaxVal,'g',6));
 }
 
 void joint_limit::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)

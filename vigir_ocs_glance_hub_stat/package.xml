@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package>
-  <name>vigir_ocs_grasp_widget</name>
+  <name>vigir_ocs_glance_hub_stat</name>
   <version>0.0.1</version>
-  <description>The vigir_ocs_grasp_widget package</description>
-  <maintainer email="benjw90@vt.edu">benjamin Waxler</maintainer>
+  <description>The vigir_ocs_glance_hub_stat</description>
+  <maintainer email="tan25687@vt.edu">Tania Hamid</maintainer>
   <license>TODO</license>
   <buildtool_depend>catkin</buildtool_depend>
   
@@ -11,25 +11,17 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>roscpp</build_depend>
-  <build_depend>rviz</build_depend>
   <build_depend>roslib</build_depend>
   <build_depend>tf</build_depend>
   <build_depend>flor_ocs_msgs</build_depend>
-  <build_depend>flor_grasp_msgs</build_depend>
-  <build_depend>moveit_core</build_depend>
-  <build_depend>moveit_ros_planning</build_depend>    
   
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>roscpp</run_depend>
-  <run_depend>rviz</run_depend>
   <run_depend>roslib</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>flor_ocs_msgs</run_depend>
-  <run_depend>flor_grasp_msgs</run_depend>
-  <run_depend>moveit_core</run_depend>
-  <run_depend>moveit_ros_planning</run_depend>    
   
   <export>
     <!-- You can specify that this package is a metapackage here: -->
