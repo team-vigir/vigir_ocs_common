@@ -224,10 +224,10 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         achieved_waypoints_display_->subProp( "Color" )->setValue( QColor( 150, 150, 255 ) );
 
         // create a publisher to add templates
-        template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
+        template_add_pub_   = nh_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
 
         // create a publisher to add waypoints
-        waypoint_add_pub_   = n_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
+        waypoint_add_pub_   = nh_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
 
         // Make the move camera tool the currently selected one
         manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
@@ -376,43 +376,44 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
 
     // initialize all publishers and subscribers
 
-    interactive_marker_add_pub_ = n_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 1, true );
-    interactive_marker_update_pub_ = n_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
-    interactive_marker_feedback_sub_ = n_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );
+    interactive_marker_add_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 1, true );
+    interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
+    interactive_marker_feedback_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );
 
     // subscribe to the pose topics
-    end_effector_sub_.push_back(n_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
-    end_effector_sub_.push_back(n_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
+    end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
+    end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
 
-    end_effector_pub_ = n_.advertise<flor_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 1, false );
+    end_effector_pub_ = nh_.advertise<flor_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 1, false );
 
-    ghost_root_pose_pub_ = n_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/set_root_pose", 1, false );
-    ghost_joint_state_pub_ = n_.advertise<sensor_msgs::JointState>( "/flor/ghost/set_joint_states", 1, false );
+    ghost_root_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/set_root_pose", 1, false );
+    ghost_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>( "/flor/ghost/set_joint_states", 1, false );
 
     // subscribe to the ghost hands pose
-    ghost_hand_left_sub_ = n_.subscribe<geometry_msgs::PoseStamped>( "/ghost_left_hand_pose", 5, &Base3DView::processLeftGhostHandPose, this );
-    ghost_hand_right_sub_ = n_.subscribe<geometry_msgs::PoseStamped>( "/ghost_right_hand_pose", 5, &Base3DView::processRightGhostHandPose, this );
+    ghost_hand_left_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_left_hand_pose", 5, &Base3DView::processLeftGhostHandPose, this );
+    ghost_hand_right_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_right_hand_pose", 5, &Base3DView::processRightGhostHandPose, this );
+
 
     // ghost state
-    ghost_control_state_sub_ = n_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
-    reset_pelvis_sub_ = n_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
-    send_pelvis_sub_ = n_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
-    send_footstep_goal_pub_ = n_.advertise<geometry_msgs::PoseStamped>( "/goalpose", 1, false );
-
+    ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
+    reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
+    send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
+    send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goalpose", 1, false );
 
     // ground map middle man
-    //ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
-    ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/ocs/gridmap_result", 5, &Base3DView::processNewMap, this );
+    //ground_map_sub_ = nh_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
+    ground_map_sub_ = nh_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/ocs/gridmap_result", 5, &Base3DView::processNewMap, this );
 
     // point cloud request/selection publisher
-    point_cloud_result_sub_ =  n_.subscribe<sensor_msgs::PointCloud2>( "/flor/worldmodel/ocs/dist_query_pointcloud_result", 5, &Base3DView::processPointCloud, this );
-    global_selection_pos_pub_ = n_.advertise<geometry_msgs::Point>( "/new_point_cloud_request", 1, false );
-    global_selection_pos_sub_ = n_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
+    point_cloud_result_sub_ =  nh_.subscribe<sensor_msgs::PointCloud2>( "/flor/worldmodel/ocs/dist_query_pointcloud_result", 5, &Base3DView::processPointCloud, this );
+    global_selection_pos_pub_ = nh_.advertise<geometry_msgs::Point>( "/new_point_cloud_request", 1, false );
+    global_selection_pos_sub_ = nh_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
 
-    joint_states_sub_ = n_.subscribe<sensor_msgs::JointState>( "atlas/joint_states", 2, &Base3DView::processJointStates, this );
+
+    joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "atlas/joint_states", 2, &Base3DView::processJointStates, this );
 
     // advertise pointcloud request
-    pointcloud_request_world_pub_ = n_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
+    pointcloud_request_world_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
 
     }
 
@@ -437,6 +438,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
     // no need to spin as rviz is already doing that for us.
     //ros::spinOnce();
 }
+
 
 void Base3DView::init()
 {
@@ -904,7 +906,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
         end_effector_pose_list_[cmd.topic] = cmd.pose;
 }
 
-int staticTransform(geometry_msgs::Pose& palm_pose, std::string hand)
+int staticTransform(geometry_msgs::Pose& palm_pose, std::string hand, std::string hand_type)
 {
     tf::Transform o_T_hand;    //describes hand in object's frame
     tf::Transform o_T_pg;       //describes palm_from_graspit in object's frame
@@ -914,7 +916,7 @@ int staticTransform(geometry_msgs::Pose& palm_pose, std::string hand)
     o_T_pg.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
     o_T_pg.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
 
-    if(hand_type_ == "sandia")
+    if(hand_type == "sandia")
     {
         pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
         pg_T_lhand = tf::Transform(tf::Matrix3x3(0,1,0,-1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
