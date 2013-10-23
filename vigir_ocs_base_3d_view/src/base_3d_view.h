@@ -253,6 +253,8 @@ protected:
     QLineEdit* position_label_;
 
     QPushButton* reset_view_button_;
+
+    std::string hand_type_;
 };
 }
 #endif // BASE_3D_VIEW_H
