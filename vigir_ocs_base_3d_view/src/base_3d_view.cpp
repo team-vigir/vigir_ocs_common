@@ -416,6 +416,8 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
 
     }
 
+    nh_.param<std::string>("/flor/ocs/grasp/hand_type",hand_type_,"sandia"); // global parameter
+
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
 }
