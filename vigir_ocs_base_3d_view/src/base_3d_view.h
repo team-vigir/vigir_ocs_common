@@ -1,4 +1,4 @@
-/* 
+/*
  * Base3DView class definition.
  * 
  * Author: Felipe Bacim.
@@ -188,7 +188,7 @@ protected:
 
     Ogre::Vector3 selection_position_;
 
-    ros::NodeHandle n_;
+    ros::NodeHandle nh_;
 
     ros::Publisher template_add_pub_;
     ros::Publisher waypoint_add_pub_;
