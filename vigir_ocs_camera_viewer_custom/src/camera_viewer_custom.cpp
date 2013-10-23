@@ -77,7 +77,7 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     Q_EMIT unHighlight();
 
     // and advertise the head pitch update function
-    head_pitch_update_pub_ = n_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ry", 1, false );
+    head_pitch_update_pub_ = nh_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ry", 1, false );
 
     rviz::EmptyViewController* camera_controller = new rviz::EmptyViewController();
     camera_controller->initialize( render_panel_->getManager() );
@@ -91,14 +91,14 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     Q_EMIT setMarkerScale(0.001f);
 
     // advertise pointcloud request
-    pointcloud_request_frame_pub_ = n_.advertise<geometry_msgs::PointStamped>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_frame", 1, false );
+    pointcloud_request_frame_pub_ = nh_.advertise<geometry_msgs::PointStamped>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_frame", 1, false );
 
     reset_view_button_->setParent(0);
     delete reset_view_button_;
     reset_view_button_ = NULL;
 
     // subscribe to goal pose so we can add filters back
-    set_goal_sub_ = n_.subscribe<geometry_msgs::PoseStamped>( "/goalpose", 5, &CameraViewerCustom::processGoalPose, this );
+    set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goalpose", 5, &CameraViewerCustom::processGoalPose, this );
 
     // make sure we're still able to cancel set goal pose
     QObject::connect(render_panel_, SIGNAL(signalKeyPressEvent(QKeyEvent*)), this, SLOT(keyPressEvent(QKeyEvent*)));

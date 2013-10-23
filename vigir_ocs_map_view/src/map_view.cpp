@@ -47,16 +47,16 @@ MapView::MapView( QWidget* parent )
     Q_EMIT unHighlight();
 
     // create publisher for grid map
-    grid_map_request_pub_ = n_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/gridmap_request", 1, false );
+    grid_map_request_pub_ = nh_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/gridmap_request", 1, false );
 
     // create publisher for grid map
-    octomap_request_pub_ = n_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/octomap_request", 1, false );
+    octomap_request_pub_ = nh_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/octomap_request", 1, false );
 
     // connect to selection display to query position/raycast
     QObject::connect(this, SIGNAL(queryPosition(int,int,Ogre::Vector3&)), selection_3d_display_, SLOT(queryPosition(int,int,Ogre::Vector3&)));
 
     // subscribe to goal pose so we can add filters back
-    set_goal_sub_ = n_.subscribe<geometry_msgs::PoseStamped>( "/goalpose", 5, &MapView::processGoalPose, this );
+    set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goalpose", 5, &MapView::processGoalPose, this );
 
     // make sure we're still able to cancel set goal pose
     QObject::connect(render_panel_, SIGNAL(signalKeyPressEvent(QKeyEvent*)), this, SLOT(keyPressEvent(QKeyEvent*)));
