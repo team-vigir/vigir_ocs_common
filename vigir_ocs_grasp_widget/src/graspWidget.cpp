@@ -26,7 +26,7 @@ graspWidget::graspWidget(QWidget *parent)
     ros::NodeHandle nhp("~");
     nhp.param<std::string>("grasp_widget/hand",hand,"left"); // private parameter
     nh_.param<std::string>("/flor/ocs/grasp/hand_type",hand_type,"sandia"); // global parameter
-    ROS_ERROR("  Grasp widget using %s hand (%s)",hand.c_str(), hand_type.c_str());
+    //ROS_ERROR("  Grasp widget using %s hand (%s)",hand.c_str(), hand_type.c_str());
 
     // initialize path variables for template/grasp databases
     std::string templatePath = (ros::package::getPath("templates"))+"/";
