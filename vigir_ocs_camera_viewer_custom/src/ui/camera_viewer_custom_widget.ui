@@ -87,9 +87,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-381</y>
+        <y>-411</y>
         <width>264</width>
-        <height>1083</height>
+        <height>1113</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -857,12 +857,19 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QPushButton" name="footstep_pose">
+           <widget class="QPushButton" name="footstep_pose_walk">
             <property name="text">
-             <string>Define Target Pose</string>
+             <string>Define Target Pose - Walk</string>
             </property>
             <property name="shortcut">
              <string>G</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="footstep_pose_step">
+            <property name="text">
+             <string>Define Target Pose - Step</string>
             </property>
            </widget>
           </item>
@@ -965,7 +972,7 @@
                 <number>-40</number>
                </property>
                <property name="maximum">
-                <number>70</number>
+                <number>65</number>
                </property>
                <property name="value">
                 <number>0</number>
@@ -1028,7 +1035,7 @@
                    </font>
                   </property>
                   <property name="text">
-                   <string>70</string>
+                   <string>65</string>
                   </property>
                  </widget>
                 </item>
@@ -1417,6 +1424,8 @@ color: rgb(255, 26, 26);</string>
     <slot>requestedPointCloudToggled(bool)</slot>
     <slot>clearPointCloudRequests()</slot>
     <slot>clearMapRequests()</slot>
+    <slot>defineWalkPosePressed()</slot>
+    <slot>defineStepPosePressed()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -1759,10 +1768,10 @@ color: rgb(255, 26, 26);</string>
    </hints>
   </connection>
   <connection>
-   <sender>footstep_pose</sender>
-   <signal>clicked()</signal>
+   <sender>footstep_pose_walk</sender>
+   <signal>pressed()</signal>
    <receiver>widget</receiver>
-   <slot>vectorPressed()</slot>
+   <slot>defineWalkPosePressed()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>563</x>
@@ -1851,6 +1860,22 @@ color: rgb(255, 26, 26);</string>
     <hint type="destinationlabel">
      <x>223</x>
      <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>footstep_pose_step</sender>
+   <signal>pressed()</signal>
+   <receiver>widget</receiver>
+   <slot>defineStepPosePressed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>705</x>
+     <y>588</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>284</x>
+     <y>350</y>
     </hint>
    </hints>
   </connection>
