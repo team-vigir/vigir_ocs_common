@@ -98,7 +98,8 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     reset_view_button_ = NULL;
 
     // subscribe to goal pose so we can add filters back
-    set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goalpose", 5, &CameraViewerCustom::processGoalPose, this );
+    set_walk_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_walk", 5, &CameraViewerCustom::processGoalPose, this );
+    set_step_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_step", 5, &CameraViewerCustom::processGoalPose, this );
 
     // make sure we're still able to cancel set goal pose
     QObject::connect(render_panel_, SIGNAL(signalKeyPressEvent(QKeyEvent*)), this, SLOT(keyPressEvent(QKeyEvent*)));
@@ -342,10 +343,19 @@ void CameraViewerCustom::updateImageFrame(std::string frame)
     camera_frame_topic_ = frame;
 }
 
-void CameraViewerCustom::vectorPressed()
+void CameraViewerCustom::defineWalkPosePressed()
 {
     //ROS_ERROR("vector pressed in map");
-    manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
+    //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
+    manager_->getToolManager()->setCurrentTool( set_walk_goal_tool_ );
+    setting_pose_ = true;
+}
+
+void CameraViewerCustom::defineStepPosePressed()
+{
+    //ROS_ERROR("vector pressed in map");
+    //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
+    manager_->getToolManager()->setCurrentTool( set_step_goal_tool_ );
     setting_pose_ = true;
 }
 
