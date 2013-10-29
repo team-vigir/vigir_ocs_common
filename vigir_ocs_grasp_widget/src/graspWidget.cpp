@@ -66,7 +66,7 @@ graspWidget::graspWidget(QWidget *parent)
         ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_left_hand/joint_states",     1, false); // /ghost_left_hand/joint_states
 
         // We first subscribe to the JointState messages
-        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/l_hand/sandia_states", 2, &graspWidget::jointStatesCB, this );
+        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/l_hand/tactile_feedback", 2, &graspWidget::jointStatesCB, this );
     }
     else
     {
@@ -76,7 +76,7 @@ graspWidget::graspWidget(QWidget *parent)
         ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_right_hand/joint_states",    1, false); // /ghost_right_hand/joint_states
 
         // We first subscribe to the JointState messages
-        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/r_hand/sandia_states", 2, &graspWidget::jointStatesCB, this );
+        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/r_hand/tactile_feedback", 2, &graspWidget::jointStatesCB, this );
     }
 
     // publisher to color the hand links
