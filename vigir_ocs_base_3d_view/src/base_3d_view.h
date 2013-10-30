@@ -1,4 +1,4 @@
-/* 
+/*
  * Base3DView class definition.
  * 
  * Author: Felipe Bacim.
@@ -107,7 +107,8 @@ public Q_SLOTS:
     void select3DToggled( bool );
     void markerRobotToggled( bool );
     void markerTemplateToggled( bool );
-    virtual void vectorPressed();
+    virtual void defineWalkPosePressed();
+    virtual void defineStepPosePressed();
 
     void newSelection( Ogre::Vector3 );
     void insertTemplate( QString );
@@ -169,7 +170,8 @@ protected:
     // new displays for walking
     rviz::Display* footsteps_array_;
     std::vector<rviz::Display*> ground_map_;
-    rviz::Display* goal_pose_;
+    rviz::Display* goal_pose_walk_;
+    rviz::Display* goal_pose_step_;
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
 
@@ -182,11 +184,12 @@ protected:
     rviz::Tool* interactive_markers_tool_;
     //rviz::Tool* selection_tool_;
     rviz::Tool* move_camera_tool_;
-    rviz::Tool* set_goal_tool_;
+    rviz::Tool* set_walk_goal_tool_;
+    rviz::Tool* set_step_goal_tool_;
 
     Ogre::Vector3 selection_position_;
 
-    ros::NodeHandle n_;
+    ros::NodeHandle nh_;
 
     ros::Publisher template_add_pub_;
     ros::Publisher waypoint_add_pub_;
@@ -253,6 +256,8 @@ protected:
     QLineEdit* position_label_;
 
     QPushButton* reset_view_button_;
+
+    std::string hand_type_;
 };
 }
 #endif // BASE_3D_VIEW_H

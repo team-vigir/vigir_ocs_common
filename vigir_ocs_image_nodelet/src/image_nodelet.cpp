@@ -79,8 +79,8 @@ void ImageNodelet::publishImageToOCS(const unsigned long &id)
     if(id >= image_history_.size())
         return;
 
-    ROS_ERROR("(%ld) Sending to topic %s",id,(image_history_[id].topic+"/history/image_raw").c_str());
-    ROS_ERROR("(%ld) Sending to topic %s",id,(image_history_[id].topic+"/history/camera_info").c_str());
+    //ROS_ERROR("(%ld) Sending to topic %s",id,(image_history_[id].topic+"/history/image_raw").c_str());
+    //ROS_ERROR("(%ld) Sending to topic %s",id,(image_history_[id].topic+"/history/camera_info").c_str());
 
     // update timestamp and publish
     ros::Time now = ros::Time::now();
@@ -106,7 +106,7 @@ void ImageNodelet::processImage( const ros::MessageEvent<sensor_msgs::Image cons
     if(publisher_name == this->getName())
         return;
 
-    ROS_ERROR("Received image from %s on topic %s",publisher_name.c_str(),topic.c_str());
+    //ROS_ERROR("Received image from %s on topic %s",publisher_name.c_str(),topic.c_str());
 
     const sensor_msgs::Image::ConstPtr& msg = event.getMessage();
 
@@ -144,7 +144,7 @@ void ImageNodelet::processCameraInfo( const ros::MessageEvent<sensor_msgs::Camer
     if(publisher_name == this->getName())
         return;
 
-    ROS_ERROR("Received camera info from %s on topic %s",publisher_name.c_str(),topic.c_str());
+    //ROS_ERROR("Received camera info from %s on topic %s",publisher_name.c_str(),topic.c_str());
 
     const sensor_msgs::CameraInfo::ConstPtr& msg = event.getMessage();
 
@@ -174,14 +174,14 @@ void ImageNodelet::processCameraInfo( const ros::MessageEvent<sensor_msgs::Camer
 
 void ImageNodelet::processImageListRequest(const std_msgs::Bool::ConstPtr &msg)
 {
-    ROS_ERROR("Received image list request");
+    //ROS_ERROR("Received image list request");
 
     publishImageList();
 }
 
 void ImageNodelet::processImageSelected(const std_msgs::UInt64::ConstPtr &msg)
 {
-    ROS_ERROR("Received image selected");
+    //ROS_ERROR("Received image selected");
 
     publishImageToOCS(msg->data);
 }

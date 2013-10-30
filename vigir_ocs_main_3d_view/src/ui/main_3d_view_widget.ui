@@ -63,9 +63,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-112</y>
+        <y>0</y>
         <width>264</width>
-        <height>782</height>
+        <height>812</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -192,12 +192,19 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="footstep_pose">
+              <widget class="QPushButton" name="footstep_pose_walk">
                <property name="text">
-                <string>Define Target Pose</string>
+                <string>Define Target Pose - Walk</string>
                </property>
                <property name="shortcut">
                 <string>G</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="footstep_pose_step">
+               <property name="text">
+                <string>Define Target Pose - Step</string>
                </property>
               </widget>
              </item>
@@ -493,13 +500,14 @@ color: rgb(255, 26, 26);</string>
     <slot>gridMapToggled(bool)</slot>
     <slot>footstepPlanningToggled(bool)</slot>
     <slot>simulationRobotToggled(bool)</slot>
-    <slot>vectorPressed()</slot>
     <slot>publishPointCloudWorldRequest()</slot>
     <slot>graspModelToggled(bool)</slot>
     <slot>templatesToggled(bool)</slot>
     <slot>requestedPointCloudToggled(bool)</slot>
     <slot>clearMapRequests()</slot>
     <slot>clearPointCloudRequests()</slot>
+    <slot>defineWalkPosePressed()</slot>
+    <slot>defineStepPosePressed()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -730,10 +738,10 @@ color: rgb(255, 26, 26);</string>
    </hints>
   </connection>
   <connection>
-   <sender>footstep_pose</sender>
+   <sender>footstep_pose_walk</sender>
    <signal>pressed()</signal>
    <receiver>main_3d_view_</receiver>
-   <slot>vectorPressed()</slot>
+   <slot>defineWalkPosePressed()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>649</x>
@@ -834,6 +842,22 @@ color: rgb(255, 26, 26);</string>
     <hint type="sourcelabel">
      <x>757</x>
      <y>544</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>337</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>footstep_pose_step</sender>
+   <signal>pressed()</signal>
+   <receiver>main_3d_view_</receiver>
+   <slot>defineStepPosePressed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>656</x>
+     <y>241</y>
     </hint>
     <hint type="destinationlabel">
      <x>259</x>

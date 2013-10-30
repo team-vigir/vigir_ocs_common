@@ -72,7 +72,8 @@ public Q_SLOTS:
     void requestPointCloudROI();
     void updateImageFrame(std::string);
 
-    virtual void vectorPressed();
+    virtual void defineWalkPosePressed();
+    virtual void defineStepPosePressed();
     void keyPressEvent( QKeyEvent* event );
 
 private Q_SLOTS:
@@ -90,7 +91,8 @@ private:
     ros::Publisher head_pitch_update_pub_;
     ros::Publisher pointcloud_request_frame_pub_;
 
-    ros::Subscriber set_goal_sub_;
+    ros::Subscriber set_walk_goal_sub_;
+    ros::Subscriber set_step_goal_sub_;
 
     int feed_rate_;
     int feed_resolution_;

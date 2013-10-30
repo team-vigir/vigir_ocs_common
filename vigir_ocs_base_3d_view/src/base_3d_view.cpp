@@ -121,13 +121,18 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // Add support for camera movement
     move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
     // Add support for goal specification/vector navigation
-    set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
+    set_walk_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
+    set_walk_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
+    set_step_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
+    set_step_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
 
     // Create a LaserScan display.
     laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
     ROS_ASSERT( laser_scan_ != NULL );
     laser_scan_->subProp( "Topic" )->setValue( "/laser/scan" );
-    laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
+    laser_scan_->subProp( "Style" )->setValue( "Points" );
+    laser_scan_->subProp( "Size (Pixels)" )->setValue( 3 );
+    //laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
     laser_scan_->subProp( "Decay Time" )->setValue( 5 );
     laser_scan_->subProp( "Color Transformer" )->setValue( "AxisColor" );
     laser_scan_->subProp( "Axis" )->setValue( "Z" );
@@ -150,7 +155,9 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ROS_ASSERT( lidar_point_cloud_viewer_ != NULL );
     lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
     lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/worldmodel_main/pointcloud_vis" );
-    lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+    lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 2 );
+    lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+    lidar_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
     lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
     // point cloud request
@@ -201,10 +208,10 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), this, SLOT(createContextMenu(bool,int,int)));
 
     // create a publisher to add templates
-    template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
+    template_add_pub_   = nh_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
 
     // create a publisher to add waypoints
-    waypoint_add_pub_   = n_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
+    waypoint_add_pub_   = nh_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
 
     selection_position_ = Ogre::Vector3(0,0,0);
 
@@ -213,20 +220,22 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     // Footstep array
     footsteps_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps array", true );
-    footsteps_array_->subProp( "Marker Topic" )->setValue( "/flor_footstep_planner/footsteps_array" );
+    footsteps_array_->subProp( "Marker Topic" )->setValue( "/flor/walk_monitor/footsteps_array" );
 
-    goal_pose_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
-    goal_pose_->subProp( "Topic" )->setValue( "/goalpose" );
-    goal_pose_->subProp( "Shape" )->setValue( "Axes" );
+    goal_pose_walk_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
+    goal_pose_walk_->subProp( "Topic" )->setValue( "/goal_pose_walk" );
+    goal_pose_walk_->subProp( "Shape" )->setValue( "Axes" );
+
+    goal_pose_step_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
+    goal_pose_step_->subProp( "Topic" )->setValue( "/goal_pose_step" );
+    goal_pose_step_->subProp( "Shape" )->setValue( "Axes" );
 
     planner_start_ = manager_->createDisplay( "rviz/Pose", "Start pose", true );
     planner_start_->subProp( "Topic" )->setValue( "/ros_footstep_planner/start" );
     planner_start_->subProp( "Shape" )->setValue( "Axes" );
 
     planned_path_ = manager_->createDisplay( "rviz/Path", "Planned path", true );
-    planned_path_->subProp( "Topic" )->setValue( "/flor/footstep_planner/path" );
-
-    set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goalpose" );
+    planned_path_->subProp( "Topic" )->setValue( "/flor/walk_monitor/path" );
 
     // create the hands displays
     left_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot left hand model", true );
@@ -283,22 +292,22 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     //.push_back(marker_server_pelvis);
     //im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
 
-    interactive_marker_add_pub_ = n_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 1, true );
-    interactive_marker_update_pub_ = n_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
-    interactive_marker_feedback_sub_ = n_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );;
+    interactive_marker_add_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 1, true );
+    interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
+    interactive_marker_feedback_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );;
 
     // subscribe to the pose topics
-    end_effector_sub_.push_back(n_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
-    end_effector_sub_.push_back(n_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
+    end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
+    end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
 
-    end_effector_pub_ = n_.advertise<flor_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 1, false );
+    end_effector_pub_ = nh_.advertise<flor_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 1, false );
 
-    ghost_root_pose_pub_ = n_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/set_root_pose", 1, false );
-    ghost_joint_state_pub_ = n_.advertise<sensor_msgs::JointState>( "/flor/ghost/set_joint_states", 1, false );
+    ghost_root_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/set_root_pose", 1, false );
+    ghost_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>( "/flor/ghost/set_joint_states", 1, false );
 
     // subscribe to the ghost hands pose
-    ghost_hand_left_sub_ = n_.subscribe<geometry_msgs::PoseStamped>( "/ghost_left_hand_pose", 5, &Base3DView::processLeftGhostHandPose, this );
-    ghost_hand_right_sub_ = n_.subscribe<geometry_msgs::PoseStamped>( "/ghost_right_hand_pose", 5, &Base3DView::processRightGhostHandPose, this );
+    ghost_hand_left_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_left_hand_pose", 5, &Base3DView::processLeftGhostHandPose, this );
+    ghost_hand_right_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_right_hand_pose", 5, &Base3DView::processRightGhostHandPose, this );
 
     // initialize ghost control config
     saved_state_planning_group_.push_back(0);
@@ -314,10 +323,10 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     saved_state_lock_pelvis_ = 1;
 
     // ghost state
-    ghost_control_state_sub_ = n_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
-    reset_pelvis_sub_ = n_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
-    send_pelvis_sub_ = n_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
-    send_footstep_goal_pub_ = n_.advertise<geometry_msgs::PoseStamped>( "/goalpose", 1, false );
+    ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
+    reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
+    send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
+    send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goalpose", 1, false );
 
     // Create a RobotModel display.
     robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
@@ -326,19 +335,19 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     // ground map middle man
     //ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
-    ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/ocs/gridmap_result", 5, &Base3DView::processNewMap, this );
+    ground_map_sub_ = nh_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/ocs/gridmap_result", 5, &Base3DView::processNewMap, this );
 
     // point cloud request/selection publisher
-    point_cloud_result_sub_ =  n_.subscribe<sensor_msgs::PointCloud2>( "/flor/worldmodel/ocs/dist_query_pointcloud_result", 5, &Base3DView::processPointCloud, this );
-    global_selection_pos_pub_ = n_.advertise<geometry_msgs::Point>( "/new_point_cloud_request", 1, false );
-    global_selection_pos_sub_ = n_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
+    point_cloud_result_sub_ =  nh_.subscribe<sensor_msgs::PointCloud2>( "/flor/worldmodel/ocs/dist_query_pointcloud_result", 5, &Base3DView::processPointCloud, this );
+    global_selection_pos_pub_ = nh_.advertise<geometry_msgs::Point>( "/new_point_cloud_request", 1, false );
+    global_selection_pos_sub_ = nh_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
 
     QObject::connect(this, SIGNAL(setMarkerPosition(float,float,float)), selection_3d_display_, SLOT(setMarkerPosition(float,float,float)));
 
-    joint_states_sub_ = n_.subscribe<sensor_msgs::JointState>( "atlas/joint_states", 2, &Base3DView::processJointStates, this );
+    joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "atlas/joint_states", 2, &Base3DView::processJointStates, this );
 
     // advertise pointcloud request
-    pointcloud_request_world_pub_ = n_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
+    pointcloud_request_world_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
 
     // frustum
     frustum_viewer_list_["head_left"] = manager_->createDisplay( "rviz/FrustumDisplayCustom", "Frustum - Left Eye", true );
@@ -366,6 +375,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     position_widget_->setLayout(position_layout);
     //main_layout->addWidget(position_widget_);
 
+    nh_.param<std::string>("/flor/ocs/grasp/hand_type",hand_type_,"sandia"); // global parameter
 }
 
 // Destructor.
@@ -444,7 +454,7 @@ void Base3DView::gridMapToggled( bool selected )
 
 void Base3DView::footstepPlanningToggled( bool selected )
 {
-    goal_pose_->setEnabled( selected );
+    goal_pose_walk_->setEnabled( selected );
     planner_start_->setEnabled( selected );
     planned_path_->setEnabled( selected );
     footsteps_array_->setEnabled( selected );
@@ -527,9 +537,16 @@ void Base3DView::markerTemplateToggled( bool selected )
     }
 }
 
-void Base3DView::vectorPressed()
+void Base3DView::defineWalkPosePressed()
 {
-    manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
+    //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
+    manager_->getToolManager()->setCurrentTool( set_walk_goal_tool_ );
+}
+
+void Base3DView::defineStepPosePressed()
+{
+    //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
+    manager_->getToolManager()->setCurrentTool( set_step_goal_tool_ );
 }
 
 void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc )
@@ -835,7 +852,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
         end_effector_pose_list_[cmd.topic] = cmd.pose;
 }
 
-int staticTransform(geometry_msgs::Pose& palm_pose, std::string hand)
+int staticTransform(geometry_msgs::Pose& palm_pose, std::string hand, std::string hand_type)
 {
     tf::Transform o_T_hand;    //describes hand in object's frame
     tf::Transform o_T_pg;       //describes palm_from_graspit in object's frame
@@ -845,14 +862,16 @@ int staticTransform(geometry_msgs::Pose& palm_pose, std::string hand)
     o_T_pg.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
     o_T_pg.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
 
-    pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0,0,0,-1,1,0,0),tf::Vector3(-0.1,0,0));
-    pg_T_lhand = tf::Transform(tf::Matrix3x3(0,0,-1,0,1,0,1,0,0),tf::Vector3(-0.1,0,0));
-    tf::Quaternion left_quat = pg_T_lhand.getRotation();
-    tf::Quaternion tmp_quad(0,-1.57079633,0);
-    left_quat *= tmp_quad;
-    tf::Vector3 left_pos = pg_T_rhand.getOrigin();
-    //left_pos.setX(-left_pos.x());
-    pg_T_lhand = tf::Transform(left_quat,left_pos); // but we need to got to left_palm
+    if(hand_type == "sandia")
+    {
+        pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
+        pg_T_lhand = tf::Transform(tf::Matrix3x3(0,1,0,-1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
+    }
+    else
+    {
+        pg_T_rhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,1,0,-1,0),tf::Vector3(0.00179,-0.01176,-0.13)); // irobot
+        pg_T_lhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,-1,0,1,0),tf::Vector3(-0.00179,0.01176,-0.13)); // irobot
+    }
 
     if(hand == "right")
     {
@@ -887,7 +906,7 @@ void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::Cons
     if(!moving_pelvis_ && saved_state_world_lock_[0] == 1)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
-        staticTransform(transformed_pose,"left");
+        staticTransform(transformed_pose,"left",hand_type_);
         end_effector_pose_list_["/l_arm_pose_marker"].pose = transformed_pose;
         publishGhostPoses();
     }
@@ -901,7 +920,7 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
     if(!moving_pelvis_ && saved_state_world_lock_[1] == 1)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
-        staticTransform(transformed_pose,"right");
+        staticTransform(transformed_pose,"right",hand_type_);
         end_effector_pose_list_["/r_arm_pose_marker"].pose = transformed_pose;
         publishGhostPoses();
     }
@@ -1151,8 +1170,8 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
         Ogre::Quaternion orientation(1,0,0,0);
         transform(position, orientation, "/pelvis", "/world");
 
-        ROS_ERROR("ROTATION PELVIS: %f %f %f",orientation.getPitch().valueDegrees(),orientation.getYaw().valueDegrees(),orientation.getRoll().valueDegrees());
-        ROS_ERROR("ROTATION GHOST : %f %f %f",original_orientation.getPitch().valueDegrees(),original_orientation.getYaw().valueDegrees(),original_orientation.getRoll().valueDegrees());
+        //ROS_ERROR("ROTATION PELVIS: %f %f %f",orientation.getPitch().valueDegrees(),orientation.getYaw().valueDegrees(),orientation.getRoll().valueDegrees());
+        //ROS_ERROR("ROTATION GHOST : %f %f %f",original_orientation.getPitch().valueDegrees(),original_orientation.getYaw().valueDegrees(),original_orientation.getRoll().valueDegrees());
 
         Ogre::Quaternion final_orientation = Ogre::Quaternion(original_orientation.getRoll(), Ogre::Vector3::UNIT_Z) * Ogre::Quaternion(orientation.getPitch(), Ogre::Vector3::UNIT_X) * Ogre::Quaternion(orientation.getYaw(), Ogre::Vector3::UNIT_Y);
 
@@ -1222,7 +1241,7 @@ void Base3DView::publishMarkers()
 
 void Base3DView::resetView()
 {
-    ROS_ERROR("RESET VIEW");
+    //ROS_ERROR("RESET VIEW");
     manager_->getViewManager()->getCurrent()->reset();
     Ogre::Vector3 position(0,0,0);
     Ogre::Quaternion orientation(1,0,0,0);
