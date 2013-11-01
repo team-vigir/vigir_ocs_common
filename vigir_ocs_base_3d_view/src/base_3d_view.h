@@ -75,6 +75,8 @@ class Base3DView: public QWidget
 public:
     Base3DView( rviz::VisualizationManager* context = NULL, std::string base_frame = "/pelvis", QWidget* parent = 0 );
     virtual ~Base3DView();
+    
+    void init();
 
     void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
     void processNewSelection( const geometry_msgs::Point::ConstPtr& pose );
@@ -111,7 +113,8 @@ public Q_SLOTS:
     void select3DToggled( bool );
     void markerRobotToggled( bool );
     void markerTemplateToggled( bool );
-    virtual void vectorPressed();
+    virtual void defineWalkPosePressed();
+    virtual void defineStepPosePressed();
 
     void newSelection( Ogre::Vector3 );
     void insertTemplate( QString );
@@ -173,7 +176,8 @@ protected:
     // new displays for walking
     rviz::Display* footsteps_array_;
     std::vector<rviz::Display*> ground_map_;
-    rviz::Display* goal_pose_;
+    rviz::Display* goal_pose_walk_;
+    rviz::Display* goal_pose_step_;
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
 
@@ -188,7 +192,8 @@ protected:
     rviz::Tool* interactive_markers_tool_;
     //rviz::Tool* selection_tool_;
     rviz::Tool* move_camera_tool_;
-    rviz::Tool* set_goal_tool_;
+    rviz::Tool* set_walk_goal_tool_;
+    rviz::Tool* set_step_goal_tool_;
 
     Ogre::Vector3 selection_position_;
 

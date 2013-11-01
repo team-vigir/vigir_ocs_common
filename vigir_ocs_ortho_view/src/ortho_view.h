@@ -47,7 +47,8 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void enableSelectionTool(bool, int, int);
-    virtual void vectorPressed();
+    virtual void defineWalkPosePressed();
+    virtual void defineStepPosePressed();
     void keyPressEvent( QKeyEvent* event );
 
 private:
@@ -56,7 +57,8 @@ private:
 
     ros::Publisher grid_map_request_pub_;
     ros::Publisher octomap_request_pub_;
-    ros::Subscriber set_goal_sub_;
+    ros::Subscriber set_walk_goal_sub_;
+    ros::Subscriber set_step_goal_sub_;
 
     int selected_area_[4];
 

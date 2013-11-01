@@ -54,9 +54,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-460</y>
+        <y>-240</y>
         <width>242</width>
-        <height>1153</height>
+        <height>1183</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -373,12 +373,19 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="footstep_pose">
+           <widget class="QPushButton" name="footstep_pose_walk">
             <property name="text">
-             <string>Define Target Pose</string>
+             <string>Define Target Pose - Walk</string>
             </property>
             <property name="shortcut">
              <string>G</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="footstep_pose_step">
+            <property name="text">
+             <string>Define Target Pose - Step</string>
             </property>
            </widget>
           </item>
@@ -665,7 +672,6 @@ color: rgb(255, 26, 26);</string>
     <slot>markerArrayToggled(bool)</slot>
     <slot>joystickToggled(bool)</slot>
     <slot>waypointToggled(bool)</slot>
-    <slot>vectorPressed()</slot>
     <slot>stereoPointCloudToggled(bool)</slot>
     <slot>insertTemplate(QString)</slot>
     <slot>insertWaypoint()</slot>
@@ -684,6 +690,8 @@ color: rgb(255, 26, 26);</string>
     <slot>requestedPointCloudToggled(bool)</slot>
     <slot>clearPointCloudRequests()</slot>
     <slot>clearMapRequests()</slot>
+    <slot>defineStepPosePressed()</slot>
+    <slot>defineWalkPosePressed()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -770,10 +778,10 @@ color: rgb(255, 26, 26);</string>
    </hints>
   </connection>
   <connection>
-   <sender>footstep_pose</sender>
+   <sender>footstep_pose_walk</sender>
    <signal>pressed()</signal>
    <receiver>map_view_</receiver>
-   <slot>vectorPressed()</slot>
+   <slot>defineWalkPosePressed()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>641</x>
@@ -1034,6 +1042,22 @@ color: rgb(255, 26, 26);</string>
     <hint type="sourcelabel">
      <x>769</x>
      <y>573</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>276</x>
+     <y>334</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>footstep_pose_step</sender>
+   <signal>pressed()</signal>
+   <receiver>map_view_</receiver>
+   <slot>defineStepPosePressed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>679</x>
+     <y>363</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>
