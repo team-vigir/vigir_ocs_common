@@ -872,7 +872,7 @@ void graspWidget::publishHandPose(unsigned int id)
     virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
     virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
 
-    hand_robot_state_->setStateValues(virtual_link_joint_states_);
+    moveit::core::jointStateToRobotState(virtual_link_joint_states_, *hand_robot_state_);
 
     publishHandJointStates(grasp_index);
 }
@@ -929,7 +929,8 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
     }
 
     //ghost_hand_joint_state_pub_.publish(joint_states);
-    hand_robot_state_->setStateValues(joint_states);
+    moveit::core::jointStateToRobotState(joint_states, *hand_robot_state_);
+
     robot_state::robotStateToRobotStateMsg(*hand_robot_state_, display_state_msg_.state);
     robot_state_vis_pub_.publish(display_state_msg_);
 }
@@ -1050,7 +1051,7 @@ int graspWidget::hideHand()
     virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
     virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
 
-    hand_robot_state_->setStateValues(virtual_link_joint_states_);
+    moveit::core::jointStateToRobotState(virtual_link_joint_states_, *hand_robot_state_);
 
     publishHandJointStates(-1);
 }
