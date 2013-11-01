@@ -57,6 +57,8 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     , moving_r_arm_(false)
     , visualize_grid_map_(true)
 {
+    nh_.param<std::string>("/flor/ocs/grasp/hand_type",hand_type_,"sandia"); // global parameter
+
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
@@ -73,6 +75,43 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     // Make signal/slot connections.
     //connect( collision_checkbox, SIGNAL( valueChanged( int )), this, SLOT( setCollision( bool )));
 
+    //
+    if(context != NULL)
+    {
+        manager_ = context;
+        render_panel_->initialize( manager_->getSceneManager(), manager_ );
+        //manager_ = new rviz::VisualizationManager( render_panel_ );
+        //render_panel_->initialize( context->getSceneManager(), manager_ );
+
+        // Set topic that will be used as 0,0,0 -> reference for all the other transforms
+        // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
+        //manager_->setFixedFrame(base_frame_.c_str());
+
+        //manager_->initialize();
+        //manager_->startUpdate();
+
+        // First remove all existin tools
+        //manager_->getToolManager()->removeAll();
+        // Add support for interactive markers
+        //interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/InteractionToolCustom" );
+        // Add support for selection
+        //selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
+        // Add support for camera movement
+        //move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
+        // Add support for goal specification/vector navigation
+        //set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
+
+        // Make the move camera tool the currently selected one
+        //manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+
+        // Create a RobotModel display.
+        //robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
+        //ROS_ASSERT( robot_model_ != NULL );
+        //robot_model_->subProp( "Color" )->setValue( QColor( 200, 200, 200 ) );
+        //robot_model_->subProp( "Alpha" )->setValue( 1.0f );*/
+    }
+    else
+    {
     // Next we initialize the main RViz classes.
     //
     // The VisualizationManager is the container for Display objects,
@@ -173,14 +212,9 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     // Create a template display to display all templates listed by the template nodelet
     template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
     ((rviz::TemplateDisplayCustom*)template_display_)->setVisualizationManager(manager_);
-    QObject::connect(this, SIGNAL(enableTemplateMarkers(bool)), template_display_, SLOT(enableTemplateMarkers(bool)));
 
     // Create a display for 3D selection
     selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
-
-    // Connect the 3D selection tool to
-    QObject::connect(this, SIGNAL(queryContext(int,int)), selection_3d_display_, SLOT(queryContext(int,int)));
-    QObject::connect(selection_3d_display_, SIGNAL(setContext(int)), this, SLOT(setContext(int)));
 
     // Create a display for waypoints
     waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
@@ -191,22 +225,6 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     achieved_waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/achieved_list" );
     achieved_waypoints_display_->subProp( "Color" )->setValue( QColor( 150, 150, 255 ) );
 
-    // connect the 3d selection tool to its display
-    QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
-    QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
-    QObject::connect(selection_3d_display_, SIGNAL(setSelectionRay(Ogre::Ray)), this, SLOT(setSelectionRay(Ogre::Ray)));
-    QObject::connect(this, SIGNAL(resetSelection()), selection_3d_display_, SLOT(resetSelection()));
-    QObject::connect(this, SIGNAL(setMarkerScale(float)), selection_3d_display_, SLOT(setMarkerScale(float)));
-
-    Q_EMIT setRenderPanel(this->render_panel_);
-
-    // handles mouse events without rviz::tool
-    mouse_event_handler_ = new vigir_ocs::MouseEventHandler();
-    QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mousePressEvent(QMouseEvent*)));
-    QObject::connect(render_panel_, SIGNAL(signalMouseReleaseEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseReleaseEvent(QMouseEvent*)));
-    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(raycastRequest(bool,int,int)));//SLOT(createMarker(bool,int,int))); // RAYCAST -> need createMarkerOnboard that sends raycast query
-    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(raycastRequestROI(bool,int,int)));//SLOT(createROISelection(bool,int,int)));
-    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), this, SLOT(createContextMenu(bool,int,int)));
 
     // create a publisher to add templates
     template_add_pub_   = nh_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
@@ -354,8 +372,6 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     global_selection_pos_pub_ = nh_.advertise<geometry_msgs::Point>( "/new_point_cloud_request", 1, false );
     global_selection_pos_sub_ = nh_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
 
-    QObject::connect(this, SIGNAL(setMarkerPosition(float,float,float)), selection_3d_display_, SLOT(setMarkerPosition(float,float,float)));
-
     joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "atlas/joint_states", 2, &Base3DView::processJointStates, this );
 
     // advertise pointcloud request
@@ -363,7 +379,35 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
 
     // frustum
     frustum_viewer_list_["head_left"] = manager_->createDisplay( "rviz/FrustumDisplayCustom", "Frustum - Left Eye", true );
+    //}
+
+    // Connect to the template markers
+    QObject::connect(this, SIGNAL(enableTemplateMarkers(bool)), template_display_, SLOT(enableTemplateMarkers(bool)));
+
+    // Connect the 3D selection tool to
+    QObject::connect(this, SIGNAL(queryContext(int,int)), selection_3d_display_, SLOT(queryContext(int,int)));
+    QObject::connect(selection_3d_display_, SIGNAL(setContext(int)), this, SLOT(setContext(int)));
+
+    // connect the 3d selection tool to its display
+    QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
+    Q_EMIT setRenderPanel(this->render_panel_);
+    QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
+    QObject::connect(selection_3d_display_, SIGNAL(setSelectionRay(Ogre::Ray)), this, SLOT(setSelectionRay(Ogre::Ray)));
+    QObject::connect(this, SIGNAL(resetSelection()), selection_3d_display_, SLOT(resetSelection()));
+    QObject::connect(this, SIGNAL(setMarkerScale(float)), selection_3d_display_, SLOT(setMarkerScale(float)));
+    QObject::connect(this, SIGNAL(setMarkerPosition(float,float,float)), selection_3d_display_, SLOT(setMarkerPosition(float,float,float)));
+
+    // handles mouse events without rviz::tool
+    mouse_event_handler_ = new vigir_ocs::MouseEventHandler();
+    QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mousePressEvent(QMouseEvent*)));
+    QObject::connect(render_panel_, SIGNAL(signalMouseReleaseEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseReleaseEvent(QMouseEvent*)));
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(raycastRequest(bool,int,int)));//SLOT(createMarker(bool,int,int))); // RAYCAST -> need createMarkerOnboard that sends raycast query
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(raycastRequestROI(bool,int,int)));//SLOT(createROISelection(bool,int,int)));
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), this, SLOT(createContextMenu(bool,int,int)));
+
+    // set frustum
     QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
+    }
 
     position_widget_ = new QWidget(this);
     position_widget_->setStyleSheet("background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
@@ -386,8 +430,6 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     position_layout->addWidget(position_label_);
     position_widget_->setLayout(position_layout);
     //main_layout->addWidget(position_widget_);
-
-    nh_.param<std::string>("/flor/ocs/grasp/hand_type",hand_type_,"sandia"); // global parameter
 
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
