@@ -739,11 +739,11 @@ void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& m
 
 void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_states )
 {
-    if(hand_type == "irobot")
-    {
+    //if(hand_type == "irobot")
+    //{
 
-    }
-    else
+    //}
+    //else
     {
         //Index 	Name            Link
         //0         right_f0_j0 	Palm index base
