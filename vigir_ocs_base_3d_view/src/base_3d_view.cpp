@@ -122,7 +122,10 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     // Add support for camera movement
     move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
     // Add support for goal specification/vector navigation
-    set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
+    set_walk_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
+    set_walk_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
+    set_step_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
+    set_step_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
 
     // Create a LaserScan display.
     laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
@@ -153,7 +156,9 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ROS_ASSERT( lidar_point_cloud_viewer_ != NULL );
     lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
     lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/worldmodel_main/pointcloud_vis" );
-    lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+    lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 2 );
+    lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+    lidar_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
     lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
     // point cloud request
@@ -216,20 +221,22 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
 
     // Footstep array
     footsteps_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps array", true );
-    footsteps_array_->subProp( "Marker Topic" )->setValue( "/flor_footstep_planner/footsteps_array" );
+    footsteps_array_->subProp( "Marker Topic" )->setValue( "/flor/walk_monitor/footsteps_array" );
 
-    goal_pose_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
-    goal_pose_->subProp( "Topic" )->setValue( "/goalpose" );
-    goal_pose_->subProp( "Shape" )->setValue( "Axes" );
+    goal_pose_walk_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
+    goal_pose_walk_->subProp( "Topic" )->setValue( "/goal_pose_walk" );
+    goal_pose_walk_->subProp( "Shape" )->setValue( "Axes" );
+
+    goal_pose_step_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
+    goal_pose_step_->subProp( "Topic" )->setValue( "/goal_pose_step" );
+    goal_pose_step_->subProp( "Shape" )->setValue( "Axes" );
 
     planner_start_ = manager_->createDisplay( "rviz/Pose", "Start pose", true );
     planner_start_->subProp( "Topic" )->setValue( "/ros_footstep_planner/start" );
     planner_start_->subProp( "Shape" )->setValue( "Axes" );
 
     planned_path_ = manager_->createDisplay( "rviz/Path", "Planned path", true );
-    planned_path_->subProp( "Topic" )->setValue( "/flor/footstep_planner/path" );
-
-    set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goalpose" );
+    planned_path_->subProp( "Topic" )->setValue( "/flor/walk_monitor/path" );
 
     // create the hands displays
     //left_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot left hand model", true );
@@ -505,7 +512,7 @@ void Base3DView::gridMapToggled( bool selected )
 
 void Base3DView::footstepPlanningToggled( bool selected )
 {
-    goal_pose_->setEnabled( selected );
+    goal_pose_walk_->setEnabled( selected );
     planner_start_->setEnabled( selected );
     planned_path_->setEnabled( selected );
     footsteps_array_->setEnabled( selected );
@@ -588,9 +595,16 @@ void Base3DView::markerTemplateToggled( bool selected )
     }
 }
 
-void Base3DView::vectorPressed()
+void Base3DView::defineWalkPosePressed()
 {
-    manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
+    //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
+    manager_->getToolManager()->setCurrentTool( set_walk_goal_tool_ );
+}
+
+void Base3DView::defineStepPosePressed()
+{
+    //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
+    manager_->getToolManager()->setCurrentTool( set_step_goal_tool_ );
 }
 
 void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc )
