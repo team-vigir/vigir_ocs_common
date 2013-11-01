@@ -74,6 +74,8 @@ class Base3DView: public QWidget
 public:
     Base3DView( std::string base_frame = "/pelvis", QWidget* parent = 0 );
     virtual ~Base3DView();
+    
+    void init();
 
     void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
     void processNewSelection( const geometry_msgs::Point::ConstPtr& pose );

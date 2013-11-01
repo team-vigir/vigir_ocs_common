@@ -83,7 +83,7 @@ CameraView::CameraView( QWidget* parent )
     Q_EMIT unHighlight();
 
     // and advertise the head pitch update function
-    head_pitch_update_pub_ = n_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ry", 1, false );
+    head_pitch_update_pub_ = nh_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ry", 1, false );
 
     rviz::EmptyViewController* camera_controller = new rviz::EmptyViewController();
     camera_controller->initialize( render_panel_->getManager() );
@@ -97,14 +97,15 @@ CameraView::CameraView( QWidget* parent )
     Q_EMIT setMarkerScale(0.001f);
 
     // advertise pointcloud request
-    pointcloud_request_frame_pub_ = n_.advertise<geometry_msgs::PointStamped>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_frame", 1, false );
+    pointcloud_request_frame_pub_ = nh_.advertise<geometry_msgs::PointStamped>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_frame", 1, false );
 
     reset_view_button_->setParent(0);
     delete reset_view_button_;
     reset_view_button_ = NULL;
 
     // subscribe to goal pose so we can add filters back
-    set_goal_sub_ = n_.subscribe<geometry_msgs::PoseStamped>( "/goalpose", 5, &CameraView::processGoalPose, this );
+    set_walk_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_walk", 5, &CameraView::processGoalPose, this );
+    set_step_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_step", 5, &CameraView::processGoalPose, this );
 
     // make sure we're still able to cancel set goal pose
     QObject::connect(render_panel_, SIGNAL(signalKeyPressEvent(QKeyEvent*)), this, SLOT(keyPressEvent(QKeyEvent*)));
@@ -347,10 +348,19 @@ void CameraView::updateImageFrame(std::string frame)
     camera_frame_topic_ = frame;
 }
 
-void CameraView::vectorPressed()
+void CameraView::defineWalkPosePressed()
 {
     //ROS_ERROR("vector pressed in map");
-    manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
+    //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
+    manager_->getToolManager()->setCurrentTool( set_walk_goal_tool_ );
+    setting_pose_ = true;
+}
+
+void CameraView::defineStepPosePressed()
+{
+    //ROS_ERROR("vector pressed in map");
+    //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
+    manager_->getToolManager()->setCurrentTool( set_step_goal_tool_ );
     setting_pose_ = true;
 }
 
