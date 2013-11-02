@@ -51,6 +51,7 @@ public Q_SLOTS:
     void on_manualRadio_clicked();
     void on_templateRadio_clicked();
     void on_show_grasp_toggled(bool checked);
+    void on_stitch_template_toggled(bool checked);
 
 private:
     void setProgressLevel(uint8_t level);
@@ -142,6 +143,7 @@ private:
     void jointStatesCB(const sensor_msgs::JointState::ConstPtr& joint_states);
 
     bool show_grasp_;
+    bool stitch_template_;
 
 protected:
     void timerEvent(QTimerEvent *event);

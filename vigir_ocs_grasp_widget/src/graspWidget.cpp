@@ -13,6 +13,7 @@ graspWidget::graspWidget(QWidget *parent)
     , selected_template_id_(-1)
     , selected_grasp_id_(-1)
     , show_grasp_(false)
+    , stitch_template_(false)
 {
     // setup UI
     ui->setupUi(this);
@@ -194,7 +195,7 @@ void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPt
 
 void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list)
 {
-    std::cout << "Template list received containing " << list->template_id_list.size() << " elements" << std::cout;
+    //std::cout << "Template list received containing " << list->template_id_list.size() << " elements" << std::cout;
     // save last template list
     last_template_list_ = *list;
 
@@ -221,7 +222,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         // add the template
         templateName = boost::to_string((int)list->template_id_list[i])+std::string(": ")+templateName;
 
-        std::cout << "template item " << (int)list->template_id_list[i] << " has name " << templateName << std::endl;
+        //std::cout << "template item " << (int)list->template_id_list[i] << " has name " << templateName << std::endl;
 
         // add the template to the box if it doesn't exist
         if(ui->templateBox->count() < i+1)
@@ -584,6 +585,8 @@ void graspWidget::on_templateButton_clicked()
         if(grasp_db_[index].grasp_id == graspID)
             msg.template_type.data = grasp_db_[index].template_type;
     }
+    msg.stitch.data  = stitch_template_;
+    ROS_INFO("Sending stich: %d",stitch_template_);
     msg.template_id.data = ui->templateBox->currentIndex();
     msg.pose.pose = last_template_list_.pose[ui->templateBox->currentIndex()].pose;
     template_match_request_pub_.publish(msg);
@@ -1050,4 +1053,11 @@ void graspWidget::on_show_grasp_toggled(bool checked)
 
     ui->show_grasp_radio->setEnabled(show_grasp_);
     ui->show_pre_grasp_radio->setEnabled(show_grasp_);
+}
+
+void graspWidget::on_stitch_template_toggled(bool checked)
+{
+    stitch_template_ = checked;
+    ROS_INFO("In Slot stich: %d",stitch_template_);
+    on_templateButton_clicked();
 }

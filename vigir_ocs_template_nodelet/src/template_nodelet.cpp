@@ -136,6 +136,7 @@ void TemplateNodelet::templateMatchRequestCb(const flor_grasp_msgs::TemplateSele
 
     cmd.template_id.data = msg->template_id.data;
     cmd.template_type.data = msg->template_type.data;
+    cmd.stitch.data = msg->stitch.data;
     int index = 0;
     for(; index < template_id_list_.size(); index++)
         if(template_id_list_[index] == msg->template_id.data)
