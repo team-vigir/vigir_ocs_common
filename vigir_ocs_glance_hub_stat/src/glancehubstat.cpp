@@ -23,15 +23,7 @@ glancehubstat::glancehubstat(QWidget *parent) :
             messagesPath = "/opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/messages.csv";
         std::cout << "Reading messages from <" << messagesPath << ">" << std::endl;
     loadFile();
-    ui->stat->setColumnCount(3);
-    ui->stat->setColumnWidth(0,145);
-    ui->stat->setColumnWidth(1,50);
-    ui->stat->setColumnWidth(2,300);
-    std::cout << "Set width" << std::endl;
-    labels.push_back("Sim Time");
-    labels.push_back("Type");
-    labels.push_back("Message Contents");
-    ui->stat->setHorizontalHeaderLabels(labels);
+
 }
 
 void glancehubstat::timerEvent(QTimerEvent *event)
@@ -44,7 +36,6 @@ void glancehubstat::timerEvent(QTimerEvent *event)
 void glancehubstat::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr &msg)
 {
     int count_row;
-    std::vector<completeRow*> messages;
     int unreadMsgs;
     int numError;
     int numWarn;
@@ -56,129 +47,65 @@ void glancehubstat::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::Const
         ui->plannerLight->setStyleSheet("QLabel { background-color: red; }");
     else
         ui->plannerLight->setStyleSheet("QLabel { background-color: green; }");
+    uint8_t  level;
+    uint16_t code;
+    RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
+    std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
+    QString text ;
+    QString msgType ;
 
-        uint8_t  level;
-        uint16_t code;
-        RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
-        std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
-        QTableWidgetItem* text = new QTableWidgetItem();
-        QTableWidgetItem* msgType = new QTableWidgetItem();
-        QTableWidgetItem* time = new QTableWidgetItem();
-        time->setText(timeFromMsg(msg->stamp));
-        text->setFlags(text->flags() ^ Qt::ItemIsEditable);
-        time->setFlags(time->flags() ^ Qt::ItemIsEditable);
-        msgType->setFlags(msgType->flags() ^ Qt::ItemIsEditable);
-        switch(level){
-        case 0:
-            msgType->setText("Ok");
-            break;
-        case 1:
-            msgType->setText("Debug");
-            break;
-        case 2:
-            msgType->setText("Warn");
-            text->setBackgroundColor(Qt::yellow);
-            time->setBackgroundColor(Qt::yellow);
-            msgType->setBackgroundColor(Qt::yellow);
-            numWarn++;
-            break;
-        case 3:
-            msgType->setText("Error");
-            text->setBackgroundColor(Qt::red);
-            time->setBackgroundColor(Qt::red);
-            msgType->setBackgroundColor(Qt::red);
-            numError++;
-            break;
-        }
+    switch(level){
+    case 0:
 
-        if(code >= errors.size() && errors.size() != 0)
-        {
-            std::cout << "Received message (Default Message). level = " << (int)level << " code = " << (int)code << std::endl;
-            QString tempMessage = QString::fromStdString("Default Message");
-            tempMessage+=QString::number(code);
-            text->setText(tempMessage);
-            text->setBackgroundColor(Qt::red);
-            time->setBackgroundColor(Qt::red);
-            msgType->setBackgroundColor(Qt::red);
-            numError++;
-        }
-        else if(errors.size() > 0)
-            text->setText(QString::fromStdString(errors[code]));
-        else
-        {
-            std::cout << "Cannot find data file but recieved msg level = " << (int)level << " code = " << (int)code << std::endl;
+        msgType="Ok";
+        break;
+    case 1:
+        msgType="Debug";
+        break;
+    case 2:
+        msgType="Warn";
+        numWarn++;
+        break;
+    case 3:
+        msgType="Error";
+        numError++;
+        break;
+    }
 
-            QString tempMessage = "Cannot find data file but recieved msg  num";
-            tempMessage+= QString::number(code);
-            text->setText(tempMessage);
-            text->setBackground(Qt::red);
-            msgType->setBackgroundColor(Qt::red);
-            time->setBackgroundColor(Qt::red);
-            numError++;
-        }
+    if(code >= errors.size() && errors.size() != 0)
+    {
+        std::cout << "Received message (Default Message). level = " << (int)level << " code = " << (int)code << std::endl;
+        QString tempMessage = QString::fromStdString("Default Message");
+        tempMessage+=QString::number(code);
+        text=(tempMessage);
+        numError++;
+    }
+    else if(errors.size() > 0)
+        text=QString::fromStdString(errors[code]);
+    else
+    {
+        std::cout << "Cannot find data file but recieved msg level = " << (int)level << " code = " << (int)code << std::endl;
 
-        msgType->setFont(bold);
-        time->setFont(bold);
-        text->setFont(bold);
-        //std::vector<completeRow*>::iterator it;
-
-        //it = messages.begin();
-
-        //messages.insert(it,new completeRow());
-        // messages[0]->time = time;
-        //messages[0]->priority = msgType;
-        // messages[0]->text out>
-
-
-        ui->stat->insertRow(0);
-
-        //std::cout << "Adding item to table... " << messages.size() <<  " " << messages[0]->text << std::endl;
-        ui->stat->setItem(0,0,time);
-        ui->stat->setItem(0,1,msgType);
-        ui->stat->setItem(0,2,text);
-        count_row++;
-        qDebug() << count_row;
-        /*for(int i=4;i>=0;i--)
-               ui->stat->showRow(i);
-          if(messages[0]->priority->text() == "Ok" && showOk->isChecked())
-           {
-               msgTable->showRow(0);
-           }
-           else if(messages[0]->priority->text() == "Debug" && showDebug->isChecked())
-           {
-               msgTable->showRow(0);
-           }
-           else if(messages[0]->priority->text() == "Warn" && showWarn->isChecked())
-           {
-               msgTable->showRow(0);
-           }
-           else if(messages[0]->priority->text() == "Error" && showError->isChecked())
-           {
-               msgTable->showRow(0);
-           }
-           else
-               msgTable->hideRow(0);
-
-           //std::cout << "Item added sucessfuly..." << std::endl;
-
-           if(messages.size() > maxRows)
-           {
-               if(messages[messages.size()-1]->priority->text() == "Warn")
-                   numWarn--;
-               else if(messages[messages.size()-1]->priority->text() == "Error")
-                   numError--;
-               messages.pop_back();
-               //ui->stat->removeRow(maxRows);
-           }*/
+        QString tempMessage = "Cannot find data file but recieved msg  num";
+        tempMessage+= QString::number(code);
+        text=tempMessage;
+        numError++;
+    }
+    ui->moveitstat->setText(msgType+"("+text+")");
+    count_row++;
+    qDebug() << count_row;
         if(count_row>maxRows)
-        {
-            if(msgType->text()=="Warn")
-                numWarn--;
-            if(msgType->text()=="Error")
-                numError--;
-            ui->stat->removeRow(maxRows);
-        }
-        unreadMsgs++;
+    {
+        if(msgType=="Warn")
+            numWarn--;
+        if(msgType=="Error")
+            numError--;
+
+    }
+    unreadMsgs++;
+
+
+
 
 }
 void glancehubstat::loadFile()
@@ -209,8 +136,6 @@ void glancehubstat::loadFile()
 void glancehubstat::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr &msg)
 {
     int count_row;
-    std::vector<completeRow*> messages;
-
     int unreadMsgs;
     int numError;
     int numWarn;
@@ -234,32 +159,23 @@ void glancehubstat::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::Con
     uint16_t code;
     RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
     std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
-    QTableWidgetItem* text = new QTableWidgetItem();
-    QTableWidgetItem* msgType = new QTableWidgetItem();
-    QTableWidgetItem* time = new QTableWidgetItem();
-    time->setText(timeFromMsg(msg->stamp));
-    text->setFlags(text->flags() ^ Qt::ItemIsEditable);
-    time->setFlags(time->flags() ^ Qt::ItemIsEditable);
-    msgType->setFlags(msgType->flags() ^ Qt::ItemIsEditable);
+    QString text ;
+    QString msgType ;
+
     switch(level){
     case 0:
-        msgType->setText("Ok");
+
+        msgType="Ok";
         break;
     case 1:
-        msgType->setText("Debug");
+        msgType="Debug";
         break;
     case 2:
-        msgType->setText("Warn");
-        text->setBackgroundColor(Qt::yellow);
-        time->setBackgroundColor(Qt::yellow);
-        msgType->setBackgroundColor(Qt::yellow);
+        msgType="Warn";
         numWarn++;
         break;
     case 3:
-        msgType->setText("Error");
-        text->setBackgroundColor(Qt::red);
-        time->setBackgroundColor(Qt::red);
-        msgType->setBackgroundColor(Qt::red);
+        msgType="Error";
         numError++;
         break;
     }
@@ -269,87 +185,30 @@ void glancehubstat::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::Con
         std::cout << "Received message (Default Message). level = " << (int)level << " code = " << (int)code << std::endl;
         QString tempMessage = QString::fromStdString("Default Message");
         tempMessage+=QString::number(code);
-        text->setText(tempMessage);
-        text->setBackgroundColor(Qt::red);
-        time->setBackgroundColor(Qt::red);
-        msgType->setBackgroundColor(Qt::red);
+        text=(tempMessage);
         numError++;
     }
     else if(errors.size() > 0)
-        text->setText(QString::fromStdString(errors[code]));
+        text=QString::fromStdString(errors[code]);
     else
     {
         std::cout << "Cannot find data file but recieved msg level = " << (int)level << " code = " << (int)code << std::endl;
 
         QString tempMessage = "Cannot find data file but recieved msg  num";
         tempMessage+= QString::number(code);
-        text->setText(tempMessage);
-        text->setBackground(Qt::red);
-        msgType->setBackgroundColor(Qt::red);
-        time->setBackgroundColor(Qt::red);
+        text=tempMessage;
         numError++;
     }
-
-    msgType->setFont(bold);
-    time->setFont(bold);
-    text->setFont(bold);
-    //std::vector<completeRow*>::iterator it;
-
-    //it = messages.begin();
-
-    //messages.insert(it,new completeRow());
-    // messages[0]->time = time;
-    //messages[0]->priority = msgType;
-    // messages[0]->text out>
-
-
-    ui->stat->insertRow(0);
-
-    //std::cout << "Adding item to table... " << messages.size() <<  " " << messages[0]->text << std::endl;
-    ui->stat->setItem(0,0,time);
-    ui->stat->setItem(0,1,msgType);
-    ui->stat->setItem(0,2,text);
+    ui->footstepstat->setText(msgType+"("+text+")");
     count_row++;
     qDebug() << count_row;
-    /*for(int i=4;i>=0;i--)
-           ui->stat->showRow(i);
-      if(messages[0]->priority->text() == "Ok" && showOk->isChecked())
-       {
-           msgTable->showRow(0);
-       }
-       else if(messages[0]->priority->text() == "Debug" && showDebug->isChecked())
-       {
-           msgTable->showRow(0);
-       }
-       else if(messages[0]->priority->text() == "Warn" && showWarn->isChecked())
-       {
-           msgTable->showRow(0);
-       }
-       else if(messages[0]->priority->text() == "Error" && showError->isChecked())
-       {
-           msgTable->showRow(0);
-       }
-       else
-           msgTable->hideRow(0);
-
-       //std::cout << "Item added sucessfuly..." << std::endl;
-
-       if(messages.size() > maxRows)
-       {
-           if(messages[messages.size()-1]->priority->text() == "Warn")
-               numWarn--;
-           else if(messages[messages.size()-1]->priority->text() == "Error")
-               numError--;
-           messages.pop_back();
-           //ui->stat->removeRow(maxRows);
-       }*/
-    if(count_row>maxRows)
+        if(count_row>maxRows)
     {
-        if(msgType->text()=="Warn")
+        if(msgType=="Warn")
             numWarn--;
-        if(msgType->text()=="Error")
+        if(msgType=="Error")
             numError--;
-        ui->stat->removeRow(maxRows);
+
     }
     unreadMsgs++;
 
