@@ -65,7 +65,10 @@ public:
     void imageaddfunction_lhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg);
     void imageaddfunction_rhl(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg);
     void imageaddfunction_rhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg);
-
+    void settree_hide();
+    void search_child(int time,int flag, QTreeWidgetItem *item);
+    //void save_to_file(int,int);
+    //void search_child_save(int timer2, int timer1, QTreeWidgetItem *item, int flag);
 // for adding images to widget
 
     int video_start_time_l, subseq_video_time_l,childtimeitem_start_time_l;
@@ -74,6 +77,8 @@ public:
     int video_start_time_lhl, subseq_video_time_lhl,childtimeitem_start_time_lhl;
     int video_start_time_rhr, subseq_video_time_rhr,childtimeitem_start_time_rhr;
     int video_start_time_rhl, subseq_video_time_rhl,childtimeitem_start_time_rhl;
+
+    //int timer1,timer2; // to count the interval for saving files to disk
 
 
 
@@ -95,10 +100,11 @@ private:
     float feed_rate_prev_rhr;
     Ui::ImageVideoManagerWidget* ui;
     QTreeWidgetItem *item_l;
+    QTreeWidgetItem *item_r;
     QTreeWidgetItem *parentitem_l;
     QTreeWidgetItem *timeitem_l;
     QTreeWidgetItem *childtimeitem_l;
-    QTreeWidgetItem *item_r;
+    QTreeWidgetItem *item;
     QTreeWidgetItem *parentitem_r;
     QTreeWidgetItem *timeitem_r;
     QTreeWidgetItem *childtimeitem_r;
@@ -118,6 +124,9 @@ private:
     QTreeWidgetItem *parentitem_rhr;
     QTreeWidgetItem *timeitem_rhr;
     QTreeWidgetItem *childtimeitem_rhr;
+    QTreeWidget *temptree;
+    QTreeWidget *treeWidget;
+   // QStackedWidget *stack ; comment now
     int videocount_l;
     int imagecount_l;
     int interval_count_l;
@@ -136,6 +145,7 @@ private:
     int videocount_rhl;
     int imagecount_rhl;
     int interval_count_rhl;
+    //int timerflag;
 
     ros::NodeHandle nh_;
 
@@ -168,12 +178,17 @@ protected:
 
 private Q_SLOTS:
     void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
+    //void on_temptree_itemClicked(QTreeWidgetItem *item, int column);
     void on_timeslider_valueChanged(int value);
     //void on_pushButton_clicked();
 
 
 
     void on_cameralist_currentIndexChanged(int index);
+
+    //void on_pushButton_clicked();
+
+    void on_checkBox_clicked(bool checked);
 
 private:
     QBasicTimer timer;
