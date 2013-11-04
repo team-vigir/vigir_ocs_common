@@ -148,7 +148,7 @@ Q_SIGNALS:
     void setFrustum( const float &, const float &, const float&, const float& );
 
 protected:
-    void timerEvent(QTimerEvent *event);
+    virtual void timerEvent(QTimerEvent *event);
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 

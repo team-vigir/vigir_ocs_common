@@ -51,6 +51,9 @@ public Q_SLOTS:
     virtual void defineStepPosePressed();
     void keyPressEvent( QKeyEvent* event );
 
+protected:
+    virtual void timerEvent(QTimerEvent *event);
+
 private:
     rviz::Tool* selection_tool_;
     rviz::ViewController* ortho_view_controller_;

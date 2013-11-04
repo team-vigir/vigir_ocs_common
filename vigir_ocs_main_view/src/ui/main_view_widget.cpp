@@ -39,25 +39,25 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     // setup default views
     views_list["Top Left"] = new vigir_ocs::PerspectiveView();
+    views_list["Top Right"] = new vigir_ocs::OrthoView(0,((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()); //views_list["Top Right"] = new vigir_ocs::OrthoView();
+    views_list["Bottom Left"] = new vigir_ocs::OrthoView(0,((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()); //views_list["Bottom Left"] = new vigir_ocs::OrthoView();
+    views_list["Bottom Right"] = new vigir_ocs::OrthoView(0,((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()); //views_list["Bottom Right"] = new vigir_ocs::OrthoView();
+
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
     aux_layout->addWidget(views_list["Top Left"]);
     ui->center_parent_->setLayout(aux_layout);
 
-    views_list["Top Right"] = new vigir_ocs::OrthoView(0,((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
-    //views_list["Top Right"] = new vigir_ocs::OrthoView();
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
     aux_layout->addWidget(views_list["Top Right"]);
     ui->top_right_parent_->setLayout(aux_layout);
 
-    views_list["Bottom Left"] = new vigir_ocs::OrthoView();
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
     aux_layout->addWidget(views_list["Bottom Left"]);
     ui->bottom_left_parent_->setLayout(aux_layout);
 
-    views_list["Bottom Right"] = new vigir_ocs::OrthoView();
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
     aux_layout->addWidget(views_list["Bottom Right"]);
@@ -72,7 +72,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     int hack = 0;
     for (iter = views_list.begin(); iter != views_list.end(); ++iter, hack++)
     {
-        if(iter->second != views_list["Top Right"])
+        if(iter->second == views_list["Top Left"])
         {
         ((vigir_ocs::Base3DView*)iter->second)->simulationRobotToggled(true);
         ((vigir_ocs::Base3DView*)iter->second)->simulationRobotToggled(false);
@@ -102,7 +102,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
         }
     }
 
-    std::string ip = ros::package::getPath("vigir_ocs_main_view")+"/icons/";
+    /*std::string ip = ros::package::getPath("vigir_ocs_main_view")+"/icons/";
     icon_path_ = QString(ip.c_str());
 
     position_widget_ = new QWidget(this);
@@ -144,7 +144,9 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     position_layout->setSpacing(6);
     position_layout->addWidget(one_view_button_);
     position_layout->addWidget(four_view_button_);
-    position_widget_->setLayout(position_layout);
+    position_widget_->setLayout(position_layout);*/
+
+    fourViewToggle();
 }
 
 MainViewWidget::~MainViewWidget()
@@ -184,13 +186,13 @@ void MainViewWidget::oneViewToggle()
 
 void MainViewWidget::fourViewToggle()
 {
-    if(one_view_button_->isChecked())
+    //if(one_view_button_->isChecked())
         ui->top_left_parent_->setLayout(ui->center_parent_->layout());
-    one_view_button_->setChecked(false);
-    four_view_button_->setChecked(true);
+    /*one_view_button_->setChecked(false);
+    four_view_button_->setChecked(true);*/
     ui->view_stack_->setCurrentIndex(1);
 
-    QPixmap pixmap1(icon_path_+"one_view.png");
+    /*QPixmap pixmap1(icon_path_+"one_view.png");
     QIcon ButtonIcon1(pixmap1);
     one_view_button_->setIcon(ButtonIcon1);
     one_view_button_->setIconSize(pixmap1.rect().size());
@@ -198,7 +200,7 @@ void MainViewWidget::fourViewToggle()
     QPixmap pixmap2(icon_path_+"four_view_checked.png");
     QIcon ButtonIcon2(pixmap2);
     four_view_button_->setIcon(ButtonIcon2);
-    four_view_button_->setIconSize(pixmap2.rect().size());
+    four_view_button_->setIconSize(pixmap2.rect().size());*/
 }
 
 void MainViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)

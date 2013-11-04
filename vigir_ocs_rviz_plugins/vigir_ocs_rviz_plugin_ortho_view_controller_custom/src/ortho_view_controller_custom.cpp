@@ -40,6 +40,7 @@
 #include "rviz/properties/float_property.h"
 #include "rviz/properties/string_property.h"
 #include "rviz/viewport_mouse_event.h"
+#include "rviz/render_panel.h"
 
 #include "ortho_view_controller_custom.h"
 
@@ -49,7 +50,7 @@ namespace rviz
 OrthoViewControllerCustom::OrthoViewControllerCustom()
   : dragging_( false )
 {
-  scale_property_ = new FloatProperty( "Scale", 10, "How much to scale up the size of things in the scene.", this );
+  scale_property_ = new FloatProperty( "Scale", 5, "How much to scale up the size of things in the scene.", this );
   angle_property_ = new FloatProperty( "Angle", 0, "Angle around the Z axis to rotate.", this );
   x_property_ = new FloatProperty( "X", 0, "X component of camera position.", this );
   y_property_ = new FloatProperty( "Y", 0, "Y component of camera position.", this );
@@ -58,6 +59,36 @@ OrthoViewControllerCustom::OrthoViewControllerCustom()
 
 OrthoViewControllerCustom::~OrthoViewControllerCustom()
 {
+}
+
+void OrthoViewControllerCustom::initialize( DisplayContext* context, rviz::RenderPanel* panel )
+{
+    context_ = context;
+
+    std::stringstream ss;
+    static int count = 0;
+    ss << "ViewControllerCamera" << count++;
+    //camera_ = context_->getSceneManager()->createCamera( ss.str() );
+    //context_->getSceneManager()->getRootSceneNode()->attachObject( camera_ );
+    camera_ = panel->getCamera();
+
+    setValue( formatClassId( getClassId() ));
+    setReadOnly( true );
+
+    // Do subclass initialization.
+    onInitialize();
+
+    /*cursor_ = getDefaultCursor();
+
+    standard_cursors_[Default] = getDefaultCursor();
+    standard_cursors_[Rotate2D] = makeIconCursor( "package://rviz/icons/rotate.svg" );
+    standard_cursors_[Rotate3D] = makeIconCursor( "package://rviz/icons/rotate_cam.svg" );
+    standard_cursors_[MoveXY] = makeIconCursor( "package://rviz/icons/move2d.svg" );
+    standard_cursors_[MoveZ] = makeIconCursor( "package://rviz/icons/move_z.svg" );
+    standard_cursors_[Zoom] = makeIconCursor( "package://rviz/icons/zoom.svg" );
+    standard_cursors_[Crosshair] = makeIconCursor( "package://rviz/icons/crosshair.svg" );
+
+    updateNearClipDistance();*/
 }
 
 void OrthoViewControllerCustom::onInitialize()
@@ -70,7 +101,7 @@ void OrthoViewControllerCustom::onInitialize()
 
 void OrthoViewControllerCustom::reset()
 {
-  scale_property_->setFloat( 10 );
+  scale_property_->setFloat( 5 );
   angle_property_->setFloat( 0 );
   x_property_->setFloat( 0 );
   y_property_->setFloat( 0 );

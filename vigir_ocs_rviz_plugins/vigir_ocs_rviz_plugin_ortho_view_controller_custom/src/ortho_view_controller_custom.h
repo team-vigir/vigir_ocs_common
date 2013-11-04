@@ -48,6 +48,8 @@ public:
   OrthoViewControllerCustom();
   virtual ~OrthoViewControllerCustom();
 
+  void initialize( DisplayContext* context, rviz::RenderPanel* panel );
+
   virtual void onInitialize();
 
   virtual void handleMouseEvent(ViewportMouseEvent& evt);

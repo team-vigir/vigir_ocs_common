@@ -409,6 +409,7 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
     }
 
+    /*
     position_widget_ = new QWidget(this);
     position_widget_->setStyleSheet("background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
     position_widget_->setMaximumHeight(18);
@@ -430,6 +431,7 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     position_layout->addWidget(position_label_);
     position_widget_->setLayout(position_layout);
     //main_layout->addWidget(position_widget_);
+    */
 
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
@@ -647,15 +649,7 @@ void Base3DView::processNewSelection( const geometry_msgs::Point::ConstPtr& pose
 void Base3DView::newSelection( Ogre::Vector3 position )
 {
     QString new_label = QString::number(position.x,'f',2)+", "+QString::number(position.y,'f',2)+", "+QString::number(position.z,'f',2);
-    //position_label_->setReadOnly(false);
     position_label_->setText(new_label);
-    //position_label_->adjustSize();
-    //position_widget_->setGeometry(this->geometry().bottomLeft().x()+68,
-    //                              this->geometry().bottomRight().y()-18,
-    //                              this->geometry().bottomRight().x()-this->geometry().bottomLeft().x()-68,
-    //                              18);
-    //position_label_->setGeometry(0,0,position_label_->geometry().width(),18);
-    //position_label_->setReadOnly(true);
 
     selection_position_ = position;
     selected_ = true;
@@ -1216,20 +1210,10 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
     }
 
     // make sure the selection point is visible
-    //if(selected_)
-    {
-        position_widget_->setGeometry(0,
-                                      this->geometry().bottomLeft().y()-18,
-                                      this->geometry().bottomRight().x()-this->geometry().bottomLeft().x(),
-                                      18);
-//        position_label_->setGeometry(0,0,position_label_->geometry().width(),position_label_->geometry().height());
-    }
-
-//    if(reset_view_button_)
-//        reset_view_button_->setGeometry(this->geometry().bottomLeft().x(),
-//                                        this->geometry().bottomLeft().y()-reset_view_button_->geometry().height(),
-//                                        reset_view_button_->geometry().width(),
-//                                        reset_view_button_->geometry().height());
+    //position_widget_->setGeometry(0,
+    //                              this->geometry().bottomLeft().y()-18,
+    //                              this->geometry().bottomRight().x()-this->geometry().bottomLeft().x(),
+    //                              18);
 }
 
 void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg )
