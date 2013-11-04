@@ -24,9 +24,9 @@ graspWidget::graspWidget(QWidget *parent)
 
     // initialize arguments from parameter server
     ros::NodeHandle nhp("~");
-    nhp.param<std::string>("/grasp_widget/hand",hand,"left"); // private parameter
+    nhp.param<std::string>("grasp_widget/hand",hand,"left"); // private parameter
     nh_.param<std::string>("/flor/ocs/grasp/hand_type",hand_type,"sandia"); // global parameter
-    ROS_ERROR("  Grasp widget using %s hand (%s)",hand.c_str(), hand_type.c_str());
+    //ROS_ERROR("  Grasp widget using %s hand (%s)",hand.c_str(), hand_type.c_str());
 
     // initialize path variables for template/grasp databases
     std::string templatePath = (ros::package::getPath("templates"))+"/";
@@ -807,7 +807,10 @@ void graspWidget::publishHandPose(unsigned int id)
 
     // get the selected grasp pose
     geometry_msgs::Pose grasp_transform;//geometry_msgs::PoseStamped grasp_transform;
-    grasp_transform = grasp_db_[grasp_index].final_pose;//grasp_transform.pose = grasp_db_[grasp_index].final_pose;
+    if(ui->show_grasp_radio->isChecked())
+        grasp_transform = grasp_db_[grasp_index].final_pose;//grasp_transform.pose = grasp_db_[grasp_index].final_pose;
+    else
+        grasp_transform = grasp_db_[grasp_index].pre_grasp_pose;//grasp_transform.pose = grasp_db_[grasp_index].pre_grasp_pose;
 
     //ROS_ERROR("Grasp transform before: p=(%f, %f, %f) q=(%f, %f, %f, %f)",grasp_transform.position.x,grasp_transform.position.y,grasp_transform.position.z,grasp_transform.orientation.w,grasp_transform.orientation.x,grasp_transform.orientation.y,grasp_transform.orientation.z);
 
@@ -880,7 +883,7 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
         {
             joint_states.effort[i] = 0;
             joint_states.velocity[i] = 0;
-            if(grasp_index == -1)
+            if(grasp_index == -1 || ui->show_pre_grasp_radio->isChecked())
                 joint_states.position[i] = 0;
             else
                 joint_states.position[i] = grasp_db_[grasp_index].finger_joints[i];
@@ -1044,4 +1047,7 @@ int graspWidget::hideHand()
 void graspWidget::on_show_grasp_toggled(bool checked)
 {
     show_grasp_ = checked;
+
+    ui->show_grasp_radio->setEnabled(show_grasp_);
+    ui->show_pre_grasp_radio->setEnabled(show_grasp_);
 }
