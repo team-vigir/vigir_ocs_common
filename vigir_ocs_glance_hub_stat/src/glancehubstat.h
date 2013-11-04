@@ -11,16 +11,9 @@
 
 namespace Ui {
 class glancehubstat;
-class completeRow;
-}
-class completeRow
-{
-public:
-    QTableWidgetItem* text;
-    QTableWidgetItem* time;
-    QTableWidgetItem* priority;
 
-};
+}
+
 class glancehubstat : public QMainWindow
 {
     Q_OBJECT
@@ -43,7 +36,7 @@ private:
     ros::Subscriber robotStatusMoveit_sub;
     ros::Subscriber robotStatusFootstep_sub;
     QBasicTimer timer;
-    QStringList labels;
+
     std::vector<std::string> errors;
     std::string messagesPath;
 
