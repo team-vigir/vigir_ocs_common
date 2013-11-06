@@ -268,6 +268,9 @@ protected:
     std::string hand_type_;
 
     QBasicTimer timer;
+
+    static int init_count_;
+    int view_id_;
 };
 }
 #endif // BASE_3D_VIEW_H

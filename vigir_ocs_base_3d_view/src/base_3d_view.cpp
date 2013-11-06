@@ -42,7 +42,9 @@
 
 namespace vigir_ocs
 {
- 
+
+int Base3DView::init_count_ = 0;
+
 // Constructor for Base3DView.  This does most of the work of the class.
 Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_frame, QWidget* parent )
     : QWidget( parent )
@@ -57,6 +59,8 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     , moving_r_arm_(false)
     , visualize_grid_map_(true)
 {
+    view_id_ = init_count_++;
+
     nh_.param<std::string>("/flor/ocs/grasp/hand_type",hand_type_,"sandia"); // global parameter
 
     // Construct and lay out render panel.
@@ -448,6 +452,14 @@ void Base3DView::timerEvent(QTimerEvent *event)
     // check if ros is still running; if not, just kill the application
     if(!ros::ok())
         qApp->quit();
+
+    render_panel_->setAutoRender(true);
+
+    float lastFPS, avgFPS, bestFPS, worstFPS;
+    Ogre::RenderTarget::FrameStats stats = render_panel_->getRenderWindow()->getStatistics();
+    std::cout << "View (" << view_id_ << "): " << stats.lastFPS << ", " << stats.avgFPS << ", " << stats.bestFrameTime << ", " << stats.worstFrameTime << ", " << stats.triangleCount << std::endl;
+    //render_panel_->getRenderWindow()->getStatistics( lastFPS, avgFPS, bestFPS, worstFPS );
+    //std::cout << "View (" << view_id_ << /*ortho_view_controller_->subProp( "View Plane" )->getValue(). <<*/ "): " << lastFPS << ", " << avgFPS << ", " << bestFPS << ", " << worstFPS << std::endl;
 
     // no need to spin as rviz is already doing that for us.
     //ros::spinOnce();
