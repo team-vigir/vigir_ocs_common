@@ -1003,8 +1003,7 @@ int graspWidget::staticTransform(geometry_msgs::Pose& palm_pose)
 {
     tf::Transform o_T_palm;    //describes palm in object's frame
     tf::Transform o_T_pg;       //describes palm_from_graspit in object's frame
-    tf::Transform pg_T_rpalm;   //describes r_hand in palm_from_graspit frame
-    tf::Transform pg_T_lpalm;   //describes l_hand in palm_from_graspit frame
+    tf::Transform pg_T_palm;   //describes r_hand in palm_from_graspit frame
 
 
     o_T_pg.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
@@ -1014,65 +1013,31 @@ int graspWidget::staticTransform(geometry_msgs::Pose& palm_pose)
     {
         if(hand == "right")
         {
-//            if(stitch_template_)
-//            {
-//                hand_T_palm = tf::Transform(tf::Matrix3x3(1,0,0,0,0,-1,0,1,0),tf::Vector3(0.0,-0.13,0.0));
-//                o_T_palm = o_T_pg * this->stitch_template_pose_ * hand_T_palm;
-//            }else
-            {
-                hand_T_palm = tf::Transform(tf::Matrix3x3(1,0,0,0,0,-1,0,1,0),tf::Vector3(0.0,-0.13,0.0));
-                pg_T_rpalm = tf::Transform(tf::Matrix3x3(1,0,0,0,1,0,0,0,1),tf::Vector3(0.0,0.0,0.0)); // but we need to got to right_palm
-                o_T_palm = o_T_pg * pg_T_rpalm;
-            }
+            hand_T_palm = tf::Transform(tf::Matrix3x3(1,0,0,0,0,-1,0,1,0), tf::Vector3(0.0,-0.13,0.0));
+            pg_T_palm =  tf::Transform(tf::Matrix3x3(1,0,0,0,1,0,0,0,1),  tf::Vector3(0.0,0.0,0.0)); // but we need to got to right_palm
+
         }
         else
         {
-//            if(stitch_template_)
-//            {
-//                lhand_T_lpalm = tf::Transform(tf::Matrix3x3(-1,0,0,0,0,1,0,-1,0),tf::Vector3(0.0,0.13,0.0));
-//                o_T_palm = o_T_pg * this->stitch_template_pose_ * lhand_T_lpalm;
-//            }else
-            {
-                hand_T_palm = tf::Transform(tf::Matrix3x3(-1,0,0,0,0,1,0,-1,0),tf::Vector3(0.0,0.13,0.0));
-                pg_T_lpalm = tf::Transform(tf::Matrix3x3(-1,0,0,0,-1,0,0,0,1),tf::Vector3(0.0,0.0,0.0)); // but we need to got to left_palm
-                o_T_palm = o_T_pg * pg_T_lpalm;
-            }
+            hand_T_palm = tf::Transform(tf::Matrix3x3(1,0,0,0,0,1,0,-1,0),tf::Vector3(0.0,0.13,0.0));
+            pg_T_palm =  tf::Transform(tf::Matrix3x3(-1,0,0,0,-1,0,0,0,1),tf::Vector3(0.0,0.0,0.0)); // but we need to got to left_palm
         }
     }
     else
     {
-        pg_T_rpalm = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(0.0173,-0.0587,-0.0061)); // but we need to got to right_palm
         if(hand == "right")
         {
-//            if(stitch_template_)
-//            {
-//                hand_T_palm = tf::Transform(tf::Matrix3x3(0,1,0,-1,0,0,0,0,1),tf::Vector3(-0.00179,-0.13516,0.01176));
-//                o_T_palm = o_T_pg * this->stitch_template_pose_ * hand_T_palm;
-//            }else
-            {
-                hand_T_palm = tf::Transform(tf::Matrix3x3(0,1,0,-1,0,0,0,0,1),tf::Vector3(-0.00179,-0.13516,0.01176));
-                o_T_palm = o_T_pg * pg_T_rpalm;
-            }
+            hand_T_palm = tf::Transform(tf::Matrix3x3(0,1,0,-1,0,0,0,0,1),tf::Vector3(-0.00179,-0.13516,0.01176));
+            pg_T_palm =  tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(0.0173,-0.0587,-0.0061)); // but we need to got to right_palm
         }
         else
         {
-//            if(stitch_template_)
-//            {
-//                hand_T_palm = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(-0.0173,-0.0587,-0.0061));
-//                o_T_palm = o_T_pg * this->stitch_template_pose_ * hand_T_palm;
-//            }else
-            {
-                hand_T_palm = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(-0.00179,-0.13516,0.01176));
-                tf::Quaternion left_quat = pg_T_rpalm.getRotation();
-                //left_quat.setW(-left_quat.w());
-                left_quat.setX(-left_quat.x());
-                tf::Vector3 left_pos = pg_T_rpalm.getOrigin();
-                left_pos.setX(-left_pos.x());
-                pg_T_lpalm = tf::Transform(left_quat,left_pos); // but we need to got to left_palm
-                o_T_palm = o_T_pg * pg_T_lpalm;
-            }
+            hand_T_palm = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(0.00179,0.13516,0.01176));
+            pg_T_palm  = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(-0.0173,-0.0587,-0.0061)); // but we need to got to left_palm
         }
     }
+
+    o_T_palm = o_T_pg * pg_T_palm;
 
     tf::Quaternion hand_quat;
     tf::Vector3    hand_vector;
