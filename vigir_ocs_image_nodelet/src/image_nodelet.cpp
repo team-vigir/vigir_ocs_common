@@ -1,5 +1,14 @@
 #include "image_nodelet.h"
 
+
+
+#include<string.h>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
+
 namespace ocs_image
 {
 void ImageNodelet::onInit()
@@ -50,11 +59,54 @@ void ImageNodelet::onInit()
 void ImageNodelet::publishImageAdded(const unsigned long &id)
 {
     flor_ocs_msgs::OCSImageAdd msg;
-
+    std::vector<int> qualitytype;
+    qualitytype.push_back(CV_IMWRITE_JPEG_QUALITY);
+    qualitytype.push_back(90);
     msg.id = image_history_[id].id;
     msg.topic = image_history_[id].topic;
     msg.image = image_history_[id].image;
+
     msg.camera_info = image_history_[id].camera_info;
+    double aspect_ratio = (double)image_history_[id].image.width/(double)image_history_[id].image.height;
+   // ROS_ERROR("Size: %dx%d aspect %f", image.width, image.height, aspect_ratio);
+
+    cv_bridge::CvImagePtr cv_ptr;
+    try
+    {
+        cv_ptr = cv_bridge::toCvCopy(image_history_[id].image, sensor_msgs::image_encodings::BGR8);
+    }
+    catch (cv_bridge::Exception& e)
+    {
+       // ROS_ERROR("cv_bridge exception: %s", e.what());
+        return;
+    }
+
+    cv::Size2i img_size;
+    if(aspect_ratio > 1)
+    {
+        img_size.width = 50.0f;
+        img_size.height = 50.0f/aspect_ratio;
+    }
+    else
+    {
+        img_size.width = 50.0f/aspect_ratio;
+        img_size.height = 50.0f;
+
+    }
+    cv::resize(cv_ptr->image, cv_ptr->image, img_size, 0, 0, cv::INTER_NEAREST);
+
+    std::stringstream stream;
+
+    stream.str("");
+
+
+    stream << image_history_[id].id ;
+
+    //string filename = "/home/vigir/image"+(image_history_[id].topic)+".jpg";
+    imwrite("/home/vigir/image/"+stream.str()+".jpg",cv_ptr->image,qualitytype);
+   // QImage tmp = Mat2QImage(cv_ptr->image);
+   // QPixmap pixmap = QPixmap::fromImage(tmp);
+   // tmp.save("/home/vigir/image/"+QString::number(image_history_[id].id),"BMP");
 
     image_added_pub_.publish(msg);
 }
