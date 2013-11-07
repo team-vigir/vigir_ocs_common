@@ -454,7 +454,6 @@ void CameraDisplayCustom::onEnable()
     */
 
     subscribe();
-    render_panel_->getRenderWindow()->setActive(true);
 
     if(render_panel_)
         render_panel_->getRenderWindow()->setActive(true);
@@ -470,7 +469,6 @@ void CameraDisplayCustom::onDisable()
     caminfo_sub_.unsubscribe();
     clear();*/
 
-    render_panel_->getRenderWindow()->setActive(false);
     unsubscribe();
     clear();
 }
