@@ -70,7 +70,7 @@ graspWidget::graspWidget(QWidget *parent)
         hand_robot_state_.reset(new robot_state::RobotState(hand_robot_model_));
 
         // We first subscribe to the JointState messages
-        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/l_hand/sandia_states", 2, &graspWidget::jointStatesCB, this );
+        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/l_hand/tactile_feedback", 2, &graspWidget::jointStatesCB, this );
         // Publisher for hand position/state
         robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_left_hand",1, true);
     }
@@ -760,11 +760,11 @@ void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& m
 
 void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_states )
 {
-    if(hand_type == "irobot")
-    {
+    //if(hand_type == "irobot")
+    //{
 
-    }
-    else
+    //}
+    //else
     {
         //Index 	Name            Link
         //0         right_f0_j0 	Palm index base
@@ -892,9 +892,9 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
         joint_states.name.push_back(hand+"_f2_j1");
         joint_states.name.push_back(hand+"_f0_j0"); // .grasp finger position [4] -> IGNORE [3], use [4] for both
         joint_states.name.push_back(hand+"_f1_j0"); // .grasp finger position [4]
-        joint_states.name.push_back(hand+"_f0_j3"); // 0 for now
-        joint_states.name.push_back(hand+"_f1_j3"); // 0 for now
-        joint_states.name.push_back(hand+"_f2_j3"); // 0 for now
+        joint_states.name.push_back(hand+"_f0_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f1_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f2_j2"); // 0 for now
     }
     else
     {
