@@ -607,13 +607,13 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
     if( full_image_width_ == 0 )
     {
       ROS_DEBUG( "Malformed CameraInfo on camera [%s], width = 0", qPrintable( getName() ));
-      img_width = texture_.getWidth();
+      full_image_width_ = texture_.getWidth();
     }
 
     if (full_image_height_ == 0)
     {
       ROS_DEBUG( "Malformed CameraInfo on camera [%s], height = 0", qPrintable( getName() ));
-      img_height = texture_.getHeight();
+      full_image_height_ = texture_.getHeight();
     }
 
     if( full_image_height_ == 0.0 || full_image_width_ == 0.0 )
