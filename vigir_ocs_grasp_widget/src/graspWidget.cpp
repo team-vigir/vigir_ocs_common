@@ -871,9 +871,9 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
         joint_states.name.push_back(hand+"_f2_j1");
         joint_states.name.push_back(hand+"_f0_j0"); // .grasp finger position [4] -> IGNORE [3], use [4] for both
         joint_states.name.push_back(hand+"_f1_j0"); // .grasp finger position [4]
-        joint_states.name.push_back(hand+"_f0_j3"); // 0 for now
-        joint_states.name.push_back(hand+"_f1_j3"); // 0 for now
-        joint_states.name.push_back(hand+"_f2_j3"); // 0 for now
+        joint_states.name.push_back(hand+"_f0_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f1_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f2_j2"); // 0 for now
 
         joint_states.position.resize(joint_states.name.size());
         joint_states.effort.resize(joint_states.name.size());
