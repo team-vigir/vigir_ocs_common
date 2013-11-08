@@ -144,7 +144,7 @@ CameraDisplayCustom::CameraDisplayCustom()
 
 CameraDisplayCustom::~CameraDisplayCustom()
 {
-    if ( initialized() )
+    //if ( initialized() )
     {
         render_panel_->getRenderWindow()->removeListener( this );
 
