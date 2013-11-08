@@ -92,7 +92,6 @@ graspWidget::graspWidget(QWidget *parent)
         // Publisher for hand position/state
         robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_right_hand",1, true);
     }
-
     // this is for publishing the hand position in world coordinates for moveit
     virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_x");
     virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_y");
@@ -127,6 +126,7 @@ void graspWidget::timerEvent(QTimerEvent *event)
     if(!ros::ok())
         qApp->quit();
     
+    // make sure that we don't show the grasp hands if the user doesn't want to see them
     if(!ui->graspBox->isEnabled() || !show_grasp_)
         hideHand();
 
@@ -879,7 +879,7 @@ void graspWidget::publishHandPose(unsigned int id)
     virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
     virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
 
-    hand_robot_state_->setStateValues(virtual_link_joint_states_);
+    moveit::core::jointStateToRobotState(virtual_link_joint_states_, *hand_robot_state_);
 
     publishHandJointStates(grasp_index);
 }
@@ -892,15 +892,16 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
     joint_states.header.frame_id = std::string("/")+hand+std::string("_hand_model/")+hand+"_palm";
     if(hand_type == "irobot")
     {
+
         // must match the order used in the .grasp file
         joint_states.name.push_back(hand+"_f0_j1");
         joint_states.name.push_back(hand+"_f1_j1");
         joint_states.name.push_back(hand+"_f2_j1");
         joint_states.name.push_back(hand+"_f0_j0"); // .grasp finger position [4] -> IGNORE [3], use [4] for both
         joint_states.name.push_back(hand+"_f1_j0"); // .grasp finger position [4]
-        joint_states.name.push_back(hand+"_f0_j3"); // 0 for now
-        joint_states.name.push_back(hand+"_f1_j3"); // 0 for now
-        joint_states.name.push_back(hand+"_f2_j3"); // 0 for now
+        joint_states.name.push_back(hand+"_f0_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f1_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f2_j2"); // 0 for now
     }
     else
     {
@@ -935,7 +936,7 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
     }
 
     //ghost_hand_joint_state_pub_.publish(joint_states);
-    hand_robot_state_->setStateValues(joint_states);
+    moveit::core::jointStateToRobotState(joint_states, *hand_robot_state_);
     robot_state::robotStateToRobotStateMsg(*hand_robot_state_, display_state_msg_.state);
     robot_state_vis_pub_.publish(display_state_msg_);
 }
@@ -1048,7 +1049,6 @@ int graspWidget::hideHand()
     hand_transform.header.stamp = ros::Time::now();
     hand_transform.header.frame_id = "/world";
     ghost_hand_pub_.publish(hand_transform);
-
     virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
     virtual_link_joint_states_.position[1] = hand_transform.pose.position.y;
     virtual_link_joint_states_.position[2] = hand_transform.pose.position.z;
@@ -1057,7 +1057,7 @@ int graspWidget::hideHand()
     virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
     virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
 
-    hand_robot_state_->setStateValues(virtual_link_joint_states_);
+    moveit::core::jointStateToRobotState(virtual_link_joint_states_, *hand_robot_state_);
 
     publishHandJointStates(-1);
 }
@@ -1065,7 +1065,6 @@ int graspWidget::hideHand()
 void graspWidget::on_show_grasp_toggled(bool checked)
 {
     show_grasp_ = checked;
-
     ui->show_grasp_radio->setEnabled(show_grasp_);
     ui->show_pre_grasp_radio->setEnabled(show_grasp_);
 }
