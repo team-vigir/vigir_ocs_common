@@ -74,6 +74,7 @@ stationary{
 		demo_2
 		wave
 		flex
+		Warmup
 		}
 	Calibration{
 		test_bag_motion_1
