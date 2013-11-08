@@ -159,7 +159,9 @@ private:
         IMAGE_RESOLUTION_8 = 3,
         IMAGE_RESOLUTION_16 = 4
     } DECIMATE_OPTIONS;
-    
+
+    void subscribe();
+    void unsubscribe();
     void clear();
     void updateStatus();
     bool updateCamera(bool update_image);

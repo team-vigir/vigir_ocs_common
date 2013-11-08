@@ -144,25 +144,33 @@ CameraDisplayCustom::CameraDisplayCustom()
 
 CameraDisplayCustom::~CameraDisplayCustom()
 {
-    render_panel_->getRenderWindow()->removeListener( this );
-    ImageDisplayBase::unsubscribe();
-    caminfo_tf_filter_->clear();
-    //delete render_panel_;
-    delete bg_screen_rect_;
-    delete fg_screen_rect_;
-    delete screen_rect_selection_;
-    delete fg_screen_rect_selection_;
-    bg_scene_node_->getParentSceneNode()->removeAndDestroyChild(bg_scene_node_->getName() );
-    fg_scene_node_->getParentSceneNode()->removeAndDestroyChild( fg_scene_node_->getName() );
+    if ( initialized() )
+    {
+        render_panel_->getRenderWindow()->removeListener( this );
 
-    delete caminfo_tf_filter_;
-    context_->visibilityBits()->freeBits(vis_bit_);
+        unsubscribe();
+        caminfo_tf_filter_->clear();
+
+        //delete render_panel_;
+        delete bg_screen_rect_;
+        delete fg_screen_rect_;
+        delete screen_rect_selection_;
+        delete fg_screen_rect_selection_;
+
+        bg_scene_node_->getParentSceneNode()->removeAndDestroyChild(bg_scene_node_->getName() );
+        fg_scene_node_->getParentSceneNode()->removeAndDestroyChild( fg_scene_node_->getName() );
+
+        delete caminfo_tf_filter_;
+        context_->visibilityBits()->freeBits(vis_bit_);
+    }
 }
 
 void CameraDisplayCustom::onInitialize()
 {
-    // caminfo_tf_filter_ = new tf::MessageFilter<sensor_msgs::CameraInfo>( *context_->getTFClient(), fixed_frame_.toStdString(),queue_size_property_->getInt(), update_nh_ );
-    caminfo_tf_filter_ = new tf::MessageFilter<sensor_msgs::CameraInfo>( *context_->getTFClient(), fixed_frame_.toStdString(),queue_size_property_->getInt(), update_nh_ );
+    ImageDisplayBase::onInitialize();
+
+    caminfo_tf_filter_ = new tf::MessageFilter<sensor_msgs::CameraInfo>( *context_->getTFClient(), fixed_frame_.toStdString(),
+                                                                         queue_size_property_->getInt(), update_nh_ );
     context_->getSceneManager()->addRenderQueueListener(this);
     {
         static uint32_t count = 0;
@@ -412,7 +420,7 @@ void CameraDisplayCustom::renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre:
 
 void CameraDisplayCustom::onEnable()
 {
-    if ( (!isEnabled()) || (topic_property_->getTopicStd().empty()) )
+    /*if ( (!isEnabled()) || (topic_property_->getTopicStd().empty()) )
     {
         if((topic_property_->getTopicStd().empty()))
         {
@@ -421,9 +429,7 @@ void CameraDisplayCustom::onEnable()
         return;
     }
 
-    /**
-    * These next two lines make it so that "No Image" appears for some reason.
-    */
+    // These next two lines make it so that "No Image" appears for some reason.
     std::string target_frame = fixed_frame_.toStdString();
 
     ImageDisplayBase::enableTFFilter(target_frame);
@@ -442,24 +448,57 @@ void CameraDisplayCustom::onEnable()
     {
         setStatus( StatusProperty::Error, "Camera Info", QString( "Error subscribing: ") + e.what() );
     }
+    */
+
+    subscribe();
 
     if(render_panel_)
-    {
         render_panel_->getRenderWindow()->setActive(true);
-        //This may be wrong
-
-    }
 }
 
 void CameraDisplayCustom::onDisable()
 {
     if(render_panel_)
         render_panel_->getRenderWindow()->setActive(false);
-    ImageDisplayBase::unsubscribe();
+    /*ImageDisplayBase::unsubscribe();
     caminfo_sub_.unsubscribe();
+    clear();*/
+
+    unsubscribe();
     clear();
 }
 
+void CameraDisplayCustom::subscribe()
+{
+  if ( (!isEnabled()) || (topic_property_->getTopicStd().empty()) )
+  {
+    return;
+  }
+
+  std::string target_frame = fixed_frame_.toStdString();
+  ImageDisplayBase::enableTFFilter(target_frame);
+
+  ImageDisplayBase::subscribe();
+
+  std::string topic = topic_property_->getTopicStd();
+  std::string caminfo_topic = image_transport::getCameraInfoTopic(topic_property_->getTopicStd());
+
+  try
+  {
+    caminfo_sub_.subscribe( update_nh_, caminfo_topic, 1 );
+    setStatus( StatusProperty::Ok, "Camera Info", "OK" );
+  }
+  catch( ros::Exception& e )
+  {
+    setStatus( StatusProperty::Error, "Camera Info", QString( "Error subscribing: ") + e.what() );
+  }
+}
+
+void CameraDisplayCustom::unsubscribe()
+{
+  ImageDisplayBase::unsubscribe();
+  caminfo_sub_.unsubscribe();
+}
 void CameraDisplayCustom::clear()
 {
     texture_.clear();
@@ -469,7 +508,11 @@ void CameraDisplayCustom::clear()
 
     new_caminfo_ = false;
     current_caminfo_.reset();
-    if(render_panel_)
+    setStatus( StatusProperty::Warn, "Camera Info",
+               "No CameraInfo received on [" + QString::fromStdString( caminfo_sub_.getTopic() ) + "].  Topic may not exist.");
+    setStatus( StatusProperty::Warn, "Image", "No Image received");
+
+    if( render_panel_ )
     {
         if( render_panel_->getCamera() )
         {
@@ -506,7 +549,7 @@ void CameraDisplayCustom::update( float wall_dt, float ros_dt )
             {
 
                 caminfo_ok_ = updateCamera(texture_.update()||texture_selection_.update());
-                force_render_ = false;
+                //force_render_ = false;
             }
         }
         catch( UnsupportedImageEncoding& e )
@@ -532,8 +575,7 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
     if(!last_info_ || !last_image_)
     {
 
-        //std::cout<<"Still has an issue"<<std::endl;
-        return false;
+       return false;
     }
 
     if( !validateFloats( *last_info_ ))
@@ -542,31 +584,50 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
         return false;
     }
 
+    Ogre::Vector3 position;
+    Ogre::Quaternion orientation;
+
+    context_->getFrameManager()->getTransform( last_image_->header.frame_id, last_image_->header.stamp, position, orientation );
+
+    // convert vision (Z-forward) frame to ogre frame (Z-out)
+    orientation = orientation * Ogre::Quaternion( Ogre::Degree( 180 ), Ogre::Vector3::UNIT_X );
+
     //std::cout << "CameraInfo dimensions: " << last_info_->width << " x " << last_info_->height << std::endl;
     //std::cout << "Texture dimensions: " << last_image_->width << " x " << last_image_->height << std::endl;
     //std::cout << "Original image dimensions: " << last_image_->width*full_image_binning_ << " x " << last_image_->height*full_image_binning_ << std::endl;
     full_image_width_  = last_info_->width;//image->width*full_image_binning_;
     full_image_height_ = last_info_->height;//image->height*full_image_binning_;
 
+    // If the image width is 0 due to a malformed caminfo, try to grab the width from the image.
+    if( full_image_width_ == 0 )
+    {
+      ROS_DEBUG( "Malformed CameraInfo on camera [%s], width = 0", qPrintable( getName() ));
+      full_image_width_ = texture_.getWidth();
+    }
+
+    if (full_image_height_ == 0)
+    {
+      ROS_DEBUG( "Malformed CameraInfo on camera [%s], height = 0", qPrintable( getName() ));
+      full_image_height_ = texture_.getHeight();
+    }
+
+    if( full_image_height_ == 0.0 || full_image_width_ == 0.0 )
+    {
+      setStatus( StatusProperty::Error, "Camera Info",
+                 "Could not determine width/height of image due to malformed CameraInfo (either width or height is 0)" );
+      return false;
+    }
+
+    float img_width = full_image_width_;
+    float img_height = full_image_height_;
+
     Q_EMIT updateFrameID(last_info_->header.frame_id);
-
-    Ogre::Vector3 position;
-    Ogre::Quaternion orientation;
-
-    //image->header.frame_id (this stuff is grabbed from a sensor_msg)
-    context_->getFrameManager()->getTransform( last_image_->header.frame_id, last_image_->header.stamp, position, orientation );
-
-    // convert vision (Z-forward) frame to ogre frame (Z-out)
-    orientation = orientation * Ogre::Quaternion( Ogre::Degree( 180 ), Ogre::Vector3::UNIT_X );
-
     double fx = last_info_->P[0];
     double fy = last_info_->P[5];
     //make sure the aspect ratio of the image is preserved
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
 
-    float img_width = full_image_width_;
-    float img_height = full_image_height_;
     float zoom_x = zoom_property_->getFloat();
     float zoom_y = zoom_x;
     // Preserve aspect ratio
@@ -998,9 +1059,7 @@ void CameraDisplayCustom::updateQueueSize()
 void CameraDisplayCustom::fixedFrameChanged()
 {
     std::string targetFrame = fixed_frame_.toStdString();
-    //caminfo_tf_filter_->setTargetFrame(targetFrame);
-    caminfo_tf_filter_->setTargetFrame(fixed_frame_.toStdString());
-    //  texture_.setFrame(fixed_frame_, context_->getTFClient());
+    caminfo_tf_filter_->setTargetFrame(targetFrame);
 
     ImageDisplayBase::fixedFrameChanged();
 }
