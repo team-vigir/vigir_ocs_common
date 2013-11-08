@@ -19,10 +19,11 @@
 #include <QFrame>
 #include <QLineEdit>
 #include <QBasicTimer>
+#include <QThread>
+
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
 #include <OGRE/OgreSceneManager.h>
-
 
 #include <ros/ros.h>
 

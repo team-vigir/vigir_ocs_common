@@ -85,6 +85,7 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     {
         manager_ = context;
         render_panel_->initialize( manager_->getSceneManager(), manager_ );
+        manager_->addRenderPanel( render_panel_ );
         //manager_ = new rviz::VisualizationManager( render_panel_ );
         //render_panel_->initialize( context->getSceneManager(), manager_ );
 
@@ -454,7 +455,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
     if(!ros::ok())
         qApp->quit();
 
-    render_panel_->setAutoRender(true);
+    //render_panel_->getRenderWindow()->update(true);
 
     float lastFPS, avgFPS, bestFPS, worstFPS;
     Ogre::RenderTarget::FrameStats stats = render_panel_->getRenderWindow()->getStatistics();
