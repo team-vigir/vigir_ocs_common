@@ -11,13 +11,6 @@ d = generate_distutils_setup(
 setup(**d)
 
 d = generate_distutils_setup(
-    packages=['vigir_ocs_rqt_plugin_image_viewer_custom'],
-    package_dir={'vigir_ocs_rqt_plugin_image_viewer_custom': 'vigir_ocs_rqt_plugin_image_viewer_custom/src'}
-)
-
-setup(**d)
-
-d = generate_distutils_setup(
     packages=['vigir_ocs_rqt_plugin_main_3d_view_custom'],
     package_dir={'vigir_ocs_rqt_plugin_main_3d_view_custom': 'vigir_ocs_rqt_plugin_main_3d_view_custom/src'}
 )

@@ -104,22 +104,6 @@ private:
 
     bool setting_pose_;
 
-public:
-  // Unix signal handlers.
-  static void hupSignalHandler(int unused);
-  static void termSignalHandler(int unused);
-
-public Q_SLOTS:
-  // Qt signal handlers.
-  void handleSigHup();
-  void handleSigTerm();
-
-private:
-  static int sighupFd[2];
-  static int sigtermFd[2];
-
-  QSocketNotifier *snHup;
-  QSocketNotifier *snTerm;
 };
 }
 #endif // CAMERA_VIEWER_H
