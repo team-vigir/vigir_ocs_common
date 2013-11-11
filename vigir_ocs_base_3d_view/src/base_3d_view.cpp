@@ -386,6 +386,7 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     position_widget_->setLayout(position_layout);
     //main_layout->addWidget(position_widget_);
 
+    nh_.param<std::string>("/flor/ocs/grasp/hand_type",hand_type_,"sandia"); // global parameter
 }
 
 // Destructor.
