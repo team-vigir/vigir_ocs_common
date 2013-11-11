@@ -20,6 +20,7 @@ graspWidget::graspWidget(QWidget *parent)
     ui->templateBox->setDisabled(true);
     ui->graspBox->setDisabled(true);
     ui->performButton->setDisabled(true);
+    ui->stitch_template->setDisabled(true);
     //ui->templateButton->setDisabled(true);
     //ui->releaseButton->setDisabled(true);
 
@@ -235,6 +236,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
     if(list->template_list.size() > 0)
     {
         ui->templateBox->setDisabled(false);
+        ui->stitch_template->setDisabled(false);
         ui->graspBox->setDisabled(false);
         ui->performButton->setDisabled(false);
     }
@@ -299,6 +301,7 @@ void graspWidget::initTemplateMode()
     if(last_template_list_.template_id_list.size() > 0)
     {
         ui->templateBox->setDisabled(false);
+        ui->stitch_template->setDisabled(false);
         ui->graspBox->setDisabled(false);
     }
 }
