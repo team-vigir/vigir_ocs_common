@@ -107,6 +107,7 @@ void ImageNodelet::publishImageAdded(const unsigned long &id)
 
 
     stream << image_history_[id].id ;
+    std::cout<<"Iamge size:"<<img_size.width;
     const char dir_path[] = "/home/vigir/image";
     boost::filesystem::path dir(dir_path);
     if(boost::filesystem::create_directory(dir))
