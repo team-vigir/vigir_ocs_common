@@ -89,7 +89,7 @@
        <height>600</height>
       </size>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>1</x>
@@ -113,7 +113,7 @@
            <height>50</height>
           </size>
          </property>
-         <widget class="QWidget" name="">
+         <widget class="QWidget" name="layoutWidget">
           <property name="geometry">
            <rect>
             <x>0</x>
@@ -237,13 +237,13 @@
     <widget class="QWidget" name="widget_3" native="true">
      <property name="minimumSize">
       <size>
-       <width>60</width>
+       <width>70</width>
        <height>0</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>60</width>
+       <width>70</width>
        <height>600</height>
       </size>
      </property>
@@ -251,37 +251,37 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>210</y>
-        <width>80</width>
-        <height>25</height>
+        <y>260</y>
+        <width>50</width>
+        <height>17</height>
        </rect>
       </property>
       <property name="minimumSize">
        <size>
-        <width>80</width>
-        <height>25</height>
+        <width>50</width>
+        <height>0</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>80</width>
-        <height>25</height>
+        <width>50</width>
+        <height>16777215</height>
        </size>
       </property>
       <property name="text">
        <string/>
       </property>
      </widget>
-     <widget class="QWidget" name="layoutWidget">
+     <widget class="QWidget" name="">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>-9</x>
         <y>10</y>
         <width>52</width>
         <height>478</height>
        </rect>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <spacer name="verticalSpacer">
          <property name="orientation">

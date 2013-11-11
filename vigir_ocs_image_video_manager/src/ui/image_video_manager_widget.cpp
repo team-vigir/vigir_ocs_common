@@ -73,10 +73,12 @@ ImageVideoManagerWidget::ImageVideoManagerWidget(QWidget *parent) :
     treeWidget->setMaximumSize(520,550);
     treeWidget->setMinimumSize(520,550);
     treeWidget->setIndentation(10);
-    treeWidget->setColumnCount(5);
-    treeWidget->setColumnWidth(0,120);
+    treeWidget->setColumnCount(3);
+    treeWidget->setColumnWidth(0,170);
+    treeWidget->setColumnWidth(1,190);
+    treeWidget->setColumnWidth(2,180);
     QStringList list;
-    list<<"Image"<<"TimeStamp"<<"Source"<<"Width"<<"Height";
+    list<<"Image"<<"TimeStamp"<<"Source";
     treeWidget->setHeaderLabels(list);
     ui->timeslider->setEnabled(false);
     timer.start(33, this);
@@ -970,11 +972,13 @@ void ImageVideoManagerWidget::on_timeslider_valueChanged(int value)
     temptree->setMaximumSize(520,550);
     temptree->setMinimumSize(520,550);
     temptree->setIndentation(10);
-    temptree->setColumnCount(5);
-    temptree->setColumnWidth(0,120);
+    temptree->setColumnCount(3);
+    temptree->setColumnWidth(0,170);
+    temptree->setColumnWidth(1,170);
+    temptree->setColumnWidth(2,180);
 
     QStringList list;
-    list<<"Image"<<"TimeStamp"<<"Source"<<"Width"<<"Height";
+    list<<"Image"<<"TimeStamp"<<"Source";
     temptree->setHeaderLabels(list);
     temptree->clear();
 
@@ -1043,11 +1047,6 @@ void ImageVideoManagerWidget:: settree_show()
     }
 
 }
-
-
-
-
-
 
 void ImageVideoManagerWidget::on_cameralist_currentIndexChanged(int index)
 {
