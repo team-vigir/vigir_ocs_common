@@ -866,31 +866,35 @@ int staticTransform(geometry_msgs::Pose& palm_pose, std::string hand, std::strin
 {
     tf::Transform o_T_hand;    //describes hand in object's frame
     tf::Transform o_T_pg;       //describes palm_from_graspit in object's frame
-    tf::Transform pg_T_rhand;   //describes r_hand in palm_from_graspit frame
-    tf::Transform pg_T_lhand;   //describes l_hand in palm_from_graspit frame
+    tf::Transform pg_T_hand;   //describes r_hand in palm_from_graspit frame
 
     o_T_pg.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
     o_T_pg.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
 
     if(hand_type == "sandia")
     {
-        pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
-        pg_T_lhand = tf::Transform(tf::Matrix3x3(0,1,0,-1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
+        if(hand == "right")
+        {
+            pg_T_hand = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
+        }
+        else
+        {
+            pg_T_hand = tf::Transform(tf::Matrix3x3(0,1,0,-1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
+        }
     }
     else
     {
-        pg_T_rhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,1,0,-1,0),tf::Vector3(0.00179,-0.01176,-0.13)); // irobot
-        pg_T_lhand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,-1,0,1,0),tf::Vector3(-0.00179,0.01176,-0.13)); // irobot
+        if(hand == "right")
+        {
+            pg_T_hand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,1,0,-1,0),tf::Vector3(0.0,0.0,-0.13)); // irobot
+        }
+        else
+        {
+            pg_T_hand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,-1,0,1,0),tf::Vector3(0.0,0.0,-0.13)); // irobot
+        }
     }
 
-    if(hand == "right")
-    {
-        o_T_hand = o_T_pg * pg_T_rhand;
-    }
-    else
-    {
-        o_T_hand = o_T_pg * pg_T_lhand;
-    }
+    o_T_hand = o_T_pg * pg_T_hand;
 
     tf::Quaternion hand_quat;
     tf::Vector3    hand_vector;

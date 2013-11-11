@@ -1,12 +1,15 @@
 #include "image_nodelet.h"
 
-
+#include <iostream>
+#include <boost/filesystem.hpp>
 
 #include<string.h>
 #include <cv_bridge/cv_bridge.h>
+#include <opencv2/core/core.hpp>
 #include <sensor_msgs/image_encodings.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <image_transport/image_transport.h>
 
 
 namespace ocs_image
@@ -20,7 +23,7 @@ void ImageNodelet::onInit()
     // initialize subscribers for image manager topics
     image_list_request_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/image_history/list_request", 5, &ImageNodelet::processImageListRequest, this );
     image_selected_sub_ = nh_.subscribe<std_msgs::UInt64>( "/flor/ocs/image_history/select_image", 5, &ImageNodelet::processImageSelected, this );
-
+    image_transport::ImageTransport it(nh_);
     // should probably read this from file, but vrc hacking mode now
     std::vector<std::string> topics;
     topics.push_back("/l_image_full");
@@ -82,7 +85,10 @@ void ImageNodelet::publishImageAdded(const unsigned long &id)
     }
 
     cv::Size2i img_size;
-    if(aspect_ratio > 1)
+    img_size.width=(double)image_history_[id].image.width;
+    img_size.height=image_history_[id].image.height;
+
+   /* if(aspect_ratio > 1)
     {
         img_size.width = 50.0f;
         img_size.height = 50.0f/aspect_ratio;
@@ -92,7 +98,7 @@ void ImageNodelet::publishImageAdded(const unsigned long &id)
         img_size.width = 50.0f/aspect_ratio;
         img_size.height = 50.0f;
 
-    }
+    }*/
     cv::resize(cv_ptr->image, cv_ptr->image, img_size, 0, 0, cv::INTER_NEAREST);
 
     std::stringstream stream;
@@ -101,13 +107,15 @@ void ImageNodelet::publishImageAdded(const unsigned long &id)
 
 
     stream << image_history_[id].id ;
-
-    //string filename = "/home/vigir/image"+(image_history_[id].topic)+".jpg";
+    const char dir_path[] = "/home/vigir/image";
+    boost::filesystem::path dir(dir_path);
+    if(boost::filesystem::create_directory(dir))
+      {
+       std::cout << "Successfully created directory /home/vigir/image" << "\n";
+      }
+    else
+        std::cout<<"\nFolder not created!!";
     imwrite("/home/vigir/image/"+stream.str()+".jpg",cv_ptr->image,qualitytype);
-   // QImage tmp = Mat2QImage(cv_ptr->image);
-   // QPixmap pixmap = QPixmap::fromImage(tmp);
-   // tmp.save("/home/vigir/image/"+QString::number(image_history_[id].id),"BMP");
-
     image_added_pub_.publish(msg);
 }
 
@@ -125,7 +133,7 @@ void ImageNodelet::publishImageList()
 
     image_list_pub_.publish(msg);
 }
-
+// make change in this function to read image from disk and send to image manager
 void ImageNodelet::publishImageToOCS(const unsigned long &id)
 {
     if(id >= image_history_.size())
@@ -137,7 +145,20 @@ void ImageNodelet::publishImageToOCS(const unsigned long &id)
     // update timestamp and publish
     ros::Time now = ros::Time::now();
 
-    sensor_msgs::Image tmp_img = image_history_[id].image;
+   // sensor_msgs::Image tmp_img = image_history_[id].image;
+
+    std::stringstream stream;
+    stream.str("");
+    stream << id;
+
+    cv::Mat image;
+    image = cv::imread( "/home/vigir/image/"+stream.str()+".jpg", 1 );
+    cv_bridge::CvImage out_msg;
+    //out_msg.header   = in_msg->header; // Same timestamp and tf frame as input image
+    out_msg.encoding = sensor_msgs::image_encodings::BGR8; // Or whatever
+    out_msg.image    = image; // Your cv::Mat
+    sensor_msgs::Image tmp_img;
+    out_msg.toImageMsg(tmp_img);
     tmp_img.header.stamp = now;
     image_topic_pub_list_[image_history_[id].topic+"/history/image_raw"].publish(tmp_img);
     image_topic_pub_.publish(tmp_img);
