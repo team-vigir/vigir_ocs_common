@@ -18,6 +18,8 @@
 
 namespace rviz
 {
+class RenderPanelCustom;
+class ViewController;
 class VisualizationManager;
 }
 
@@ -30,6 +32,12 @@ class PerspectiveView: public Base3DView
 public:
     PerspectiveView( QWidget* parent = 0, rviz::VisualizationManager* context = NULL );
     virtual ~PerspectiveView();
+
+protected:
+    virtual void timerEvent(QTimerEvent *event);
+
+private:
+    rviz::ViewController* orbit_view_controller_;
 };
 }
 #endif // PERSPECTIVE_VIEW_H

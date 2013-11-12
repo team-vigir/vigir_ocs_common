@@ -39,9 +39,9 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     // setup default views
     views_list["Top Left"] = new vigir_ocs::PerspectiveView();
-    views_list["Top Right"] = new vigir_ocs::OrthoView(0,((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()); //views_list["Top Right"] = new vigir_ocs::OrthoView();
-    views_list["Bottom Left"] = new vigir_ocs::OrthoView(0,((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()); //views_list["Bottom Left"] = new vigir_ocs::OrthoView();
-    views_list["Bottom Right"] = new vigir_ocs::OrthoView(0,((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()); //views_list["Bottom Right"] = new vigir_ocs::OrthoView();
+    views_list["Top Right"] = new vigir_ocs::PerspectiveView(0,((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()); //views_list["Top Right"] = new vigir_ocs::OrthoView();
+    views_list["Bottom Left"] = new vigir_ocs::PerspectiveView(0,((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()); //views_list["Bottom Left"] = new vigir_ocs::OrthoView();
+    views_list["Bottom Right"] = new vigir_ocs::PerspectiveView(0,((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()); //views_list["Bottom Right"] = new vigir_ocs::OrthoView();
 
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
@@ -63,9 +63,9 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     aux_layout->addWidget(views_list["Bottom Right"]);
     ui->bottom_right_parent_->setLayout(aux_layout);
 
-    ((vigir_ocs::OrthoView*)views_list["Top Right"])->setViewPlane("XY");
-    ((vigir_ocs::OrthoView*)views_list["Bottom Left"])->setViewPlane("XZ");
-    ((vigir_ocs::OrthoView*)views_list["Bottom Right"])->setViewPlane("YZ");
+    //((vigir_ocs::OrthoView*)views_list["Top Right"])->setViewPlane("XY");
+    //((vigir_ocs::OrthoView*)views_list["Bottom Left"])->setViewPlane("XZ");
+    //((vigir_ocs::OrthoView*)views_list["Bottom Right"])->setViewPlane("YZ");
 
     std::map<std::string, QWidget*>::iterator iter;
 
