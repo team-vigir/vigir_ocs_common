@@ -15,11 +15,12 @@
 #include <QPoint>
 #include <QMenu>
 
-#include <pcl/ros/conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/common/common.h>
 #include <pcl/common/transforms.h>
+
+#include <pcl_conversions/pcl_conversions.h>
 
 #include "rviz/visualization_manager.h"
 //#include "rviz/render_panel.h"
@@ -237,17 +238,29 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     planned_path_->subProp( "Topic" )->setValue( "/flor/walk_monitor/path" );
 
     // create the hands displays
-    left_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot left hand model", true );
-    left_hand_model_->subProp( "TF Prefix" )->setValue( "/left_hand_model" );
-    left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
-    left_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
-    left_hand_model_->subProp( "Color" )->setValue( QColor( 255, 255, 0 ) );
+    //left_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot left hand model", true );
+    //left_hand_model_->subProp( "TF Prefix" )->setValue( "/left_hand_model" );
+    //left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
+    //left_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
+    //left_hand_model_->subProp( "Color" )->setValue( QColor( 255, 255, 0 ) );
 
-    right_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot right hand model", true );
-    right_hand_model_->subProp( "TF Prefix" )->setValue( "/right_hand_model" );
+    left_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left hand model", true );
+    left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
+    left_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_left_hand" );
+    left_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
+    left_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
+
+    //right_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot right hand model", true );
+    //right_hand_model_->subProp( "TF Prefix" )->setValue( "/right_hand_model" );
+    //right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
+    //right_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
+    //right_hand_model_->subProp( "Color" )->setValue( QColor( 0, 255, 255 ) );
+
+    right_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot right hand model", true );
     right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
-    right_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
-    right_hand_model_->subProp( "Color" )->setValue( QColor( 0, 255, 255 ) );
+    right_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_right_hand" );
+    right_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
+    right_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
 
     // create the simulation robot display
     //ghost_robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot simulation model", false );
@@ -260,7 +273,6 @@ Base3DView::Base3DView( std::string base_frame, QWidget* parent )
     ghost_robot_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot simulation model", false );
     ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
     ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.0f );
-    //ghost_robot_model_->subProp( "Selectable" )->setValue( false );
     ghost_robot_model_->setEnabled(false);
 
     // Add custom interactive markers to control ghost robot

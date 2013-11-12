@@ -1,5 +1,5 @@
 #include <QtGui/QApplication>
-#include "glancehubsbar.h".h"
+#include "glancehubsbar.h"
 #include <ros/ros.h>
 
 
