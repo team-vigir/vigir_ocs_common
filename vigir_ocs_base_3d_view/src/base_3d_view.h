@@ -257,7 +257,8 @@ protected:
 
     QPushButton* reset_view_button_;
 
-    std::string hand_type_;
+    tf::Transform l_hand_T_palm_;
+    tf::Transform r_hand_T_palm_;
 };
 }
 #endif // BASE_3D_VIEW_H
