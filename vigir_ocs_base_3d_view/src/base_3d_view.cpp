@@ -83,7 +83,7 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     {
         manager_ = context;
         render_panel_->initialize( manager_->getSceneManager(), manager_ );
-        manager_->addRenderPanel( render_panel_ );
+        //manager_->addRenderPanel( render_panel_ );
         //manager_ = new rviz::VisualizationManager( render_panel_ );
         //render_panel_->initialize( context->getSceneManager(), manager_ );
 
