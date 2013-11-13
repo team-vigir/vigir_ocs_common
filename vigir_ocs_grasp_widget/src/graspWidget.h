@@ -121,8 +121,8 @@ private:
 
     bool templateMatchDone;
 
-    std::string hand;
-    std::string hand_type;
+    std::string hand_;
+    std::string hand_type_;
     uint8_t currentGraspMode;
 
     // **************************
@@ -149,7 +149,8 @@ private:
     tf::TransformListener tf_;
 
     tf::Transform stitch_template_pose_;
-    tf::Transform hand_T_palm;   //describes r_hand in palm_from_graspit frame
+    tf::Transform hand_T_palm_;   //describes palm in hand frame
+    tf::Transform gp_T_palm_;     //describes palm in grasp pose frame
 
     // get joint states
     ros::Subscriber joint_states_sub_;
