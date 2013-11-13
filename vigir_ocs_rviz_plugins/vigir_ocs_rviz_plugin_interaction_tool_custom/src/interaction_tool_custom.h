@@ -37,7 +37,7 @@
 #include <rviz/interactive_object.h>
 #include <OGRE/OgreSceneNode.h>
 
-#include "move_tool.h"
+#include "rviz/default_plugin/tools/move_tool.h"
 
 namespace rviz
 {

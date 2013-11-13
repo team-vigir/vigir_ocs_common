@@ -65,6 +65,7 @@ public Q_SLOTS:
     void on_manualRadio_clicked();
     void on_templateRadio_clicked();
     void on_show_grasp_toggled(bool checked);
+    void on_stitch_template_toggled(bool checked);
 
 private:
     void setProgressLevel(uint8_t level);
@@ -118,6 +119,7 @@ private:
     ros::Publisher template_remove_pub_;
     ros::Publisher grasp_mode_command_pub_;
     ros::Publisher template_match_request_pub_;
+    ros::Publisher template_stitch_request_pub_;
     ros::Publisher grasp_request_pub_;
     ros::Publisher grasp_release_pub_;
 
@@ -132,9 +134,11 @@ private:
     // **************************
     // show robot status messages
     ros::Subscriber robot_status_sub_;
+    ros::Subscriber template_stitch_pose_sub_;
     RobotStatusCodes robot_status_codes_;
 
     void robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
+    void templateStitchPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
 
     // publisher to color fingers/hand
     ros::Publisher hand_link_color_pub_;
@@ -150,12 +154,16 @@ private:
 
     tf::TransformListener tf_;
 
+    tf::Transform stitch_template_pose_;
+    tf::Transform hand_T_palm;   //describes r_hand in palm_from_graspit frame
+
     // get joint states
     ros::Subscriber joint_states_sub_;
 
     void jointStatesCB(const sensor_msgs::JointState::ConstPtr& joint_states);
 
     bool show_grasp_;
+    bool stitch_template_;
 
     std::vector<int> keys_pressed_list_;
 

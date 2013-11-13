@@ -13,12 +13,14 @@ graspWidget::graspWidget(QWidget *parent)
     , selected_template_id_(-1)
     , selected_grasp_id_(-1)
     , show_grasp_(false)
+    , stitch_template_(false)
 {
     // setup UI
     ui->setupUi(this);
     ui->templateBox->setDisabled(true);
     ui->graspBox->setDisabled(true);
     ui->performButton->setDisabled(true);
+    ui->stitch_template->setDisabled(true);
     //ui->templateButton->setDisabled(true);
     //ui->releaseButton->setDisabled(true);
 
@@ -37,6 +39,9 @@ graspWidget::graspWidget(QWidget *parent)
         grasp_db_path_ = template_dir_path_+QString("grasp_library_irobot.grasp");
     else
         grasp_db_path_ = template_dir_path_+QString("grasp_library.grasp");
+
+    this->stitch_template_pose_.setIdentity();
+    this->hand_T_palm.setIdentity();
 
     // initialize variables
     currentGraspMode = 0;
@@ -61,6 +66,7 @@ graspWidget::graspWidget(QWidget *parent)
     if(hand == "left")
     {
         this->setWindowTitle(QString::fromStdString("Left Hand Grasp Widget"));
+
         robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/l_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
         ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_left_hand_pose",             1, false);
         //ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_left_hand/joint_states",     1, false); // /ghost_left_hand/joint_states
@@ -74,10 +80,14 @@ graspWidget::graspWidget(QWidget *parent)
 
         // Publisher for hand position/state
         robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_left_hand",1, true);
+
+        template_stitch_pose_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/grasp_control/l_hand/template_stitch_pose",1, &graspWidget::templateStitchPoseCallback,  this );
+        template_stitch_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/grasp_control/l_hand/template_stitch_request", 1, false );
     }
     else
     {
         this->setWindowTitle(QString::fromStdString("Right Hand Grasp Widget"));
+
         robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/r_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
         ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_right_hand_pose",            1, false);
         //ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_right_hand/joint_states",    1, false); // /ghost_right_hand/joint_states
@@ -91,6 +101,9 @@ graspWidget::graspWidget(QWidget *parent)
 
         // Publisher for hand position/state
         robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_right_hand",1, true);
+
+        template_stitch_pose_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/grasp_control/r_hand/template_stitch_pose",1, &graspWidget::templateStitchPoseCallback,  this );
+        template_stitch_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/grasp_control/r_hand/template_stitch_request", 1, false );
     }
     // this is for publishing the hand position in world coordinates for moveit
     virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_x");
@@ -222,7 +235,7 @@ void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPt
 
 void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list)
 {
-    std::cout << "Template list received containing " << list->template_id_list.size() << " elements" << std::cout;
+    //std::cout << "Template list received containing " << list->template_id_list.size() << " elements" << std::cout;
     // save last template list
     last_template_list_ = *list;
 
@@ -230,6 +243,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
     if(list->template_list.size() > 0)
     {
         ui->templateBox->setDisabled(false);
+        ui->stitch_template->setDisabled(false);
         ui->graspBox->setDisabled(false);
         ui->performButton->setDisabled(false);
     }
@@ -249,7 +263,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         // add the template
         templateName = boost::to_string((int)list->template_id_list[i])+std::string(": ")+templateName;
 
-        std::cout << "template item " << (int)list->template_id_list[i] << " has name " << templateName << std::endl;
+        //std::cout << "template item " << (int)list->template_id_list[i] << " has name " << templateName << std::endl;
 
         // add the template to the box if it doesn't exist
         if(ui->templateBox->count() < i+1)
@@ -294,6 +308,7 @@ void graspWidget::initTemplateMode()
     if(last_template_list_.template_id_list.size() > 0)
     {
         ui->templateBox->setDisabled(false);
+        ui->stitch_template->setDisabled(false);
         ui->graspBox->setDisabled(false);
     }
 }
@@ -765,6 +780,19 @@ void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& m
     ui->robot_status_->setText(robot_status_codes_.str(code).c_str());
 }
 
+void graspWidget::templateStitchPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
+{
+    if(stitch_template_)
+    {
+        this->stitch_template_pose_.setRotation(tf::Quaternion(msg->pose.orientation.x,msg->pose.orientation.y,msg->pose.orientation.z,msg->pose.orientation.w));
+        this->stitch_template_pose_.setOrigin(tf::Vector3(msg->pose.position.x,msg->pose.position.y,msg->pose.position.z) );
+    }
+	else
+    {
+        this->stitch_template_pose_.setIdentity();
+    }
+}
+
 void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_states )
 {
     //if(hand_type == "irobot")
@@ -937,12 +965,13 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
 
     //ghost_hand_joint_state_pub_.publish(joint_states);
     moveit::core::jointStateToRobotState(joint_states, *hand_robot_state_);
+
     robot_state::robotStateToRobotStateMsg(*hand_robot_state_, display_state_msg_.state);
     robot_state_vis_pub_.publish(display_state_msg_);
 }
 
 // assume this function is called within mutex block
-int graspWidget::calcWristTarget(const geometry_msgs::Pose& wrist_pose,const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose)
+int graspWidget::calcWristTarget(const geometry_msgs::Pose& palm_pose,const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose)
 {
     // Transform wrist_pose into the template pose frame
     //   @TODO        "wrist_target_pose.pose   = T(template_pose)*wrist_pose";
@@ -950,12 +979,12 @@ int graspWidget::calcWristTarget(const geometry_msgs::Pose& wrist_pose,const geo
     tf::Transform tp_pose;
     tf::Transform target_pose;
 
-    wt_pose.setRotation(tf::Quaternion(wrist_pose.orientation.x,wrist_pose.orientation.y,wrist_pose.orientation.z,wrist_pose.orientation.w));
-    wt_pose.setOrigin(tf::Vector3(wrist_pose.position.x,wrist_pose.position.y,wrist_pose.position.z) );
+    wt_pose.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
+    wt_pose.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
     tp_pose.setRotation(tf::Quaternion(template_pose.pose.orientation.x,template_pose.pose.orientation.y,template_pose.pose.orientation.z,template_pose.pose.orientation.w));
     tp_pose.setOrigin(tf::Vector3(template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z) );
 
-    target_pose = tp_pose * wt_pose;  //I assume this works
+    target_pose = tp_pose * wt_pose * hand_T_palm.inverse() * this->stitch_template_pose_ * hand_T_palm;  //I assume this works
 
     tf::Quaternion tg_quat;
     tf::Vector3    tg_vector;
@@ -988,10 +1017,9 @@ int graspWidget::calcWristTarget(const geometry_msgs::Pose& wrist_pose,const geo
 
 int graspWidget::staticTransform(geometry_msgs::Pose& palm_pose)
 {
-    tf::Transform o_T_hand;    //describes hand in object's frame
+    tf::Transform o_T_palm;    //describes palm in object's frame
     tf::Transform o_T_pg;       //describes palm_from_graspit in object's frame
-    tf::Transform pg_T_rhand;   //describes r_hand in palm_from_graspit frame
-    tf::Transform pg_T_lhand;   //describes l_hand in palm_from_graspit frame
+    tf::Transform pg_T_palm;   //describes r_hand in palm_from_graspit frame
 
 
     o_T_pg.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
@@ -999,36 +1027,37 @@ int graspWidget::staticTransform(geometry_msgs::Pose& palm_pose)
 
     if(hand_type == "irobot")
     {
-
-        pg_T_rhand = tf::Transform(tf::Matrix3x3(1,0,0,0,1,0,0,0,1),tf::Vector3(0.0,0.0,0.0));
-        pg_T_lhand = tf::Transform(tf::Matrix3x3(-1,0,0,0,-1,0,0,0,1),tf::Vector3(0.0,0.0,0.0));
+        if(hand == "right")
+        {
+            hand_T_palm = tf::Transform(tf::Matrix3x3(1,0,0,0,0,-1,0,1,0), tf::Vector3(0.0,-0.13,0.0));
+            pg_T_palm =  tf::Transform(tf::Matrix3x3(1,0,0,0,1,0,0,0,1),  tf::Vector3(0.0,0.0,0.0)); // but we need to got to right_palm
+        }
+        else
+        {
+            hand_T_palm = tf::Transform(tf::Matrix3x3(1,0,0,0,0,1,0,-1,0),tf::Vector3(0.0,0.13,0.0));
+            pg_T_palm =  tf::Transform(tf::Matrix3x3(-1,0,0,0,-1,0,0,0,1),tf::Vector3(0.0,0.0,0.0)); // but we need to got to left_palm
+        }
     }
     else
     {
-        pg_T_rhand = tf::Transform(tf::Matrix3x3(0,-1,0, 1,0,0,0,0,1),tf::Vector3(0.0173,-0.0587,-0.0061)); // but we need to got to right_palm
-        pg_T_rhand.inverse();
-
-        tf::Quaternion left_quat = pg_T_rhand.getRotation();
-        //left_quat.setW(-left_quat.w());
-        left_quat.setX(-left_quat.x());
-        tf::Vector3 left_pos = pg_T_rhand.getOrigin();
-        left_pos.setX(-left_pos.x());
-        pg_T_lhand = tf::Transform(left_quat,left_pos); // but we need to got to left_palm
+        if(hand == "right")
+        {
+            hand_T_palm = tf::Transform(tf::Matrix3x3(0,1,0,-1,0,0,0,0,1),tf::Vector3(-0.00179,-0.13516,0.01176));
+            pg_T_palm =  tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(0.0173,-0.0587,-0.0061)); // but we need to got to right_palm
+        }
+        else
+        {
+            hand_T_palm = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(0.00179,0.13516,0.01176));
+            pg_T_palm  = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(-0.0173,-0.0587,-0.0061)); // but we need to got to left_palm
+        }
     }
 
-    if(hand == "right")
-    {
-        o_T_hand = o_T_pg * pg_T_rhand;
-    }
-    else
-    {
-        o_T_hand = o_T_pg * pg_T_lhand;
-    }
+    o_T_palm = o_T_pg * pg_T_palm;
 
     tf::Quaternion hand_quat;
     tf::Vector3    hand_vector;
-    hand_quat   = o_T_hand.getRotation();
-    hand_vector = o_T_hand.getOrigin();
+    hand_quat   = o_T_palm.getRotation();
+    hand_vector = o_T_palm.getOrigin();
 
     palm_pose.position.x = hand_vector.getX();
     palm_pose.position.y = hand_vector.getY();
@@ -1067,6 +1096,26 @@ void graspWidget::on_show_grasp_toggled(bool checked)
     show_grasp_ = checked;
     ui->show_grasp_radio->setEnabled(show_grasp_);
     ui->show_pre_grasp_radio->setEnabled(show_grasp_);
+}
+
+void graspWidget::on_stitch_template_toggled(bool checked)
+{
+    this->stitch_template_ = checked;
+    std::cout << "template stitch requested..." << std::endl;
+    flor_grasp_msgs::TemplateSelection msg;
+    int graspID = ui->graspBox->currentText().toInt();
+    for(int index = 0; index < grasp_db_.size(); index++)
+    {
+        if(grasp_db_[index].grasp_id == graspID)
+            msg.template_type.data = grasp_db_[index].template_type;
+    }
+    if(checked)
+        msg.confidence.data = 1;
+    else
+        msg.confidence.data = -1;
+    msg.pose.header.frame_id = "/world";
+    msg.pose.pose = last_template_list_.pose[ui->templateBox->currentIndex()].pose;
+    template_stitch_request_pub_.publish(msg);
 }
 
 void graspWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)

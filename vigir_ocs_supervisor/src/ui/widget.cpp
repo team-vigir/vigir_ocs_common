@@ -152,7 +152,7 @@ void Widget::receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
     ui->stat->setColumnWidth(0,145);
     ui->stat->setColumnWidth(1,50);
     ui->stat->setColumnWidth(2,300);
-    std::cout << "Set width" << std::endl;
+    //std::cout << "Set width" << std::endl;
     labels.push_back("Sim Time");
     labels.push_back("Type");
     labels.push_back("Message Contents");
@@ -160,7 +160,7 @@ void Widget::receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
     uint8_t  level;
     uint16_t code;
     RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
-    std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
+    //std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
     QTableWidgetItem* text = new QTableWidgetItem();
     QTableWidgetItem* msgType = new QTableWidgetItem();
     QTableWidgetItem* time = new QTableWidgetItem();
@@ -237,7 +237,7 @@ void Widget::receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
     ui->stat->setItem(0,1,msgType);
     ui->stat->setItem(0,2,text);
     count_row++;
-    qDebug() << count_row;
+    //qDebug() << count_row;
     /*for(int i=4;i>=0;i--)
            ui->stat->showRow(i);
       if(messages[0]->priority->text() == "Ok" && showOk->isChecked())
@@ -409,7 +409,7 @@ void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& ms
     // code to detect fault in inlet pressure
     if (msg->pump_inlet_pressure<50.0)
         ui->inlet->setStyleSheet("background-color: red");
-    else if((50.0<msg->pump_inlet_pressure) && (msg->pump_inlet_pressure <70.0))
+    else if((50.0<msg->pump_inlet_pressure) && (msg->pump_inlet_pressure <69.0))
         ui->inlet->setStyleSheet("background-color: yellow");
     else
         ui->inlet->setStyleSheet("background-color: white");
