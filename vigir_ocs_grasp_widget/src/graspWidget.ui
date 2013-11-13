@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>502</width>
+    <width>521</width>
     <height>276</height>
    </rect>
   </property>
@@ -122,6 +122,13 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="stitch_template">
+            <property name="text">
+             <string>Stitch</string>
             </property>
            </widget>
           </item>
