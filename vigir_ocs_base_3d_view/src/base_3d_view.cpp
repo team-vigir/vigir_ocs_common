@@ -44,8 +44,6 @@
 namespace vigir_ocs
 {
 
-int Base3DView::init_count_ = 0;
-
 // Constructor for Base3DView.  This does most of the work of the class.
 Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_frame, QWidget* parent )
     : QWidget( parent )
@@ -60,7 +58,6 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     , moving_r_arm_(false)
     , visualize_grid_map_(true)
 {
-    view_id_ = init_count_++;
 
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
@@ -75,345 +72,313 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     // Set the top-level layout for this MyViz widget.
     setLayout( main_layout );
 
-    // Make signal/slot connections.
-    //connect( collision_checkbox, SIGNAL( valueChanged( int )), this, SLOT( setCollision( bool )));
-
-    //
+    // if there's
     if(context != NULL)
     {
         manager_ = context;
         render_panel_->initialize( manager_->getSceneManager(), manager_ );
-        //manager_->addRenderPanel( render_panel_ );
-        //manager_ = new rviz::VisualizationManager( render_panel_ );
-        //render_panel_->initialize( context->getSceneManager(), manager_ );
-
-        // Set topic that will be used as 0,0,0 -> reference for all the other transforms
-        // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
-        //manager_->setFixedFrame(base_frame_.c_str());
-
-        //manager_->initialize();
-        //manager_->startUpdate();
-
-        // First remove all existin tools
-        //manager_->getToolManager()->removeAll();
-        // Add support for interactive markers
-        //interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/InteractionToolCustom" );
-        // Add support for selection
-        //selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
-        // Add support for camera movement
-        //move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
-        // Add support for goal specification/vector navigation
-        //set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
-
-        // Make the move camera tool the currently selected one
-        //manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
-
-        // Create a RobotModel display.
-        //robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
-        //ROS_ASSERT( robot_model_ != NULL );
-        //robot_model_->subProp( "Color" )->setValue( QColor( 200, 200, 200 ) );
-        //robot_model_->subProp( "Alpha" )->setValue( 1.0f );*/
+        view_id_ = manager_->addRenderPanel( render_panel_ );
     }
     else
     {
-    // Next we initialize the main RViz classes.
-    //
-    // The VisualizationManager is the container for Display objects,
-    // holds the main Ogre scene, holds the ViewController, etc.  It is
-    // very central and we will probably need one in every usage of
-    // librviz.
-    manager_ = new rviz::VisualizationManager( render_panel_ );
-    render_panel_->initialize( manager_->getSceneManager(), manager_ );
+        // Next we initialize the main RViz classes.
+        //
+        // The VisualizationManager is the container for Display objects,
+        // holds the main Ogre scene, holds the ViewController, etc.  It is
+        // very central and we will probably need one in every usage of
+        // librviz.
+        manager_ = new rviz::VisualizationManager( render_panel_ );
+        render_panel_->initialize( manager_->getSceneManager(), manager_ );
+        view_id_ = manager_->addRenderPanel( render_panel_ );
 
-    Ogre::SceneNode* lightSceneNode = NULL;
-    Ogre::Light* light = manager_->getSceneManager()->createLight();
+        Ogre::SceneNode* lightSceneNode = NULL;
+        Ogre::Light* light = manager_->getSceneManager()->createLight();
 
-    // I can set some attributes of the light.
-    // The basic light type can be :
-    //		pointlight (like a candle?)
-    //		spotlight (kind of 'conic' light)
-    //		directional light (like the sun in an outdoor scene).
-    // Directional light is like parallel rays coming from 1 direction.
-    light->setType(Ogre::Light::LT_DIRECTIONAL);
+        // I can set some attributes of the light.
+        // The basic light type can be :
+        //		pointlight (like a candle?)
+        //		spotlight (kind of 'conic' light)
+        //		directional light (like the sun in an outdoor scene).
+        // Directional light is like parallel rays coming from 1 direction.
+        light->setType(Ogre::Light::LT_DIRECTIONAL);
 
-    // Here I choose the color of the light.
-    // The diffuse color is the main color of the light.
-    // The specular color is its color when reflected on an imperfect surface.
-    // For example, when my bald head skin reflect the sun, it makes a bright round of specular color.
-    //
-    // The final color of an object also depends on its material.
-    // Color values vary between 0.0(minimum) to 1.0 (maximum).
-    light->setDiffuseColour(0.25f, 0.25f, 0.25f); // this will be a red light
-    light->setSpecularColour(1.0f, 1.0f, 1.0f);// color of 'reflected' light
+        // Here I choose the color of the light.
+        // The diffuse color is the main color of the light.
+        // The specular color is its color when reflected on an imperfect surface.
+        // For example, when my bald head skin reflect the sun, it makes a bright round of specular color.
+        //
+        // The final color of an object also depends on its material.
+        // Color values vary between 0.0(minimum) to 1.0 (maximum).
+        light->setDiffuseColour(0.25f, 0.25f, 0.25f); // this will be a red light
+        light->setSpecularColour(1.0f, 1.0f, 1.0f);// color of 'reflected' light
 
-    lightSceneNode = manager_->getSceneManager()->getRootSceneNode()->createChildSceneNode();
-    lightSceneNode->attachObject(light);
+        lightSceneNode = manager_->getSceneManager()->getRootSceneNode()->createChildSceneNode();
+        lightSceneNode->attachObject(light);
 
-    // Set topic that will be used as 0,0,0 -> reference for all the other transforms
-    // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
-    manager_->setFixedFrame(base_frame_.c_str());
+        // Set topic that will be used as 0,0,0 -> reference for all the other transforms
+        // IMPORTANT: WITHOUT THIS, ALL THE DIFFERENT PARTS OF THE ROBOT MODEL WILL BE DISPLAYED AT 0,0,0
+        manager_->setFixedFrame(base_frame_.c_str());
 
-    manager_->initialize();
-    manager_->startUpdate();
+        manager_->initialize();
+        manager_->startUpdate();
 
-    // First remove all existin tools
-    manager_->getToolManager()->removeAll();
-    // Add support for interactive markers
-    interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/InteractionToolCustom" );
-    // Add support for selection
-    //selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
-    // Add support for camera movement
-    move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
-    // Add support for goal specification/vector navigation
-    set_walk_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
-    set_walk_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
-    set_step_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
-    set_step_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
+        // First remove all existin tools
+        manager_->getToolManager()->removeAll();
+        // Add support for interactive markers
+        interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/InteractionToolCustom" );
+        // Add support for selection
+        //selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
+        // Add support for camera movement
+        move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
+        // Add support for goal specification/vector navigation
+        set_walk_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
+        set_walk_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
+        set_step_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
+        set_step_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
 
-    // Create a LaserScan display.
-    laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
-    ROS_ASSERT( laser_scan_ != NULL );
-    laser_scan_->subProp( "Topic" )->setValue( "/laser/scan" );
-    laser_scan_->subProp( "Style" )->setValue( "Points" );
-    laser_scan_->subProp( "Size (Pixels)" )->setValue( 3 );
-    //laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
-    laser_scan_->subProp( "Decay Time" )->setValue( 5 );
-    laser_scan_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-    laser_scan_->subProp( "Axis" )->setValue( "Z" );
-    laser_scan_->subProp( "Selectable" )->setValue( false );
+        // Create a LaserScan display.
+        laser_scan_ = manager_->createDisplay( "rvizhttp://www.geforce.com/hardware/desktop-gpus/geforce-gtx-660ti/specifications/LaserScan", "Laser Scan", false );
+        ROS_ASSERT( laser_scan_ != NULL );
+        laser_scan_->subProp( "Topic" )->setValue( "/laser/scan" );
+        laser_scan_->subProp( "Style" )->setValue( "Points" );
+        laser_scan_->subProp( "Size (Pixels)" )->setValue( 3 );
+        //laser_scan_->subProp( "Size (m)" )->setValue( 0.1 );
+        laser_scan_->subProp( "Decay Time" )->setValue( 5 );
+        laser_scan_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+        laser_scan_->subProp( "Axis" )->setValue( "Z" );
+        laser_scan_->subProp( "Selectable" )->setValue( false );
 
-    // Create a MarkerArray display.
-    octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", false );
-    ROS_ASSERT( octomap_ != NULL );
-    octomap_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
+        // Create a MarkerArray display.
+        octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", false );
+        ROS_ASSERT( octomap_ != NULL );
+        octomap_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
 
-    // Create a point cloud display.
-    stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
-    ROS_ASSERT( stereo_point_cloud_viewer_ != NULL );
-    stereo_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
-    stereo_point_cloud_viewer_->subProp( "Topic" )->setValue( "/multisense_sl/camera/points2" );
-    stereo_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
-    stereo_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
+        // Create a point cloud display.
+        stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
+        ROS_ASSERT( stereo_point_cloud_viewer_ != NULL );
+        stereo_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
+        stereo_point_cloud_viewer_->subProp( "Topic" )->setValue( "/multisense_sl/camera/points2" );
+        stereo_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+        stereo_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
-    lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
-    ROS_ASSERT( lidar_point_cloud_viewer_ != NULL );
-    lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
-    lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/worldmodel_main/pointcloud_vis" );
-    lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 2 );
-    lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-    lidar_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
-    lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
+        lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
+        ROS_ASSERT( lidar_point_cloud_viewer_ != NULL );
+        lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
+        lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/worldmodel_main/pointcloud_vis" );
+        lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 2 );
+        lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+        lidar_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
+        lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
-    // point cloud request
-    point_cloud_request_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", true );
-    point_cloud_request_viewer_->subProp( "Style" )->setValue( "Points" );
-    point_cloud_request_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/dist_query_pointcloud_result" );
-    point_cloud_request_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
-    point_cloud_request_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-    point_cloud_request_viewer_->subProp( "Decay Time" )->setValue( 9999999 );
-    point_cloud_request_viewer_->subProp( "Selectable" )->setValue( false );
+        // point cloud request
+        point_cloud_request_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", true );
+        point_cloud_request_viewer_->subProp( "Style" )->setValue( "Points" );
+        point_cloud_request_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/dist_query_pointcloud_result" );
+        point_cloud_request_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+        point_cloud_request_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+        point_cloud_request_viewer_->subProp( "Decay Time" )->setValue( 9999999 );
+        point_cloud_request_viewer_->subProp( "Selectable" )->setValue( false );
 
-    // Create a template display to display all templates listed by the template nodelet
-    template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
-    ((rviz::TemplateDisplayCustom*)template_display_)->setVisualizationManager(manager_);
+        // Create a template display to display all templates listed by the template nodelet
+        template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
+        ((rviz::TemplateDisplayCustom*)template_display_)->setVisualizationManager(manager_);
 
-    // Create a display for 3D selection
-    selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
+        // Create a display for 3D selection
+        selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
 
-    // Create a display for waypoints
-    waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
-    waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/list" );
+        // Create a display for waypoints
+        waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
+        waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/list" );
 
-    // Create another display for waypoints, this time the ones that have already been achieved
-    achieved_waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
-    achieved_waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/achieved_list" );
-    achieved_waypoints_display_->subProp( "Color" )->setValue( QColor( 150, 150, 255 ) );
+        // Create another display for waypoints, this time the ones that have already been achieved
+        achieved_waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
+        achieved_waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/achieved_list" );
+        achieved_waypoints_display_->subProp( "Color" )->setValue( QColor( 150, 150, 255 ) );
 
 
-    // create a publisher to add templates
-    template_add_pub_   = nh_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
+        // create a publisher to add templates
+        template_add_pub_   = nh_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
 
-    // create a publisher to add waypoints
-    waypoint_add_pub_   = nh_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
+        // create a publisher to add waypoints
+        waypoint_add_pub_   = nh_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
 
-    selection_position_ = Ogre::Vector3(0,0,0);
+        selection_position_ = Ogre::Vector3(0,0,0);
 
-    // Make the move camera tool the currently selected one
-    manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+        // Make the move camera tool the currently selected one
+        manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
 
-    // Footstep array
-    footsteps_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps array", true );
-    footsteps_array_->subProp( "Marker Topic" )->setValue( "/flor/walk_monitor/footsteps_array" );
+        // Footstep array
+        footsteps_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps array", true );
+        footsteps_array_->subProp( "Marker Topic" )->setValue( "/flor/walk_monitor/footsteps_array" );
 
-    goal_pose_walk_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
-    goal_pose_walk_->subProp( "Topic" )->setValue( "/goal_pose_walk" );
-    goal_pose_walk_->subProp( "Shape" )->setValue( "Axes" );
+        goal_pose_walk_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
+        goal_pose_walk_->subProp( "Topic" )->setValue( "/goal_pose_walk" );
+        goal_pose_walk_->subProp( "Shape" )->setValue( "Axes" );
 
-    goal_pose_step_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
-    goal_pose_step_->subProp( "Topic" )->setValue( "/goal_pose_step" );
-    goal_pose_step_->subProp( "Shape" )->setValue( "Axes" );
+        goal_pose_step_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
+        goal_pose_step_->subProp( "Topic" )->setValue( "/goal_pose_step" );
+        goal_pose_step_->subProp( "Shape" )->setValue( "Axes" );
 
-    planner_start_ = manager_->createDisplay( "rviz/Pose", "Start pose", true );
-    planner_start_->subProp( "Topic" )->setValue( "/ros_footstep_planner/start" );
-    planner_start_->subProp( "Shape" )->setValue( "Axes" );
+        planner_start_ = manager_->createDisplay( "rviz/Pose", "Start pose", true );
+        planner_start_->subProp( "Topic" )->setValue( "/ros_footstep_planner/start" );
+        planner_start_->subProp( "Shape" )->setValue( "Axes" );
 
-    planned_path_ = manager_->createDisplay( "rviz/Path", "Planned path", true );
-    planned_path_->subProp( "Topic" )->setValue( "/flor/walk_monitor/path" );
+        planned_path_ = manager_->createDisplay( "rviz/Path", "Planned path", true );
+        planned_path_->subProp( "Topic" )->setValue( "/flor/walk_monitor/path" );
 
-    // create the hands displays
-    //left_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot left hand model", true );
-    //left_hand_model_->subProp( "TF Prefix" )->setValue( "/left_hand_model" );
-    //left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
-    //left_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
-    //left_hand_model_->subProp( "Color" )->setValue( QColor( 255, 255, 0 ) );
+        // create the hands displays
+        //left_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot left hand model", true );
+        //left_hand_model_->subProp( "TF Prefix" )->setValue( "/left_hand_model" );
+        //left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
+        //left_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
+        //left_hand_model_->subProp( "Color" )->setValue( QColor( 255, 255, 0 ) );
 
-    left_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left hand model", true );
-    left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
-    left_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_left_hand" );
-    left_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
-    left_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
+        left_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left hand model", true );
+        left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
+        left_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_left_hand" );
+        left_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
+        left_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
 
-    //right_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot right hand model", true );
-    //right_hand_model_->subProp( "TF Prefix" )->setValue( "/right_hand_model" );
-    //right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
-    //right_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
-    //right_hand_model_->subProp( "Color" )->setValue( QColor( 0, 255, 255 ) );
+        //right_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot right hand model", true );
+        //right_hand_model_->subProp( "TF Prefix" )->setValue( "/right_hand_model" );
+        //right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
+        //right_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
+        //right_hand_model_->subProp( "Color" )->setValue( QColor( 0, 255, 255 ) );
 
-    right_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot right hand model", true );
-    right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
-    right_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_right_hand" );
-    right_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
-    right_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
+        right_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot right hand model", true );
+        right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
+        right_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_right_hand" );
+        right_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
+        right_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
 
-    // create the simulation robot display
-    //ghost_robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot simulation model", false );
-    //ghost_robot_model_->subProp( "TF Prefix" )->setValue( "/simulation" );
-    //ghost_robot_model_->subProp( "Visual Enabled" )->setValue( true );
-    //ghost_robot_model_->subProp( "Collision Enabled" )->setValue( false );
-    //ghost_robot_model_->subProp( "Color" )->setValue( QColor( 30, 200, 30 ) );
-    //ghost_robot_model_->subProp( "Alpha" )->setValue( 0.5f );
+        // create the simulation robot display
+        //ghost_robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot simulation model", false );
+        //ghost_robot_model_->subProp( "TF Prefix" )->setValue( "/simulation" );
+        //ghost_robot_model_->subProp( "Visual Enabled" )->setValue( true );
+        //ghost_robot_model_->subProp( "Collision Enabled" )->setValue( false );
+        //ghost_robot_model_->subProp( "Color" )->setValue( QColor( 30, 200, 30 ) );
+        //ghost_robot_model_->subProp( "Alpha" )->setValue( 0.5f );
 
-    ghost_robot_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot simulation model", false );
-    ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
-    ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.0f );
-    ghost_robot_model_->setEnabled(false);
+        ghost_robot_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot simulation model", false );
+        ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
+        ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.0f );
+        ghost_robot_model_->setEnabled(false);
 
-    // Add custom interactive markers to control ghost robot
-    rviz::Display* im_left_arm = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - left arm", false );
-    im_left_arm->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/pose_marker/update" );
-    im_left_arm->subProp( "Show Axes" )->setValue( true );
-    im_left_arm->subProp( "Show Visual Aids" )->setValue( true );
-    im_ghost_robot_.push_back(im_left_arm);
-    rviz::Display* im_right_arm = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - right arm", false );
-    im_right_arm->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/pose_marker/update" );
-    im_right_arm->subProp( "Show Axes" )->setValue( true );
-    im_right_arm->subProp( "Show Visual Aids" )->setValue( true );
-    im_ghost_robot_.push_back(im_right_arm);
-    rviz::Display* im_pelvis = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - pelvis", false );
-    im_pelvis->subProp( "Update Topic" )->setValue( "/pelvis_pose_marker/pose_marker/update" );
-    im_pelvis->subProp( "Show Axes" )->setValue( true );
-    im_pelvis->subProp( "Show Visual Aids" )->setValue( true );
-    im_ghost_robot_.push_back(im_pelvis);
+        // Add custom interactive markers to control ghost robot
+        rviz::Display* im_left_arm = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - left arm", false );
+        im_left_arm->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/pose_marker/update" );
+        im_left_arm->subProp( "Show Axes" )->setValue( true );
+        im_left_arm->subProp( "Show Visual Aids" )->setValue( true );
+        im_ghost_robot_.push_back(im_left_arm);
+        rviz::Display* im_right_arm = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - right arm", false );
+        im_right_arm->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/pose_marker/update" );
+        im_right_arm->subProp( "Show Axes" )->setValue( true );
+        im_right_arm->subProp( "Show Visual Aids" )->setValue( true );
+        im_ghost_robot_.push_back(im_right_arm);
+        rviz::Display* im_pelvis = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - pelvis", false );
+        im_pelvis->subProp( "Update Topic" )->setValue( "/pelvis_pose_marker/pose_marker/update" );
+        im_pelvis->subProp( "Show Axes" )->setValue( true );
+        im_pelvis->subProp( "Show Visual Aids" )->setValue( true );
+        im_ghost_robot_.push_back(im_pelvis);
 
-    //geometry_msgs::Point point;
-    //static InteractiveMarkerServerCustom* marker_server_left_arm = new InteractiveMarkerServerCustom("Ghost Left Arm", "/l_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
-    //im_ghost_robot_server_.push_back(marker_server_left_arm);
-    //im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
-    //static InteractiveMarkerServerCustom* marker_server_right_arm = new InteractiveMarkerServerCustom("Ghost Right Arm", "/r_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
-    //im_ghost_robot_server_.push_back(marker_server_right_arm);
-    //im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
-    //static InteractiveMarkerServerCustom* marker_server_pelvis = new InteractiveMarkerServerCustom("Ghost Pelvis", "/pelvis_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
-    //.push_back(marker_server_pelvis);
-    //im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
+        //geometry_msgs::Point point;
+        //static InteractiveMarkerServerCustom* marker_server_left_arm = new InteractiveMarkerServerCustom("Ghost Left Arm", "/l_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
+        //im_ghost_robot_server_.push_back(marker_server_left_arm);
+        //im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
+        //static InteractiveMarkerServerCustom* marker_server_right_arm = new InteractiveMarkerServerCustom("Ghost Right Arm", "/r_arm_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
+        //im_ghost_robot_server_.push_back(marker_server_right_arm);
+        //im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
+        //static InteractiveMarkerServerCustom* marker_server_pelvis = new InteractiveMarkerServerCustom("Ghost Pelvis", "/pelvis_pose_marker", manager_->getFixedFrame().toStdString(), 0.4, point);
+        //.push_back(marker_server_pelvis);
+        //im_ghost_robot_server_[im_ghost_robot_server_.size()-1]->onFeedback = boost::bind(&Base3DView::onMarkerFeedback, this, _1, _2);
 
-    interactive_marker_add_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 1, true );
-    interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
-    interactive_marker_feedback_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );;
+        interactive_marker_add_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 1, true );
+        interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
+        interactive_marker_feedback_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );;
 
-    // subscribe to the pose topics
-    end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
-    end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
+        // subscribe to the pose topics
+        end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
+        end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
 
-    end_effector_pub_ = nh_.advertise<flor_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 1, false );
+        end_effector_pub_ = nh_.advertise<flor_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 1, false );
 
-    ghost_root_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/set_root_pose", 1, false );
-    ghost_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>( "/flor/ghost/set_joint_states", 1, false );
+        ghost_root_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/set_root_pose", 1, false );
+        ghost_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>( "/flor/ghost/set_joint_states", 1, false );
 
-    // subscribe to the ghost hands pose
-    ghost_hand_left_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_left_hand_pose", 5, &Base3DView::processLeftGhostHandPose, this );
-    ghost_hand_right_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_right_hand_pose", 5, &Base3DView::processRightGhostHandPose, this );
+        // subscribe to the ghost hands pose
+        ghost_hand_left_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_left_hand_pose", 5, &Base3DView::processLeftGhostHandPose, this );
+        ghost_hand_right_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_right_hand_pose", 5, &Base3DView::processRightGhostHandPose, this );
 
-    // initialize ghost control config
-    saved_state_planning_group_.push_back(0);
-    saved_state_planning_group_.push_back(1);
-    saved_state_planning_group_.push_back(1);
-    saved_state_pose_source_.push_back(0);
-    saved_state_pose_source_.push_back(0);
-    saved_state_pose_source_.push_back(0);
-    saved_state_world_lock_.push_back(0);
-    saved_state_world_lock_.push_back(0);
-    saved_state_world_lock_.push_back(0);
-    saved_state_collision_avoidance_ = 0;
-    saved_state_lock_pelvis_ = 1;
+        // initialize ghost control config
+        saved_state_planning_group_.push_back(0);
+        saved_state_planning_group_.push_back(1);
+        saved_state_planning_group_.push_back(1);
+        saved_state_pose_source_.push_back(0);
+        saved_state_pose_source_.push_back(0);
+        saved_state_pose_source_.push_back(0);
+        saved_state_world_lock_.push_back(0);
+        saved_state_world_lock_.push_back(0);
+        saved_state_world_lock_.push_back(0);
+        saved_state_collision_avoidance_ = 0;
+        saved_state_lock_pelvis_ = 1;
 
-    // ghost state
-    ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
-    reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
-    send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
-    send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goalpose", 1, false );
+        // ghost state
+        ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
+        reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
+        send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
+        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goalpose", 1, false );
 
-    // Create a RobotModel display.
-    robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
-    robot_model_->subProp( "Color" )->setValue( QColor( 200, 200, 200 ) );
-    robot_model_->subProp( "Alpha" )->setValue( 1.0f );
+        // Create a RobotModel display.
+        robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
+        robot_model_->subProp( "Color" )->setValue( QColor( 200, 200, 200 ) );
+        robot_model_->subProp( "Alpha" )->setValue( 1.0f );
 
-    // ground map middle man
-    //ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
-    ground_map_sub_ = nh_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/ocs/gridmap_result", 5, &Base3DView::processNewMap, this );
+        // ground map middle man
+        //ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
+        ground_map_sub_ = nh_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/ocs/gridmap_result", 5, &Base3DView::processNewMap, this );
 
-    // point cloud request/selection publisher
-    point_cloud_result_sub_ =  nh_.subscribe<sensor_msgs::PointCloud2>( "/flor/worldmodel/ocs/dist_query_pointcloud_result", 5, &Base3DView::processPointCloud, this );
-    global_selection_pos_pub_ = nh_.advertise<geometry_msgs::Point>( "/new_point_cloud_request", 1, false );
-    global_selection_pos_sub_ = nh_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
+        // point cloud request/selection publisher
+        point_cloud_result_sub_ =  nh_.subscribe<sensor_msgs::PointCloud2>( "/flor/worldmodel/ocs/dist_query_pointcloud_result", 5, &Base3DView::processPointCloud, this );
+        global_selection_pos_pub_ = nh_.advertise<geometry_msgs::Point>( "/new_point_cloud_request", 1, false );
+        global_selection_pos_sub_ = nh_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
 
-    joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "atlas/joint_states", 2, &Base3DView::processJointStates, this );
+        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "atlas/joint_states", 2, &Base3DView::processJointStates, this );
 
-    // advertise pointcloud request
-    pointcloud_request_world_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
+        // advertise pointcloud request
+        pointcloud_request_world_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
 
-    // frustum
-    frustum_viewer_list_["head_left"] = manager_->createDisplay( "rviz/FrustumDisplayCustom", "Frustum - Left Eye", true );
-    //}
+        // frustum
+        frustum_viewer_list_["head_left"] = manager_->createDisplay( "rviz/FrustumDisplayCustom", "Frustum - Left Eye", true );
+        //}
 
-    // Connect to the template markers
-    QObject::connect(this, SIGNAL(enableTemplateMarkers(bool)), template_display_, SLOT(enableTemplateMarkers(bool)));
+        // Connect to the template markers
+        QObject::connect(this, SIGNAL(enableTemplateMarkers(bool)), template_display_, SLOT(enableTemplateMarkers(bool)));
 
-    // Connect the 3D selection tool to
-    QObject::connect(this, SIGNAL(queryContext(int,int)), selection_3d_display_, SLOT(queryContext(int,int)));
-    QObject::connect(selection_3d_display_, SIGNAL(setContext(int)), this, SLOT(setContext(int)));
+        // Connect the 3D selection tool to
+        QObject::connect(this, SIGNAL(queryContext(int,int)), selection_3d_display_, SLOT(queryContext(int,int)));
+        QObject::connect(selection_3d_display_, SIGNAL(setContext(int)), this, SLOT(setContext(int)));
 
-    // connect the 3d selection tool to its display
-    QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
-    Q_EMIT setRenderPanel(this->render_panel_);
-    QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
-    QObject::connect(selection_3d_display_, SIGNAL(setSelectionRay(Ogre::Ray)), this, SLOT(setSelectionRay(Ogre::Ray)));
-    QObject::connect(this, SIGNAL(resetSelection()), selection_3d_display_, SLOT(resetSelection()));
-    QObject::connect(this, SIGNAL(setMarkerScale(float)), selection_3d_display_, SLOT(setMarkerScale(float)));
-    QObject::connect(this, SIGNAL(setMarkerPosition(float,float,float)), selection_3d_display_, SLOT(setMarkerPosition(float,float,float)));
+        // connect the 3d selection tool to its display
+        QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
+        Q_EMIT setRenderPanel(this->render_panel_);
+        QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
+        QObject::connect(selection_3d_display_, SIGNAL(setSelectionRay(Ogre::Ray)), this, SLOT(setSelectionRay(Ogre::Ray)));
+        QObject::connect(this, SIGNAL(resetSelection()), selection_3d_display_, SLOT(resetSelection()));
+        QObject::connect(this, SIGNAL(setMarkerScale(float)), selection_3d_display_, SLOT(setMarkerScale(float)));
+        QObject::connect(this, SIGNAL(setMarkerPosition(float,float,float)), selection_3d_display_, SLOT(setMarkerPosition(float,float,float)));
 
-    // handles mouse events without rviz::tool
-    mouse_event_handler_ = new vigir_ocs::MouseEventHandler();
-    QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mousePressEvent(QMouseEvent*)));
-    QObject::connect(render_panel_, SIGNAL(signalMouseReleaseEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseReleaseEvent(QMouseEvent*)));
-    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(raycastRequest(bool,int,int)));//SLOT(createMarker(bool,int,int))); // RAYCAST -> need createMarkerOnboard that sends raycast query
-    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(raycastRequestROI(bool,int,int)));//SLOT(createROISelection(bool,int,int)));
-    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), this, SLOT(createContextMenu(bool,int,int)));
+        // handles mouse events without rviz::tool
+        mouse_event_handler_ = new vigir_ocs::MouseEventHandler();
+        QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mousePressEvent(QMouseEvent*)));
+        QObject::connect(render_panel_, SIGNAL(signalMouseReleaseEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseReleaseEvent(QMouseEvent*)));
+        QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(raycastRequest(bool,int,int)));//SLOT(createMarker(bool,int,int))); // RAYCAST -> need createMarkerOnboard that sends raycast query
+        QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(raycastRequestROI(bool,int,int)));//SLOT(createROISelection(bool,int,int)));
+        QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), this, SLOT(createContextMenu(bool,int,int)));
 
-    // set frustum
-    QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
+        // set frustum
+        QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
     }
 
-    /*
     position_widget_ = new QWidget(this);
     position_widget_->setStyleSheet("background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
     position_widget_->setMaximumHeight(18);
@@ -435,7 +400,6 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     position_layout->addWidget(position_label_);
     position_widget_->setLayout(position_layout);
     //main_layout->addWidget(position_widget_);
-	*/
 
     nh_.param<std::string>("/flor/ocs/grasp/hand_type",hand_type_,"sandia"); // global parameter
 
@@ -470,6 +434,11 @@ void Base3DView::timerEvent(QTimerEvent *event)
 void Base3DView::init()
 {
 
+}
+
+void Base3DView::updateRenderMask( bool mask )
+{
+    manager_->updateRenderMask( view_id_, mask );
 }
 
 void Base3DView::robotModelToggled( bool selected )

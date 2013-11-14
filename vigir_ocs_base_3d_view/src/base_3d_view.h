@@ -95,6 +95,8 @@ public:
 
     rviz::VisualizationManager* getVisualizationManager() {return manager_;};
 
+    void updateRenderMask( bool );
+
 public Q_SLOTS:
     // displays
     void robotModelToggled( bool );
@@ -270,7 +272,6 @@ protected:
 
     QBasicTimer timer;
 
-    static int init_count_;
     int view_id_;
 };
 }
