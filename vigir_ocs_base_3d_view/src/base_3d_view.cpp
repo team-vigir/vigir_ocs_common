@@ -421,11 +421,9 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     //render_panel_->getRenderWindow()->update(true);
 
-    float lastFPS, avgFPS, bestFPS, worstFPS;
-    Ogre::RenderTarget::FrameStats stats = render_panel_->getRenderWindow()->getStatistics();
-    std::cout << "View (" << view_id_ << "): " << stats.lastFPS << ", " << stats.avgFPS << ", " << stats.bestFrameTime << ", " << stats.worstFrameTime << ", " << stats.triangleCount << std::endl;
-    //render_panel_->getRenderWindow()->getStatistics( lastFPS, avgFPS, bestFPS, worstFPS );
-    //std::cout << "View (" << view_id_ << /*ortho_view_controller_->subProp( "View Plane" )->getValue(). <<*/ "): " << lastFPS << ", " << avgFPS << ", " << bestFPS << ", " << worstFPS << std::endl;
+    //float lastFPS, avgFPS, bestFPS, worstFPS;
+    //Ogre::RenderTarget::FrameStats stats = render_panel_->getRenderWindow()->getStatistics();
+    //std::cout << "View (" << view_id_ << "): " << stats.lastFPS << ", " << stats.avgFPS << ", " << stats.bestFrameTime << ", " << stats.worstFrameTime << ", " << stats.triangleCount << std::endl;
 
     // no need to spin as rviz is already doing that for us.
     //ros::spinOnce();
