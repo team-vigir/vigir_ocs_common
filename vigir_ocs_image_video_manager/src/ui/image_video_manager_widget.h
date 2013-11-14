@@ -67,6 +67,7 @@ public:
     void imageaddfunction_rhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg);
     void settree_hide();
     void search_child(int time,int flag, QTreeWidgetItem *item);
+    void image_slider();
     //void save_to_file(int,int);
     //void search_child_save(int timer2, int timer1, QTreeWidgetItem *item, int flag);
 // for adding images to widget

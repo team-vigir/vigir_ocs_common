@@ -151,11 +151,13 @@ void ImageVideoManagerWidget::addImage(const unsigned long& id, const std::strin
         //img_size.width = 100.0f;
         //img_size.height = 100.0f/aspect_ratio;
         img_size.width = 50.0f;
-        img_size.height = 50.0f/aspect_ratio;
+        img_size.height = 50.0f;
+       // img_size.height = 50.0f/aspect_ratio; uncomment on adding open cv code
     }
     else
     {
-        img_size.width = 50.0f/aspect_ratio;
+        img_size.width = 50.0f;
+        //img_size.width = 50.0f/aspect_ratio; uncomment on adding opencv code
         img_size.height = 50.0f;
     }
     cv::resize(cv_ptr->image, cv_ptr->image, img_size, 0, 0, cv::INTER_NEAREST);
@@ -229,6 +231,7 @@ void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsig
 
     // add info about images to the table
     QString cam_name;
+    QString t2;
     if(QString(topic.c_str())=="/l_image_full" || QString(topic.c_str())=="/l_image_cropped")
         cam_name = "Head Camera Left";
    if(QString(topic.c_str())=="/r_image_full" || QString(topic.c_str())=="/r_image_cropped")
@@ -317,7 +320,8 @@ void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsig
     while(parent)
       {
 
-        parent->setText(1,timeFromMsg(image.header.stamp));
+        t2=timeFromMsg(image.header.stamp);
+        parent->setText(1,(parent->text(1)).left((parent->text(1)).indexOf("-",0))+"-"+t2);
         parent->setToolTip(1,QString::number((int)image.header.stamp.toSec()));
         parent->setText(2,cam_name);
         parent->setToolTip(2,QString(topic.c_str()));
@@ -505,7 +509,9 @@ void ImageVideoManagerWidget:: imageaddfunction_l(const flor_ocs_msgs::OCSImageA
             childtimeitem_l = add_time_child(timeitem_l,1);
             childtimeitem_start_time_l = (int)msg->image.header.stamp.toSec();
             //video_start_time_nano=((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
-
+            parentitem_l->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+            childtimeitem_l->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+            timeitem_l->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
         }
 
         if((subseq_video_time_l-video_start_time_l)>300)
@@ -515,6 +521,8 @@ void ImageVideoManagerWidget:: imageaddfunction_l(const flor_ocs_msgs::OCSImageA
          video_start_time_l=(int)msg->image.header.stamp.toSec();
          childtimeitem_l = add_time_child(timeitem_l,1);
          childtimeitem_start_time_l = (int)msg->image.header.stamp.toSec();
+         timeitem_l->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+         childtimeitem_l->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
 
      }
         if((subseq_video_time_l-childtimeitem_start_time_l)>60)
@@ -522,7 +530,7 @@ void ImageVideoManagerWidget:: imageaddfunction_l(const flor_ocs_msgs::OCSImageA
 
             childtimeitem_l = add_time_child(timeitem_l,1);
             childtimeitem_start_time_l = (int)msg->image.header.stamp.toSec();
-
+            childtimeitem_l->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
 
      }
 
@@ -558,11 +566,13 @@ void ImageVideoManagerWidget:: imageaddfunction_r(const flor_ocs_msgs::OCSImageA
             parentitem_r=addvideoitem(videocount_r,msg->image);
             interval_count_r=1;
             video_start_time_r=(int)msg->image.header.stamp.toSec();
+            parentitem_r->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
             timeitem_r=add_time_child(parentitem_r,5);
             childtimeitem_r = add_time_child(timeitem_r,1);
             childtimeitem_start_time_r = (int)msg->image.header.stamp.toSec();
             //video_start_time_nano=((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
-
+            timeitem_r->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+            childtimeitem_r->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
         }
 
         if((subseq_video_time_r-video_start_time_r)>300)
@@ -572,6 +582,8 @@ void ImageVideoManagerWidget:: imageaddfunction_r(const flor_ocs_msgs::OCSImageA
          video_start_time_r=(int)msg->image.header.stamp.toSec();
          childtimeitem_r = add_time_child(timeitem_r,1);
          childtimeitem_start_time_r = (int)msg->image.header.stamp.toSec();
+         timeitem_r->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+         childtimeitem_r->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
 
      }
         if((subseq_video_time_r-childtimeitem_start_time_r)>60)
@@ -579,6 +591,7 @@ void ImageVideoManagerWidget:: imageaddfunction_r(const flor_ocs_msgs::OCSImageA
 
             childtimeitem_r = add_time_child(timeitem_r,1);
             childtimeitem_start_time_r = (int)msg->image.header.stamp.toSec();
+            childtimeitem_r->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
 
      }
      addImageChild(childtimeitem_r,msg->id,msg->topic,msg->image,msg->camera_info,1);
@@ -604,16 +617,10 @@ void ImageVideoManagerWidget:: imageaddfunction_lhl(const flor_ocs_msgs::OCSImag
     {
         subseq_video_time_lhl=(int)msg->image.header.stamp.toSec();
         //subseq_video_time_nano= ((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
-        qDebug()<<subseq_video_time_lhl;{
-
-
-        }
+        qDebug()<<subseq_video_time_lhl;
         if(feed_rate_lhl!=feed_rate_prev_lhl)
         {
-            videocount_lhl++;{
-
-
-            }
+            videocount_lhl++;
             parentitem_lhl=addvideoitem(videocount_lhl,msg->image);
             interval_count_lhl=1;
             video_start_time_lhl=(int)msg->image.header.stamp.toSec();
@@ -621,7 +628,9 @@ void ImageVideoManagerWidget:: imageaddfunction_lhl(const flor_ocs_msgs::OCSImag
             childtimeitem_lhl = add_time_child(timeitem_lhl,1);
             childtimeitem_start_time_lhl = (int)msg->image.header.stamp.toSec();
             //video_start_time_nano=((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
-
+            parentitem_lhl->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+            timeitem_lhl->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+            childtimeitem_lhl->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
         }
 
         if((subseq_video_time_lhl-video_start_time_lhl)>300)
@@ -631,14 +640,15 @@ void ImageVideoManagerWidget:: imageaddfunction_lhl(const flor_ocs_msgs::OCSImag
          video_start_time_lhl=(int)msg->image.header.stamp.toSec();
          childtimeitem_lhl = add_time_child(timeitem_lhl,1);
          childtimeitem_start_time_lhl = (int)msg->image.header.stamp.toSec();
-
+         timeitem_lhl->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+         childtimeitem_lhl->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
      }
         if((subseq_video_time_lhl-childtimeitem_start_time_lhl)>60)
      {
 
             childtimeitem_lhl = add_time_child(timeitem_lhl,1);
             childtimeitem_start_time_lhl = (int)msg->image.header.stamp.toSec();
-
+            childtimeitem_lhl->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
      }
      addImageChild(childtimeitem_lhl,msg->id,msg->topic,msg->image,msg->camera_info,1);
      ui->timeslider->setMaximum((msg->image).header.stamp.toSec());
@@ -674,6 +684,9 @@ void ImageVideoManagerWidget:: imageaddfunction_lhr(const flor_ocs_msgs::OCSImag
             childtimeitem_lhr = add_time_child(timeitem_lhr,1);
             childtimeitem_start_time_lhr = (int)msg->image.header.stamp.toSec();
             //video_start_time_nano=((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
+            parentitem_lhr->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+            timeitem_lhr->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+            childtimeitem_lhr->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
 
         }
 
@@ -684,6 +697,8 @@ void ImageVideoManagerWidget:: imageaddfunction_lhr(const flor_ocs_msgs::OCSImag
          video_start_time_lhr=(int)msg->image.header.stamp.toSec();
          childtimeitem_lhr = add_time_child(timeitem_lhr,1);
          childtimeitem_start_time_lhr = (int)msg->image.header.stamp.toSec();
+         timeitem_lhr->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+         childtimeitem_lhr->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
 
      }
         if((subseq_video_time_lhr-childtimeitem_start_time_lhr)>60)
@@ -691,6 +706,7 @@ void ImageVideoManagerWidget:: imageaddfunction_lhr(const flor_ocs_msgs::OCSImag
 
             childtimeitem_lhr = add_time_child(timeitem_lhr,1);
             childtimeitem_start_time_lhr = (int)msg->image.header.stamp.toSec();
+            childtimeitem_lhr->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
 
      }
      addImageChild(childtimeitem_lhr,msg->id,msg->topic,msg->image,msg->camera_info,1);
@@ -727,6 +743,9 @@ void ImageVideoManagerWidget:: imageaddfunction_rhr(const flor_ocs_msgs::OCSImag
             childtimeitem_rhr = add_time_child(timeitem_rhr,1);
             childtimeitem_start_time_rhr = (int)msg->image.header.stamp.toSec();
             //video_start_time_nano=((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
+            parentitem_rhr->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+            timeitem_rhr->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+            childtimeitem_rhr->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
 
         }
 
@@ -737,6 +756,8 @@ void ImageVideoManagerWidget:: imageaddfunction_rhr(const flor_ocs_msgs::OCSImag
          video_start_time_rhr=(int)msg->image.header.stamp.toSec();
          childtimeitem_rhr = add_time_child(timeitem_rhr,1);
          childtimeitem_start_time_rhr = (int)msg->image.header.stamp.toSec();
+         timeitem_rhr->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+         childtimeitem_rhr->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
 
      }
         if((subseq_video_time_rhr-childtimeitem_start_time_rhr)>60)
@@ -744,6 +765,7 @@ void ImageVideoManagerWidget:: imageaddfunction_rhr(const flor_ocs_msgs::OCSImag
 
             childtimeitem_rhr = add_time_child(timeitem_rhr,1);
             childtimeitem_start_time_rhr = (int)msg->image.header.stamp.toSec();
+            childtimeitem_rhr->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
 
      }
      addImageChild(childtimeitem_rhr,msg->id,msg->topic,msg->image,msg->camera_info,1);
@@ -780,6 +802,9 @@ void ImageVideoManagerWidget:: imageaddfunction_rhl(const flor_ocs_msgs::OCSImag
             childtimeitem_rhl = add_time_child(timeitem_rhl,1);
             childtimeitem_start_time_rhl = (int)msg->image.header.stamp.toSec();
             //video_start_time_nano=((msg->image).header.stamp.toSec() - (int)(msg->image).header.stamp.toSec())*1000;
+            parentitem_rhl->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+            timeitem_rhl->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+            childtimeitem_rhl->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
 
         }
 
@@ -790,6 +815,8 @@ void ImageVideoManagerWidget:: imageaddfunction_rhl(const flor_ocs_msgs::OCSImag
          video_start_time_rhl=(int)msg->image.header.stamp.toSec();
          childtimeitem_rhl = add_time_child(timeitem_rhl,1);
          childtimeitem_start_time_rhl = (int)msg->image.header.stamp.toSec();
+         timeitem_rhl->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
+         childtimeitem_rhl->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
 
      }
         if((subseq_video_time_rhl-childtimeitem_start_time_rhl)>60)
@@ -797,6 +824,7 @@ void ImageVideoManagerWidget:: imageaddfunction_rhl(const flor_ocs_msgs::OCSImag
 
             childtimeitem_rhl = add_time_child(timeitem_rhl,1);
             childtimeitem_start_time_rhl = (int)msg->image.header.stamp.toSec();
+            childtimeitem_rhl->setText(1,timeFromMsg(msg->image.header.stamp)+"-");
 
      }
      addImageChild(childtimeitem_rhl,msg->id,msg->topic,msg->image,msg->camera_info,1);
@@ -967,7 +995,9 @@ void ImageVideoManagerWidget::on_timeslider_valueChanged(int value)
     ui->timelabel->setText(QString::fromStdString(stream.str()));
 
 
-
+    image_slider();
+}
+/*
     ui->stackedWidget->setCurrentWidget(temptree);
     temptree->setMaximumSize(520,550);
     temptree->setMinimumSize(520,550);
@@ -1010,7 +1040,7 @@ void ImageVideoManagerWidget::on_timeslider_valueChanged(int value)
 }
 
 
-}
+}*/
 bool ImageVideoManagerWidget::check_item_time(QTreeWidgetItem *item, int time)
 {
     qDebug()<<"item time"<<item->toolTip(1);
@@ -1054,13 +1084,12 @@ void ImageVideoManagerWidget::on_cameralist_currentIndexChanged(int index)
     QString camera;
     QTreeWidgetItem * item;
     QTreeWidget *tree;
-
-    if(ui->checkBox->checkState()==false)
+    if(ui->checkBox->checkState()==0)
         tree=treeWidget;
-    else if (ui->checkBox->checkState()==true)
+    else if (ui->checkBox->checkState()>0)
         tree=temptree;
     toplevelitemcount = tree->topLevelItemCount();
-    qDebug()<<toplevelitemcount<<"\n";
+    qDebug()<<"index="<<index<<"\n";
     for(int k=0;k<toplevelitemcount;k++)
     {
         tree->topLevelItem(k)->setHidden(false);
@@ -1140,14 +1169,12 @@ void ImageVideoManagerWidget::search_child(int time,int flag, QTreeWidgetItem *i
             tempitem->setData(0,Qt::DecorationRole,variant);
             tempitem->setToolTip(0,item->child(i)->toolTip(0));
             tempitem->setToolTip(1,item->toolTip(1));
+            tempitem->setToolTip(2,item->toolTip(2));
             tempitem->setText(1,item->text(1));
             tempitem->setText(2,item->text(2));
             tempitem->setText(3,item->text(3));
             tempitem->setText(4,item->text(4));
             temptree->insertTopLevelItem(0,tempitem);
-        }{
-
-
         }
     }
     else
@@ -1168,6 +1195,7 @@ void ImageVideoManagerWidget::search_child(int time,int flag, QTreeWidgetItem *i
         tempitem->setData(0,Qt::DecorationRole,variant);
         tempitem->setToolTip(0,item->child(i)->toolTip(0));
         tempitem->setToolTip(1,item->child(i)->toolTip(1));
+        tempitem->setToolTip(2,item->child(i)->toolTip(2));
         tempitem->setText(1,item->child(i)->text(1));
         tempitem->setText(2,item->child(i)->text(2));
         tempitem->setText(3,item->child(i)->text(3));
@@ -1186,13 +1214,62 @@ void ImageVideoManagerWidget::search_child(int time,int flag, QTreeWidgetItem *i
 void ImageVideoManagerWidget::on_checkBox_clicked(bool checked)
 {
     if(checked == true)
+
+    {
         ui->timeslider->setEnabled(true);
+        image_slider();
+        ui->timeslider->setSliderPosition(ui->timeslider->maximum());
+    }
     if (checked ==false)
     {
          ui->stackedWidget->setCurrentWidget(treeWidget);
          ui->timeslider->setEnabled (false);
     }
    // qDebug()<<temptree->topLevelItemCount();
+
+ }
+void ImageVideoManagerWidget::image_slider()
+{
+    ui->stackedWidget->setCurrentWidget(temptree);
+    temptree->setMaximumSize(520,550);
+    temptree->setMinimumSize(520,550);
+    temptree->setIndentation(10);
+    temptree->setColumnCount(3);
+    temptree->setColumnWidth(0,170);
+    temptree->setColumnWidth(1,170);
+    temptree->setColumnWidth(2,180);
+
+    QStringList list;
+    list<<"Image"<<"TimeStamp"<<"Source";
+    temptree->setHeaderLabels(list);
+    temptree->clear();
+
+    //ui->slidertree->show();
+   // ui->slidertree->clear();
+    int time = ui->timeslider->maximum();
+    qDebug()<<time;
+    QTreeWidgetItem *item;
+
+    int j=0;
+    int flag=0,ok;
+{
+    //settree_show();->child(i)
+    //settree_hide();
+       // int time = ui->timelabel->text().toInt(&ok,10);
+    for( j=0;j<treeWidget->topLevelItemCount();j++)
+    {
+        item = treeWidget->topLevelItem(j);
+        qDebug()<<"here in loop 1";
+        if(time<=item->toolTip(1).toInt())
+        {
+            flag = 1;
+            search_child(time,flag,item);
+            qDebug()<<"here in loop 1"<<item->toolTip(1)<<flag;
+            //break;
+        }
+    }
+    qDebug()<<"here out loop 1";
+}
 }
 
 
