@@ -146,6 +146,7 @@ private:
     int videocount_rhl;
     int imagecount_rhl;
     int interval_count_rhl;
+    int flag_first_image;
     //int timerflag;
 
     ros::NodeHandle nh_;

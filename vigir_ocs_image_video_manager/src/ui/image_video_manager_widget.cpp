@@ -23,18 +23,17 @@ ImageVideoManagerWidget::ImageVideoManagerWidget(QWidget *parent) :
     ui(new Ui::ImageVideoManagerWidget)
 {
     ui->setupUi(this);
+    flag_first_image=0;
     feed_rate_l=feed_rate_r=feed_rate_lhl=feed_rate_lhr=feed_rate_rhl=feed_rate_rhr= -1;
     feed_rate_prev_l=feed_rate_prev_r=feed_rate_prev_lhl=feed_rate_prev_lhr=feed_rate_prev_rhl=feed_rate_prev_rhr = -1;
     ui->timeslider->setMinimum(0);
     ui->timeslider->setMaximum(0);
-    //ui->pushButton->setText("Get \n Image");
     imagecount_l=imagecount_r=imagecount_lhl=imagecount_lhr=imagecount_rhl=imagecount_rhr=0;
     videocount_l=videocount_lhl=videocount_lhr=videocount_r=videocount_rhr=videocount_rhl=0;
     interval_count_l=interval_count_lhl=interval_count_lhr=interval_count_r=interval_count_rhr=interval_count_rhl=0;
     video_start_time_l=video_start_time_r=video_start_time_lhr=video_start_time_lhl=video_start_time_rhr=video_start_time_rhl=0;
     subseq_video_time_l=subseq_video_time_r=subseq_video_time_lhr=subseq_video_time_lhl=subseq_video_time_rhr=subseq_video_time_rhl=0;
 
-    //treeWidget->setColumnWidth(0,120); // uncomment now
 
     // initialize publishers for communication with nodelet
     image_list_request_pub_ = nh_.advertise<std_msgs::Bool>(   "/flor/ocs/image_history/list_request", 1, true );
@@ -61,7 +60,7 @@ ImageVideoManagerWidget::ImageVideoManagerWidget(QWidget *parent) :
     img_req_sub_crop_lhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhr_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_lhr, this );
     img_req_sub_crop_rhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhl_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhl, this );
     img_req_sub_crop_rhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhr_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhr, this );
-    //connect(treeWidget, SIGNAL(cellClicked(int,int)), this, SLOT(editSlot(int, int)));
+
     std_msgs::Bool list_request;
     list_request.data = true;
     image_list_request_pub_.publish(list_request);
@@ -86,6 +85,8 @@ ImageVideoManagerWidget::ImageVideoManagerWidget(QWidget *parent) :
     connect (temptree,SIGNAL(itemClicked(QTreeWidgetItem*,int)),this,SLOT(on_treeWidget_itemClicked(QTreeWidgetItem*,int)));
    // timer1=timer2=0;
     //timerflag=0;
+
+
 
 
 }
@@ -286,23 +287,20 @@ void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsig
     item->setData(0,Qt::DecorationRole, pixmap);
 
     item->setToolTip(0,QString::number(id));
-    //treeWidget->setItem(row,0,item);
-
-    //ROS_ERROR("Added %ld to the table",id);
-
     // stamp
-    //item = new QTreeWidgetItem(timeFromMsg(image.header.stamp));
+
     item->setText(1,timeFromMsg(image.header.stamp));
     item->setToolTip(1,QString::number((int)image.header.stamp.toSec()));
+   /* if(flag_first_image==0){
+    ui->timeslider->setMinimum((int)image.header.stamp.toSec());
+    flag_first_image=1;}*/
     // source
-    //item = new QTreeWidgeexttItem(QString(topic.c_str()));
+
     item->setText(2,cam_name);
     item->setToolTip(2,QString(topic.c_str()));
-    // width
-   // item = new QTreeWidgetItem(QString::number(image.width));
+
     item->setText(3,QString::number(image.width));
-    // height
-   // item = new QTreeWidgetItem(QString::number(image.height));
+
     item->setText(4,QString::number(image.height));
     if(flag==0)
     {
@@ -311,11 +309,7 @@ void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsig
     }
     else
     {
-    //parent->setText(1,timeFromMsg(image.header.stamp));
-    //thumbnail(image,parent);
 
-    //parent->setText(2,QString(topic.c_str()));
-    //parent->parent()->setText(1,timeFromMsg(image.header.stamp));
     parent->addChild(item);
     while(parent)
       {
@@ -329,112 +323,8 @@ void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsig
         parent= parent->parent();
       }
     }
-    /*if(timerflag==0)
-        {
-       // qDebug()<<"in if of timer1";
-        timer1=(int)image.header.stamp.toSec();
-        timerflag=1;
-
-        }
-   // qDebug()<<"timer 1="<<timer1<<"timer2="<<timer2;
-    //qDebug()<<"diff="<<timer1-timer2;
-    timer2=(int)image.header.stamp.toSec();
-    // qDebug()<< "in timer2"<<timer2;
-    if(timer2-timer1>10)
-        {
-         save_to_file(timer2,timer1) ;
-
-        // tmp.save("/home/vigir/image/"+QString::number((int)image.header.stamp.toSec()),"BMP");
-         timerflag=0;
-         qDebug()<< "in loop after 10 secs";
-
-
-        }
-        */
-}
-/*
-void ImageVideoManagerWidget::save_to_file(int timer2, int timer1)
-{
-    int i,j;
-    int flag;
-    QTreeWidgetItem* item;
-    for( j=0;j<treeWidget->topLevelItemCount();j++)
-    {
-        item = treeWidget->topLevelItem(j);
-        qDebug()<<"here in loop 1"<<timer2<<"\t"<<item->toolTip(1).toInt();
-        if(timer2<=item->toolTip(1).toInt())
-        {
-            flag = 1;
-            search_child_save(timer2,timer1,item,flag);
-            qDebug()<<"here in loop 1"<<item->toolTip(1)<<flag;
-            //break;
-        }
-    }
-  }
-void ImageVideoManagerWidget::search_child_save(int timer2, int timer1, QTreeWidgetItem *item, int flag)
-{
-    int i,j;
-    if (flag ==1)
-    for( j=0;j<item->childCount();j++)
-
-    {
-        //qDebug()<<"here in loop 2"<<item->child(j)->toolTip(1);
-        if(timer2<=item->child(j)->toolTip(1).toInt())
-
-        {   qDebug()<<"here in loop 2"<<item->child(j)->toolTip(1);
-            flag=2;
-            item=item->child(j);
-            break;
-        }
-
-    }
-    qDebug()<<"here out loop 2"<<flag;
-    if (flag ==2)
-    for(int k=0;k<item->childCount();k++)
-    {
-        qDebug()<<"in loop 3"<<item->child(k)->toolTip(1);
-        if(timer2<=item->child(k)->toolTip(1).toInt())
-        {
-        flag =3;
-        qDebug()<<"here in loop 3"<<item->child(k)->toolTip(1);
-        item=item->child(k);
-        break;
-        }
-    }
-
-    j=0;
-    if (flag ==1)
-    {
-
-        if(timer1<=item->toolTip(1).toInt() && item->toolTip(1).toInt()<=timer2)
-        {
-            //qDebug()<<"here in loop 4"<<item->text(1);
-            QPixmap pix= item->child(i)->data(0,Qt::DecorationRole).value<QPixmap>();
-            QImage image = pix.toImage();
-            image.save("/home/vigir/image/"+item->child(i)->toolTip(0),"BMP");
-
-        }
-    }
-    else
-    for(int i=0;i<item->childCount();i++)
-    {
-
-       if(timer1<=item->toolTip(1).toInt() && item->toolTip(1).toInt()<=timer2)
-       {
-           //ui->image_view->setText(item->child(i)->text(1));
-           QPixmap pix=(QPixmap) item->child(i)->data(0,Qt::DecorationRole).value<QPixmap>();
-           QImage image = pix.toImage();
-           image.save("/home/vigir/image/"+item->child(i)->toolTip(0),"BMP");
-        qDebug()<<"here in loop 5"<<item->child(i)->toolTip(1);
-       }
-    }
-
-
-
-    qDebug()<<"here out loop 5";
 
 }
-*/
 QTreeWidgetItem* ImageVideoManagerWidget::addvideoitem(int videocount,const sensor_msgs::Image& image)
 
 {
@@ -995,7 +885,46 @@ void ImageVideoManagerWidget::on_timeslider_valueChanged(int value)
     ui->timelabel->setText(QString::fromStdString(stream.str()));
 
 
-    image_slider();
+    ui->stackedWidget->setCurrentWidget(temptree);
+    temptree->setMaximumSize(520,550);
+    temptree->setMinimumSize(520,550);
+    temptree->setIndentation(10);
+    temptree->setColumnCount(3);
+    temptree->setColumnWidth(0,170);
+    temptree->setColumnWidth(1,170);
+    temptree->setColumnWidth(2,180);
+
+    QStringList list;
+    list<<"Image"<<"TimeStamp"<<"Source";
+    temptree->setHeaderLabels(list);
+    temptree->clear();
+
+    //ui->slidertree->show();
+   // ui->slidertree->clear();
+    int time = value;
+    qDebug()<<time;
+    QTreeWidgetItem *item;
+
+    int j=0;
+    int flag=0,ok;
+{
+    //settree_show();->child(i)
+    //settree_hide();
+       // int time = ui->timelabel->text().toInt(&ok,10);
+    for( j=0;j<treeWidget->topLevelItemCount();j++)
+    {
+        item = treeWidget->topLevelItem(j);
+        qDebug()<<"here in loop 1";
+        if(time<=item->toolTip(1).toInt())
+        {
+            flag = 1;
+            search_child(time,flag,item);
+            qDebug()<<"here in loop 1"<<item->toolTip(1)<<flag;
+            //break;
+        }
+    }
+    qDebug()<<"here out loop 1";
+}
 }
 /*
     ui->stackedWidget->setCurrentWidget(temptree);
@@ -1217,7 +1146,46 @@ void ImageVideoManagerWidget::on_checkBox_clicked(bool checked)
 
     {
         ui->timeslider->setEnabled(true);
-        image_slider();
+        ui->stackedWidget->setCurrentWidget(temptree);
+        temptree->setMaximumSize(520,550);
+        temptree->setMinimumSize(520,550);
+        temptree->setIndentation(10);
+        temptree->setColumnCount(3);
+        temptree->setColumnWidth(0,170);
+        temptree->setColumnWidth(1,170);
+        temptree->setColumnWidth(2,180);
+
+        QStringList list;
+        list<<"Image"<<"TimeStamp"<<"Source";
+        temptree->setHeaderLabels(list);
+        temptree->clear();
+
+        //ui->slidertree->show();
+       // ui->slidertree->clear();
+        int time = ui->timeslider->maximum();
+        qDebug()<<time;
+        QTreeWidgetItem *item;
+
+        int j=0;
+        int flag=0,ok;
+    {
+        //settree_show();->child(i)
+        //settree_hide();
+           // int time = ui->timelabel->text().toInt(&ok,10);
+        for( j=0;j<treeWidget->topLevelItemCount();j++)
+        {
+            item = treeWidget->topLevelItem(j);
+            qDebug()<<"here in loop 1";
+            if(time<=item->toolTip(1).toInt())
+            {
+                flag = 1;
+                search_child(time,flag,item);
+                qDebug()<<"here in loop 1"<<item->toolTip(1)<<flag;
+                //break;
+            }
+        }
+        qDebug()<<"here out loop 1";
+    }
         ui->timeslider->setSliderPosition(ui->timeslider->maximum());
     }
     if (checked ==false)
