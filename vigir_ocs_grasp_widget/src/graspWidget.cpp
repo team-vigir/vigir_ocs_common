@@ -1086,3 +1086,10 @@ void graspWidget::on_stitch_template_toggled(bool checked)
     msg.pose.pose = last_template_list_.pose[ui->templateBox->currentIndex()].pose;
     template_stitch_request_pub_.publish(msg);
 }
+
+void graspWidget::on_pushButton_clicked()
+{
+    ui2 = new handOffsetWidget;
+
+    ui2->show();
+}

@@ -3,7 +3,7 @@ project(vigir_ocs_grasp_widget)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib tf std_msgs sensor_msgs rviz flor_ocs_msgs flor_grasp_msgs moveit_core moveit_ros_planning)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib tf std_msgs sensor_msgs rviz flor_ocs_msgs flor_grasp_msgs moveit_core moveit_ros_planning)# vigir_perception_msgs)
 
 ## Declare things to be passed to other projects
 catkin_package(
@@ -25,12 +25,14 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 qt4_wrap_cpp(MOC_FILES
   src/graspWidget.h
+  src/handOffsetWidget.h
 )
 
 
 ## Here we add QtCreator ui files
 qt4_wrap_ui(UIC_FILES
   src/graspWidget.ui
+  src/handOffsetWidget.ui
 )
 
 ## Here we specify the list of source files, including the output of
@@ -39,6 +41,7 @@ qt4_wrap_ui(UIC_FILES
 
 set(SOURCE_FILES
   src/graspWidget.cpp
+  src/handOffsetWidget.cpp
   src/main.cpp
   ${MOC_FILES}
   ${UIC_FILES}

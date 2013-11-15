@@ -14,6 +14,8 @@
 
 #include "tf/transform_listener.h"
 
+#include "handOffsetWidget.h"
+
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 
@@ -60,6 +62,7 @@ public Q_SLOTS:
     void on_templateRadio_clicked();
     void on_show_grasp_toggled(bool checked);
     void on_stitch_template_toggled(bool checked);
+    void on_pushButton_clicked();
 
 private:
     void setProgressLevel(uint8_t level);
@@ -70,6 +73,7 @@ private:
     void initGraspDB();
 
     Ui::graspWidget *ui;
+    handOffsetWidget *ui2;
 
     void graspStateReceived (const flor_grasp_msgs::GraspState::ConstPtr& graspState);
     void graspSelectedReceived (const flor_grasp_msgs::GraspSelection::ConstPtr& graspMsg);
