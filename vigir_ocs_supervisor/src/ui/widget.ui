@@ -98,9 +98,7 @@
      </layout>
     </item>
    </layout>
-   <zorder></zorder>
-   <zorder></zorder>
-   <zorder></zorder>
+ 
   </widget>
   <widget class="QWidget" name="widget_5" native="true">
    <property name="geometry">
@@ -344,7 +342,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="layoutWidget">
+  <widget class="QWidget" name="layoutWidget1">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -655,22 +653,11 @@
       </item>
      </layout>
     </widget>
-    <zorder>layoutWidget_2</zorder>
-    <zorder>layoutWidget_3</zorder>
-    <zorder>gridLayoutWidget_2</zorder>
-    <zorder>gridLayoutWidget_3</zorder>
+
    </widget>
-   <zorder>param</zorder>
-   <zorder>psump</zorder>
-   <zorder>sump</zorder>
-   <zorder>pinlet</zorder>
-   <zorder>widget_8</zorder>
+
   </widget>
-  <zorder>layoutWidget</zorder>
-  <zorder>layoutWidget</zorder>
-  <zorder>widget_4</zorder>
-  <zorder>widget_5</zorder>
-  <zorder>widget_6</zorder>
+ 
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

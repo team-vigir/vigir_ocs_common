@@ -20,9 +20,9 @@
 #include <QLineEdit>
 #include <QBasicTimer>
 #include <QThread>
-
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
+
 #include <OGRE/OgreSceneManager.h>
 
 #include <ros/ros.h>
@@ -97,7 +97,6 @@ public:
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }
 
     void updateRenderMask( bool );
-
 public Q_SLOTS:
     // displays
     void robotModelToggled( bool );
@@ -153,12 +152,10 @@ Q_SIGNALS:
 
 protected:
     virtual void timerEvent(QTimerEvent *event);
-
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
     void publishGhostPoses();
-
     virtual rviz::ViewController* getCurrentViewController();
 
     rviz::VisualizationManager* manager_;
@@ -272,7 +269,8 @@ protected:
 
     QPushButton* reset_view_button_;
 
-    std::string hand_type_;
+    tf::Transform l_hand_T_palm_;
+    tf::Transform r_hand_T_palm_;
 
     QBasicTimer timer;
 

@@ -43,7 +43,6 @@
 
 namespace vigir_ocs
 {
-
 // Constructor for Base3DView.  This does most of the work of the class.
 Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_frame, QWidget* parent )
     : QWidget( parent )
@@ -58,7 +57,6 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     , moving_r_arm_(false)
     , visualize_grid_map_(true)
 {
-
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
@@ -401,7 +399,15 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     position_widget_->setLayout(position_layout);
     //main_layout->addWidget(position_widget_);
 
-    nh_.param<std::string>("/flor/ocs/grasp/hand_type",hand_type_,"sandia"); // global parameter
+    XmlRpc::XmlRpcValue   hand_T_palm;
+
+    nh_.getParam("/r_hand_tf/hand_T_palm", hand_T_palm);
+    r_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
+    r_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+
+    nh_.getParam("/l_hand_tf/hand_T_palm", hand_T_palm);
+    l_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
+    l_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
 
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
@@ -906,39 +912,15 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
         end_effector_pose_list_[cmd.topic] = cmd.pose;
 }
 
-int staticTransform(geometry_msgs::Pose& palm_pose, std::string hand, std::string hand_type)
+int staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform hand_T_palm)
 {
     tf::Transform o_T_hand;    //describes hand in object's frame
-    tf::Transform o_T_pg;       //describes palm_from_graspit in object's frame
-    tf::Transform pg_T_hand;   //describes r_hand in palm_from_graspit frame
+    tf::Transform o_T_palm;       //describes palm_from_graspit in object's frame
 
-    o_T_pg.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
-    o_T_pg.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
+    o_T_palm.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
+    o_T_palm.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
 
-    if(hand_type == "sandia")
-    {
-        if(hand == "right")
-        {
-            pg_T_hand = tf::Transform(tf::Matrix3x3(0,-1,0,1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
-        }
-        else
-        {
-            pg_T_hand = tf::Transform(tf::Matrix3x3(0,1,0,-1,0,0,0,0,1),tf::Vector3(-0.13516,0.00179,-0.01176)); // sandia
-        }
-    }
-    else
-    {
-        if(hand == "right")
-        {
-            pg_T_hand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,1,0,-1,0),tf::Vector3(0.0,0.0,-0.13)); // irobot
-        }
-        else
-        {
-            pg_T_hand = tf::Transform(tf::Matrix3x3(1,0,0,0,0,-1,0,1,0),tf::Vector3(0.0,0.0,-0.13)); // irobot
-        }
-    }
-
-    o_T_hand = o_T_pg * pg_T_hand;
+    o_T_hand = o_T_palm * hand_T_palm.inverse();
 
     tf::Quaternion hand_quat;
     tf::Vector3    hand_vector;
@@ -964,7 +946,7 @@ void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::Cons
     if(!moving_pelvis_ && saved_state_world_lock_[0] == 1)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
-        staticTransform(transformed_pose,"left",hand_type_);
+        staticTransform(transformed_pose, l_hand_T_palm_);
         end_effector_pose_list_["/l_arm_pose_marker"].pose = transformed_pose;
         publishGhostPoses();
     }
@@ -978,7 +960,7 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
     if(!moving_pelvis_ && saved_state_world_lock_[1] == 1)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
-        staticTransform(transformed_pose,"right",hand_type_);
+        staticTransform(transformed_pose, r_hand_T_palm_);
         end_effector_pose_list_["/r_arm_pose_marker"].pose = transformed_pose;
         publishGhostPoses();
     }
@@ -1199,6 +1181,7 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
 
         snap_ghost_to_robot_ = false;
     }
+
 }
 
 void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg )

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vigir_ocs_status_window)
 
+#set(ROS_BUILD_TYPE RelWithDebInfo)
+
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
 find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz flor_ocs_msgs flor_control_msgs)# vigir_perception_msgs)
