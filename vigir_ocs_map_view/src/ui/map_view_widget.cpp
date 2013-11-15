@@ -31,10 +31,9 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
         sp->setFocusPolicy( Qt::StrongFocus );
     }
 
-    /*ui->octomap_2->hide();
-    ui->lidar_point_cloud_2->hide();
-    ui->stereo_point_cloud_2->hide();
-    ui->laser_scan_2->hide();*/
+    ui->insert_waypoint->hide();
+    ui->joystick_steering->hide();
+    ui->waypoint->hide();
 
     key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MapViewWidget::processNewKeyEvent, this );
 }

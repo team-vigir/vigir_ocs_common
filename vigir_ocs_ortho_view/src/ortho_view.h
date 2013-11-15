@@ -31,7 +31,7 @@ class OrthoView: public Base3DView
 {
     Q_OBJECT
 public:
-    OrthoView( QWidget* parent = 0, rviz::VisualizationManager* context = NULL );
+    OrthoView( QWidget* parent = 0, rviz::VisualizationManager* context = 0 );
     virtual ~OrthoView();
 
     void requestMap(double min_z, double max_z, double resolution);
@@ -53,6 +53,7 @@ public Q_SLOTS:
 
 protected:
     virtual void timerEvent(QTimerEvent *event);
+    virtual rviz::ViewController* getCurrentViewController();
 
 private:
     rviz::Tool* selection_tool_;

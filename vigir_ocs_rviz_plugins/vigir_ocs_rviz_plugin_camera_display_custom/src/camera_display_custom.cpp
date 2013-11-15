@@ -187,9 +187,9 @@ void CameraDisplayCustom::onInitialize()
     fg_screen_rect_selection_ = NULL;
     screen_rect_highlight_mask_ = NULL;
 
+    static int count = 0;
     // full image quad
     {
-        static int count = 0;
         std::stringstream ss;
         ss << "ImageDisplayObject" << count++;
 
@@ -239,8 +239,6 @@ void CameraDisplayCustom::onInitialize()
         fg_scene_node_->setVisible(false);
     }
     updateAlpha();
-
-    static int count = 1;
 
     // selected area image quad
     {
@@ -557,7 +555,7 @@ void CameraDisplayCustom::update( float wall_dt, float ros_dt )
             setStatus(StatusProperty::Error, "Image", e.what());
         }
 
-        render_panel_->getRenderWindow()->update();
+        //render_panel_->getRenderWindow()->update();
     }
 }
 

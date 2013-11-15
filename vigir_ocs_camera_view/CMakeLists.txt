@@ -3,13 +3,13 @@ project(vigir_ocs_camera_view)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_camera_view_widget)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz pluginlib vigir_ocs_rviz_plugins flor_ocs_msgs flor_perception_msgs vigir_ocs_base_3d_view)
 
 ## Declare things to be passed to other projects
 catkin_package(	
-	INCLUDE_DIRS ${catkin_INCLUDE_DIRS} src
+	INCLUDE_DIRS ${catkin_INCLUDE_DIRS} src src/ui
 	LIBRARIES ${PROJECT_NAME} 
-	CATKIN_DEPENDS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_camera_view_widget
+	CATKIN_DEPENDS roscpp rospy std_msgs rviz pluginlib vigir_ocs_rviz_plugins flor_ocs_msgs flor_perception_msgs vigir_ocs_base_3d_view
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
@@ -24,27 +24,34 @@ add_definitions(-DQT_NO_KEYWORDS)
 ## Qt's meta-object compiler.
 
 qt4_wrap_cpp(MOC_FILES
-  src/ui/camera_view_main_widget.h
+  src/empty_view_controller.h
+  src/camera_view.h
+  src/ui/camera_view_widget.h
 )
 
 ## Here we add QtCreator ui files
 qt4_wrap_ui(UIC_FILES
-  src/ui/camera_view_main_widget.ui
+  src/ui/camera_view_widget.ui
 )
 
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.
-
 set(SOURCE_FILES
-  src/ui/camera_view_main_widget.cpp
+  src/empty_view_controller.cpp
+  src/camera_view.cpp
+  src/ui/camera_view_widget.cpp
   src/main.cpp
   ${MOC_FILES}
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src)
+include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src src/ui )
 
-add_executable(camera_view ${UIC_FILES} ${SOURCE_FILES})
-target_link_libraries(camera_view ${catkin_LIBRARIES} ${QT_LIBRARIES})
+add_executable(camera_view_widget ${UIC_FILES} ${SOURCE_FILES})
+target_link_libraries(camera_view_widget ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+add_dependencies(camera_view_widget ${catkin_EXPORTED_TARGETS})
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})

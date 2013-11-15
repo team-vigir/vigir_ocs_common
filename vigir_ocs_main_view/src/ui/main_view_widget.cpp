@@ -28,10 +28,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
         sp->setFocusPolicy( Qt::StrongFocus );
     }
 
-    /*ui->octomap_2->hide();
-    ui->lidar_point_cloud_2->hide();
-    ui->stereo_point_cloud_2->hide();
-    ui->laser_scan_2->hide();*/
+    ui->insert_waypoint->hide();
 
     key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainViewWidget::processNewKeyEvent, this );
 
@@ -82,7 +79,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             // connect UI to perspective functions
             QObject::connect(ui->camera_tool, SIGNAL(toggled(bool)), iter->second, SLOT(cameraToggled(bool)));
             QObject::connect(ui->footstep_planning, SIGNAL(toggled(bool)), iter->second, SLOT(footstepPlanningToggled(bool)));
-            QObject::connect(ui->footstep_pose, SIGNAL(pressed()), iter->second, SLOT(vectorPressed()));
+            QObject::connect(ui->footstep_pose_walk, SIGNAL(pressed()), iter->second, SLOT(defineWalkPosePressed()));
+            QObject::connect(ui->footstep_pose_step, SIGNAL(pressed()), iter->second, SLOT(defineStepPosePressed()));
             QObject::connect(ui->grasp_model, SIGNAL(toggled(bool)), iter->second, SLOT(graspModelToggled(bool)));
             QObject::connect(ui->grid_map, SIGNAL(toggled(bool)), iter->second, SLOT(gridMapToggled(bool)));
             QObject::connect(ui->insert_waypoint, SIGNAL(pressed()), iter->second, SLOT(insertWaypoint()));

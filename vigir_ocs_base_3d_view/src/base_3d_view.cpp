@@ -137,7 +137,7 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         set_step_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
 
         // Create a LaserScan display.
-        laser_scan_ = manager_->createDisplay( "rvizhttp://www.geforce.com/hardware/desktop-gpus/geforce-gtx-660ti/specifications/LaserScan", "Laser Scan", false );
+        laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
         ROS_ASSERT( laser_scan_ != NULL );
         laser_scan_->subProp( "Topic" )->setValue( "/laser/scan" );
         laser_scan_->subProp( "Style" )->setValue( "Points" );
@@ -418,6 +418,12 @@ void Base3DView::timerEvent(QTimerEvent *event)
     // check if ros is still running; if not, just kill the application
     if(!ros::ok())
         qApp->quit();
+
+    // make sure the selection point is visible
+    position_widget_->setGeometry(0,
+                                  this->geometry().bottomLeft().y()-18,
+                                  this->geometry().bottomRight().x()-this->geometry().bottomLeft().x(),
+                                  18);
 
     //render_panel_->getRenderWindow()->update(true);
 
@@ -1193,12 +1199,6 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
 
         snap_ghost_to_robot_ = false;
     }
-
-    // make sure the selection point is visible
-    //position_widget_->setGeometry(0,
-    //                              this->geometry().bottomLeft().y()-18,
-    //                              this->geometry().bottomRight().x()-this->geometry().bottomLeft().x(),
-    //                              18);
 }
 
 void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg )
@@ -1284,11 +1284,11 @@ void Base3DView::publishMarkers()
 void Base3DView::resetView()
 {
     //ROS_ERROR("RESET VIEW");
-    manager_->getViewManager()->getCurrent()->reset();
+    getCurrentViewController()->reset();
     Ogre::Vector3 position(0,0,0);
     Ogre::Quaternion orientation(1,0,0,0);
     transform(position, orientation, "/pelvis", "/world");
-    manager_->getViewManager()->getCurrent()->lookAt(position);
+    getCurrentViewController()->lookAt(position);
     //if(dynamic_cast<rviz::OrbitViewController*>(manager_->getViewManager()->getCurrent()) == NULL)
     //    ((rviz::OrbitViewController*)manager_->getViewManager()->getCurrent())->lookAt(position);
     //else if(dynamic_cast<rviz::FixedOrientationOrthoViewController*>(manager_->getViewManager()->getCurrent()) == NULL)
@@ -1311,5 +1311,10 @@ void Base3DView::clearMapRequests()
         manager_->notifyConfigChanged();
         ground_map_.erase(ground_map_.begin());
     }
+}
+
+rviz::ViewController* Base3DView::getCurrentViewController()
+{
+     return manager_->getViewManager()->getCurrent();
 }
 }

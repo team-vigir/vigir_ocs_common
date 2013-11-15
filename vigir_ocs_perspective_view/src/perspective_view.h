@@ -35,6 +35,7 @@ public:
 
 protected:
     virtual void timerEvent(QTimerEvent *event);
+    virtual rviz::ViewController* getCurrentViewController();
 
 private:
     rviz::ViewController* orbit_view_controller_;

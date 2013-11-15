@@ -51,6 +51,7 @@ class Tool;
 class RenderPanel;
 class RenderPanelCustom;
 class VisualizationManager;
+class ViewController;
 class FrameManager;
 }
 
@@ -93,7 +94,7 @@ public:
 
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
-    rviz::VisualizationManager* getVisualizationManager() {return manager_;};
+    rviz::VisualizationManager* getVisualizationManager() { return manager_; }
 
     void updateRenderMask( bool );
 
@@ -152,10 +153,13 @@ Q_SIGNALS:
 
 protected:
     virtual void timerEvent(QTimerEvent *event);
+
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
     void publishGhostPoses();
+
+    virtual rviz::ViewController* getCurrentViewController();
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;

@@ -192,7 +192,7 @@
         <x>0</x>
         <y>0</y>
         <width>264</width>
-        <height>782</height>
+        <height>827</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -302,18 +302,6 @@
              <bool>true</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_3">
-             <property name="spacing">
-              <number>3</number>
-             </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
              <item>
               <widget class="QPushButton" name="insert_waypoint">
                <property name="text">
@@ -322,12 +310,19 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="footstep_pose">
+              <widget class="QPushButton" name="footstep_pose_walk">
                <property name="text">
-                <string>Define Target Pose</string>
+                <string>Define Target Pose - Walk</string>
                </property>
                <property name="shortcut">
                 <string>G</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="footstep_pose_step">
+               <property name="text">
+                <string>Define Target Pose - Step</string>
                </property>
               </widget>
              </item>

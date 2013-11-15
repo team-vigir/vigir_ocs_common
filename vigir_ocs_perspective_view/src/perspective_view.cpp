@@ -59,4 +59,9 @@ void PerspectiveView::timerEvent(QTimerEvent *event)
     //std::cout << "camera position: " << render_panel_->getCamera()->getPosition().x << ", " << render_panel_->getCamera()->getPosition().z << ", " << render_panel_->getCamera()->getPosition().z << std::endl;
     //std::cout << "camera direction: " << render_panel_->getCamera()->getDirection().x << ", " << render_panel_->getCamera()->getDirection().z << ", " << render_panel_->getCamera()->getDirection().z << std::endl;
 }
+
+rviz::ViewController* PerspectiveView::getCurrentViewController()
+{
+    return orbit_view_controller_;
+}
 }

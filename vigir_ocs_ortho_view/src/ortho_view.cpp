@@ -229,5 +229,10 @@ void OrthoView::keyPressEvent( QKeyEvent* event )
     manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
     setting_pose_ = false;
 }
+
+rviz::ViewController* OrthoView::getCurrentViewController()
+{
+    return ortho_view_controller_;
+}
 }
 
