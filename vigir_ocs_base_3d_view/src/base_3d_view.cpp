@@ -225,23 +225,11 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         planned_path_->subProp( "Topic" )->setValue( "/flor/walk_monitor/path" );
 
         // create the hands displays
-        //left_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot left hand model", true );
-        //left_hand_model_->subProp( "TF Prefix" )->setValue( "/left_hand_model" );
-        //left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
-        //left_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
-        //left_hand_model_->subProp( "Color" )->setValue( QColor( 255, 255, 0 ) );
-
         left_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left hand model", true );
         left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
         left_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_left_hand" );
         left_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
         left_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
-
-        //right_hand_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot right hand model", true );
-        //right_hand_model_->subProp( "TF Prefix" )->setValue( "/right_hand_model" );
-        //right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
-        //right_hand_model_->subProp( "Alpha" )->setValue( 0.5f );
-        //right_hand_model_->subProp( "Color" )->setValue( QColor( 0, 255, 255 ) );
 
         right_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot right hand model", true );
         right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
@@ -250,13 +238,6 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         right_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
 
         // create the simulation robot display
-        //ghost_robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot simulation model", false );
-        //ghost_robot_model_->subProp( "TF Prefix" )->setValue( "/simulation" );
-        //ghost_robot_model_->subProp( "Visual Enabled" )->setValue( true );
-        //ghost_robot_model_->subProp( "Collision Enabled" )->setValue( false );
-        //ghost_robot_model_->subProp( "Color" )->setValue( QColor( 30, 200, 30 ) );
-        //ghost_robot_model_->subProp( "Alpha" )->setValue( 0.5f );
-
         ghost_robot_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot simulation model", false );
         ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
         ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.0f );

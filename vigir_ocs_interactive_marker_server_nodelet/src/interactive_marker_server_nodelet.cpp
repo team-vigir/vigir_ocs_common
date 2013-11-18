@@ -15,7 +15,7 @@ void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::O
     // name, topic, frame, scale, point
     if (marker_map_.find(msg->topic) == marker_map_.end())
     {
-        //ROS_INFO("Adding marker %s", msg->topic.c_str());
+        ROS_INFO("Adding marker %s", msg->topic.c_str());
 
         marker_map_[msg->topic] = new InteractiveMarkerServerCustom(msg->name, msg->topic, msg->frame, msg->scale, msg->point);
         marker_map_[msg->topic]->onFeedback = boost::bind(&InteractiveMarkerServerNodelet::onMarkerFeedback, this, _1, _2);
@@ -28,7 +28,7 @@ void InteractiveMarkerServerNodelet::removeInteractiveMarker( const std_msgs::St
     if(marker_map_.find(msg->data) != marker_map_.end())
     {
         //marker_map_[msg->data];
-        //ROS_ERROR("Removing marker %s", msg->data.c_str());
+        ROS_INFO("Removing marker %s", msg->data.c_str());
         delete marker_map_[msg->data];
         marker_map_.erase(marker_map_.find(msg->data));
     }
@@ -38,7 +38,7 @@ void InteractiveMarkerServerNodelet::updatePose(const flor_ocs_msgs::OCSInteract
 {
     if(marker_map_.find(msg->topic) != marker_map_.end())
     {
-        //ROS_ERROR("Updating marker %s", msg->topic.c_str());
+        ROS_INFO("Updating marker %s", msg->topic.c_str());
         marker_map_[msg->topic]->setPose(msg->pose);
     }
 }

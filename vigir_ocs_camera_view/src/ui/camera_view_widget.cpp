@@ -62,6 +62,8 @@ CameraViewWidget::CameraViewWidget(QWidget *parent, rviz::VisualizationManager* 
     connect(ui->applyCameraFeed,     SIGNAL(clicked()),                camera_view_, SLOT(applyFeedChanges()));
     connect(ui->getCameraImage,      SIGNAL(clicked()),                camera_view_, SLOT(requestSingleFeedImage()));
     connect(ui->getAreaImage,        SIGNAL(clicked()),                camera_view_, SLOT(requestSingleAreaImage()));
+    connect(ui->getCameraImage,      SIGNAL(clicked()),                this,         SLOT(setFeedToSingleImage()));
+    connect(ui->getAreaImage,        SIGNAL(clicked()),                this,         SLOT(setAreaToSingleImage()));
 
     key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &CameraViewWidget::processNewKeyEvent, this );
 }

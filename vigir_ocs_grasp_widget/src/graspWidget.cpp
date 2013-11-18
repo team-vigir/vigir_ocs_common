@@ -64,6 +64,8 @@ graspWidget::graspWidget(QWidget *parent)
     std::stringstream finger_joint_name;
     XmlRpc::XmlRpcValue   hand_T_palm;
 
+    float color_r, color_g, color_b;
+
     if(hand_ == "left")
     {
         this->setWindowTitle(QString::fromStdString("Left Hand Grasp Widget"));
@@ -92,6 +94,10 @@ graspWidget::graspWidget(QWidget *parent)
         nh_.getParam("/l_hand_tf/gp_T_palm", hand_T_palm);
         gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
         gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+
+        color_r = 1.0f;
+        color_g = 1.0f;
+        color_b = 0.0f;
     }
     else
     {
@@ -121,6 +127,10 @@ graspWidget::graspWidget(QWidget *parent)
         nh_.getParam("/r_hand_tf/gp_T_palm", hand_T_palm);
         gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
         gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+
+        color_r = 0.0f;
+        color_g = 1.0f;
+        color_b = 1.0f;
     }
     // this is for publishing the hand position in world coordinates for moveit
     virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_x");
@@ -139,6 +149,20 @@ graspWidget::graspWidget(QWidget *parent)
     std::string code_path_ = (ros::package::getPath("flor_ocs_msgs"))+"/include/flor_ocs_msgs/messages.csv";
     std::cout << code_path_ << std::endl;
     robot_status_codes_.loadErrorMessages(code_path_);
+
+    // change color of the ghost template hands
+    const std::vector<std::string>& link_names = hand_robot_model_->getLinkModelNames();
+
+    for (size_t i = 0; i < link_names.size(); ++i)
+    {
+        moveit_msgs::ObjectColor tmp;
+        tmp.id = link_names[i];
+        tmp.color.a = 0.5f;
+        tmp.color.r = color_r;
+        tmp.color.g = color_g;
+        tmp.color.b = color_b;
+        display_state_msg_.highlight_links.push_back(tmp);
+    }
 
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &graspWidget::processNewKeyEvent, this );
     timer.start(33, this);
@@ -1071,6 +1095,9 @@ void graspWidget::on_show_grasp_toggled(bool checked)
     show_grasp_ = checked;
     ui->show_grasp_radio->setEnabled(show_grasp_);
     ui->show_pre_grasp_radio->setEnabled(show_grasp_);
+
+    robot_state::robotStateToRobotStateMsg(*hand_robot_state_, display_state_msg_.state);
+    robot_state_vis_pub_.publish(display_state_msg_);
 }
 
 void graspWidget::on_stitch_template_toggled(bool checked)
