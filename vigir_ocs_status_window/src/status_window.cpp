@@ -147,8 +147,8 @@ QString status_window::getControllerStatus(uint8_t flag)
         return QString::fromStdString("Position");
     case flor_control_msgs::FlorControlMode::TRACK:
         return QString::fromStdString("Track");
-    case flor_control_msgs::FlorControlMode::BDI:
-        return QString::fromStdString("BDI");
+    case flor_control_msgs::FlorControlMode::HOLD_PRIOR:
+        return QString::fromStdString("Hold");
     case flor_control_msgs::FlorControlMode::FORCE:
         return QString::fromStdString("Force");
     default:
