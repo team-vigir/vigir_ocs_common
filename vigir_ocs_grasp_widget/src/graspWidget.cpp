@@ -23,7 +23,6 @@ graspWidget::graspWidget(QWidget *parent)
     ui->stitch_template->setDisabled(true);
     //ui->templateButton->setDisabled(true);
     //ui->releaseButton->setDisabled(true);
-
     // initialize arguments from parameter server
     ros::NodeHandle nhp("~");
     nhp.param<std::string>("hand",hand_,"left"); // private parameter
@@ -142,8 +141,10 @@ graspWidget::graspWidget(QWidget *parent)
 }
 //SetStylesheet to change on the fly
 
+
 graspWidget::~graspWidget()
 {
+    ui2->close();
     delete ui;
 }
 
