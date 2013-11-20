@@ -408,7 +408,6 @@ bool CameraViewWidget::eventFilter( QObject * o, QEvent * e )
             p.setY(ui->image_transparency->geometry().height());
             p = ui->image_transparency->mapToGlobal(p);
         }
-        std::cout << ((QMenu*)o)->parentWidget() << std::endl;
         ((QMenu*)o)->move(p);
         return true;
     }
