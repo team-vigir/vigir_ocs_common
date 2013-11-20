@@ -108,7 +108,7 @@ graspWidget::graspWidget(QWidget *parent)
         hand_robot_state_.reset(new robot_state::RobotState(hand_robot_model_));
 
         // We first subscribe to the JointState messages
-        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/r_hand/sandia_states", 2, &graspWidget::jointStatesCB, this );
+        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/r_hand/tactile_feedback", 2, &graspWidget::jointStatesCB, this );
         // Publisher for hand position/state
         robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_right_hand",1, true);
 
