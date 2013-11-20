@@ -98,6 +98,14 @@ private:
     } GraspDBItem;
     std::vector<GraspDBItem> grasp_db_;
 
+    typedef struct
+    {
+        unsigned char        template_type;
+        geometry_msgs::Point com;
+        float                mass;
+    } TemplateDBItem;
+    std::vector<TemplateDBItem> template_db_;
+
     // need to store updated template list and selected template id to calculate final position of the hand
     flor_ocs_msgs::OCSTemplateList last_template_list_;
     int selected_template_id_;

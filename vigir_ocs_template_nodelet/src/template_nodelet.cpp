@@ -140,7 +140,10 @@ void TemplateNodelet::templateMatchRequestCb(const flor_grasp_msgs::TemplateSele
     for(; index < template_id_list_.size(); index++)
         if(template_id_list_[index] == msg->template_id.data)
             break;
-    cmd.pose = pose_list_[index];
+    cmd.com               = msg->com;
+    cmd.mass.data         = msg->mass.data;
+    cmd.confidence.data   = msg->confidence.data;
+    cmd.pose              = pose_list_[index];
     cmd.pose.header.stamp = ros::Time::now();
 
     template_selected_pub_.publish(cmd);

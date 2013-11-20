@@ -345,11 +345,21 @@ void graspWidget::initTemplateIdMap()
 
     for(int i = 0; i < db.size(); i++)
     {
+        TemplateDBItem template_item;
         bool ok;
         unsigned char id = db[i][0].toUInt(&ok, 10) & 0x000000ff;
         std::string templatePath(db[i][1].toUtf8().constData());
         std::cout << "-> Adding template (" << templatePath << ") to id (" << (unsigned int)id << ") map" << std::endl;
         template_id_map_.insert(std::pair<unsigned char,std::string>(id,templatePath));
+        geometry_msgs::Point com ;
+        com.x = db[i][8].toFloat(&ok);
+        com.y = db[i][9].toFloat(&ok);
+        com.z = db[i][10].toFloat(&ok);
+        double mass = db[i][11].toFloat(&ok);
+        template_item.com  = com;
+        template_item.mass = mass;
+        template_item.template_type = id;
+        template_db_.push_back(template_item);
     }
 }
 
@@ -636,6 +646,13 @@ void graspWidget::on_templateButton_clicked()
     {
         if(grasp_db_[index].grasp_id == graspID)
             msg.template_type.data = grasp_db_[index].template_type;
+    }
+    for(int index = 0; index < template_db_.size(); index++)
+    {
+        if(template_db_[index].template_type == msg.template_type.data){
+            msg.com  = template_db_[index].com;
+            msg.mass.data = template_db_[index].mass;
+        }
     }
     msg.template_id.data = ui->templateBox->currentIndex();
     msg.pose.pose = last_template_list_.pose[ui->templateBox->currentIndex()].pose;
