@@ -14,6 +14,8 @@
 #include <QHBoxLayout>
 #include <QPoint>
 #include <QMenu>
+#include <QWidgetAction>
+#include <QSlider>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>

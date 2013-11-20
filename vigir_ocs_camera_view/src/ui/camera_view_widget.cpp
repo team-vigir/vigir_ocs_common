@@ -1,6 +1,7 @@
 #include "camera_view_widget.h"
 #include "ui_camera_view_widget.h"
 #include "stdio.h"
+#include <ros/package.h>
 
 #include <iostream>
 #include <sstream>  // Required for stringstreams
@@ -8,6 +9,8 @@
 #include <QPainter>
 #include <QObjectList>
 #include <QGridLayout>
+#include <QWidgetAction>
+#include <QToolTip>
 
 CameraViewWidget::CameraViewWidget(QWidget *parent, rviz::VisualizationManager* context) :
     QWidget(parent),
@@ -26,11 +29,47 @@ CameraViewWidget::CameraViewWidget(QWidget *parent, rviz::VisualizationManager* 
 
     this->setMouseTracking(true);
 
-    connect(ui->feed_slider, SIGNAL(valueChanged(int)), this, SLOT(updateFeedFPS(int)));
-    connect(ui->selected_slider, SIGNAL(valueChanged(int)), this, SLOT(updateSelectedFPS(int)));
-    connect(ui->lock_box, SIGNAL(toggled(bool)), this, SLOT(isLocked()));
+    // setting up the slider menus for all buttons
+    feed_slider = new QSlider(Qt::Vertical);
+    feed_slider->setRange(0, 30);
+    feed_slider->setFixedHeight(200);
+    feed_slider->setTickPosition(QSlider::NoTicks);
 
-    //connect(ui->start_scanning, SIGNAL(clicked()), this, SLOT(scan()));
+    QWidgetAction *wa_feed = new QWidgetAction(0);
+    wa_feed->setDefaultWidget(feed_slider);
+    image_feed_menu_.addAction(wa_feed);
+
+    ui->get_camera_feed->setMenu(&image_feed_menu_);
+    image_feed_menu_.installEventFilter(this);
+
+    area_slider = new QSlider(Qt::Vertical);
+    area_slider->setRange(0, 30);
+    area_slider->setFixedHeight(200);
+    area_slider->setTickPosition(QSlider::NoTicks);
+
+    QWidgetAction *wa_area = new QWidgetAction(0);
+    wa_area->setDefaultWidget(area_slider);
+    area_feed_menu_.addAction(wa_area);
+
+    ui->get_area_feed->setMenu(&area_feed_menu_);
+    area_feed_menu_.installEventFilter(this);
+
+    transparency_slider = new QSlider(Qt::Vertical);
+    transparency_slider->setRange(0, 100);
+    transparency_slider->setFixedHeight(200);
+    transparency_slider->setTickPosition(QSlider::NoTicks);
+
+    QWidgetAction *wa_transparency = new QWidgetAction(0);
+    wa_transparency->setDefaultWidget(transparency_slider);
+    image_transparency_menu_.addAction(wa_transparency);
+
+    ui->image_transparency->setMenu(&image_transparency_menu_);
+    image_transparency_menu_.installEventFilter(this);
+
+    connect(feed_slider, SIGNAL(valueChanged(int)), this, SLOT(updateFeedFPS(int)));
+    connect(area_slider, SIGNAL(valueChanged(int)), this, SLOT(updateSelectedFPS(int)));
+
+    //////connect(ui->start_scanning, SIGNAL(clicked()), this, SLOT(scan()));
 
     connect(ui->feed_resolution, SIGNAL(currentIndexChanged(int)), this, SLOT(alterChoices(int)));
 
@@ -55,15 +94,127 @@ CameraViewWidget::CameraViewWidget(QWidget *parent, rviz::VisualizationManager* 
     connect(ui->camera,              SIGNAL(currentIndexChanged(int)), camera_view_, SLOT(changeCameraTopic(int)));
     connect(ui->feed_resolution,     SIGNAL(currentIndexChanged(int)), camera_view_, SLOT(changeFullImageResolution(int)));
     connect(ui->selected_resolution, SIGNAL(currentIndexChanged(int)), camera_view_, SLOT(changeCropImageResolution(int)));
-    connect(ui->feed_slider,         SIGNAL(valueChanged(int)),        camera_view_, SLOT(changeCameraSpeed(int)));
-    connect(ui->selected_slider,     SIGNAL(valueChanged(int)),        camera_view_, SLOT(changeCropCameraSpeed(int)));
-    connect(ui->transparency_slider, SIGNAL(valueChanged(int)),        camera_view_, SLOT(changeAlpha(int)));
-    connect(ui->applyAreaFeed,       SIGNAL(clicked()),                camera_view_, SLOT(applyAreaChanges()));
-    connect(ui->applyCameraFeed,     SIGNAL(clicked()),                camera_view_, SLOT(applyFeedChanges()));
-    connect(ui->getCameraImage,      SIGNAL(clicked()),                camera_view_, SLOT(requestSingleFeedImage()));
-    connect(ui->getAreaImage,        SIGNAL(clicked()),                camera_view_, SLOT(requestSingleAreaImage()));
-    connect(ui->getCameraImage,      SIGNAL(clicked()),                this,         SLOT(setFeedToSingleImage()));
-    connect(ui->getAreaImage,        SIGNAL(clicked()),                this,         SLOT(setAreaToSingleImage()));
+    connect(ui->get_camera_image,    SIGNAL(clicked()),                camera_view_, SLOT(requestSingleFeedImage()));
+    connect(ui->get_area_image,      SIGNAL(clicked()),                camera_view_, SLOT(requestSingleAreaImage()));
+    connect(ui->get_camera_image,    SIGNAL(clicked()),                this,         SLOT(setFeedToSingleImage()));
+    connect(ui->get_area_image,      SIGNAL(clicked()),                this,         SLOT(setAreaToSingleImage()));
+    connect(ui->get_camera_feed,     SIGNAL(clicked()),                this,         SLOT(imageFeedButtonClicked()));
+    connect(feed_slider,             SIGNAL(valueChanged(int)),        this,         SLOT(imageFeedSliderChanged(int)));
+    connect(feed_slider,             SIGNAL(sliderReleased()),         this,         SLOT(imageFeedSliderReleased()));
+    connect(ui->get_area_feed,       SIGNAL(clicked()),                this,         SLOT(areaFeedButtonClicked()));
+    connect(area_slider,             SIGNAL(valueChanged(int)),        this,         SLOT(areaFeedSliderChanged(int)));
+    connect(area_slider,             SIGNAL(sliderReleased()),         this,         SLOT(areaFeedSliderReleased()));
+    connect(ui->image_transparency,  SIGNAL(clicked()),                this,         SLOT(transparencyButtonClicked()));
+    connect(transparency_slider,     SIGNAL(valueChanged(int)),        this,         SLOT(transparencySliderChanged(int)));
+    connect(area_slider,             SIGNAL(sliderReleased()),         this,         SLOT(transparencySliderReleased()));
+
+    // setup icons path
+    std::string ip = ros::package::getPath("vigir_ocs_camera_view")+"/icons/";
+    icon_path_ = QString(ip.c_str());
+
+    // setup icons
+//    QPixmap pixmap1(icon_path_+"get_image_step.png");
+//    QIcon icon1(pixmap1);
+//    ui->get_camera_image->setIcon(icon1);
+    ui->get_camera_image->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image: url(" + icon_path_ + "get_image_step.png" + ");" +
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      " image: url(" + icon_path_ + "get_image_step.png" + ");" +
+                                      "}");
+//    QPixmap pixmap2(icon_path_+"get_image_play.png");
+//    QIcon icon2(pixmap2);
+//    ui->get_camera_feed->setIcon(icon2);
+    ui->get_camera_feed->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image: url(" + icon_path_ + "get_image_play.png" + ");" +
+                                      " image-position: top left"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      " image: url(" + icon_path_ + "get_image_play.png" + ");" +
+                                      "}");
+//    QPixmap pixmap3(icon_path_+"mg_step.png");
+//    QIcon icon3(pixmap3);
+//    ui->get_area_image->setIcon(icon3);
+    ui->get_area_image->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image: url(" + icon_path_ + "mg_step.png" + ");" +
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      " image: url(" + icon_path_ + "mg_step.png" + ");" +
+                                      "}");
+//    QPixmap pixmap4(icon_path_+"mg_play.png");
+//    QIcon icon4(pixmap4);
+//    ui->get_area_feed->setIcon(icon4);
+    ui->get_area_feed->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image: url(" + icon_path_ + "mg_play.png" + ");" +
+                                      " image-position: top left"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      " image: url(" + icon_path_ + "mg_play.png" + ");" +
+                                      "}");
+//    QPixmap pixmap5(icon_path_+"image_transparency.png");
+//    QIcon icon5(pixmap5);
+//    ui->image_transparency->setIcon(icon5);
+    ui->image_transparency->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image: url(" + icon_path_ + "image_transparency.png" + ");" +
+                                      " image-position: top left"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      " image: url(" + icon_path_ + "image_transparency.png" + ");" +
+                                      "}");
+
+    // workaround to be able to use images from stylesheet without knowing the path in advance
+    QString stylesheet = ui->camera->styleSheet() + "\n" +
+            "QComboBox::down-arrow {\n" +
+            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
+            "}";
+    ui->camera->setStyleSheet(stylesheet);
+    ui->feed_resolution->setStyleSheet(stylesheet);
+    ui->selected_resolution->setStyleSheet(stylesheet);
 
     key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &CameraViewWidget::processNewKeyEvent, this );
 }
@@ -79,8 +230,8 @@ CameraViewWidget::~CameraViewWidget()
   */
 void CameraViewWidget::sliderValues(int lockedValue)
 {
-    ui->feed_slider->setValue(lockedValue);
-    ui->selected_slider->setValue(lockedValue);
+    //ui->feed_slider->setValue(lockedValue);
+    //ui->area_slider->setValue(lockedValue);
 }
 
 /**
@@ -108,13 +259,6 @@ void CameraViewWidget::updateFeedFPS(int fps)
     newTitle.append(string);
     newTitle.append(" FPS");
     QString label = QString::fromStdString(newTitle);
-    if(ui->lock_box->isChecked())
-    {
-        sliderValues(fps);
-    }
-    ui->label_9->setText(label);
-    //ui->feed_fps_box->setTitle(label);
-
 }
 
 /**
@@ -132,23 +276,17 @@ void CameraViewWidget::updateSelectedFPS(int fps)
     newTitle.append(string);
     newTitle.append(" FPS");
     QString label = QString::fromStdString(newTitle);
-    if(ui->lock_box->isChecked())
-    {
-        sliderValues(fps);
-    }
-    ui->label_10->setText(label);
-    //selectedFPSBox->setTitle(label);
 }
 
 void CameraViewWidget::setFeedToSingleImage()
 {
-    ui->feed_slider->setValue(0);
+    feed_slider->setValue(0);
     updateFeedFPS(0);
 }
 
 void CameraViewWidget::setAreaToSingleImage()
 {
-    ui->selected_slider->setValue(0);
+    area_slider->setValue(0);
     updateSelectedFPS(0);
 }
 
@@ -171,21 +309,6 @@ void CameraViewWidget::scan()
     }*/
 }
 
-/**
-  * This method is just used to make it so that as
-  * soon as "Locked" is checked, the values are made
-  * to be the same.
-  **/
-void CameraViewWidget::isLocked()
-{
-
-    if(ui->lock_box->isChecked())
-    {
-        sliderValues(ui->feed_slider->value());
-    }
-
-}
-
 void CameraViewWidget::alterChoices(int index)
 {
     if(ui->selected_resolution->currentIndex()>index)
@@ -194,31 +317,66 @@ void CameraViewWidget::alterChoices(int index)
     }
 }
 
-void CameraViewWidget::enableGroup(bool selected)
+void CameraViewWidget::imageFeedSliderChanged(int fps)
 {
-    QGroupBox *group_box = (QGroupBox*)QObject::sender();
-    QObjectList children = group_box->children();
-    if(!selected)
-    {
-        for(int x = 0; x<children.count(); x++)
-        {
-            QWidget * widget = (QWidget *)children.at(x);
-            widget->hide();
-        }
-    }
-    else
-    {
-        for(int x = 0; x<children.count(); x++)
-        {
-            QWidget * widget = (QWidget *)children.at(x);
-            widget->show();
-        }
-    }
+    camera_view_->changeCameraSpeed(fps);
+    feed_slider->setToolTip(QString::number(fps)+"fps");
+    QPoint p = QCursor::pos();
+    QToolTip::showText(QPoint( p.x()+4, p.y()+4 ), QString::number(fps)+"fps");
+}
 
-    /*ui->octomap->hide();
-    ui->lidar_point_cloud->hide();
-    ui->stereo_point_cloud->hide();
-    ui->laser_scan->hide();*/
+void CameraViewWidget::imageFeedSliderReleased()
+{
+    camera_view_->applyFeedChanges();
+    QToolTip::hideText();
+}
+
+void CameraViewWidget::imageFeedButtonClicked()
+{
+    //QPoint p = QCursor::pos();
+    //QAction* selected_item = image_feed_menu_.exec(p);
+    ui->get_camera_feed->showMenu();
+}
+
+void CameraViewWidget::areaFeedSliderChanged(int fps)
+{
+    camera_view_->changeCropCameraSpeed(fps);
+    area_slider->setToolTip(QString::number(fps)+"fps");
+    QPoint p = QCursor::pos();
+    QToolTip::showText(QPoint( p.x()+4, p.y()+4 ), QString::number(fps)+"fps");
+}
+
+void CameraViewWidget::areaFeedSliderReleased()
+{
+    camera_view_->applyAreaChanges();
+    QToolTip::hideText();
+}
+
+void CameraViewWidget::areaFeedButtonClicked()
+{
+    //QPoint p = QCursor::pos();
+    //QAction* selected_item = area_feed_menu_.exec(p);
+    ui->get_area_feed->showMenu();
+}
+
+void CameraViewWidget::transparencySliderChanged(int alpha)
+{
+    camera_view_->changeAlpha(alpha);
+    transparency_slider->setToolTip(QString::number(alpha)+"%");
+    QPoint p = QCursor::pos();
+    QToolTip::showText(QPoint( p.x()+4, p.y()+4 ), QString::number(alpha)+"%");
+}
+
+void CameraViewWidget::transparencySliderReleased()
+{
+    QToolTip::hideText();
+}
+
+void CameraViewWidget::transparencyButtonClicked()
+{
+    //QPoint p = QCursor::pos();
+    //QAction* selected_item = image_transparency_menu_.exec(p);
+    ui->image_transparency->showMenu();
 }
 
 bool CameraViewWidget::eventFilter( QObject * o, QEvent * e )
@@ -227,6 +385,31 @@ bool CameraViewWidget::eventFilter( QObject * o, QEvent * e )
          (qobject_cast<QAbstractSpinBox*>( o ) || qobject_cast<QAbstractSlider*>( o ) || qobject_cast<QComboBox*>( o )))
     {
         e->ignore();
+        return true;
+    }
+    if ( e->type() == QEvent::Show && qobject_cast<QMenu*>( o ))
+    {
+        QPoint p; // = QCursor::pos();
+        if(((QMenu*)o) == ui->get_camera_feed->menu())
+        {
+            p.setX(0);
+            p.setY(ui->get_camera_feed->geometry().height());
+            p = ui->get_camera_feed->mapToGlobal(p);
+        }
+        else if(((QMenu*)o) == ui->get_area_feed->menu())
+        {
+            p.setX(0);
+            p.setY(ui->get_area_feed->geometry().height());
+            p = ui->get_area_feed->mapToGlobal(p);
+        }
+        else if(((QMenu*)o) == ui->image_transparency->menu())
+        {
+            p.setX(0);
+            p.setY(ui->image_transparency->geometry().height());
+            p = ui->image_transparency->mapToGlobal(p);
+        }
+        std::cout << ((QMenu*)o)->parentWidget() << std::endl;
+        ((QMenu*)o)->move(p);
         return true;
     }
     return QWidget::eventFilter( o, e );

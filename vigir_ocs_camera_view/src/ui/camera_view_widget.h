@@ -7,8 +7,9 @@
 #include <QRadioButton>
 #include <QSpinBox>
 #include <QComboBox>
-
+#include <QMenu>
 #include <QPainter>
+#include <QSlider>
 
 #include <vector>
 #include <algorithm>
@@ -37,6 +38,33 @@ public:
 
     vigir_ocs::CameraView* getCameraView() { return camera_view_; }
 
+Q_SIGNALS:
+    void pitchChanged(int);
+
+public Q_SLOTS:
+    void updatePitch(int);
+    void updateFeedFPS(int);
+    void updateSelectedFPS(int);
+    void scan();
+    void alterChoices(int);
+
+    void setFeedToSingleImage();
+    void setAreaToSingleImage();
+
+    void sliderValues(int lockedValue);
+
+    void imageFeedSliderChanged(int);
+    void imageFeedSliderReleased();
+    void imageFeedButtonClicked();
+
+    void areaFeedSliderChanged(int);
+    void areaFeedSliderReleased();
+    void areaFeedButtonClicked();
+
+    void transparencySliderChanged(int);
+    void transparencySliderReleased();
+    void transparencyButtonClicked();
+
 private:
     Ui::CameraViewWidget*ui;
 
@@ -48,23 +76,16 @@ private:
 
     vigir_ocs::CameraView* camera_view_;
 
-Q_SIGNALS:
-    void pitchChanged(int);
+    // "context" menus for our buttons
+    QMenu image_feed_menu_;
+    QMenu area_feed_menu_;
+    QMenu image_transparency_menu_;
 
-public Q_SLOTS:
-    void updatePitch(int);
-    void updateFeedFPS(int);
-    void updateSelectedFPS(int);
-    void scan();
-    void isLocked();
-    void alterChoices(int);
+    QSlider *feed_slider;
+    QSlider *area_slider;
+    QSlider *transparency_slider;
 
-    void setFeedToSingleImage();
-    void setAreaToSingleImage();
-
-    void enableGroup(bool);
-
-    void sliderValues(int lockedValue);
+    QString icon_path_;
 
 };
 
