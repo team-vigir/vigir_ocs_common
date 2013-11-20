@@ -20,6 +20,11 @@ CameraViewWidget::CameraViewWidget(QWidget *parent, rviz::VisualizationManager* 
 
     camera_view_ = new vigir_ocs::CameraView(parent, context);
 
+    // update the UI with the camera names
+    std::vector<std::string> camera_names = camera_view_->getCameraNames();
+    for(int i = 0; i < camera_names.size(); i++)
+        ui->camera->addItem(camera_names[i].c_str());
+
     QHBoxLayout* position_layout = new QHBoxLayout();
     position_layout->setMargin(0);
     position_layout->addWidget(camera_view_);

@@ -49,6 +49,8 @@ public:
 
     void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
 
+    std::vector<std::string> getCameraNames();
+
 Q_SIGNALS:
     void setFullImageResolution( int );
     void setCropImageResolution( int );
@@ -103,6 +105,16 @@ private:
     int area_resolution_;
 
     bool setting_pose_;
+
+    void loadCameraTopics(std::string);
+    typedef struct
+    {
+        std::string topic_prefix;
+        std::string name;
+        int width;
+        int height;
+    } Camera;
+    std::vector<Camera> camera_;
 };
 }
 #endif // CAMERA_VIEWER_H

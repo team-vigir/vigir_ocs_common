@@ -44,7 +44,17 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
     , area_resolution_(0)
     , setting_pose_(false)
 {
-    init();
+    // Load camera topics from parameter server
+    loadCameraTopics("/flor/ocs/camera/atlas");
+    loadCameraTopics("/flor/ocs/camera/left_hand");
+    loadCameraTopics("/flor/ocs/camera/right_hand");
+
+    // Make sure we have camera topics
+    if(!camera_.size())
+    {
+        ROS_ERROR("Need to load camera topics in the parameter server. Try using:\n\troslaunch vigir_ocs vigir_ocs.launch\t\t- for the OCS UI\n\troslaunch vigir_ocs vigir_ocs_camera.launch\t- for the camera widgets standalone");
+        exit(1);
+    }
 
     // Create a camera/image display.
     camera_viewer_ = manager_->createDisplay( "rviz/CameraDisplayCustom", "Camera image", true ); // this would use the plugin instead of manually adding the display object to the manager
@@ -54,7 +64,7 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
     ((rviz::CameraDisplayCustom*)camera_viewer_)->setup();
 
     // Set image topic
-    camera_viewer_->subProp( "Image Topic" )->setValue( "/l_image_full/image_raw" );
+    camera_viewer_->subProp( "Image Topic" )->setValue( (camera_[0].topic_prefix+"_full/image_raw").c_str() );
     camera_viewer_->setEnabled(false);
     camera_viewer_->setEnabled(true);
 
@@ -119,6 +129,27 @@ CameraView::~CameraView()
 {
 }
 
+void CameraView::loadCameraTopics(std::string prefix)
+{
+    // get cameras parameters and setup local structure
+    XmlRpc::XmlRpcValue camera_topic_prefix, camera_name, camera_width, camera_height;
+
+    nh_.getParam(prefix+"/topic_prefix", camera_topic_prefix);
+    nh_.getParam(prefix+"/name", camera_name);
+    nh_.getParam(prefix+"/width", camera_width);
+    nh_.getParam(prefix+"/height", camera_height);
+
+    for(int i = 0; i < camera_topic_prefix.size(); i++)
+    {
+        Camera c;
+        c.topic_prefix = static_cast<std::string>(camera_topic_prefix[i]);
+        c.name = static_cast<std::string>(camera_name[i]);
+        c.width = static_cast<int>(camera_width[i]);
+        c.height = static_cast<int>(camera_height[i]);
+        camera_.push_back(c);
+    }
+}
+
 void CameraView::setCameraPitch( int degrees )
 {
     std_msgs::Float64 cmd;
@@ -138,58 +169,17 @@ void CameraView::select( int x1, int y1, int x2, int y2 )
 
 void CameraView::changeCameraTopic( int t )
 {
+    // check if it's within bounds
+    if(t < 0 || t >= camera_.size())
+        return;
+
     std::cout << "Camera topic changed:" << t << std::endl;
-    switch( t )
-    {
-    case 0: // Head Left
-    {
-        camera_viewer_->subProp( "Image Topic" )->setValue( "/l_image_full/image_raw" );
-        camera_viewer_->subProp( "Image Request Topic" )->setValue( "/l_image_full/image_request" );
-        camera_viewer_->subProp( "Cropped Image Topic" )->setValue( "/l_image_cropped/image_raw" );
-        camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( "/l_image_cropped/image_request" );
-        break;
-    }
-    case 1: // Head Right
-    {
-        camera_viewer_->subProp( "Image Topic" )->setValue( "/r_image_full/image_raw" );
-        camera_viewer_->subProp( "Image Request Topic" )->setValue( "/r_image_full/image_request" );
-        camera_viewer_->subProp( "Cropped Image Topic" )->setValue( "/r_image_cropped/image_raw" );
-        camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( "/r_image_cropped/image_request" );
-        break;
-    }
-    case 2: // Left hand Left
-    {
-        camera_viewer_->subProp( "Image Topic" )->setValue( "/lhl_image_full/image_raw" );
-        camera_viewer_->subProp( "Image Request Topic" )->setValue( "/lhl_image_full/image_request" );
-        camera_viewer_->subProp( "Cropped Image Topic" )->setValue( "/lhl_image_cropped/image_raw" );
-        camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( "/lhl_image_cropped/image_request" );
-        break;
-    }
-    case 3: // Left hand Right
-    {
-        camera_viewer_->subProp( "Image Topic" )->setValue( "/lhr_image_full/image_raw" );
-        camera_viewer_->subProp( "Image Request Topic" )->setValue( "/lhr_image_full/image_request" );
-        camera_viewer_->subProp( "Cropped Image Topic" )->setValue( "/lhr_image_cropped/image_raw" );
-        camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( "/lhr_image_cropped/image_request" );
-        break;
-    }
-    case 4: // Right hand Left
-    {
-        camera_viewer_->subProp( "Image Topic" )->setValue( "/rhl_image_full/image_raw" );
-        camera_viewer_->subProp( "Image Request Topic" )->setValue( "/rhl_image_full/image_request" );
-        camera_viewer_->subProp( "Cropped Image Topic" )->setValue( "/rhl_image_cropped/image_raw" );
-        camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( "/rhl_image_cropped/image_request" );
-        break;
-    }
-    case 5: // Right hand Right
-    {
-        camera_viewer_->subProp( "Image Topic" )->setValue( "/rhr_image_full/image_raw" );
-        camera_viewer_->subProp( "Image Request Topic" )->setValue( "/rhr_image_full/image_request" );
-        camera_viewer_->subProp( "Cropped Image Topic" )->setValue( "/rhr_image_cropped/image_raw" );
-        camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( "/rhr_image_cropped/image_request" );
-        break;
-    }
-    }
+
+    camera_viewer_->subProp( "Image Topic" )->setValue( (camera_[t].topic_prefix+"_full/image_raw").c_str() );
+    camera_viewer_->subProp( "Image Request Topic" )->setValue( (camera_[t].topic_prefix+"_full/image_request").c_str() );
+    camera_viewer_->subProp( "Cropped Image Topic" )->setValue( (camera_[t].topic_prefix+"_cropped/image_raw").c_str() );
+    camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( (camera_[t].topic_prefix+"_cropped/image_request").c_str() );
+
     //applyFeedChanges();
     closeSelectedArea();
 }
@@ -372,6 +362,14 @@ void CameraView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pos
     //ROS_ERROR("goal processed in map");
     manager_->getToolManager()->setCurrentTool( selection_tool_ );
     setting_pose_ = false;
+}
+
+std::vector<std::string> CameraView::getCameraNames()
+{
+    std::vector<std::string> names;
+    for(int i = 0; i < camera_.size(); i++)
+        names.push_back(camera_[i].name);
+    return names;
 }
 
 void CameraView::keyPressEvent( QKeyEvent* event )
