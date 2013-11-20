@@ -12,6 +12,8 @@
 
 //#include <graspWidget.h>
 
+#define DEG2RAD 0.01745329
+
 namespace Ui {
 class handOffsetWidget;
 }

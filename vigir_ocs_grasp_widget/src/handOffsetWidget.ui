@@ -105,7 +105,11 @@ Amount [deg]</string>
         </widget>
        </item>
        <item>
-        <widget class="QDoubleSpinBox" name="roll_adj"/>
+        <widget class="QDoubleSpinBox" name="roll_adj">
+         <property name="value">
+          <double>1.000000000000000</double>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="verticalSpacer_4">
@@ -197,7 +201,11 @@ Amount [deg]</string>
         </widget>
        </item>
        <item>
-        <widget class="QDoubleSpinBox" name="pitch_adj"/>
+        <widget class="QDoubleSpinBox" name="pitch_adj">
+         <property name="value">
+          <double>1.000000000000000</double>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="verticalSpacer">
@@ -289,7 +297,11 @@ Amount [deg]</string>
         </widget>
        </item>
        <item>
-        <widget class="QDoubleSpinBox" name="yaw_adj"/>
+        <widget class="QDoubleSpinBox" name="yaw_adj">
+         <property name="value">
+          <double>1.000000000000000</double>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="verticalSpacer_6">

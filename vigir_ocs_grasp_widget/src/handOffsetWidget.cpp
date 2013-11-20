@@ -98,7 +98,7 @@ void handOffsetWidget::calc_offset()
 
     tf::Quaternion hand_quat;
 
-    hand_quat.setEuler(yaw, pitch, roll);
+    hand_quat.setEuler(roll*DEG2RAD, yaw*DEG2RAD, pitch*DEG2RAD);
 
     hand_offset.pose.orientation.w = hand_quat.w();
     hand_offset.pose.orientation.x = hand_quat.x();
