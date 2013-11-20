@@ -389,7 +389,7 @@ bool CameraViewWidget::eventFilter( QObject * o, QEvent * e )
     }
     if ( e->type() == QEvent::Show && qobject_cast<QMenu*>( o ))
     {
-        QPoint p; // = QCursor::pos();
+        QPoint p;
         if(((QMenu*)o) == ui->get_camera_feed->menu())
         {
             p.setX(0);

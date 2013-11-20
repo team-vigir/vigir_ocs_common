@@ -889,8 +889,8 @@ void CameraDisplayCustom::changeFullImageResolution( int t )
     case IMAGE_RESOLUTION_16:
     {
         full_image_binning_ = 16;
-    }
         break;
+    }
     }
 
     //publishFullImageRequest();
@@ -924,8 +924,8 @@ void CameraDisplayCustom::changeCropImageResolution( int t )
     case IMAGE_RESOLUTION_16:
     {
         crop_binning_ = 16;
-    }
         break;
+    }
     }
 
     //publishCropImageRequest();
