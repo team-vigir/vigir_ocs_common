@@ -65,7 +65,6 @@ graspWidget::graspWidget(QWidget *parent)
     XmlRpc::XmlRpcValue   hand_T_palm;
 
     float color_r, color_g, color_b;
-
     if(hand_ == "left")
     {
         this->setWindowTitle(QString::fromStdString("Left Hand Grasp Widget"));
@@ -80,7 +79,6 @@ graspWidget::graspWidget(QWidget *parent)
 
         // We first subscribe to the JointState messages
         joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/l_hand/tactile_feedback", 2, &graspWidget::jointStatesCB, this );
-
         // Publisher for hand position/state
         robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_left_hand",1, true);
 
@@ -94,7 +92,6 @@ graspWidget::graspWidget(QWidget *parent)
         nh_.getParam("/l_hand_tf/gp_T_palm", hand_T_palm);
         gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
         gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
-
         color_r = 1.0f;
         color_g = 1.0f;
         color_b = 0.0f;
@@ -113,7 +110,6 @@ graspWidget::graspWidget(QWidget *parent)
 
         // We first subscribe to the JointState messages
         joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/r_hand/tactile_feedback", 2, &graspWidget::jointStatesCB, this );
-
         // Publisher for hand position/state
         robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_right_hand",1, true);
 
@@ -127,7 +123,6 @@ graspWidget::graspWidget(QWidget *parent)
         nh_.getParam("/r_hand_tf/gp_T_palm", hand_T_palm);
         gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
         gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
-
         color_r = 0.0f;
         color_g = 1.0f;
         color_b = 1.0f;
@@ -832,6 +827,8 @@ void graspWidget::templateStitchPoseCallback(const geometry_msgs::PoseStamped::C
     {
         this->stitch_template_pose_.setIdentity();
     }
+
+
 }
 
 void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_states )
