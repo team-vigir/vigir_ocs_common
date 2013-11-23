@@ -63,6 +63,14 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
     ((rviz::CameraDisplayCustom*)camera_viewer_)->setRenderPanel( render_panel_ );
     ((rviz::CameraDisplayCustom*)camera_viewer_)->setup();
 
+//    for(int i = 0; i < 4; i++)
+//    {
+//        if(view_id_ == i)
+//            camera_viewer_->setVisibilityBits(pow(2,i)); // send the viewport visilibity bit to the display and display will know if it should render there or not.
+//        else
+//            camera_viewer_->unsetVisibilityBits(pow(2,i));
+//    }
+
     // Set image topic
     camera_viewer_->subProp( "Image Topic" )->setValue( (camera_[0].topic_prefix+"_full/image_raw").c_str() );
     camera_viewer_->setEnabled(false);
@@ -71,10 +79,27 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
     // Add support for selection
     selection_tool_ = manager_->getToolManager()->addTool( "rviz/ImageSelectionToolCustom" );
 
-    manager_->getToolManager()->setCurrentTool( selection_tool_ );
+    std::bitset<32> y(camera_viewer_->getVisibilityBits());
+    std::cout << "camera vis bit: " << y << std::endl;
+    uint32_t vis_bit = 0xFFFFFFFF;
+    for(int i = 0; i < 4; i++)
+    {
+        std::bitset<32> a((uint32_t)pow(2,i));
+        std::cout << "\tsetting: " << a << std::endl;
+
+        if(view_id_ == i)
+            vis_bit |= (uint32_t)pow(2,i); // send the viewport visilibity bit to the display and display will know if it should render there or not.
+        else
+            vis_bit &= ~(uint32_t)pow(2,i);
+    }
+
+    std::bitset<32> x(vis_bit);
+    std::cout << "tool vis bit:   " << x << std::endl;
+    ((rviz::ImageSelectionToolCustom*)selection_tool_)->setVisibilityBits(vis_bit);
 
     // connect the selection tool select signal to this
     QObject::connect(selection_tool_, SIGNAL(select(int,int,int,int)), this, SLOT(select(int,int,int,int)));
+    manager_->getToolManager()->setCurrentTool( selection_tool_ );
 
     if(!context)
     {
@@ -122,6 +147,9 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
 
     // make sure we're still able to cancel set goal pose
     QObject::connect(render_panel_, SIGNAL(signalKeyPressEvent(QKeyEvent*)), this, SLOT(keyPressEvent(QKeyEvent*)));
+
+    //QObject::connect(render_panel_, SIGNAL(signalMouseEnterEvent(QEvent*)), this, SLOT(mouseEnterEvent(QEvent*)));
+    //QObject::connect(render_panel_, SIGNAL(signalMouseMoveEvent(QMouseEvent*)), this, SLOT(mouseMoveEvent(QMouseEvent*)));
 }
 
 // Destructor.
@@ -370,6 +398,18 @@ std::vector<std::string> CameraView::getCameraNames()
     for(int i = 0; i < camera_.size(); i++)
         names.push_back(camera_[i].name);
     return names;
+}
+
+void CameraView::mouseEnterEvent( QEvent* event )
+{
+    std::cout << "mouse enter " << view_id_ << std::endl;
+    manager_->getToolManager()->setCurrentTool( selection_tool_ );
+}
+
+void CameraView::mouseMoveEvent( QMouseEvent* event )
+{
+    std::cout << "mouse move " << view_id_ << std::endl;
+    manager_->getToolManager()->setCurrentTool( selection_tool_ );
 }
 
 void CameraView::keyPressEvent( QKeyEvent* event )

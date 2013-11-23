@@ -108,6 +108,11 @@ void RenderPanelCustom::leaveEvent ( QEvent * event )
         RenderPanel::leaveEvent( event );
 }
 
+void RenderPanelCustom::enterEvent( QEvent * event )
+{
+    Q_EMIT signalMouseEnterEvent( event );
+}
+
 void RenderPanelCustom::wheelEvent( QWheelEvent* event )
 {
     Q_EMIT signalMouseWheelEvent( event );

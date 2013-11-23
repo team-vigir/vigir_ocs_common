@@ -38,6 +38,7 @@
  */
 
 #include <boost/bind.hpp>
+#include <bitset>
 
 #include <OGRE/OgreManualObject.h>
 #include <OGRE/OgreMaterialManager.h>
@@ -330,19 +331,19 @@ void CameraDisplayCustom::onInitialize()
     }
 
     // first create a publisher to set the parameters of the full image
-    img_req_pub_full_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, true );
+    //img_req_pub_full_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, true );
 
     // publish image request for full image - TO DO: MAKE THESE CONFIGURABLE WITH A SLOT FOR UI INTEGRATION
-    //publishFullImageRequest();
+    ////publishFullImageRequest();
 
     // also create a publisher to set parameters of cropped image
-    img_req_pub_crop_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, false );
+    //img_req_pub_crop_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, false );
     // then, subscribe to the resulting cropped image
-    cropped_image_ = n_.subscribe<sensor_msgs::Image>( "/l_image_cropped/image_raw", 5, &CameraDisplayCustom::processCroppedImage, this );
+    //cropped_image_ = n_.subscribe<sensor_msgs::Image>( "/l_image_cropped/image_raw", 5, &CameraDisplayCustom::processCroppedImage, this );
 
     // finally, we need to subscribe to requests so that multiple clients have everything updated
-    img_req_sub_crop_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, &CameraDisplayCustom::processCropImageRequest, this );
-    img_req_sub_full_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &CameraDisplayCustom::processFullImageRequest, this );
+    //img_req_sub_crop_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, &CameraDisplayCustom::processCropImageRequest, this );
+    //img_req_sub_full_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &CameraDisplayCustom::processFullImageRequest, this );
 
     caminfo_tf_filter_->connectInput(caminfo_sub_);
     caminfo_tf_filter_->registerCallback(boost::bind(&CameraDisplayCustom::caminfoCallback, this, _1));
@@ -497,6 +498,7 @@ void CameraDisplayCustom::unsubscribe()
   ImageDisplayBase::unsubscribe();
   caminfo_sub_.unsubscribe();
 }
+
 void CameraDisplayCustom::clear()
 {
     texture_.clear();
@@ -699,7 +701,7 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
         float img_aspect = img_width / img_height;
         float win_aspect = win_width / win_height;
 
-        // calculate size of 3 pixels in scene CS for selection highlight
+        // calculate size of 1 pixels in scene CS for selection highlight
         float padding_x = 1.0f*2.0f/win_width;
         float padding_y = 1.0f*2.0f/win_height;
 
@@ -732,7 +734,9 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
                 fg_screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
                 screen_rect_highlight_mask_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
                 screen_rect_highlight_bg_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
-                //std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
+                //std::bitset<8> x(vis_bit_);
+                //std::cout << x << std::endl;
+                //std::cout << "Drawing Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
             }
         }
         else
@@ -758,7 +762,9 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
                 fg_screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
                 screen_rect_highlight_mask_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
                 screen_rect_highlight_bg_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
-                //std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
+                //std::bitset<8> x(vis_bit_);
+                //std::cout << x << std::endl;
+                //std::cout << "Drawing Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
             }
         }
     }
@@ -833,7 +839,9 @@ void CameraDisplayCustom::setRenderPanel( RenderPanel* rp )
 
 void CameraDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
 {
-    //std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
+    std::bitset<8> x(vis_bit_);
+    std::cout << x << std::endl;
+    std::cout << "Selection Processed: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
     //std::cout << "   full image rect: " << rect_dim_x1_ << ", " << rect_dim_y1_ << " -> " << rect_dim_x2_ << ", " << rect_dim_y2_ << std::endl;
     //std::cout << "   window dimensions: " << render_panel_->width() << ", " << render_panel_->height() << std::endl;
 

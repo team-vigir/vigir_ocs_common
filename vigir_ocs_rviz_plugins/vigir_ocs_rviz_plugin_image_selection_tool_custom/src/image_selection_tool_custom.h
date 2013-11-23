@@ -64,6 +64,8 @@ public:
 
     virtual void update(float wall_dt, float ros_dt);
 
+    void setVisibilityBits(uint32_t vis_bit);
+
 Q_SIGNALS:
     void select( int, int, int, int );
     void mouseHasMoved(int,int);
@@ -104,6 +106,8 @@ private:
     Ogre::SceneNode* highlight_node_;
     int theX1,theX2,theY1,theY2;
     Ogre::Viewport* port;
+
+    uint32_t vis_bit_;
 };
 
 }

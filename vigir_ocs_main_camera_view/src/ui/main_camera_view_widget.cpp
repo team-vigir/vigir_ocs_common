@@ -139,6 +139,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     position_layout->addWidget(one_view_button_);
     position_layout->addWidget(four_view_button_);
     position_widget_->setLayout(position_layout);
+    position_widget_->setGeometry(0,45,46,22);
     
     connect(ui->pitch, SIGNAL(valueChanged(int)), this, SLOT(updatePitch(int)));
 }

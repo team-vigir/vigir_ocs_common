@@ -34,6 +34,7 @@
 #include "rviz/view_manager.h"
 #include "rviz/default_plugin/view_controllers/fixed_orientation_ortho_view_controller.h"
 #include "rviz/default_plugin/view_controllers/orbit_view_controller.h"
+#include "rviz/properties/parse_color.h"
 #include <template_display_custom.h>
 #include "map_display_custom.h"
 #include "base_3d_view.h"
@@ -392,6 +393,9 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     l_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
     l_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
 
+    // set background color to rviz default
+    render_panel_->getViewport()->setBackgroundColour(rviz::qtToOgre(QColor(48,48,48)));
+
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
 }
@@ -411,8 +415,13 @@ void Base3DView::timerEvent(QTimerEvent *event)
     // make sure the selection point is visible
     position_widget_->setGeometry(0,
                                   this->geometry().bottomLeft().y()-18,
-                                  this->geometry().bottomRight().x()-this->geometry().bottomLeft().x(),
-                                  18);
+                                  this->geometry().bottomRight().x()-this->geometry().bottomLeft().x()+2,
+                                  20);
+
+
+
+    //std::bitset<32> x(render_panel_->getViewport()->getVisibilityMask());
+    //std::cout << x << std::endl;
 
     //render_panel_->getRenderWindow()->update(true);
 

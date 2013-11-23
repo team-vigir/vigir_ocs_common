@@ -79,6 +79,8 @@ public Q_SLOTS:
 
     virtual void defineWalkPosePressed();
     virtual void defineStepPosePressed();
+    void mouseEnterEvent( QEvent* event );
+    void mouseMoveEvent( QMouseEvent* event );
     void keyPressEvent( QKeyEvent* event );
 
 private Q_SLOTS:
