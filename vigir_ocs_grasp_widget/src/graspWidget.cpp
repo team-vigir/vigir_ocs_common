@@ -817,11 +817,27 @@ void graspWidget::handOffsetCallback(const geometry_msgs::PoseStamped::ConstPtr&
 
 void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_states )
 {
-    //if(hand_type == "irobot")
-    //{
+    if(hand_type_ == "irobot")
+    {
+        double min_feedback = 0, max_feedback = 1.0;
+        for(int i = 0; i < joint_states->name.size(); i++)
+        {
+            // get the joint name to figure out the color of the links
+            std::string joint_name = joint_states->name[i].c_str();
 
-    //}
-    //else
+            // velocity represents tactile feedback
+            double feedback = joint_states->velocity[i];
+
+            // NOTE: this is SPECIFIC to the irobot hands and how they are setup in the urdf and grasp controllers, IT IS NOT GENERAL
+            std::string link_name = joint_name;
+
+            //ROS_ERROR("Applying color to %s",link_name.c_str());
+            // calculate color intensity based on min/max feedback
+            unsigned char color_intensity = (unsigned char)((feedback - min_feedback)/(max_feedback-min_feedback) * 255.0);
+            publishLinkColor(link_name,color_intensity,255-color_intensity,0);
+        }
+    }
+    else
     {
         //Index 	Name            Link
         //0         right_f0_j0 	Palm index base
@@ -845,12 +861,15 @@ void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_
 
             // velocity represents tactile feedback
             double feedback = joint_states->velocity[i];
-
+            
             // NOTE: this is SPECIFIC to atlas hands, IT IS NOT GENERAL
             std::string link_name;
-            size_t found = joint_name.find('j');
+            link_name = joint_name;
+            size_t found = link_name.find('j');
             if( found != std::string::npos )
-                link_name = joint_name.erase(found,1);
+                link_name = link_name.erase(found,1);
+
+            boost::erase_all(link_name, "/");
 
             //ROS_ERROR("Applying color to %s",link_name.c_str());
             // calculate color intensity based on min/max feedback
@@ -944,6 +963,7 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
     {
 
         // must match the order used in the .grasp file
+        
         joint_states.name.push_back(hand_+"_f0_j1");
         joint_states.name.push_back(hand_+"_f1_j1");
         joint_states.name.push_back(hand_+"_f2_j1");
@@ -952,6 +972,7 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
         joint_states.name.push_back(hand_+"_f0_j2"); // 0 for now
         joint_states.name.push_back(hand_+"_f1_j2"); // 0 for now
         joint_states.name.push_back(hand_+"_f2_j2"); // 0 for now
+        
     }
     else
     {
