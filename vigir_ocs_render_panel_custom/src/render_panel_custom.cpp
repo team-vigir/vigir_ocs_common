@@ -9,6 +9,7 @@ namespace rviz
 RenderPanelCustom::RenderPanelCustom( QWidget* parent )
   : RenderPanel( parent )
 {
+    this->setMouseTracking(true);
 }
 
 RenderPanelCustom::~RenderPanelCustom()

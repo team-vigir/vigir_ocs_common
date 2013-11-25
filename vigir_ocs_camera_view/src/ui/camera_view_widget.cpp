@@ -24,6 +24,7 @@ CameraViewWidget::CameraViewWidget(QWidget *parent, rviz::VisualizationManager* 
     std::vector<std::string> camera_names = camera_view_->getCameraNames();
     for(int i = 0; i < camera_names.size(); i++)
         ui->camera->addItem(camera_names[i].c_str());
+    ui->camera->setCurrentIndex(camera_view_->getDefaultCamera());
 
     QHBoxLayout* position_layout = new QHBoxLayout();
     position_layout->setMargin(0);

@@ -377,11 +377,14 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     QObject::connect(reset_view_button_, SIGNAL(clicked()), this, SLOT(resetView()));
 
     QHBoxLayout* position_layout = new QHBoxLayout();
+    position_layout->setSpacing(0);
     position_layout->setMargin(0);
     position_layout->addWidget(reset_view_button_);
     position_layout->addWidget(position_label_);
     position_widget_->setLayout(position_layout);
-    //main_layout->addWidget(position_widget_);
+    main_layout->setMargin(0);
+    main_layout->setSpacing(0);
+    main_layout->addWidget(position_widget_);
 
     XmlRpc::XmlRpcValue   hand_T_palm;
 
@@ -413,10 +416,10 @@ void Base3DView::timerEvent(QTimerEvent *event)
         qApp->quit();
 
     // make sure the selection point is visible
-    position_widget_->setGeometry(0,
-                                  this->geometry().bottomLeft().y()-18,
-                                  this->geometry().bottomRight().x()-this->geometry().bottomLeft().x()+2,
-                                  20);
+    //position_widget_->setGeometry(0,
+    //                              this->geometry().bottomLeft().y()-18,
+    //                              this->geometry().bottomRight().x()-this->geometry().bottomLeft().x()+2,
+    //                              20);
 
 
 

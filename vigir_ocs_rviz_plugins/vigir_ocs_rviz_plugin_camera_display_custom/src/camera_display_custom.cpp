@@ -63,6 +63,7 @@
 #include "rviz/properties/int_property.h"
 #include "rviz/properties/ros_topic_property.h"
 #include "rviz/properties/display_group_visibility_property.h"
+#include "rviz/ogre_helpers/apply_visibility_bits.h"
 #include <image_transport/camera_common.h>
 
 #include "rviz/display.h"
@@ -111,6 +112,7 @@ CameraDisplayCustom::CameraDisplayCustom()
     , new_caminfo_( false )
     , force_render_( false )
     , caminfo_ok_(false)
+    , rendered_once_(false)
 {
     image_position_property_ = new EnumProperty( "Image Rendering", BOTH,
                                                  "Render the image behind all other geometry or overlay it on top, or both.",
@@ -222,8 +224,6 @@ void CameraDisplayCustom::onInitialize()
         //std::cout << "Material name (full): " << material_->getName() << std::endl;
         bg_scene_node_->attachObject(bg_screen_rect_);
         bg_scene_node_->setVisible(false);
-
-
 
         //overlay rectangle
         fg_screen_rect_ = new Ogre::Rectangle2D(true);
@@ -419,36 +419,7 @@ void CameraDisplayCustom::renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre:
 
 void CameraDisplayCustom::onEnable()
 {
-    /*if ( (!isEnabled()) || (topic_property_->getTopicStd().empty()) )
-    {
-        if((topic_property_->getTopicStd().empty()))
-        {
-            //std::cout<<"The error is the topic std" <<std::endl;
-        }
-        return;
-    }
-
-    // These next two lines make it so that "No Image" appears for some reason.
-    std::string target_frame = fixed_frame_.toStdString();
-
-    ImageDisplayBase::enableTFFilter(target_frame);
-    ImageDisplayBase::subscribe();
-
-    std::string topic = topic_property_->getTopicStd();
-    std::string caminfo_topic = image_transport::getCameraInfoTopic(topic_property_->getTopicStd());
-
-    try
-    {
-        caminfo_sub_.subscribe( update_nh_, caminfo_topic, 1 );
-        // std::cout<<"The subscription happens"<<std::endl;
-        setStatus( StatusProperty::Ok, "Camera Info", "OK" );
-    }
-    catch( ros::Exception& e )
-    {
-        setStatus( StatusProperty::Error, "Camera Info", QString( "Error subscribing: ") + e.what() );
-    }
-    */
-
+    std::cout << "onEnable()" << std::endl;
     subscribe();
 
     if(render_panel_)
@@ -457,11 +428,9 @@ void CameraDisplayCustom::onEnable()
 
 void CameraDisplayCustom::onDisable()
 {
+    std::cout << "onDisable()" << std::endl;
     if(render_panel_)
         render_panel_->getRenderWindow()->setActive(false);
-    /*ImageDisplayBase::unsubscribe();
-    caminfo_sub_.unsubscribe();
-    clear();*/
 
     unsubscribe();
     clear();
@@ -583,6 +552,10 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
         setStatus( StatusProperty::Error, "Camera Info", "Contains invalid floating point values (nans or infs)" );
         return false;
     }
+
+    //std::cout << "Updating camera " << view_id_ << std::endl;
+    // workaround to make rviz render the image correctly once
+    rendered_once_ = true;
 
     Ogre::Vector3 position;
     Ogre::Quaternion orientation;
@@ -837,7 +810,7 @@ void CameraDisplayCustom::setRenderPanel( RenderPanel* rp )
     render_panel_->getCamera()->setNearClipDistance( 0.01f );
 }
 
-void CameraDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
+void CameraDisplayCustom::selectionProcessed( int &x1, int &y1, int &x2, int &y2 )
 {
     std::bitset<8> x(vis_bit_);
     std::cout << x << std::endl;
@@ -845,23 +818,23 @@ void CameraDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
     //std::cout << "   full image rect: " << rect_dim_x1_ << ", " << rect_dim_y1_ << " -> " << rect_dim_x2_ << ", " << rect_dim_y2_ << std::endl;
     //std::cout << "   window dimensions: " << render_panel_->width() << ", " << render_panel_->height() << std::endl;
 
-    // make sure selection is within image rect coordinates
+    // make sure selection is within image rect coordinates, and write them back to the variables sent over to this function
     float minx = std::min(x1, x2);
-    float _x1 = (minx < rect_dim_x1_ ? rect_dim_x1_ : (minx > rect_dim_x2_ ? rect_dim_x2_ : minx));
+    x1 = (minx < rect_dim_x1_ ? rect_dim_x1_ : (minx > rect_dim_x2_ ? rect_dim_x2_ : minx));
     float maxx = std::max(x1, x2);
-    float _x2 = (maxx < rect_dim_x1_ ? rect_dim_x1_ : (maxx > rect_dim_x2_ ? rect_dim_x2_ : maxx));
+    x2 = (maxx < rect_dim_x1_ ? rect_dim_x1_ : (maxx > rect_dim_x2_ ? rect_dim_x2_ : maxx));
     float miny = std::min(y1, y2);
-    float _y1 = (miny < rect_dim_y1_ ? rect_dim_y1_ : (miny > rect_dim_y2_ ? rect_dim_y2_ : miny));
+    y1 = (miny < rect_dim_y1_ ? rect_dim_y1_ : (miny > rect_dim_y2_ ? rect_dim_y2_ : miny));
     float maxy = std::max(y1, y2);
-    float _y2 = (maxy < rect_dim_y1_ ? rect_dim_y1_ : (maxy > rect_dim_y2_ ? rect_dim_y2_ : maxy));
+    y2 = (maxy < rect_dim_y1_ ? rect_dim_y1_ : (maxy > rect_dim_y2_ ? rect_dim_y2_ : maxy));
     //std::cout << "   corrected window: " << _x1 << ", " << _y1 << " -> " << _x2 << ", " << _y2 << std::endl;
 
     // calculate image selection box dimensions -> texture coordinates
-    crop_x_offset_ = (_x1-rect_dim_x1_) * full_image_width_ / (rect_dim_x2_-rect_dim_x1_);
-    crop_y_offset_ = (_y1-rect_dim_y1_) * full_image_height_ / (rect_dim_y2_-rect_dim_y1_);
+    crop_x_offset_ = (x1-rect_dim_x1_) * full_image_width_ / (rect_dim_x2_-rect_dim_x1_);
+    crop_y_offset_ = (y1-rect_dim_y1_) * full_image_height_ / (rect_dim_y2_-rect_dim_y1_);
     // and size
-    crop_width_  = ((_x2-_x1) * full_image_width_) / (rect_dim_x2_-rect_dim_x1_);
-    crop_height_ = ((_y2-_y1) * full_image_height_) / (rect_dim_y2_-rect_dim_y1_);
+    crop_width_  = ((x2-x1) * full_image_width_) / (rect_dim_x2_-rect_dim_x1_);
+    crop_height_ = ((y2-y1) * full_image_height_) / (rect_dim_y2_-rect_dim_y1_);
 
     // create image request message
     //publishCropImageRequest();
@@ -1104,7 +1077,9 @@ void CameraDisplayCustom::setZoom(float newZoom)
 
 void CameraDisplayCustom::closeSelected()
 {
-    selectionProcessed(0,0,0,0);
+    int x1,y1,x2,y2;
+    x1=y1=x2=y2=0;
+    selectionProcessed(x1,y1,x2,y2);
     if(crop_publish_frequency_ > 0)
     {
         crop_publish_frequency_ = 0;

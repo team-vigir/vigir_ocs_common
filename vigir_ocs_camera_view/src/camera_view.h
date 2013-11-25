@@ -51,6 +51,8 @@ public:
 
     std::vector<std::string> getCameraNames();
 
+    int getDefaultCamera();
+
 Q_SIGNALS:
     void setFullImageResolution( int );
     void setCropImageResolution( int );
@@ -59,6 +61,7 @@ Q_SIGNALS:
     void unHighlight();
     void publishCropImageRequest();
     void publishFullImageRequest();
+    void setInitialized();
 
 public Q_SLOTS:
     void changeCameraTopic( int );
@@ -83,8 +86,13 @@ public Q_SLOTS:
     void mouseMoveEvent( QMouseEvent* event );
     void keyPressEvent( QKeyEvent* event );
 
+    virtual bool eventFilter( QObject * o, QEvent * e );
+
 private Q_SLOTS:
     void select( int, int, int, int );
+
+protected:
+    virtual void timerEvent(QTimerEvent *event);
 
 private:
     int selected_area_[4];
@@ -117,6 +125,9 @@ private:
         int height;
     } Camera;
     std::vector<Camera> camera_;
+    QPushButton* close_area_button_;
+    bool selection_made_;
+    bool initialized_;
 };
 }
 #endif // CAMERA_VIEWER_H

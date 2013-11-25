@@ -65,6 +65,7 @@ public:
     virtual void update(float wall_dt, float ros_dt);
 
     void setVisibilityBits(uint32_t vis_bit);
+    bool isHighlightEnabled() { return highlight_enabled_; }
 
 Q_SIGNALS:
     void select( int, int, int, int );

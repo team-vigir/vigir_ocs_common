@@ -31,40 +31,40 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     ui->insert_waypoint->hide();
 
     // setup default views
-    views_list["Top Left"] = new CameraViewWidget();
-    views_list["Top Right"] = new CameraViewWidget(0,((CameraViewWidget*)views_list["Top Left"])->getCameraView()->getVisualizationManager());
-    views_list["Bottom Left"] = new CameraViewWidget(0,((CameraViewWidget*)views_list["Top Left"])->getCameraView()->getVisualizationManager());
-    views_list["Bottom Right"] = new CameraViewWidget(0,((CameraViewWidget*)views_list["Top Left"])->getCameraView()->getVisualizationManager());
+    views_list_["Top Left"] = new CameraViewWidget();
+    views_list_["Top Right"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getVisualizationManager());
+    views_list_["Bottom Left"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getVisualizationManager());
+    views_list_["Bottom Right"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getVisualizationManager());
 
     QHBoxLayout* aux_layout;
 
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
-    aux_layout->addWidget(views_list["Top Left"]);
+    aux_layout->addWidget(views_list_["Top Left"]);
     ui->center_parent_->setLayout(aux_layout);
 
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
-    aux_layout->addWidget(views_list["Top Right"]);
+    aux_layout->addWidget(views_list_["Top Right"]);
     ui->top_right_parent_->setLayout(aux_layout);
 
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
-    aux_layout->addWidget(views_list["Bottom Left"]);
+    aux_layout->addWidget(views_list_["Bottom Left"]);
     ui->bottom_left_parent_->setLayout(aux_layout);
 
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
-    aux_layout->addWidget(views_list["Bottom Right"]);
+    aux_layout->addWidget(views_list_["Bottom Right"]);
     ui->bottom_right_parent_->setLayout(aux_layout);
 
     std::map<std::string, QWidget*>::iterator iter;
 
-    for (iter = views_list.begin(); iter != views_list.end(); ++iter)
+    for (iter = views_list_.begin(); iter != views_list_.end(); ++iter)
     {
-        if(iter->second == views_list["Top Left"])
+        if(iter->second == views_list_["Top Left"])
         {
-            ((CameraViewWidget*)iter->second)->getCameraView()->updateRenderMask(true);
+            //((CameraViewWidget*)iter->second)->getCameraView()->updateRenderMask(true);
 
             ((CameraViewWidget*)iter->second)->getCameraView()->simulationRobotToggled(true);
             ((CameraViewWidget*)iter->second)->getCameraView()->simulationRobotToggled(false);
@@ -95,8 +95,11 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
         }
         else
         {
-            ((CameraViewWidget*)iter->second)->getCameraView()->updateRenderMask(false);
+            //((CameraViewWidget*)iter->second)->getCameraView()->updateRenderMask(true);
         }
+        ((CameraViewWidget*)iter->second)->getCameraView()->updateRenderMask(true);
+        QObject::connect(((CameraViewWidget*)iter->second)->getCameraView(), SIGNAL(setInitialized()), this, SLOT(cameraInitialized()));
+
     }
 
     std::string ip = ros::package::getPath("vigir_ocs_main_camera_view")+"/icons/";
@@ -139,9 +142,13 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     position_layout->addWidget(one_view_button_);
     position_layout->addWidget(four_view_button_);
     position_widget_->setLayout(position_layout);
-    position_widget_->setGeometry(0,45,46,22);
+    position_widget_->setGeometry(0,39,46,22);
     
     connect(ui->pitch, SIGNAL(valueChanged(int)), this, SLOT(updatePitch(int)));
+
+    views_initialized_ = 0;
+
+    ui->groupBox->hide();
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()
@@ -161,7 +168,7 @@ void MainCameraViewWidget::updatePitch(int value)
         QString label = QString::fromStdString(string);
         ui->pitch_label->setText(label);
 
-        ((CameraViewWidget*)views_list["Top Left"])->updatePitch(value);
+        ((CameraViewWidget*)views_list_["Top Left"])->updatePitch(value);
     }
 }
 
@@ -196,9 +203,9 @@ void MainCameraViewWidget::oneViewToggle()
 
     std::map<std::string, QWidget*>::iterator iter;
 
-    for (iter = views_list.begin(); iter != views_list.end(); ++iter)
+    for (iter = views_list_.begin(); iter != views_list_.end(); ++iter)
     {
-        if(iter->second == views_list["Top Left"])
+        if(iter->second == views_list_["Top Left"])
             ((CameraViewWidget*)iter->second)->getCameraView()->updateRenderMask(true);
         else
             ((CameraViewWidget*)iter->second)->getCameraView()->updateRenderMask(false);
@@ -225,8 +232,16 @@ void MainCameraViewWidget::fourViewToggle()
 
     std::map<std::string, QWidget*>::iterator iter;
 
-    for (iter = views_list.begin(); iter != views_list.end(); ++iter)
+    for (iter = views_list_.begin(); iter != views_list_.end(); ++iter)
         ((CameraViewWidget*)iter->second)->getCameraView()->updateRenderMask(true);
+}
+
+void MainCameraViewWidget::cameraInitialized()
+{
+    views_initialized_++;
+
+    if(views_initialized_ == views_list_.size())
+        oneViewToggle();
 }
 
 

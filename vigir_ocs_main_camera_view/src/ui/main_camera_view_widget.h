@@ -29,11 +29,13 @@ public Q_SLOTS:
     void oneViewToggle();
     void fourViewToggle();
     void updatePitch(int value);
+    void cameraInitialized();
     
 private:
     Ui::MainCameraViewWidget *ui;
 
-    std::map<std::string,QWidget*> views_list;
+    std::map<std::string,QWidget*> views_list_;
+    int views_initialized_;
 
     QWidget* position_widget_;
     QPushButton* four_view_button_;

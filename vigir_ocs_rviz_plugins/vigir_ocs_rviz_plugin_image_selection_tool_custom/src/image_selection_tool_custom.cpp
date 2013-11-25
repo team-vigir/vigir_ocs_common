@@ -145,6 +145,7 @@ void ImageSelectionToolCustom::deactivate()
 
 void ImageSelectionToolCustom::update(float wall_dt, float ros_dt)
 {
+    //std::cout << highlight_enabled_ << std::endl;
     highlight_node_->setVisible(highlight_enabled_);
 
     applyVisibilityBits(vis_bit_,highlight_node_);

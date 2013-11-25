@@ -30,8 +30,6 @@
 
 // Constructor for CameraView.  This does most of the work of the class.
 
-QPushButton* xButton;
-bool selectionMade = false;
 namespace vigir_ocs
 {
 
@@ -43,7 +41,11 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
     , area_rate_(0)
     , area_resolution_(0)
     , setting_pose_(false)
+    , selection_made_(false)
+    , initialized_(false)
 {
+    this->setMouseTracking(true);
+
     // Load camera topics from parameter server
     loadCameraTopics("/flor/ocs/camera/atlas");
     loadCameraTopics("/flor/ocs/camera/left_hand");
@@ -62,19 +64,7 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
 
     ((rviz::CameraDisplayCustom*)camera_viewer_)->setRenderPanel( render_panel_ );
     ((rviz::CameraDisplayCustom*)camera_viewer_)->setup();
-
-//    for(int i = 0; i < 4; i++)
-//    {
-//        if(view_id_ == i)
-//            camera_viewer_->setVisibilityBits(pow(2,i)); // send the viewport visilibity bit to the display and display will know if it should render there or not.
-//        else
-//            camera_viewer_->unsetVisibilityBits(pow(2,i));
-//    }
-
-    // Set image topic
-    camera_viewer_->subProp( "Image Topic" )->setValue( (camera_[0].topic_prefix+"_full/image_raw").c_str() );
-    camera_viewer_->setEnabled(false);
-    camera_viewer_->setEnabled(true);
+    ((rviz::CameraDisplayCustom*)camera_viewer_)->setViewID(view_id_);
 
     // Add support for selection
     selection_tool_ = manager_->getToolManager()->addTool( "rviz/ImageSelectionToolCustom" );
@@ -96,6 +86,7 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
     std::bitset<32> x(vis_bit);
     std::cout << "tool vis bit:   " << x << std::endl;
     ((rviz::ImageSelectionToolCustom*)selection_tool_)->setVisibilityBits(vis_bit);
+    ((rviz::CameraDisplayCustom*)camera_viewer_)->setVisibilityBits(vis_bit);
 
     // connect the selection tool select signal to this
     QObject::connect(selection_tool_, SIGNAL(select(int,int,int,int)), this, SLOT(select(int,int,int,int)));
@@ -127,9 +118,24 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
     camera_controller->initialize( render_panel_->getManager() );
     render_panel_->setViewController( camera_controller );
 
-    xButton = new QPushButton("X",this);
-    QObject::connect(xButton, SIGNAL(clicked()), this, SLOT(closeSelectedArea()));
-    xButton->hide();
+    close_area_button_ = new QPushButton("X",this);
+    QObject::connect(close_area_button_, SIGNAL(clicked()), this, SLOT(closeSelectedArea()));
+    close_area_button_->hide();
+    close_area_button_->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " font: \"Ubuntu\";"
+                                      " font-size: 9px;"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      "}");
     QObject::connect((selection_tool_), SIGNAL(mouseHasMoved(int,int)), this, SLOT(mouseMoved(int,int)));
 
     Q_EMIT setMarkerScale(0.001f);
@@ -148,13 +154,41 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
     // make sure we're still able to cancel set goal pose
     QObject::connect(render_panel_, SIGNAL(signalKeyPressEvent(QKeyEvent*)), this, SLOT(keyPressEvent(QKeyEvent*)));
 
-    //QObject::connect(render_panel_, SIGNAL(signalMouseEnterEvent(QEvent*)), this, SLOT(mouseEnterEvent(QEvent*)));
-    //QObject::connect(render_panel_, SIGNAL(signalMouseMoveEvent(QMouseEvent*)), this, SLOT(mouseMoveEvent(QMouseEvent*)));
+    QObject::connect(render_panel_, SIGNAL(signalMouseEnterEvent(QEvent*)), this, SLOT(mouseEnterEvent(QEvent*)));
+    QObject::connect(render_panel_, SIGNAL(signalMouseMoveEvent(QMouseEvent*)), this, SLOT(mouseMoveEvent(QMouseEvent*)));
+
+    Q_FOREACH( QWidget* sp, findChildren<QWidget*>() ) {
+        sp->installEventFilter( this );
+        sp->setMouseTracking( true );
+    }
+
+    // Set image topic
+    int default_cam = getDefaultCamera();
+    camera_viewer_->subProp( "Image Topic" )->setValue( (camera_[default_cam].topic_prefix+"_full/image_raw").c_str() );
+    camera_viewer_->subProp( "Image Request Topic" )->setValue( (camera_[default_cam].topic_prefix+"_full/image_request").c_str() );
+    camera_viewer_->subProp( "Cropped Image Topic" )->setValue( (camera_[default_cam].topic_prefix+"_cropped/image_raw").c_str() );
+    camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( (camera_[default_cam].topic_prefix+"_cropped/image_request").c_str() );
+    camera_viewer_->setEnabled(false);
+    camera_viewer_->setEnabled(true);
+
+
 }
 
 // Destructor.
 CameraView::~CameraView()
 {
+}
+
+void CameraView::timerEvent(QTimerEvent *event)
+{
+    // call the base3dview version of the timerevent
+    Base3DView::timerEvent(event);
+
+    if(!initialized_ && ((rviz::CameraDisplayCustom*)camera_viewer_)->hasRenderedOnce())
+    {
+        initialized_ = true;
+        Q_EMIT setInitialized();
+    }
 }
 
 void CameraView::loadCameraTopics(std::string prefix)
@@ -178,6 +212,16 @@ void CameraView::loadCameraTopics(std::string prefix)
     }
 }
 
+int CameraView::getDefaultCamera()
+{
+    int default_cam;
+    if(view_id_ < camera_.size())
+        default_cam = view_id_;
+    else
+        default_cam = camera_.size()-1;
+    return default_cam;
+}
+
 void CameraView::setCameraPitch( int degrees )
 {
     std_msgs::Float64 cmd;
@@ -187,10 +231,10 @@ void CameraView::setCameraPitch( int degrees )
 
 void CameraView::select( int x1, int y1, int x2, int y2 )
 {
-    selected_area_[0] = x1;
-    selected_area_[1] = y1;
-    selected_area_[2] = x2;
-    selected_area_[3] = y2;
+    selected_area_[0] = std::min(x1,x2);
+    selected_area_[1] = std::min(y1,y2);
+    selected_area_[2] = std::max(x1,x2);
+    selected_area_[3] = std::max(y1,y2);
 
     //select_manager_->highlight(render_panel_->getViewport(), x1, y1, x2, y2 );
 }
@@ -260,7 +304,7 @@ void CameraView::applyAreaChanges()
         Q_EMIT publishCropImageRequest();
     }
     else
-        selectionMade = false;
+        selection_made_ = false;
 }
 
 void CameraView::requestSingleFeedImage()
@@ -280,7 +324,7 @@ void CameraView::disableSelection()
     Q_EMIT unHighlight();
 
     ((rviz::CameraDisplayCustom*)camera_viewer_)->selectionProcessed( selected_area_[0], selected_area_[1], selected_area_[2], selected_area_[3] );
-    selectionMade = true;
+    selection_made_ = true;
     int rightSide = 0;
     int topSide = 0;
     if(selected_area_[0]<selected_area_[2])
@@ -300,7 +344,7 @@ void CameraView::disableSelection()
     {
         topSide = selected_area_[3];
     }
-    xButton->setGeometry(rightSide-20, topSide, 20,20);
+    close_area_button_->setGeometry(rightSide-12, topSide, 12, 12);
 }
 
 void CameraView::requestPointCloudROI()
@@ -346,13 +390,13 @@ void CameraView::mouseMoved(int newX, int newY)
     if(((newX<last_selected_area_[0] && newX>last_selected_area_[2]) ||
        (newX>last_selected_area_[0] && newX<last_selected_area_[2])) &&
        ((newY<last_selected_area_[1] && newY>last_selected_area_[3]) ||
-       (newY>last_selected_area_[1] && newY<last_selected_area_[3])) && selectionMade)
+       (newY>last_selected_area_[1] && newY<last_selected_area_[3])) && selection_made_)
     {
-        xButton->show();
+        close_area_button_->show();
     }
     else
     {
-        xButton->hide();
+        close_area_button_->hide();
     }
 }
 
@@ -360,8 +404,8 @@ void CameraView::closeSelectedArea()
 {
     //std::cout<<"This gets hit"<<std::endl;
     ((rviz::CameraDisplayCustom*)camera_viewer_)->closeSelected();
-    xButton->hide();
-    selectionMade = false;
+    close_area_button_->hide();
+    selection_made_ = false;
 }
 
 void CameraView::updateImageFrame(std::string frame)
@@ -402,14 +446,25 @@ std::vector<std::string> CameraView::getCameraNames()
 
 void CameraView::mouseEnterEvent( QEvent* event )
 {
-    std::cout << "mouse enter " << view_id_ << std::endl;
-    manager_->getToolManager()->setCurrentTool( selection_tool_ );
+    //std::cout << "mouse enter " << view_id_ << std::endl;
+    if(manager_->getToolManager()->getCurrentTool() != selection_tool_)
+        manager_->getToolManager()->setCurrentTool( selection_tool_ );
 }
 
 void CameraView::mouseMoveEvent( QMouseEvent* event )
 {
-    std::cout << "mouse move " << view_id_ << std::endl;
-    manager_->getToolManager()->setCurrentTool( selection_tool_ );
+    //std::cout << "mouse move " << view_id_ << std::endl;
+    if(manager_->getToolManager()->getCurrentTool() != selection_tool_)
+        manager_->getToolManager()->setCurrentTool( selection_tool_ );
+}
+
+bool CameraView::eventFilter( QObject * o, QEvent * e )
+{
+    if ( e->type() == QEvent::Enter )
+        mouseEnterEvent(e);
+    else if ( e->type() == QEvent::MouseMove )
+        mouseMoveEvent((QMouseEvent*)e);
+    return QWidget::eventFilter( o, e );
 }
 
 void CameraView::keyPressEvent( QKeyEvent* event )
