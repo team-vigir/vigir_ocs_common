@@ -15,6 +15,7 @@ int main(int argc, char **argv)
   GhostControlWidget w;
   w.show();
   w.setMinimumSize(300,100);
+  //w.hide();
 
   return a.exec();
 }

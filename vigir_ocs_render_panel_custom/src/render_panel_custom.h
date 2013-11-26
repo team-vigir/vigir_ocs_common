@@ -44,6 +44,7 @@ Q_SIGNALS:
   void signalMouseDoubleClickEvent( QMouseEvent* event );
   void signalMouseWheelEvent( QWheelEvent* event );
   void signalMouseLeaveEvent ( QEvent * event );
+  void signalMouseEnterEvent ( QEvent * event );
   void signalKeyPressEvent( QKeyEvent* event );
 
 protected:
@@ -54,6 +55,7 @@ protected:
   virtual void mouseDoubleClickEvent( QMouseEvent* event );
   virtual void wheelEvent( QWheelEvent* event );
   virtual void leaveEvent ( QEvent * event );
+  virtual void enterEvent( QEvent * event );
   virtual void keyPressEvent( QKeyEvent* event );
 
 private:

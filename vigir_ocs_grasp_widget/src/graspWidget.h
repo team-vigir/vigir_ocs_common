@@ -10,6 +10,9 @@
 #include <QPainter>
 #include <QtGui>
 
+#include <vector>
+#include <algorithm>
+
 #include <ros/ros.h>
 
 #include "tf/transform_listener.h"
@@ -29,12 +32,13 @@
 
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
-#include <flor_grasp_msgs/GraspState.h>
-#include <flor_grasp_msgs/GraspSelection.h>
-#include <flor_grasp_msgs/TemplateSelection.h>
 #include <flor_ocs_msgs/OCSRobotStatus.h>
 #include <flor_ocs_msgs/RobotStatusCodes.h>
 #include <flor_ocs_msgs/OCSLinkColor.h>
+#include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <flor_grasp_msgs/GraspState.h>
+#include <flor_grasp_msgs/GraspSelection.h>
+#include <flor_grasp_msgs/TemplateSelection.h>
 
 namespace Ui {
 class graspWidget;
@@ -47,6 +51,8 @@ class graspWidget : public QWidget
 public:
     explicit graspWidget(QWidget *parent = 0);
     ~graspWidget();
+
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
 public Q_SLOTS:
     void on_userSlider_sliderReleased();
@@ -160,6 +166,10 @@ private:
     bool show_grasp_;
     bool stitch_template_;
 
+    std::vector<int> keys_pressed_list_;
+
+    ros::Subscriber key_event_sub_;
+
     robot_model_loader::RobotModelLoaderPtr hand_model_loader_;
     robot_model::RobotModelPtr hand_robot_model_;
     robot_state::RobotStatePtr hand_robot_state_;
@@ -169,7 +179,6 @@ private:
 
     // Used to make setting virtual joint positions (-> hand pose) easier
     sensor_msgs::JointState virtual_link_joint_states_;
-
 
 protected:
     void timerEvent(QTimerEvent *event);

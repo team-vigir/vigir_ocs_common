@@ -1,0 +1,9 @@
+<library path="libvigir_ocs_rviz_plugin_ortho_view_controller_custom">
+  <class name="rviz/OrthoViewControllerCustom"
+         type="rviz::OrthoViewControllerCustom"
+         base_class_type="rviz::ViewController">
+    <description>
+      Customized view controller plugin that allows any orientation for orthographic visualization.
+    </description>
+  </class>
+</library>

@@ -94,7 +94,7 @@ public:
 
     // need to change these to be slots
     virtual void setRenderPanel( RenderPanel* rp );
-    virtual void selectionProcessed( int x1, int y1, int x2, int y2 );
+    virtual void selectionProcessed( int& x1, int& y1, int& x2, int& y2 );
 
     // Overrides from Ogre::RenderTargetListener
 
@@ -113,6 +113,9 @@ public:
     static const QString BACKGROUND;
     static const QString OVERLAY;
     static const QString BOTH;
+
+    void setViewID(int id) { view_id_ = id; }
+    bool hasRenderedOnce () { return rendered_once_; }
 
 public Q_SLOTS:
     void changeFullImageResolution( int );
@@ -257,6 +260,10 @@ private:
     // changing it so we hold the last information received
     sensor_msgs::CameraInfo::ConstPtr last_info_;
     sensor_msgs::Image::ConstPtr last_image_;
+
+    int view_id_;
+
+    bool rendered_once_;
 
 };
 

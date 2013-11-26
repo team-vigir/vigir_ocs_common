@@ -13,6 +13,9 @@
 #include <QMouseEvent>
 #include <QPushButton>
 
+#include <sys/types.h> /* See NOTES */
+#include <sys/socket.h>
+
 #include "rviz/visualization_manager.h"
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
@@ -31,8 +34,9 @@ QPushButton* xButton;
 bool selectionMade = false;
 namespace vigir_ocs
 {
+
 CameraViewerCustom::CameraViewerCustom( QWidget* parent )
-    : Base3DView( "/world", parent )
+    : Base3DView( NULL, "/world", parent )
     , camera_frame_topic_("")
     , feed_rate_(0)
     , feed_resolution_(4)
@@ -40,6 +44,8 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     , area_resolution_(0)
     , setting_pose_(false)
 {
+    init();
+
     // Create a camera/image display.
     camera_viewer_ = manager_->createDisplay( "rviz/CameraDisplayCustom", "Camera image", true ); // this would use the plugin instead of manually adding the display object to the manager
     ROS_ASSERT( camera_viewer_ != NULL );
@@ -93,7 +99,7 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     // advertise pointcloud request
     pointcloud_request_frame_pub_ = nh_.advertise<geometry_msgs::PointStamped>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_frame", 1, false );
 
-    reset_view_button_->setParent(0);
+    //reset_view_button_->setParent(0);
     delete reset_view_button_;
     reset_view_button_ = NULL;
 
@@ -108,7 +114,6 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
 // Destructor.
 CameraViewerCustom::~CameraViewerCustom()
 {
-    delete manager_;
 }
 
 void CameraViewerCustom::setCameraPitch( int degrees )

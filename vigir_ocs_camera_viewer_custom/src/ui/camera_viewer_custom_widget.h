@@ -10,6 +10,13 @@
 
 #include <QPainter>
 
+#include <vector>
+#include <algorithm>
+
+#include <ros/ros.h>
+
+#include <flor_ocs_msgs/OCSKeyEvent.h>
+
 
 namespace Ui {
 class CameraViewerCustomWidget;
@@ -24,8 +31,16 @@ public:
     ~CameraViewerCustomWidget();
 
     virtual bool eventFilter( QObject * o, QEvent * e );
+
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 private:
     Ui::CameraViewerCustomWidget*ui;
+
+    std::vector<int> keys_pressed_list_;
+
+    ros::NodeHandle n_;
+
+    ros::Subscriber key_event_sub_;
 
 Q_SIGNALS:
     void pitchChanged(int);

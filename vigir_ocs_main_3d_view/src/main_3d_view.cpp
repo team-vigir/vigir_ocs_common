@@ -19,7 +19,7 @@ namespace vigir_ocs
 {
 // Constructor for Main3DView.  This does most of the work of the class.
 Main3DView::Main3DView( QWidget* parent )
-    : Base3DView( "/world", parent )
+    : Base3DView( NULL, "/world", parent )
 {
 }
 

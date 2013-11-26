@@ -108,6 +108,10 @@ Widget::~Widget()
 
 void Widget::timerEvent(QTimerEvent *event)
 {
+	// check if ros is still running; if not, just kill the application
+    if(!ros::ok())
+        qApp->quit();
+    
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
 }

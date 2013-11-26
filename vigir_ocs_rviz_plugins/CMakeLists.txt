@@ -30,6 +30,7 @@ catkin_package(
     vigir_ocs_rviz_plugin_map_display_custom
     vigir_ocs_rviz_plugin_frustum_display_custom
     vigir_ocs_rviz_plugin_interaction_tool_custom
+    vigir_ocs_rviz_plugin_ortho_view_controller_custom    
     ${OPENGL_LIBRARIES}
   INCLUDE_DIRS
     vigir_ocs_rviz_plugin_camera_display_custom/src
@@ -45,6 +46,7 @@ catkin_package(
     vigir_ocs_rviz_plugin_map_display_custom/src
     vigir_ocs_rviz_plugin_frustum_display_custom/src
     vigir_ocs_rviz_plugin_interaction_tool_custom/src
+    vigir_ocs_rviz_plugin_ortho_view_controller_custom/src
     ${OPENGL_INCLUDE_DIR}
   CATKIN_DEPENDS
     roscpp 
@@ -74,6 +76,7 @@ include_directories(
     vigir_ocs_rviz_plugin_map_display_custom/src
     vigir_ocs_rviz_plugin_frustum_display_custom/src
     vigir_ocs_rviz_plugin_interaction_tool_custom/src
+    vigir_ocs_rviz_plugin_ortho_view_controller_custom/src
 	${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM
@@ -95,6 +98,7 @@ add_subdirectory(vigir_ocs_rviz_plugin_robot_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_map_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_frustum_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_interaction_tool_custom)
+add_subdirectory(vigir_ocs_rviz_plugin_ortho_view_controller_custom)
 
 install(FILES
   camera_display_custom_plugin_description.xml
@@ -110,6 +114,7 @@ install(FILES
   map_display_custom_plugin_description.xml
   frustum_display_custom_plugin_description.xml
   interaction_tool_custom_plugin_description.xml
+  ortho_view_controller_custom_plugin_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 #install(DIRECTORY icons DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

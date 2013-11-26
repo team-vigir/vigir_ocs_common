@@ -155,7 +155,6 @@ void TemplateDisplayCustom::updateTfPrefix()
 
 void TemplateDisplayCustom::load()
 {
-
     // I add an ambient color. The ambient color is managed in the scenemanager.
     // If you want to learn more about ambient/specular/diffuse color, check the 'basic material tutorial'
     // from this serie.
@@ -392,7 +391,7 @@ void TemplateDisplayCustom::onMarkerFeedback(const flor_ocs_msgs::OCSInteractive
 
 void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg)
 {
-    //std::cout << "Processing template list" << std::endl;
+    std::cout << "Processing template list" << std::endl;
     for(int i = 0; i < msg->template_list.size(); i++)
     {
         std::cout << "Template: " << msg->template_list[i] << std::endl;

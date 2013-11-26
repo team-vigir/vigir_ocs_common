@@ -34,6 +34,8 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     set_to_target_pose_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/planning/plan_to_pose_state", 1, false );
     set_to_target_config_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/planning/plan_to_joint_state", 1, false );
 
+    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &GhostControlWidget::processNewKeyEvent, this );
+
     timer.start(33, this);
 }
 
@@ -44,6 +46,10 @@ GhostControlWidget::~GhostControlWidget()
 
 void GhostControlWidget::timerEvent(QTimerEvent *event)
 {
+	// check if ros is still running; if not, just kill the application
+    if(!ros::ok())
+        qApp->quit();
+    
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
 }
@@ -381,4 +387,30 @@ void GhostControlWidget::on_send_upper_body_button__clicked()
     cmd.data = "both_arms_with_torso_group";
 
     set_to_target_config_pub_.publish(cmd);
+}
+
+void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+{
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator key_is_pressed;
+
+    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    if(key_event->key == 12 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+3
+    {
+        if(this->isVisible())
+        {
+            this->hide();
+        }
+        else
+        {
+            this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+            this->show();
+        }
+    }
 }
