@@ -134,10 +134,14 @@ jointList::jointList(QWidget *parent) :
 
     std::cout << "JointList Widget setup now starting subscribing to Ros topic." << std::endl;
     std::string robotInfo;
+
     ros::NodeHandle nh;
     nh.getParam("/robot_description",robotInfo);
     processRobotInfo(robotInfo);
-    joint_states = nh.subscribe<sensor_msgs::JointState>( "/atlas/joint_states", 2, &jointList::updateList, this );
+
+    joint_states = nh_.subscribe<sensor_msgs::JointState>( "/atlas/joint_states", 2, &jointList::updateList, this );
+
+    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &jointList::processNewKeyEvent, this );
 
     //ros::spinOnce();
 
@@ -146,6 +150,10 @@ jointList::jointList(QWidget *parent) :
 
 void jointList::timerEvent(QTimerEvent *event)
 {
+    // check if ros is still running; if not, just kill the application
+    if(!ros::ok())
+        qApp->quit();
+    
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
 }
@@ -156,51 +164,51 @@ void jointList::processRobotInfo(std::string robotInfo)
 
 
 
-        QRegExp effort("<limit effort=\\\"[0-9]*.[0-9]*\\\"");
-        QRegExp lowLimit("soft_lower_limit=\\\"(-)*[0-9]*.[0-9]*\\\"");
-        QRegExp upLimit("soft_upper_limit=\\\"(-)*[0-9]*.[0-9]*\\\"");
-        QRegExp names("name=\\\"[a-z_]*\\\"");
-        QString robotString = QString::fromStdString(robotInfo);
+    QRegExp effort("<limit effort=\\\"[0-9]*.[0-9]*\\\"");
+    QRegExp lowLimit("soft_lower_limit=\\\"(-)*[0-9]*.[0-9]*\\\"");
+    QRegExp upLimit("soft_upper_limit=\\\"(-)*[0-9]*.[0-9]*\\\"");
+    QRegExp names("name=\\\"[a-z_]*\\\"");
+    QString robotString = QString::fromStdString(robotInfo);
 
-        for(int i = 0;i < joints.size(); i++)
+    for(int i = 0;i < joints.size(); i++)
+    {
+        int pos = 0;
+        while((pos = names.indexIn(robotString,pos)) != -1)
         {
-            int pos = 0;
-            while((pos = names.indexIn(robotString,pos)) != -1)
+            if(names.cap(0).remove(0,6).toStdString() == joints[i]->text(0).toStdString().append("\""))
             {
-                if(names.cap(0).remove(0,6).toStdString() == joints[i]->text(0).toStdString().append("\""))
+                int tempPos = pos;
+                QString tempString;
+                tempPos = effort.indexIn(robotString,tempPos);
+                if(tempPos != -1)
                 {
-                    int tempPos = pos;
-                    QString tempString;
-                    tempPos = effort.indexIn(robotString,tempPos);
-                    if(tempPos != -1)
-                    {
-                        tempString = effort.cap(0).remove(0,15);
-                        tempString.resize(tempString.size()-1);
-                        effortLimits.push_back(tempString.toDouble());
-                    }
-                    tempPos = pos;
-                    tempPos = lowLimit.indexIn(robotString,tempPos);
-                    if(tempPos != -1)
-                    {
-                        tempString = lowLimit.cap(0).remove(0,18);
-                        tempString.resize(tempString.size()-1);
-                        downPoseLimit.push_back(tempString.toDouble());
-                    }
-                    tempPos = pos;
-                    pos = robotInfo.size()-100;
-                    tempPos = upLimit.indexIn(robotString,tempPos);
-                    if(tempPos != -1)
-                    {
-                        tempString = upLimit.cap(0).remove(0,18);
-                        tempString.resize(tempString.size()-1);
-                        upPoseLimit.push_back(tempString.toDouble());
-                    }
+                    tempString = effort.cap(0).remove(0,15);
+                    tempString.resize(tempString.size()-1);
+                    effortLimits.push_back(tempString.toDouble());
                 }
-                pos += names.matchedLength();
+                tempPos = pos;
+                tempPos = lowLimit.indexIn(robotString,tempPos);
+                if(tempPos != -1)
+                {
+                    tempString = lowLimit.cap(0).remove(0,18);
+                    tempString.resize(tempString.size()-1);
+                    downPoseLimit.push_back(tempString.toDouble());
+                }
+                tempPos = pos;
+                pos = robotInfo.size()-100;
+                tempPos = upLimit.indexIn(robotString,tempPos);
+                if(tempPos != -1)
+                {
+                    tempString = upLimit.cap(0).remove(0,18);
+                    tempString.resize(tempString.size()-1);
+                    upPoseLimit.push_back(tempString.toDouble());
+                }
             }
-
-
+            pos += names.matchedLength();
         }
+
+
+    }
     for(int i=0;i<joints.size();i++)
     {
         std::cout << " Joint["<< i <<"]  limits pos(" << downPoseLimit[i] << ", " << upPoseLimit[i] << ") effort=" << effortLimits[i] << std::endl;
@@ -226,7 +234,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
     warn = 0;
     err = 0;
     for(int i=0;i<joint_states->name.size(); i++)
-    joints[i]->parent()->setBackground(0,Qt::white);
+        joints[i]->parent()->setBackground(0,Qt::white);
     for(int i=0;i<joint_states->name.size(); i++)
     {
         joints[i]->setText(1,QString::number(joint_states->position[i]));
@@ -236,7 +244,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
         joints[i]->setBackgroundColor(1,Qt::white);
         joints[i]->setBackgroundColor(3,Qt::white);
 
-    //std::cout << "p=" << joint_states->position[i] << " v=" << joint_states->velocity[i];
+        //std::cout << "p=" << joint_states->position[i] << " v=" << joint_states->velocity[i];
         //std::cout << " e=" << joint_states->effort[i] << " dpl=" << downPoseLimit[i];
         //std::cout << " upl=" << upPoseLimit[i] << " el=" << effortLimits[i] << std::endl;
         if(joint_states->position[i] <= warnMin*downPoseLimit[i])
@@ -317,3 +325,30 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
         }
     }
 }
+
+void jointList::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+{
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator key_is_pressed;
+
+    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    if(key_event->key == 17 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+8
+    {
+        if(this->isVisible())
+        {
+            this->hide();
+        }
+        else
+        {
+            //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+            this->show();
+        }
+    }
+}
+

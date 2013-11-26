@@ -64,6 +64,7 @@ graspWidget::graspWidget(QWidget *parent)
     std::stringstream finger_joint_name;
     XmlRpc::XmlRpcValue   hand_T_palm;
 
+    float color_r, color_g, color_b;
     if(hand_ == "left")
     {
         this->setWindowTitle(QString::fromStdString("Left Hand Grasp Widget"));
@@ -91,6 +92,9 @@ graspWidget::graspWidget(QWidget *parent)
         nh_.getParam("/l_hand_tf/gp_T_palm", hand_T_palm);
         gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
         gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+        color_r = 1.0f;
+        color_g = 1.0f;
+        color_b = 0.0f;
     }
     else
     {
@@ -119,6 +123,9 @@ graspWidget::graspWidget(QWidget *parent)
         nh_.getParam("/r_hand_tf/gp_T_palm", hand_T_palm);
         gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
         gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+        color_r = 0.0f;
+        color_g = 1.0f;
+        color_b = 1.0f;
     }
     // this is for publishing the hand position in world coordinates for moveit
     virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_x");
@@ -138,6 +145,21 @@ graspWidget::graspWidget(QWidget *parent)
     std::cout << code_path_ << std::endl;
     robot_status_codes_.loadErrorMessages(code_path_);
 
+    // change color of the ghost template hands
+    const std::vector<std::string>& link_names = hand_robot_model_->getLinkModelNames();
+
+    for (size_t i = 0; i < link_names.size(); ++i)
+    {
+        moveit_msgs::ObjectColor tmp;
+        tmp.id = link_names[i];
+        tmp.color.a = 0.5f;
+        tmp.color.r = color_r;
+        tmp.color.g = color_g;
+        tmp.color.b = color_b;
+        display_state_msg_.highlight_links.push_back(tmp);
+    }
+
+    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &graspWidget::processNewKeyEvent, this );
     timer.start(33, this);
 }
 //SetStylesheet to change on the fly
@@ -149,6 +171,10 @@ graspWidget::~graspWidget()
 
 void graspWidget::timerEvent(QTimerEvent *event)
 {
+	// check if ros is still running; if not, just kill the application
+    if(!ros::ok())
+        qApp->quit();
+    
     // make sure that we don't show the grasp hands if the user doesn't want to see them
     if(!ui->graspBox->isEnabled() || !show_grasp_)
         hideHand();
@@ -813,7 +839,8 @@ void graspWidget::templateStitchPoseCallback(const geometry_msgs::PoseStamped::C
     {
         this->stitch_template_pose_.setRotation(tf::Quaternion(msg->pose.orientation.x,msg->pose.orientation.y,msg->pose.orientation.z,msg->pose.orientation.w));
         this->stitch_template_pose_.setOrigin(tf::Vector3(msg->pose.position.x,msg->pose.position.y,msg->pose.position.z) );
-    }else
+    }
+	else
     {
         this->stitch_template_pose_.setIdentity();
     }
@@ -823,11 +850,27 @@ void graspWidget::templateStitchPoseCallback(const geometry_msgs::PoseStamped::C
 
 void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_states )
 {
-    //if(hand_type == "irobot")
-    //{
+    if(hand_type_ == "irobot")
+    {
+        double min_feedback = 0, max_feedback = 1.0;
+        for(int i = 0; i < joint_states->name.size(); i++)
+        {
+            // get the joint name to figure out the color of the links
+            std::string joint_name = joint_states->name[i].c_str();
 
-    //}
-    //else
+            // velocity represents tactile feedback
+            double feedback = joint_states->velocity[i];
+
+            // NOTE: this is SPECIFIC to the irobot hands and how they are setup in the urdf and grasp controllers, IT IS NOT GENERAL
+            std::string link_name = joint_name;
+
+            //ROS_ERROR("Applying color to %s",link_name.c_str());
+            // calculate color intensity based on min/max feedback
+            unsigned char color_intensity = (unsigned char)((feedback - min_feedback)/(max_feedback-min_feedback) * 255.0);
+            publishLinkColor(link_name,color_intensity,255-color_intensity,0);
+        }
+    }
+    else
     {
         //Index 	Name            Link
         //0         right_f0_j0 	Palm index base
@@ -851,12 +894,15 @@ void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_
 
             // velocity represents tactile feedback
             double feedback = joint_states->velocity[i];
-
+            
             // NOTE: this is SPECIFIC to atlas hands, IT IS NOT GENERAL
             std::string link_name;
-            size_t found = joint_name.find('j');
+            link_name = joint_name;
+            size_t found = link_name.find('j');
             if( found != std::string::npos )
-                link_name = joint_name.erase(found,1);
+                link_name = link_name.erase(found,1);
+
+            boost::erase_all(link_name, "/");
 
             //ROS_ERROR("Applying color to %s",link_name.c_str());
             // calculate color intensity based on min/max feedback
@@ -950,6 +996,7 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
     {
 
         // must match the order used in the .grasp file
+        
         joint_states.name.push_back(hand_+"_f0_j1");
         joint_states.name.push_back(hand_+"_f1_j1");
         joint_states.name.push_back(hand_+"_f2_j1");
@@ -958,6 +1005,7 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
         joint_states.name.push_back(hand_+"_f0_j2"); // 0 for now
         joint_states.name.push_back(hand_+"_f1_j2"); // 0 for now
         joint_states.name.push_back(hand_+"_f2_j2"); // 0 for now
+        
     }
     else
     {
@@ -1082,6 +1130,9 @@ void graspWidget::on_show_grasp_toggled(bool checked)
     show_grasp_ = checked;
     ui->show_grasp_radio->setEnabled(show_grasp_);
     ui->show_pre_grasp_radio->setEnabled(show_grasp_);
+
+    robot_state::robotStateToRobotStateMsg(*hand_robot_state_, display_state_msg_.state);
+    robot_state_vis_pub_.publish(display_state_msg_);
 }
 
 void graspWidget::on_stitch_template_toggled(bool checked)
@@ -1102,4 +1153,30 @@ void graspWidget::on_stitch_template_toggled(bool checked)
     msg.pose.header.frame_id = "/world";
     msg.pose.pose = last_template_list_.pose[ui->templateBox->currentIndex()].pose;
     template_stitch_request_pub_.publish(msg);
+}
+
+void graspWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+{
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator key_is_pressed;
+
+    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    if(key_event->key == 16 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+7
+    {
+        if(this->isVisible())
+        {
+            this->hide();
+        }
+        else
+        {
+            //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+            this->show();
+        }
+    }
 }

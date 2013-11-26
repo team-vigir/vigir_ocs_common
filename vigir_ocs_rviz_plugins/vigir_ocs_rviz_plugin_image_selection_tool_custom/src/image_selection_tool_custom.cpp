@@ -61,6 +61,7 @@
 #include "rviz/display.h"
 #include "rviz/viewport_mouse_event.h"
 #include "rviz/load_resource.h"
+#include "rviz/ogre_helpers/apply_visibility_bits.h"
 
 #include "image_selection_tool_custom.h"
 
@@ -144,16 +145,10 @@ void ImageSelectionToolCustom::deactivate()
 
 void ImageSelectionToolCustom::update(float wall_dt, float ros_dt)
 {
-    //SelectionManager* sel_manager = context_->getSelectionManager();
-
-
-    //if(port)
-    //{
-    //   sel_manager->highlight( port, theX1, theY1, theX2, theY2 );
-    //}
-
-
+    //std::cout << highlight_enabled_ << std::endl;
     highlight_node_->setVisible(highlight_enabled_);
+
+    applyVisibilityBits(vis_bit_,highlight_node_);
 
     if (highlight_enabled_)
     {
@@ -282,6 +277,11 @@ void ImageSelectionToolCustom::setHighlightRect(Ogre::Viewport* viewport, int x1
 void ImageSelectionToolCustom::removeHighlight()
 {
     highlight_enabled_ = false;
+}
+
+void ImageSelectionToolCustom::setVisibilityBits(uint32_t vis_bit)
+{
+    vis_bit_ = vis_bit;
 }
 
 } // end namespace rviz

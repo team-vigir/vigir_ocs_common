@@ -18,9 +18,12 @@
 #include <QPushButton>
 #include <QFrame>
 #include <QLineEdit>
+#include <QBasicTimer>
+#include <QThread>
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
 
+#include <OGRE/OgreSceneManager.h>
 
 #include <ros/ros.h>
 
@@ -48,6 +51,7 @@ class Tool;
 class RenderPanel;
 class RenderPanelCustom;
 class VisualizationManager;
+class ViewController;
 class FrameManager;
 }
 
@@ -71,8 +75,10 @@ class Base3DView: public QWidget
 {
     Q_OBJECT
 public:
-    Base3DView( std::string base_frame = "/pelvis", QWidget* parent = 0 );
+    Base3DView( rviz::VisualizationManager* context = NULL, std::string base_frame = "/pelvis", QWidget* parent = 0 );
     virtual ~Base3DView();
+    
+    void init();
 
     void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
     void processNewSelection( const geometry_msgs::Point::ConstPtr& pose );
@@ -88,6 +94,9 @@ public:
 
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
+    rviz::VisualizationManager* getVisualizationManager() { return manager_; }
+
+    void updateRenderMask( bool );
 public Q_SLOTS:
     // displays
     void robotModelToggled( bool );
@@ -142,13 +151,14 @@ Q_SIGNALS:
     void setFrustum( const float &, const float &, const float&, const float& );
 
 protected:
+    virtual void timerEvent(QTimerEvent *event);
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
     void publishGhostPoses();
+    virtual rviz::ViewController* getCurrentViewController();
 
     rviz::VisualizationManager* manager_;
-    rviz::VisualizationManager* manager_simulation_;
     rviz::RenderPanel* render_panel_;
 
     rviz::Display* robot_model_;
@@ -180,6 +190,8 @@ protected:
 
     // for simulation
     rviz::Display* ghost_robot_model_;
+
+    std::map<std::string,rviz::Display*> display_list_;
 
     rviz::Tool* interactive_markers_tool_;
     //rviz::Tool* selection_tool_;
@@ -259,6 +271,10 @@ protected:
 
     tf::Transform l_hand_T_palm_;
     tf::Transform r_hand_T_palm_;
+
+    QBasicTimer timer;
+
+    int view_id_;
 };
 }
 #endif // BASE_3D_VIEW_H

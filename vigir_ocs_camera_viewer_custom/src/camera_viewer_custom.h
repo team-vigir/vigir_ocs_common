@@ -12,8 +12,11 @@
 #define CAMERA_VIEWER_H
 
 #include <QWidget>
-#include <std_msgs/Float64.h>
+#include <QSocketNotifier>
+
 #include <ros/ros.h>
+
+#include <std_msgs/Float64.h>
 
 #include "base_3d_view.h"
 
@@ -100,6 +103,7 @@ private:
     int area_resolution_;
 
     bool setting_pose_;
+
 };
 }
 #endif // CAMERA_VIEWER_H

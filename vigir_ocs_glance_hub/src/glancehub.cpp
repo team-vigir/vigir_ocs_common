@@ -12,11 +12,21 @@ glanceHub::glanceHub(QWidget *parent) :
     controlMode_sub = nh.subscribe<flor_control_msgs::FlorControlModeCommand>("/flor/controller/mode_command",5,&glanceHub::controlModeMsgRcv, this);
     robotStatusMoveit_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/planning/upper_body/status",2,&glanceHub::robotStatusMoveit,this);
     robotStatusFootstep_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/footstep_planner/status",2,&glanceHub::robotStatusFootstep,this);
+    key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &glanceHub::processNewKeyEvent, this );
     timer.start(33, this);
+}
+
+glanceHub::~glanceHub()
+{
+    delete ui;
 }
 
 void glanceHub::timerEvent(QTimerEvent *event)
 {
+	// check if ros is still running; if not, just kill the application
+    if(!ros::ok())
+        qApp->quit();
+    
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     if(event->timerId() == timer.timerId())
         ros::spinOnce();
@@ -108,7 +118,28 @@ void glanceHub::controlModeMsgRcv(const flor_control_msgs::FlorControlModeComman
     std::cout << "Changing to "<< newText.toStdString() << " Mode" << std::endl;
 }
 
-glanceHub::~glanceHub()
+void glanceHub::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 {
-    delete ui;
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator key_is_pressed;
+
+    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    if(key_event->key == 10 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+1
+    {
+        if(this->isVisible())
+        {
+            this->hide();
+        }
+        else
+        {
+            //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+            this->show();
+        }
+    }
 }

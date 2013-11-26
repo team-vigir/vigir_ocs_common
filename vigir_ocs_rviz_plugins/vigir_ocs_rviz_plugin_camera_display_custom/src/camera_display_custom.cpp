@@ -38,6 +38,7 @@
  */
 
 #include <boost/bind.hpp>
+#include <bitset>
 
 #include <OGRE/OgreManualObject.h>
 #include <OGRE/OgreMaterialManager.h>
@@ -62,6 +63,7 @@
 #include "rviz/properties/int_property.h"
 #include "rviz/properties/ros_topic_property.h"
 #include "rviz/properties/display_group_visibility_property.h"
+#include "rviz/ogre_helpers/apply_visibility_bits.h"
 #include <image_transport/camera_common.h>
 
 #include "rviz/display.h"
@@ -110,6 +112,7 @@ CameraDisplayCustom::CameraDisplayCustom()
     , new_caminfo_( false )
     , force_render_( false )
     , caminfo_ok_(false)
+    , rendered_once_(false)
 {
     image_position_property_ = new EnumProperty( "Image Rendering", BOTH,
                                                  "Render the image behind all other geometry or overlay it on top, or both.",
@@ -171,9 +174,7 @@ void CameraDisplayCustom::onInitialize()
 
     caminfo_tf_filter_ = new tf::MessageFilter<sensor_msgs::CameraInfo>( *context_->getTFClient(), fixed_frame_.toStdString(),
                                                                          queue_size_property_->getInt(), update_nh_ );
-
     context_->getSceneManager()->addRenderQueueListener(this);
-
     {
         static uint32_t count = 0;
         std::stringstream ss;
@@ -189,9 +190,9 @@ void CameraDisplayCustom::onInitialize()
     fg_screen_rect_selection_ = NULL;
     screen_rect_highlight_mask_ = NULL;
 
+    static int count = 0;
     // full image quad
     {
-        static int count = 0;
         std::stringstream ss;
         ss << "ImageDisplayObject" << count++;
 
@@ -224,8 +225,6 @@ void CameraDisplayCustom::onInitialize()
         bg_scene_node_->attachObject(bg_screen_rect_);
         bg_scene_node_->setVisible(false);
 
-
-
         //overlay rectangle
         fg_screen_rect_ = new Ogre::Rectangle2D(true);
         fg_screen_rect_->setCorners(-1.0f, 1.0f, 1.0f, -1.0f);
@@ -241,8 +240,6 @@ void CameraDisplayCustom::onInitialize()
         fg_scene_node_->setVisible(false);
     }
     updateAlpha();
-
-    static int count = 1;
 
     // selected area image quad
     {
@@ -334,19 +331,19 @@ void CameraDisplayCustom::onInitialize()
     }
 
     // first create a publisher to set the parameters of the full image
-    img_req_pub_full_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, true );
+    //img_req_pub_full_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, true );
 
     // publish image request for full image - TO DO: MAKE THESE CONFIGURABLE WITH A SLOT FOR UI INTEGRATION
-    //publishFullImageRequest();
+    ////publishFullImageRequest();
 
     // also create a publisher to set parameters of cropped image
-    img_req_pub_crop_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, false );
+    //img_req_pub_crop_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, false );
     // then, subscribe to the resulting cropped image
-    cropped_image_ = n_.subscribe<sensor_msgs::Image>( "/l_image_cropped/image_raw", 5, &CameraDisplayCustom::processCroppedImage, this );
+    //cropped_image_ = n_.subscribe<sensor_msgs::Image>( "/l_image_cropped/image_raw", 5, &CameraDisplayCustom::processCroppedImage, this );
 
     // finally, we need to subscribe to requests so that multiple clients have everything updated
-    img_req_sub_crop_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, &CameraDisplayCustom::processCropImageRequest, this );
-    img_req_sub_full_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &CameraDisplayCustom::processFullImageRequest, this );
+    //img_req_sub_crop_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, &CameraDisplayCustom::processCropImageRequest, this );
+    //img_req_sub_full_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &CameraDisplayCustom::processFullImageRequest, this );
 
     caminfo_tf_filter_->connectInput(caminfo_sub_);
     caminfo_tf_filter_->registerCallback(boost::bind(&CameraDisplayCustom::caminfoCallback, this, _1));
@@ -371,6 +368,7 @@ void CameraDisplayCustom::postRenderTargetUpdate(const Ogre::RenderTargetEvent& 
 {
     bg_scene_node_->setVisible( false );
     fg_scene_node_->setVisible( false );
+
 }
 
 
@@ -421,53 +419,18 @@ void CameraDisplayCustom::renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre:
 
 void CameraDisplayCustom::onEnable()
 {
-    /*if ( (!isEnabled()) || (topic_property_->getTopicStd().empty()) )
-    {
-        if((topic_property_->getTopicStd().empty()))
-        {
-            //std::cout<<"The error is the topic std" <<std::endl;
-        }
-        return;
-    }
-
-    // These next two lines make it so that "No Image" appears for some reason.
-
-    std::string target_frame = fixed_frame_.toStdString();
-
-    ImageDisplayBase::enableTFFilter(target_frame);
-    ImageDisplayBase::subscribe();
-
-    std::string topic = topic_property_->getTopicStd();
-    std::string caminfo_topic = image_transport::getCameraInfoTopic(topic_property_->getTopicStd());
-
-    try
-    {
-        caminfo_sub_.subscribe( update_nh_, caminfo_topic, 1 );
-        // std::cout<<"The subscription happens"<<std::endl;
-        setStatus( StatusProperty::Ok, "Camera Info", "OK" );
-    }
-    catch( ros::Exception& e )
-    {
-        setStatus( StatusProperty::Error, "Camera Info", QString( "Error subscribing: ") + e.what() );
-    }
-
-    */
-
+    std::cout << "onEnable()" << std::endl;
     subscribe();
 
     if(render_panel_)
         render_panel_->getRenderWindow()->setActive(true);
-
 }
 
 void CameraDisplayCustom::onDisable()
 {
+    std::cout << "onDisable()" << std::endl;
     if(render_panel_)
         render_panel_->getRenderWindow()->setActive(false);
-
-    /*ImageDisplayBase::unsubscribe();
-    caminfo_sub_.unsubscribe();
-    clear();*/
 
     unsubscribe();
     clear();
@@ -514,7 +477,6 @@ void CameraDisplayCustom::clear()
 
     new_caminfo_ = false;
     current_caminfo_.reset();
-
     setStatus( StatusProperty::Warn, "Camera Info",
                "No CameraInfo received on [" + QString::fromStdString( caminfo_sub_.getTopic() ) + "].  Topic may not exist.");
     setStatus( StatusProperty::Warn, "Image", "No Image received");
@@ -564,12 +526,14 @@ void CameraDisplayCustom::update( float wall_dt, float ros_dt )
             setStatus(StatusProperty::Error, "Image", e.what());
         }
 
-        render_panel_->getRenderWindow()->update();
+        //render_panel_->getRenderWindow()->update();
     }
 }
 
+
 bool CameraDisplayCustom::updateCamera(bool update_image)
 {
+
     if(update_image)
     {
         boost::mutex::scoped_lock lock( caminfo_mutex_ );
@@ -579,6 +543,7 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
     }
     if(!last_info_ || !last_image_)
     {
+
        return false;
     }
 
@@ -588,8 +553,13 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
         return false;
     }
 
+    //std::cout << "Updating camera " << view_id_ << std::endl;
+    // workaround to make rviz render the image correctly once
+    rendered_once_ = true;
+
     Ogre::Vector3 position;
     Ogre::Quaternion orientation;
+
     context_->getFrameManager()->getTransform( last_image_->header.frame_id, last_image_->header.stamp, position, orientation );
 
     // convert vision (Z-forward) frame to ogre frame (Z-out)
@@ -625,17 +595,14 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
     float img_height = full_image_height_;
 
     Q_EMIT updateFrameID(last_info_->header.frame_id);
-
     double fx = last_info_->P[0];
     double fy = last_info_->P[5];
-
     //make sure the aspect ratio of the image is preserved
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
 
     float zoom_x = zoom_property_->getFloat();
     float zoom_y = zoom_x;
-
     // Preserve aspect ratio
     if( win_width != 0 && win_height != 0 )
     {
@@ -707,7 +674,7 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
         float img_aspect = img_width / img_height;
         float win_aspect = win_width / win_height;
 
-        // calculate size of 3 pixels in scene CS for selection highlight
+        // calculate size of 1 pixels in scene CS for selection highlight
         float padding_x = 1.0f*2.0f/win_width;
         float padding_y = 1.0f*2.0f/win_height;
 
@@ -740,7 +707,9 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
                 fg_screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
                 screen_rect_highlight_mask_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
                 screen_rect_highlight_bg_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
-                //std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
+                //std::bitset<8> x(vis_bit_);
+                //std::cout << x << std::endl;
+                //std::cout << "Drawing Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
             }
         }
         else
@@ -766,7 +735,9 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
                 fg_screen_rect_selection_->setCorners(x1,y1,x2,y2, false);
                 screen_rect_highlight_mask_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
                 screen_rect_highlight_bg_->setCorners(x1-padding_x,y1+padding_y,x2+padding_x,y2-padding_y, false);
-                //std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
+                //std::bitset<8> x(vis_bit_);
+                //std::cout << x << std::endl;
+                //std::cout << "Drawing Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
             }
         }
     }
@@ -839,29 +810,31 @@ void CameraDisplayCustom::setRenderPanel( RenderPanel* rp )
     render_panel_->getCamera()->setNearClipDistance( 0.01f );
 }
 
-void CameraDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
+void CameraDisplayCustom::selectionProcessed( int &x1, int &y1, int &x2, int &y2 )
 {
-    std::cout << "Select Window: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
+    std::bitset<8> x(vis_bit_);
+    std::cout << x << std::endl;
+    std::cout << "Selection Processed: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
     //std::cout << "   full image rect: " << rect_dim_x1_ << ", " << rect_dim_y1_ << " -> " << rect_dim_x2_ << ", " << rect_dim_y2_ << std::endl;
     //std::cout << "   window dimensions: " << render_panel_->width() << ", " << render_panel_->height() << std::endl;
 
-    // make sure selection is within image rect coordinates
+    // make sure selection is within image rect coordinates, and write them back to the variables sent over to this function
     float minx = std::min(x1, x2);
-    float _x1 = (minx < rect_dim_x1_ ? rect_dim_x1_ : (minx > rect_dim_x2_ ? rect_dim_x2_ : minx));
+    x1 = (minx < rect_dim_x1_ ? rect_dim_x1_ : (minx > rect_dim_x2_ ? rect_dim_x2_ : minx));
     float maxx = std::max(x1, x2);
-    float _x2 = (maxx < rect_dim_x1_ ? rect_dim_x1_ : (maxx > rect_dim_x2_ ? rect_dim_x2_ : maxx));
+    x2 = (maxx < rect_dim_x1_ ? rect_dim_x1_ : (maxx > rect_dim_x2_ ? rect_dim_x2_ : maxx));
     float miny = std::min(y1, y2);
-    float _y1 = (miny < rect_dim_y1_ ? rect_dim_y1_ : (miny > rect_dim_y2_ ? rect_dim_y2_ : miny));
+    y1 = (miny < rect_dim_y1_ ? rect_dim_y1_ : (miny > rect_dim_y2_ ? rect_dim_y2_ : miny));
     float maxy = std::max(y1, y2);
-    float _y2 = (maxy < rect_dim_y1_ ? rect_dim_y1_ : (maxy > rect_dim_y2_ ? rect_dim_y2_ : maxy));
+    y2 = (maxy < rect_dim_y1_ ? rect_dim_y1_ : (maxy > rect_dim_y2_ ? rect_dim_y2_ : maxy));
     //std::cout << "   corrected window: " << _x1 << ", " << _y1 << " -> " << _x2 << ", " << _y2 << std::endl;
 
     // calculate image selection box dimensions -> texture coordinates
-    crop_x_offset_ = (_x1-rect_dim_x1_) * full_image_width_ / (rect_dim_x2_-rect_dim_x1_);
-    crop_y_offset_ = (_y1-rect_dim_y1_) * full_image_height_ / (rect_dim_y2_-rect_dim_y1_);
+    crop_x_offset_ = (x1-rect_dim_x1_) * full_image_width_ / (rect_dim_x2_-rect_dim_x1_);
+    crop_y_offset_ = (y1-rect_dim_y1_) * full_image_height_ / (rect_dim_y2_-rect_dim_y1_);
     // and size
-    crop_width_  = ((_x2-_x1) * full_image_width_) / (rect_dim_x2_-rect_dim_x1_);
-    crop_height_ = ((_y2-_y1) * full_image_height_) / (rect_dim_y2_-rect_dim_y1_);
+    crop_width_  = ((x2-x1) * full_image_width_) / (rect_dim_x2_-rect_dim_x1_);
+    crop_height_ = ((y2-y1) * full_image_height_) / (rect_dim_y2_-rect_dim_y1_);
 
     // create image request message
     //publishCropImageRequest();
@@ -871,7 +844,7 @@ void CameraDisplayCustom::selectionProcessed( int x1, int y1, int x2, int y2 )
 
 void CameraDisplayCustom::changeFullImageResolution( int t )
 {
-    std::cout << "Full image resolution changed:" << t << std::endl;
+    //std::cout << "Full image resolution changed:" << t << std::endl;
     switch( t )
     {
     case IMAGE_RESOLUTION_FULL:
@@ -897,8 +870,8 @@ void CameraDisplayCustom::changeFullImageResolution( int t )
     case IMAGE_RESOLUTION_16:
     {
         full_image_binning_ = 16;
-    }
         break;
+    }
     }
 
     //publishFullImageRequest();
@@ -906,7 +879,7 @@ void CameraDisplayCustom::changeFullImageResolution( int t )
 
 void CameraDisplayCustom::changeCropImageResolution( int t )
 {
-    std::cout << "Crop image resolution changed:" << t << std::endl;
+    //std::cout << "Crop image resolution changed:" << t << std::endl;
     switch( t )
     {
     case IMAGE_RESOLUTION_FULL:
@@ -932,8 +905,8 @@ void CameraDisplayCustom::changeCropImageResolution( int t )
     case IMAGE_RESOLUTION_16:
     {
         crop_binning_ = 16;
-    }
         break;
+    }
     }
 
     //publishCropImageRequest();
@@ -941,7 +914,7 @@ void CameraDisplayCustom::changeCropImageResolution( int t )
 
 void CameraDisplayCustom::changeCameraSpeed( int t )
 {
-    std::cout << "Camera speed changed:" << t << std::endl;//(15.0f/(float)pow(3,t)) << std::endl;
+    //std::cout << "Camera speed changed:" << t << std::endl;//(15.0f/(float)pow(3,t)) << std::endl;
 
     publish_frequency_ = t;//15.0f/(float)pow(3,t); // 15 or whatever the max fps is
 
@@ -950,7 +923,7 @@ void CameraDisplayCustom::changeCameraSpeed( int t )
 
 void CameraDisplayCustom::changeCropCameraSpeed( int t )
 {
-    std::cout << "Camera speed changed:" << t << std::endl;//(15.0f/(float)pow(3,t)) << std::endl;
+    //std::cout << "Camera speed changed:" << t << std::endl;//(15.0f/(float)pow(3,t)) << std::endl;
 
     crop_publish_frequency_ = t;//15.0f/(float)pow(3,t); // 15 or whatever the max fps is
 
@@ -1104,7 +1077,9 @@ void CameraDisplayCustom::setZoom(float newZoom)
 
 void CameraDisplayCustom::closeSelected()
 {
-    selectionProcessed(0,0,0,0);
+    int x1,y1,x2,y2;
+    x1=y1=x2=y2=0;
+    selectionProcessed(x1,y1,x2,y2);
     if(crop_publish_frequency_ > 0)
     {
         crop_publish_frequency_ = 0;

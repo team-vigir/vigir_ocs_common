@@ -50,10 +50,12 @@ CameraViewerCustomWidget::CameraViewerCustomWidget(QWidget *parent) :
         sp->setFocusPolicy( Qt::StrongFocus );
     }
 
-    //ui->octomap->hide();
-    //ui->lidar_point_cloud->hide();
-    //ui->stereo_point_cloud->hide();
-    //ui->laser_scan->hide();
+    /*ui->octomap->hide();
+    ui->lidar_point_cloud->hide();
+    ui->stereo_point_cloud->hide();
+    ui->laser_scan->hide();*/
+
+    key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &CameraViewerCustomWidget::processNewKeyEvent, this );
 }
 
 CameraViewerCustomWidget::~CameraViewerCustomWidget()
@@ -88,7 +90,7 @@ void CameraViewerCustomWidget::updatePitch(int value)
         QString label = QString::fromStdString(string);
         ui->pitch_label->setText(label);
 
-        ui->widget->setCameraPitch(value);
+        ui->camera_view_->setCameraPitch(value);
     }
 }
 
@@ -214,10 +216,10 @@ void CameraViewerCustomWidget::enableGroup(bool selected)
         }
     }
 
-    ui->octomap->hide();
+    /*ui->octomap->hide();
     ui->lidar_point_cloud->hide();
     ui->stereo_point_cloud->hide();
-    ui->laser_scan->hide();
+    ui->laser_scan->hide();*/
 }
 
 bool CameraViewerCustomWidget::eventFilter( QObject * o, QEvent * e )
@@ -229,4 +231,22 @@ bool CameraViewerCustomWidget::eventFilter( QObject * o, QEvent * e )
         return true;
     }
     return QWidget::eventFilter( o, e );
+}
+
+void CameraViewerCustomWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+{
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator key_is_pressed;
+
+    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    if(key_event->key == 41 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+f
+        ui->camera_view_->requestSingleFeedImage();
+    if(key_event->key == 54 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+c
+        ui->camera_view_->requestSingleAreaImage();
 }

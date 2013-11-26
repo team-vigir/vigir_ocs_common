@@ -108,7 +108,7 @@ void ImageNodelet::publishImageAdded(const unsigned long &id)
 
     stream << image_history_[id].id ;
     std::cout<<"Iamge size:"<<img_size.width;
-    const char dir_path[] = "/home/tania/vigir/image";
+    const char dir_path[] = "/home/vigir/image";
     boost::filesystem::path dir(dir_path);
     if(boost::filesystem::create_directory(dir))
       {
@@ -116,7 +116,7 @@ void ImageNodelet::publishImageAdded(const unsigned long &id)
       }
     else
         std::cout<<"\nFolder not created!!";
-    imwrite("/home/tania/vigir/image/"+stream.str()+".jpg",cv_ptr->image,qualitytype);
+    imwrite("/home/vigir/image/"+stream.str()+".jpg",cv_ptr->image,qualitytype);
     image_added_pub_.publish(msg);
 }
 
@@ -153,7 +153,7 @@ void ImageNodelet::publishImageToOCS(const unsigned long &id)
     stream << id;
 
     cv::Mat image;
-    image = cv::imread( "/home/tania/vigir/image/"+stream.str()+".jpg", 1 );
+    image = cv::imread( "/home/vigir/image/"+stream.str()+".jpg", 1 );
     cv_bridge::CvImage out_msg;
     //out_msg.header   = in_msg->header; // Same timestamp and tf frame as input image
     out_msg.encoding = sensor_msgs::image_encodings::BGR8; // Or whatever

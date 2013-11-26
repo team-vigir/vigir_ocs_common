@@ -7,9 +7,15 @@
 #include <QFile>
 #include <QtGui>
 
+#include <vector>
+#include <algorithm>
+
+#include <ros/ros.h>
 #include <ros/subscriber.h>
 
 #include <sensor_msgs/JointState.h>
+
+#include <flor_ocs_msgs/OCSKeyEvent.h>
 
 namespace rviz
 {
@@ -30,6 +36,8 @@ public:
     int getNumWarn();
     int getNumError();
 
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+
 private:
     ros::Subscriber joint_states;
     std::vector<QTreeWidgetItem*> joints;
@@ -42,6 +50,12 @@ private:
     float errorMin;
     int warn;
     int err;
+
+    std::vector<int> keys_pressed_list_;
+
+    ros::NodeHandle nh_;
+
+    ros::Subscriber key_event_sub_;
 
 protected:
     void timerEvent(QTimerEvent *event);
