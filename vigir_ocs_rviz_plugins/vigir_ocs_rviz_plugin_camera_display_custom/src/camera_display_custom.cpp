@@ -812,11 +812,20 @@ void CameraDisplayCustom::setRenderPanel( RenderPanel* rp )
 
 void CameraDisplayCustom::selectionProcessed( int &x1, int &y1, int &x2, int &y2 )
 {
-    std::bitset<8> x(vis_bit_);
-    std::cout << x << std::endl;
-    std::cout << "Selection Processed: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
+    //std::bitset<8> x(vis_bit_);
+    //std::cout << x << std::endl;
+    //std::cout << "Selection Processed: " << x1 << ", " << y1 << " -> " << x2 << ", " << y2 << std::endl;
     //std::cout << "   full image rect: " << rect_dim_x1_ << ", " << rect_dim_y1_ << " -> " << rect_dim_x2_ << ", " << rect_dim_y2_ << std::endl;
     //std::cout << "   window dimensions: " << render_panel_->width() << ", " << render_panel_->height() << std::endl;
+
+    if(x1 == 0 && x2 == 0 && y1 == 0 && y2 == 0) // in case we just want to reset selection
+    {
+        crop_x_offset_ = 0;
+        crop_y_offset_ = 0;
+        crop_width_ = 0;
+        crop_height_ = 0;
+        return;
+    }
 
     // make sure selection is within image rect coordinates, and write them back to the variables sent over to this function
     float minx = std::min(x1, x2);
