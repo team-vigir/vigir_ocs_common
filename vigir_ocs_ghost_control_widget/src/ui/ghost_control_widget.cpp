@@ -389,6 +389,16 @@ void GhostControlWidget::on_send_upper_body_button__clicked()
     set_to_target_config_pub_.publish(cmd);
 }
 
+void GhostControlWidget::on_send_left_ghost_hand_button__clicked()
+{
+
+}
+
+void GhostControlWidget::on_send_right_ghost_hand_button__clicked()
+{
+
+}
+
 void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 {
     // store key state

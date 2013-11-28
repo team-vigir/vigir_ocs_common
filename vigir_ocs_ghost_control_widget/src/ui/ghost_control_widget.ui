@@ -346,14 +346,14 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_6">
       <item row="0" column="0">
-       <widget class="QPushButton" name="pushButton_4">
+       <widget class="QPushButton" name="send_left_ghost_hand_button">
         <property name="text">
          <string>Left Ghost Hand</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QPushButton" name="pushButton_5">
+       <widget class="QPushButton" name="send_right_ghost_hand_button">
         <property name="text">
          <string>Right Ghost Hand</string>
         </property>

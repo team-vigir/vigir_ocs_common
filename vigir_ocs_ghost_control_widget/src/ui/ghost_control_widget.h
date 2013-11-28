@@ -75,6 +75,8 @@ private Q_SLOTS:
     void on_send_right_pose_button__clicked();
     void on_send_right_torso_pose_button__clicked();
     void on_pushButton_clicked();
+    void on_send_left_ghost_hand_button__clicked();
+    void on_send_right_ghost_hand_button__clicked();
     void on_left_no_lock_toggled(bool checked);
     void on_left_marker_lock_toggled(bool checked);
     void on_left_template_lock_toggled(bool checked);
