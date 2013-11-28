@@ -316,17 +316,17 @@ void RobotDisplayCustom::setModelPrefix(std::string prefix, urdf::ModelInterface
 void RobotDisplayCustom::processLinkColorChange(const flor_ocs_msgs::OCSLinkColor::ConstPtr& color)
 {
     std::string link_name = color->link;
-    std::cout << "initial link name: " << link_name << std::endl;
+    //std::cout << "initial link name: " << link_name << std::endl;
     if(tf_prefix_property_->getStdString().compare("") != 0)
     {
         std::size_t found = link_name.find(tf_prefix_property_->getStdString()); // look for tf_prefix
         if(found != std::string::npos && found < 2)
         {
-            std::cout << "initial link name: " << link_name << std::endl;
+            //std::cout << "initial link name: " << link_name << std::endl;
             link_name = link_name.substr(found+tf_prefix_property_->getStdString().size(),link_name.size()); // remove prefix from name
-            std::cout << "no tf link name: " << link_name << std::endl;
+            //std::cout << "no tf link name: " << link_name << std::endl;
             boost::erase_all(link_name, "/");
-            std::cout << "final link name: " << link_name << std::endl;
+            //std::cout << "final link name: " << link_name << std::endl;
             robot_->setLinkColor(link_name,QColor(color->r,color->g,color->b));
         }
     }

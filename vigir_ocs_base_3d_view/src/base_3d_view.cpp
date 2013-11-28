@@ -614,7 +614,7 @@ void Base3DView::defineStepPosePressed()
 
 void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc )
 {
-    std::cout << "point cloud received" << std::endl;
+    //std::cout << "point cloud received" << std::endl;
     pcl::PointCloud<pcl::PointXYZ> pclCloud;
     pcl::fromROSMsg(*pc, pclCloud);
     Eigen::Vector4f centroid;
@@ -624,7 +624,7 @@ void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc
         point.x = centroid[0];
         point.y = centroid[1];
         point.z = centroid[2];
-        std::cout << "centroid: " << point.x << ", " << point.y << ", " << point.z << std::endl;
+        //std::cout << "centroid: " << point.x << ", " << point.y << ", " << point.z << std::endl;
         global_selection_pos_pub_.publish(point);
     }
 }
@@ -714,7 +714,7 @@ void Base3DView::transform(const std::string& target_frame, geometry_msgs::PoseS
 
 void Base3DView::insertTemplate( QString path )
 {
-    std::cout << "adding template" << std::endl;
+    //std::cout << "adding template" << std::endl;
 
     if(!selected_)
     {
@@ -770,7 +770,7 @@ void Base3DView::insertWaypoint()
 {
     if(selected_)
     {
-        std::cout << "adding waypoint" << std::endl;
+        //std::cout << "adding waypoint" << std::endl;
 
         flor_ocs_msgs::OCSWaypointAdd cmd;
         geometry_msgs::PoseStamped pose;
@@ -809,7 +809,7 @@ void Base3DView::createContextMenu(bool, int x, int y)
     if(selected_) myMenu.addAction("Insert Waypoint");
 
     QAction* selectedItem = myMenu.exec(globalPos);
-    std::cout << selectedItem << std::endl;
+    //std::cout << selectedItem << std::endl;
     if(selectedItem != NULL)
     {
         if (selectedItem->text() == QString("Insert Template"))
@@ -831,7 +831,7 @@ void Base3DView::createContextMenu(bool, int x, int y)
 void Base3DView::setContext(int context)
 {
     active_context_ = context;
-    std::cout << "Active context: " << active_context_ << std::endl;
+    //std::cout << "Active context: " << active_context_ << std::endl;
 }
 
 void Base3DView::setSelectionRay( Ogre::Ray ray )
