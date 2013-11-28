@@ -41,6 +41,7 @@
 #include "rviz/properties/string_property.h"
 #include "rviz/viewport_mouse_event.h"
 #include "rviz/render_panel.h"
+#include "rviz/selection/selection_manager.h"
 
 #include "ortho_view_controller_custom.h"
 
@@ -250,6 +251,9 @@ void OrthoViewControllerCustom::updateCamera()
 	camera_->setPosition( 500, x_property_->getFloat(), y_property_->getFloat());
 	camera_->lookAt(0, x_property_->getFloat(), y_property_->getFloat());
   }
+
+  //ROS_INFO("  %x (%f, %f)  (%f, %f)", camera_->getViewport(), width, height, width / scale, height / scale);
+  context_->getSelectionManager()->setOrthoConfig(camera_->getViewport(), width / scale, height / scale);
 }
 
 void OrthoViewControllerCustom::setPosition( const Ogre::Vector3& pos_rel_target )
