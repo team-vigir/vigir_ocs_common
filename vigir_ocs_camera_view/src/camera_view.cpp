@@ -171,7 +171,10 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
     camera_viewer_->setEnabled(false);
     camera_viewer_->setEnabled(true);
 
-
+    selected_area_[0] = 0;
+    selected_area_[1] = 0;
+    selected_area_[2] = 0;
+    selected_area_[3] = 0;
 }
 
 // Destructor.
