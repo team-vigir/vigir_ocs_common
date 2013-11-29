@@ -274,7 +274,7 @@ void TemplateDisplayCustom::enableTemplateMarkers( bool enable )
 
 void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose)
 {
-    std::cout << "Processing pose change" << std::endl;
+    //std::cout << "Processing pose change" << std::endl;
     //    printf(" Template pose change (%f, %f, %f) quat(%f, %f, %f, %f)\n",
     //             pose->pose.position.x,pose->pose.position.y,pose->pose.position.z,
     //             pose->pose.orientation.w,
@@ -298,7 +298,7 @@ void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUp
 
 void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vector3 pos, Ogre::Quaternion quat)
 {
-    std::cout << "Adding Ogre object for template" << std::endl;
+    //std::cout << "Adding Ogre object for template" << std::endl;
     static int counter = 0;
     std::ostringstream convert;
     convert << counter++ << "." << index;
@@ -316,7 +316,7 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
 
 void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char id, Ogre::Vector3 pos)
 {
-    std::cout << "Adding template marker " << id << std::endl;
+    //std::cout << "Adding template marker " << id << std::endl;
     std::string template_pose_string = std::string("/template_pose_")+boost::to_string((unsigned int)id); // one for each template
 
     // Add template marker
@@ -371,7 +371,7 @@ void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char i
     // and subscribe to the template marker feedback loop
     ros::Subscriber template_pose_sub = nh_.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
     template_pose_sub_list_.push_back(template_pose_sub);
-    std::cout << "subscribed to topic" << std::endl;
+    //std::cout << "subscribed to topic" << std::endl;
 }
 
 void TemplateDisplayCustom::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
@@ -391,10 +391,10 @@ void TemplateDisplayCustom::onMarkerFeedback(const flor_ocs_msgs::OCSInteractive
 
 void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg)
 {
-    std::cout << "Processing template list" << std::endl;
+    //std::cout << "Processing template list" << std::endl;
     for(int i = 0; i < msg->template_list.size(); i++)
     {
-        std::cout << "Template: " << msg->template_list[i] << std::endl;
+        //std::cout << "Template: " << msg->template_list[i] << std::endl;
 
         geometry_msgs::PoseStamped pose = msg->pose[i];
         transform(fixed_frame_.toUtf8().constData(),pose);
@@ -449,7 +449,7 @@ void TemplateDisplayCustom::publishTemplateUpdate(const unsigned char& id, const
 
 void TemplateDisplayCustom::processTemplateRemove(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg)
 {
-    std::cout << "Processing template remove" << std::endl;
+    //std::cout << "Processing template remove" << std::endl;
     int index = 0;
     for(; index < template_id_list_.size(); index++)
         if(template_id_list_[index] == msg->template_id)

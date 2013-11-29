@@ -533,22 +533,34 @@ void CameraDisplayCustom::update( float wall_dt, float ros_dt )
 
 bool CameraDisplayCustom::updateCamera(bool update_image)
 {
-
     if(update_image)
     {
         boost::mutex::scoped_lock lock( caminfo_mutex_ );
 
-        last_info_ = current_caminfo_;
+        std::cout << "updating image..." << std::endl;
+        std::cout << "new camera info? " << (new_caminfo_ ? "YES" : "NO") << std::endl;
+
+        //if(new_caminfo_)
+        {
+            last_info_ = current_caminfo_;
+            //new_caminfo_ = false;
+        }
         last_image_ = texture_.getImage();
+        //std::cout << "Image info: " << last_image_-> << ") or camera image (" << last_image_ << ")" << std::endl;
+
+        if(!last_info_ || !last_image_)
+            std::cout << "doesn't have last info (" << last_info_ << ") or camera image (" << last_image_ << ")" << std::endl;
     }
     if(!last_info_ || !last_image_)
     {
-
-       return false;
+        if(update_image)
+        std::cout << "doesn't have last info (" << last_info_ << ") or camera image (" << last_image_ << ")" << std::endl;
+        return false;
     }
 
     if( !validateFloats( *last_info_ ))
     {
+        std::cout << "Camera Info Contains invalid floating point values (nans or infs)" << std::endl;
         setStatus( StatusProperty::Error, "Camera Info", "Contains invalid floating point values (nans or infs)" );
         return false;
     }
@@ -574,13 +586,13 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
     // If the image width is 0 due to a malformed caminfo, try to grab the width from the image.
     if( full_image_width_ == 0 )
     {
-      ROS_DEBUG( "Malformed CameraInfo on camera [%s], width = 0", qPrintable( getName() ));
+      ROS_ERROR( "Malformed CameraInfo on camera [%s], width = 0", qPrintable( getName() ));
       full_image_width_ = texture_.getWidth();
     }
 
     if (full_image_height_ == 0)
     {
-      ROS_DEBUG( "Malformed CameraInfo on camera [%s], height = 0", qPrintable( getName() ));
+      ROS_ERROR( "Malformed CameraInfo on camera [%s], height = 0", qPrintable( getName() ));
       full_image_height_ = texture_.getHeight();
     }
 
@@ -594,71 +606,81 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
     float img_width = full_image_width_;
     float img_height = full_image_height_;
 
-    Q_EMIT updateFrameID(last_info_->header.frame_id);
-    double fx = last_info_->P[0];
-    double fy = last_info_->P[5];
     //make sure the aspect ratio of the image is preserved
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
 
-    float zoom_x = zoom_property_->getFloat();
-    float zoom_y = zoom_x;
-    // Preserve aspect ratio
-    if( win_width != 0 && win_height != 0 )
+    if(last_info_->P[0] == 0)
     {
-        float img_aspect = (img_width/fx) / (img_height/fy);
-        float win_aspect = win_width / win_height;
-
-        if ( img_aspect > win_aspect )
-        {
-            zoom_y = zoom_y / img_aspect * win_aspect;
-        }
-        else
-        {
-            zoom_x = zoom_x / win_aspect * img_aspect;
-        }
+        Q_EMIT updateFrameID(last_info_->header.frame_id);
+        render_panel_->getCamera()->setPosition(Ogre::Vector3(999999, 999999, 999999));
     }
-
-    // Add the camera's translation relative to the left camera (from P[3]);
-    double tx = -1 * (last_info_->P[3] / fx);
-    Ogre::Vector3 right = orientation * Ogre::Vector3::UNIT_X;
-    position = position + (right * tx);
-
-    double ty = -1 * (last_info_->P[7] / fy);
-    Ogre::Vector3 down = orientation * Ogre::Vector3::UNIT_Y;
-    position = position + (down * ty);
-
-    if( !validateFloats( position ))
+    else
     {
-        setStatus( StatusProperty::Error, "Camera Info", "CameraInfo/P resulted in an invalid position calculation (nans or infs)" );
-        return false;
+        double fx = last_info_->P[0];
+        double fy = last_info_->P[5];
+
+        float zoom_x = zoom_property_->getFloat();
+        float zoom_y = zoom_x;
+        // Preserve aspect ratio
+        if( win_width != 0 && win_height != 0 )
+        {
+            float img_aspect = (img_width/fx) / (img_height/fy);
+            float win_aspect = win_width / win_height;
+
+            if ( img_aspect > win_aspect )
+            {
+                zoom_y = zoom_y / img_aspect * win_aspect;
+            }
+            else
+            {
+                zoom_x = zoom_x / win_aspect * img_aspect;
+            }
+        }
+
+        // Add the camera's translation relative to the left camera (from P[3]);
+        double tx = -1 * (last_info_->P[3] / fx);
+        Ogre::Vector3 right = orientation * Ogre::Vector3::UNIT_X;
+        position = position + (right * tx);
+
+        double ty = -1 * (last_info_->P[7] / fy);
+        Ogre::Vector3 down = orientation * Ogre::Vector3::UNIT_Y;
+        position = position + (down * ty);
+
+        if( !validateFloats( position ))
+        {
+            ROS_ERROR( "position error");
+            setStatus( StatusProperty::Error, "Camera Info", "CameraInfo/P resulted in an invalid position calculation (nans or infs)" );
+            return false;
+        }
+
+        render_panel_->getCamera()->setPosition( position );
+        render_panel_->getCamera()->setOrientation( orientation );
+
+        // calculate the projection matrix
+        double cx = last_info_->P[2];
+        double cy = last_info_->P[6];
+
+
+        double far_plane = 100;
+        double near_plane = 0.01;
+
+        Ogre::Matrix4 proj_matrix;
+        proj_matrix = Ogre::Matrix4::ZERO;
+
+        proj_matrix[0][0]= 2.0 * fx/img_width * zoom_x;
+        proj_matrix[1][1]= 2.0 * fy/img_height * zoom_y;
+
+        proj_matrix[0][2]= 2.0 * (0.5 - cx/img_width) * zoom_x;
+        proj_matrix[1][2]= 2.0 * (cy/img_height - 0.5) * zoom_y;
+
+        proj_matrix[2][2]= -(far_plane+near_plane) / (far_plane-near_plane);
+        proj_matrix[2][3]= -2.0*far_plane*near_plane / (far_plane-near_plane);
+
+        proj_matrix[3][2]= -1;
+
+        render_panel_->getCamera()->setCustomProjectionMatrix( true, proj_matrix );
     }
-
-    render_panel_->getCamera()->setPosition( position );
-    render_panel_->getCamera()->setOrientation( orientation );
-
-    // calculate the projection matrix
-    double cx = last_info_->P[2];
-    double cy = last_info_->P[6];
-
-    double far_plane = 100;
-    double near_plane = 0.01;
-
-    Ogre::Matrix4 proj_matrix;
-    proj_matrix = Ogre::Matrix4::ZERO;
-
-    proj_matrix[0][0]= 2.0 * fx/img_width * zoom_x;
-    proj_matrix[1][1]= 2.0 * fy/img_height * zoom_y;
-
-    proj_matrix[0][2]= 2.0 * (0.5 - cx/img_width) * zoom_x;
-    proj_matrix[1][2]= 2.0 * (cy/img_height - 0.5) * zoom_y;
-
-    proj_matrix[2][2]= -(far_plane+near_plane) / (far_plane-near_plane);
-    proj_matrix[2][3]= -2.0*far_plane*near_plane / (far_plane-near_plane);
-
-    proj_matrix[3][2]= -1;
-
-    render_panel_->getCamera()->setCustomProjectionMatrix( true, proj_matrix );
 
     setStatus( StatusProperty::Ok, "Camera Info", "OK" );
 
@@ -762,12 +784,13 @@ void CameraDisplayCustom::reset()
 /* This is called by incomingMessage(). */
 void CameraDisplayCustom::processMessage(const sensor_msgs::Image::ConstPtr& msg)
 {
+    std::cout<<"camera image received"<<std::endl;
     texture_.addMessage(msg);
 }
 
 void CameraDisplayCustom::caminfoCallback( const sensor_msgs::CameraInfo::ConstPtr& msg )
 {
-    //std::cout<<"This is called at some point"<<std::endl;
+    std::cout<<"camera info received"<<std::endl;
     boost::mutex::scoped_lock lock( caminfo_mutex_ );
     current_caminfo_ = msg;
     new_caminfo_ = true;
@@ -776,6 +799,7 @@ void CameraDisplayCustom::caminfoCallback( const sensor_msgs::CameraInfo::ConstP
 
 void CameraDisplayCustom::processCroppedImage(const sensor_msgs::Image::ConstPtr& msg)
 {
+    std::cout<<"camera crop image received"<<std::endl;
     texture_selection_.addMessage(msg);
 }
 
