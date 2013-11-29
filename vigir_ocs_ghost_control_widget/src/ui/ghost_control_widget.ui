@@ -342,18 +342,18 @@
    <item row="5" column="0">
     <widget class="QGroupBox" name="groupBox_6">
      <property name="title">
-      <string>Send Ghost Robot to ghost hand grasp pose</string>
+      <string>Move ghost robot to ghost hand grasp pose</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_6">
       <item row="0" column="0">
-       <widget class="QPushButton" name="send_left_ghost_hand_button">
+       <widget class="QPushButton" name="send_left_ghost_hand_button_">
         <property name="text">
          <string>Left Ghost Hand</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QPushButton" name="send_right_ghost_hand_button">
+       <widget class="QPushButton" name="send_right_ghost_hand_button_">
         <property name="text">
          <string>Right Ghost Hand</string>
         </property>
