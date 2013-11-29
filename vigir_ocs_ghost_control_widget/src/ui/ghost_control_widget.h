@@ -17,6 +17,7 @@
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSGhostControl.h>
+#include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Bool.h>
 #include <ros/ros.h>
@@ -104,6 +105,7 @@ private:
     ros::Publisher set_to_target_config_pub_;
     ros::Publisher reset_pelvis_pub_;
     ros::Publisher send_pelvis_pub_;
+    ros::Publisher send_inverse_rechability_req_pub_;
 
     // variables that hold saved state of the widget
     static std::vector<unsigned char> saved_state_planning_group_;
