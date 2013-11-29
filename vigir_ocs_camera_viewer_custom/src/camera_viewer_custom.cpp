@@ -44,7 +44,6 @@ CameraViewerCustom::CameraViewerCustom( QWidget* parent )
     , area_resolution_(0)
     , setting_pose_(false)
 {
-    init();
 
     // Create a camera/image display.
     camera_viewer_ = manager_->createDisplay( "rviz/CameraDisplayCustom", "Camera image", true ); // this would use the plugin instead of manually adding the display object to the manager

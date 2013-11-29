@@ -31,8 +31,6 @@ CameraViewWidget::CameraViewWidget(QWidget *parent, rviz::VisualizationManager* 
     position_layout->addWidget(camera_view_);
     ui->camera_view_->setLayout(position_layout);
 
-    camera_view_->init();
-
     this->setMouseTracking(true);
 
     // setting up the slider menus for all buttons

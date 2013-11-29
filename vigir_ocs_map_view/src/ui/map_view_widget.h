@@ -26,6 +26,12 @@ public:
     virtual bool eventFilter( QObject * o, QEvent * e );
 
     void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+
+public Q_SLOTS:
+    void hideWaypointButton();
+    void hideJoystick();
+    void requestMap();
+    void requestOctomap();
     
 private:
     Ui::MapViewWidget *ui;
@@ -35,12 +41,6 @@ private:
     ros::NodeHandle n_;
 
     ros::Subscriber key_event_sub_;
-
-public Q_SLOTS:
-    void hideWaypointButton();
-    void hideJoystick();
-    void requestMap();
-    void requestOctomap();
 
 };
 

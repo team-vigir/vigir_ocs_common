@@ -49,7 +49,8 @@ namespace rviz
 {
 
 OrthoViewControllerCustom::OrthoViewControllerCustom()
-  : dragging_( false )
+  : dragging_( false ),
+    panel_( NULL )
 {
   scale_property_ = new FloatProperty( "Scale", 5, "How much to scale up the size of things in the scene.", this );
   angle_property_ = new FloatProperty( "Angle", 0, "Angle around the Z axis to rotate.", this );
@@ -64,20 +65,24 @@ OrthoViewControllerCustom::~OrthoViewControllerCustom()
 
 void OrthoViewControllerCustom::initialize( DisplayContext* context, rviz::RenderPanel* panel )
 {
-    context_ = context;
+    //ROS_INFO("INITIALIZE");
+    bool initialized = false;
+    if(context != NULL)
+        context_ = context;
+    else
+        initialized = true;
 
-    std::stringstream ss;
-    static int count = 0;
-    ss << "ViewControllerCamera" << count++;
-    //camera_ = context_->getSceneManager()->createCamera( ss.str() );
-    //context_->getSceneManager()->getRootSceneNode()->attachObject( camera_ );
-    camera_ = panel->getCamera();
+    panel_ = panel;
+
+    if(!camera_)
+        camera_ = panel_->getCamera();
 
     setValue( formatClassId( getClassId() ));
     setReadOnly( true );
 
     // Do subclass initialization.
-    onInitialize();
+    if(!initialized)
+        onInitialize();
 
     /*cursor_ = getDefaultCursor();
 
@@ -94,6 +99,7 @@ void OrthoViewControllerCustom::initialize( DisplayContext* context, rviz::Rende
 
 void OrthoViewControllerCustom::onInitialize()
 {
+  //ROS_INFO("ONINITIALIZE");
   FramePositionTrackingViewController::onInitialize();
 
   camera_->setProjectionType( Ogre::PT_ORTHOGRAPHIC );
@@ -222,8 +228,12 @@ void OrthoViewControllerCustom::updateCamera()
 {
   //orientCamera();
 
-  float width = camera_->getViewport()->getActualWidth();
-  float height = camera_->getViewport()->getActualHeight();
+  if(!panel_)
+    return;
+  //ROS_INFO("UPDATE CAMERA");
+
+  float width = panel_->getViewport()->getActualWidth();
+  float height = panel_->getViewport()->getActualHeight();
 
   float scale = scale_property_->getFloat();
   Ogre::Matrix4 proj;

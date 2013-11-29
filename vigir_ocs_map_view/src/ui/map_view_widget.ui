@@ -54,7 +54,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-240</y>
+        <y>0</y>
         <width>242</width>
         <height>1183</height>
        </rect>
@@ -87,7 +87,7 @@
           <item>
            <widget class="QRadioButton" name="camera_tool_3">
             <property name="text">
-             <string>Camera Manipulation</string>
+             <string>Map Selection</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -692,6 +692,7 @@ color: rgb(255, 26, 26);</string>
     <slot>clearMapRequests()</slot>
     <slot>defineStepPosePressed()</slot>
     <slot>defineWalkPosePressed()</slot>
+    <slot>selectionToolToggle(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -749,7 +750,7 @@ color: rgb(255, 26, 26);</string>
    <sender>camera_tool_3</sender>
    <signal>toggled(bool)</signal>
    <receiver>map_view_</receiver>
-   <slot>cameraToggled(bool)</slot>
+   <slot>selectionToolToggle(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>645</x>

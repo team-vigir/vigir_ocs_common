@@ -70,7 +70,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
             ((CameraViewWidget*)iter->second)->getCameraView()->simulationRobotToggled(false);
 
             // connect UI to perspective functions
-            QObject::connect(ui->camera_tool, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(cameraToggled(bool)));
+            //QObject::connect(ui->camera_tool, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(cameraToggled(bool)));
             QObject::connect(ui->footstep_planning, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(footstepPlanningToggled(bool)));
             QObject::connect(ui->footstep_pose_walk, SIGNAL(pressed()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(defineWalkPosePressed()));
             QObject::connect(ui->footstep_pose_step, SIGNAL(pressed()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(defineStepPosePressed()));
@@ -97,6 +97,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
         {
             //((CameraViewWidget*)iter->second)->getCameraView()->updateRenderMask(true);
         }
+        QObject::connect(ui->camera_tool, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(selectionToolToggle(bool)));
         ((CameraViewWidget*)iter->second)->getCameraView()->updateRenderMask(true);
         QObject::connect(((CameraViewWidget*)iter->second)->getCameraView(), SIGNAL(setInitialized()), this, SLOT(cameraInitialized()));
 
@@ -148,7 +149,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     views_initialized_ = 0;
 
-    ui->groupBox->hide();
+    //ui->groupBox->hide();
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()

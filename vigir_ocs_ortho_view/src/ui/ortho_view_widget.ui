@@ -21,7 +21,7 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="vigir_ocs::OrthoView" name="ortho_view_" native="true">
+    <widget class="QWidget" name="ortho_view_" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -56,7 +56,7 @@
         <x>0</x>
         <y>0</y>
         <width>242</width>
-        <height>1153</height>
+        <height>761</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -119,215 +119,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>Map Region Request</string>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <property name="spacing">
-           <number>3</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QWidget" name="widget_3" native="true">
-            <layout class="QGridLayout" name="gridLayout_2">
-             <property name="margin">
-              <number>0</number>
-             </property>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>Min Height</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_4">
-               <property name="text">
-                <string>Max Height</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_6">
-               <property name="text">
-                <string>Resolution</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QDoubleSpinBox" name="map_min_z">
-               <property name="minimum">
-                <double>-100.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>100.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.100000000000000</double>
-               </property>
-               <property name="value">
-                <double>0.100000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QDoubleSpinBox" name="map_max_z">
-               <property name="minimum">
-                <double>-100.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>100.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.010000000000000</double>
-               </property>
-               <property name="value">
-                <double>2.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QDoubleSpinBox" name="map_res">
-               <property name="minimum">
-                <double>0.050000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>10.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.010000000000000</double>
-               </property>
-               <property name="value">
-                <double>0.050000000000000</double>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="request_map">
-            <property name="text">
-             <string>Request Area Map</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_6">
-         <property name="title">
-          <string>Octomap Region Request</string>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_7">
-          <property name="spacing">
-           <number>3</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QWidget" name="widget_2" native="true">
-            <layout class="QGridLayout" name="gridLayout">
-             <property name="margin">
-              <number>0</number>
-             </property>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_2">
-               <property name="text">
-                <string>Max Height</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label">
-               <property name="text">
-                <string>Min Height</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_3">
-               <property name="text">
-                <string>Resolution</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QDoubleSpinBox" name="oct_min_z">
-               <property name="minimum">
-                <double>-100.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>100.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.100000000000000</double>
-               </property>
-               <property name="value">
-                <double>0.100000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QDoubleSpinBox" name="oct_max_z">
-               <property name="minimum">
-                <double>-100.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>100.000000000000000</double>
-               </property>
-               <property name="value">
-                <double>2.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QDoubleSpinBox" name="oct_res">
-               <property name="minimum">
-                <double>0.050000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>10.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="request_octomap">
-            <property name="text">
-             <string>Request Octomap</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
         <widget class="QGroupBox" name="groupBox_3">
          <property name="title">
           <string>Navigation Options</string>
@@ -348,30 +139,6 @@
           <property name="bottomMargin">
            <number>0</number>
           </property>
-          <item>
-           <widget class="QRadioButton" name="waypoint">
-            <property name="text">
-             <string>Waypoint</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="insert_waypoint">
-            <property name="text">
-             <string>Insert Waypoint</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="joystick_steering">
-            <property name="text">
-             <string>Manual Controls</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
           <item>
            <widget class="QPushButton" name="footstep_pose">
             <property name="text">
@@ -651,39 +418,6 @@ color: rgb(255, 26, 26);</string>
    <slots>
     <signal>insertTemplate(QString)</signal>
     <signal>templatePathChanged(QString)</signal>
-   </slots>
-  </customwidget>
-  <customwidget>
-   <class>vigir_ocs::OrthoView</class>
-   <extends>QWidget</extends>
-   <header>ortho_view.h</header>
-   <container>1</container>
-   <slots>
-    <slot>robotModelToggled(bool)</slot>
-    <slot>lidarPointCloudToggled(bool)</slot>
-    <slot>laserScanToggled(bool)</slot>
-    <slot>markerArrayToggled(bool)</slot>
-    <slot>joystickToggled(bool)</slot>
-    <slot>waypointToggled(bool)</slot>
-    <slot>vectorPressed()</slot>
-    <slot>stereoPointCloudToggled(bool)</slot>
-    <slot>insertTemplate(QString)</slot>
-    <slot>insertWaypoint()</slot>
-    <slot>markerRobotToggled(bool)</slot>
-    <slot>markerTemplateToggled(bool)</slot>
-    <slot>cameraToggled(bool)</slot>
-    <slot>selectToggled(bool)</slot>
-    <slot>templatePathChanged(QString)</slot>
-    <slot>gridMapToggled(bool)</slot>
-    <slot>footstepPlanningToggled(bool)</slot>
-    <slot>simulationRobotToggled(bool)</slot>
-    <slot>requestMap()</slot>
-    <slot>publishPointCloudWorldRequest()</slot>
-    <slot>graspModelToggled(bool)</slot>
-    <slot>templatesToggled(bool)</slot>
-    <slot>requestedPointCloudToggled(bool)</slot>
-    <slot>clearPointCloudRequests()</slot>
-    <slot>clearMapRequests()</slot>
    </slots>
   </customwidget>
  </customwidgets>

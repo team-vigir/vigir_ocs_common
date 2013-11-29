@@ -40,6 +40,7 @@ class FloatProperty;
 class StringProperty;
 class SceneNode;
 class Shape;
+class RenderPanel;
 
 class OrthoViewControllerCustom : public FramePositionTrackingViewController
 {
@@ -84,6 +85,7 @@ protected:
   StringProperty* view_plane_property_;
   bool dragging_;
   bool first_time_;
+  RenderPanel* panel_;
 };
 
 } // end namespace rviz

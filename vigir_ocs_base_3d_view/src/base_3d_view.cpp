@@ -436,11 +436,6 @@ void Base3DView::timerEvent(QTimerEvent *event)
     //ros::spinOnce();
 }
 
-void Base3DView::init()
-{
-
-}
-
 void Base3DView::updateRenderMask( bool mask )
 {
     manager_->updateRenderMask( view_id_, mask );

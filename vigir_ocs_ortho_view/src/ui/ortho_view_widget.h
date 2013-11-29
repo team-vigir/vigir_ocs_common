@@ -2,6 +2,7 @@
 #define ORTHO_VIEW_WIDGET_H
 
 #include <QWidget>
+#include <ortho_view.h>
 
 namespace Ui
 {
@@ -21,11 +22,7 @@ public:
 private:
     Ui::OrthoViewWidget *ui;
 
-public Q_SLOTS:
-    void hideWaypointButton();
-    void hideJoystick();
-    void requestMap();
-    void requestOctomap();
+    vigir_ocs::OrthoView* ortho_view_;
 
 };
 

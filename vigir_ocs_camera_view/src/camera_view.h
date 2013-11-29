@@ -79,6 +79,7 @@ public Q_SLOTS:
     void mouseMoved(int,int);
     void requestPointCloudROI();
     void updateImageFrame(std::string);
+    void selectionToolToggle(bool);
 
     virtual void defineWalkPosePressed();
     virtual void defineStepPosePressed();
@@ -102,6 +103,7 @@ private:
     rviz::Display* camera_viewer_;
 
     rviz::Tool* selection_tool_;
+    rviz::Tool* previous_tool_;
 
     ros::Publisher head_pitch_update_pub_;
     ros::Publisher pointcloud_request_frame_pub_;
@@ -128,6 +130,8 @@ private:
     QPushButton* close_area_button_;
     bool selection_made_;
     bool initialized_;
+
+    bool selection_tool_enabled_;
 };
 }
 #endif // CAMERA_VIEWER_H

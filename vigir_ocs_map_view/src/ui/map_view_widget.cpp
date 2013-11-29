@@ -8,7 +8,6 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->map_view_->init();
     ui->insert_waypoint->hide();
 
     connect(ui->joystick_steering, SIGNAL(toggled(bool)), this, SLOT(hideWaypointButton()));

@@ -43,6 +43,7 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
     , setting_pose_(false)
     , selection_made_(false)
     , initialized_(false)
+    , selection_tool_enabled_( true )
 {
     this->setMouseTracking(true);
 
@@ -175,6 +176,8 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
     selected_area_[1] = 0;
     selected_area_[2] = 0;
     selected_area_[3] = 0;
+
+    previous_tool_ = selection_tool_;
 }
 
 // Destructor.
@@ -420,6 +423,7 @@ void CameraView::defineWalkPosePressed()
 {
     //ROS_ERROR("vector pressed in map");
     //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
+    previous_tool_ = manager_->getToolManager()->getCurrentTool();
     manager_->getToolManager()->setCurrentTool( set_walk_goal_tool_ );
     setting_pose_ = true;
 }
@@ -428,6 +432,7 @@ void CameraView::defineStepPosePressed()
 {
     //ROS_ERROR("vector pressed in map");
     //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
+    previous_tool_ = manager_->getToolManager()->getCurrentTool();
     manager_->getToolManager()->setCurrentTool( set_step_goal_tool_ );
     setting_pose_ = true;
 }
@@ -435,7 +440,7 @@ void CameraView::defineStepPosePressed()
 void CameraView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
     //ROS_ERROR("goal processed in map");
-    manager_->getToolManager()->setCurrentTool( selection_tool_ );
+    manager_->getToolManager()->setCurrentTool( previous_tool_ );
     setting_pose_ = false;
 }
 
@@ -447,17 +452,22 @@ std::vector<std::string> CameraView::getCameraNames()
     return names;
 }
 
+void CameraView::selectionToolToggle(bool enable)
+{
+    selection_tool_enabled_ = enable;
+}
+
 void CameraView::mouseEnterEvent( QEvent* event )
 {
     //std::cout << "mouse enter " << view_id_ << std::endl;
-    if(manager_->getToolManager()->getCurrentTool() != selection_tool_)
+    if(selection_tool_enabled_ && manager_->getToolManager()->getCurrentTool() != selection_tool_)
         manager_->getToolManager()->setCurrentTool( selection_tool_ );
 }
 
 void CameraView::mouseMoveEvent( QMouseEvent* event )
 {
     //std::cout << "mouse move " << view_id_ << std::endl;
-    if(manager_->getToolManager()->getCurrentTool() != selection_tool_)
+    if(selection_tool_enabled_ && manager_->getToolManager()->getCurrentTool() != selection_tool_)
         manager_->getToolManager()->setCurrentTool( selection_tool_ );
 }
 

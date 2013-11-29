@@ -31,11 +31,8 @@ class OrthoView: public Base3DView
 {
     Q_OBJECT
 public:
-    OrthoView( QWidget* parent = 0, rviz::VisualizationManager* context = 0 );
+    OrthoView( rviz::VisualizationManager* context = NULL, std::string base_frame = "/world", QWidget* parent = 0 );
     virtual ~OrthoView();
-
-    void requestMap(double min_z, double max_z, double resolution);
-    void requestOctomap(double min_z, double max_z, double resolution);
 
     void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     
@@ -43,10 +40,8 @@ public:
 
 Q_SIGNALS:
     void queryPosition( int, int, Ogre::Vector3& );
-    void unHighlight();
 
 public Q_SLOTS:
-    void enableSelectionTool(bool, int, int);
     virtual void defineWalkPosePressed();
     virtual void defineStepPosePressed();
     void keyPressEvent( QKeyEvent* event );
@@ -55,16 +50,11 @@ protected:
     virtual void timerEvent(QTimerEvent *event);
     virtual rviz::ViewController* getCurrentViewController();
 
-private:
-    rviz::Tool* selection_tool_;
+    rviz::Tool* previous_tool_;
     rviz::ViewController* ortho_view_controller_;
 
-    ros::Publisher grid_map_request_pub_;
-    ros::Publisher octomap_request_pub_;
     ros::Subscriber set_walk_goal_sub_;
     ros::Subscriber set_step_goal_sub_;
-
-    int selected_area_[4];
 
     bool setting_pose_;
 };
