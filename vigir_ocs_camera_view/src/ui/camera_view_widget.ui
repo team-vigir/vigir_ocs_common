@@ -64,6 +64,18 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>220</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <layout class="QVBoxLayout" name="verticalLayout">
          <property name="spacing">
           <number>0</number>
@@ -107,7 +119,7 @@
                <bool>true</bool>
               </property>
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -120,7 +132,7 @@
               </property>
               <property name="maximumSize">
                <size>
-                <width>16777215</width>
+                <width>240</width>
                 <height>26</height>
                </size>
               </property>
@@ -217,6 +229,12 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>192</width>
+          <height>16777215</height>
+         </size>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <property name="spacing">
@@ -477,10 +495,16 @@
       <item>
        <widget class="QWidget" name="widget_6" native="true">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>192</width>
+          <height>16777215</height>
+         </size>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <property name="spacing">
@@ -691,10 +715,16 @@
       <item>
        <widget class="QWidget" name="widget_8" native="true">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
          <property name="spacing">

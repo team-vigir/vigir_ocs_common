@@ -65,6 +65,7 @@
 #include "rviz/properties/display_group_visibility_property.h"
 #include "rviz/ogre_helpers/apply_visibility_bits.h"
 #include <image_transport/camera_common.h>
+#include "rviz/selection/selection_manager.h"
 
 #include "rviz/display.h"
 #include "rviz/display_group.h"
@@ -419,7 +420,7 @@ void CameraDisplayCustom::renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre:
 
 void CameraDisplayCustom::onEnable()
 {
-    std::cout << "onEnable()" << std::endl;
+    //std::cout << "onEnable()" << std::endl;
     subscribe();
 
     if(render_panel_)
@@ -428,7 +429,7 @@ void CameraDisplayCustom::onEnable()
 
 void CameraDisplayCustom::onDisable()
 {
-    std::cout << "onDisable()" << std::endl;
+    //std::cout << "onDisable()" << std::endl;
     if(render_panel_)
         render_panel_->getRenderWindow()->setActive(false);
 
@@ -497,7 +498,7 @@ void CameraDisplayCustom::update( float wall_dt, float ros_dt )
         std::string caminfo_topic = image_transport::getCameraInfoTopic(topic_property_->getTopicStd());
         if(caminfo_sub_.getTopic().compare(caminfo_topic) != 0)
         {
-            std::cout<<"updating topic" <<std::endl;
+            //std::cout<<"updating topic" <<std::endl;
 
             caminfo_sub_.unsubscribe();
             try
@@ -537,8 +538,8 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
     {
         boost::mutex::scoped_lock lock( caminfo_mutex_ );
 
-        std::cout << "updating image..." << std::endl;
-        std::cout << "new camera info? " << (new_caminfo_ ? "YES" : "NO") << std::endl;
+        //std::cout << "updating image..." << std::endl;
+        //std::cout << "new camera info? " << (new_caminfo_ ? "YES" : "NO") << std::endl;
 
         //if(new_caminfo_)
         {
@@ -548,19 +549,19 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
         last_image_ = texture_.getImage();
         //std::cout << "Image info: " << last_image_-> << ") or camera image (" << last_image_ << ")" << std::endl;
 
-        if(!last_info_ || !last_image_)
-            std::cout << "doesn't have last info (" << last_info_ << ") or camera image (" << last_image_ << ")" << std::endl;
+        //if(!last_info_ || !last_image_)
+        //    std::cout << "doesn't have last info (" << last_info_ << ") or camera image (" << last_image_ << ")" << std::endl;
     }
     if(!last_info_ || !last_image_)
     {
-        if(update_image)
-        std::cout << "doesn't have last info (" << last_info_ << ") or camera image (" << last_image_ << ")" << std::endl;
+        //if(update_image)
+        //std::cout << "doesn't have last info (" << last_info_ << ") or camera image (" << last_image_ << ")" << std::endl;
         return false;
     }
 
     if( !validateFloats( *last_info_ ))
     {
-        std::cout << "Camera Info Contains invalid floating point values (nans or infs)" << std::endl;
+        //std::cout << "Camera Info Contains invalid floating point values (nans or infs)" << std::endl;
         setStatus( StatusProperty::Error, "Camera Info", "Contains invalid floating point values (nans or infs)" );
         return false;
     }
@@ -679,6 +680,9 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
 
         proj_matrix[3][2]= -1;
 
+        //ROS_INFO(" Camera (%f, %f)", proj_matrix[0][0], proj_matrix[1][1]);
+        context_->getSelectionManager()->setCameraConfig( render_panel_->getViewport(), proj_matrix );
+
         render_panel_->getCamera()->setCustomProjectionMatrix( true, proj_matrix );
     }
 
@@ -784,13 +788,13 @@ void CameraDisplayCustom::reset()
 /* This is called by incomingMessage(). */
 void CameraDisplayCustom::processMessage(const sensor_msgs::Image::ConstPtr& msg)
 {
-    std::cout<<"camera image received"<<std::endl;
+    //std::cout<<"camera image received"<<std::endl;
     texture_.addMessage(msg);
 }
 
 void CameraDisplayCustom::caminfoCallback( const sensor_msgs::CameraInfo::ConstPtr& msg )
 {
-    std::cout<<"camera info received"<<std::endl;
+    //std::cout<<"camera info received"<<std::endl;
     boost::mutex::scoped_lock lock( caminfo_mutex_ );
     current_caminfo_ = msg;
     new_caminfo_ = true;
@@ -799,7 +803,7 @@ void CameraDisplayCustom::caminfoCallback( const sensor_msgs::CameraInfo::ConstP
 
 void CameraDisplayCustom::processCroppedImage(const sensor_msgs::Image::ConstPtr& msg)
 {
-    std::cout<<"camera crop image received"<<std::endl;
+    //std::cout<<"camera crop image received"<<std::endl;
     texture_selection_.addMessage(msg);
 }
 
@@ -1122,7 +1126,7 @@ void CameraDisplayCustom::closeSelected()
 
 void CameraDisplayCustom::updateCroppedTopic()
 {
-    std::cout << "new cropped image topic: " << cropped_topic_property_->getTopicStd() << std::endl;
+    //std::cout << "new cropped image topic: " << cropped_topic_property_->getTopicStd() << std::endl;
 
     if(!cropped_topic_property_->getTopicStd().empty())
     {
@@ -1135,7 +1139,7 @@ void CameraDisplayCustom::updateCroppedTopic()
 
 void CameraDisplayCustom::updateImgReqTopic()
 {
-    std::cout << "new image request topic: " << img_req_full_topic_property_->getTopicStd() << std::endl;
+    //std::cout << "new image request topic: " << img_req_full_topic_property_->getTopicStd() << std::endl;
 
     if(!img_req_full_topic_property_->getTopicStd().empty())
     {
@@ -1153,7 +1157,7 @@ void CameraDisplayCustom::updateImgReqTopic()
 
 void CameraDisplayCustom::updateImgReqCroppedTopic()
 {
-    std::cout << "new crop request topic: " << img_req_cropped_topic_property_->getTopicStd() << std::endl;
+    //std::cout << "new crop request topic: " << img_req_cropped_topic_property_->getTopicStd() << std::endl;
 
     if(!img_req_cropped_topic_property_->getTopicStd().empty())
     {
