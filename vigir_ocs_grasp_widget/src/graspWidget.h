@@ -83,6 +83,7 @@ private:
     void templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr& feedback);
 
     int calcWristTarget( const geometry_msgs::Pose& wrist_pose,const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose );
+    void calcPlanningTarget(const geometry_msgs::Pose& palm_pose, const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& planning_hand_pose);
     int hideHand();
     int staticTransform(geometry_msgs::Pose& palm_pose);
 
@@ -130,6 +131,8 @@ private:
     ros::Publisher template_stitch_request_pub_;
     ros::Publisher grasp_request_pub_;
     ros::Publisher grasp_release_pub_;
+
+    ros::Publisher planning_hand_target_pub_;
 
     geometry_msgs::Pose feedbackPose;
 

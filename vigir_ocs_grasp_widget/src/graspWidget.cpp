@@ -95,6 +95,8 @@ graspWidget::graspWidget(QWidget *parent)
         color_r = 1.0f;
         color_g = 1.0f;
         color_b = 0.0f;
+
+        planning_hand_target_pub_   = nh_.advertise<geometry_msgs::PoseStamped>( "/grasp_control/l_hand/planning_target_pose", 1, false );
     }
     else
     {
@@ -126,6 +128,8 @@ graspWidget::graspWidget(QWidget *parent)
         color_r = 0.0f;
         color_g = 1.0f;
         color_b = 1.0f;
+
+        planning_hand_target_pub_   = nh_.advertise<geometry_msgs::PoseStamped>( "/grasp_control/r_hand/planning_target_pose", 1, false );
     }
     // this is for publishing the hand position in world coordinates for moveit
     virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_x");
@@ -784,11 +788,14 @@ void graspWidget::on_templateRadio_clicked()
     if (ui->graspBox->count() < 1)
     {
         ui->graspBox->setDisabled(true); // nothing to select
+        ui->performButton->setDisabled(true);
     }
     flor_grasp_msgs::GraspState msg;
     msg.grasp_state.data  = (flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4;
-    msg.grip.data         = 0;
-    msg.thumb_effort.data = 0;
+    //msg.grip.data         = 0;
+    //msg.thumb_effort.data = 0;
+    msg.grip.data         = ui->userSlider->value();
+    msg.thumb_effort.data = ui->userSlider_2->value();
     grasp_mode_command_pub_.publish(msg);
     std::cout << "Sent Template mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " << uint32_t(msg.thumb_effort.data) <<  " thumb effort to " << hand_ << " hand" << std::endl;
 
@@ -814,6 +821,7 @@ void graspWidget::on_manualRadio_clicked()
     if (addCurrent)     ui->graspBox->addItem(QString("CURRENT"));
     ui->graspBox->setDisabled(false);
 
+    ui->performButton->setDisabled(false);
 
     flor_grasp_msgs::GraspState msg;
     msg.grasp_state.data  = (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
@@ -984,6 +992,11 @@ void graspWidget::publishHandPose(unsigned int id)
     moveit::core::jointStateToRobotState(virtual_link_joint_states_, *hand_robot_state_);
 
     publishHandJointStates(grasp_index);
+
+    geometry_msgs::PoseStamped planning_hand_target;
+    calcPlanningTarget(grasp_transform, template_transform, planning_hand_target);
+
+    planning_hand_target_pub_.publish(planning_hand_target);
 }
 
 void graspWidget::publishHandJointStates(unsigned int grasp_index)
@@ -1047,7 +1060,7 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
 }
 
 // assume this function is called within mutex block
-int graspWidget::calcWristTarget(const geometry_msgs::Pose& palm_pose,const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose)
+int graspWidget::calcWristTarget(const geometry_msgs::Pose& palm_pose, const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose)
 {
     // Transform wrist_pose into the template pose frame
     //   @TODO        "wrist_target_pose.pose   = T(template_pose)*wrist_pose";
@@ -1076,6 +1089,35 @@ int graspWidget::calcWristTarget(const geometry_msgs::Pose& palm_pose,const geom
     final_pose.pose.position.y = tg_vector.getY();
     final_pose.pose.position.z = tg_vector.getZ();
     return 0;
+}
+
+void graspWidget::calcPlanningTarget(const geometry_msgs::Pose& palm_pose, const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& planning_hand_pose)
+{
+  tf::Transform wt_pose;
+  tf::Transform tp_pose;
+
+  wt_pose.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
+  wt_pose.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
+  tp_pose.setRotation(tf::Quaternion(template_pose.pose.orientation.x,template_pose.pose.orientation.y,template_pose.pose.orientation.z,template_pose.pose.orientation.w));
+  tp_pose.setOrigin(tf::Vector3(template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z) );
+
+  tf::Transform target_pose = tp_pose * wt_pose * hand_T_palm_.inverse();
+
+  tf::Quaternion tg_quat = target_pose.getRotation();
+  tf::Vector3    tg_vector = target_pose.getOrigin();
+
+  planning_hand_pose.header.frame_id = "world";
+  planning_hand_pose.header.stamp = ros::Time::now();
+
+  planning_hand_pose.pose.orientation.w = tg_quat.getW();
+  planning_hand_pose.pose.orientation.x = tg_quat.getX();
+  planning_hand_pose.pose.orientation.y = tg_quat.getY();
+  planning_hand_pose.pose.orientation.z = tg_quat.getZ();
+
+  planning_hand_pose.pose.position.x = tg_vector.getX();
+  planning_hand_pose.pose.position.y = tg_vector.getY();
+  planning_hand_pose.pose.position.z = tg_vector.getZ();
+
 }
 
 int graspWidget::staticTransform(geometry_msgs::Pose& palm_pose)

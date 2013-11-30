@@ -8,6 +8,8 @@
 #include <QtGui>
 #include <QSignalMapper>
 
+#include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
+
 std::vector<unsigned char> GhostControlWidget::saved_state_planning_group_;
 std::vector<unsigned char> GhostControlWidget::saved_state_pose_source_;
 std::vector<unsigned char> GhostControlWidget::saved_state_world_lock_;
@@ -33,6 +35,8 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     // advertise set pose buttons
     set_to_target_pose_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/planning/plan_to_pose_state", 1, false );
     set_to_target_config_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/planning/plan_to_joint_state", 1, false );
+
+    send_inverse_rechability_req_pub_ = nh_.advertise<flor_grasp_msgs::InverseReachabilityForGraspRequest>( "/flor/ocs/planning/inverse_rechability_for_grasp", 1, false );
 
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &GhostControlWidget::processNewKeyEvent, this );
 
@@ -387,6 +391,20 @@ void GhostControlWidget::on_send_upper_body_button__clicked()
     cmd.data = "both_arms_with_torso_group";
 
     set_to_target_config_pub_.publish(cmd);
+}
+
+void GhostControlWidget::on_send_left_ghost_hand_button__clicked()
+{
+  flor_grasp_msgs::InverseReachabilityForGraspRequest inv_grasp_req;
+  inv_grasp_req.hand_side = flor_grasp_msgs::InverseReachabilityForGraspRequest::HAND_LEFT;
+  send_inverse_rechability_req_pub_.publish(inv_grasp_req);
+}
+
+void GhostControlWidget::on_send_right_ghost_hand_button__clicked()
+{
+  flor_grasp_msgs::InverseReachabilityForGraspRequest inv_grasp_req;
+  inv_grasp_req.hand_side = flor_grasp_msgs::InverseReachabilityForGraspRequest::HAND_RIGHT;
+  send_inverse_rechability_req_pub_.publish(inv_grasp_req);
 }
 
 void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
