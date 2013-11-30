@@ -98,7 +98,6 @@
      </layout>
     </item>
    </layout>
- 
   </widget>
   <widget class="QWidget" name="widget_5" native="true">
    <property name="geometry">
@@ -304,12 +303,17 @@
          <property name="maximumSize">
           <size>
            <width>150</width>
-           <height>70</height>
+           <height>78</height>
           </size>
          </property>
          <item>
           <property name="text">
            <string>FREEZE</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>CALIBRATE</string>
           </property>
          </item>
          <item>
@@ -618,7 +622,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>0</x>
@@ -653,11 +657,8 @@
       </item>
      </layout>
     </widget>
-
    </widget>
-
   </widget>
- 
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

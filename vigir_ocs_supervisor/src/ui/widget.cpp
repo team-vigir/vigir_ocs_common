@@ -528,7 +528,7 @@ void Widget::robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg)
 void Widget:: behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg )
 {
     switch(msg->current_behavior)
-    {
+    { // defined in flor_control_msgs::FlorControlModeCommand.msg
     case 0: ui->cur_st->setText("STAND"); break;
     case 1: ui->cur_st->setText("USER"); break;
     case 2: ui->cur_st->setText("FREEZE"); break;
@@ -536,6 +536,8 @@ void Widget:: behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& ms
     case 4: ui->cur_st->setText("WALK"); break;
     case 5: ui->cur_st->setText("STEP"); break;
     case 6: ui->cur_st->setText("MANIPULATE"); break;
+    case 16: ui->cur_st->setText("CALIBRATE"); break;
+    default: ui->cur_st->setText("Unknown!"); break;
     }
     switch(msg->desired_behavior)
     {
@@ -546,6 +548,8 @@ void Widget:: behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& ms
     case 4: ui->d_state->setText("WALK"); break;
     case 5: ui->d_state->setText("STEP"); break;
     case 6: ui->d_state->setText("MANIPULATE"); break;
+    case 16: ui->d_state->setText("CALIBRATE"); break;
+    default: ui->cur_st->setText("Unknown!"); break;
     }
 
 }
@@ -557,6 +561,8 @@ void Widget:: controlstate(const flor_control_msgs::FlorRobotStateCommand::Const
         ui->cs_list->setCurrentItem(ui->cs_list->findItems("STAND",Qt::MatchExactly)[0]);
     else if(msg->state_command==flor_control_msgs::FlorRobotStateCommand::STAND_PREP)
         ui->cs_list->setCurrentItem(ui->cs_list->findItems("STAND PREP",Qt::MatchExactly)[0]);
+    else if(msg->state_command==flor_control_msgs::FlorRobotStateCommand::CALIBRATE)
+        ui->cs_list->setCurrentItem(ui->cs_list->findItems("CALIBRATE",Qt::MatchExactly)[0]);
 
 }
 void Widget::on_start_clicked()
@@ -668,11 +674,17 @@ void Widget::on_send_mode_clicked()
         pub.publish(stand);
     }
 
-
     if (ui->cs_list->currentItem()->text()=="STAND PREP")
     {
         flor_control_msgs::FlorRobotStateCommand stand_prep ;
         stand_prep.state_command= flor_control_msgs::FlorRobotStateCommand::STAND_PREP;
         pub.publish(stand_prep);
+    }
+
+    if (ui->cs_list->currentItem()->text()=="CALIBRATE")
+    {
+        flor_control_msgs::FlorRobotStateCommand calibrate ;
+        calibrate.state_command= flor_control_msgs::FlorRobotStateCommand::CALIBRATE;
+        pub.publish(calibrate);
     }
 }
