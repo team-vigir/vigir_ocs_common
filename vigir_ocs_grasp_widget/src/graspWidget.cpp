@@ -788,11 +788,14 @@ void graspWidget::on_templateRadio_clicked()
     if (ui->graspBox->count() < 1)
     {
         ui->graspBox->setDisabled(true); // nothing to select
+        ui->performButton->setDisabled(true);
     }
     flor_grasp_msgs::GraspState msg;
     msg.grasp_state.data  = (flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4;
-    msg.grip.data         = 0;
-    msg.thumb_effort.data = 0;
+    //msg.grip.data         = 0;
+    //msg.thumb_effort.data = 0;
+    msg.grip.data         = ui->userSlider->value();
+    msg.thumb_effort.data = ui->userSlider_2->value();
     grasp_mode_command_pub_.publish(msg);
     std::cout << "Sent Template mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " << uint32_t(msg.thumb_effort.data) <<  " thumb effort to " << hand_ << " hand" << std::endl;
 
@@ -818,6 +821,7 @@ void graspWidget::on_manualRadio_clicked()
     if (addCurrent)     ui->graspBox->addItem(QString("CURRENT"));
     ui->graspBox->setDisabled(false);
 
+    ui->performButton->setDisabled(false);
 
     flor_grasp_msgs::GraspState msg;
     msg.grasp_state.data  = (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
