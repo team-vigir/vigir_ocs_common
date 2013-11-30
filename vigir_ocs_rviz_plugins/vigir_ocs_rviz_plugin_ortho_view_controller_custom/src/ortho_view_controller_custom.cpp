@@ -42,6 +42,7 @@
 #include "rviz/viewport_mouse_event.h"
 #include "rviz/render_panel.h"
 #include "rviz/selection/selection_manager.h"
+#include "rviz/visualization_manager.h"
 
 #include "ortho_view_controller_custom.h"
 

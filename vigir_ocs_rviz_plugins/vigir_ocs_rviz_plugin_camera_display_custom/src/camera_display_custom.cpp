@@ -108,7 +108,7 @@ CameraDisplayCustom::CameraDisplayCustom()
     , crop_binning_(0)
     , publish_frequency_(0.0f)
     , crop_publish_frequency_(0.0f)
-    , render_panel_(NULL)
+    , render_panel_( 0 )
     , caminfo_tf_filter_( 0 )
     , new_caminfo_( false )
     , force_render_( false )
@@ -370,6 +370,8 @@ void CameraDisplayCustom::postRenderTargetUpdate(const Ogre::RenderTargetEvent& 
     bg_scene_node_->setVisible( false );
     fg_scene_node_->setVisible( false );
 
+    // workaround to make rviz render the image correctly once
+    rendered_once_ = true;
 }
 
 
@@ -567,8 +569,6 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
     }
 
     //std::cout << "Updating camera " << view_id_ << std::endl;
-    // workaround to make rviz render the image correctly once
-    rendered_once_ = true;
 
     Ogre::Vector3 position;
     Ogre::Quaternion orientation;
@@ -681,6 +681,7 @@ bool CameraDisplayCustom::updateCamera(bool update_image)
         proj_matrix[3][2]= -1;
 
         //ROS_INFO(" Camera (%f, %f)", proj_matrix[0][0], proj_matrix[1][1]);
+        //ROS_INFO(" Render Panel: %x   Viewport: %x", render_panel_, render_panel_->getViewport());
         context_->getSelectionManager()->setCameraConfig( render_panel_->getViewport(), proj_matrix );
 
         render_panel_->getCamera()->setCustomProjectionMatrix( true, proj_matrix );

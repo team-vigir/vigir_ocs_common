@@ -149,7 +149,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     views_initialized_ = 0;
 
-    //ui->groupBox->hide();
+    fourViewToggle();
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()
@@ -240,8 +240,9 @@ void MainCameraViewWidget::fourViewToggle()
 void MainCameraViewWidget::cameraInitialized()
 {
     views_initialized_++;
+    std::cout << "Cameras initialized: " << views_initialized_ << std::endl;
 
-    if(views_initialized_ == views_list_.size())
+    if(views_initialized_ == views_list_.size()-1)
         oneViewToggle();
 }
 

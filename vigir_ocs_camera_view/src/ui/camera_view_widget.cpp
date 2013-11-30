@@ -103,13 +103,13 @@ CameraViewWidget::CameraViewWidget(QWidget *parent, rviz::VisualizationManager* 
     connect(ui->get_camera_image,    SIGNAL(clicked()),                this,         SLOT(setFeedToSingleImage()));
     connect(ui->get_area_image,      SIGNAL(clicked()),                this,         SLOT(setAreaToSingleImage()));
     connect(ui->get_camera_feed,     SIGNAL(clicked()),                this,         SLOT(imageFeedButtonClicked()));
-    connect(feed_slider,             SIGNAL(valueChanged(int)),        this,         SLOT(imageFeedSliderChanged(int)));
+    connect(feed_slider,             SIGNAL(sliderMoved(int)),         this,         SLOT(imageFeedSliderChanged(int)));
     connect(feed_slider,             SIGNAL(sliderReleased()),         this,         SLOT(imageFeedSliderReleased()));
     connect(ui->get_area_feed,       SIGNAL(clicked()),                this,         SLOT(areaFeedButtonClicked()));
-    connect(area_slider,             SIGNAL(valueChanged(int)),        this,         SLOT(areaFeedSliderChanged(int)));
+    connect(area_slider,             SIGNAL(sliderMoved(int)),         this,         SLOT(areaFeedSliderChanged(int)));
     connect(area_slider,             SIGNAL(sliderReleased()),         this,         SLOT(areaFeedSliderReleased()));
     connect(ui->image_transparency,  SIGNAL(clicked()),                this,         SLOT(transparencyButtonClicked()));
-    connect(transparency_slider,     SIGNAL(valueChanged(int)),        this,         SLOT(transparencySliderChanged(int)));
+    connect(transparency_slider,     SIGNAL(sliderMoved(int)),         this,         SLOT(transparencySliderChanged(int)));
     connect(area_slider,             SIGNAL(sliderReleased()),         this,         SLOT(transparencySliderReleased()));
 
     // setup icons path

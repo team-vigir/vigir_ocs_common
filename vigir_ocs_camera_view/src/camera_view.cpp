@@ -192,6 +192,7 @@ void CameraView::timerEvent(QTimerEvent *event)
 
     if(!initialized_ && ((rviz::CameraDisplayCustom*)camera_viewer_)->hasRenderedOnce())
     {
+        std::cout << "initialized camera" << std::endl;
         initialized_ = true;
         Q_EMIT setInitialized();
     }
