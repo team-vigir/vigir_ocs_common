@@ -76,6 +76,8 @@ void GhostControlWidget::publishState( bool snap )
     //cmd.collision_avoidance = saved_state_collision_avoidance_;
     cmd.lock_pelvis = saved_state_lock_pelvis_;
     cmd.snap = snap;
+    cmd.left_moveit_marker_loopback = ui->left_moveit_marker_lock->isChecked();
+    cmd.right_moveit_marker_loopback = ui->right_moveit_marker_lock->isChecked();
     state_pub_.publish(cmd);
 }
 
@@ -431,4 +433,14 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
             this->show();
         }
     }
+}
+
+void GhostControlWidget::on_left_moveit_marker_lock_clicked()
+{
+    publishState();
+}
+
+void GhostControlWidget::on_right_moveit_marker_lock_clicked()
+{
+    publishState();
 }

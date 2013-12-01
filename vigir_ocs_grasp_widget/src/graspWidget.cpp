@@ -57,7 +57,7 @@ graspWidget::graspWidget(QWidget *parent)
 
     grasp_selection_pub_        = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/template/grasp_selection",        1, false);
     grasp_release_pub_          = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/template/release_grasp" ,         1, false);
-    grasp_mode_command_pub_     = nh_.advertise<flor_grasp_msgs::GraspState>(         "/template/grasp_mode_command",     1, false);
+    grasp_mode_command_pub_     = nh_.advertise<flor_grasp_msgs::GraspState>(        "/template/grasp_mode_command",     1, false);
     template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/template_match_request", 1, false );
 
     // create subscribers for grasp status
@@ -76,11 +76,11 @@ graspWidget::graspWidget(QWidget *parent)
         hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("left_hand_robot_description"));
         hand_robot_model_ = hand_model_loader_->getModel();
         hand_robot_state_.reset(new robot_state::RobotState(hand_robot_model_));
+        // Publisher for hand position/state
+        robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_left_hand",1, true);
 
         // We first subscribe to the JointState messages
         joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/l_hand/tactile_feedback", 2, &graspWidget::jointStatesCB, this );
-        // Publisher for hand position/state
-        robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_left_hand",1, true);
 
         template_stitch_pose_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/grasp_control/l_hand/template_stitch_pose",1, &graspWidget::templateStitchPoseCallback,  this );
         template_stitch_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/grasp_control/l_hand/template_stitch_request", 1, false );
@@ -92,6 +92,7 @@ graspWidget::graspWidget(QWidget *parent)
         nh_.getParam("/l_hand_tf/gp_T_palm", hand_T_palm);
         gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
         gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+
         color_r = 1.0f;
         color_g = 1.0f;
         color_b = 0.0f;
@@ -109,11 +110,11 @@ graspWidget::graspWidget(QWidget *parent)
         hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("right_hand_robot_description"));
         hand_robot_model_ = hand_model_loader_->getModel();
         hand_robot_state_.reset(new robot_state::RobotState(hand_robot_model_));
+        // Publisher for hand position/state
+        robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_right_hand",1, true);
 
         // We first subscribe to the JointState messages
         joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/r_hand/tactile_feedback", 2, &graspWidget::jointStatesCB, this );
-        // Publisher for hand position/state
-        robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_right_hand",1, true);
 
         template_stitch_pose_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/grasp_control/r_hand/template_stitch_pose",1, &graspWidget::templateStitchPoseCallback,  this );
         template_stitch_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/grasp_control/r_hand/template_stitch_request", 1, false );
@@ -125,6 +126,7 @@ graspWidget::graspWidget(QWidget *parent)
         nh_.getParam("/r_hand_tf/gp_T_palm", hand_T_palm);
         gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
         gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+
         color_r = 0.0f;
         color_g = 1.0f;
         color_b = 1.0f;
@@ -1054,7 +1056,6 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
 
     //ghost_hand_joint_state_pub_.publish(joint_states);
     moveit::core::jointStateToRobotState(joint_states, *hand_robot_state_);
-
     robot_state::robotStateToRobotStateMsg(*hand_robot_state_, display_state_msg_.state);
     robot_state_vis_pub_.publish(display_state_msg_);
 }
@@ -1154,6 +1155,7 @@ int graspWidget::hideHand()
     hand_transform.header.stamp = ros::Time::now();
     hand_transform.header.frame_id = "/world";
     ghost_hand_pub_.publish(hand_transform);
+
     virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
     virtual_link_joint_states_.position[1] = hand_transform.pose.position.y;
     virtual_link_joint_states_.position[2] = hand_transform.pose.position.z;

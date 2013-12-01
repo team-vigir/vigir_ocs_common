@@ -20,9 +20,9 @@
 #include <QLineEdit>
 #include <QBasicTimer>
 #include <QThread>
+
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
-
 #include <OGRE/OgreSceneManager.h>
 
 #include <ros/ros.h>
@@ -35,13 +35,6 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/JointState.h>
 #include <mouse_event_handler.h>
-
-#include <moveit_msgs/RobotState.h>
-#include <moveit_msgs/DisplayRobotState.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/robot_state/conversions.h>
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
 #include <flor_ocs_msgs/OCSGhostControl.h>
@@ -84,6 +77,8 @@ class Base3DView: public QWidget
 public:
     Base3DView( rviz::VisualizationManager* context = NULL, std::string base_frame = "/pelvis", QWidget* parent = 0 );
     virtual ~Base3DView();
+    
+    void init();
 
     void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
     void processNewSelection( const geometry_msgs::Point::ConstPtr& pose );
@@ -102,6 +97,7 @@ public:
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }
 
     void updateRenderMask( bool );
+
 public Q_SLOTS:
     // displays
     void robotModelToggled( bool );
@@ -157,15 +153,13 @@ Q_SIGNALS:
 
 protected:
     virtual void timerEvent(QTimerEvent *event);
+
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
     void publishGhostPoses();
-    virtual rviz::ViewController* getCurrentViewController();
 
-    void publishHandPose(const geometry_msgs::Pose& end_effector_transform);
-    void publishHandJointStates();
-    int calcWristTarget(const geometry_msgs::Pose& wrist_pose,const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose );
+    virtual rviz::ViewController* getCurrentViewController();
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
@@ -194,26 +188,8 @@ protected:
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
 
-    rviz::Display* left_grasp_hand_model_;
-    rviz::Display* right_grasp_hand_model_;
-
     rviz::Display* left_hand_model_;
-    robot_model_loader::RobotModelLoaderPtr left_hand_model_loader_;
-    robot_model::RobotModelPtr left_hand_robot_model_;
-    robot_state::RobotStatePtr left_hand_robot_state_;
-    moveit_msgs::DisplayRobotState left_display_state_msg_;
-    ros::Publisher left_hand_robot_state_vis_pub_;
-    // Used to make setting virtual joint positions (-> hand pose) easier
-    sensor_msgs::JointState left_hand_virtual_link_joint_states_;
-
     rviz::Display* right_hand_model_;
-    robot_model_loader::RobotModelLoaderPtr right_hand_model_loader_;
-    robot_model::RobotModelPtr right_hand_robot_model_;
-    robot_state::RobotStatePtr right_hand_robot_state_;
-    moveit_msgs::DisplayRobotState right_display_state_msg_;
-    ros::Publisher right_hand_robot_state_vis_pub_;
-    // Used to make setting virtual joint positions (-> hand pose) easier
-    sensor_msgs::JointState right_hand_virtual_link_joint_states_;
 
     // for simulation
     rviz::Display* ghost_robot_model_;
@@ -263,15 +239,14 @@ protected:
     ros::Subscriber ghost_hand_left_sub_;
     ros::Subscriber ghost_hand_right_sub_;
 
-    std::vector<unsigned char> ghost_planning_group_;
-    std::vector<unsigned char> ghost_pose_source_;
-    std::vector<unsigned char> ghost_world_lock_;
-    unsigned char moveit_collision_avoidance_;
-    unsigned char ghost_lock_pelvis_;
+    std::vector<unsigned char> saved_state_planning_group_;
+    std::vector<unsigned char> saved_state_pose_source_;
+    std::vector<unsigned char> saved_state_world_lock_;
+    unsigned char saved_state_collision_avoidance_;
+    unsigned char saved_state_lock_pelvis_;
+
     bool update_markers_;
     bool snap_ghost_to_robot_;
-    bool left_marker_moveit_loopback_;
-    bool right_marker_moveit_loopback_;
     
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
@@ -297,12 +272,16 @@ protected:
 
     QPushButton* reset_view_button_;
 
-    tf::Transform l_hand_T_palm_;
-    tf::Transform r_hand_T_palm_;
+<<<<<<< HEAD
+    std::string hand_type_;
 
     QBasicTimer timer;
 
     int view_id_;
+=======
+    tf::Transform l_hand_T_palm_;
+    tf::Transform r_hand_T_palm_;
+>>>>>>> master
 };
 }
 #endif // BASE_3D_VIEW_H
