@@ -163,9 +163,9 @@ protected:
     void publishGhostPoses();
     virtual rviz::ViewController* getCurrentViewController();
 
-    void publishHandPose(const geometry_msgs::Pose& end_effector_transform);
-    void publishHandJointStates();
-    int calcWristTarget(const geometry_msgs::Pose& wrist_pose,const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose );
+    void publishHandPose(std::string hand, const geometry_msgs::PoseStamped& end_effector_transform);
+    void publishHandJointStates(std::string hand);
+    int calcWristTarget(const geometry_msgs::PoseStamped& end_effector_pose, tf::Transform hand_T_palm, geometry_msgs::PoseStamped& final_pose);
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
@@ -303,6 +303,8 @@ protected:
     QBasicTimer timer;
 
     int view_id_;
+
+    std::string l_hand_type, r_hand_type;
 };
 }
 #endif // BASE_3D_VIEW_H

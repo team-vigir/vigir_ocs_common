@@ -286,7 +286,7 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         right_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
         right_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
 
-        right_hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("left_hand_robot_description"));
+        right_hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("right_hand_robot_description"));
         right_hand_robot_model_ = right_hand_model_loader_->getModel();
         right_hand_robot_state_.reset(new robot_state::RobotState(right_hand_robot_model_));
         right_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_right_hand",1, true);
@@ -465,13 +465,16 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
 
     XmlRpc::XmlRpcValue   hand_T_palm;
 
+    nh_.getParam("/l_hand_tf/hand_T_palm", hand_T_palm);
+    l_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
+    l_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+
     nh_.getParam("/r_hand_tf/hand_T_palm", hand_T_palm);
     r_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
     r_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
 
-    nh_.getParam("/l_hand_tf/hand_T_palm", hand_T_palm);
-    l_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-    l_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+    nh_.getParam("/l_hand_type", l_hand_type);
+    nh_.getParam("/r_hand_type", r_hand_type);
 
     // set background color to rviz default
     render_panel_->getViewport()->setBackgroundColour(rviz::qtToOgre(QColor(48,48,48)));
@@ -952,9 +955,14 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
         if(marker_published_ < 3)
             publishMarkers();
 
+        publishHandPose("left",*pose);
+
+        geometry_msgs::PoseStamped wrist_pose;
+        calcWristTarget(*pose,l_hand_T_palm_,wrist_pose);
+
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/l_arm_pose_marker";
-        cmd.pose = *pose;
+        cmd.pose = wrist_pose;
         interactive_marker_update_pub_.publish(cmd);
 
         //ROS_ERROR("LEFT ARM POSE:");
@@ -972,9 +980,14 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
         if(marker_published_ < 3)
             publishMarkers();
 
+        publishHandPose("right",*pose);
+
+        geometry_msgs::PoseStamped wrist_pose;
+        calcWristTarget(*pose,r_hand_T_palm_,wrist_pose);
+
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/r_arm_pose_marker";
-        cmd.pose = *pose;
+        cmd.pose = wrist_pose;
         interactive_marker_update_pub_.publish(cmd);
 
         //ROS_ERROR("RIGHT ARM POSE:");
@@ -995,6 +1008,10 @@ int staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform hand_T_palm)
 
     o_T_hand = o_T_palm * hand_T_palm.inverse();
 
+    //ROS_INFO("hand_T_palm: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+    //         hand_T_palm.getOrigin().getX(),hand_T_palm.getOrigin().getY(),hand_T_palm.getOrigin().getZ(),
+    //         hand_T_palm.getRotation().getW(),hand_T_palm.getRotation().getX(),hand_T_palm.getRotation().getY(),hand_T_palm.getRotation().getZ());
+
     tf::Quaternion hand_quat;
     tf::Vector3    hand_vector;
     hand_quat   = o_T_hand.getRotation();
@@ -1011,73 +1028,82 @@ int staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform hand_T_palm)
     return 0;
 }
 
-void Base3DView::publishHandPose(const geometry_msgs::Pose& end_effector_transform)
+void Base3DView::publishHandPose(std::string hand, const geometry_msgs::PoseStamped& end_effector_transform)
 {
-    geometry_msgs::Pose hand_base_transform;
-    hand_base_transform.orientation.w = 1;
-    hand_base_transform.orientation.x = 0;
-    hand_base_transform.orientation.y = 0;
-    hand_base_transform.orientation.z = 0;
-
-    hand_base_transform.position.x = 0;
-    hand_base_transform.position.y = 0;
-    hand_base_transform.position.z = 0;
-
     geometry_msgs::PoseStamped hand_transform; // the first hand transform is really where I want the palm to be, or identity in this case
-    calcWristTarget(hand_base_transform, end_effector_transform, hand_transform);
+    if(hand == "left")
+    {
+        calcWristTarget(end_effector_transform, l_hand_T_palm_, hand_transform);
 
-    hand_transform.header.stamp = ros::Time::now();
-    hand_transform.header.frame_id = "/world";
+        left_hand_virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
+        left_hand_virtual_link_joint_states_.position[1] = hand_transform.pose.position.y;
+        left_hand_virtual_link_joint_states_.position[2] = hand_transform.pose.position.z;
+        left_hand_virtual_link_joint_states_.position[3] = hand_transform.pose.orientation.x;
+        left_hand_virtual_link_joint_states_.position[4] = hand_transform.pose.orientation.y;
+        left_hand_virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
+        left_hand_virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
 
-    left_hand_virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
-    left_hand_virtual_link_joint_states_.position[1] = hand_transform.pose.position.y;
-    left_hand_virtual_link_joint_states_.position[2] = hand_transform.pose.position.z;
-    left_hand_virtual_link_joint_states_.position[3] = hand_transform.pose.orientation.x;
-    left_hand_virtual_link_joint_states_.position[4] = hand_transform.pose.orientation.y;
-    left_hand_virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
-    left_hand_virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
+        moveit::core::jointStateToRobotState(left_hand_virtual_link_joint_states_, *left_hand_robot_state_);
+    }
+    else
+    {
+        calcWristTarget(end_effector_transform, r_hand_T_palm_, hand_transform);
 
-    moveit::core::jointStateToRobotState(left_hand_virtual_link_joint_states_, *left_hand_robot_state_);
+        right_hand_virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
+        right_hand_virtual_link_joint_states_.position[1] = hand_transform.pose.position.y;
+        right_hand_virtual_link_joint_states_.position[2] = hand_transform.pose.position.z;
+        right_hand_virtual_link_joint_states_.position[3] = hand_transform.pose.orientation.x;
+        right_hand_virtual_link_joint_states_.position[4] = hand_transform.pose.orientation.y;
+        right_hand_virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
+        right_hand_virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
 
-    publishHandJointStates();
+        moveit::core::jointStateToRobotState(right_hand_virtual_link_joint_states_, *right_hand_robot_state_);
+    }
+
+    publishHandJointStates(hand);
 }
 
-void Base3DView::publishHandJointStates()
+void Base3DView::publishHandJointStates(std::string hand)
 {
+    std::string hand_type;
+    if(hand == "left")
+        hand_type = l_hand_type;
+    else
+        hand_type = r_hand_type;
+
     sensor_msgs::JointState joint_states;
 
     joint_states.header.stamp = ros::Time::now();
-    joint_states.header.frame_id = std::string("/")+hand_+std::string("_hand_model/")+hand_+"_palm";
-    if(hand_type_ == "irobot")
+    joint_states.header.frame_id = std::string("/")+hand+std::string("_hand_model/")+hand+"_palm";
+
+    if(hand_type.find("irobot") != std::string::npos)
     {
-
         // must match the order used in the .grasp file
-
-        joint_states.name.push_back(hand_+"_f0_j1");
-        joint_states.name.push_back(hand_+"_f1_j1");
-        joint_states.name.push_back(hand_+"_f2_j1");
-        joint_states.name.push_back(hand_+"_f0_j0"); // .grasp finger position [4] -> IGNORE [3], use [4] for both
-        joint_states.name.push_back(hand_+"_f1_j0"); // .grasp finger position [4]
-        joint_states.name.push_back(hand_+"_f0_j2"); // 0 for now
-        joint_states.name.push_back(hand_+"_f1_j2"); // 0 for now
-        joint_states.name.push_back(hand_+"_f2_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f0_j1");
+        joint_states.name.push_back(hand+"_f1_j1");
+        joint_states.name.push_back(hand+"_f2_j1");
+        joint_states.name.push_back(hand+"_f0_j0"); // .grasp finger position [4] -> IGNORE [3], use [4] for both
+        joint_states.name.push_back(hand+"_f1_j0"); // .grasp finger position [4]
+        joint_states.name.push_back(hand+"_f0_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f1_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f2_j2"); // 0 for now
 
     }
     else
     {
         // must match those inside of the /sandia_hands/?_hand/joint_states/[right_/left_]+
-        joint_states.name.push_back(hand_+"_f0_j0");
-        joint_states.name.push_back(hand_+"_f0_j1");
-        joint_states.name.push_back(hand_+"_f0_j2");
-        joint_states.name.push_back(hand_+"_f1_j0");
-        joint_states.name.push_back(hand_+"_f1_j1");
-        joint_states.name.push_back(hand_+"_f1_j2");
-        joint_states.name.push_back(hand_+"_f2_j0");
-        joint_states.name.push_back(hand_+"_f2_j1");
-        joint_states.name.push_back(hand_+"_f2_j2");
-        joint_states.name.push_back(hand_+"_f3_j0");
-        joint_states.name.push_back(hand_+"_f3_j1");
-        joint_states.name.push_back(hand_+"_f3_j2");
+        joint_states.name.push_back(hand+"_f0_j0");
+        joint_states.name.push_back(hand+"_f0_j1");
+        joint_states.name.push_back(hand+"_f0_j2");
+        joint_states.name.push_back(hand+"_f1_j0");
+        joint_states.name.push_back(hand+"_f1_j1");
+        joint_states.name.push_back(hand+"_f1_j2");
+        joint_states.name.push_back(hand+"_f2_j0");
+        joint_states.name.push_back(hand+"_f2_j1");
+        joint_states.name.push_back(hand+"_f2_j2");
+        joint_states.name.push_back(hand+"_f3_j0");
+        joint_states.name.push_back(hand+"_f3_j1");
+        joint_states.name.push_back(hand+"_f3_j2");
     }
 
     joint_states.position.resize(joint_states.name.size());
@@ -1091,24 +1117,41 @@ void Base3DView::publishHandJointStates()
         joint_states.position[i] = 0;
     }
 
-    moveit::core::jointStateToRobotState(joint_states, *left_hand_robot_state_);
-    robot_state::robotStateToRobotStateMsg(*left_hand_robot_state_, left_display_state_msg_.state);
-    left_hand_robot_state_vis_pub_.publish(left_display_state_msg_);
+    if(hand == "left")
+    {
+        moveit::core::jointStateToRobotState(joint_states, *left_hand_robot_state_);
+        robot_state::robotStateToRobotStateMsg(*left_hand_robot_state_, left_display_state_msg_.state);
+        left_hand_robot_state_vis_pub_.publish(left_display_state_msg_);
+    }
+    else
+    {
+        moveit::core::jointStateToRobotState(joint_states, *right_hand_robot_state_);
+        robot_state::robotStateToRobotStateMsg(*right_hand_robot_state_, right_display_state_msg_.state);
+        right_hand_robot_state_vis_pub_.publish(right_display_state_msg_);
+    }
 }
 
-int Base3DView::calcWristTarget(geometry_msgs::Pose& palm_pose, const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose)
+int Base3DView::calcWristTarget(const geometry_msgs::PoseStamped& end_effector_pose, tf::Transform hand_T_palm, geometry_msgs::PoseStamped& final_pose)
 {
     // Transform wrist_pose into the template pose frame
-    //   @TODO        "wrist_target_pose.pose   = T(template_pose)*wrist_pose";
-    tf::Transform wt_pose;
-    tf::Transform tp_pose;
+    tf::Transform ef_pose;
     tf::Transform target_pose;
 
-    wt_pose.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
-    wt_pose.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
-    tp_pose.setRotation(tf::Quaternion(template_pose.pose.orientation.x,template_pose.pose.orientation.y,template_pose.pose.orientation.z,template_pose.pose.orientation.w));
-    tp_pose.setOrigin(tf::Vector3(template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z) );
-    target_pose = tp_pose * wt_pose * hand_T_palm_.inverse() * this->stitch_template_pose_ * hand_T_palm_;  //I assume this works
+    ef_pose.setRotation(tf::Quaternion(end_effector_pose.pose.orientation.x,end_effector_pose.pose.orientation.y,end_effector_pose.pose.orientation.z,end_effector_pose.pose.orientation.w));
+    ef_pose.setOrigin(tf::Vector3(end_effector_pose.pose.position.x,end_effector_pose.pose.position.y,end_effector_pose.pose.position.z) );
+    target_pose = ef_pose * hand_T_palm;
+
+//    ROS_INFO("ef_pose: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+//             ef_pose.getOrigin().getX(),ef_pose.getOrigin().getY(),ef_pose.getOrigin().getZ(),
+//             ef_pose.getRotation().getW(),ef_pose.getRotation().getX(),ef_pose.getRotation().getY(),ef_pose.getRotation().getZ());
+
+//    ROS_INFO("hand_T_palm: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+//             hand_T_palm.getOrigin().getX(),hand_T_palm.getOrigin().getY(),hand_T_palm.getOrigin().getZ(),
+//             hand_T_palm.getRotation().getW(),hand_T_palm.getRotation().getX(),hand_T_palm.getRotation().getY(),hand_T_palm.getRotation().getZ());
+
+//    ROS_INFO("target_pose: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+//             target_pose.getOrigin().getX(),target_pose.getOrigin().getY(),target_pose.getOrigin().getZ(),
+//             target_pose.getRotation().getW(),target_pose.getRotation().getX(),target_pose.getRotation().getY(),target_pose.getRotation().getZ());
 
     tf::Quaternion tg_quat;
     tf::Vector3    tg_vector;
@@ -1128,11 +1171,9 @@ int Base3DView::calcWristTarget(geometry_msgs::Pose& palm_pose, const geometry_m
 
 void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
-    //ROS_ERROR("LEFT GHOST HAND POSE:");
-    //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
-    //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
-    publishHandPose(pose->pose);
-
+    //ROS_INFO("LEFT GHOST HAND POSE:");
+    //ROS_INFO("  position: %.2f %.2f %.2f",pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
+    //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",pose->pose.orientation.w,pose->pose.orientation.x,pose->pose.orientation.y,pose->pose.orientation.z);
     if(!moving_pelvis_ && ghost_world_lock_[0] == 1)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
@@ -1144,9 +1185,9 @@ void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::Cons
 
 void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
-    //ROS_ERROR("RIGHT GHOST HAND POSE:");
-    //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
-    //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
+    //ROS_INFO("RIGHT GHOST HAND POSE:");
+    //ROS_INFO("  position: %.2f %.2f %.2f",pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
+    //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",pose->pose.orientation.w,pose->pose.orientation.x,pose->pose.orientation.y,pose->pose.orientation.z);
     if(!moving_pelvis_ && ghost_world_lock_[1] == 1)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
@@ -1158,6 +1199,8 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
 
 void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
 {
+    geometry_msgs::PoseStamped joint_pose;
+    joint_pose = msg->pose;
 
     //ROS_ERROR("Marker feedback on topic %s, have markers instantiated",msg->topic.c_str());
     if(msg->topic == "/l_arm_pose_marker")
@@ -1167,6 +1210,12 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_pelvis_ = false;
         moving_l_arm_ = true;
         moving_r_arm_ = false;
+
+        //ROS_INFO("LEFT GHOST HAND POSE:");
+        //ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
+        //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
+        calcWristTarget(msg->pose,l_hand_T_palm_.inverse(),joint_pose);
+        publishHandPose(std::string("left"),joint_pose);
     }
     else if(msg->topic == "/r_arm_pose_marker")
     {
@@ -1175,6 +1224,12 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_pelvis_ = false;
         moving_l_arm_ = false;
         moving_r_arm_ = true;
+
+        ROS_INFO("RIGHT GHOST HAND POSE:");
+        ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
+        ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
+        calcWristTarget(msg->pose,r_hand_T_palm_.inverse(),joint_pose);
+        publishHandPose(std::string("right"),joint_pose);
     }
     else if(msg->topic == "/pelvis_pose_marker")
     {
@@ -1183,7 +1238,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_r_arm_ = false;
     }
 
-    end_effector_pose_list_[msg->topic] = msg->pose;
+    end_effector_pose_list_[msg->topic] = joint_pose; //msg->pose;
 
     if(marker_published_ < 3)
     {
