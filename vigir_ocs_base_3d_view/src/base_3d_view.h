@@ -20,6 +20,7 @@
 #include <QLineEdit>
 #include <QBasicTimer>
 #include <QThread>
+#include <QMenu>
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
 
@@ -129,9 +130,10 @@ public Q_SLOTS:
     void templatePathChanged( QString );
     void insertWaypoint();
 
-    void createContextMenu( bool, int, int );
+    virtual void createContextMenu( bool, int, int );
+    virtual void processContextMenu( int x, int y );
     // sends back the context
-    void setContext( int );
+    void setContext( int, std::string );
 
     // get the last selection ray
     void setSelectionRay( Ogre::Ray );
@@ -154,11 +156,14 @@ Q_SIGNALS:
     void setMarkerPosition( float, float, float );
     void enableTemplateMarkers( bool );
     void setFrustum( const float &, const float &, const float&, const float& );
+    void finishedContextMenuSetup( int x, int y );
 
 protected:
     virtual void timerEvent(QTimerEvent *event);
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
+
+    void removeTemplate(int id);
 
     void publishGhostPoses();
     virtual rviz::ViewController* getCurrentViewController();
@@ -305,6 +310,14 @@ protected:
     int view_id_;
 
     std::string l_hand_type, r_hand_type;
+
+    QMenu context_menu_;
+    QAction* context_menu_selected_item_;
+
+    int initializing_context_menu_;
+    std::string active_context_name_;
+
+    ros::Publisher template_remove_pub_;
 };
 }
 #endif // BASE_3D_VIEW_H

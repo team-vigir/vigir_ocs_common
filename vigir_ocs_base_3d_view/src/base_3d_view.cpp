@@ -13,7 +13,6 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPoint>
-#include <QMenu>
 #include <QWidgetAction>
 #include <QSlider>
 
@@ -40,6 +39,7 @@
 #include "base_3d_view.h"
 
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
+#include "flor_ocs_msgs/OCSTemplateRemove.h"
 #include "flor_ocs_msgs/OCSWaypointAdd.h"
 #include "flor_perception_msgs/EnvironmentRegionRequest.h"
 #include "flor_planning_msgs/TargetConfigIkRequest.h"
@@ -61,6 +61,7 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     , left_marker_moveit_loopback_(true)
     , right_marker_moveit_loopback_(true)
     , visualize_grid_map_(true)
+    , initializing_context_menu_(0)
 {
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
@@ -410,12 +411,15 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         frustum_viewer_list_["head_left"] = manager_->createDisplay( "rviz/FrustumDisplayCustom", "Frustum - Left Eye", true );
         //}
 
+        // and advertise the template remove option
+        template_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
+
         // Connect to the template markers
         QObject::connect(this, SIGNAL(enableTemplateMarkers(bool)), template_display_, SLOT(enableTemplateMarkers(bool)));
 
         // Connect the 3D selection tool to
         QObject::connect(this, SIGNAL(queryContext(int,int)), selection_3d_display_, SLOT(queryContext(int,int)));
-        QObject::connect(selection_3d_display_, SIGNAL(setContext(int)), this, SLOT(setContext(int)));
+        QObject::connect(selection_3d_display_, SIGNAL(setContext(int,std::string)), this, SLOT(setContext(int,std::string)));
 
         // connect the 3d selection tool to its display
         QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
@@ -872,40 +876,72 @@ void Base3DView::insertWaypoint()
 
 void Base3DView::createContextMenu(bool, int x, int y)
 {
+    initializing_context_menu_++;
+
+    context_menu_selected_item_ = NULL;
+
+    context_menu_.clear();
+    context_menu_.setTitle("Base Menu");
+
     // first we need to query the 3D scene to retrieve the context
     Q_EMIT queryContext(x,y);
     // context is stored in the active_context_ variable
+    std::cout << "Active context: " << active_context_ << std::endl;
 
-    QPoint globalPos = this->mapToGlobal(QPoint(x+10,y+10));
+    context_menu_.addAction("Insert Template");
+    //if(selected_) context_menu_.addAction("Insert Waypoint");
+    if(active_context_name_.find("template") != std::string::npos) context_menu_.addAction("Remove Template");
 
-    QMenu myMenu;
+    if(initializing_context_menu_ == 1)
+        processContextMenu(x, y);
 
-    myMenu.addAction("Insert Template");
-    if(selected_) myMenu.addAction("Insert Waypoint");
+    initializing_context_menu_--;
+}
 
-    QAction* selectedItem = myMenu.exec(globalPos);
+void Base3DView::processContextMenu(int x, int y)
+{
+    QPoint globalPos = this->mapToGlobal(QPoint(x,y));
+    context_menu_selected_item_ = context_menu_.exec(globalPos);
+
     //std::cout << selectedItem << std::endl;
-    if(selectedItem != NULL)
+    if(context_menu_selected_item_ != NULL)
     {
-        if (selectedItem->text() == QString("Insert Template"))
+        if(context_menu_selected_item_->text() == QString("Insert Template"))
         {
             if(!selected_template_path_.isEmpty())
                 insertTemplate(selected_template_path_);
         }
-        else if (selectedItem->text() == QString("Insert Waypoint"))
+        else if(context_menu_selected_item_->text() == QString("Remove Template"))
         {
-            insertWaypoint();
+            int start = active_context_name_.find(" ")+1;
+            int end = active_context_name_.find(".");
+            QString template_number(active_context_name_.substr(start, end-start).c_str());
+            ROS_INFO("%d %d %s",start,end,template_number.toStdString().c_str());
+            bool ok;
+            int t = template_number.toInt(&ok);
+            if(ok) removeTemplate(t);
         }
-        else
-        {
-            // nothing was chosen, probably don't need this anymore since checking for NULL
-        }
+        //else if(context_menu_selected_item_->text() == QString("Insert Waypoint"))
+        //{
+        //    insertWaypoint();
+        //}
     }
 }
 
-void Base3DView::setContext(int context)
+void Base3DView::removeTemplate(int id)
+{
+    flor_ocs_msgs::OCSTemplateRemove cmd;
+
+    cmd.template_id = id;
+
+    // publish template to be removed
+    template_remove_pub_.publish( cmd );
+}
+
+void Base3DView::setContext(int context, std::string name)
 {
     active_context_ = context;
+    active_context_name_ = name;
     //std::cout << "Active context: " << active_context_ << std::endl;
 }
 
@@ -1089,7 +1125,7 @@ void Base3DView::publishHandJointStates(std::string hand)
         joint_states.name.push_back(hand+"_f2_j2"); // 0 for now
 
     }
-    else
+    else if(hand_type.find("sandia") != std::string::npos)
     {
         // must match those inside of the /sandia_hands/?_hand/joint_states/[right_/left_]+
         joint_states.name.push_back(hand+"_f0_j0");
@@ -1548,4 +1584,5 @@ rviz::ViewController* Base3DView::getCurrentViewController()
 {
      return manager_->getViewManager()->getCurrent();
 }
+
 }

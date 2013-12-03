@@ -102,7 +102,7 @@ public:
 
 Q_SIGNALS:
   void newSelection( Ogre::Vector3 );
-  void setContext( int );
+  void setContext( int, std::string );
   void setSelectionRay( Ogre::Ray );
 
 private Q_SLOTS:

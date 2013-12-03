@@ -42,11 +42,14 @@ Q_SIGNALS:
 public Q_SLOTS:
     void enableSelectionTool(bool, int, int);
     void selectionToolToggle(bool);
+    virtual void createContextMenu( bool, int, int );
+    virtual void processContextMenu( int x, int y );
 
 private:
     rviz::Tool* selection_tool_;
 
     ros::Publisher grid_map_request_pub_;
+    ros::Publisher augment_grid_map_pub_;
     ros::Publisher octomap_request_pub_;
 
     bool selection_tool_enabled_;

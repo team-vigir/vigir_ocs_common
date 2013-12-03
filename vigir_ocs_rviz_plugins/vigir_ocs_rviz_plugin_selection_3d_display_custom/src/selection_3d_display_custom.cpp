@@ -405,7 +405,8 @@ void Selection3DDisplayCustom::createMarker(bool, int x, int y)
     Ogre::Quaternion ot(1,0,0,0);
     transform(pt,ot,"/world",fixed_frame_.toUtf8().constData());
     int type;
-    if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type))
+    std::string name;
+    if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type,name))
     {
         initialized_ = true;
         selection_marker_->setPosition(position);
@@ -451,7 +452,8 @@ void Selection3DDisplayCustom::createROISelection(bool, int x, int y)
     Ogre::Quaternion ot(1,0,0,0);
     transform(pt,ot,"/world",fixed_frame_.toUtf8().constData());
     int type;
-    if(raycast_utils_->RayCastFromPoint(mouseRayFinal,pt,ot,positionFinal,type))
+    std::string name;
+    if(raycast_utils_->RayCastFromPoint(mouseRayFinal,pt,ot,positionFinal,type,name))
     {
         selection_marker_->setVisible(true);
         roi_marker_final_->setPosition(positionFinal);
@@ -519,7 +521,8 @@ void Selection3DDisplayCustom::queryPosition( int x, int y, Ogre::Vector3& world
     Ogre::Quaternion ot(1,0,0,0);
     transform(pt,ot,"/world",fixed_frame_.toUtf8().constData());
     int type = -1;
-    if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type))
+    std::string name;
+    if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type,name))
     {
         Ogre::Quaternion orientation(1,0,0,0);
         transform(position,orientation,fixed_frame_.toUtf8().constData(),"/world");
@@ -541,17 +544,18 @@ void Selection3DDisplayCustom::queryContext( int x, int y )
     Ogre::Quaternion ot(1,0,0,0);
     transform(pt,ot,"/world",fixed_frame_.toUtf8().constData());
     int type = -1;
-    if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type))
+    std::string name;
+    if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type,name))
     {
         // type 0 -> UNKNOWN ENTITY
         // type 1 -> POINT CLOUD
         // type 2 -> WAYPOINT
         // type 3 -> TEMPLATE
-        Q_EMIT setContext(type);
+        Q_EMIT setContext(type,name);
     }
     else
     {
-        Q_EMIT setContext(-1); // NO_HIT
+        Q_EMIT setContext(-1,""); // NO_HIT
     }
 }
 
