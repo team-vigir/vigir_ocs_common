@@ -62,15 +62,24 @@ void ImageNodelet::onInit()
 void ImageNodelet::publishImageAdded(const unsigned long &id)
 {
     flor_ocs_msgs::OCSImageAdd msg;
-    std::vector<int> qualitytype;
-    qualitytype.push_back(CV_IMWRITE_JPEG_QUALITY);
-    qualitytype.push_back(90);
+    std::stringstream stream;
+
     msg.id = image_history_[id].id;
     msg.topic = image_history_[id].topic;
-    msg.image = image_history_[id].image;
-
+    // remove to store image on disk, instead add code to read from disk and then convert to thumbnail
+    //msg.image = image_history_[id].image;
+    msg.image.header.stamp=image_history_[id].header.stamp;
     msg.camera_info = image_history_[id].camera_info;
-    double aspect_ratio = (double)image_history_[id].image.width/(double)image_history_[id].image.height;
+    cv::Mat image;
+    image = cv::imread( "/home/vigir/image/"+stream.str()+".jpg", 1 );
+    cv_bridge::CvImage out_msg;
+    //out_msg.header   = in_msg->header; // Same timestamp and tf frame as input image
+    out_msg.encoding = sensor_msgs::image_encodings::BGR8; // Or whatever
+    out_msg.image    = image; // Your cv::Mat
+    sensor_msgs::Image tmp_img;
+    out_msg.toImageMsg(tmp_img);
+    msg.image = tmp_img;
+    /*double aspect_ratio = (double)image_history_[id].image.width/(double)image_history_[id].image.height;
    // ROS_ERROR("Size: %dx%d aspect %f", image.width, image.height, aspect_ratio);
 
     cv_bridge::CvImagePtr cv_ptr;
@@ -98,7 +107,7 @@ void ImageNodelet::publishImageAdded(const unsigned long &id)
         img_size.width = 50.0f/aspect_ratio;
         img_size.height = 50.0f;
 
-    }*/
+    }
     cv::resize(cv_ptr->image, cv_ptr->image, img_size, 0, 0, cv::INTER_NEAREST);
 
     std::stringstream stream;
@@ -116,7 +125,7 @@ void ImageNodelet::publishImageAdded(const unsigned long &id)
       }
     else
         std::cout<<"\nFolder not created!!";
-    imwrite("/home/vigir/image/"+stream.str()+".jpg",cv_ptr->image,qualitytype);
+    imwrite("/home/vigir/image/"+stream.str()+".jpg",cv_ptr->image,qualitytype);*/
     image_added_pub_.publish(msg);
 }
 
@@ -128,7 +137,7 @@ void ImageNodelet::publishImageList()
     {
         msg.id.push_back(image_history_[i].id);
         msg.topic.push_back(image_history_[i].topic);
-        msg.image.push_back(image_history_[i].image);
+        //msg.image.push_back(image_history_[i].image);
         msg.camera_info.push_back(image_history_[i].camera_info);
     }
 
@@ -175,7 +184,9 @@ void ImageNodelet::processImage( const ros::MessageEvent<sensor_msgs::Image cons
     boost::mutex::scoped_lock lock(image_history_mutex_);
 
     const std::string& publisher_name = event.getPublisherName();
-
+    std::vector<int> qualitytype;
+    qualitytype.push_back(CV_IMWRITE_JPEG_QUALITY);
+    qualitytype.push_back(90);
     // publishing on my own topic; return
     if(publisher_name == this->getName())
         return;
@@ -195,7 +206,8 @@ void ImageNodelet::processImage( const ros::MessageEvent<sensor_msgs::Image cons
         std::cout << "Adding new image to history (" << id_counter_ << "); using Image." << std::endl;
         ImageStruct newimg;
         newimg.id = id_counter_++;
-        newimg.image = *msg;
+        newimg.header.stamp = msg->header.stamp;
+        //newimg.image = *msg;
         newimg.topic = topic;
         newimg.topic = newimg.topic.erase(newimg.topic.find("/image_raw"),strlen("/image_raw"));
         image_history_.push_back(newimg);
@@ -203,9 +215,39 @@ void ImageNodelet::processImage( const ros::MessageEvent<sensor_msgs::Image cons
     else
     {
         std::cout << "Adding Image to existing history image (" << image_history_[image_index].id << ")." << std::endl;
-        image_history_[image_index].image = *msg;
+       // image_history_[image_index].image = *msg;
+        image_history_[image_index].header.stamp = msg->header.stamp;
         publishImageAdded(image_index);
     }
+
+
+        cv_bridge::CvImagePtr cv_ptr;
+        try
+        {
+            cv_ptr = cv_bridge::toCvCopy(*msg, sensor_msgs::image_encodings::BGR8);
+        }
+        catch (cv_bridge::Exception& e)
+        {
+           // ROS_ERROR("cv_bridge exception: %s", e.what());
+            return;
+        }
+        cv::Size2i img_size;
+        img_size.width=(double)msg->width;
+        img_size.height=msg->height;
+        cv::resize(cv_ptr->image, cv_ptr->image, img_size, 0, 0, cv::INTER_NEAREST);
+        std::stringstream stream;
+        stream.str("");
+        stream << id_counter_-1;
+        std::cout<<"Image size:"<<img_size.width;
+        const char dir_path[] = "/home/vigir/image";
+        boost::filesystem::path dir(dir_path);
+        if(boost::filesystem::create_directory(dir))
+          {
+           std::cout << "Successfully created directory /home/vigir/image" << "\n";
+          }
+        else
+            std::cout<<"\nFolder not created!!";
+        imwrite("/home/vigir/image/"+stream.str()+".jpg",cv_ptr->image,qualitytype);
 }
 
 void ImageNodelet::processCameraInfo( const ros::MessageEvent<sensor_msgs::CameraInfo const>& event, const std::string& topic )
@@ -224,7 +266,7 @@ void ImageNodelet::processCameraInfo( const ros::MessageEvent<sensor_msgs::Camer
 
     unsigned int image_index;
     for(image_index = 0; image_index < image_history_.size(); image_index++)
-        if(msg->header.stamp == image_history_[image_index].image.header.stamp)
+        if(msg->header.stamp == image_history_[image_index].header.stamp)
             break;
 
     // if it doesn't exist
