@@ -58,7 +58,7 @@ OrthoView::OrthoView( rviz::VisualizationManager* context, std::string base_fram
     // make sure we're still able to cancel set goal pose
     QObject::connect(render_panel_, SIGNAL(signalKeyPressEvent(QKeyEvent*)), this, SLOT(keyPressEvent(QKeyEvent*)));
 
-    previous_tool_ = move_camera_tool_;
+    previous_tool_ = manager_->getToolManager()->getCurrentTool();
 }
 
 // Destructor.
