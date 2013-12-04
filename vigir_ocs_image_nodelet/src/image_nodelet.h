@@ -17,6 +17,7 @@
 #include <std_msgs/UInt64.h>
 
 #include <sensor_msgs/Image.h>
+#include <std_msgs/Header.h>
 #include <sensor_msgs/CameraInfo.h>
 
 namespace ocs_image
@@ -55,7 +56,8 @@ namespace ocs_image
         {
             unsigned long id;
             std::string topic;
-            sensor_msgs::Image image;
+            //sensor_msgs::Image image;
+            std_msgs::Header header;
             sensor_msgs::CameraInfo camera_info;
         } ImageStruct;
         std::vector<ImageStruct> image_history_;
