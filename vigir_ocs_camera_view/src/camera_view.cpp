@@ -478,7 +478,7 @@ bool CameraView::eventFilter( QObject * o, QEvent * e )
         mouseEnterEvent(e);
     else if ( e->type() == QEvent::MouseMove )
         mouseMoveEvent((QMouseEvent*)e);
-    return QWidget::eventFilter( o, e );
+    return Base3DView::eventFilter( o, e );
 }
 
 void CameraView::keyPressEvent( QKeyEvent* event )

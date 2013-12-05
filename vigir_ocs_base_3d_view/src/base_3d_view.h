@@ -151,6 +151,8 @@ public Q_SLOTS:
     void clearPointCloudRequests();
     void clearMapRequests();
 
+    virtual bool eventFilter( QObject * o, QEvent * e );
+
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
     void resetSelection();

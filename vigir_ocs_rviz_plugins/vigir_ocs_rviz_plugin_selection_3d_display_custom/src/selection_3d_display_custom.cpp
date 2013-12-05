@@ -54,6 +54,7 @@
 #include "rviz/render_panel.h"
 #include "rviz/validate_floats.h"
 #include "rviz/view_manager.h"
+#include "rviz/visualization_manager.h"
 
 #include "selection_3d_display_custom.h"
 
@@ -249,13 +250,13 @@ void Selection3DDisplayCustom::onDisable()
     selection_marker_->setVisible( false );
 }
 
-void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
+void Selection3DDisplayCustom::preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt )
 {
-    time_since_last_transform_ += wall_dt;
-
     if(initialized_)
     {
-        //std::cout << "Update" << std::endl;
+        int view_id = ((rviz::VisualizationManager*)context_)->getActiveViewID();
+
+        std::cout << "Update " << view_id << std::endl;
         // get transform from world to fixed frame
         Ogre::Quaternion selection_orientation(1,0,0,0);
         Ogre::Vector3 selection_position = selection_position_;
@@ -271,7 +272,7 @@ void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
 
         // get camera position to calculate selection marker
         //std::cout << "selection " << render_panel_->getCamera() << std::endl;
-        Ogre::Vector3 camera_position = this->render_panel_->getCamera()->getPosition();
+        Ogre::Vector3 camera_position = this->render_panel_list_[view_id]->getCamera()->getPosition();
         //std::cout << this->context_->getSceneManager()->getCameras().size() << std::endl;
         //Ogre::SceneManager::CameraList camera_list = this->context_->getSceneManager()->getCameras();
         //Ogre::SceneManager::CameraIterator camera_list_iterator = this->context_->getSceneManager()->getCameraIterator();
@@ -285,9 +286,9 @@ void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
         //Ogre::Vector3 camera_position2 = this->context_->getSceneManager()->getCamera();
         //std::cout << "2 " << camera_position2.x << "," << camera_position2.y << "," << camera_position2.z << std::endl;
 
-        if(this->render_panel_->getCamera()->getProjectionType() == Ogre::PT_ORTHOGRAPHIC) // if it's ortho, we need to calculate z again
+        if(this->render_panel_list_[view_id]->getCamera()->getProjectionType() == Ogre::PT_ORTHOGRAPHIC) // if it's ortho, we need to calculate z again
         {
-            Ogre::Matrix4 m = this->render_panel_->getCamera()->getProjectionMatrix();
+            Ogre::Matrix4 m = this->render_panel_list_[view_id]->getCamera()->getProjectionMatrix();
             //float near   =  (1+m[2][3])/m[2][2];
             //float far    = -(1-m[2][3])/m[2][2];
             float bottom =  (1-m[1][3])/m[1][1];
@@ -311,7 +312,7 @@ void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
             if(distance_selection != std::numeric_limits<float>::infinity() && !(distance_selection != distance_selection)) // check for inf and nan
             {
                 if(!selection_position.isNaN()) selection_marker_->setPosition(selection_position);
-                float scale_selection = 2.0f * distance_selection * tan(this->render_panel_->getCamera()->getFOVy().valueRadians() / 2.0f);//distance_selection*tan(radians)*0.002f;
+                float scale_selection = 2.0f * distance_selection * tan(this->render_panel_list_[view_id]->getCamera()->getFOVy().valueRadians() / 2.0f);//distance_selection*tan(radians)*0.002f;
                 //std::cout << scale_selection << std::endl;
                 if(scale_selection > 0.0f) selection_marker_->setScale(scale_selection*size,scale_selection*size,scale_selection*size);
 
@@ -322,7 +323,7 @@ void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
                     if(distance_selection_roi != std::numeric_limits<float>::infinity() && !(distance_selection_roi != distance_selection_roi))
                     {
                         if(!selection_position_roi.isNaN()) roi_marker_final_->setPosition(selection_position_roi);
-                        float scale_selection_roi = 2.0f * distance_selection_roi * tan(this->render_panel_->getCamera()->getFOVy().valueRadians() / 2.0f);// = distance_selection_roi*tan(radians)*0.002f;
+                        float scale_selection_roi = 2.0f * distance_selection_roi * tan(this->render_panel_list_[view_id]->getCamera()->getFOVy().valueRadians() / 2.0f);// = distance_selection_roi*tan(radians)*0.002f;
                         //std::cout << scale_selection_roi << std::endl;
                         if(scale_selection_roi > 0.0f) roi_marker_final_->setScale(scale_selection_roi*size,scale_selection_roi*size,scale_selection_roi*size);
 
@@ -335,6 +336,11 @@ void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
             }
         }
     }
+}
+
+void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
+{
+    time_since_last_transform_ += wall_dt;
 
     context_->queueRender();
 }

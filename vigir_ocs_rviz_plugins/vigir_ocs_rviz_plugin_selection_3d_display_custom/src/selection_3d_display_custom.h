@@ -59,6 +59,7 @@
 #include "OGRE/OgreManualObject.h"
 #include "OGRE/OgreEntity.h"
 #include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreRenderTargetListener.h>
 #include "raycast_utils.h"
 
 #include <map>
@@ -99,6 +100,8 @@ public:
 
   void processDistQuery( const std_msgs::Float64::ConstPtr& distance );
   void processOCSDistQuery( const flor_ocs_msgs::OCSRaycastRequest::ConstPtr& request );
+
+  virtual void preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
 
 Q_SIGNALS:
   void newSelection( Ogre::Vector3 );
