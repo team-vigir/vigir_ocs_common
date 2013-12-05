@@ -35,10 +35,15 @@ graspWidget::graspWidget(QWidget *parent)
     std::cout << "--------------<" << templatePath << ">\n" << std::endl;
     template_dir_path_ = QString(templatePath.c_str());
     template_id_db_path_ = template_dir_path_+QString("grasp_templates.txt");
-    if(hand_type_ == "irobot")
+    if(hand_type_ == "irobot"){
         grasp_db_path_ = template_dir_path_+QString("grasp_library_irobot.grasp");
-    else
+    }
+    else{
         grasp_db_path_ = template_dir_path_+QString("grasp_library.grasp");
+        ui->label_9->setText("Index");
+        ui->label_10->setText("Middle");
+        ui->label_11->setText("Pinky");
+    }
 
     this->stitch_template_pose_.setIdentity();
 
@@ -212,9 +217,9 @@ void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPt
 
     ui->userSlider->setValue(graspState->grip.data);
     ui->verticalSlider->setValue(graspState->finger_effort[0].data);
-    ui->verticalSlider->setValue(graspState->finger_effort[1].data);
-    ui->verticalSlider->setValue(graspState->finger_effort[2].data);
-    ui->verticalSlider->setValue(graspState->finger_effort[3].data);
+    ui->verticalSlider_2->setValue(graspState->finger_effort[1].data);
+    ui->verticalSlider_3->setValue(graspState->finger_effort[2].data);
+    ui->verticalSlider_4->setValue(graspState->finger_effort[3].data);
     //std::cout << "     mode=" << uint32_t(mode) << "   state="<< uint32_t(state) << std::endl;
     switch(mode)
     {
@@ -582,10 +587,10 @@ void graspWidget::sendManualMsg(uint8_t level, int8_t thumb,int8_t left,int8_t r
     cmd.grasp_state.data += (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
     grasp_mode_command_pub_.publish(cmd);
     std::cout << "Sent Manual mode message ("<< uint32_t(cmd.grasp_state.data) << ") with " <<  uint32_t(cmd.grip.data) << " manual grip level and " <<
-                 uint32_t(cmd.finger_effort[0].data) << "," <<
-                 uint32_t(cmd.finger_effort[1].data) << "," <<
-                 uint32_t(cmd.finger_effort[2].data) << "," <<
-                 uint32_t(cmd.finger_effort[3].data) <<
+                 int8_t(cmd.finger_effort[0].data) << "," <<
+                 int8_t(cmd.finger_effort[1].data) << "," <<
+                 int8_t(cmd.finger_effort[2].data) << "," <<
+                 int8_t(cmd.finger_effort[3].data) <<
                  " finger efforts to " << hand_ << " hand" << std::endl;
 }
 
@@ -744,10 +749,10 @@ void graspWidget::on_graspBox_activated(const QString &arg1)
         msg.finger_effort[3].data = ui->verticalSlider_4->value();
         grasp_mode_command_pub_.publish(msg);
         std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " <<
-                     uint32_t(msg.finger_effort[0].data) << "," <<
-                     uint32_t(msg.finger_effort[1].data) << "," <<
-                     uint32_t(msg.finger_effort[2].data) << "," <<
-                     uint32_t(msg.finger_effort[3].data) <<
+                     int8_t(msg.finger_effort[0].data) << "," <<
+                     int8_t(msg.finger_effort[1].data) << "," <<
+                     int8_t(msg.finger_effort[2].data) << "," <<
+                     int8_t(msg.finger_effort[3].data) <<
                      " finger efforts effort to " << hand_ << " hand" << std::endl;
     }
     else
@@ -791,10 +796,10 @@ void graspWidget::on_templateRadio_clicked()
     msg.finger_effort[3].data = ui->verticalSlider_4->value();
     grasp_mode_command_pub_.publish(msg);
     std::cout << "Sent Template mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " <<
-                 uint32_t(msg.finger_effort[0].data) << "," <<
-                 uint32_t(msg.finger_effort[1].data) << "," <<
-                 uint32_t(msg.finger_effort[2].data) << "," <<
-                 uint32_t(msg.finger_effort[3].data) <<
+                 int8_t(msg.finger_effort[0].data) << "," <<
+                 int8_t(msg.finger_effort[1].data) << "," <<
+                 int8_t(msg.finger_effort[2].data) << "," <<
+                 int8_t(msg.finger_effort[3].data) <<
                  " finger efforts effort to " << hand_ << " hand" << std::endl;
 
 }
@@ -832,10 +837,10 @@ void graspWidget::on_manualRadio_clicked()
     msg.finger_effort[3].data = ui->verticalSlider_4->value();
     grasp_mode_command_pub_.publish(msg);
     std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " <<
-                 uint32_t(msg.finger_effort[0].data) << "," <<
-                 uint32_t(msg.finger_effort[1].data) << "," <<
-                 uint32_t(msg.finger_effort[2].data) << "," <<
-                 uint32_t(msg.finger_effort[3].data) <<
+                 int8_t(msg.finger_effort[0].data) << "," <<
+                 int8_t(msg.finger_effort[1].data) << "," <<
+                 int8_t(msg.finger_effort[2].data) << "," <<
+                 int8_t(msg.finger_effort[3].data) <<
                  " finger efforts effort to " << hand_ << " hand" << std::endl;
 }
 
