@@ -668,9 +668,15 @@ void graspWidget::on_releaseButton_clicked()
 
 void graspWidget::on_templateButton_clicked()
 {
+    if(ui->templateBox->count() < 1)
+    {
+        ROS_ERROR("Tried to template match when no templates exsist");
+        return;
+    }
     hideHand();
     std::cout << "template match requested..." << std::endl;
     flor_grasp_msgs::TemplateSelection msg;
+
     int graspID = ui->graspBox->currentText().toInt();
     for(int index = 0; index < grasp_db_.size(); index++)
     {
@@ -691,17 +697,25 @@ void graspWidget::on_templateButton_clicked()
 
 void graspWidget::on_performButton_clicked()
 {
-    on_templateButton_clicked();
     std::cout << "Performing grasp" << std::endl;
     flor_grasp_msgs::GraspSelection msg;
     msg.header.frame_id = "/world";
     int graspID = ui->graspBox->currentText().toInt();
     msg.grasp_id.data = graspID;
-    msg.template_id.data = ui->templateBox->currentIndex();
-    for(int index = 0; index < grasp_db_.size(); index++)
+    if(ui->templateBox->count() > 0)
     {
-        if(grasp_db_[index].grasp_id == graspID)
-            msg.template_type.data = grasp_db_[index].template_type;
+        on_templateButton_clicked();
+        msg.template_id.data = ui->templateBox->currentIndex();
+        for(int index = 0; index < grasp_db_.size(); index++)
+        {
+            if(grasp_db_[index].grasp_id == graspID)
+                msg.template_type.data = grasp_db_[index].template_type;
+        }
+    }
+    else
+    {
+        msg.template_id.data = 0;
+        msg.template_type.data = 0;
     }
     grasp_selection_pub_.publish(msg);
     //ui->templateButton->setEnabled(true); // able to move
