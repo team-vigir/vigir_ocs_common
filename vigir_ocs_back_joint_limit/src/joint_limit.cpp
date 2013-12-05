@@ -110,6 +110,8 @@ void joint_limit::on_apply_clicked()
     std::cout << "ubx: max = " << ui->ubxMax->value() << " min = " << ui->ubxMin->value() << std::endl << std::endl;
 
     msg.disable_collision_avoidance.data = !ui->collision_avoidance_->isChecked();
+    msg.disable_left_hand_collision_avoidance = !ui->left_hand_collision_avoidance_->isChecked();
+    msg.disable_right_hand_collision_avoidance = !ui->right_hand_collision_avoidance_->isChecked();
     msg.robot_collision_padding.data = ui->padding_->value();
     msg.trajectory_time_factor.data = ui->time_factor_->value();
     msg.octomap_max_height.data = ui->octomap_height_->value();
