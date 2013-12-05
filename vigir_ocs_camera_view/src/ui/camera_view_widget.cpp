@@ -12,13 +12,13 @@
 #include <QWidgetAction>
 #include <QToolTip>
 
-CameraViewWidget::CameraViewWidget(QWidget *parent, rviz::VisualizationManager* context) :
+CameraViewWidget::CameraViewWidget(QWidget *parent, vigir_ocs::Base3DView* copy_from) :
     QWidget(parent),
     ui(new Ui::CameraViewWidget)
 {
     ui->setupUi(this);
 
-    camera_view_ = new vigir_ocs::CameraView(parent, context);
+    camera_view_ = new vigir_ocs::CameraView(parent, copy_from);
 
     // update the UI with the camera names
     std::vector<std::string> camera_names = camera_view_->getCameraNames();

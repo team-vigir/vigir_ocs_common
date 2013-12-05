@@ -488,7 +488,15 @@ void Selection3DDisplayCustom::createROISelection(bool, int x, int y)
 
 void Selection3DDisplayCustom::setRenderPanel( rviz::RenderPanel* rp )
 {
-    this->render_panel_ = rp;
+    if(std::find(render_panel_list_.begin(),render_panel_list_.end(),rp) != render_panel_list_.end())
+    {
+        this->render_panel_ = rp;
+    }
+    else
+    {
+        render_panel_list_.push_back(rp);
+        this->render_panel_ = rp;
+    }
 }
 
 void Selection3DDisplayCustom::resetSelection()

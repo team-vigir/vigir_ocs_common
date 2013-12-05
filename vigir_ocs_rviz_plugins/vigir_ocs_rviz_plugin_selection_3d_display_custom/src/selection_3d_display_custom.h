@@ -153,7 +153,8 @@ protected:
   Ogre::SceneNode* roi_marker_final_;
   Ogre::SceneNode* roi_marker_box_;
 
-  RenderPanel* render_panel_;
+  std::vector<RenderPanel*> render_panel_list_;
+  RenderPanel* render_panel_; // this is the active render panel
 
   RayCastUtils* raycast_utils_;
 

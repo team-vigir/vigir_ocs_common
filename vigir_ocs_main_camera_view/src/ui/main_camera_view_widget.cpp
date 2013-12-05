@@ -32,9 +32,9 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     // setup default views
     views_list_["Top Left"] = new CameraViewWidget();
-    views_list_["Top Right"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getVisualizationManager());
-    views_list_["Bottom Left"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getVisualizationManager());
-    views_list_["Bottom Right"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getVisualizationManager());
+    views_list_["Top Right"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView());
+    views_list_["Bottom Left"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView());
+    views_list_["Bottom Right"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView());
 
     QHBoxLayout* aux_layout;
 

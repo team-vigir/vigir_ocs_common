@@ -144,6 +144,8 @@ void MapView::requestMap(double min_z, double max_z, double resolution)
 
     cmd.resolution = resolution;
 
+    cmd.request_augment = 1;
+
     grid_map_request_pub_.publish(cmd);
 
     Q_EMIT unHighlight();
@@ -210,7 +212,7 @@ void MapView::processContextMenu(int x, int y)
         {
             flor_ocs_msgs::OCSAugmentRegions augmentation;
             augmentation.header.frame_id = base_frame_;
-            augmentation.map_selection = 4;
+            augmentation.map_selection = 2;
             Ogre::Vector3 min, max;
             Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
             Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
@@ -228,10 +230,11 @@ void MapView::processContextMenu(int x, int y)
         {
             flor_ocs_msgs::OCSAugmentRegions augmentation;
             augmentation.header.frame_id = base_frame_;
-            augmentation.map_selection = 4;
+            augmentation.map_selection = 2;
             Ogre::Vector3 min, max;
             Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
             Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
+            ROS_ERROR("%f %f -> %f %f",min.x,min.y,max.x,max.y);
             flor_ocs_msgs::TwoPoint box;
             box.min[0] = min.x;
             box.min[1] = min.y;
@@ -246,7 +249,7 @@ void MapView::processContextMenu(int x, int y)
         {
             flor_ocs_msgs::OCSAugmentRegions augmentation;
             augmentation.header.frame_id = base_frame_;
-            augmentation.map_selection = 4;
+            augmentation.map_selection = 2;
             Ogre::Vector3 min, max;
             Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
             Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
@@ -264,7 +267,7 @@ void MapView::processContextMenu(int x, int y)
         {
             flor_ocs_msgs::OCSAugmentRegions augmentation;
             augmentation.header.frame_id = base_frame_;
-            augmentation.map_selection = 4;
+            augmentation.map_selection = 2;
             Ogre::Vector3 min, max;
             Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
             Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
@@ -273,7 +276,7 @@ void MapView::processContextMenu(int x, int y)
             box.min[1] = min.y;
             box.max[0] = max.x;
             box.max[1] = max.y;
-            box.type = 1;
+            box.type = 0;
             augmentation.cleared.push_back(box);
             augment_grid_map_pub_.publish(augmentation);
 

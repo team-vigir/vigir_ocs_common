@@ -26,8 +26,8 @@
 namespace vigir_ocs
 {
 // Constructor for PerspectiveView.  This does most of the work of the class.
-PerspectiveView::PerspectiveView( QWidget* parent, rviz::VisualizationManager* context )
-    : Base3DView( context, "/world", parent )
+PerspectiveView::PerspectiveView( QWidget* parent, Base3DView* copy_from )
+    : Base3DView( copy_from, "/world", parent )
 {
     // set the camera to be topdownortho
     //rviz::ViewManager* view_man_ = manager_->getViewManager();

@@ -36,9 +36,9 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     // setup default views
     views_list["Top Left"] = new vigir_ocs::PerspectiveView();
-    views_list["Top Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()); //views_list["Top Right"] = new vigir_ocs::OrthoView();
-    views_list["Bottom Left"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()); //views_list["Bottom Left"] = new vigir_ocs::OrthoView();
-    views_list["Bottom Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()); //views_list["Bottom Right"] = new vigir_ocs::OrthoView();
+    views_list["Top Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"])); //views_list["Top Right"] = new vigir_ocs::OrthoView();
+    views_list["Bottom Left"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"])); //views_list["Bottom Left"] = new vigir_ocs::OrthoView();
+    views_list["Bottom Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"])); //views_list["Bottom Right"] = new vigir_ocs::OrthoView();
 
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);

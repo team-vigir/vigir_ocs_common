@@ -83,7 +83,7 @@ class Base3DView: public QWidget
 {
     Q_OBJECT
 public:
-    Base3DView( rviz::VisualizationManager* context = NULL, std::string base_frame = "/pelvis", QWidget* parent = 0 );
+    Base3DView( Base3DView* copy_from = NULL, std::string base_frame = "/pelvis", QWidget *parent = 0 );
     virtual ~Base3DView();
 
     void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
@@ -100,9 +100,13 @@ public:
 
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
+    // functions needed for shared contexts
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }
+    rviz::Display* getSelection3DDisplay() { return selection_3d_display_; }
+    MouseEventHandler* getMouseEventHander() { return mouse_event_handler_; }
 
     void updateRenderMask( bool );
+
 public Q_SLOTS:
     // displays
     void robotModelToggled( bool );
