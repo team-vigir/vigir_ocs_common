@@ -40,6 +40,8 @@
 #include <flor_grasp_msgs/GraspSelection.h>
 #include <flor_grasp_msgs/TemplateSelection.h>
 
+#define FINGER_EFFORTS 4
+
 namespace Ui {
 class graspWidget;
 }
@@ -56,7 +58,6 @@ public:
 
 public Q_SLOTS:
     void on_userSlider_sliderReleased();
-    void on_userSlider_2_sliderReleased();
     void on_templateBox_activated(const QString &arg1);
     void on_graspBox_activated(const QString &arg1);
     void on_performButton_clicked();
@@ -66,10 +67,15 @@ public Q_SLOTS:
     void on_templateRadio_clicked();
     void on_show_grasp_toggled(bool checked);
     void on_stitch_template_toggled(bool checked);
+    void on_verticalSlider_sliderReleased();
+    void on_verticalSlider_3_sliderReleased();
+    void on_verticalSlider_2_sliderReleased();
+    void on_verticalSlider_4_sliderReleased();
+
 
 private:
     void setProgressLevel(uint8_t level);
-    void sendManualMsg(uint8_t level, uint8_t thumb);
+    void sendManualMsg(uint8_t level, int8_t thumb, int8_t left, int8_t right, int8_t spread);
     void initTemplateMode();
     void initTemplateIdMap();
     std::vector< std::vector<QString> > readTextDBFile(QString path);
