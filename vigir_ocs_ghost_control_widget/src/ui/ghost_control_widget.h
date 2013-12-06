@@ -75,7 +75,6 @@ private Q_SLOTS:
     void on_send_left_torso_pose_button__clicked();
     void on_send_right_pose_button__clicked();
     void on_send_right_torso_pose_button__clicked();
-    void on_pushButton_clicked();
     void on_send_left_ghost_hand_button__clicked();
     void on_send_right_ghost_hand_button__clicked();
     void on_left_no_lock_toggled(bool checked);
@@ -84,16 +83,15 @@ private Q_SLOTS:
     void on_right_no_lock_toggled(bool checked);
     void on_right_marker_lock_toggled(bool checked);
     void on_right_template_lock_toggled(bool checked);
-
     void on_send_left_configuration_button__clicked();
-
     void on_send_left_torso_configuration_button__clicked();
-
     void on_send_right_configuration_button__clicked();
-
     void on_send_right_torso_configuration_button__clicked();
-
     void on_send_upper_body_button__clicked();
+    void on_left_moveit_marker_lock_clicked();
+    void on_right_moveit_marker_lock_clicked();
+    void on_pushButton_clicked();
+    void on_pushButton_2_clicked();
 
 private:
     Ui::GhostControlWidget* ui;

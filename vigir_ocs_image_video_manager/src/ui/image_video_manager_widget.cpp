@@ -295,11 +295,12 @@ void ImageVideoManagerWidget::addImageChild(QTreeWidgetItem *parent, const unsig
 
     item->setText(1,timeFromMsg(image.header.stamp));
     item->setToolTip(1,QString::number((int)image.header.stamp.toSec()));
-   /* if(flag_first_image==0){
-    ui->timeslider->setMinimum((int)image.header.stamp.toSec());
-    flag_first_image=1;}*/
+    /*if(flag_first_image==0)
+    {
+        ui->timeslider->setMinimum((int)image.header.stamp.toSec());
+        flag_first_image=1;}
     // source
-
+*/
     item->setText(2,cam_name);
     item->setToolTip(2,QString(topic.c_str()));
 

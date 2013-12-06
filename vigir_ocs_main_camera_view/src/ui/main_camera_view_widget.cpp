@@ -5,6 +5,8 @@
 #include "base_3d_view.h"
 #include <ros/package.h>
 
+#include <rviz/displays_panel.h>
+
 MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainCameraViewWidget)
@@ -32,9 +34,9 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     // setup default views
     views_list_["Top Left"] = new CameraViewWidget();
-    views_list_["Top Right"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getVisualizationManager());
-    views_list_["Bottom Left"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getVisualizationManager());
-    views_list_["Bottom Right"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getVisualizationManager());
+    views_list_["Top Right"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView());
+    views_list_["Bottom Left"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView());
+    views_list_["Bottom Right"] = new CameraViewWidget(0,((CameraViewWidget*)views_list_["Top Left"])->getCameraView());
 
     QHBoxLayout* aux_layout;
 
@@ -144,6 +146,14 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     position_layout->addWidget(four_view_button_);
     position_widget_->setLayout(position_layout);
     position_widget_->setGeometry(0,39,46,22);
+
+    rviz::DisplaysPanel* displays_panel = new rviz::DisplaysPanel(this);
+    displays_panel->initialize( ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getVisualizationManager());
+
+    QVBoxLayout* displays_layout = new QVBoxLayout();
+    displays_layout->setMargin(0);
+    displays_layout->addWidget(displays_panel);
+    ui->rviz_options->setLayout(displays_layout);
     
     connect(ui->pitch, SIGNAL(valueChanged(int)), this, SLOT(updatePitch(int)));
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>814</width>
-    <height>670</height>
+    <width>993</width>
+    <height>730</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,9 +38,15 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="minimumSize">
+      <size>
+       <width>310</width>
+       <height>0</height>
+      </size>
+     </property>
      <property name="maximumSize">
       <size>
-       <width>260</width>
+       <width>310</width>
        <height>16777215</height>
       </size>
      </property>
@@ -54,9 +60,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-545</y>
-        <width>242</width>
-        <height>1213</height>
+        <y>0</y>
+        <width>292</width>
+        <height>1853</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -69,7 +75,7 @@
           <string>Tools</string>
          </property>
          <property name="checkable">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_8">
           <property name="spacing">
@@ -124,7 +130,7 @@
           <string>Map Region Request</string>
          </property>
          <property name="checkable">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <property name="spacing">
@@ -233,7 +239,7 @@
           <string>Octomap Region Request</string>
          </property>
          <property name="checkable">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_7">
           <property name="spacing">
@@ -340,7 +346,7 @@
           <string>Navigation Options</string>
          </property>
          <property name="checkable">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <property name="spacing">
@@ -420,7 +426,7 @@
           <string>Template</string>
          </property>
          <property name="checkable">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_9">
           <property name="spacing">
@@ -460,7 +466,7 @@
           <bool>false</bool>
          </property>
          <property name="checkable">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <property name="spacing">
@@ -647,6 +653,23 @@ color: rgb(255, 26, 26);</string>
            </widget>
           </item>
          </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_7">
+         <property name="title">
+          <string>RViz Display Options</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="rviz_options" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>600</height>
+          </size>
+         </property>
         </widget>
        </item>
       </layout>

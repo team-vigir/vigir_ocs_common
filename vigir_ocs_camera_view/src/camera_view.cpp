@@ -33,8 +33,8 @@
 namespace vigir_ocs
 {
 
-CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
-    : Base3DView( context, "/world", parent )
+CameraView::CameraView( QWidget* parent, Base3DView* copy_from )
+    : Base3DView( copy_from, "/world", parent )
     , camera_frame_topic_("")
     , feed_rate_(0)
     , feed_resolution_(4)
@@ -93,7 +93,7 @@ CameraView::CameraView( QWidget* parent, rviz::VisualizationManager* context )
     QObject::connect(selection_tool_, SIGNAL(select(int,int,int,int)), this, SLOT(select(int,int,int,int)));
     manager_->getToolManager()->setCurrentTool( selection_tool_ );
 
-    if(!context)
+    if(!copy_from)
     {
         robot_model_->setEnabled(false);
         ghost_robot_model_->setEnabled(false);
@@ -478,7 +478,7 @@ bool CameraView::eventFilter( QObject * o, QEvent * e )
         mouseEnterEvent(e);
     else if ( e->type() == QEvent::MouseMove )
         mouseMoveEvent((QMouseEvent*)e);
-    return QWidget::eventFilter( o, e );
+    return Base3DView::eventFilter( o, e );
 }
 
 void CameraView::keyPressEvent( QKeyEvent* event )

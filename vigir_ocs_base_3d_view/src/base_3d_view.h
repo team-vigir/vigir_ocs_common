@@ -20,6 +20,7 @@
 #include <QLineEdit>
 #include <QBasicTimer>
 #include <QThread>
+#include <QMenu>
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
 
@@ -35,6 +36,13 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/JointState.h>
 #include <mouse_event_handler.h>
+
+#include <moveit_msgs/RobotState.h>
+#include <moveit_msgs/DisplayRobotState.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_state/conversions.h>
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
 #include <flor_ocs_msgs/OCSGhostControl.h>
@@ -75,7 +83,7 @@ class Base3DView: public QWidget
 {
     Q_OBJECT
 public:
-    Base3DView( rviz::VisualizationManager* context = NULL, std::string base_frame = "/pelvis", QWidget* parent = 0 );
+    Base3DView( Base3DView* copy_from = NULL, std::string base_frame = "/pelvis", QWidget *parent = 0 );
     virtual ~Base3DView();
 
     void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
@@ -92,9 +100,13 @@ public:
 
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
+    // functions needed for shared contexts
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }
+    rviz::Display* getSelection3DDisplay() { return selection_3d_display_; }
+    MouseEventHandler* getMouseEventHander() { return mouse_event_handler_; }
 
     void updateRenderMask( bool );
+
 public Q_SLOTS:
     // displays
     void robotModelToggled( bool );
@@ -122,9 +134,10 @@ public Q_SLOTS:
     void templatePathChanged( QString );
     void insertWaypoint();
 
-    void createContextMenu( bool, int, int );
+    virtual void createContextMenu( bool, int, int );
+    virtual void processContextMenu( int x, int y );
     // sends back the context
-    void setContext( int );
+    void setContext( int, std::string );
 
     // get the last selection ray
     void setSelectionRay( Ogre::Ray );
@@ -138,6 +151,8 @@ public Q_SLOTS:
     void clearPointCloudRequests();
     void clearMapRequests();
 
+    virtual bool eventFilter( QObject * o, QEvent * e );
+
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
     void resetSelection();
@@ -147,14 +162,21 @@ Q_SIGNALS:
     void setMarkerPosition( float, float, float );
     void enableTemplateMarkers( bool );
     void setFrustum( const float &, const float &, const float&, const float& );
+    void finishedContextMenuSetup( int x, int y );
 
 protected:
     virtual void timerEvent(QTimerEvent *event);
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
+    void removeTemplate(int id);
+
     void publishGhostPoses();
     virtual rviz::ViewController* getCurrentViewController();
+
+    void publishHandPose(std::string hand, const geometry_msgs::PoseStamped& end_effector_transform);
+    void publishHandJointStates(std::string hand);
+    int calcWristTarget(const geometry_msgs::PoseStamped& end_effector_pose, tf::Transform hand_T_palm, geometry_msgs::PoseStamped& final_pose);
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
@@ -183,8 +205,26 @@ protected:
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
 
+    rviz::Display* left_grasp_hand_model_;
+    rviz::Display* right_grasp_hand_model_;
+
     rviz::Display* left_hand_model_;
+    robot_model_loader::RobotModelLoaderPtr left_hand_model_loader_;
+    robot_model::RobotModelPtr left_hand_robot_model_;
+    robot_state::RobotStatePtr left_hand_robot_state_;
+    moveit_msgs::DisplayRobotState left_display_state_msg_;
+    ros::Publisher left_hand_robot_state_vis_pub_;
+    // Used to make setting virtual joint positions (-> hand pose) easier
+    sensor_msgs::JointState left_hand_virtual_link_joint_states_;
+
     rviz::Display* right_hand_model_;
+    robot_model_loader::RobotModelLoaderPtr right_hand_model_loader_;
+    robot_model::RobotModelPtr right_hand_robot_model_;
+    robot_state::RobotStatePtr right_hand_robot_state_;
+    moveit_msgs::DisplayRobotState right_display_state_msg_;
+    ros::Publisher right_hand_robot_state_vis_pub_;
+    // Used to make setting virtual joint positions (-> hand pose) easier
+    sensor_msgs::JointState right_hand_virtual_link_joint_states_;
 
     // for simulation
     rviz::Display* ghost_robot_model_;
@@ -225,7 +265,8 @@ protected:
     ros::Subscriber joint_states_sub_;
     ros::Subscriber reset_pelvis_sub_;
     ros::Subscriber send_pelvis_sub_;
-    ros::Publisher send_footstep_goal_pub_;
+    ros::Publisher send_footstep_goal_step_pub_;
+    ros::Publisher send_footstep_goal_walk_pub_;
 
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;
@@ -234,14 +275,15 @@ protected:
     ros::Subscriber ghost_hand_left_sub_;
     ros::Subscriber ghost_hand_right_sub_;
 
-    std::vector<unsigned char> saved_state_planning_group_;
-    std::vector<unsigned char> saved_state_pose_source_;
-    std::vector<unsigned char> saved_state_world_lock_;
-    unsigned char saved_state_collision_avoidance_;
-    unsigned char saved_state_lock_pelvis_;
-
+    std::vector<unsigned char> ghost_planning_group_;
+    std::vector<unsigned char> ghost_pose_source_;
+    std::vector<unsigned char> ghost_world_lock_;
+    unsigned char moveit_collision_avoidance_;
+    unsigned char ghost_lock_pelvis_;
     bool update_markers_;
     bool snap_ghost_to_robot_;
+    bool left_marker_moveit_loopback_;
+    bool right_marker_moveit_loopback_;
     
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
@@ -273,6 +315,16 @@ protected:
     QBasicTimer timer;
 
     int view_id_;
+
+    std::string l_hand_type, r_hand_type;
+
+    QMenu context_menu_;
+    QAction* context_menu_selected_item_;
+
+    int initializing_context_menu_;
+    std::string active_context_name_;
+
+    ros::Publisher template_remove_pub_;
 };
 }
 #endif // BASE_3D_VIEW_H

@@ -24,12 +24,11 @@
 
 #include <sensor_msgs/JointState.h>
 
+#include <moveit_msgs/RobotState.h>
+#include <moveit_msgs/DisplayRobotState.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
-
-#include <moveit_msgs/RobotState.h>
-#include <moveit_msgs/DisplayRobotState.h>
 #include <moveit/robot_state/conversions.h>
 
 #include <flor_ocs_msgs/OCSTemplateList.h>

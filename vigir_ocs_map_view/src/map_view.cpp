@@ -19,6 +19,8 @@
 #include <render_panel_custom.h>
 
 #include <flor_perception_msgs/EnvironmentRegionRequest.h>
+#include <flor_ocs_msgs/TwoPoint.h>
+#include <flor_ocs_msgs/OCSAugmentRegions.h>
 
 #include "map_view.h"
 
@@ -42,10 +44,13 @@ MapView::MapView( QWidget* parent )
 
     Q_EMIT unHighlight();
 
-    // create publisher for grid map
+    // create publisher for for the gridmap request
     grid_map_request_pub_ = nh_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/gridmap_request", 1, false );
 
-    // create publisher for octomap
+    // create publisher for augmentations on the grid map
+    augment_grid_map_pub_ = nh_.advertise<flor_ocs_msgs::OCSAugmentRegions>( "/flor/worldmodel/ocs_augmented_regions", 1, false );
+
+    // create publisher for the octomap request
     octomap_request_pub_ = nh_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/octomap_request", 1, false );
 
     // create publisher for point cloud
@@ -142,6 +147,8 @@ void MapView::requestMap(double min_z, double max_z, double resolution)
 
     cmd.resolution = resolution;
 
+    cmd.request_augment = 1;
+
     grid_map_request_pub_.publish(cmd);
 
     Q_EMIT unHighlight();
@@ -197,6 +204,113 @@ void MapView::requestPointCloud(double min_z, double max_z, double resolution)
     point_cloud_request_pub_.publish(cmd);
 
     Q_EMIT unHighlight();
+}
+
+void MapView::createContextMenu(bool, int x, int y)
+{
+    initializing_context_menu_++;
+
+    OrthoView::createContextMenu(false, x, y);
+
+    // create sub-menus
+    QMenu block_region_menu("Block Region");
+    block_region_menu.addAction("Axis-Aligned Rectangle");
+    block_region_menu.addAction("Line");
+    context_menu_.addMenu(&block_region_menu);
+    QMenu clear_region_menu("Clear Region");
+    clear_region_menu.addAction("Axis-Aligned Rectangle");
+    clear_region_menu.addAction("Line");
+    context_menu_.addMenu(&clear_region_menu);
+
+
+    if(initializing_context_menu_ == 1)
+        processContextMenu(x, y);
+
+    initializing_context_menu_--;
+}
+
+void MapView::processContextMenu(int x, int y)
+{
+    Base3DView::processContextMenu(x, y);
+
+    if(context_menu_selected_item_ != NULL)
+    {
+        ROS_INFO("%s->%s",((QMenu*)context_menu_selected_item_->parent())->title().toStdString().c_str(),context_menu_selected_item_->text().toStdString().c_str());
+        if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Block Region") &&
+           context_menu_selected_item_->text() == QString("Axis-Aligned Rectangle"))
+        {
+            flor_ocs_msgs::OCSAugmentRegions augmentation;
+            augmentation.header.frame_id = base_frame_;
+            augmentation.map_selection = 2;
+            Ogre::Vector3 min, max;
+            Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
+            Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
+            flor_ocs_msgs::TwoPoint box;
+            box.min[0] = min.x;
+            box.min[1] = min.y;
+            box.max[0] = max.x;
+            box.max[1] = max.y;
+            box.type = 1;
+            augmentation.blocked.push_back(box);
+            augment_grid_map_pub_.publish(augmentation);
+        }
+        else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Block Region") &&
+                context_menu_selected_item_->text() == QString("Line"))
+        {
+            flor_ocs_msgs::OCSAugmentRegions augmentation;
+            augmentation.header.frame_id = base_frame_;
+            augmentation.map_selection = 2;
+            Ogre::Vector3 min, max;
+            Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
+            Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
+            ROS_ERROR("%f %f -> %f %f",min.x,min.y,max.x,max.y);
+            flor_ocs_msgs::TwoPoint box;
+            box.min[0] = min.x;
+            box.min[1] = min.y;
+            box.max[0] = max.x;
+            box.max[1] = max.y;
+            box.type = 0;
+            augmentation.blocked.push_back(box);
+            augment_grid_map_pub_.publish(augmentation);
+        }
+        else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Clear Region") &&
+                context_menu_selected_item_->text() == QString("Axis-Aligned Rectangle"))
+        {
+            flor_ocs_msgs::OCSAugmentRegions augmentation;
+            augmentation.header.frame_id = base_frame_;
+            augmentation.map_selection = 2;
+            Ogre::Vector3 min, max;
+            Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
+            Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
+            flor_ocs_msgs::TwoPoint box;
+            box.min[0] = min.x;
+            box.min[1] = min.y;
+            box.max[0] = max.x;
+            box.max[1] = max.y;
+            box.type = 1;
+            augmentation.cleared.push_back(box);
+            augment_grid_map_pub_.publish(augmentation);
+        }
+        else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Clear Region") &&
+                context_menu_selected_item_->text() == QString("Line"))
+        {
+            flor_ocs_msgs::OCSAugmentRegions augmentation;
+            augmentation.header.frame_id = base_frame_;
+            augmentation.map_selection = 2;
+            Ogre::Vector3 min, max;
+            Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
+            Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
+            flor_ocs_msgs::TwoPoint box;
+            box.min[0] = min.x;
+            box.min[1] = min.y;
+            box.max[0] = max.x;
+            box.max[1] = max.y;
+            box.type = 0;
+            augmentation.cleared.push_back(box);
+            augment_grid_map_pub_.publish(augmentation);
+
+        }
+    }
 }
 
 }

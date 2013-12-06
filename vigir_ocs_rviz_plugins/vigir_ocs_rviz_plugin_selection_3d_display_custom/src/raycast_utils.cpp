@@ -31,19 +31,19 @@ RayCastUtils::~RayCastUtils()
     scene_manager_->destroyQuery(ray_scene_query_);
 }
 
-bool RayCastUtils::RayCastFromPoint(const Ogre::Vector3 &point, const Ogre::Vector3 &direction, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result, int &object_type)
+bool RayCastUtils::RayCastFromPoint(const Ogre::Vector3 &point, const Ogre::Vector3 &direction, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result, int &object_type, std::string &object_name)
 {
     // create the ray to test
     Ogre::Ray ray(Ogre::Vector3(point.x, point.y, point.z),
                   Ogre::Vector3(direction.x, direction.y, direction.z));
 
-    return RayCastFromPoint(ray,frame_pos,frame_quat,result,object_type);
+    return RayCastFromPoint(ray,frame_pos,frame_quat,result,object_type,object_name);
 }
 
 // Raycast from a point in to the scene.
 // returns success or failure.
 // on success the point is returned in the result.
-bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result, int &object_type)
+bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result, int &object_type, std::string &object_name)
 {
     // check we are initialised
     if (ray_scene_query_ != NULL)
@@ -157,6 +157,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                     object_type = 3;
                 else
                     object_type = 0;
+                object_name = query_result[qr_idx].movable->getName();
             }
         }
         else if ((query_result[qr_idx].movable != NULL) &&
@@ -225,6 +226,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                     object_type = 3;
                 else
                     object_type = 0;
+                object_name = query_result[qr_idx].movable->getName();
             }
         }
     }

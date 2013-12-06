@@ -59,6 +59,8 @@
 #include "OGRE/OgreManualObject.h"
 #include "OGRE/OgreEntity.h"
 #include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreRenderTargetListener.h>
+#include <OGRE/OgreRenderQueueListener.h>
 #include "raycast_utils.h"
 
 #include <map>
@@ -82,7 +84,7 @@ namespace rviz
  * \class Selection3DDisplayCustom
  * \brief Uses the window mouse information to create a selection marker
  */
-class Selection3DDisplayCustom: public Display
+class Selection3DDisplayCustom: public Display,  public Ogre::RenderTargetListener, public Ogre::RenderQueueListener
 {
 Q_OBJECT
 public:
@@ -100,9 +102,14 @@ public:
   void processDistQuery( const std_msgs::Float64::ConstPtr& distance );
   void processOCSDistQuery( const flor_ocs_msgs::OCSRaycastRequest::ConstPtr& request );
 
+  virtual void preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
+  virtual void postRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
+  virtual void renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
+  virtual void renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
+
 Q_SIGNALS:
   void newSelection( Ogre::Vector3 );
-  void setContext( int );
+  void setContext( int, std::string );
   void setSelectionRay( Ogre::Ray );
 
 private Q_SLOTS:
@@ -153,7 +160,8 @@ protected:
   Ogre::SceneNode* roi_marker_final_;
   Ogre::SceneNode* roi_marker_box_;
 
-  RenderPanel* render_panel_;
+  std::vector<RenderPanel*> render_panel_list_;
+  RenderPanel* render_panel_; // this is the active render panel
 
   RayCastUtils* raycast_utils_;
 

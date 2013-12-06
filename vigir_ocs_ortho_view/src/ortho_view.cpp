@@ -29,12 +29,12 @@
 namespace vigir_ocs
 {
 // Constructor for OrthoView.  This does most of the work of the class.
-OrthoView::OrthoView( rviz::VisualizationManager* context, std::string base_frame, QWidget* parent )
-    : Base3DView( context, base_frame, parent )
+OrthoView::OrthoView( Base3DView* copy_from, std::string base_frame, QWidget* parent )
+    : Base3DView( copy_from, base_frame, parent )
     , setting_pose_(false)
 {
     // set the camera to our own ortho view controller; needs to be initialized
-    if(!context)
+    if(!copy_from)
     {
         // if this is the first view to be created for this context, we can set the viewcontroller as usual
         rviz::ViewManager* view_man_ = manager_->getViewManager();
@@ -58,7 +58,7 @@ OrthoView::OrthoView( rviz::VisualizationManager* context, std::string base_fram
     // make sure we're still able to cancel set goal pose
     QObject::connect(render_panel_, SIGNAL(signalKeyPressEvent(QKeyEvent*)), this, SLOT(keyPressEvent(QKeyEvent*)));
 
-    previous_tool_ = move_camera_tool_;
+    previous_tool_ = manager_->getToolManager()->getCurrentTool();
 }
 
 // Destructor.

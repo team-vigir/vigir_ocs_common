@@ -42,7 +42,7 @@ class CameraView: public Base3DView
 {
     Q_OBJECT
 public:
-    CameraView( QWidget* parent = 0, rviz::VisualizationManager* context = 0 );
+    CameraView( QWidget* parent = 0, Base3DView* copy_from = 0 );
     virtual ~CameraView();
 
     void setCameraPitch( int );

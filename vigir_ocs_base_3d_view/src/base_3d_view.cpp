@@ -13,7 +13,6 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPoint>
-#include <QMenu>
 #include <QWidgetAction>
 #include <QSlider>
 
@@ -36,18 +35,21 @@
 #include "rviz/default_plugin/view_controllers/orbit_view_controller.h"
 #include "rviz/properties/parse_color.h"
 #include <template_display_custom.h>
+#include "selection_3d_display_custom.h"
 #include "map_display_custom.h"
 #include "base_3d_view.h"
 
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
+#include "flor_ocs_msgs/OCSTemplateRemove.h"
 #include "flor_ocs_msgs/OCSWaypointAdd.h"
 #include "flor_perception_msgs/EnvironmentRegionRequest.h"
 #include "flor_planning_msgs/TargetConfigIkRequest.h"
 
 namespace vigir_ocs
 {
+
 // Constructor for Base3DView.  This does most of the work of the class.
-Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_frame, QWidget* parent )
+Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* parent )
     : QWidget( parent )
     , base_frame_(base_frame)
     , selected_(false)
@@ -58,7 +60,10 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     , moving_pelvis_(false)
     , moving_l_arm_(false)
     , moving_r_arm_(false)
+    , left_marker_moveit_loopback_(true)
+    , right_marker_moveit_loopback_(true)
     , visualize_grid_map_(true)
+    , initializing_context_menu_(0)
 {
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
@@ -74,11 +79,14 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     setLayout( main_layout );
 
     // if there's
-    if(context != NULL)
+    if(copy_from != NULL)
     {
-        manager_ = context;
+        manager_ = copy_from->getVisualizationManager();
         render_panel_->initialize( manager_->getSceneManager(), manager_ );
         view_id_ = manager_->addRenderPanel( render_panel_ );
+
+        selection_3d_display_ = copy_from->getSelection3DDisplay();
+        mouse_event_handler_ = copy_from->getMouseEventHander();
     }
     else
     {
@@ -184,9 +192,6 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
         ((rviz::TemplateDisplayCustom*)template_display_)->setVisualizationManager(manager_);
 
-        // Create a display for 3D selection
-        selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
-
         // Create a display for waypoints
         waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
         waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/list" );
@@ -227,18 +232,93 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         planned_path_ = manager_->createDisplay( "rviz/Path", "Planned path", true );
         planned_path_->subProp( "Topic" )->setValue( "/flor/walk_monitor/path" );
 
+        // create the grasp hands displays
+        left_grasp_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left hand model", true );
+        left_grasp_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
+        left_grasp_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_left_hand" );
+        left_grasp_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
+        left_grasp_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
+
+        right_grasp_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot right hand model", true );
+        right_grasp_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
+        right_grasp_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_right_hand" );
+        right_grasp_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
+        right_grasp_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
+
         // create the hands displays
         left_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left hand model", true );
         left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
-        left_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_left_hand" );
+        left_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/marker_left_hand" );
         left_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
         left_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
 
+        left_hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("left_hand_robot_description"));
+        left_hand_robot_model_ = left_hand_model_loader_->getModel();
+        left_hand_robot_state_.reset(new robot_state::RobotState(left_hand_robot_model_));
+        left_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_left_hand",1, true);
+
+        {
+            // change color of the ghost template hands
+            const std::vector<std::string>& link_names = left_hand_robot_model_->getLinkModelNames();
+
+            for (size_t i = 0; i < link_names.size(); ++i)
+            {
+                moveit_msgs::ObjectColor tmp;
+                tmp.id = link_names[i];
+                tmp.color.a = 0.5f;
+                tmp.color.r = 0.2f;
+                tmp.color.g = 0.8f;
+                tmp.color.b = 0.2f;
+                left_display_state_msg_.highlight_links.push_back(tmp);
+            }
+        }
+
+        // this is for publishing the hand position in world coordinates for moveit
+        left_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_x");
+        left_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_y");
+        left_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_z");
+        left_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_x");
+        left_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_y");
+        left_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_z");
+        left_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_w");
+        left_hand_virtual_link_joint_states_.position.resize(7);
+
         right_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot right hand model", true );
         right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
-        right_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_right_hand" );
+        right_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/marker_right_hand" );
         right_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
         right_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
+
+        right_hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("right_hand_robot_description"));
+        right_hand_robot_model_ = right_hand_model_loader_->getModel();
+        right_hand_robot_state_.reset(new robot_state::RobotState(right_hand_robot_model_));
+        right_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_right_hand",1, true);
+
+        {
+            // change color of the ghost template hands
+            const std::vector<std::string>& link_names = right_hand_robot_model_->getLinkModelNames();
+
+            for (size_t i = 0; i < link_names.size(); ++i)
+            {
+                moveit_msgs::ObjectColor tmp;
+                tmp.id = link_names[i];
+                tmp.color.a = 0.5f;
+                tmp.color.r = 0.2f;
+                tmp.color.g = 0.8f;
+                tmp.color.b = 0.2f;
+                right_display_state_msg_.highlight_links.push_back(tmp);
+            }
+        }
+
+        // this is for publishing the hand position in world coordinates for moveit
+        right_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_x");
+        right_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_y");
+        right_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_z");
+        right_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_x");
+        right_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_y");
+        right_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_z");
+        right_hand_virtual_link_joint_states_.name.push_back("world_virtual_joint/rot_w");
+        right_hand_virtual_link_joint_states_.position.resize(7);
 
         // create the simulation robot display
         ghost_robot_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot simulation model", false );
@@ -292,23 +372,24 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         ghost_hand_right_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_right_hand_pose", 5, &Base3DView::processRightGhostHandPose, this );
 
         // initialize ghost control config
-        saved_state_planning_group_.push_back(0);
-        saved_state_planning_group_.push_back(1);
-        saved_state_planning_group_.push_back(1);
-        saved_state_pose_source_.push_back(0);
-        saved_state_pose_source_.push_back(0);
-        saved_state_pose_source_.push_back(0);
-        saved_state_world_lock_.push_back(0);
-        saved_state_world_lock_.push_back(0);
-        saved_state_world_lock_.push_back(0);
-        saved_state_collision_avoidance_ = 0;
-        saved_state_lock_pelvis_ = 1;
+        ghost_planning_group_.push_back(0);
+        ghost_planning_group_.push_back(1);
+        ghost_planning_group_.push_back(1);
+        ghost_pose_source_.push_back(0);
+        ghost_pose_source_.push_back(0);
+        ghost_pose_source_.push_back(0);
+        ghost_world_lock_.push_back(0);
+        ghost_world_lock_.push_back(0);
+        ghost_world_lock_.push_back(0);
+        moveit_collision_avoidance_ = 0;
+        ghost_lock_pelvis_ = 1;
 
         // ghost state
         ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
         reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
         send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
-        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goalpose", 1, false );
+        send_footstep_goal_walk_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_walk", 1, false );
+        send_footstep_goal_step_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_step", 1, false );
 
         // Create a RobotModel display.
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
@@ -331,34 +412,45 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
 
         // frustum
         frustum_viewer_list_["head_left"] = manager_->createDisplay( "rviz/FrustumDisplayCustom", "Frustum - Left Eye", true );
+
+        // Create a display for 3D selection
+        selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
         //}
+
+        // and advertise the template remove option
+        template_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
 
         // Connect to the template markers
         QObject::connect(this, SIGNAL(enableTemplateMarkers(bool)), template_display_, SLOT(enableTemplateMarkers(bool)));
 
-        // Connect the 3D selection tool to
-        QObject::connect(this, SIGNAL(queryContext(int,int)), selection_3d_display_, SLOT(queryContext(int,int)));
-        QObject::connect(selection_3d_display_, SIGNAL(setContext(int)), this, SLOT(setContext(int)));
-
-        // connect the 3d selection tool to its display
-        QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
-        Q_EMIT setRenderPanel(this->render_panel_);
-        QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
-        QObject::connect(selection_3d_display_, SIGNAL(setSelectionRay(Ogre::Ray)), this, SLOT(setSelectionRay(Ogre::Ray)));
-        QObject::connect(this, SIGNAL(resetSelection()), selection_3d_display_, SLOT(resetSelection()));
-        QObject::connect(this, SIGNAL(setMarkerScale(float)), selection_3d_display_, SLOT(setMarkerScale(float)));
-        QObject::connect(this, SIGNAL(setMarkerPosition(float,float,float)), selection_3d_display_, SLOT(setMarkerPosition(float,float,float)));
-
-        // handles mouse events without rviz::tool
-        mouse_event_handler_ = new vigir_ocs::MouseEventHandler();
-        QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mousePressEvent(QMouseEvent*)));
-        QObject::connect(render_panel_, SIGNAL(signalMouseReleaseEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseReleaseEvent(QMouseEvent*)));
-        QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(raycastRequest(bool,int,int)));//SLOT(createMarker(bool,int,int))); // RAYCAST -> need createMarkerOnboard that sends raycast query
-        QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(raycastRequestROI(bool,int,int)));//SLOT(createROISelection(bool,int,int)));
-        QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), this, SLOT(createContextMenu(bool,int,int)));
-
         // set frustum
         QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
+    }
+
+    // Connect the 3D selection tool to
+    QObject::connect(this, SIGNAL(queryContext(int,int)), selection_3d_display_, SLOT(queryContext(int,int)));
+    QObject::connect(selection_3d_display_, SIGNAL(setContext(int,std::string)), this, SLOT(setContext(int,std::string)));
+
+    // connect the 3d selection tool to its display
+    QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
+    Q_EMIT setRenderPanel(this->render_panel_);
+    QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
+    QObject::connect(selection_3d_display_, SIGNAL(setSelectionRay(Ogre::Ray)), this, SLOT(setSelectionRay(Ogre::Ray)));
+    QObject::connect(this, SIGNAL(resetSelection()), selection_3d_display_, SLOT(resetSelection()));
+    QObject::connect(this, SIGNAL(setMarkerScale(float)), selection_3d_display_, SLOT(setMarkerScale(float)));
+    QObject::connect(this, SIGNAL(setMarkerPosition(float,float,float)), selection_3d_display_, SLOT(setMarkerPosition(float,float,float)));
+
+    // handles mouse events without rviz::tool
+    mouse_event_handler_ = new vigir_ocs::MouseEventHandler();
+    QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mousePressEvent(QMouseEvent*)));
+    QObject::connect(render_panel_, SIGNAL(signalMouseReleaseEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseReleaseEvent(QMouseEvent*)));
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(raycastRequest(bool,int,int)));//SLOT(createMarker(bool,int,int))); // RAYCAST -> need createMarkerOnboard that sends raycast query
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(raycastRequestROI(bool,int,int)));//SLOT(createROISelection(bool,int,int)));
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), this, SLOT(createContextMenu(bool,int,int)));
+
+    Q_FOREACH( QWidget* sp, findChildren<QWidget*>() ) {
+        sp->installEventFilter( this );
+        sp->setMouseTracking( true );
     }
 
     position_widget_ = new QWidget(this);
@@ -388,13 +480,16 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
 
     XmlRpc::XmlRpcValue   hand_T_palm;
 
+    nh_.getParam("/l_hand_tf/hand_T_palm", hand_T_palm);
+    l_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
+    l_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+
     nh_.getParam("/r_hand_tf/hand_T_palm", hand_T_palm);
     r_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
     r_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
 
-    nh_.getParam("/l_hand_tf/hand_T_palm", hand_T_palm);
-    l_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-    l_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+    nh_.getParam("/l_hand_type", l_hand_type);
+    nh_.getParam("/r_hand_type", r_hand_type);
 
     // set background color to rviz default
     render_panel_->getViewport()->setBackgroundColour(rviz::qtToOgre(QColor(48,48,48)));
@@ -448,8 +543,8 @@ void Base3DView::robotModelToggled( bool selected )
 
 void Base3DView::graspModelToggled( bool selected )
 {
-    left_hand_model_->setEnabled( selected );
-    right_hand_model_->setEnabled( selected );
+    left_grasp_hand_model_->setEnabled( selected );
+    right_grasp_hand_model_->setEnabled( selected );
 }
 
 void Base3DView::templatesToggled( bool selected )
@@ -792,40 +887,72 @@ void Base3DView::insertWaypoint()
 
 void Base3DView::createContextMenu(bool, int x, int y)
 {
+    initializing_context_menu_++;
+
+    context_menu_selected_item_ = NULL;
+
+    context_menu_.clear();
+    context_menu_.setTitle("Base Menu");
+
     // first we need to query the 3D scene to retrieve the context
     Q_EMIT queryContext(x,y);
     // context is stored in the active_context_ variable
+    std::cout << "Active context: " << active_context_ << std::endl;
 
-    QPoint globalPos = this->mapToGlobal(QPoint(x+10,y+10));
+    context_menu_.addAction("Insert Template");
+    //if(selected_) context_menu_.addAction("Insert Waypoint");
+    if(active_context_name_.find("template") != std::string::npos) context_menu_.addAction("Remove Template");
 
-    QMenu myMenu;
+    if(initializing_context_menu_ == 1)
+        processContextMenu(x, y);
 
-    myMenu.addAction("Insert Template");
-    if(selected_) myMenu.addAction("Insert Waypoint");
+    initializing_context_menu_--;
+}
 
-    QAction* selectedItem = myMenu.exec(globalPos);
+void Base3DView::processContextMenu(int x, int y)
+{
+    QPoint globalPos = this->mapToGlobal(QPoint(x,y));
+    context_menu_selected_item_ = context_menu_.exec(globalPos);
+
     //std::cout << selectedItem << std::endl;
-    if(selectedItem != NULL)
+    if(context_menu_selected_item_ != NULL)
     {
-        if (selectedItem->text() == QString("Insert Template"))
+        if(context_menu_selected_item_->text() == QString("Insert Template"))
         {
             if(!selected_template_path_.isEmpty())
                 insertTemplate(selected_template_path_);
         }
-        else if (selectedItem->text() == QString("Insert Waypoint"))
+        else if(context_menu_selected_item_->text() == QString("Remove Template"))
         {
-            insertWaypoint();
+            int start = active_context_name_.find(" ")+1;
+            int end = active_context_name_.find(".");
+            QString template_number(active_context_name_.substr(start, end-start).c_str());
+            ROS_INFO("%d %d %s",start,end,template_number.toStdString().c_str());
+            bool ok;
+            int t = template_number.toInt(&ok);
+            if(ok) removeTemplate(t);
         }
-        else
-        {
-            // nothing was chosen, probably don't need this anymore since checking for NULL
-        }
+        //else if(context_menu_selected_item_->text() == QString("Insert Waypoint"))
+        //{
+        //    insertWaypoint();
+        //}
     }
 }
 
-void Base3DView::setContext(int context)
+void Base3DView::removeTemplate(int id)
+{
+    flor_ocs_msgs::OCSTemplateRemove cmd;
+
+    cmd.template_id = id;
+
+    // publish template to be removed
+    template_remove_pub_.publish( cmd );
+}
+
+void Base3DView::setContext(int context, std::string name)
 {
     active_context_ = context;
+    active_context_name_ = name;
     //std::cout << "Active context: " << active_context_ << std::endl;
 }
 
@@ -870,36 +997,52 @@ void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
 
 void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
-    if(marker_published_ < 3)
-        publishMarkers();
+    if(left_marker_moveit_loopback_)
+    {
+        if(marker_published_ < 3)
+            publishMarkers();
 
-    flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-    cmd.topic = "/l_arm_pose_marker";
-    cmd.pose = *pose;
-    interactive_marker_update_pub_.publish(cmd);
+        publishHandPose("left",*pose);
 
-    //ROS_ERROR("LEFT ARM POSE:");
-    //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
-    //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
-    if(!moving_pelvis_ && saved_state_pose_source_[0] == 0)
-        end_effector_pose_list_[cmd.topic] = cmd.pose;
+        geometry_msgs::PoseStamped wrist_pose;
+        calcWristTarget(*pose,l_hand_T_palm_,wrist_pose);
+
+        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.topic = "/l_arm_pose_marker";
+        cmd.pose = wrist_pose;
+        interactive_marker_update_pub_.publish(cmd);
+
+        //ROS_ERROR("LEFT ARM POSE:");
+        //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
+        //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
+        if(!moving_pelvis_ && ghost_pose_source_[0] == 0)
+            end_effector_pose_list_[cmd.topic] = cmd.pose;
+    }
 }
 
 void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
-    if(marker_published_ < 3)
-        publishMarkers();
+    if(right_marker_moveit_loopback_)
+    {
+        if(marker_published_ < 3)
+            publishMarkers();
 
-    flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-    cmd.topic = "/r_arm_pose_marker";
-    cmd.pose = *pose;
-    interactive_marker_update_pub_.publish(cmd);
+        publishHandPose("right",*pose);
 
-    //ROS_ERROR("RIGHT ARM POSE:");
-    //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
-    //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
-    if(!moving_pelvis_ && saved_state_pose_source_[1] == 0)
-        end_effector_pose_list_[cmd.topic] = cmd.pose;
+        geometry_msgs::PoseStamped wrist_pose;
+        calcWristTarget(*pose,r_hand_T_palm_,wrist_pose);
+
+        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.topic = "/r_arm_pose_marker";
+        cmd.pose = wrist_pose;
+        interactive_marker_update_pub_.publish(cmd);
+
+        //ROS_ERROR("RIGHT ARM POSE:");
+        //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
+        //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
+        if(!moving_pelvis_ && ghost_pose_source_[1] == 0)
+            end_effector_pose_list_[cmd.topic] = cmd.pose;
+    }
 }
 
 int staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform hand_T_palm)
@@ -911,6 +1054,10 @@ int staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform hand_T_palm)
     o_T_palm.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
 
     o_T_hand = o_T_palm * hand_T_palm.inverse();
+
+    //ROS_INFO("hand_T_palm: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+    //         hand_T_palm.getOrigin().getX(),hand_T_palm.getOrigin().getY(),hand_T_palm.getOrigin().getZ(),
+    //         hand_T_palm.getRotation().getW(),hand_T_palm.getRotation().getX(),hand_T_palm.getRotation().getY(),hand_T_palm.getRotation().getZ());
 
     tf::Quaternion hand_quat;
     tf::Vector3    hand_vector;
@@ -928,12 +1075,153 @@ int staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform hand_T_palm)
     return 0;
 }
 
+void Base3DView::publishHandPose(std::string hand, const geometry_msgs::PoseStamped& end_effector_transform)
+{
+    geometry_msgs::PoseStamped hand_transform; // the first hand transform is really where I want the palm to be, or identity in this case
+    if(hand == "left")
+    {
+        calcWristTarget(end_effector_transform, l_hand_T_palm_, hand_transform);
+
+        left_hand_virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
+        left_hand_virtual_link_joint_states_.position[1] = hand_transform.pose.position.y;
+        left_hand_virtual_link_joint_states_.position[2] = hand_transform.pose.position.z;
+        left_hand_virtual_link_joint_states_.position[3] = hand_transform.pose.orientation.x;
+        left_hand_virtual_link_joint_states_.position[4] = hand_transform.pose.orientation.y;
+        left_hand_virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
+        left_hand_virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
+
+        moveit::core::jointStateToRobotState(left_hand_virtual_link_joint_states_, *left_hand_robot_state_);
+    }
+    else
+    {
+        calcWristTarget(end_effector_transform, r_hand_T_palm_, hand_transform);
+
+        right_hand_virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
+        right_hand_virtual_link_joint_states_.position[1] = hand_transform.pose.position.y;
+        right_hand_virtual_link_joint_states_.position[2] = hand_transform.pose.position.z;
+        right_hand_virtual_link_joint_states_.position[3] = hand_transform.pose.orientation.x;
+        right_hand_virtual_link_joint_states_.position[4] = hand_transform.pose.orientation.y;
+        right_hand_virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
+        right_hand_virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
+
+        moveit::core::jointStateToRobotState(right_hand_virtual_link_joint_states_, *right_hand_robot_state_);
+    }
+
+    publishHandJointStates(hand);
+}
+
+void Base3DView::publishHandJointStates(std::string hand)
+{
+    std::string hand_type;
+    if(hand == "left")
+        hand_type = l_hand_type;
+    else
+        hand_type = r_hand_type;
+
+    sensor_msgs::JointState joint_states;
+
+    joint_states.header.stamp = ros::Time::now();
+    joint_states.header.frame_id = std::string("/")+hand+std::string("_hand_model/")+hand+"_palm";
+
+    if(hand_type.find("irobot") != std::string::npos)
+    {
+        // must match the order used in the .grasp file
+        joint_states.name.push_back(hand+"_f0_j1");
+        joint_states.name.push_back(hand+"_f1_j1");
+        joint_states.name.push_back(hand+"_f2_j1");
+        joint_states.name.push_back(hand+"_f0_j0"); // .grasp finger position [4] -> IGNORE [3], use [4] for both
+        joint_states.name.push_back(hand+"_f1_j0"); // .grasp finger position [4]
+        joint_states.name.push_back(hand+"_f0_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f1_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f2_j2"); // 0 for now
+
+    }
+    else if(hand_type.find("sandia") != std::string::npos)
+    {
+        // must match those inside of the /sandia_hands/?_hand/joint_states/[right_/left_]+
+        joint_states.name.push_back(hand+"_f0_j0");
+        joint_states.name.push_back(hand+"_f0_j1");
+        joint_states.name.push_back(hand+"_f0_j2");
+        joint_states.name.push_back(hand+"_f1_j0");
+        joint_states.name.push_back(hand+"_f1_j1");
+        joint_states.name.push_back(hand+"_f1_j2");
+        joint_states.name.push_back(hand+"_f2_j0");
+        joint_states.name.push_back(hand+"_f2_j1");
+        joint_states.name.push_back(hand+"_f2_j2");
+        joint_states.name.push_back(hand+"_f3_j0");
+        joint_states.name.push_back(hand+"_f3_j1");
+        joint_states.name.push_back(hand+"_f3_j2");
+    }
+
+    joint_states.position.resize(joint_states.name.size());
+    joint_states.effort.resize(joint_states.name.size());
+    joint_states.velocity.resize(joint_states.name.size());
+
+    for(unsigned int i = 0; i < joint_states.position.size(); ++i)
+    {
+        joint_states.effort[i] = 0;
+        joint_states.velocity[i] = 0;
+        joint_states.position[i] = 0;
+    }
+
+    if(hand == "left")
+    {
+        moveit::core::jointStateToRobotState(joint_states, *left_hand_robot_state_);
+        robot_state::robotStateToRobotStateMsg(*left_hand_robot_state_, left_display_state_msg_.state);
+        left_hand_robot_state_vis_pub_.publish(left_display_state_msg_);
+    }
+    else
+    {
+        moveit::core::jointStateToRobotState(joint_states, *right_hand_robot_state_);
+        robot_state::robotStateToRobotStateMsg(*right_hand_robot_state_, right_display_state_msg_.state);
+        right_hand_robot_state_vis_pub_.publish(right_display_state_msg_);
+    }
+}
+
+int Base3DView::calcWristTarget(const geometry_msgs::PoseStamped& end_effector_pose, tf::Transform hand_T_palm, geometry_msgs::PoseStamped& final_pose)
+{
+    // Transform wrist_pose into the template pose frame
+    tf::Transform ef_pose;
+    tf::Transform target_pose;
+
+    ef_pose.setRotation(tf::Quaternion(end_effector_pose.pose.orientation.x,end_effector_pose.pose.orientation.y,end_effector_pose.pose.orientation.z,end_effector_pose.pose.orientation.w));
+    ef_pose.setOrigin(tf::Vector3(end_effector_pose.pose.position.x,end_effector_pose.pose.position.y,end_effector_pose.pose.position.z) );
+    target_pose = ef_pose * hand_T_palm;
+
+//    ROS_INFO("ef_pose: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+//             ef_pose.getOrigin().getX(),ef_pose.getOrigin().getY(),ef_pose.getOrigin().getZ(),
+//             ef_pose.getRotation().getW(),ef_pose.getRotation().getX(),ef_pose.getRotation().getY(),ef_pose.getRotation().getZ());
+
+//    ROS_INFO("hand_T_palm: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+//             hand_T_palm.getOrigin().getX(),hand_T_palm.getOrigin().getY(),hand_T_palm.getOrigin().getZ(),
+//             hand_T_palm.getRotation().getW(),hand_T_palm.getRotation().getX(),hand_T_palm.getRotation().getY(),hand_T_palm.getRotation().getZ());
+
+//    ROS_INFO("target_pose: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+//             target_pose.getOrigin().getX(),target_pose.getOrigin().getY(),target_pose.getOrigin().getZ(),
+//             target_pose.getRotation().getW(),target_pose.getRotation().getX(),target_pose.getRotation().getY(),target_pose.getRotation().getZ());
+
+    tf::Quaternion tg_quat;
+    tf::Vector3    tg_vector;
+    tg_quat   = target_pose.getRotation();
+    tg_vector = target_pose.getOrigin();
+
+    final_pose.pose.orientation.w = tg_quat.getW();
+    final_pose.pose.orientation.x = tg_quat.getX();
+    final_pose.pose.orientation.y = tg_quat.getY();
+    final_pose.pose.orientation.z = tg_quat.getZ();
+
+    final_pose.pose.position.x = tg_vector.getX();
+    final_pose.pose.position.y = tg_vector.getY();
+    final_pose.pose.position.z = tg_vector.getZ();
+    return 0;
+}
+
 void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
-    //ROS_ERROR("LEFT GHOST HAND POSE:");
-    //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
-    //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
-    if(!moving_pelvis_ && saved_state_world_lock_[0] == 1)
+    //ROS_INFO("LEFT GHOST HAND POSE:");
+    //ROS_INFO("  position: %.2f %.2f %.2f",pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
+    //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",pose->pose.orientation.w,pose->pose.orientation.x,pose->pose.orientation.y,pose->pose.orientation.z);
+    if(!moving_pelvis_ && ghost_world_lock_[0] == 1)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
         staticTransform(transformed_pose, l_hand_T_palm_);
@@ -944,10 +1232,10 @@ void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::Cons
 
 void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
-    //ROS_ERROR("RIGHT GHOST HAND POSE:");
-    //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
-    //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
-    if(!moving_pelvis_ && saved_state_world_lock_[1] == 1)
+    //ROS_INFO("RIGHT GHOST HAND POSE:");
+    //ROS_INFO("  position: %.2f %.2f %.2f",pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
+    //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",pose->pose.orientation.w,pose->pose.orientation.x,pose->pose.orientation.y,pose->pose.orientation.z);
+    if(!moving_pelvis_ && ghost_world_lock_[1] == 1)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
         staticTransform(transformed_pose, r_hand_T_palm_);
@@ -958,23 +1246,37 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
 
 void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
 {
+    geometry_msgs::PoseStamped joint_pose;
+    joint_pose = msg->pose;
 
     //ROS_ERROR("Marker feedback on topic %s, have markers instantiated",msg->topic.c_str());
     if(msg->topic == "/l_arm_pose_marker")
     {
-        saved_state_planning_group_[0] = 1;
-        saved_state_planning_group_[1] = 0;
+        ghost_planning_group_[0] = 1;
+        ghost_planning_group_[1] = 0;
         moving_pelvis_ = false;
         moving_l_arm_ = true;
         moving_r_arm_ = false;
+
+        //ROS_INFO("LEFT GHOST HAND POSE:");
+        //ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
+        //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
+        calcWristTarget(msg->pose,l_hand_T_palm_.inverse(),joint_pose);
+        publishHandPose(std::string("left"),joint_pose);
     }
     else if(msg->topic == "/r_arm_pose_marker")
     {
-        saved_state_planning_group_[0] = 0;
-        saved_state_planning_group_[1] = 1;
+        ghost_planning_group_[0] = 0;
+        ghost_planning_group_[1] = 1;
         moving_pelvis_ = false;
         moving_l_arm_ = false;
         moving_r_arm_ = true;
+
+        ROS_INFO("RIGHT GHOST HAND POSE:");
+        ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
+        ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
+        calcWristTarget(msg->pose,r_hand_T_palm_.inverse(),joint_pose);
+        publishHandPose(std::string("right"),joint_pose);
     }
     else if(msg->topic == "/pelvis_pose_marker")
     {
@@ -983,7 +1285,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_r_arm_ = false;
     }
 
-    end_effector_pose_list_[msg->topic] = msg->pose;
+    end_effector_pose_list_[msg->topic] = joint_pose; //msg->pose;
 
     if(marker_published_ < 3)
     {
@@ -1004,12 +1306,12 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
 
 void Base3DView::publishGhostPoses()
 {
-    bool left = saved_state_planning_group_[0];
-    bool right = saved_state_planning_group_[1];
-    bool torso = saved_state_planning_group_[2];
+    bool left = ghost_planning_group_[0];
+    bool right = ghost_planning_group_[1];
+    bool torso = ghost_planning_group_[2];
 
-    bool left_lock = saved_state_world_lock_[0];
-    bool right_lock = saved_state_world_lock_[1];
+    bool left_lock = ghost_world_lock_[0];
+    bool right_lock = ghost_world_lock_[1];
     //ROS_ERROR("Moving marker? %s",moving_pelvis_?"Yes, Pelvis":(moving_l_arm_?"Yes, Left Arm":(moving_r_arm_?"Yes, Right Arm":"No")));
     //ROS_ERROR("Left lock: %s Right lock: %s",left_lock?"yes":"no",right_lock?"yes":"no");
 
@@ -1081,7 +1383,7 @@ void Base3DView::publishGhostPoses()
     if(left || right)
         end_effector_pub_.publish(cmd);
 
-    if(saved_state_lock_pelvis_)
+    if(ghost_lock_pelvis_)
     {
         Ogre::Vector3 position(0,0,0);
         Ogre::Quaternion orientation(1,0,0,0);
@@ -1128,17 +1430,20 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
         snap_ghost_to_robot_ = true;
         return;
     }
-    saved_state_planning_group_.clear();
-    saved_state_pose_source_.clear();
-    saved_state_world_lock_.clear();
+    ghost_planning_group_.clear();
+    ghost_pose_source_.clear();
+    ghost_world_lock_.clear();
 
-    saved_state_planning_group_ = msg->planning_group;
-    saved_state_pose_source_ = msg->pose_source;
-    saved_state_world_lock_ = msg->world_lock;
-    saved_state_collision_avoidance_ = msg->collision_avoidance;
-    saved_state_lock_pelvis_ = msg->lock_pelvis;
+    ghost_planning_group_ = msg->planning_group;
+    ghost_pose_source_ = msg->pose_source;
+    ghost_world_lock_ = msg->world_lock;
+    moveit_collision_avoidance_ = msg->collision_avoidance;
+    ghost_lock_pelvis_ = msg->lock_pelvis;
 
     snap_ghost_to_robot_ = msg->snap;
+
+    left_marker_moveit_loopback_ = msg->left_moveit_marker_loopback;
+    right_marker_moveit_loopback_ = msg->right_moveit_marker_loopback;
 }
 
 void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &states)
@@ -1222,7 +1527,10 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
 
 void Base3DView::processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg )
 {
-    send_footstep_goal_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+    if(!msg->data)
+        send_footstep_goal_step_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+    else
+        send_footstep_goal_walk_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 }
 
 void Base3DView::publishMarkers()
@@ -1290,4 +1598,18 @@ rviz::ViewController* Base3DView::getCurrentViewController()
 {
      return manager_->getViewManager()->getCurrent();
 }
+
+bool Base3DView::eventFilter( QObject * o, QEvent * e )
+{
+    if ( e->type() == QEvent::Enter )
+    {
+        Q_EMIT setRenderPanel(this->render_panel_);
+    }
+    else if ( e->type() == QEvent::MouseMove )
+    {
+        Q_EMIT setRenderPanel(this->render_panel_);
+    }
+    return QWidget::eventFilter( o, e );
+}
+
 }
