@@ -5,6 +5,8 @@
 #include "base_3d_view.h"
 #include <ros/package.h>
 
+#include <rviz/displays_panel.h>
+
 MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainCameraViewWidget)
