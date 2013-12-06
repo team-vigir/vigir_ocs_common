@@ -158,9 +158,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         laser_scan_->subProp( "Selectable" )->setValue( false );
 
         // Create a MarkerArray display.
-        octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", false );
+        octomap_ = manager_->createDisplay( "octomap_rviz_plugin/OccupancyGrid", "Octomap", true );
         ROS_ASSERT( octomap_ != NULL );
-        octomap_->subProp( "Marker Topic" )->setValue( "/flor/ocs/worldmodel/octomap_result" );
+        octomap_->subProp( "Octomap Topic" )->setValue( "/flor/ocs/worldmodel/octomap_result" );
 
         // Create a point cloud display.
         stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
