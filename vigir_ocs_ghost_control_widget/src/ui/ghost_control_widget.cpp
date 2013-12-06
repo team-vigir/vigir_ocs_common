@@ -307,13 +307,6 @@ void GhostControlWidget::on_send_right_torso_pose_button__clicked()
     set_to_target_pose_pub_.publish(cmd);
 }
 
-void GhostControlWidget::on_pushButton_clicked()
-{
-    std_msgs::Bool cmd;
-    cmd.data = true;
-    send_pelvis_pub_.publish(cmd);
-}
-
 void GhostControlWidget::on_left_no_lock_toggled(bool checked)
 {
     saveState();
@@ -443,4 +436,18 @@ void GhostControlWidget::on_left_moveit_marker_lock_clicked()
 void GhostControlWidget::on_right_moveit_marker_lock_clicked()
 {
     publishState();
+}
+
+void GhostControlWidget::on_pushButton_clicked()
+{
+    std_msgs::Bool cmd;
+    cmd.data = false;
+    send_pelvis_pub_.publish(cmd);
+}
+
+void GhostControlWidget::on_pushButton_2_clicked()
+{
+    std_msgs::Bool cmd;
+    cmd.data = true;
+    send_pelvis_pub_.publish(cmd);
 }

@@ -81,6 +81,8 @@ Selection3DDisplayCustom::~Selection3DDisplayCustom()
 
 void Selection3DDisplayCustom::onInitialize()
 {
+    context_->getSceneManager()->addRenderQueueListener(this);
+
     updateVisualVisible();
     updateCollisionVisible();
     updateAlpha();
@@ -254,9 +256,14 @@ void Selection3DDisplayCustom::preRenderTargetUpdate( const Ogre::RenderTargetEv
 {
     if(initialized_)
     {
-        int view_id = ((rviz::VisualizationManager*)context_)->getActiveViewID();
+        int view_id = 0;//((rviz::VisualizationManager*)context_)->getActiveViewID();
 
-        std::cout << "Update " << view_id << std::endl;
+        for(int i = 0; i < render_panel_list_.size(); i++)
+            if(render_panel_list_[i]->getRenderWindow() == (Ogre::RenderWindow*)evt.source)
+                view_id = i;
+
+        //std::cout << "Update " << view_id << std::endl;
+
         // get transform from world to fixed frame
         Ogre::Quaternion selection_orientation(1,0,0,0);
         Ogre::Vector3 selection_position = selection_position_;
@@ -296,7 +303,12 @@ void Selection3DDisplayCustom::preRenderTargetUpdate( const Ogre::RenderTargetEv
             //float left   = -(1+m[0][3])/m[0][0];
             //float right  =  (1-m[0][3])/m[0][0];
             //std::cout << "ortho:\n\t" << left << "\n\t" << right << "\n\t" << bottom << "\n\t" << top << "\n\t" << near << "\n\t" << far << std::endl;
-            camera_position.z = fabs(bottom)+fabs(top);
+            if(this->render_panel_list_[view_id]->getCamera()->getPosition().z == 500)
+                camera_position.z = fabs(bottom)+fabs(top);
+            else if(this->render_panel_list_[view_id]->getCamera()->getPosition().y == -500)
+                camera_position.y = -(fabs(bottom)+fabs(top));
+            if(this->render_panel_list_[view_id]->getCamera()->getPosition().x == 500)
+                camera_position.x = fabs(bottom)+fabs(top);
         }
 
         //std::cout << "camera: " << camera_position.x << "," << camera_position.y << "," << camera_position.z << std::endl;
@@ -336,13 +348,28 @@ void Selection3DDisplayCustom::preRenderTargetUpdate( const Ogre::RenderTargetEv
             }
         }
     }
+
+    context_->queueRender();
+}
+
+void Selection3DDisplayCustom::postRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
+{
+
+}
+
+void Selection3DDisplayCustom::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation)
+{
+
+}
+
+void Selection3DDisplayCustom::renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& repeatThisInvocation)
+{
+
 }
 
 void Selection3DDisplayCustom::update( float wall_dt, float ros_dt )
 {
     time_since_last_transform_ += wall_dt;
-
-    context_->queueRender();
 }
 
 void Selection3DDisplayCustom::fixedFrameChanged()
@@ -497,11 +524,13 @@ void Selection3DDisplayCustom::setRenderPanel( rviz::RenderPanel* rp )
     if(std::find(render_panel_list_.begin(),render_panel_list_.end(),rp) != render_panel_list_.end())
     {
         this->render_panel_ = rp;
+        this->render_panel_->getRenderWindow()->addListener( this );
     }
     else
     {
-        render_panel_list_.push_back(rp);
+        this->render_panel_list_.push_back(rp);
         this->render_panel_ = rp;
+        this->render_panel_->getRenderWindow()->addListener( this );
     }
 }
 

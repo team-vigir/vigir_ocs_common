@@ -265,7 +265,8 @@ protected:
     ros::Subscriber joint_states_sub_;
     ros::Subscriber reset_pelvis_sub_;
     ros::Subscriber send_pelvis_sub_;
-    ros::Publisher send_footstep_goal_pub_;
+    ros::Publisher send_footstep_goal_step_pub_;
+    ros::Publisher send_footstep_goal_walk_pub_;
 
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;

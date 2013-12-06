@@ -60,6 +60,7 @@
 #include "OGRE/OgreEntity.h"
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreRenderTargetListener.h>
+#include <OGRE/OgreRenderQueueListener.h>
 #include "raycast_utils.h"
 
 #include <map>
@@ -83,7 +84,7 @@ namespace rviz
  * \class Selection3DDisplayCustom
  * \brief Uses the window mouse information to create a selection marker
  */
-class Selection3DDisplayCustom: public Display,  public Ogre::RenderTargetListener
+class Selection3DDisplayCustom: public Display,  public Ogre::RenderTargetListener, public Ogre::RenderQueueListener
 {
 Q_OBJECT
 public:
@@ -102,6 +103,9 @@ public:
   void processOCSDistQuery( const flor_ocs_msgs::OCSRaycastRequest::ConstPtr& request );
 
   virtual void preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
+  virtual void postRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
+  virtual void renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
+  virtual void renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
 
 Q_SIGNALS:
   void newSelection( Ogre::Vector3 );

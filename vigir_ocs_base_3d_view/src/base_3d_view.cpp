@@ -388,7 +388,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
         reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
         send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
-        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goalpose", 1, false );
+        send_footstep_goal_walk_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_walk", 1, false );
+        send_footstep_goal_step_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_step", 1, false );
 
         // Create a RobotModel display.
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
@@ -1526,7 +1527,10 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
 
 void Base3DView::processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg )
 {
-    send_footstep_goal_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+    if(!msg->data)
+        send_footstep_goal_step_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+    else
+        send_footstep_goal_walk_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 }
 
 void Base3DView::publishMarkers()
