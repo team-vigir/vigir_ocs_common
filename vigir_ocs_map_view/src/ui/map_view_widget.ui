@@ -56,7 +56,7 @@
         <x>0</x>
         <y>0</y>
         <width>242</width>
-        <height>1183</height>
+        <height>1213</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -321,6 +321,13 @@
            <widget class="QPushButton" name="request_octomap">
             <property name="text">
              <string>Request Octomap</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="request_point_cloud">
+            <property name="text">
+             <string>Request Point Cloud</string>
             </property>
            </widget>
           </item>
@@ -1066,11 +1073,28 @@ color: rgb(255, 26, 26);</string>
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>request_point_cloud</sender>
+   <signal>pressed()</signal>
+   <receiver>MapViewWidget</receiver>
+   <slot>requestPointCloud()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>679</x>
+     <y>463</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>406</x>
+     <y>334</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>lidarPointCloudToggled()</slot>
   <slot>stereoPointCloudToggled()</slot>
   <slot>requestMap()</slot>
   <slot>requestOctomap()</slot>
+  <slot>requestPointCloud()</slot>
  </slots>
 </ui>
