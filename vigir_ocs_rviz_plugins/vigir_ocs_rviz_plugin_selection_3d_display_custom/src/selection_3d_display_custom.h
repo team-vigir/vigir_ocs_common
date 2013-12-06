@@ -83,7 +83,7 @@ namespace rviz
  * \class Selection3DDisplayCustom
  * \brief Uses the window mouse information to create a selection marker
  */
-class Selection3DDisplayCustom: public Display
+class Selection3DDisplayCustom: public Display,  public Ogre::RenderTargetListener
 {
 Q_OBJECT
 public:
