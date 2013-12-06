@@ -5,6 +5,8 @@
 #include "ortho_view.h"
 #include <ros/package.h>
 
+#include <rviz/displays_panel.h>
+
 MainViewWidget::MainViewWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainViewWidget)
@@ -39,6 +41,9 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     views_list["Top Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"])); //views_list["Top Right"] = new vigir_ocs::OrthoView();
     views_list["Bottom Left"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"])); //views_list["Bottom Left"] = new vigir_ocs::OrthoView();
     views_list["Bottom Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"])); //views_list["Bottom Right"] = new vigir_ocs::OrthoView();
+
+
+
 
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
@@ -149,6 +154,12 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     position_layout->addWidget(one_view_button_);
     position_layout->addWidget(four_view_button_);
     position_widget_->setLayout(position_layout);
+
+    rviz::DisplaysPanel* displays_panel = new rviz::DisplaysPanel(this);
+    displays_panel->initialize( ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
+
+    ui->horizontalLayout_2->addWidget(displays_panel);
+
 }
 
 MainViewWidget::~MainViewWidget()
