@@ -195,7 +195,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-331</y>
         <width>268</width>
         <height>989</height>
        </rect>
@@ -871,7 +871,7 @@ color: rgb(255, 26, 26);</string>
              <string>Octomap</string>
             </property>
             <property name="checked">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
            </widget>
           </item>
