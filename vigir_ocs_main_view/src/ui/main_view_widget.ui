@@ -557,7 +557,7 @@ color: rgb(255, 26, 26);</string>
              <string>Octomap</string>
             </property>
             <property name="checked">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
            </widget>
           </item>
