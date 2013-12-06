@@ -190,9 +190,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-475</y>
+        <y>0</y>
         <width>264</width>
-        <height>1133</height>
+        <height>1467</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -241,7 +241,7 @@
              <string>Tools</string>
             </property>
             <property name="checkable">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_2">
              <property name="spacing">
@@ -299,7 +299,7 @@
              <string>Navigation</string>
             </property>
             <property name="checkable">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_3">
              <item>
@@ -335,7 +335,7 @@
              <string>Template</string>
             </property>
             <property name="checkable">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <property name="spacing">
@@ -378,7 +378,7 @@
           <bool>false</bool>
          </property>
          <property name="checkable">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <property name="spacing">
@@ -565,11 +565,18 @@ color: rgb(255, 26, 26);</string>
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="title">
+          <string>RViz Display Options</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QWidget" name="rviz_options" native="true">
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>300</height>
+           <height>600</height>
           </size>
          </property>
         </widget>

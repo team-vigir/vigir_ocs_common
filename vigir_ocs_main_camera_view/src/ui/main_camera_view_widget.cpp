@@ -148,7 +148,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     position_widget_->setGeometry(0,39,46,22);
 
     rviz::DisplaysPanel* displays_panel = new rviz::DisplaysPanel(this);
-    displays_panel->initialize( ((vigir_ocs::CameraViewWidget*)views_list["Top Left"])->getCameraView()->getVisualizationManager());
+    displays_panel->initialize( ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getVisualizationManager());
 
     QVBoxLayout* displays_layout = new QVBoxLayout();
     displays_layout->setMargin(0);
