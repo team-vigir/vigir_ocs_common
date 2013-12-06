@@ -587,10 +587,10 @@ void graspWidget::sendManualMsg(uint8_t level, int8_t thumb,int8_t left,int8_t r
     cmd.grasp_state.data += (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
     grasp_mode_command_pub_.publish(cmd);
     std::cout << "Sent Manual mode message ("<< uint32_t(cmd.grasp_state.data) << ") with " <<  uint32_t(cmd.grip.data) << " manual grip level and " <<
-                 int8_t(cmd.finger_effort[0].data) << "," <<
-                 int8_t(cmd.finger_effort[1].data) << "," <<
-                 int8_t(cmd.finger_effort[2].data) << "," <<
-                 int8_t(cmd.finger_effort[3].data) <<
+                 int(cmd.finger_effort[0].data) << "," <<
+                 int(cmd.finger_effort[1].data) << "," <<
+                 int(cmd.finger_effort[2].data) << "," <<
+                 int(cmd.finger_effort[3].data) <<
                  " finger efforts to " << hand_ << " hand" << std::endl;
 }
 
