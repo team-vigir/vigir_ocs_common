@@ -32,6 +32,7 @@ public Q_SLOTS:
     void hideJoystick();
     void requestMap();
     void requestOctomap();
+    void requestPointCloud();
     
 private:
     Ui::MapViewWidget *ui;
