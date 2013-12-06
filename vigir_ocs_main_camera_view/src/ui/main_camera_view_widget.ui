@@ -195,9 +195,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-331</y>
+        <y>-637</y>
         <width>268</width>
-        <height>989</height>
+        <height>1295</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -876,6 +876,16 @@ color: rgb(255, 26, 26);</string>
            </widget>
           </item>
          </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="rviz_options" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>300</height>
+          </size>
+         </property>
         </widget>
        </item>
        <item>

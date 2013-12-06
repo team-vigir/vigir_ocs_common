@@ -42,9 +42,6 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     views_list["Bottom Left"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"])); //views_list["Bottom Left"] = new vigir_ocs::OrthoView();
     views_list["Bottom Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"])); //views_list["Bottom Right"] = new vigir_ocs::OrthoView();
 
-
-
-
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
     aux_layout->addWidget(views_list["Top Left"]);
@@ -158,8 +155,10 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     rviz::DisplaysPanel* displays_panel = new rviz::DisplaysPanel(this);
     displays_panel->initialize( ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
 
-    ui->horizontalLayout_2->addWidget(displays_panel);
-
+    QVBoxLayout* displays_layout = new QVBoxLayout();
+    displays_layout->setMargin(0);
+    displays_layout->addWidget(displays_panel);
+    ui->rviz_options->setLayout(displays_layout);
 }
 
 MainViewWidget::~MainViewWidget()
