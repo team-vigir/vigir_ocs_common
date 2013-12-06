@@ -291,23 +291,23 @@ void Selection3DDisplayCustom::preRenderTargetUpdate( const Ogre::RenderTargetEv
         //}
 
         //Ogre::Vector3 camera_position2 = this->context_->getSceneManager()->getCamera();
-        //std::cout << "2 " << camera_position2.x << "," << camera_position2.y << "," << camera_position2.z << std::endl;
+       // std::cout << "Camera: " << camera_position.x << "," << camera_position.y << "," << camera_position.z << std::endl;
 
         if(this->render_panel_list_[view_id]->getCamera()->getProjectionType() == Ogre::PT_ORTHOGRAPHIC) // if it's ortho, we need to calculate z again
         {
             Ogre::Matrix4 m = this->render_panel_list_[view_id]->getCamera()->getProjectionMatrix();
-            //float near   =  (1+m[2][3])/m[2][2];
-            //float far    = -(1-m[2][3])/m[2][2];
+            float near   =  (1+m[2][3])/m[2][2];
+            float far    = -(1-m[2][3])/m[2][2];
             float bottom =  (1-m[1][3])/m[1][1];
             float top    = -(1+m[1][3])/m[1][1];
-            //float left   = -(1+m[0][3])/m[0][0];
-            //float right  =  (1-m[0][3])/m[0][0];
+            float left   = -(1+m[0][3])/m[0][0];
+            float right  =  (1-m[0][3])/m[0][0];
             //std::cout << "ortho:\n\t" << left << "\n\t" << right << "\n\t" << bottom << "\n\t" << top << "\n\t" << near << "\n\t" << far << std::endl;
             if(this->render_panel_list_[view_id]->getCamera()->getPosition().z == 500)
                 camera_position.z = fabs(bottom)+fabs(top);
             else if(this->render_panel_list_[view_id]->getCamera()->getPosition().y == -500)
-                camera_position.y = -(fabs(bottom)+fabs(top));
-            if(this->render_panel_list_[view_id]->getCamera()->getPosition().x == 500)
+                camera_position.y = fabs(bottom)+fabs(top);
+            else if(this->render_panel_list_[view_id]->getCamera()->getPosition().x == 500)
                 camera_position.x = fabs(bottom)+fabs(top);
         }
 
