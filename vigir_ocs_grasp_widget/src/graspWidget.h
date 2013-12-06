@@ -17,6 +17,8 @@
 
 #include "tf/transform_listener.h"
 
+#include "handOffsetWidget.h"
+
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 
@@ -71,7 +73,7 @@ public Q_SLOTS:
     void on_verticalSlider_3_sliderReleased();
     void on_verticalSlider_2_sliderReleased();
     void on_verticalSlider_4_sliderReleased();
-
+    void on_pushButton_clicked();
 
 private:
     void setProgressLevel(uint8_t level);
@@ -82,6 +84,7 @@ private:
     void initGraspDB();
 
     Ui::graspWidget *ui;
+    handOffsetWidget *ui2;
 
     void graspStateReceived (const flor_grasp_msgs::GraspState::ConstPtr& graspState);
     void graspSelectedReceived (const flor_grasp_msgs::GraspSelection::ConstPtr& graspMsg);
@@ -152,10 +155,12 @@ private:
     // show robot status messages
     ros::Subscriber robot_status_sub_;
     ros::Subscriber template_stitch_pose_sub_;
+    ros::Subscriber hand_offset_sub_;
     RobotStatusCodes robot_status_codes_;
 
     void robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
     void templateStitchPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    void handOffsetCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
 
     // publisher to color fingers/hand
     ros::Publisher hand_link_color_pub_;
@@ -172,6 +177,7 @@ private:
     tf::TransformListener tf_;
 
     tf::Transform stitch_template_pose_;
+    tf::Transform hand_offset_pose_;
     tf::Transform hand_T_palm_;   //describes palm in hand frame
     tf::Transform gp_T_palm_;     //describes palm in grasp pose frame
 

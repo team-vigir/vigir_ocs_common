@@ -23,7 +23,6 @@ graspWidget::graspWidget(QWidget *parent)
     ui->stitch_template->setDisabled(true);
     //ui->templateButton->setDisabled(true);
     //ui->releaseButton->setDisabled(true);
-
     // initialize arguments from parameter server
     ros::NodeHandle nhp("~");
     nhp.param<std::string>("hand",hand_,"left"); // private parameter
@@ -46,6 +45,8 @@ graspWidget::graspWidget(QWidget *parent)
     }
 
     this->stitch_template_pose_.setIdentity();
+
+    this->hand_offset_pose_.setIdentity();
 
     // initialize variables
     currentGraspMode = 0;
@@ -102,6 +103,8 @@ graspWidget::graspWidget(QWidget *parent)
         color_b = 0.0f;
 
         planning_hand_target_pub_   = nh_.advertise<geometry_msgs::PoseStamped>( "/grasp_control/l_hand/planning_target_pose", 1, false );
+
+        hand_offset_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/template/l_hand_template_offset",1, &graspWidget::handOffsetCallback,  this );
     }
     else
     {
@@ -135,6 +138,8 @@ graspWidget::graspWidget(QWidget *parent)
         color_b = 1.0f;
 
         planning_hand_target_pub_   = nh_.advertise<geometry_msgs::PoseStamped>( "/grasp_control/r_hand/planning_target_pose", 1, false );
+
+        hand_offset_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/template/r_hand_template_offset",1, &graspWidget::handOffsetCallback,  this );
     }
     // this is for publishing the hand position in world coordinates for moveit
     virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_x");
@@ -173,8 +178,10 @@ graspWidget::graspWidget(QWidget *parent)
 }
 //SetStylesheet to change on the fly
 
+
 graspWidget::~graspWidget()
 {
+    ui2->close();
     delete ui;
 }
 
@@ -290,7 +297,6 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
     if(list->template_list.size() > 0)
     {
         ui->templateBox->setDisabled(false);
-        ui->stitch_template->setDisabled(false);
         ui->graspBox->setDisabled(false);
         ui->performButton->setDisabled(false);
     }
@@ -355,7 +361,6 @@ void graspWidget::initTemplateMode()
     if(last_template_list_.template_id_list.size() > 0)
     {
         ui->templateBox->setDisabled(false);
-        ui->stitch_template->setDisabled(false);
         ui->graspBox->setDisabled(false);
     }
 }
@@ -649,6 +654,7 @@ void graspWidget::on_releaseButton_clicked()
     grasp_release_pub_.publish(grasp_msg);
     //ui->templateButton->setDisabled(true); // unable to move
     //ui->releaseButton->setDisabled(true);
+    ui->stitch_template->setDisabled(true);
 }
 
 void graspWidget::on_templateButton_clicked()
@@ -689,6 +695,7 @@ void graspWidget::on_performButton_clicked()
     msg.grasp_id.data = graspID;
     if(ui->templateBox->count() > 0)
     {
+        ui->stitch_template->setDisabled(false);
         on_templateButton_clicked();
         msg.template_id.data = ui->templateBox->currentIndex();
         for(int index = 0; index < grasp_db_.size(); index++)
@@ -878,8 +885,12 @@ void graspWidget::templateStitchPoseCallback(const geometry_msgs::PoseStamped::C
     {
         this->stitch_template_pose_.setIdentity();
     }
+}
 
-
+void graspWidget::handOffsetCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
+{
+    this->hand_offset_pose_.setRotation(tf::Quaternion(msg->pose.orientation.x,msg->pose.orientation.y,msg->pose.orientation.z,msg->pose.orientation.w));
+    this->hand_offset_pose_.setOrigin(tf::Vector3(msg->pose.position.x,msg->pose.position.y,msg->pose.position.z) );
 }
 
 void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_states )
@@ -1099,7 +1110,7 @@ int graspWidget::calcWristTarget(const geometry_msgs::Pose& palm_pose, const geo
     tp_pose.setRotation(tf::Quaternion(template_pose.pose.orientation.x,template_pose.pose.orientation.y,template_pose.pose.orientation.z,template_pose.pose.orientation.w));
     tp_pose.setOrigin(tf::Vector3(template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z) );
 
-    target_pose = tp_pose * wt_pose * hand_T_palm_.inverse() * this->stitch_template_pose_ * hand_T_palm_;  //I assume this works
+    target_pose = tp_pose * wt_pose * this->hand_offset_pose_ * hand_T_palm_.inverse() * this->stitch_template_pose_ * hand_T_palm_;
 
     tf::Quaternion tg_quat;
     tf::Vector3    tg_vector;
@@ -1267,4 +1278,11 @@ void graspWidget::on_verticalSlider_3_sliderReleased()
 void graspWidget::on_verticalSlider_4_sliderReleased()
 {
     this->on_userSlider_sliderReleased();
+}
+
+void graspWidget::on_pushButton_clicked()
+{
+    ui2 = new handOffsetWidget;
+
+    ui2->show();
 }
