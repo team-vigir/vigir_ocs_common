@@ -152,7 +152,7 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         // Create a MarkerArray display.
         octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", false );
         ROS_ASSERT( octomap_ != NULL );
-        octomap_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
+        octomap_->subProp( "Marker Topic" )->setValue( "/flor/ocs/worldmodel/octomap_result" );
 
         // Create a point cloud display.
         stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );

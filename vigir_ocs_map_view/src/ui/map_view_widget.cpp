@@ -62,6 +62,11 @@ void MapViewWidget::requestOctomap()
     ui->map_view_->requestOctomap(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->oct_res->value());
 }
 
+void MapViewWidget::requestPointCloud()
+{
+    ui->map_view_->requestPointCloud(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->oct_res->value());
+}
+
 bool MapViewWidget::eventFilter( QObject * o, QEvent * e )
 {
     if ( e->type() == QEvent::Wheel &&
