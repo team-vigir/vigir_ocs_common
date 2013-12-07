@@ -10,6 +10,8 @@
 
 #include <ros/ros.h>
 
+#include <flor_ocs_msgs/OCSKeyEvent.h>
+
 namespace Ui
 {
     class MainCameraViewWidget;
@@ -24,6 +26,8 @@ public:
     ~MainCameraViewWidget();
 
     virtual bool eventFilter( QObject * o, QEvent * e );
+
+    virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
 public Q_SLOTS:
     void oneViewToggle();
@@ -42,6 +46,12 @@ private:
     QPushButton* one_view_button_;
 
     QString icon_path_;
+
+    std::vector<int> keys_pressed_list_;
+
+    ros::NodeHandle nh_;
+
+    ros::Subscriber key_event_sub_;
 
 };
 

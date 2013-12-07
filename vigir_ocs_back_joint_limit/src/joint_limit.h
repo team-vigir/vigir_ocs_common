@@ -52,6 +52,9 @@ public Q_SLOTS:
     void on_ubxMin_sliderReleased();
     void on_ubxMax_sliderReleased();
     void on_Presets_comboBox_currentIndexChanged(int index);
+    void on_lock_yaw__toggled(bool checked);
+    void on_lock_pitch__toggled(bool checked);
+    void on_lock_roll__toggled(bool checked);
 protected:
     void timerEvent(QTimerEvent *event);
 };

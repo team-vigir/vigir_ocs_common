@@ -81,6 +81,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
     // if there's
     if(copy_from != NULL)
     {
+        is_primary_view_ = false;
+
         manager_ = copy_from->getVisualizationManager();
         render_panel_->initialize( manager_->getSceneManager(), manager_ );
         view_id_ = manager_->addRenderPanel( render_panel_ );
@@ -90,6 +92,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
     }
     else
     {
+        is_primary_view_ = true;
+
         // Next we initialize the main RViz classes.
         //
         // The VisualizationManager is the container for Display objects,
@@ -447,6 +451,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
 
         // set frustum
         QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
+
+        key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
     }
 
     // Connect the 3D selection tool to
@@ -1647,6 +1653,27 @@ bool Base3DView::eventFilter( QObject * o, QEvent * e )
         Q_EMIT setRenderPanel(this->render_panel_);
     }
     return QWidget::eventFilter( o, e );
+}
+
+void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+{
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+
+    // process hotkeys
+    std::vector<int>::iterator ctrl_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    std::vector<int>::iterator shift_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50);
+    std::vector<int>::iterator alt_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64);
+
+    if(key_event->key == 24 && key_event->state) // 'q'
+        robotModelToggled(!robot_model_->isEnabled());
+    else if(key_event->key == 25 && key_event->state) // 'w'
+        simulationRobotToggled(!ghost_robot_model_->isEnabled());
+    else if(key_event->key == 11 && key_event->state)
+        clearPointCloudRequests();
 }
 
 }

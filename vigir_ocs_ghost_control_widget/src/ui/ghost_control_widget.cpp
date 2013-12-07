@@ -411,10 +411,11 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
         keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
 
     // process hotkeys
-    std::vector<int>::iterator key_is_pressed;
+    std::vector<int>::iterator ctrl_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    std::vector<int>::iterator shift_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50);
+    std::vector<int>::iterator alt_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64);
 
-    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    if(key_event->key == 12 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+3
+    /*if(key_event->key == 12 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+3
     {
         if(this->isVisible())
         {
@@ -425,7 +426,14 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
             this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
             this->show();
         }
-    }
+    }*/
+
+    if(key_event->key == 26 && key_event->state)
+        on_send_left_configuration_button__clicked();
+    else if(key_event->key == 27 && key_event->state)
+        on_send_right_configuration_button__clicked();
+    else if(key_event->key == 41 && key_event->state)
+        on_send_upper_body_button__clicked();
 }
 
 void GhostControlWidget::on_left_moveit_marker_lock_clicked()

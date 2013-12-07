@@ -92,14 +92,16 @@ void GlobalHotkey::onUpdate()
 			{
 				if ((num & 0x01) == 1) 
 				{
-					//printf("%d ",i*8+pos);
+                    //printf("%d ",i*8+pos);
 					new_keys[i*8+pos] = true;
 				}
 				pos++; num /= 2;
 			}
 		}
 	}
-	//printf("\n");
+    //printf("\n");
+
+    // RUN 'xev' TO GET KEYCODES
 
     int x,y;
     calculateCursorPosition(x,y);

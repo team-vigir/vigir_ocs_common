@@ -48,6 +48,7 @@
 #include <flor_ocs_msgs/OCSGhostControl.h>
 #include <flor_ocs_msgs/OCSInteractiveMarkerAdd.h>
 #include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
+#include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_perception_msgs/RaycastRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
 #include <flor_control_msgs/FlorControlMode.h>
@@ -104,6 +105,8 @@ public:
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
 
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
+
+    virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event);
 
     // functions needed for shared contexts
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }
@@ -340,6 +343,12 @@ protected:
     ros::Publisher template_remove_pub_;
 
     int flor_atlas_current_mode_;
+
+    std::vector<int> keys_pressed_list_;
+
+    ros::Subscriber key_event_sub_;
+
+    bool is_primary_view_;
 };
 }
 #endif // BASE_3D_VIEW_H

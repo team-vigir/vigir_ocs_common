@@ -228,3 +228,21 @@ void joint_limit::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr 
         }
     }
 }
+
+void joint_limit::on_lock_yaw__toggled(bool checked)
+{
+    ui->lbzMin->setEnabled(!checked);
+    ui->lbzMax->setEnabled(!checked);
+}
+
+void joint_limit::on_lock_pitch__toggled(bool checked)
+{
+    ui->mbyMin->setEnabled(!checked);
+    ui->mbyMax->setEnabled(!checked);
+}
+
+void joint_limit::on_lock_roll__toggled(bool checked)
+{
+    ui->ubxMin->setEnabled(!checked);
+    ui->ubxMax->setEnabled(!checked);
+}

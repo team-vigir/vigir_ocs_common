@@ -160,6 +160,8 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     views_initialized_ = 0;
 
     fourViewToggle();
+
+    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()
@@ -256,4 +258,20 @@ void MainCameraViewWidget::cameraInitialized()
         oneViewToggle();
 }
 
+void MainCameraViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+{
+    // store key state
+    if(key_event->state)
+        keys_pressed_list_.push_back(key_event->key);
+    else
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
 
+    // process hotkeys
+    if(key_event->key == 12 && key_event->state) // '3' - get single image in the main view
+        ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->requestSingleFeedImage();
+    else if(key_event->key == 13 && key_event->state) // '4' - set main view to 5 fps
+    {
+        ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderChanged(5);
+        ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderReleased();
+    }
+}
