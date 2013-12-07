@@ -785,6 +785,17 @@ void graspWidget::on_graspBox_activated(const QString &arg1)
     }
 }
 
+void graspWidget::on_noneRadio_clicked()
+{
+    ui->performButton->setDisabled(true);
+
+    flor_grasp_msgs::GraspState msg;
+    msg.grasp_state.data  = (flor_grasp_msgs::GraspState::GRASP_MODE_NONE)<<4;
+    msg.grip.data         = 0;
+
+    grasp_mode_command_pub_.publish(msg);
+}
+
 void graspWidget::on_templateRadio_clicked()
 {
     for (uint32_t ndx=0; ndx < ui->graspBox->count(); ++ndx)
@@ -806,6 +817,10 @@ void graspWidget::on_templateRadio_clicked()
     {
         ui->graspBox->setDisabled(true); // nothing to select
         ui->performButton->setDisabled(true);
+    }
+    else
+    {
+        ui->performButton->setDisabled(false);
     }
     flor_grasp_msgs::GraspState msg;
     msg.grasp_state.data  = (flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4;

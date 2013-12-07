@@ -6,6 +6,7 @@
 robotStatus::robotStatus(QWidget *parent) :
     QWidget(parent)
 {
+    this->setWindowTitle("Log_Messages");
     maxRows = 100;
 
     bold.setBold(true);
