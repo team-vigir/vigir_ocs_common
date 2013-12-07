@@ -23,7 +23,6 @@ graspWidget::graspWidget(QWidget *parent)
     ui->stitch_template->setDisabled(true);
     //ui->templateButton->setDisabled(true);
     //ui->releaseButton->setDisabled(true);
-
     // initialize arguments from parameter server
     ros::NodeHandle nhp("~");
     nhp.param<std::string>("hand",hand_,"left"); // private parameter
@@ -35,12 +34,19 @@ graspWidget::graspWidget(QWidget *parent)
     std::cout << "--------------<" << templatePath << ">\n" << std::endl;
     template_dir_path_ = QString(templatePath.c_str());
     template_id_db_path_ = template_dir_path_+QString("grasp_templates.txt");
-    if(hand_type_ == "irobot")
+    if(hand_type_ == "irobot"){
         grasp_db_path_ = template_dir_path_+QString("grasp_library_irobot.grasp");
-    else
+    }
+    else{
         grasp_db_path_ = template_dir_path_+QString("grasp_library.grasp");
+        ui->label_9->setText("Index");
+        ui->label_10->setText("Middle");
+        ui->label_11->setText("Pinky");
+    }
 
     this->stitch_template_pose_.setIdentity();
+
+    this->hand_offset_pose_.setIdentity();
 
     // initialize variables
     currentGraspMode = 0;
@@ -98,6 +104,8 @@ graspWidget::graspWidget(QWidget *parent)
         color_b = 0.0f;
 
         planning_hand_target_pub_   = nh_.advertise<geometry_msgs::PoseStamped>( "/grasp_control/l_hand/planning_target_pose", 1, false );
+
+        hand_offset_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/template/l_hand_template_offset",1, &graspWidget::handOffsetCallback,  this );
     }
     else
     {
@@ -132,6 +140,8 @@ graspWidget::graspWidget(QWidget *parent)
         color_b = 1.0f;
 
         planning_hand_target_pub_   = nh_.advertise<geometry_msgs::PoseStamped>( "/grasp_control/r_hand/planning_target_pose", 1, false );
+
+        hand_offset_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/template/r_hand_template_offset",1, &graspWidget::handOffsetCallback,  this );
     }
     // this is for publishing the hand position in world coordinates for moveit
     virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_x");
@@ -170,8 +180,10 @@ graspWidget::graspWidget(QWidget *parent)
 }
 //SetStylesheet to change on the fly
 
+
 graspWidget::~graspWidget()
 {
+    ui2->close();
     delete ui;
 }
 
@@ -211,10 +223,12 @@ void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPt
     uint8_t mode  = (graspState->grasp_state.data&0xF0) >> 4;
     uint8_t state = graspState->grasp_state.data&0x0F;
     setProgressLevel(graspState->grip.data);
-    ui->thumbGraf->setValue(graspState->thumb_effort.data);
 
     ui->userSlider->setValue(graspState->grip.data);
-    ui->userSlider_2->setValue(graspState->thumb_effort.data);
+    ui->verticalSlider->setValue(graspState->finger_effort[0].data);
+    ui->verticalSlider_2->setValue(graspState->finger_effort[1].data);
+    ui->verticalSlider_3->setValue(graspState->finger_effort[2].data);
+    ui->verticalSlider_4->setValue(graspState->finger_effort[3].data);
     //std::cout << "     mode=" << uint32_t(mode) << "   state="<< uint32_t(state) << std::endl;
     switch(mode)
     {
@@ -285,7 +299,6 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
     if(list->template_list.size() > 0)
     {
         ui->templateBox->setDisabled(false);
-        ui->stitch_template->setDisabled(false);
         ui->graspBox->setDisabled(false);
         ui->performButton->setDisabled(false);
     }
@@ -350,7 +363,6 @@ void graspWidget::initTemplateMode()
     if(last_template_list_.template_id_list.size() > 0)
     {
         ui->templateBox->setDisabled(false);
-        ui->stitch_template->setDisabled(false);
         ui->graspBox->setDisabled(false);
     }
 }
@@ -566,18 +578,27 @@ void graspWidget::initGraspDB()
 }
 
 
-void graspWidget::sendManualMsg(uint8_t level, uint8_t thumb)
+void graspWidget::sendManualMsg(uint8_t level, int8_t thumb,int8_t left,int8_t right ,int8_t spread)
 {
     flor_grasp_msgs::GraspState cmd;
     cmd.grip.data         = level;
-    cmd.thumb_effort.data = thumb;
+    cmd.finger_effort.resize(FINGER_EFFORTS);
+    cmd.finger_effort[0].data = thumb;
+    cmd.finger_effort[1].data = left;   //index for sandia
+    cmd.finger_effort[2].data = right;  //middle for sandia
+    cmd.finger_effort[3].data = spread; //Spread iRobot, Pinky for sandia
     cmd.grasp_state.data = 4; // leave as current command
     if (ui->graspBox->currentText() == QString("CYLINDRICAL"))  cmd.grasp_state.data = 0;
     if (ui->graspBox->currentText() == QString("PRISMATIC"))    cmd.grasp_state.data = 1;
     if (ui->graspBox->currentText() == QString("SPHERICAL"))    cmd.grasp_state.data = 2;
     cmd.grasp_state.data += (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
     grasp_mode_command_pub_.publish(cmd);
-    std::cout << "Sent Manual mode message ("<< uint32_t(cmd.grasp_state.data) << ") with " <<  uint32_t(cmd.grip.data) << " manual grip level and " << uint32_t(cmd.thumb_effort.data) <<  " thumb effort to " << hand_ << " hand" << std::endl;
+    std::cout << "Sent Manual mode message ("<< uint32_t(cmd.grasp_state.data) << ") with " <<  uint32_t(cmd.grip.data) << " manual grip level and " <<
+                 int(cmd.finger_effort[0].data) << "," <<
+                 int(cmd.finger_effort[1].data) << "," <<
+                 int(cmd.finger_effort[2].data) << "," <<
+                 int(cmd.finger_effort[3].data) <<
+                 " finger efforts to " << hand_ << " hand" << std::endl;
 }
 
 void graspWidget::on_userSlider_sliderReleased()
@@ -585,28 +606,28 @@ void graspWidget::on_userSlider_sliderReleased()
     if(ui->manualRadio->isChecked())
     {
         setProgressLevel(ui->userSlider->value());
-        sendManualMsg(ui->userSlider->value(), ui->userSlider_2->value());
+        sendManualMsg(ui->userSlider->value(), ui->verticalSlider->value(), ui->verticalSlider_2->value(), ui->verticalSlider_3->value(), ui->verticalSlider_4->value());
     }
     else if (ui->templateRadio->isChecked())
     {
+        flor_grasp_msgs::GraspState msg;
+        msg.finger_effort.resize(FINGER_EFFORTS);
+        msg.finger_effort[0].data= ui->verticalSlider->value();
+        msg.finger_effort[1].data= ui->verticalSlider_2->value();
+        msg.finger_effort[2].data= ui->verticalSlider_3->value();
+        msg.finger_effort[3].data= ui->verticalSlider_4->value();
+        msg.grasp_state.data = ((flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4) + 4;
         if(ui->userSlider->value() > 100)
         {
-            flor_grasp_msgs::GraspState msg;
-            msg.grasp_state.data = ((flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4) + 4;
             msg.grip.data        = ui->userSlider->value();
-            msg.thumb_effort.data= ui->userSlider_2->value();
-            grasp_mode_command_pub_.publish(msg);
             std::cout << "Adjust feedforward to " << int32_t(ui->userSlider->value()) << " with state=" << uint32_t(msg.grasp_state.data) << std::endl;
         }
         else
         {
             std::cout << "Only relevant in template mode if the feedforward is set!  New position is " << ui->userSlider->value() << std::endl;
-            flor_grasp_msgs::GraspState msg;
-            msg.grasp_state.data = ((flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4) + 4;
             msg.grip.data        = 100; // can't undo grasp closure in template mode, but need to send message to clear feedforward
-            msg.thumb_effort.data= ui->userSlider_2->value();
-            grasp_mode_command_pub_.publish(msg);
         }
+        grasp_mode_command_pub_.publish(msg);
     }
     else
     {
@@ -614,45 +635,14 @@ void graspWidget::on_userSlider_sliderReleased()
     }
 }
 
-void graspWidget::on_userSlider_2_sliderReleased()
-{
-    if(ui->manualRadio->isChecked())
-    {
-        ui->thumbGraf->setValue(ui->userSlider_2->value());
-        sendManualMsg(ui->userSlider->value(), ui->userSlider_2->value());
-    }
-    else if (ui->templateRadio->isChecked())
-    {
-        if(ui->userSlider->value() > 100)
-        {
-            flor_grasp_msgs::GraspState msg;
-            msg.grasp_state.data  = ((flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4) + 4;
-            msg.grip.data         = ui->userSlider->value();
-            msg.thumb_effort.data = ui->userSlider_2->value();
-            grasp_mode_command_pub_.publish(msg);
-            std::cout << "Adjust thumb feedforward to " << int32_t(ui->userSlider_2->value()) << " with state=" << uint32_t(msg.grasp_state.data) << std::endl;
-        }
-        else
-        {
-            std::cout << "Only relevant in template mode if the thumb feedforward is set!  New position is " << ui->userSlider_2->value() << std::endl;
-            flor_grasp_msgs::GraspState msg;
-            msg.grasp_state.data  = ((flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4) + 4;
-            msg.grip.data         = 100; // can't undo grasp closure in template mode, but need to send message to clear feedforward
-            msg.thumb_effort.data = ui->userSlider_2->value();
-            grasp_mode_command_pub_.publish(msg);
-        }
-    }
-    else
-    {
-        std::cout << "slider changed while not in any control mode. New position is " << ui->userSlider_2->value() << std::endl;
-    }
-}
-
 void graspWidget::on_releaseButton_clicked()
 {
     std::cout << "Release the grasp requested" << std::endl;
     ui->userSlider->setValue(0);
-    ui->userSlider_2->setValue(0);
+    ui->verticalSlider->setValue(0);
+    ui->verticalSlider_2->setValue(0);
+    ui->verticalSlider_3->setValue(0);
+    ui->verticalSlider_4->setValue(0);
     //flor_grasp_msgs::GraspState msg;
     //msg.grasp_state.data = 0;
     //msg.grip.data = 0;
@@ -666,13 +656,20 @@ void graspWidget::on_releaseButton_clicked()
     grasp_release_pub_.publish(grasp_msg);
     //ui->templateButton->setDisabled(true); // unable to move
     //ui->releaseButton->setDisabled(true);
+    ui->stitch_template->setDisabled(true);
 }
 
 void graspWidget::on_templateButton_clicked()
 {
+    if(ui->templateBox->count() < 1)
+    {
+        ROS_ERROR("Tried to template match when no templates exsist");
+        return;
+    }
     hideHand();
     std::cout << "template match requested..." << std::endl;
     flor_grasp_msgs::TemplateSelection msg;
+
     int graspID = ui->graspBox->currentText().toInt();
     for(int index = 0; index < grasp_db_.size(); index++)
     {
@@ -693,17 +690,26 @@ void graspWidget::on_templateButton_clicked()
 
 void graspWidget::on_performButton_clicked()
 {
-    on_templateButton_clicked();
     std::cout << "Performing grasp" << std::endl;
     flor_grasp_msgs::GraspSelection msg;
     msg.header.frame_id = "/world";
     int graspID = ui->graspBox->currentText().toInt();
     msg.grasp_id.data = graspID;
-    msg.template_id.data = ui->templateBox->currentIndex();
-    for(int index = 0; index < grasp_db_.size(); index++)
+    if(ui->templateBox->count() > 0)
     {
-        if(grasp_db_[index].grasp_id == graspID)
-            msg.template_type.data = grasp_db_[index].template_type;
+        ui->stitch_template->setDisabled(false);
+        on_templateButton_clicked();
+        msg.template_id.data = ui->templateBox->currentIndex();
+        for(int index = 0; index < grasp_db_.size(); index++)
+        {
+            if(grasp_db_[index].grasp_id == graspID)
+                msg.template_type.data = grasp_db_[index].template_type;
+        }
+    }
+    else
+    {
+        msg.template_id.data = 0;
+        msg.template_type.data = 0;
     }
     grasp_selection_pub_.publish(msg);
     //ui->templateButton->setEnabled(true); // able to move
@@ -759,9 +765,18 @@ void graspWidget::on_graspBox_activated(const QString &arg1)
         if (arg1 == QString("SPHERICAL"))    msg.grasp_state.data = 2;
         msg.grasp_state.data += (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
         msg.grip.data         = ui->userSlider->value();
-        msg.thumb_effort.data = ui->userSlider_2->value();
+        msg.finger_effort.resize(FINGER_EFFORTS);
+        msg.finger_effort[0].data = ui->verticalSlider->value();
+        msg.finger_effort[1].data = ui->verticalSlider_2->value();
+        msg.finger_effort[2].data = ui->verticalSlider_3->value();
+        msg.finger_effort[3].data = ui->verticalSlider_4->value();
         grasp_mode_command_pub_.publish(msg);
-        std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " << uint32_t(msg.thumb_effort.data) <<  " thumb effort to " << hand_ << " hand" << std::endl;
+        std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " <<
+                     int8_t(msg.finger_effort[0].data) << "," <<
+                     int8_t(msg.finger_effort[1].data) << "," <<
+                     int8_t(msg.finger_effort[2].data) << "," <<
+                     int8_t(msg.finger_effort[3].data) <<
+                     " finger efforts effort to " << hand_ << " hand" << std::endl;
     }
     else
     {
@@ -797,9 +812,18 @@ void graspWidget::on_templateRadio_clicked()
     //msg.grip.data         = 0;
     //msg.thumb_effort.data = 0;
     msg.grip.data         = ui->userSlider->value();
-    msg.thumb_effort.data = ui->userSlider_2->value();
+    msg.finger_effort.resize(FINGER_EFFORTS);
+    msg.finger_effort[0].data = ui->verticalSlider->value();
+    msg.finger_effort[1].data = ui->verticalSlider_2->value();
+    msg.finger_effort[2].data = ui->verticalSlider_3->value();
+    msg.finger_effort[3].data = ui->verticalSlider_4->value();
     grasp_mode_command_pub_.publish(msg);
-    std::cout << "Sent Template mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " << uint32_t(msg.thumb_effort.data) <<  " thumb effort to " << hand_ << " hand" << std::endl;
+    std::cout << "Sent Template mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " <<
+                 int8_t(msg.finger_effort[0].data) << "," <<
+                 int8_t(msg.finger_effort[1].data) << "," <<
+                 int8_t(msg.finger_effort[2].data) << "," <<
+                 int8_t(msg.finger_effort[3].data) <<
+                 " finger efforts effort to " << hand_ << " hand" << std::endl;
 
 }
 
@@ -829,9 +853,18 @@ void graspWidget::on_manualRadio_clicked()
     msg.grasp_state.data  = (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
     msg.grasp_state.data += 4; // no grasp type chosen (force selection) (default to keeping old terminal values)
     msg.grip.data         = ui->userSlider->value();
-    msg.thumb_effort.data = ui->userSlider_2->value();
+    msg.finger_effort.resize(FINGER_EFFORTS);
+    msg.finger_effort[0].data = ui->verticalSlider->value();
+    msg.finger_effort[1].data = ui->verticalSlider_2->value();
+    msg.finger_effort[2].data = ui->verticalSlider_3->value();
+    msg.finger_effort[3].data = ui->verticalSlider_4->value();
     grasp_mode_command_pub_.publish(msg);
-    std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " << uint32_t(msg.thumb_effort.data) <<  " thumb effort to " << hand_ << " hand" << std::endl;
+    std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " <<
+                 int8_t(msg.finger_effort[0].data) << "," <<
+                 int8_t(msg.finger_effort[1].data) << "," <<
+                 int8_t(msg.finger_effort[2].data) << "," <<
+                 int8_t(msg.finger_effort[3].data) <<
+                 " finger efforts effort to " << hand_ << " hand" << std::endl;
 }
 
 void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
@@ -854,8 +887,12 @@ void graspWidget::templateStitchPoseCallback(const geometry_msgs::PoseStamped::C
     {
         this->stitch_template_pose_.setIdentity();
     }
+}
 
-
+void graspWidget::handOffsetCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
+{
+    this->hand_offset_pose_.setRotation(tf::Quaternion(msg->pose.orientation.x,msg->pose.orientation.y,msg->pose.orientation.z,msg->pose.orientation.w));
+    this->hand_offset_pose_.setOrigin(tf::Vector3(msg->pose.position.x,msg->pose.position.y,msg->pose.position.z) );
 }
 
 void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_states )
@@ -1074,7 +1111,7 @@ int graspWidget::calcWristTarget(const geometry_msgs::Pose& palm_pose, const geo
     tp_pose.setRotation(tf::Quaternion(template_pose.pose.orientation.x,template_pose.pose.orientation.y,template_pose.pose.orientation.z,template_pose.pose.orientation.w));
     tp_pose.setOrigin(tf::Vector3(template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z) );
 
-    target_pose = tp_pose * wt_pose * hand_T_palm_.inverse() * this->stitch_template_pose_ * hand_T_palm_;  //I assume this works
+    target_pose = tp_pose * wt_pose * this->hand_offset_pose_ * hand_T_palm_.inverse() * this->stitch_template_pose_ * hand_T_palm_;
 
     tf::Quaternion tg_quat;
     tf::Vector3    tg_vector;
@@ -1223,4 +1260,31 @@ void graspWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr 
             this->show();
         }
     }
+}
+
+void graspWidget::on_verticalSlider_sliderReleased()
+{
+    this->on_userSlider_sliderReleased();
+}
+
+void graspWidget::on_verticalSlider_2_sliderReleased()
+{
+    this->on_userSlider_sliderReleased();
+}
+
+void graspWidget::on_verticalSlider_3_sliderReleased()
+{
+    this->on_userSlider_sliderReleased();
+}
+
+void graspWidget::on_verticalSlider_4_sliderReleased()
+{
+    this->on_userSlider_sliderReleased();
+}
+
+void graspWidget::on_pushButton_clicked()
+{
+    ui2 = new handOffsetWidget;
+
+    ui2->show();
 }

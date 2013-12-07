@@ -17,6 +17,8 @@
 
 #include "tf/transform_listener.h"
 
+#include "handOffsetWidget.h"
+
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 
@@ -39,6 +41,8 @@
 #include <flor_grasp_msgs/GraspSelection.h>
 #include <flor_grasp_msgs/TemplateSelection.h>
 
+#define FINGER_EFFORTS 4
+
 namespace Ui {
 class graspWidget;
 }
@@ -55,7 +59,6 @@ public:
 
 public Q_SLOTS:
     void on_userSlider_sliderReleased();
-    void on_userSlider_2_sliderReleased();
     void on_templateBox_activated(const QString &arg1);
     void on_graspBox_activated(const QString &arg1);
     void on_performButton_clicked();
@@ -65,16 +68,22 @@ public Q_SLOTS:
     void on_templateRadio_clicked();
     void on_show_grasp_toggled(bool checked);
     void on_stitch_template_toggled(bool checked);
+    void on_verticalSlider_sliderReleased();
+    void on_verticalSlider_3_sliderReleased();
+    void on_verticalSlider_2_sliderReleased();
+    void on_verticalSlider_4_sliderReleased();
+    void on_pushButton_clicked();
 
 private:
     void setProgressLevel(uint8_t level);
-    void sendManualMsg(uint8_t level, uint8_t thumb);
+    void sendManualMsg(uint8_t level, int8_t thumb, int8_t left, int8_t right, int8_t spread);
     void initTemplateMode();
     void initTemplateIdMap();
     std::vector< std::vector<QString> > readTextDBFile(QString path);
     void initGraspDB();
 
     Ui::graspWidget *ui;
+    handOffsetWidget *ui2;
 
     void graspStateReceived (const flor_grasp_msgs::GraspState::ConstPtr& graspState);
     void graspSelectedReceived (const flor_grasp_msgs::GraspSelection::ConstPtr& graspMsg);
@@ -145,10 +154,12 @@ private:
     // show robot status messages
     ros::Subscriber robot_status_sub_;
     ros::Subscriber template_stitch_pose_sub_;
+    ros::Subscriber hand_offset_sub_;
     RobotStatusCodes robot_status_codes_;
 
     void robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
     void templateStitchPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    void handOffsetCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
 
     // publisher to color fingers/hand
     ros::Publisher hand_link_color_pub_;
@@ -165,6 +176,7 @@ private:
     tf::TransformListener tf_;
 
     tf::Transform stitch_template_pose_;
+    tf::Transform hand_offset_pose_;
     tf::Transform hand_T_palm_;   //describes palm in hand frame
     tf::Transform gp_T_palm_;     //describes palm in grasp pose frame
 
