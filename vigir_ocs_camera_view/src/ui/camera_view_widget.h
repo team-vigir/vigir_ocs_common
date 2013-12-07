@@ -29,7 +29,7 @@ class CameraViewWidget : public QWidget
     Q_OBJECT
     
 public:
-    explicit CameraViewWidget(QWidget *parent = 0, rviz::VisualizationManager* context = 0);
+    explicit CameraViewWidget(QWidget *parent = 0, vigir_ocs::Base3DView* copy_from = 0);
     ~CameraViewWidget();
 
     virtual bool eventFilter( QObject * o, QEvent * e );

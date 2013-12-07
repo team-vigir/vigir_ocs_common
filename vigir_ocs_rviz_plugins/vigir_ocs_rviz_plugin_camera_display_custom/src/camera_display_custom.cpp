@@ -161,7 +161,7 @@ CameraDisplayCustom::~CameraDisplayCustom()
         delete screen_rect_selection_;
         delete fg_screen_rect_selection_;
 
-        bg_scene_node_->getParentSceneNode()->removeAndDestroyChild(bg_scene_node_->getName() );
+        bg_scene_node_->getParentSceneNode()->removeAndDestroyChild( bg_scene_node_->getName() );
         fg_scene_node_->getParentSceneNode()->removeAndDestroyChild( fg_scene_node_->getName() );
 
         delete caminfo_tf_filter_;

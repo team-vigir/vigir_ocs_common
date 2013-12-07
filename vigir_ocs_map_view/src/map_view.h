@@ -34,6 +34,7 @@ public:
 
     void requestMap(double min_z, double max_z, double resolution);
     void requestOctomap(double min_z, double max_z, double resolution);
+    void requestPointCloud(double min_z, double max_z, double resolution);
 
 Q_SIGNALS:
     void queryPosition( int, int, Ogre::Vector3& );
@@ -51,6 +52,7 @@ private:
     ros::Publisher grid_map_request_pub_;
     ros::Publisher augment_grid_map_pub_;
     ros::Publisher octomap_request_pub_;
+    ros::Publisher point_cloud_request_pub_;
 
     bool selection_tool_enabled_;
 

@@ -30,7 +30,7 @@ class PerspectiveView: public Base3DView
 {
     Q_OBJECT
 public:
-    PerspectiveView( QWidget* parent = 0, rviz::VisualizationManager* context = NULL );
+    PerspectiveView( QWidget* parent = 0, Base3DView* copy_from = NULL );
     virtual ~PerspectiveView();
 
 protected:

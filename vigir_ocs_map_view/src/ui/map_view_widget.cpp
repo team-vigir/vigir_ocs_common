@@ -2,6 +2,8 @@
 #include "ui_map_view_widget.h"
 #include "ui/template_loader_widget.h"
 
+#include <rviz/displays_panel.h>
+
 MapViewWidget::MapViewWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MapViewWidget)
@@ -34,6 +36,14 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
     ui->joystick_steering->hide();
     ui->waypoint->hide();
 
+    rviz::DisplaysPanel* displays_panel = new rviz::DisplaysPanel(this);
+    displays_panel->initialize( ui->map_view_->getVisualizationManager());
+
+    QVBoxLayout* displays_layout = new QVBoxLayout();
+    displays_layout->setMargin(0);
+    displays_layout->addWidget(displays_panel);
+    ui->rviz_options->setLayout(displays_layout);
+
     key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MapViewWidget::processNewKeyEvent, this );
 }
 
@@ -60,6 +70,11 @@ void MapViewWidget::requestMap()
 void MapViewWidget::requestOctomap()
 {
     ui->map_view_->requestOctomap(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->oct_res->value());
+}
+
+void MapViewWidget::requestPointCloud()
+{
+    ui->map_view_->requestPointCloud(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->oct_res->value());
 }
 
 bool MapViewWidget::eventFilter( QObject * o, QEvent * e )

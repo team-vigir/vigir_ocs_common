@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>419</width>
-    <height>512</height>
+    <height>541</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -404,13 +404,23 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <property name="spacing">
+      <property name="horizontalSpacing">
        <number>0</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>6</number>
       </property>
       <item row="0" column="0">
        <widget class="QPushButton" name="pushButton">
         <property name="text">
-         <string>Send Target Pose</string>
+         <string>Send Target Pose - Step</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QPushButton" name="pushButton_2">
+        <property name="text">
+         <string>Send Target Pose - Walk</string>
         </property>
        </widget>
       </item>

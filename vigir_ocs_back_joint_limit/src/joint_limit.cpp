@@ -96,20 +96,40 @@ void joint_limit::on_apply_clicked()
 {
     flor_planning_msgs::PlannerConfiguration msg;
 
-    msg.joint_position_constraints.back_bkz_max.data = (float)lbzMaxVal;
-    msg.joint_position_constraints.back_bkz_min.data = (float)lbzMinVal;
+    if (!ui->lock_yaw_->isChecked()){
+      msg.joint_position_constraints.back_bkz_max.data = (float)lbzMaxVal;
+      msg.joint_position_constraints.back_bkz_min.data = (float)lbzMinVal;
+    }else{
+      msg.joint_position_constraints.back_bkz_max.data = 100.0f;
+      msg.joint_position_constraints.back_bkz_min.data = 100.0f;
+    }
 
-    msg.joint_position_constraints.back_bky_max.data = (float)mbyMaxVal;
-    msg.joint_position_constraints.back_bky_min.data = (float)mbyMinVal;
+    if (!ui->lock_pitch_->isChecked()){
+      msg.joint_position_constraints.back_bky_max.data = (float)mbyMaxVal;
+      msg.joint_position_constraints.back_bky_min.data = (float)mbyMinVal;
+    }else{
+      msg.joint_position_constraints.back_bky_max.data = 100.0f;
+      msg.joint_position_constraints.back_bky_min.data = 100.0f;
+    }
 
-    msg.joint_position_constraints.back_bkx_max.data = (float)ubxMaxVal;
-    msg.joint_position_constraints.back_bkx_min.data = (float)ubxMinVal;
+    if (!ui->lock_roll_->isChecked()){
+      msg.joint_position_constraints.back_bkx_max.data = (float)ubxMaxVal;
+      msg.joint_position_constraints.back_bkx_min.data = (float)ubxMinVal;
+    }else{
+      msg.joint_position_constraints.back_bkx_max.data = 100.0f;
+      msg.joint_position_constraints.back_bkx_min.data = 100.0f;
+    }
+
+    /*
     std::cout << "The following values were set:" <<std::endl;
     std::cout << "lbz: max = " << ui->lbzMax->value() << " min = " << ui->lbzMin->value() << std::endl;
     std::cout << "mby: max = " << ui->mbyMax->value() << " min = " << ui->mbyMin->value() << std::endl;
     std::cout << "ubx: max = " << ui->ubxMax->value() << " min = " << ui->ubxMin->value() << std::endl << std::endl;
+    */
 
     msg.disable_collision_avoidance.data = !ui->collision_avoidance_->isChecked();
+    msg.disable_left_hand_collision_avoidance = !ui->left_hand_collision_avoidance_->isChecked();
+    msg.disable_right_hand_collision_avoidance = !ui->right_hand_collision_avoidance_->isChecked();
     msg.robot_collision_padding.data = ui->padding_->value();
     msg.trajectory_time_factor.data = ui->time_factor_->value();
     msg.octomap_max_height.data = ui->octomap_height_->value();

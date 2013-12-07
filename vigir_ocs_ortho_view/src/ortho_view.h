@@ -31,7 +31,7 @@ class OrthoView: public Base3DView
 {
     Q_OBJECT
 public:
-    OrthoView( rviz::VisualizationManager* context = NULL, std::string base_frame = "/world", QWidget* parent = 0 );
+    OrthoView( Base3DView* copy_from = NULL, std::string base_frame = "/world", QWidget* parent = 0 );
     virtual ~OrthoView();
 
     void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );

@@ -35,6 +35,7 @@
 #include "rviz/default_plugin/view_controllers/orbit_view_controller.h"
 #include "rviz/properties/parse_color.h"
 #include <template_display_custom.h>
+#include "selection_3d_display_custom.h"
 #include "map_display_custom.h"
 #include "base_3d_view.h"
 
@@ -46,8 +47,9 @@
 
 namespace vigir_ocs
 {
+
 // Constructor for Base3DView.  This does most of the work of the class.
-Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_frame, QWidget* parent )
+Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* parent )
     : QWidget( parent )
     , base_frame_(base_frame)
     , selected_(false)
@@ -77,11 +79,14 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
     setLayout( main_layout );
 
     // if there's
-    if(context != NULL)
+    if(copy_from != NULL)
     {
-        manager_ = context;
+        manager_ = copy_from->getVisualizationManager();
         render_panel_->initialize( manager_->getSceneManager(), manager_ );
         view_id_ = manager_->addRenderPanel( render_panel_ );
+
+        selection_3d_display_ = copy_from->getSelection3DDisplay();
+        mouse_event_handler_ = copy_from->getMouseEventHander();
     }
     else
     {
@@ -153,9 +158,9 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         laser_scan_->subProp( "Selectable" )->setValue( false );
 
         // Create a MarkerArray display.
-        octomap_ = manager_->createDisplay( "rviz/OctomapDisplayCustom", "Octomap", false );
+        octomap_ = manager_->createDisplay( "octomap_rviz_plugin/OccupancyGrid", "Octomap", true );
         ROS_ASSERT( octomap_ != NULL );
-        octomap_->subProp( "Marker Topic" )->setValue( "/worldmodel_main/occupied_cells_vis_array" );
+        octomap_->subProp( "Octomap Topic" )->setValue( "/flor/worldmodel/ocs/octomap_result" );
 
         // Create a point cloud display.
         stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
@@ -186,9 +191,6 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         // Create a template display to display all templates listed by the template nodelet
         template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
         ((rviz::TemplateDisplayCustom*)template_display_)->setVisualizationManager(manager_);
-
-        // Create a display for 3D selection
-        selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
 
         // Create a display for waypoints
         waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
@@ -386,7 +388,8 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
         reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
         send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
-        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goalpose", 1, false );
+        send_footstep_goal_walk_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_walk", 1, false );
+        send_footstep_goal_step_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_step", 1, false );
 
         // Create a RobotModel display.
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
@@ -409,6 +412,9 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
 
         // frustum
         frustum_viewer_list_["head_left"] = manager_->createDisplay( "rviz/FrustumDisplayCustom", "Frustum - Left Eye", true );
+
+        // Create a display for 3D selection
+        selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
         //}
 
         // and advertise the template remove option
@@ -417,29 +423,34 @@ Base3DView::Base3DView( rviz::VisualizationManager* context, std::string base_fr
         // Connect to the template markers
         QObject::connect(this, SIGNAL(enableTemplateMarkers(bool)), template_display_, SLOT(enableTemplateMarkers(bool)));
 
-        // Connect the 3D selection tool to
-        QObject::connect(this, SIGNAL(queryContext(int,int)), selection_3d_display_, SLOT(queryContext(int,int)));
-        QObject::connect(selection_3d_display_, SIGNAL(setContext(int,std::string)), this, SLOT(setContext(int,std::string)));
-
-        // connect the 3d selection tool to its display
-        QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
-        Q_EMIT setRenderPanel(this->render_panel_);
-        QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
-        QObject::connect(selection_3d_display_, SIGNAL(setSelectionRay(Ogre::Ray)), this, SLOT(setSelectionRay(Ogre::Ray)));
-        QObject::connect(this, SIGNAL(resetSelection()), selection_3d_display_, SLOT(resetSelection()));
-        QObject::connect(this, SIGNAL(setMarkerScale(float)), selection_3d_display_, SLOT(setMarkerScale(float)));
-        QObject::connect(this, SIGNAL(setMarkerPosition(float,float,float)), selection_3d_display_, SLOT(setMarkerPosition(float,float,float)));
-
-        // handles mouse events without rviz::tool
-        mouse_event_handler_ = new vigir_ocs::MouseEventHandler();
-        QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mousePressEvent(QMouseEvent*)));
-        QObject::connect(render_panel_, SIGNAL(signalMouseReleaseEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseReleaseEvent(QMouseEvent*)));
-        QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(raycastRequest(bool,int,int)));//SLOT(createMarker(bool,int,int))); // RAYCAST -> need createMarkerOnboard that sends raycast query
-        QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(raycastRequestROI(bool,int,int)));//SLOT(createROISelection(bool,int,int)));
-        QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), this, SLOT(createContextMenu(bool,int,int)));
-
         // set frustum
         QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
+    }
+
+    // Connect the 3D selection tool to
+    QObject::connect(this, SIGNAL(queryContext(int,int)), selection_3d_display_, SLOT(queryContext(int,int)));
+    QObject::connect(selection_3d_display_, SIGNAL(setContext(int,std::string)), this, SLOT(setContext(int,std::string)));
+
+    // connect the 3d selection tool to its display
+    QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
+    Q_EMIT setRenderPanel(this->render_panel_);
+    QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
+    QObject::connect(selection_3d_display_, SIGNAL(setSelectionRay(Ogre::Ray)), this, SLOT(setSelectionRay(Ogre::Ray)));
+    QObject::connect(this, SIGNAL(resetSelection()), selection_3d_display_, SLOT(resetSelection()));
+    QObject::connect(this, SIGNAL(setMarkerScale(float)), selection_3d_display_, SLOT(setMarkerScale(float)));
+    QObject::connect(this, SIGNAL(setMarkerPosition(float,float,float)), selection_3d_display_, SLOT(setMarkerPosition(float,float,float)));
+
+    // handles mouse events without rviz::tool
+    mouse_event_handler_ = new vigir_ocs::MouseEventHandler();
+    QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mousePressEvent(QMouseEvent*)));
+    QObject::connect(render_panel_, SIGNAL(signalMouseReleaseEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseReleaseEvent(QMouseEvent*)));
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(raycastRequest(bool,int,int)));//SLOT(createMarker(bool,int,int))); // RAYCAST -> need createMarkerOnboard that sends raycast query
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(raycastRequestROI(bool,int,int)));//SLOT(createROISelection(bool,int,int)));
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), this, SLOT(createContextMenu(bool,int,int)));
+
+    Q_FOREACH( QWidget* sp, findChildren<QWidget*>() ) {
+        sp->installEventFilter( this );
+        sp->setMouseTracking( true );
     }
 
     position_widget_ = new QWidget(this);
@@ -1516,7 +1527,10 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
 
 void Base3DView::processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg )
 {
-    send_footstep_goal_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+    if(!msg->data)
+        send_footstep_goal_step_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+    else
+        send_footstep_goal_walk_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 }
 
 void Base3DView::publishMarkers()
@@ -1583,6 +1597,19 @@ void Base3DView::clearMapRequests()
 rviz::ViewController* Base3DView::getCurrentViewController()
 {
      return manager_->getViewManager()->getCurrent();
+}
+
+bool Base3DView::eventFilter( QObject * o, QEvent * e )
+{
+    if ( e->type() == QEvent::Enter )
+    {
+        Q_EMIT setRenderPanel(this->render_panel_);
+    }
+    else if ( e->type() == QEvent::MouseMove )
+    {
+        Q_EMIT setRenderPanel(this->render_panel_);
+    }
+    return QWidget::eventFilter( o, e );
 }
 
 }
