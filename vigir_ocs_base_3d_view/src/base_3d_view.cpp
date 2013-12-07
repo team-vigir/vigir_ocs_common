@@ -940,7 +940,8 @@ void Base3DView::createContextMenu(bool, int x, int y)
     context_menu_.addAction("Insert Template");
     //if(selected_) context_menu_.addAction("Insert Waypoint");
     if(active_context_name_.find("template") != std::string::npos) context_menu_.addAction("Remove Template");
-    context_menu_.addAction(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"));
+    if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100) context_menu_.addAction(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"));
+    if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100) context_menu_.addAction(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate");
 
     if(initializing_context_menu_ == 1)
         processContextMenu(x, y);
@@ -973,8 +974,17 @@ void Base3DView::processContextMenu(int x, int y)
         }
         else if(context_menu_selected_item_->text().contains("Execute Footstep Plan"))
         {
+            flor_control_msgs::FlorControlModeCommand cmd;
+            if(context_menu_selected_item_->text().contains("Step Manipulate"))
+                cmd.behavior = cmd.FLOR_STEP_MANI;
+            else if(context_menu_selected_item_->text().contains("Walk Manipulate"))
+                cmd.behavior = cmd.FLOR_WALK_MANI;
+            else if(context_menu_selected_item_->text().contains("Step"))
+                cmd.behavior = cmd.FLOR_STEP;
+            else if(context_menu_selected_item_->text().contains("Walk"))
+                cmd.behavior = cmd.FLOR_WALK;
+            flor_mode_command_pub_.publish(cmd);
             //std::cout << "executing footsteps" << std::endl;
-
         }
         //{
         //    insertWaypoint();
