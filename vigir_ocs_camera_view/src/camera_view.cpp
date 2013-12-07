@@ -148,10 +148,6 @@ CameraView::CameraView( QWidget* parent, Base3DView* copy_from )
     delete reset_view_button_;
     reset_view_button_ = NULL;
 
-    // subscribe to goal pose so we can add filters back
-    set_walk_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_walk", 5, &CameraView::processGoalPose, this );
-    set_step_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_step", 5, &CameraView::processGoalPose, this );
-
     // make sure we're still able to cancel set goal pose
     QObject::connect(render_panel_, SIGNAL(signalKeyPressEvent(QKeyEvent*)), this, SLOT(keyPressEvent(QKeyEvent*)));
 
@@ -438,8 +434,9 @@ void CameraView::defineStepPosePressed()
     setting_pose_ = true;
 }
 
-void CameraView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+void CameraView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose, int type)
 {
+    Base3DView::processGoalPose( pose, type );
     //ROS_ERROR("goal processed in map");
     manager_->getToolManager()->setCurrentTool( previous_tool_ );
     setting_pose_ = false;

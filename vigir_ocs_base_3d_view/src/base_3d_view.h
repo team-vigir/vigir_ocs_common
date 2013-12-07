@@ -49,6 +49,8 @@
 #include <flor_ocs_msgs/OCSInteractiveMarkerAdd.h>
 #include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <flor_perception_msgs/RaycastRequest.h>
+#include <flor_control_msgs/FlorControlModeCommand.h>
+#include <flor_control_msgs/FlorControlMode.h>
 
 #include <string>
 
@@ -97,6 +99,9 @@ public:
     void processJointStates( const sensor_msgs::JointState::ConstPtr& states );
     void processPelvisResetRequest( const std_msgs::Bool::ConstPtr& msg );
     void processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg );
+    void processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr& msg );
+
+    virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
 
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
@@ -268,12 +273,18 @@ protected:
     ros::Publisher send_footstep_goal_step_pub_;
     ros::Publisher send_footstep_goal_walk_pub_;
 
+    ros::Subscriber set_walk_goal_sub_;
+    ros::Subscriber set_step_goal_sub_;
+
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;
     ros::Subscriber interactive_marker_feedback_sub_;
 
     ros::Subscriber ghost_hand_left_sub_;
     ros::Subscriber ghost_hand_right_sub_;
+
+    ros::Publisher flor_mode_command_pub_;
+    ros::Subscriber flor_mode_sub_;
 
     std::vector<unsigned char> ghost_planning_group_;
     std::vector<unsigned char> ghost_pose_source_;
@@ -293,6 +304,8 @@ protected:
     QString selected_template_path_;
 
     int active_context_;
+
+    int last_footstep_plan_type_;
 
     Ogre::Ray last_selection_ray_;
 
@@ -325,6 +338,8 @@ protected:
     std::string active_context_name_;
 
     ros::Publisher template_remove_pub_;
+
+    int flor_atlas_current_mode_;
 };
 }
 #endif // BASE_3D_VIEW_H

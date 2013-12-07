@@ -252,10 +252,17 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         left_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
         left_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
 
-        left_hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("left_hand_robot_description"));
-        left_hand_robot_model_ = left_hand_model_loader_->getModel();
-        left_hand_robot_state_.reset(new robot_state::RobotState(left_hand_robot_model_));
-        left_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_left_hand",1, true);
+        try
+        {
+            left_hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("left_hand_robot_description"));
+            left_hand_robot_model_ = left_hand_model_loader_->getModel();
+            left_hand_robot_state_.reset(new robot_state::RobotState(left_hand_robot_model_));
+            left_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_left_hand",1, true);
+        }
+        catch(...)
+        {
+            ROS_ERROR("Base3DView: MoveIt! failed to load left hand robot description.");
+        }
 
         {
             // change color of the ghost template hands
@@ -289,10 +296,17 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         right_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
         right_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
 
-        right_hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("right_hand_robot_description"));
-        right_hand_robot_model_ = right_hand_model_loader_->getModel();
-        right_hand_robot_state_.reset(new robot_state::RobotState(right_hand_robot_model_));
-        right_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_right_hand",1, true);
+        try
+        {
+            right_hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("right_hand_robot_description"));
+            right_hand_robot_model_ = right_hand_model_loader_->getModel();
+            right_hand_robot_state_.reset(new robot_state::RobotState(right_hand_robot_model_));
+            right_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_right_hand",1, true);
+        }
+        catch(...)
+        {
+            ROS_ERROR("Base3DView: MoveIt! failed to load right hand robot description.");
+        }
 
         {
             // change color of the ghost template hands
@@ -391,6 +405,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         send_footstep_goal_walk_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_walk", 1, false );
         send_footstep_goal_step_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_step", 1, false );
 
+        // subscribe to goal pose
+        set_walk_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_walk", 5, boost::bind(&Base3DView::processGoalPose, this, _1, 1) );
+        set_step_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_step", 5, boost::bind(&Base3DView::processGoalPose, this, _1, 2) );
+
         // Create a RobotModel display.
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
         robot_model_->subProp( "Color" )->setValue( QColor( 200, 200, 200 ) );
@@ -419,6 +437,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
 
         // and advertise the template remove option
         template_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
+
+        // flor mode publisher and subscriber
+        flor_mode_command_pub_ = nh_.advertise<flor_control_msgs::FlorControlModeCommand>( "/flor/controller/mode_command", 1, false );
+        flor_mode_sub_ = nh_.subscribe<flor_control_msgs::FlorControlMode>( "/flor/controller/mode", 5, &Base3DView::processControlMode, this );
 
         // Connect to the template markers
         QObject::connect(this, SIGNAL(enableTemplateMarkers(bool)), template_display_, SLOT(enableTemplateMarkers(bool)));
@@ -702,6 +724,11 @@ void Base3DView::defineStepPosePressed()
     manager_->getToolManager()->setCurrentTool( set_step_goal_tool_ );
 }
 
+void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose, int type)
+{
+    last_footstep_plan_type_ = type;
+}
+
 void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc )
 {
     //std::cout << "point cloud received" << std::endl;
@@ -722,6 +749,11 @@ void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc
 void Base3DView::processNewSelection( const geometry_msgs::Point::ConstPtr& pose )
 {
     Q_EMIT setMarkerPosition(pose->x,pose->y,pose->z);
+}
+
+void Base3DView::processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr& msg )
+{
+    flor_atlas_current_mode_ = msg->behavior;
 }
 
 void Base3DView::newSelection( Ogre::Vector3 position )
@@ -902,6 +934,7 @@ void Base3DView::createContextMenu(bool, int x, int y)
     context_menu_.addAction("Insert Template");
     //if(selected_) context_menu_.addAction("Insert Waypoint");
     if(active_context_name_.find("template") != std::string::npos) context_menu_.addAction("Remove Template");
+    context_menu_.addAction(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"));
 
     if(initializing_context_menu_ == 1)
         processContextMenu(x, y);
@@ -932,7 +965,11 @@ void Base3DView::processContextMenu(int x, int y)
             int t = template_number.toInt(&ok);
             if(ok) removeTemplate(t);
         }
-        //else if(context_menu_selected_item_->text() == QString("Insert Waypoint"))
+        else if(context_menu_selected_item_->text().contains("Execute Footstep Plan"))
+        {
+            //std::cout << "executing footsteps" << std::endl;
+
+        }
         //{
         //    insertWaypoint();
         //}

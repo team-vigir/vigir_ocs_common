@@ -51,10 +51,6 @@ OrthoView::OrthoView( Base3DView* copy_from, std::string base_frame, QWidget* pa
         render_panel_->setViewController(ortho_view_controller_);
     }
 
-    // subscribe to goal pose so we can add filters back
-    set_walk_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_walk", 5, &OrthoView::processGoalPose, this );
-    set_step_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_step", 5, &OrthoView::processGoalPose, this );
-
     // make sure we're still able to cancel set goal pose
     QObject::connect(render_panel_, SIGNAL(signalKeyPressEvent(QKeyEvent*)), this, SLOT(keyPressEvent(QKeyEvent*)));
 
@@ -117,8 +113,9 @@ void OrthoView::defineStepPosePressed()
 }
 
 
-void OrthoView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+void OrthoView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose, int type)
 {
+    Base3DView::processGoalPose( pose, type );
     //ROS_ERROR("goal processed in map");
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);

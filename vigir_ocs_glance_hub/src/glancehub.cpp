@@ -17,17 +17,21 @@ glancehub::glancehub(QWidget *parent) :
     robotStatusFootstep_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/footstep_planner/status",2,&glancehub::robotStatusFootstep,this);
     timer.start(33, this);
     std::string fileName;
-        if(nh.getParam("robotErrorFileLocation",fileName))
-            messagesPath = fileName;
-        else
-            messagesPath = "/opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/messages.csv";
-        std::cout << "Reading messages from <" << messagesPath << ">" << std::endl;
+    if(nh.getParam("robotErrorFileLocation",fileName))
+        messagesPath = fileName;
+    else
+        messagesPath = "/opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/messages.csv";
+    std::cout << "Reading messages from <" << messagesPath << ">" << std::endl;
     loadFile();
 
 }
 
 void glancehub::timerEvent(QTimerEvent *event)
 {
+    // check if ros is still running; if not, just kill the application
+    if(!ros::ok())
+        qApp->quit();
+
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     if(event->timerId() == timer.timerId())
         ros::spinOnce();
@@ -47,13 +51,14 @@ void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr 
         ui->plannerLight->setStyleSheet("QLabel { background-color: red; }");
     else
         ui->plannerLight->setStyleSheet("QLabel { background-color: green; }");
+
     uint8_t  level;
     uint16_t code;
     RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
-    std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
+    std::cout << "Received message. level = " << (int)level << " code = " << (int)code << std::endl;
+
     QString text ;
     QString msgType ;
-
     switch(level){
     case 0:
 
@@ -81,7 +86,9 @@ void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr 
         numError++;
     }
     else if(errors.size() > 0)
+    {
         text=QString::fromStdString(errors[code]);
+    }
     else
     {
         std::cout << "Cannot find data file but recieved msg level = " << (int)level << " code = " << (int)code << std::endl;
@@ -94,7 +101,7 @@ void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr 
     ui->moveitstat->setText(msgType+"("+text+")");
     count_row++;
     qDebug() << count_row;
-        if(count_row>maxRows)
+    if(count_row>maxRows)
     {
         if(msgType=="Warn")
             numWarn--;
@@ -103,11 +110,8 @@ void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr 
 
     }
     unreadMsgs++;
-
-
-
-
 }
+
 void glancehub::loadFile()
 {
     errors.resize(RobotStatusCodes::MAX_ERROR_MESSAGES,"Default Error Message");
@@ -133,6 +137,7 @@ void glancehub::loadFile()
         }
     }
 }
+
 void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr &msg)
 {
     int count_row;
@@ -155,13 +160,14 @@ void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPt
         ui->footLight->setStyleSheet("QLabel { background-color: green; }");
         break;
     }
+
     uint8_t  level;
     uint16_t code;
     RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
     std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
+
     QString text ;
     QString msgType ;
-
     switch(level){
     case 0:
 
@@ -189,7 +195,9 @@ void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPt
         numError++;
     }
     else if(errors.size() > 0)
+    {
         text=QString::fromStdString(errors[code]);
+    }
     else
     {
         std::cout << "Cannot find data file but recieved msg level = " << (int)level << " code = " << (int)code << std::endl;
@@ -202,7 +210,7 @@ void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPt
     ui->footstepstat->setText(msgType+"("+text+")");
     count_row++;
     qDebug() << count_row;
-        if(count_row>maxRows)
+    if(count_row>maxRows)
     {
         if(msgType=="Warn")
             numWarn--;

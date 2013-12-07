@@ -47,7 +47,7 @@ public:
 
     void setCameraPitch( int );
 
-    void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
 
     std::vector<std::string> getCameraNames();
 
@@ -107,9 +107,6 @@ private:
 
     ros::Publisher head_pitch_update_pub_;
     ros::Publisher pointcloud_request_frame_pub_;
-
-    ros::Subscriber set_walk_goal_sub_;
-    ros::Subscriber set_step_goal_sub_;
 
     int feed_rate_;
     int feed_resolution_;
