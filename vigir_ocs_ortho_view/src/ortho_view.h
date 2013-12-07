@@ -34,7 +34,7 @@ public:
     OrthoView( Base3DView* copy_from = NULL, std::string base_frame = "/world", QWidget* parent = 0 );
     virtual ~OrthoView();
 
-    void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
     
     void setViewPlane(const QString& view_plane);
 

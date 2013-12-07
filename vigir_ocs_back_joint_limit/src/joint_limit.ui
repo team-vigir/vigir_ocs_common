@@ -147,6 +147,9 @@
             <property name="text">
              <string>Lock</string>
             </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -162,6 +165,9 @@
               </item>
               <item>
                <widget class="QSlider" name="mbyMin">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="minimum">
                  <number>-120</number>
                 </property>
@@ -196,6 +202,9 @@
               </item>
               <item>
                <widget class="QSlider" name="mbyMax">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="minimum">
                  <number>-120</number>
                 </property>
@@ -237,6 +246,9 @@
             <property name="text">
              <string>Lock</string>
             </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -252,6 +264,9 @@
               </item>
               <item>
                <widget class="QSlider" name="ubxMin">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="minimum">
                  <number>-790809</number>
                 </property>
@@ -286,6 +301,9 @@
               </item>
               <item>
                <widget class="QSlider" name="ubxMax">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="minimum">
                  <number>-790809</number>
                 </property>
@@ -392,7 +410,7 @@
          <double>0.010000000000000</double>
         </property>
         <property name="value">
-         <double>1.000000000000000</double>
+         <double>3.000000000000000</double>
         </property>
        </widget>
       </item>

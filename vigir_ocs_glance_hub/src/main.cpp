@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
       ros::init( argc, argv, "glance_hub_widget", ros::init_options::AnonymousName );
     }
     QApplication a(argc, argv);
-    glanceHub w;
+    glancehub w;
     w.show();
 
     return a.exec();
