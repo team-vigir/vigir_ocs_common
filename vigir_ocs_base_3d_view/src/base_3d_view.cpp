@@ -940,7 +940,8 @@ void Base3DView::createContextMenu(bool, int x, int y)
     context_menu_.addAction("Insert Template");
     //if(selected_) context_menu_.addAction("Insert Waypoint");
     if(active_context_name_.find("template") != std::string::npos) context_menu_.addAction("Remove Template");
-    context_menu_.addAction(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"));
+    if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100) context_menu_.addAction(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"));
+    if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100) context_menu_.addAction(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate");
 
     if(initializing_context_menu_ == 1)
         processContextMenu(x, y);
@@ -973,8 +974,17 @@ void Base3DView::processContextMenu(int x, int y)
         }
         else if(context_menu_selected_item_->text().contains("Execute Footstep Plan"))
         {
+            flor_control_msgs::FlorControlModeCommand cmd;
+            if(context_menu_selected_item_->text().contains("Step Manipulate"))
+                cmd.behavior = cmd.FLOR_STEP_MANI;
+            else if(context_menu_selected_item_->text().contains("Walk Manipulate"))
+                cmd.behavior = cmd.FLOR_WALK_MANI;
+            else if(context_menu_selected_item_->text().contains("Step"))
+                cmd.behavior = cmd.FLOR_STEP;
+            else if(context_menu_selected_item_->text().contains("Walk"))
+                cmd.behavior = cmd.FLOR_WALK;
+            flor_mode_command_pub_.publish(cmd);
             //std::cout << "executing footsteps" << std::endl;
-
         }
         //{
         //    insertWaypoint();
@@ -1664,15 +1674,15 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
 
     // process hotkeys
-    std::vector<int>::iterator ctrl_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    std::vector<int>::iterator shift_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50);
-    std::vector<int>::iterator alt_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64);
+    bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37) != keys_pressed_list_.end());
+    bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
+    bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
 
     if(key_event->key == 24 && key_event->state) // 'q'
         robotModelToggled(!robot_model_->isEnabled());
     else if(key_event->key == 25 && key_event->state) // 'w'
         simulationRobotToggled(!ghost_robot_model_->isEnabled());
-    else if(key_event->key == 11 && key_event->state)
+    else if(key_event->key == 11 && key_event->state && ctrl_is_pressed)
         clearPointCloudRequests();
 }
 
