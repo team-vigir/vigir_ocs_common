@@ -97,13 +97,16 @@ void MapViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPt
         keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
 
     // process hotkeys
-    std::vector<int>::iterator key_is_pressed;
+    bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37) != keys_pressed_list_.end());
+    bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
+    bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
+    //std::vector<int>::iterator key_is_pressed;
 
-    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+    //key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
     //if(key_event->key == 32 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+o
     //    requestOctomap();
     //if(key_event->key == 58 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+m
     //    requestMap();
-    if(key_event->key == 10) // '1'
+    if(key_event->key == 10 && key_event->state && ctrl_is_pressed) // '1'
         requestPointCloud();
 }
