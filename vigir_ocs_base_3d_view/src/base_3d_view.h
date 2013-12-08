@@ -32,6 +32,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Point.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/String.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/JointState.h>
@@ -282,6 +283,7 @@ protected:
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;
     ros::Subscriber interactive_marker_feedback_sub_;
+    ros::Publisher interactive_marker_remove_pub_;
 
     ros::Subscriber ghost_hand_left_sub_;
     ros::Subscriber ghost_hand_right_sub_;
@@ -349,6 +351,11 @@ protected:
     ros::Subscriber key_event_sub_;
 
     bool is_primary_view_;
+
+    int cartesian_marker_count_;
+    std::vector<rviz::Display*> cartesian_marker_list_;
+    Display* circular_marker_;
+
 };
 }
 #endif // BASE_3D_VIEW_H

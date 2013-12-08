@@ -64,6 +64,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
     , right_marker_moveit_loopback_(true)
     , visualize_grid_map_(true)
     , initializing_context_menu_(0)
+    , cartesian_marker_count_(0)
 {
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
@@ -375,6 +376,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         interactive_marker_add_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 1, true );
         interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
         interactive_marker_feedback_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );;
+        interactive_marker_remove_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 1, false );
 
         // subscribe to the pose topics
         end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
@@ -938,10 +940,20 @@ void Base3DView::createContextMenu(bool, int x, int y)
     std::cout << "Active context: " << active_context_ << std::endl;
 
     context_menu_.addAction("Insert Template");
-    //if(selected_) context_menu_.addAction("Insert Waypoint");
     if(active_context_name_.find("template") != std::string::npos) context_menu_.addAction("Remove Template");
+    context_menu_.addSeparator();
     if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100) context_menu_.addAction(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"));
     if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100) context_menu_.addAction(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate");
+    context_menu_.addSeparator();
+    QMenu *cartesian_motion_menu = new QMenu("Cartesian Motion");
+    cartesian_motion_menu->addAction("Create Cartesian Motion Marker");
+    cartesian_motion_menu->addAction("Remove All Markers");
+    context_menu_.addMenu(cartesian_motion_menu);
+    QMenu *circular_motion_menu = new QMenu("Circular Motion");
+    circular_motion_menu->addAction("Create Circular Motion Marker");
+    circular_motion_menu->addAction("Remove Marker");
+    context_menu_.addMenu(circular_motion_menu);
+    //if(selected_) context_menu_.addAction("Insert Waypoint");
 
     if(initializing_context_menu_ == 1)
         processContextMenu(x, y);
@@ -986,11 +998,118 @@ void Base3DView::processContextMenu(int x, int y)
             flor_mode_command_pub_.publish(cmd);
             //std::cout << "executing footsteps" << std::endl;
         }
-        //{
-        //    insertWaypoint();
-        //}
+        else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Cartesian Motion") &&
+                context_menu_selected_item_->text() == QString("Create Cartesian Motion Marker"))
+        {
+            unsigned int id = cartesian_marker_list_.size();
+            std::string pose_string = std::string("/pose_")+boost::to_string((unsigned int)id); // one for each template
+
+            // Add cartesian marker
+            rviz::Display* interactive_marker = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Cartesian Marker ")+boost::to_string((unsigned int)id)).c_str(), true );
+            interactive_marker->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
+            interactive_marker->setEnabled( true );
+            cartesian_marker_list_.push_back(interactive_marker);
+
+            // Add it in front of the robot
+            geometry_msgs::PoseStamped pose;
+            pose.pose.position.x = 1;
+            pose.pose.position.y = 0;
+            pose.pose.position.z = .2;
+            pose.pose.orientation.x = 0;
+            pose.pose.orientation.y = 0;
+            pose.pose.orientation.z = 0;
+            pose.pose.orientation.w = 1;
+            pose.header.frame_id = "/pelvis";
+            transform(base_frame_,pose);
+
+            geometry_msgs::Point pos;
+            pos.x = pose.pose.position.x;
+            pos.y = pose.pose.position.y;
+            pos.z = pose.pose.position.z;
+
+            flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+            marker.name  = std::string("Template ")+boost::to_string((unsigned int)id);
+            marker.topic = pose_string;
+            marker.frame = base_frame_;
+            marker.scale = 0.2;
+            marker.point = pos;
+            interactive_marker_add_pub_.publish(marker);
+
+            // add the template pose publisher
+            //template_pose_pub_list_.push_back( nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 1, false) );
+
+            // and subscribe to the template marker feedback loop
+            //ros::Subscriber template_pose_sub = nh_.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
+            //template_pose_sub_list_.push_back(template_pose_sub);
+        }
+        else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Cartesian Motion") &&
+                context_menu_selected_item_->text() == QString("Remove All Markers"))
+        {
+
+        }
+        else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Circular Motion") &&
+                context_menu_selected_item_->text() == QString("Create Circular Motion Marker"))
+        {
+
+
+        }
+        else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Circular Motion") &&
+                context_menu_selected_item_->text() == QString("Remove Marker"))
+        {
+
+        }
     }
 }
+
+/*void Base3DView::addMarker(std::string label, unsigned char id, Ogre::Vector3 pos)
+{
+    //std::cout << "Adding template marker " << id << std::endl;
+
+    geometry_msgs::Point point;
+    point.x = pos.x;
+    point.y = pos.y;
+    point.z = pos.z;
+    flor_ocs_msgs::OCSInteractiveMarkerAdd marker_server_template;
+    std::string template_name = label;
+    if(template_name.size() > 5 && template_name.substr(template_name.size()-5,5) == ".mesh")
+        template_name = template_name.substr(0,template_name.size()-5);
+    marker_server_template.name  = std::string("Template ")+boost::to_string((unsigned int)id)+std::string("\n")+template_name;
+    marker_server_template.topic = template_pose_string;
+    marker_server_template.frame = fixed_frame_.toUtf8().constData();
+    marker_server_template.scale = 0.2;
+    marker_server_template.point = point;
+    interactive_marker_add_pub_.publish(marker_server_template);
+
+    // add the template pose publisher
+    template_pose_pub_list_.push_back( nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( pose_string, 1, false) );
+
+    // and subscribe to the template marker feedback loop
+    ros::Subscriber template_pose_sub = nh_.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
+    template_pose_sub_list_.push_back(template_pose_sub);
+    //std::cout << "subscribed to topic" << std::endl;
+}
+/*
+void Base3DView::processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose)
+{
+    publishTemplateUpdate(pose->template_id,pose->pose);
+
+    context_->queueRender();
+}
+
+void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
+{
+    std::string topic_name = msg->topic;
+    for(int i = 0; i < template_pose_pub_list_.size(); i++)
+    {
+        if(template_pose_pub_list_[i].getTopic() == topic_name)
+        {
+            flor_ocs_msgs::OCSTemplateUpdate out;
+            out.pose = msg->pose;
+            out.template_id = atoi(topic_name.erase(0,std::string("/template_pose_").size()).c_str());
+            template_pose_pub_list_[i].publish(out);
+        }
+    }
+}*/
 
 void Base3DView::removeTemplate(int id)
 {
