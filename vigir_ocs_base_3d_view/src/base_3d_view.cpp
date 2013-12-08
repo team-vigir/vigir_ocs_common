@@ -516,6 +516,14 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
     r_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
     r_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
 
+    nh_.getParam("/l_hand_tf/hand_T_marker", hand_T_palm);
+    l_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
+    l_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+
+    nh_.getParam("/r_hand_tf/hand_T_marker", hand_T_palm);
+    r_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
+    r_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+
     nh_.getParam("/l_hand_type", l_hand_type);
     nh_.getParam("/r_hand_type", r_hand_type);
 
@@ -1058,7 +1066,7 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
         publishHandPose("left",*pose);
 
         geometry_msgs::PoseStamped wrist_pose;
-        calcWristTarget(*pose,l_hand_T_palm_,wrist_pose);
+        calcWristTarget(*pose,l_hand_T_marker_,wrist_pose);
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/l_arm_pose_marker";
@@ -1083,7 +1091,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
         publishHandPose("right",*pose);
 
         geometry_msgs::PoseStamped wrist_pose;
-        calcWristTarget(*pose,r_hand_T_palm_,wrist_pose);
+        calcWristTarget(*pose,r_hand_T_marker_,wrist_pose);
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/r_arm_pose_marker";
@@ -1314,7 +1322,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         //ROS_INFO("LEFT GHOST HAND POSE:");
         //ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
         //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
-        calcWristTarget(msg->pose,l_hand_T_palm_.inverse(),joint_pose);
+        calcWristTarget(msg->pose,l_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("left"),joint_pose);
     }
     else if(msg->topic == "/r_arm_pose_marker")
@@ -1328,7 +1336,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         ROS_INFO("RIGHT GHOST HAND POSE:");
         ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
         ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
-        calcWristTarget(msg->pose,r_hand_T_palm_.inverse(),joint_pose);
+        calcWristTarget(msg->pose,r_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("right"),joint_pose);
     }
     else if(msg->topic == "/pelvis_pose_marker")

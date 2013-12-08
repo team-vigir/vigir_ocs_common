@@ -328,6 +328,9 @@ protected:
     tf::Transform l_hand_T_palm_;
     tf::Transform r_hand_T_palm_;
 
+    tf::Transform l_hand_T_marker_;
+    tf::Transform r_hand_T_marker_;
+
     QBasicTimer timer;
 
     int view_id_;
