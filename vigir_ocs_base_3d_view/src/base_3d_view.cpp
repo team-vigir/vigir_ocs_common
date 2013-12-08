@@ -65,6 +65,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
     , visualize_grid_map_(true)
     , initializing_context_menu_(0)
     , cartesian_marker_count_(0)
+    , circular_marker_(0)
 {
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
@@ -945,14 +946,17 @@ void Base3DView::createContextMenu(bool, int x, int y)
     if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100) context_menu_.addAction(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"));
     if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100) context_menu_.addAction(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate");
     context_menu_.addSeparator();
-    QMenu *cartesian_motion_menu = new QMenu("Cartesian Motion");
-    cartesian_motion_menu->addAction("Create Cartesian Motion Marker");
-    cartesian_motion_menu->addAction("Remove All Markers");
-    context_menu_.addMenu(cartesian_motion_menu);
-    QMenu *circular_motion_menu = new QMenu("Circular Motion");
-    circular_motion_menu->addAction("Create Circular Motion Marker");
-    circular_motion_menu->addAction("Remove Marker");
-    context_menu_.addMenu(circular_motion_menu);
+    QAction* tmp;
+    QMenu *cartesian_motion_menu = context_menu_.addMenu("Cartesian Motion");
+    tmp = cartesian_motion_menu->addAction("Create Cartesian Motion Marker");
+    tmp = cartesian_motion_menu->addAction("Remove All Markers");
+    if(cartesian_marker_list_.size() == 0) tmp->setEnabled(false);
+    QMenu *circular_motion_menu = context_menu_.addMenu("Circular Motion");
+    tmp = circular_motion_menu->addAction("Create Circular Motion Marker");
+    if(circular_marker_ != NULL) tmp->setEnabled(false);
+    tmp = circular_motion_menu->addAction("Remove Marker");
+    if(circular_marker_ == NULL) tmp->setEnabled(false);
+
     //if(selected_) context_menu_.addAction("Insert Waypoint");
 
     if(initializing_context_menu_ == 1)
@@ -1002,13 +1006,13 @@ void Base3DView::processContextMenu(int x, int y)
                 context_menu_selected_item_->text() == QString("Create Cartesian Motion Marker"))
         {
             unsigned int id = cartesian_marker_list_.size();
-            std::string pose_string = std::string("/pose_")+boost::to_string((unsigned int)id); // one for each template
+            std::string pose_string = std::string("/cartesian_pose_")+boost::to_string((unsigned int)id);
 
             // Add cartesian marker
-            rviz::Display* interactive_marker = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Cartesian Marker ")+boost::to_string((unsigned int)id)).c_str(), true );
-            interactive_marker->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
-            interactive_marker->setEnabled( true );
-            cartesian_marker_list_.push_back(interactive_marker);
+            rviz::Display* cartesian_marker = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Cartesian Marker ")+boost::to_string((unsigned int)id)).c_str(), true );
+            cartesian_marker->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
+            cartesian_marker->setEnabled( true );
+            cartesian_marker_list_.push_back(cartesian_marker);
 
             // Add it in front of the robot
             geometry_msgs::PoseStamped pose;
@@ -1028,35 +1032,79 @@ void Base3DView::processContextMenu(int x, int y)
             pos.z = pose.pose.position.z;
 
             flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
-            marker.name  = std::string("Template ")+boost::to_string((unsigned int)id);
+            marker.name  = std::string("Cartesian ")+boost::to_string((unsigned int)id);
             marker.topic = pose_string;
             marker.frame = base_frame_;
             marker.scale = 0.2;
             marker.point = pos;
             interactive_marker_add_pub_.publish(marker);
-
-            // add the template pose publisher
-            //template_pose_pub_list_.push_back( nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 1, false) );
-
-            // and subscribe to the template marker feedback loop
-            //ros::Subscriber template_pose_sub = nh_.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
-            //template_pose_sub_list_.push_back(template_pose_sub);
         }
         else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Cartesian Motion") &&
                 context_menu_selected_item_->text() == QString("Remove All Markers"))
         {
-
+            for(int i = 0; i < cartesian_marker_list_.size(); i++)
+            {
+                std_msgs::String topic;
+                topic.data = std::string("/cartesian_pose_")+boost::to_string((unsigned int)i);
+                interactive_marker_remove_pub_.publish(topic);
+                // Displays can emit signals from other threads with self pointers.  We're
+                // freeing the display now, so ensure no one is listening to those signals.
+                cartesian_marker_list_[i]->disconnect();
+                // Delete display later in case there are pending signals to it.
+                cartesian_marker_list_[i]->deleteLater();
+            }
+            manager_->notifyConfigChanged();
+            cartesian_marker_list_.clear();
         }
         else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Circular Motion") &&
                 context_menu_selected_item_->text() == QString("Create Circular Motion Marker"))
         {
+            std::string pose_string = std::string("/circular_pose"); // one for each template
 
+            // Add cartesian marker
+            circular_marker_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Circular Marker", true );
+            circular_marker_->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
+            circular_marker_->setEnabled( true );
 
+            // Add it in front of the robot
+            geometry_msgs::PoseStamped pose;
+            pose.pose.position.x = 1;
+            pose.pose.position.y = 0;
+            pose.pose.position.z = .2;
+            pose.pose.orientation.x = 0;
+            pose.pose.orientation.y = 0;
+            pose.pose.orientation.z = 0;
+            pose.pose.orientation.w = 1;
+            pose.header.frame_id = "/pelvis";
+            transform(base_frame_,pose);
+
+            geometry_msgs::Point pos;
+            pos.x = pose.pose.position.x;
+            pos.y = pose.pose.position.y;
+            pos.z = pose.pose.position.z;
+
+            flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+            marker.name  = std::string("Circular");
+            marker.topic = pose_string;
+            marker.frame = base_frame_;
+            marker.scale = 0.2;
+            marker.point = pos;
+            interactive_marker_add_pub_.publish(marker);
         }
         else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Circular Motion") &&
                 context_menu_selected_item_->text() == QString("Remove Marker"))
         {
 
+            std_msgs::String topic;
+            topic.data = std::string("/circular_pose");
+            interactive_marker_remove_pub_.publish(topic);
+            // Displays can emit signals from other threads with self pointers.  We're
+            // freeing the display now, so ensure no one is listening to those signals.
+            circular_marker_->disconnect();
+            // Delete display later in case there are pending signals to it.
+            circular_marker_->deleteLater();
+            manager_->notifyConfigChanged();
+            circular_marker_ = NULL;
         }
     }
 }
@@ -1444,9 +1492,9 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_l_arm_ = false;
         moving_r_arm_ = true;
 
-        ROS_INFO("RIGHT GHOST HAND POSE:");
-        ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
-        ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
+        //ROS_INFO("RIGHT GHOST HAND POSE:");
+        //ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
+        //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
         calcWristTarget(msg->pose,r_hand_T_palm_.inverse(),joint_pose);
         publishHandPose(std::string("right"),joint_pose);
     }
@@ -1455,6 +1503,11 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_pelvis_ = true;
         moving_l_arm_ = false;
         moving_r_arm_ = false;
+    }
+    else
+    {
+        ROS_INFO("cartesian marker");
+        return;
     }
 
     end_effector_pose_list_[msg->topic] = joint_pose; //msg->pose;

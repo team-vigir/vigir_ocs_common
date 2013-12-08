@@ -354,7 +354,7 @@ protected:
 
     int cartesian_marker_count_;
     std::vector<rviz::Display*> cartesian_marker_list_;
-    Display* circular_marker_;
+    rviz::Display* circular_marker_;
 
 };
 }
