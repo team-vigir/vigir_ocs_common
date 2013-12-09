@@ -17,6 +17,7 @@
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSGhostControl.h>
+#include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Bool.h>
@@ -41,6 +42,7 @@ public:
     ~GhostControlWidget();
 
     void processState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
+    void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list);
     void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
     void publishState( bool snap=false );
 
@@ -102,6 +104,7 @@ private:
 
     ros::NodeHandle nh_;
     ros::Subscriber state_sub_; // need to make sure we subscribe to others in case someone else changes the configuration
+    ros::Subscriber template_list_sub_; // subscriber for template list
     ros::Publisher state_pub_;
     ros::Publisher set_to_target_pose_pub_;
     ros::Publisher set_to_target_config_pub_;
