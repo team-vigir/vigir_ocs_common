@@ -71,7 +71,7 @@ void ImageNodelet::publishImageAdded(const unsigned long &id)
     msg.image.header.stamp=image_history_[id].header.stamp;
     msg.camera_info = image_history_[id].camera_info;
     cv::Mat image;
-    image = cv::imread( "/home/vigir/image/"+stream.str()+".jpg", 1 );
+    image = cv::imread( "/home/tania/vigir/image/"+stream.str()+".jpg", 1 );
     cv_bridge::CvImage out_msg;
     //out_msg.header   = in_msg->header; // Same timestamp and tf frame as input image
     out_msg.encoding = sensor_msgs::image_encodings::BGR8; // Or whatever
@@ -162,7 +162,7 @@ void ImageNodelet::publishImageToOCS(const unsigned long &id)
     stream << id;
 
     cv::Mat image;
-    image = cv::imread( "/home/vigir/image/"+stream.str()+".jpg", 1 );
+    image = cv::imread( "/home/tania/vigir/image/"+stream.str()+".jpg", 1 );
     cv_bridge::CvImage out_msg;
     //out_msg.header   = in_msg->header; // Same timestamp and tf frame as input image
     out_msg.encoding = sensor_msgs::image_encodings::BGR8; // Or whatever
@@ -239,7 +239,7 @@ void ImageNodelet::processImage( const ros::MessageEvent<sensor_msgs::Image cons
         stream.str("");
         stream << id_counter_-1;
         std::cout<<"Image size:"<<img_size.width;
-        const char dir_path[] = "/home/vigir/image";
+        const char dir_path[] = "/home/tania/vigir/image";
         boost::filesystem::path dir(dir_path);
         if(boost::filesystem::create_directory(dir))
           {
@@ -247,7 +247,7 @@ void ImageNodelet::processImage( const ros::MessageEvent<sensor_msgs::Image cons
           }
         else
             std::cout<<"\nFolder not created!!";
-        imwrite("/home/vigir/image/"+stream.str()+".jpg",cv_ptr->image,qualitytype);
+        imwrite("/home/tania/vigir/image/"+stream.str()+".jpg",cv_ptr->image,qualitytype);
 }
 
 void ImageNodelet::processCameraInfo( const ros::MessageEvent<sensor_msgs::CameraInfo const>& event, const std::string& topic )

@@ -89,148 +89,136 @@
        <height>600</height>
       </size>
      </property>
-     <widget class="QWidget" name="layoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>1</x>
-        <y>7</y>
-        <width>522</width>
-        <height>588</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="vlay">
-       <item>
-        <widget class="QWidget" name="widget_4" native="true">
-         <property name="minimumSize">
-          <size>
-           <width>520</width>
-           <height>50</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>520</width>
-           <height>50</height>
-          </size>
-         </property>
-         <widget class="QWidget" name="layoutWidget1">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>10</y>
-            <width>478</width>
-            <height>29</height>
-           </rect>
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <item>
+       <layout class="QVBoxLayout" name="vlay">
+        <item>
+         <widget class="QWidget" name="widget_4" native="true">
+          <property name="minimumSize">
+           <size>
+            <width>520</width>
+            <height>50</height>
+           </size>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <property name="maximumSize">
+           <size>
+            <width>520</width>
+            <height>50</height>
+           </size>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
-            <widget class="QLabel" name="label">
-             <property name="minimumSize">
-              <size>
-               <width>150</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>150</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Select Camera Source</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="cameralist">
-             <property name="minimumSize">
-              <size>
-               <width>200</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>200</width>
-               <height>16777215</height>
-              </size>
-             </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
              <item>
-              <property name="text">
-               <string>Head Camera Left</string>
-              </property>
+              <widget class="QLabel" name="label">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>150</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Select Camera Source</string>
+               </property>
+              </widget>
              </item>
              <item>
-              <property name="text">
-               <string>Head Camera Right</string>
-              </property>
+              <widget class="QComboBox" name="cameralist">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>200</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <item>
+                <property name="text">
+                 <string>Head Camera Left</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Head Camera Right</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Left Hand Camera Left</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Left Hand Camera Right</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Right Hand Camera Left</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Right Hand Camera Right</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>All</string>
+                </property>
+               </item>
+              </widget>
              </item>
              <item>
-              <property name="text">
-               <string>Left Hand Camera Left</string>
-              </property>
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Enable Slider</string>
+               </property>
+              </widget>
              </item>
              <item>
-              <property name="text">
-               <string>Left Hand Camera Right</string>
-              </property>
+              <widget class="QCheckBox" name="checkBox">
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
              </item>
-             <item>
-              <property name="text">
-               <string>Right Hand Camera Left</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Right Hand Camera Right</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>All</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>Enable Slider</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
+            </layout>
            </item>
           </layout>
          </widget>
-        </widget>
-       </item>
-       <item>
-        <widget class="QStackedWidget" name="stackedWidget">
-         <property name="minimumSize">
-          <size>
-           <width>520</width>
-           <height>530</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>520</width>
-           <height>530</height>
-          </size>
-         </property>
-         <widget class="QWidget" name="page_3"/>
-         <widget class="QWidget" name="page_4"/>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+        </item>
+        <item>
+         <widget class="QStackedWidget" name="stackedWidget">
+          <property name="minimumSize">
+           <size>
+            <width>520</width>
+            <height>530</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>520</width>
+            <height>530</height>
+           </size>
+          </property>
+          <widget class="QWidget" name="page_3"/>
+          <widget class="QWidget" name="page_4"/>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
@@ -247,75 +235,63 @@
        <height>600</height>
       </size>
      </property>
-     <widget class="QLabel" name="timelabel">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>260</y>
-        <width>50</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>50</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>50</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-     <widget class="QWidget" name="">
-      <property name="geometry">
-       <rect>
-        <x>-9</x>
-        <y>10</y>
-        <width>52</width>
-        <height>478</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QSlider" name="timeslider">
-         <property name="minimumSize">
-          <size>
-           <width>50</width>
-           <height>450</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>50</width>
-           <height>450</height>
-          </size>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QSlider" name="timeslider">
+          <property name="minimumSize">
+           <size>
+            <width>50</width>
+            <height>450</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>450</height>
+           </size>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="timelabel">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
