@@ -190,7 +190,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-288</y>
+        <y>-327</y>
         <width>292</width>
         <height>1483</height>
        </rect>
@@ -567,7 +567,7 @@ color: rgb(255, 26, 26);</string>
              <item>
               <widget class="QCheckBox" name="ft_sensor">
                <property name="enabled">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
                <property name="text">
                 <string>F/T Sensor</string>

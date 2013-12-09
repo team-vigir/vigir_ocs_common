@@ -253,9 +253,7 @@ void MainViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstP
 }
 
 void MainViewWidget::ft_sensorToggled(bool toggled){
-    //std::map<std::string, QWidget*>::iterator iter;
-    //for (iter = views_list.begin(); iter != views_list.end(); ++iter)
-        //((vigir_ocs::Base3DView*)->second)->ft_sensorToggled(toggled);
+    ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->ft_sensorToggled(toggled);
 }
 
 void MainViewWidget::zero_leftPressed(){
