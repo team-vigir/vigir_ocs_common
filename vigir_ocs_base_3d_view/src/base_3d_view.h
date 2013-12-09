@@ -220,6 +220,8 @@ protected:
     rviz::Display* goal_pose_step_;
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
+    rviz::Display* left_ft_sensor_;
+    rviz::Display* right_ft_sensor_;
 
     rviz::Display* left_grasp_hand_model_;
     rviz::Display* right_grasp_hand_model_;
