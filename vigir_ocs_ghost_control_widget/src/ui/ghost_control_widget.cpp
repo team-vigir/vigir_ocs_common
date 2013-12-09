@@ -392,9 +392,9 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
         keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
 
     // process hotkeys
-    std::vector<int>::iterator ctrl_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    std::vector<int>::iterator shift_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50);
-    std::vector<int>::iterator alt_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64);
+    bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37) != keys_pressed_list_.end());
+    bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
+    bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
 
     /*if(key_event->key == 12 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+3
     {
