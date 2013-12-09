@@ -66,6 +66,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
     , moving_r_arm_(false)
     , left_marker_moveit_loopback_(true)
     , right_marker_moveit_loopback_(true)
+    , position_only_ik_(false)
     , visualize_grid_map_(true)
     , initializing_context_menu_(0)
     , circular_marker_(0)
@@ -1127,6 +1128,8 @@ void Base3DView::processContextMenu(int x, int y)
             rviz::Display* cartesian_marker = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Cartesian Marker ")+boost::to_string((unsigned int)id)).c_str(), true );
             cartesian_marker->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
             cartesian_marker->setEnabled( true );
+            cartesian_marker->subProp( "Show Axes" )->setValue( true );
+            cartesian_marker->subProp( "Show Visual Aids" )->setValue( true );
             cartesian_marker_list_.push_back(cartesian_marker);
 
             // Add it in front of the robot
@@ -1191,6 +1194,8 @@ void Base3DView::processContextMenu(int x, int y)
             circular_marker_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Circular Marker", true );
             circular_marker_->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
             circular_marker_->setEnabled( true );
+            circular_marker_->subProp( "Show Axes" )->setValue( true );
+            circular_marker_->subProp( "Show Visual Aids" )->setValue( true );
 
             // Add it in front of the robot
             geometry_msgs::PoseStamped pose;
@@ -1701,7 +1706,8 @@ void Base3DView::publishGhostPoses()
     else if(left && right && torso)
         cmd.planning_group.data = "both_arms_with_torso_group";
 
-    if(position_only_ik_)
+    // IK not possible for multi appendage (non-chain) groups
+    if(position_only_ik_ && !(left && right && torso) && !(left && right && !torso))
         cmd.planning_group.data += "_position_only_ik";
 
     if(left || right)
