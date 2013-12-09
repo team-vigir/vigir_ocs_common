@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>419</width>
-    <height>541</height>
+    <height>561</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -238,6 +238,13 @@
              </widget>
             </item>
            </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="position_only_ik_">
+           <property name="text">
+            <string>Position Only IK</string>
+           </property>
           </widget>
          </item>
         </layout>

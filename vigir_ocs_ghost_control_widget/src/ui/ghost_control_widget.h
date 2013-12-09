@@ -63,6 +63,7 @@ private Q_SLOTS:
     void resetPelvisClicked();
     void on_planning_left__clicked();
     void on_planning_torso__clicked();
+    void on_position_only_ik_clicked();
     void on_planning_right__clicked();
     void on_lock_left__clicked();
     void on_lock_torso__clicked();
@@ -94,6 +95,9 @@ private Q_SLOTS:
     void on_pushButton_2_clicked();
 
 private:
+
+    std::string getGroupNameForSettings(const std::vector<unsigned char>& settings);
+
     Ui::GhostControlWidget* ui;
 
     ros::NodeHandle nh_;
@@ -111,6 +115,7 @@ private:
     static std::vector<unsigned char> saved_state_world_lock_;
     static unsigned char saved_state_collision_avoidance_;
     static unsigned char saved_state_lock_pelvis_;
+    static unsigned char saved_state_position_only_ik_;
 
     QBasicTimer timer;
 

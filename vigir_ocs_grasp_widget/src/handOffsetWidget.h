@@ -33,6 +33,12 @@ public Q_SLOTS:
     void on_pitch_dec_clicked();
     void on_yaw_inc_clicked();
     void on_yaw_dec_clicked();
+    void on_x_inc_clicked();
+    void on_x_dec_clicked();
+    void on_y_inc_clicked();
+    void on_y_dec_clicked();
+    void on_z_inc_clicked();
+    void on_z_dec_clicked();
     void on_load_offset_clicked();
     void on_save_offset_clicked();
 
