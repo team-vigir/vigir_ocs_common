@@ -1922,6 +1922,9 @@ void Base3DView::sendCartesianLeft()
     else
         cmd.planning_group = "l_arm_with_torso_group";
 
+    if(position_only_ik_)
+        cmd.planning_group += "_position_only_ik";
+
     cartesian_plan_request_pub_.publish(cmd);
 }
 
@@ -1940,6 +1943,9 @@ void Base3DView::sendCartesianRight()
         cmd.planning_group = "r_arm_group";
     else
         cmd.planning_group = "r_arm_with_torso_group";
+
+    if(position_only_ik_)
+        cmd.planning_group += "_position_only_ik";
 
     cartesian_plan_request_pub_.publish(cmd);
 }
@@ -1965,6 +1971,9 @@ void Base3DView::sendCircularLeft()
     else
         cmd.planning_group = "l_arm_with_torso_group";
 
+    if(position_only_ik_)
+        cmd.planning_group += "_position_only_ik";
+
     circular_plan_request_pub_.publish(cmd);
 }
 
@@ -1988,6 +1997,9 @@ void Base3DView::sendCircularRight()
         cmd.planning_group = "r_arm_group";
     else
         cmd.planning_group = "r_arm_with_torso_group";
+
+    if(position_only_ik_)
+        cmd.planning_group += "_position_only_ik";
 
     circular_plan_request_pub_.publish(cmd);
 }
