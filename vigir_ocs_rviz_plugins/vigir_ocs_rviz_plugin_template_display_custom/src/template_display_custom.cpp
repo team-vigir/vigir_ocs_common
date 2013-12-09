@@ -468,7 +468,11 @@ void TemplateDisplayCustom::processTemplateRemove(const flor_ocs_msgs::OCSTempla
         topic.data = template_pose_pub_list_[index].getTopic();
         interactive_marker_remove_pub_.publish(topic);
         // and the marker display
-        //vis_manager_->removeDisplay(display_template_marker_list_[index]);
+        // Displays can emit signals from other threads with self pointers.  We're
+        // freeing the display now, so ensure no one is listening to those signals.
+        display_template_marker_list_[index]->disconnect();
+        // Delete display later in case there are pending signals to it.
+        display_template_marker_list_[index]->deleteLater();
         display_template_marker_list_.erase(display_template_marker_list_.begin()+index);
         // and the publisher
         template_pose_pub_list_.erase(template_pose_pub_list_.begin()+index);

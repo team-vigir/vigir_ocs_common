@@ -34,7 +34,7 @@ public:
 
     void requestMap(double min_z, double max_z, double resolution);
     void requestOctomap(double min_z, double max_z, double resolution);
-    void requestPointCloud(double min_z, double max_z, double resolution);
+    void requestPointCloud(double min_z, double max_z, double resolution, int type);
 
 Q_SIGNALS:
     void queryPosition( int, int, Ogre::Vector3& );

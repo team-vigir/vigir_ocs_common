@@ -21,9 +21,11 @@
 #include <QBasicTimer>
 #include <QThread>
 #include <QMenu>
+#include <QCheckBox>
+#include <QDoubleSpinBox>
+
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
-
 #include <OGRE/OgreSceneManager.h>
 
 #include <ros/ros.h>
@@ -32,6 +34,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Point.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/String.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/JointState.h>
@@ -159,6 +162,11 @@ public Q_SLOTS:
     void clearPointCloudRequests();
     void clearMapRequests();
 
+    void sendCartesianLeft();
+    void sendCartesianRight();
+    void sendCircularLeft();
+    void sendCircularRight();
+
     virtual bool eventFilter( QObject * o, QEvent * e );
 
 Q_SIGNALS:
@@ -282,6 +290,7 @@ protected:
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;
     ros::Subscriber interactive_marker_feedback_sub_;
+    ros::Publisher interactive_marker_remove_pub_;
 
     ros::Subscriber ghost_hand_left_sub_;
     ros::Subscriber ghost_hand_right_sub_;
@@ -328,6 +337,9 @@ protected:
     tf::Transform l_hand_T_palm_;
     tf::Transform r_hand_T_palm_;
 
+    tf::Transform l_hand_T_marker_;
+    tf::Transform r_hand_T_marker_;
+
     QBasicTimer timer;
 
     int view_id_;
@@ -349,6 +361,23 @@ protected:
     ros::Subscriber key_event_sub_;
 
     bool is_primary_view_;
+
+    std::vector<rviz::Display*> cartesian_marker_list_;
+    rviz::Display* circular_marker_;
+
+    std::vector<geometry_msgs::Pose> cartesian_waypoint_list_;
+    geometry_msgs::Pose circular_center_;
+
+    ros::Publisher cartesian_plan_request_pub_;
+    ros::Publisher circular_plan_request_pub_;
+
+    QWidget* cartesian_config_widget_;
+    QCheckBox* cartesian_use_collision_;
+
+    QWidget* circular_config_widget_;
+    QCheckBox* circular_use_collision_;
+    QCheckBox* circular_keep_orientation_;
+    QDoubleSpinBox* circular_angle_;
 };
 }
 #endif // BASE_3D_VIEW_H

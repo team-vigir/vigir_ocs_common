@@ -60,9 +60,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-155</y>
+        <y>0</y>
         <width>292</width>
-        <height>1853</height>
+        <height>1883</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -236,7 +236,7 @@
        <item>
         <widget class="QGroupBox" name="groupBox_6">
          <property name="title">
-          <string>Octomap Region Request</string>
+          <string>3D Region Request</string>
          </property>
          <property name="checkable">
           <bool>false</bool>
@@ -328,6 +328,33 @@
             <property name="text">
              <string>Request Octomap</string>
             </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="point_cloud_type">
+            <property name="currentIndex">
+             <number>1</number>
+            </property>
+            <item>
+             <property name="text">
+              <string>LIDAR filtered</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>LIDAR unfiltered</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Stereo</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Stereo Sandia</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item>
