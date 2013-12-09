@@ -39,6 +39,7 @@ public:
 protected:
     void timerEvent(QTimerEvent *event);
 
+
 private:
     Ui::glancehubsbar *ui;
     ros::Subscriber controlMode_sub;
@@ -56,15 +57,13 @@ private:
     float errorMin;
     int warn;
     int err;
-    QWidget *warnwidget;
-    QWidget *errorwidget;
-    QTableWidget *warntable;
-    QTableWidget *errortable;
+    QWidget *warnerrwidget;
+    QTableWidget *warnerrtable;
     QTableWidgetItem *item;
 
-private Q_SLOTS:
-    void on_warnbutton_clicked();
-    void on_errorbutton_clicked();
+
+
+
 
 };
 
