@@ -241,6 +241,19 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         planned_path_ = manager_->createDisplay( "rviz/Path", "Planned path", true );
         planned_path_->subProp( "Topic" )->setValue( "/flor/walk_monitor/path" );
 
+        left_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Left F/T sensor", true);
+        left_ft_sensor_->subProp("Topic")->setValue("/flor/l_hand/force_torque_sensor");
+        left_ft_sensor_->subProp("Alpha")->setValue(0.5);
+        left_ft_sensor_->subProp("Arrow Scale")->setValue(0.01);
+        left_ft_sensor_->subProp("Arrow Width")->setValue(0.3);
+
+        right_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Right F/T sensor", true);
+        right_ft_sensor_->subProp("Topic")->setValue("/flor/r_hand/force_torque_sensor");
+        right_ft_sensor_->subProp("Alpha")->setValue(0.5);
+        right_ft_sensor_->subProp("Arrow Scale")->setValue(0.01);
+        right_ft_sensor_->subProp("Arrow Width")->setValue(0.3);
+
+
         // create the grasp hands displays
         left_grasp_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left hand model", true );
         left_grasp_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );

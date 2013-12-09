@@ -66,6 +66,7 @@ public Q_SLOTS:
     void on_releaseButton_clicked();
     void on_manualRadio_clicked();
     void on_templateRadio_clicked();
+    void on_noneRadio_clicked();
     void on_show_grasp_toggled(bool checked);
     void on_stitch_template_toggled(bool checked);
     void on_verticalSlider_sliderReleased();

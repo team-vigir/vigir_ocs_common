@@ -8,6 +8,7 @@
 jointList::jointList(QWidget *parent) :
     QWidget(parent)
 {
+    this->setWindowTitle("Joint_Lists");
     this->setMinimumSize(425,120);
     jointTable = new QTreeWidget();
     jointTable->setColumnCount(4);

@@ -13,7 +13,7 @@ status_window::status_window(QWidget *parent) :
     ui(new Ui::status_window)
 {
     ui->setupUi(this);
-
+    this->setWindowTitle("Robot_Status");
     mode_subscriber = nh_.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode",1,&status_window::controlModeMsgReceived, this);
     stability_subscriber = nh_.subscribe<flor_ocs_msgs::OCSRobotStability>("/flor/controller/stability",1,&status_window::stabilityMsgReceived, this);
 
