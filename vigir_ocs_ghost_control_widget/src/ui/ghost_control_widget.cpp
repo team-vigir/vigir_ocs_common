@@ -43,7 +43,7 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
 
     timer.start(33, this);
 
-    ui->position_only_ik_->hide();
+    //ui->position_only_ik_->hide();
 }
 
 GhostControlWidget::~GhostControlWidget()
@@ -198,7 +198,7 @@ void GhostControlWidget::on_planning_torso__clicked()
     publishState();
 }
 
-void GhostControlWidget::on_position_only_ik_clicked()
+void GhostControlWidget::on_position_only_ik__clicked()
 {
     saveState();
     publishState();

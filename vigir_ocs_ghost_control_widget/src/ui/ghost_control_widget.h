@@ -63,7 +63,7 @@ private Q_SLOTS:
     void resetPelvisClicked();
     void on_planning_left__clicked();
     void on_planning_torso__clicked();
-    void on_position_only_ik_clicked();
+    void on_position_only_ik__clicked();
     void on_planning_right__clicked();
     void on_lock_left__clicked();
     void on_lock_torso__clicked();
