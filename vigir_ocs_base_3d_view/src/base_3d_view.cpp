@@ -1108,6 +1108,8 @@ void Base3DView::processContextMenu(int x, int y)
             rviz::Display* cartesian_marker = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Cartesian Marker ")+boost::to_string((unsigned int)id)).c_str(), true );
             cartesian_marker->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
             cartesian_marker->setEnabled( true );
+            cartesian_marker->subProp( "Show Axes" )->setValue( true );
+            cartesian_marker->subProp( "Show Visual Aids" )->setValue( true );
             cartesian_marker_list_.push_back(cartesian_marker);
 
             // Add it in front of the robot
@@ -1172,6 +1174,8 @@ void Base3DView::processContextMenu(int x, int y)
             circular_marker_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Circular Marker", true );
             circular_marker_->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
             circular_marker_->setEnabled( true );
+            circular_marker_->subProp( "Show Axes" )->setValue( true );
+            circular_marker_->subProp( "Show Visual Aids" )->setValue( true );
 
             // Add it in front of the robot
             geometry_msgs::PoseStamped pose;
