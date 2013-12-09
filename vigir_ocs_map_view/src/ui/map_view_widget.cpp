@@ -74,7 +74,7 @@ void MapViewWidget::requestOctomap()
 
 void MapViewWidget::requestPointCloud()
 {
-    ui->map_view_->requestPointCloud(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->oct_res->value());
+    ui->map_view_->requestPointCloud(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->oct_res->value(),ui->point_cloud_type->currentIndex());
 }
 
 bool MapViewWidget::eventFilter( QObject * o, QEvent * e )

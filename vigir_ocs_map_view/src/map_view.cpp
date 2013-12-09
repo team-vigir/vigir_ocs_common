@@ -19,6 +19,7 @@
 #include <render_panel_custom.h>
 
 #include <flor_perception_msgs/EnvironmentRegionRequest.h>
+#include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_ocs_msgs/TwoPoint.h>
 #include <flor_ocs_msgs/OCSAugmentRegions.h>
 
@@ -54,7 +55,7 @@ MapView::MapView( QWidget* parent )
     octomap_request_pub_ = nh_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/octomap_request", 1, false );
 
     // create publisher for point cloud
-    point_cloud_request_pub_ = nh_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/cloud_request", 1, false );
+    point_cloud_request_pub_ = nh_.advertise<flor_perception_msgs::PointCloudTypeRegionRequest>( "/flor/worldmodel/ocs/cloud_request", 1, false );
 
     // connect to selection display to query position/raycast
     QObject::connect(this, SIGNAL(queryPosition(int,int,Ogre::Vector3&)), selection_3d_display_, SLOT(queryPosition(int,int,Ogre::Vector3&)));
@@ -180,7 +181,7 @@ void MapView::requestOctomap(double min_z, double max_z, double resolution)
     Q_EMIT unHighlight();
 }
 
-void MapView::requestPointCloud(double min_z, double max_z, double resolution)
+void MapView::requestPointCloud(double min_z, double max_z, double resolution, int type)
 {
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
@@ -189,17 +190,22 @@ void MapView::requestPointCloud(double min_z, double max_z, double resolution)
     Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
     Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
 
-    flor_perception_msgs::EnvironmentRegionRequest cmd;
+    flor_perception_msgs::EnvironmentRegionRequest env;
 
-    cmd.bounding_box_min.x = min.x;
-    cmd.bounding_box_min.y = min.y;
-    cmd.bounding_box_min.z = min_z;
+    env.bounding_box_min.x = min.x;
+    env.bounding_box_min.y = min.y;
+    env.bounding_box_min.z = min_z;
 
-    cmd.bounding_box_max.x = max.x;
-    cmd.bounding_box_max.y = max.y;
-    cmd.bounding_box_max.z = max_z;
+    env.bounding_box_max.x = max.x;
+    env.bounding_box_max.y = max.y;
+    env.bounding_box_max.z = max_z;
 
-    cmd.resolution = resolution;
+    env.resolution = resolution;
+
+    flor_perception_msgs::PointCloudTypeRegionRequest cmd;
+
+    cmd.environment_region_request = env;
+    cmd.data_source = type;
 
     point_cloud_request_pub_.publish(cmd);
 
