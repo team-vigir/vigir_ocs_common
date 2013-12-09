@@ -243,7 +243,7 @@
          <item>
           <widget class="QCheckBox" name="position_only_ik_">
            <property name="text">
-            <string>Position Only IK</string>
+            <string>Allow Position Only IK</string>
            </property>
           </widget>
          </item>

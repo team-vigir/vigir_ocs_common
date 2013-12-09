@@ -66,6 +66,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
     , moving_r_arm_(false)
     , left_marker_moveit_loopback_(true)
     , right_marker_moveit_loopback_(true)
+    , position_only_ik_(false)
     , visualize_grid_map_(true)
     , initializing_context_menu_(0)
     , circular_marker_(0)
@@ -1699,7 +1700,8 @@ void Base3DView::publishGhostPoses()
     else if(left && right && torso)
         cmd.planning_group.data = "both_arms_with_torso_group";
 
-    if(position_only_ik_)
+    // IK not possible for multi appendage (non-chain) groups
+    if(position_only_ik_ && !(left && right && torso) && !(left && right && !torso))
         cmd.planning_group.data += "_position_only_ik";
 
     if(left || right)
