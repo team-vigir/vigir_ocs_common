@@ -2030,9 +2030,9 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
     bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
     bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
 
-    if(key_event->key == 24 && key_event->state) // 'q'
+    if(key_event->key == 24 && key_event->state && ctrl_is_pressed) // 'q'
         robotModelToggled(!robot_model_->isEnabled());
-    else if(key_event->key == 25 && key_event->state) // 'w'
+    else if(key_event->key == 25 && key_event->state && ctrl_is_pressed) // 'w'
         simulationRobotToggled(!ghost_robot_model_->isEnabled());
     else if(key_event->key == 11 && key_event->state && ctrl_is_pressed)
         clearPointCloudRequests();
