@@ -81,7 +81,7 @@ void GhostControlWidget::publishState( bool snap )
     cmd.snap = snap;
     cmd.left_moveit_marker_loopback = ui->left_moveit_marker_lock->isChecked();
     cmd.right_moveit_marker_loopback = ui->right_moveit_marker_lock->isChecked();
-
+    cmd.position_only_ik = saved_state_position_only_ik_;
 
     state_pub_.publish(cmd);
 }
@@ -120,7 +120,6 @@ void GhostControlWidget::saveState()
 
     saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();
     saved_state_position_only_ik_ = ui->position_only_ik_->isChecked();
-
 }
 
 // default arguments are class members for saved state

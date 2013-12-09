@@ -298,6 +298,7 @@ protected:
     bool snap_ghost_to_robot_;
     bool left_marker_moveit_loopback_;
     bool right_marker_moveit_loopback_;
+    bool position_only_ik_;
     
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 

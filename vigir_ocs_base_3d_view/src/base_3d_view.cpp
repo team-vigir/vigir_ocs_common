@@ -1433,6 +1433,9 @@ void Base3DView::publishGhostPoses()
     else if(left && right && torso)
         cmd.planning_group.data = "both_arms_with_torso_group";
 
+    if(position_only_ik_)
+        cmd.planning_group.data += "_position_only_ik";
+
     if(left || right)
         end_effector_pub_.publish(cmd);
 
@@ -1497,6 +1500,8 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
 
     left_marker_moveit_loopback_ = msg->left_moveit_marker_loopback;
     right_marker_moveit_loopback_ = msg->right_moveit_marker_loopback;
+
+    position_only_ik_ = msg->position_only_ik;
 }
 
 void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &states)
