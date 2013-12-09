@@ -240,6 +240,13 @@
            </layout>
           </widget>
          </item>
+         <item>
+          <widget class="QCheckBox" name="position_only_ik_">
+           <property name="text">
+            <string>Position Only IK</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
