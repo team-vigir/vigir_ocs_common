@@ -15,6 +15,8 @@
 #include <QPoint>
 #include <QWidgetAction>
 #include <QSlider>
+#include <QDoubleSpinBox>
+#include <QCheckBox>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -44,6 +46,8 @@
 #include "flor_ocs_msgs/OCSWaypointAdd.h"
 #include "flor_perception_msgs/EnvironmentRegionRequest.h"
 #include "flor_planning_msgs/TargetConfigIkRequest.h"
+#include "flor_planning_msgs/CartesianMotionRequest.h"
+#include "flor_planning_msgs/CircularMotionRequest.h"
 
 namespace vigir_ocs
 {
@@ -64,7 +68,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
     , right_marker_moveit_loopback_(true)
     , visualize_grid_map_(true)
     , initializing_context_menu_(0)
-    , cartesian_marker_count_(0)
     , circular_marker_(0)
 {
     // Construct and lay out render panel.
@@ -395,7 +398,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         // initialize ghost control config
         ghost_planning_group_.push_back(0);
         ghost_planning_group_.push_back(1);
-        ghost_planning_group_.push_back(1);
+        ghost_planning_group_.push_back(0);
         ghost_pose_source_.push_back(0);
         ghost_pose_source_.push_back(0);
         ghost_pose_source_.push_back(0);
@@ -454,6 +457,83 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
 
         // set frustum
         QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
+
+        // create the window for cartesian motion
+        cartesian_config_widget_ = new QWidget();
+        cartesian_config_widget_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
+
+        cartesian_use_collision_ = new QCheckBox("Use Collision Avoidance");
+
+        QPushButton* cartesian_send_left_ = new QPushButton("Send to left arm");
+        QObject::connect(cartesian_send_left_, SIGNAL(clicked()), this, SLOT(sendCartesianLeft()));
+        cartesian_send_left_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
+        QPushButton* cartesian_send_right_ = new QPushButton("Send to right arm");
+        QObject::connect(cartesian_send_right_, SIGNAL(clicked()), this, SLOT(sendCartesianRight()));
+        cartesian_send_right_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
+
+        QHBoxLayout* cartesian_button_layout_ = new QHBoxLayout();
+        cartesian_button_layout_->setMargin(0);
+        cartesian_button_layout_->addWidget(cartesian_send_left_);
+        cartesian_button_layout_->addWidget(cartesian_send_right_);
+
+        QVBoxLayout* cartesian_layout_ = new QVBoxLayout();
+        cartesian_layout_->setMargin(3);
+        cartesian_layout_->setSpacing(3);
+        cartesian_layout_->addWidget(cartesian_use_collision_);
+        cartesian_layout_->addLayout(cartesian_button_layout_);
+
+        cartesian_config_widget_->setLayout(cartesian_layout_);
+        cartesian_config_widget_->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+        cartesian_config_widget_->hide();
+
+        // and necessary publisher
+        cartesian_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CartesianMotionRequest>( "/flor/planning/upper_body/plan_cartesian_request", 1, false );
+
+        // create the window for circular motion
+        circular_config_widget_ = new QWidget();
+        circular_config_widget_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
+
+        circular_use_collision_ = new QCheckBox("Use Collision Avoidance");
+
+        circular_keep_orientation_ = new QCheckBox("Use Collision Avoidance");
+
+        QLabel* circular_angle_label_ = new QLabel("Rotation");
+        circular_angle_ = new QDoubleSpinBox();
+        circular_angle_->setDecimals(2);
+        circular_angle_->setMaximum(360);
+        circular_angle_->setMinimum(-360);
+
+        QHBoxLayout* circular_angle_layout_ = new QHBoxLayout();
+        circular_angle_layout_->setMargin(0);
+        circular_angle_layout_->addWidget(circular_angle_label_);
+        circular_angle_layout_->addWidget(circular_angle_);
+
+        QPushButton* circular_send_left_ = new QPushButton("Send to left arm");
+        QObject::connect(circular_send_left_, SIGNAL(clicked()), this, SLOT(sendCircularLeft()));
+        circular_send_left_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
+        QPushButton* circular_send_right_ = new QPushButton("Send to right arm");
+        QObject::connect(circular_send_right_, SIGNAL(clicked()), this, SLOT(sendCircularRight()));
+        circular_send_right_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
+
+        QHBoxLayout* circular_button_layout_ = new QHBoxLayout();
+        circular_button_layout_->setMargin(0);
+        circular_button_layout_->addWidget(circular_send_left_);
+        circular_button_layout_->addWidget(circular_send_right_);
+
+        QVBoxLayout* circular_layout_ = new QVBoxLayout();
+        circular_layout_->setMargin(3);
+        circular_layout_->setSpacing(3);
+        circular_layout_->addWidget(circular_use_collision_);
+        circular_layout_->addWidget(circular_keep_orientation_);
+        circular_layout_->addLayout(circular_angle_layout_);
+        circular_layout_->addLayout(circular_button_layout_);
+
+        circular_config_widget_->setLayout(circular_layout_);
+        circular_config_widget_->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+        circular_config_widget_->hide();
+
+        // and necessary publisher
+        circular_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request", 1, false );
 
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
     }
@@ -1005,6 +1085,13 @@ void Base3DView::processContextMenu(int x, int y)
         else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Cartesian Motion") &&
                 context_menu_selected_item_->text() == QString("Create Cartesian Motion Marker"))
         {
+            // if this is the first cartesian marker, create config window
+            if(!cartesian_config_widget_->isVisible())
+            {
+                cartesian_config_widget_->move(QPoint(QCursor::pos().x()+5, QCursor::pos().y()+5));
+                cartesian_config_widget_->show();
+            }
+
             unsigned int id = cartesian_marker_list_.size();
             std::string pose_string = std::string("/cartesian_pose_")+boost::to_string((unsigned int)id);
 
@@ -1032,16 +1119,20 @@ void Base3DView::processContextMenu(int x, int y)
             pos.z = pose.pose.position.z;
 
             flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
-            marker.name  = std::string("Cartesian ")+boost::to_string((unsigned int)id);
+            marker.name  = std::string("Cartesian Waypoint ")+boost::to_string((unsigned int)id);
             marker.topic = pose_string;
             marker.frame = base_frame_;
             marker.scale = 0.2;
             marker.point = pos;
             interactive_marker_add_pub_.publish(marker);
+
+            cartesian_waypoint_list_.push_back(pose.pose);
         }
         else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Cartesian Motion") &&
                 context_menu_selected_item_->text() == QString("Remove All Markers"))
         {
+            cartesian_config_widget_->hide();
+
             for(int i = 0; i < cartesian_marker_list_.size(); i++)
             {
                 std_msgs::String topic;
@@ -1055,10 +1146,17 @@ void Base3DView::processContextMenu(int x, int y)
             }
             manager_->notifyConfigChanged();
             cartesian_marker_list_.clear();
+            cartesian_waypoint_list_.clear();
         }
         else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Circular Motion") &&
                 context_menu_selected_item_->text() == QString("Create Circular Motion Marker"))
         {
+            if(!circular_config_widget_->isVisible())
+            {
+                circular_config_widget_->move(QPoint(QCursor::pos().x()+5, QCursor::pos().y()+5));
+                circular_config_widget_->show();
+            }
+
             std::string pose_string = std::string("/circular_pose"); // one for each template
 
             // Add cartesian marker
@@ -1084,16 +1182,19 @@ void Base3DView::processContextMenu(int x, int y)
             pos.z = pose.pose.position.z;
 
             flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
-            marker.name  = std::string("Circular");
+            marker.name  = std::string("Center of Rotation");
             marker.topic = pose_string;
             marker.frame = base_frame_;
             marker.scale = 0.2;
             marker.point = pos;
             interactive_marker_add_pub_.publish(marker);
+
+            circular_center_ = pose.pose;
         }
         else if(((QMenu*)context_menu_selected_item_->parent())->title() == QString("Circular Motion") &&
                 context_menu_selected_item_->text() == QString("Remove Marker"))
         {
+            circular_config_widget_->hide();
 
             std_msgs::String topic;
             topic.data = std::string("/circular_pose");
@@ -1108,56 +1209,6 @@ void Base3DView::processContextMenu(int x, int y)
         }
     }
 }
-
-/*void Base3DView::addMarker(std::string label, unsigned char id, Ogre::Vector3 pos)
-{
-    //std::cout << "Adding template marker " << id << std::endl;
-
-    geometry_msgs::Point point;
-    point.x = pos.x;
-    point.y = pos.y;
-    point.z = pos.z;
-    flor_ocs_msgs::OCSInteractiveMarkerAdd marker_server_template;
-    std::string template_name = label;
-    if(template_name.size() > 5 && template_name.substr(template_name.size()-5,5) == ".mesh")
-        template_name = template_name.substr(0,template_name.size()-5);
-    marker_server_template.name  = std::string("Template ")+boost::to_string((unsigned int)id)+std::string("\n")+template_name;
-    marker_server_template.topic = template_pose_string;
-    marker_server_template.frame = fixed_frame_.toUtf8().constData();
-    marker_server_template.scale = 0.2;
-    marker_server_template.point = point;
-    interactive_marker_add_pub_.publish(marker_server_template);
-
-    // add the template pose publisher
-    template_pose_pub_list_.push_back( nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( pose_string, 1, false) );
-
-    // and subscribe to the template marker feedback loop
-    ros::Subscriber template_pose_sub = nh_.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
-    template_pose_sub_list_.push_back(template_pose_sub);
-    //std::cout << "subscribed to topic" << std::endl;
-}
-/*
-void Base3DView::processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose)
-{
-    publishTemplateUpdate(pose->template_id,pose->pose);
-
-    context_->queueRender();
-}
-
-void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
-{
-    std::string topic_name = msg->topic;
-    for(int i = 0; i < template_pose_pub_list_.size(); i++)
-    {
-        if(template_pose_pub_list_[i].getTopic() == topic_name)
-        {
-            flor_ocs_msgs::OCSTemplateUpdate out;
-            out.pose = msg->pose;
-            out.template_id = atoi(topic_name.erase(0,std::string("/template_pose_").size()).c_str());
-            template_pose_pub_list_[i].publish(out);
-        }
-    }
-}*/
 
 void Base3DView::removeTemplate(int id)
 {
@@ -1504,9 +1555,26 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_l_arm_ = false;
         moving_r_arm_ = false;
     }
-    else
+    else if(msg->topic.find("/cartesian_pose_") != std::string::npos)
     {
-        ROS_INFO("cartesian marker");
+        std::string id_str = msg->topic.substr(16);
+        try
+        {
+            int id = boost::lexical_cast<int>(id_str);
+            ROS_INFO("cartesian number %d",id);
+            if(id < cartesian_waypoint_list_.size())
+                cartesian_waypoint_list_[id] = joint_pose.pose;
+        }
+        catch(...)
+        {
+
+        }
+
+        return;
+    }
+    else if(msg->topic == "/circular_pose")
+    {
+        circular_center_ = joint_pose.pose;
         return;
     }
 
@@ -1822,6 +1890,92 @@ void Base3DView::clearMapRequests()
 rviz::ViewController* Base3DView::getCurrentViewController()
 {
      return manager_->getViewManager()->getCurrent();
+}
+
+void Base3DView::sendCartesianLeft()
+{
+    flor_planning_msgs::CartesianMotionRequest cmd;
+
+    cmd.header.frame_id = "/world";
+    cmd.header.stamp = ros::Time::now();
+
+    cmd.waypoints = cartesian_waypoint_list_;
+
+    cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
+
+    if(!ghost_planning_group_[2]) // torso selected in the ghost widget
+        cmd.planning_group = "l_arm_group";
+    else
+        cmd.planning_group = "l_arm_with_torso_group";
+
+    cartesian_plan_request_pub_.publish(cmd);
+}
+
+void Base3DView::sendCartesianRight()
+{
+    flor_planning_msgs::CartesianMotionRequest cmd;
+
+    cmd.header.frame_id = "/world";
+    cmd.header.stamp = ros::Time::now();
+
+    cmd.waypoints = cartesian_waypoint_list_;
+
+    cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
+
+    if(!ghost_planning_group_[2]) // torso selected in the ghost widget
+        cmd.planning_group = "r_arm_group";
+    else
+        cmd.planning_group = "r_arm_with_torso_group";
+
+    cartesian_plan_request_pub_.publish(cmd);
+}
+
+void Base3DView::sendCircularLeft()
+{
+    flor_planning_msgs::CircularMotionRequest cmd;
+
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = "/world";
+    pose.header.stamp = ros::Time::now();
+    pose.pose = circular_center_;
+    cmd.rotation_center_pose = pose;
+
+    cmd.rotation_angle = circular_angle_->value()*0.0174532925; // UI in deg, msg in rad
+
+    cmd.use_environment_obstacle_avoidance = circular_use_collision_->isChecked();
+
+    //cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
+
+    if(!ghost_planning_group_[2]) // torso selected in the ghost widget
+        cmd.planning_group = "l_arm_group";
+    else
+        cmd.planning_group = "l_arm_with_torso_group";
+
+    circular_plan_request_pub_.publish(cmd);
+}
+
+void Base3DView::sendCircularRight()
+{
+    flor_planning_msgs::CircularMotionRequest cmd;
+
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = "/world";
+    pose.header.stamp = ros::Time::now();
+    pose.pose = circular_center_;
+    cmd.rotation_center_pose = pose;
+
+    cmd.rotation_angle = circular_angle_->value()*0.0174532925; // UI in deg, msg in rad
+
+    cmd.use_environment_obstacle_avoidance = circular_use_collision_->isChecked();
+
+    //cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
+
+    if(!ghost_planning_group_[2]) // torso selected in the ghost widget
+        cmd.planning_group = "r_arm_group";
+    else
+        cmd.planning_group = "r_arm_with_torso_group";
+
+    circular_plan_request_pub_.publish(cmd);
 }
 
 bool Base3DView::eventFilter( QObject * o, QEvent * e )

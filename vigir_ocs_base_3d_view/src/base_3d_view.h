@@ -21,9 +21,11 @@
 #include <QBasicTimer>
 #include <QThread>
 #include <QMenu>
+#include <QCheckBox>
+#include <QDoubleSpinBox>
+
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
-
 #include <OGRE/OgreSceneManager.h>
 
 #include <ros/ros.h>
@@ -159,6 +161,11 @@ public Q_SLOTS:
 
     void clearPointCloudRequests();
     void clearMapRequests();
+
+    void sendCartesianLeft();
+    void sendCartesianRight();
+    void sendCircularLeft();
+    void sendCircularRight();
 
     virtual bool eventFilter( QObject * o, QEvent * e );
 
@@ -352,10 +359,22 @@ protected:
 
     bool is_primary_view_;
 
-    int cartesian_marker_count_;
     std::vector<rviz::Display*> cartesian_marker_list_;
     rviz::Display* circular_marker_;
 
+    std::vector<geometry_msgs::Pose> cartesian_waypoint_list_;
+    geometry_msgs::Pose circular_center_;
+
+    ros::Publisher cartesian_plan_request_pub_;
+    ros::Publisher circular_plan_request_pub_;
+
+    QWidget* cartesian_config_widget_;
+    QCheckBox* cartesian_use_collision_;
+
+    QWidget* circular_config_widget_;
+    QCheckBox* circular_use_collision_;
+    QCheckBox* circular_keep_orientation_;
+    QDoubleSpinBox* circular_angle_;
 };
 }
 #endif // BASE_3D_VIEW_H
