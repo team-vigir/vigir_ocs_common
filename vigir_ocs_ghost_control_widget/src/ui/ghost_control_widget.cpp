@@ -409,11 +409,11 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
         }
     }*/
 
-    if(key_event->key == 26 && key_event->state)
+    if(key_event->key == 26 && key_event->state && ctrl_is_pressed)
         on_send_left_configuration_button__clicked();
-    else if(key_event->key == 27 && key_event->state)
+    else if(key_event->key == 27 && key_event->state && ctrl_is_pressed)
         on_send_right_configuration_button__clicked();
-    else if(key_event->key == 41 && key_event->state)
+    else if(key_event->key == 41 && key_event->state && ctrl_is_pressed)
         on_send_upper_body_button__clicked();
 }
 
