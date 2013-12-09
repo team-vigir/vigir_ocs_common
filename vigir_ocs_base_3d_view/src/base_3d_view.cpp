@@ -495,7 +495,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
 
         circular_use_collision_ = new QCheckBox("Use Collision Avoidance");
 
-        circular_keep_orientation_ = new QCheckBox("Use Collision Avoidance");
+        circular_keep_orientation_ = new QCheckBox("Keep Endeffector Orientation");
+        circular_keep_orientation_->setEnabled(false);
 
         QLabel* circular_angle_label_ = new QLabel("Rotation");
         circular_angle_ = new QDoubleSpinBox();
