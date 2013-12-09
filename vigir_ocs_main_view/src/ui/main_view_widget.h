@@ -11,6 +11,7 @@
 #include <ros/ros.h>
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <std_msgs/Int8.h>
 
 namespace Ui
 {
@@ -32,7 +33,10 @@ public:
 public Q_SLOTS:
     void oneViewToggle();
     void fourViewToggle();
-    
+    void ft_sensorToggled(bool);
+    void zero_leftPressed();
+    void zero_rightPressed();
+
 private:
     Ui::MainViewWidget *ui;
 
@@ -49,6 +53,7 @@ private:
     ros::NodeHandle n_;
 
     ros::Subscriber key_event_sub_;
+    ros::Publisher ft_zero_pub_;
 
 };
 
