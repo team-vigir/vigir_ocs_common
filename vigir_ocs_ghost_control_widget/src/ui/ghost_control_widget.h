@@ -22,6 +22,7 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Bool.h>
 #include <ros/ros.h>
+#include <tf/tf.h>
 
 namespace rviz
 {
@@ -45,6 +46,9 @@ public:
     void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list);
     void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
     void publishState( bool snap=false );
+    void initPoseDB();
+    void initTemplateIdMap();
+    int calcTargetPose(const geometry_msgs::Pose& pose_1, const geometry_msgs::Pose& pose_2, geometry_msgs::Pose& pose_result);
 
     void saveState();
     void loadState(std::vector<unsigned char> planning_group=saved_state_planning_group_,
@@ -95,10 +99,14 @@ private Q_SLOTS:
     void on_right_moveit_marker_lock_clicked();
     void on_pushButton_clicked();
     void on_pushButton_2_clicked();
+    void on_send_ghost_to_template_button_clicked();
+    void on_templateBox_activated(const QString &arg1);
+    void on_graspBox_activated(const QString &arg1);
 
 private:
 
     std::string getGroupNameForSettings(const std::vector<unsigned char>& settings);
+    std::vector< std::vector<QString> > readTextDBFile(QString path);
 
     Ui::GhostControlWidget* ui;
 
@@ -111,6 +119,7 @@ private:
     ros::Publisher reset_pelvis_pub_;
     ros::Publisher send_pelvis_pub_;
     ros::Publisher send_inverse_rechability_req_pub_;
+    ros::Publisher send_ghost_to_template_pub_;
 
     // variables that hold saved state of the widget
     static std::vector<unsigned char> saved_state_planning_group_;
@@ -119,6 +128,31 @@ private:
     static unsigned char saved_state_collision_avoidance_;
     static unsigned char saved_state_lock_pelvis_;
     static unsigned char saved_state_position_only_ik_;
+
+    flor_ocs_msgs::OCSTemplateList last_template_list_;
+    int selected_template_id_;
+    int selected_grasp_id_;
+    QString template_dir_path_;
+    QString pose_db_path_;
+    QString template_id_db_path_;
+
+    std::map<unsigned char,std::string> template_id_map_;
+    typedef struct
+    {
+        unsigned short pose_id;
+        unsigned char template_type;
+        std::string template_name;
+        geometry_msgs::Pose ghost_pose;
+    } PoseDBItem;
+    std::vector<PoseDBItem> pose_db_;
+
+    typedef struct
+    {
+        unsigned char        template_type;
+        geometry_msgs::Point com;
+        float                mass;
+    } TemplateDBItem;
+    std::vector<TemplateDBItem> template_db_;
 
     QBasicTimer timer;
 

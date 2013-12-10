@@ -18,7 +18,9 @@ unsigned char GhostControlWidget::saved_state_lock_pelvis_;
 unsigned char GhostControlWidget::saved_state_position_only_ik_;
 
 GhostControlWidget::GhostControlWidget(QWidget *parent) :
-    QWidget(parent),
+    QWidget(parent)
+    , selected_template_id_(-1)
+    , selected_grasp_id_(-1),
     ui(new Ui::GhostControlWidget)
 {    
     ui->setupUi(this);
@@ -42,9 +44,21 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
 
     send_inverse_rechability_req_pub_ = nh_.advertise<flor_grasp_msgs::InverseReachabilityForGraspRequest>( "/flor/ocs/planning/inverse_rechability_for_grasp", 1, false );
 
+    send_ghost_to_template_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/planning/ghost_to_template_pose", 1, false );
+
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &GhostControlWidget::processNewKeyEvent, this );
 
     timer.start(33, this);
+
+    std::string templatePath = (ros::package::getPath("templates"))+"/";
+    std::cout << "--------------<" << templatePath << ">\n" << std::endl;
+    template_dir_path_ = QString(templatePath.c_str());
+    template_id_db_path_ = template_dir_path_+QString("grasp_templates.txt");
+    pose_db_path_ = template_dir_path_+QString("ghost_poses.csv");
+
+    // read from databases
+    initTemplateIdMap();
+    initPoseDB();
 
     //ui->position_only_ik_->hide();
 }
@@ -71,6 +85,108 @@ void GhostControlWidget::processState(const flor_ocs_msgs::OCSGhostControl::Cons
 
     // save as the last used state
     saveState();
+}
+
+void GhostControlWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list)
+{
+    //std::cout << "Template list received containing " << list->template_id_list.size() << " elements" << std::cout;
+    // save last template list
+    last_template_list_ = *list;
+
+    // enable boxes and buttons
+    if(list->template_list.size() > 0)
+    {
+        ui->templateBox->setDisabled(false);
+        ui->graspBox->setDisabled(false);
+        ui->send_ghost_to_template_button->setDisabled(false);
+    }
+
+    bool was_empty = ui->templateBox->count() == 0 ? true : false;
+
+    QString currentItem = ui->templateBox->currentText();
+    //ui->templateBox->clear();
+
+    // populate template combobox
+    for(int i = 0; i < list->template_list.size(); i++)
+    {
+        // remove the .mesh string from the template name
+        std::string templateName = list->template_list[i];
+        if(templateName.size() > 5 && templateName.substr(templateName.size()-5,5) == ".mesh")
+            templateName = templateName.substr(0,templateName.size()-5);
+        // add the template
+        std::stringstream templateIDlist;
+        templateIDlist << list->template_id_list[i];
+        templateName = templateIDlist.str()+std::string(": ")+templateName;
+
+        //std::cout << "template item " << (int)list->template_id_list[i] << " has name " << templateName << std::endl;
+
+        // add the template to the box if it doesn't exist
+        if(ui->templateBox->count() < i+1)
+        {
+            ui->templateBox->addItem(QString::fromStdString(templateName));
+        } // update existing templates
+        else if( ui->templateBox->itemText(i).toStdString() != templateName)
+        {
+            ui->templateBox->setItemText(i,QString::fromStdString(templateName));
+        }
+    }
+
+    for(int i = list->template_list.size(); i < ui->templateBox->count(); i++)
+        ui->templateBox->removeItem(i);
+
+    if(selected_template_id_ != -1 && ui->templateBox->findText(currentItem) == -1)
+    {
+        ui->graspBox->clear();
+        selected_template_id_ = -1;
+        selected_grasp_id_ = -1;
+        ui->graspBox->setEnabled(false);
+    }
+    else
+    {
+        if(was_empty && ui->templateBox->count() > 0)
+        {
+            //ROS_ERROR("Seleting template 0");
+            ui->templateBox->setCurrentIndex(0);
+            on_templateBox_activated(ui->templateBox->itemText(0));
+            selected_template_id_ = 0;
+        }
+    }
+}
+
+void GhostControlWidget::on_templateBox_activated(const QString &arg1)
+{
+    // update the selected template id
+    QString template_id = ui->templateBox->currentText();
+    template_id.remove(template_id.indexOf(": "),template_id.length()-template_id.indexOf(": "));
+    selected_template_id_ = template_id.toInt();
+
+    std::cout << "updating the ghost widget pose selection box contents" << std::endl;
+    // clean grasp box
+    ui->graspBox->clear();
+    selected_grasp_id_ = -1;
+
+    // add grasps to the grasp combo box
+    for(int index = 0; index < pose_db_.size(); index++)
+    {
+        QString tmp = arg1;
+        tmp.remove(0,tmp.indexOf(": ")+2);
+        std::cout << "comparing db " << pose_db_[index].template_name << " to " << tmp.toStdString() << std::endl;
+
+        if(pose_db_[index].template_name == tmp.toStdString())
+        {
+            std::cout << "Found pose for template" << std::endl;
+            ui->graspBox->addItem(QString::number(pose_db_[index].pose_id));
+        }
+    }
+
+    if(ui->templateBox->count() > 0)
+        selected_grasp_id_ = ui->graspBox->itemText(0).toInt();
+}
+
+void GhostControlWidget::on_graspBox_activated(const QString &arg1)
+{
+    std::cout << " pose selection = " << arg1.toStdString() << std::endl;
+    selected_grasp_id_ = arg1.toInt();
 }
 
 void GhostControlWidget::publishState( bool snap )
@@ -464,4 +580,152 @@ std::string GhostControlWidget::getGroupNameForSettings(const std::vector<unsign
       return "both_arms_with_torso_group";
 
   return "INVALID_GROUP";
+}
+
+void GhostControlWidget::on_send_ghost_to_template_button_clicked()
+{
+//    std_msgs::String cmd;
+
+//    cmd.data = "l_arm_group";
+
+//    set_to_target_pose_pub_.publish(cmd);
+    unsigned int pose_index;
+    for(pose_index = 0; pose_index < pose_db_.size(); pose_index++)
+        if(pose_db_[pose_index].pose_id == selected_grasp_id_)
+            break;
+
+    if(pose_index == pose_db_.size()){
+        ROS_ERROR("Pose not found in database");
+    }
+    else
+    {
+        if(send_ghost_to_template_pub_)
+        {
+        geometry_msgs::PoseStamped pose;
+        pose.header.frame_id = "/world";
+        pose.header.stamp = ros::Time::now();
+        calcTargetPose(last_template_list_.pose[ui->templateBox->currentIndex()].pose,
+                       pose_db_[pose_index].ghost_pose,
+                       pose.pose);
+        send_ghost_to_template_pub_.publish(pose);
+        }
+        else{
+            ROS_ERROR("No Publisher for ghost to template pose");
+        }
+    }
+}
+
+// will return a vector with rows, each row containing a QStringList with all columns
+std::vector< std::vector<QString> > GhostControlWidget::readTextDBFile(QString path)
+{
+    std::vector< std::vector<QString> > ret;
+    QFile file(path);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QTextStream in(&file);
+        while (!in.atEnd())
+        {
+            QString line = in.readLine();
+            if(line[0] != '#')
+            {
+                std::vector<QString> row;
+                QStringList strings;
+                strings = line.split(",");
+                // remove whitespaces
+                for(int i = 0; i < strings.size(); i++)
+                {
+                    QString str = strings.at(i);
+                    str.replace(" ","");
+                    row.push_back(str);
+                }
+                ret.push_back(row);
+            }
+        }
+    }
+    return ret;
+}
+
+void GhostControlWidget::initPoseDB()
+{
+    std::vector< std::vector<QString> > db = readTextDBFile(pose_db_path_);
+    for(int i = 0; i < db.size(); i++)
+    {
+        bool ok;
+        // [0] grasp id, [1] template type, [2] hand, [3] initial grasp type, [4] DISCARD, [5-16] finger joints (12), [17] DISCARD, [18-24] final grasp pose relative to template (x,y,z,qx,qy,qz,qw), [25] DISCARD, [26-32] pre-grasp pose relative to template (x,y,z,qx,qy,qz,qw)
+        PoseDBItem pose;
+        //std::cout << "-> Adding grasp to grasp DB" << std::endl;
+        pose.pose_id = db[i][0].toUInt(&ok, 10) & 0x0000ffff;
+        std::cout << "id: " << (unsigned int)pose.pose_id << std::endl;
+
+        pose.template_type = db[i][1].toUInt(&ok, 10) & 0x000000ff;
+        std::cout << "template type: " << (unsigned int)pose.template_type << std::endl;
+
+        pose.template_name = template_id_map_.find(pose.template_type)->second;
+        std::cout << "template name: " << pose.template_name << std::endl;
+        //std::cout << std::endl;
+
+        pose.ghost_pose.position.x = db[i][2].toFloat(&ok);
+        pose.ghost_pose.position.y = db[i][3].toFloat(&ok);
+        pose.ghost_pose.position.z = db[i][4].toFloat(&ok);
+        pose.ghost_pose.orientation.w = db[i][5].toFloat(&ok);
+        pose.ghost_pose.orientation.x = db[i][6].toFloat(&ok);
+        pose.ghost_pose.orientation.y = db[i][7].toFloat(&ok);
+        pose.ghost_pose.orientation.z = db[i][8].toFloat(&ok);
+        pose_db_.push_back(pose);
+    }
+}
+
+void GhostControlWidget::initTemplateIdMap()
+{
+    std::vector< std::vector<QString> > db = readTextDBFile(template_id_db_path_);
+
+    for(int i = 0; i < db.size(); i++)
+    {
+        TemplateDBItem template_item;
+        bool ok;
+        unsigned char id = db[i][0].toUInt(&ok, 10) & 0x000000ff;
+        std::string templatePath(db[i][1].toUtf8().constData());
+        std::cout << "-> Adding template (" << templatePath << ") to id (" << (unsigned int)id << ") map" << std::endl;
+        template_id_map_.insert(std::pair<unsigned char,std::string>(id,templatePath));
+        geometry_msgs::Point com ;
+        com.x = db[i][8].toFloat(&ok);
+        com.y = db[i][9].toFloat(&ok);
+        com.z = db[i][10].toFloat(&ok);
+        double mass = db[i][11].toFloat(&ok);
+        template_item.com  = com;
+        template_item.mass = mass;
+        template_item.template_type = id;
+        template_db_.push_back(template_item);
+    }
+}
+
+int GhostControlWidget::calcTargetPose(const geometry_msgs::Pose& pose_1, const geometry_msgs::Pose& pose_2, geometry_msgs::Pose& pose_result)
+{
+    // Transform wrist_pose into the template pose frame
+    //   @TODO        "wrist_target_pose.pose   = T(template_pose)*wrist_pose";
+    tf::Transform tf_pose_1;
+    tf::Transform tf_pose_2;
+    tf::Transform tf_pose_result;
+
+    tf_pose_1.setRotation(tf::Quaternion(pose_1.orientation.x,pose_1.orientation.y,pose_1.orientation.z,pose_1.orientation.w));
+    tf_pose_1.setOrigin(tf::Vector3(pose_1.position.x,pose_1.position.y,pose_1.position.z) );
+    tf_pose_2.setRotation(tf::Quaternion(pose_2.orientation.x,pose_2.orientation.y,pose_2.orientation.z,pose_2.orientation.w));
+    tf_pose_2.setOrigin(tf::Vector3(pose_2.position.x,pose_2.position.y,pose_2.position.z) );
+
+    tf_pose_result = tf_pose_1 * tf_pose_2;
+
+    tf::Quaternion pose_result_quat;
+    tf::Vector3    pose_result_vector;
+    pose_result_quat   = tf_pose_result.getRotation();
+    pose_result_vector = tf_pose_result.getOrigin();
+
+    pose_result.orientation.w = pose_result_quat.getW();
+    pose_result.orientation.x = pose_result_quat.getX();
+    pose_result.orientation.y = pose_result_quat.getY();
+    pose_result.orientation.z = pose_result_quat.getZ();
+
+    pose_result.position.x = pose_result_vector.getX();
+    pose_result.position.y = pose_result_vector.getY();
+    pose_result.position.z = pose_result_vector.getZ();
+    return 0;
 }
