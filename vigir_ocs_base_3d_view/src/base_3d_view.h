@@ -127,6 +127,7 @@ public Q_SLOTS:
     void lidarPointCloudToggled( bool );
     void stereoPointCloudToggled( bool );
     void laserScanToggled( bool );
+    void ft_sensorToggled( bool );
     void markerArrayToggled( bool );
     void gridMapToggled( bool );
     void footstepPlanningToggled( bool );
@@ -220,6 +221,8 @@ protected:
     rviz::Display* goal_pose_step_;
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
+    rviz::Display* footsteps_path_body_array_;
+
     rviz::Display* left_ft_sensor_;
     rviz::Display* right_ft_sensor_;
 
