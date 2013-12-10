@@ -2047,6 +2047,7 @@ void Base3DView::sendCircularLeft()
     pose.pose = circular_center_;
 
     // calculating the rotation based on position of the markers
+    if(circular_keep_orientation_->isChecked())
     {
     // get position of the wrist in world coordinates
     Ogre::Vector3 wrist_position(0,0,0);
@@ -2105,6 +2106,7 @@ void Base3DView::sendCircularRight()
     pose.pose = circular_center_;
 
     // calculating the rotation based on position of the markers
+    if(circular_keep_orientation_->isChecked())
     {
     // get position of the wrist in world coordinates
     Ogre::Vector3 wrist_position(0,0,0);
