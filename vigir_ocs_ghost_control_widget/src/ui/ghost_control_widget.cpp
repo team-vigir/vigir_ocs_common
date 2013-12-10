@@ -9,6 +9,7 @@
 #include <QSignalMapper>
 
 #include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
+#include <boost/exception/to_string.hpp>
 
 std::vector<unsigned char> GhostControlWidget::saved_state_planning_group_;
 std::vector<unsigned char> GhostControlWidget::saved_state_pose_source_;
@@ -114,9 +115,7 @@ void GhostControlWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateLi
         if(templateName.size() > 5 && templateName.substr(templateName.size()-5,5) == ".mesh")
             templateName = templateName.substr(0,templateName.size()-5);
         // add the template
-        std::stringstream templateIDlist;
-        templateIDlist << list->template_id_list[i];
-        templateName = templateIDlist.str()+std::string(": ")+templateName;
+        templateName = boost::to_string((int)list->template_id_list[i])+std::string(": ")+templateName;
 
         //std::cout << "template item " << (int)list->template_id_list[i] << " has name " << templateName << std::endl;
 
