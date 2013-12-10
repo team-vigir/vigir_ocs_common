@@ -1961,8 +1961,8 @@ void Base3DView::sendCartesianLeft()
     // calculate the difference between them
     Ogre::Vector3 diff_vector;
     diff_vector.x = marker.pose.position.x - wrist_position.x;
-    diff_vector.y = marker.pose.position.x - wrist_position.y;
-    diff_vector.z = marker.pose.position.x - wrist_position.z;
+    diff_vector.y = marker.pose.position.y - wrist_position.y;
+    diff_vector.z = marker.pose.position.z - wrist_position.z;
 
     for(int i = 0; i < cmd.waypoints.size(); i++)
     {
@@ -2013,8 +2013,8 @@ void Base3DView::sendCartesianRight()
     // calculate the difference between them
     Ogre::Vector3 diff_vector;
     diff_vector.x = marker.pose.position.x - wrist_position.x;
-    diff_vector.y = marker.pose.position.x - wrist_position.y;
-    diff_vector.z = marker.pose.position.x - wrist_position.z;
+    diff_vector.y = marker.pose.position.y - wrist_position.y;
+    diff_vector.z = marker.pose.position.z - wrist_position.z;
 
     for(int i = 0; i < cmd.waypoints.size(); i++)
     {
@@ -2067,8 +2067,8 @@ void Base3DView::sendCircularLeft()
     // calculate the difference between them
     Ogre::Vector3 diff_vector;
     diff_vector.x = marker.pose.position.x - wrist_position.x;
-    diff_vector.y = marker.pose.position.x - wrist_position.y;
-    diff_vector.z = marker.pose.position.x - wrist_position.z;
+    diff_vector.y = marker.pose.position.y - wrist_position.y;
+    diff_vector.z = marker.pose.position.z - wrist_position.z;
 
     // apply the difference to the circular center
     pose.pose.position.x = circular_center_.position.x - diff_vector.x;
@@ -2125,8 +2125,8 @@ void Base3DView::sendCircularRight()
     // calculate the difference between them
     Ogre::Vector3 diff_vector;
     diff_vector.x = marker.pose.position.x - wrist_position.x;
-    diff_vector.y = marker.pose.position.x - wrist_position.y;
-    diff_vector.z = marker.pose.position.x - wrist_position.z;
+    diff_vector.y = marker.pose.position.y - wrist_position.y;
+    diff_vector.z = marker.pose.position.z - wrist_position.z;
 
     // apply the difference to the circular center
     pose.pose.position.x = circular_center_.position.x - diff_vector.x;
