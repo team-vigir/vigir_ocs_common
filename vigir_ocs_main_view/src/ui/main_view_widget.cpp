@@ -159,6 +159,12 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     displays_layout->setMargin(0);
     displays_layout->addWidget(displays_panel);
     ui->rviz_options->setLayout(displays_layout);
+
+    QObject::connect(ui->ft_sensor, SIGNAL(toggled(bool)), this, SLOT(ft_sensorToggled(bool)));
+    QObject::connect(ui->zero_left, SIGNAL(pressed()), this, SLOT(zero_leftPressed()));
+    QObject::connect(ui->zero_right, SIGNAL(pressed()), this, SLOT(zero_rightPressed()));
+
+    ft_zero_pub_ = n_.advertise<std_msgs::Int8>("/flor/controller/zero_hand_wrench",1,false);
 }
 
 MainViewWidget::~MainViewWidget()
@@ -244,4 +250,29 @@ void MainViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstP
     // ctrl
     //key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
 
+}
+
+void MainViewWidget::ft_sensorToggled(bool toggled){
+    ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->ft_sensorToggled(toggled);
+}
+
+void MainViewWidget::zero_leftPressed(){
+    if(ft_zero_pub_){
+        std_msgs::Int8 msg;
+        msg.data = -1;
+        ft_zero_pub_.publish(msg);
+    }
+    else{
+        ROS_ERROR("No publisher for Zero F/T Wrench");
+    }
+}
+void MainViewWidget::zero_rightPressed(){
+    if(ft_zero_pub_){
+        std_msgs::Int8 msg;
+        msg.data = 1;
+        ft_zero_pub_.publish(msg);
+    }
+    else{
+        ROS_ERROR("No publisher for Zero F/T Wrench");
+    }
 }

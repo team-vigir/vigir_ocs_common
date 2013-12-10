@@ -66,6 +66,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
     , moving_r_arm_(false)
     , left_marker_moveit_loopback_(true)
     , right_marker_moveit_loopback_(true)
+    , position_only_ik_(false)
     , visualize_grid_map_(true)
     , initializing_context_menu_(0)
     , circular_marker_(0)
@@ -241,13 +242,13 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         planned_path_ = manager_->createDisplay( "rviz/Path", "Planned path", true );
         planned_path_->subProp( "Topic" )->setValue( "/flor/walk_monitor/path" );
 
-        left_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Left F/T sensor", true);
+        left_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Left F/T sensor", false);
         left_ft_sensor_->subProp("Topic")->setValue("/flor/l_hand/force_torque_sensor");
         left_ft_sensor_->subProp("Alpha")->setValue(0.5);
         left_ft_sensor_->subProp("Arrow Scale")->setValue(0.01);
         left_ft_sensor_->subProp("Arrow Width")->setValue(0.3);
 
-        right_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Right F/T sensor", true);
+        right_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Right F/T sensor", false);
         right_ft_sensor_->subProp("Topic")->setValue("/flor/r_hand/force_torque_sensor");
         right_ft_sensor_->subProp("Alpha")->setValue(0.5);
         right_ft_sensor_->subProp("Arrow Scale")->setValue(0.01);
@@ -703,6 +704,12 @@ void Base3DView::stereoPointCloudToggled( bool selected )
 void Base3DView::laserScanToggled( bool selected )
 {
     laser_scan_->setEnabled( selected );
+}
+
+void Base3DView::ft_sensorToggled(bool selected )
+{
+    left_ft_sensor_->setEnabled( selected );
+    right_ft_sensor_->setEnabled( selected );
 }
 
 void Base3DView::markerArrayToggled( bool selected )
@@ -1698,7 +1705,8 @@ void Base3DView::publishGhostPoses()
     else if(left && right && torso)
         cmd.planning_group.data = "both_arms_with_torso_group";
 
-    if(position_only_ik_)
+    // IK not possible for multi appendage (non-chain) groups
+    if(position_only_ik_ && !(left && right && torso) && !(left && right && !torso))
         cmd.planning_group.data += "_position_only_ik";
 
     if(left || right)

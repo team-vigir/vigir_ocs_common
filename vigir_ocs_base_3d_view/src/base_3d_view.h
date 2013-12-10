@@ -127,6 +127,7 @@ public Q_SLOTS:
     void lidarPointCloudToggled( bool );
     void stereoPointCloudToggled( bool );
     void laserScanToggled( bool );
+    void ft_sensorToggled( bool );
     void markerArrayToggled( bool );
     void gridMapToggled( bool );
     void footstepPlanningToggled( bool );
