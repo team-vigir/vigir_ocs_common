@@ -538,6 +538,8 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
         on_send_right_configuration_button__clicked();
     else if(key_event->key == 41 && key_event->state && ctrl_is_pressed)
         on_send_upper_body_button__clicked();
+    else if(key_event->key == 39 && key_event->state && ctrl_is_pressed)
+        snapClicked();
 }
 
 void GhostControlWidget::on_left_moveit_marker_lock_clicked()
