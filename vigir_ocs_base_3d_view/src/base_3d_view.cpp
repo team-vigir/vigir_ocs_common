@@ -227,6 +227,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         footsteps_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps array", true );
         footsteps_array_->subProp( "Marker Topic" )->setValue( "/flor/walk_monitor/footsteps_array" );
 
+        footsteps_path_body_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps Path Body", true );
+        footsteps_path_body_array_->subProp( "Marker Topic" )->setValue( "/flor/walk_monitor/footsteps_path_body_array" );
+
         goal_pose_walk_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
         goal_pose_walk_->subProp( "Topic" )->setValue( "/goal_pose_walk" );
         goal_pose_walk_->subProp( "Shape" )->setValue( "Axes" );
