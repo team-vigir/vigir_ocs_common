@@ -1960,16 +1960,16 @@ void Base3DView::sendCartesianLeft()
 
     // calculate the difference between them
     Ogre::Vector3 diff_vector;
-    diff_vector.x = marker.pose.position.x - wrist_position.x;
-    diff_vector.y = marker.pose.position.y - wrist_position.y;
-    diff_vector.z = marker.pose.position.z - wrist_position.z;
+    diff_vector.x = wrist_position.x - marker.pose.position.x;
+    diff_vector.y = wrist_position.y - marker.pose.position.y;
+    diff_vector.z = wrist_position.z - marker.pose.position.z;
 
     for(int i = 0; i < cmd.waypoints.size(); i++)
     {
         // apply the difference to each one of the waypoints
-        cmd.waypoints[i].position.x = circular_center_.position.x - diff_vector.x;
-        cmd.waypoints[i].position.y = circular_center_.position.y - diff_vector.y;
-        cmd.waypoints[i].position.z = circular_center_.position.z - diff_vector.z;
+        cmd.waypoints[i].position.x = cmd.waypoints[i].position.x + diff_vector.x;
+        cmd.waypoints[i].position.y = cmd.waypoints[i].position.y + diff_vector.y;
+        cmd.waypoints[i].position.z = cmd.waypoints[i].position.z + diff_vector.z;
     }
 
     cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
@@ -2012,16 +2012,16 @@ void Base3DView::sendCartesianRight()
 
     // calculate the difference between them
     Ogre::Vector3 diff_vector;
-    diff_vector.x = marker.pose.position.x - wrist_position.x;
-    diff_vector.y = marker.pose.position.y - wrist_position.y;
-    diff_vector.z = marker.pose.position.z - wrist_position.z;
+    diff_vector.x = wrist_position.x - marker.pose.position.x;
+    diff_vector.y = wrist_position.y - marker.pose.position.y;
+    diff_vector.z = wrist_position.z - marker.pose.position.z;
 
     for(int i = 0; i < cmd.waypoints.size(); i++)
     {
         // apply the difference to each one of the waypoints
-        cmd.waypoints[i].position.x = circular_center_.position.x - diff_vector.x;
-        cmd.waypoints[i].position.y = circular_center_.position.y - diff_vector.y;
-        cmd.waypoints[i].position.z = circular_center_.position.z - diff_vector.z;
+        cmd.waypoints[i].position.x = cmd.waypoints[i].position.x + diff_vector.x;
+        cmd.waypoints[i].position.y = cmd.waypoints[i].position.y + diff_vector.y;
+        cmd.waypoints[i].position.z = cmd.waypoints[i].position.z + diff_vector.z;
     }
 
     cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
@@ -2066,14 +2066,14 @@ void Base3DView::sendCircularLeft()
 
     // calculate the difference between them
     Ogre::Vector3 diff_vector;
-    diff_vector.x = marker.pose.position.x - wrist_position.x;
-    diff_vector.y = marker.pose.position.y - wrist_position.y;
-    diff_vector.z = marker.pose.position.z - wrist_position.z;
+    diff_vector.x = wrist_position.x - marker.pose.position.x;
+    diff_vector.y = wrist_position.y - marker.pose.position.y;
+    diff_vector.z = wrist_position.z - marker.pose.position.z;
 
     // apply the difference to the circular center
-    pose.pose.position.x = circular_center_.position.x - diff_vector.x;
-    pose.pose.position.y = circular_center_.position.y - diff_vector.y;
-    pose.pose.position.z = circular_center_.position.z - diff_vector.z;
+    pose.pose.position.x = circular_center_.position.x + diff_vector.x;
+    pose.pose.position.y = circular_center_.position.y + diff_vector.y;
+    pose.pose.position.z = circular_center_.position.z + diff_vector.z;
     }
 
     cmd.rotation_center_pose = pose;
@@ -2124,14 +2124,14 @@ void Base3DView::sendCircularRight()
 
     // calculate the difference between them
     Ogre::Vector3 diff_vector;
-    diff_vector.x = marker.pose.position.x - wrist_position.x;
-    diff_vector.y = marker.pose.position.y - wrist_position.y;
-    diff_vector.z = marker.pose.position.z - wrist_position.z;
+    diff_vector.x = wrist_position.x - marker.pose.position.x;
+    diff_vector.y = wrist_position.y - marker.pose.position.y;
+    diff_vector.z = wrist_position.z - marker.pose.position.z;
 
     // apply the difference to the circular center
-    pose.pose.position.x = circular_center_.position.x - diff_vector.x;
-    pose.pose.position.y = circular_center_.position.y - diff_vector.y;
-    pose.pose.position.z = circular_center_.position.z - diff_vector.z;
+    pose.pose.position.x = circular_center_.position.x + diff_vector.x;
+    pose.pose.position.y = circular_center_.position.y + diff_vector.y;
+    pose.pose.position.z = circular_center_.position.z + diff_vector.z;
     }
 
     cmd.rotation_center_pose = pose;
