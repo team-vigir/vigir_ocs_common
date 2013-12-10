@@ -481,9 +481,24 @@
       <string>Move ghost to Template control</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="margin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QWidget" name="widget_5" native="true">
         <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>9</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
          <item>
           <widget class="QLabel" name="label">
            <property name="text">
@@ -520,7 +535,7 @@
            </property>
           </spacer>
          </item>
-         <item alignment="Qt::AlignRight">
+         <item>
           <widget class="QLabel" name="label_2">
            <property name="text">
             <string>Poses</string>
@@ -546,11 +561,11 @@
         </layout>
         <zorder>graspBox</zorder>
         <zorder>templateBox</zorder>
-        <zorder>label_2</zorder>
         <zorder>horizontalSpacer_4</zorder>
         <zorder>horizontalSpacer_5</zorder>
         <zorder>label</zorder>
         <zorder>horizontalSpacer_3</zorder>
+        <zorder>label_2</zorder>
        </widget>
       </item>
       <item>
