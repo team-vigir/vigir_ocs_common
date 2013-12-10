@@ -4,6 +4,7 @@
 #include "flor_ocs_msgs/RobotStatusCodes.h"
 #include <QRegExp>
 #include <urdf/model.h>
+#include<QColor>
 
 
 glancehubsbar::glancehubsbar(QWidget *parent) :
@@ -11,40 +12,28 @@ glancehubsbar::glancehubsbar(QWidget *parent) :
     ui(new Ui::glancehubsbar)
 {
     ui->setupUi(this);
+    //this->setMouseTracking(true);
     ros::NodeHandle nh;
     controlMode_sub = nh.subscribe<flor_control_msgs::FlorControlModeCommand>("/flor/controller/mode_command",5,&glancehubsbar::controlModeMsgRcv, this);
     robotStatusMoveit_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/planning/upper_body/status",2,&glancehubsbar::robotStatusMoveit,this);
     robotStatusFootstep_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/footstep_planner/status",2,&glancehubsbar::robotStatusFootstep,this);
-    ui->errorbutton->setStyleSheet(" background-color: red");
-    ui->warnbutton->setStyleSheet(" background-color: yellow");
-    warnwidget = new QWidget();
-    errorwidget = new QWidget();
-    warntable = new QTableWidget();
-    errortable = new QTableWidget();
-    warnwidget->hide();
-    errorwidget->hide();
-    QHBoxLayout *hlay1 = new QHBoxLayout();
-    hlay1->addWidget(warntable);
-    warnwidget->setLayout(hlay1);
-    QHBoxLayout *hlay2 = new QHBoxLayout();
-    hlay2->addWidget(errortable);
-    errorwidget->setLayout(hlay2);
-    std::cout << "Adding layout..." << std::endl;
-    warntable->setColumnCount(1);
-    warntable->setColumnWidth(0,200);
-    QStringList labels1;
-    labels1.push_back("Warning Joints:");
-    warntable->setHorizontalHeaderLabels(labels1);
-    errortable->setColumnCount(1);
-    errortable->setColumnWidth(0,200);
-    QStringList labels2;
-    labels2.push_back("Faulty Joints:");
-    errortable->setHorizontalHeaderLabels(labels2);
-    item = new QTableWidgetItem();
-    //setLayout(main_layout);
+
+
+
 
     QStringList columns;
-
+    warnerrwidget = new QWidget();
+    warnerrtable = new QTableWidget();
+    warnerrwidget->hide();
+    QHBoxLayout *hlay1 = new QHBoxLayout();
+    hlay1->addWidget(warnerrtable);
+    warnerrwidget->setLayout(hlay1);
+    warnerrtable->setColumnCount(1);
+    warnerrtable->setColumnWidth(0,200);
+    QStringList labels1;
+    labels1.push_back("Warning/Faulty Joints:");
+    warnerrtable->setHorizontalHeaderLabels(labels1);
+    item = new QTableWidgetItem();
 
     //Torso Joints
 
@@ -170,6 +159,7 @@ void glancehubsbar::updateList( const sensor_msgs::JointState::ConstPtr& joint_s
 {
     warn = 0;
     err = 0;
+    QColor color;
     //for(int i=0;i<joint_states->name.size(); i++)
     //joints[i].setStylesheet->parent()->setBackground(0,Qt::white);
     for(int i=0;i<joint_states->name.size(); i++)
@@ -187,11 +177,13 @@ void glancehubsbar::updateList( const sensor_msgs::JointState::ConstPtr& joint_s
         if(joint_states->position[i] <= warnMin*downPoseLimit[i])
         {
             warn++;
-
-            ui->warnbutton->setText("Joint warning:"+QString::number(warn));
-            item->setText(joints[i]);
-            warntable->insertRow(0);
-            warntable->setItem(0,0,item);
+            if(warn>0)
+                ui->warn->setStyleSheet("QLabel { background-color : yellow;}");
+            //ui->warnbutton->setText("Joint warning:"+QString::number(warn));
+            //item->setText(joints[i]);
+            //item->setTextColor(color.yellow());
+            //warnerrtable->insertRow(0);
+            //warnerrtable->setItem(0,0,item);
             /*joints[i]->setBackgroundColor(0,Qt::yellow);
             joints[i]->setBackgroundColor(1,Qt::yellow);
             if(joints[i]->parent()->background(0) != Qt::red)
@@ -203,11 +195,18 @@ void glancehubsbar::updateList( const sensor_msgs::JointState::ConstPtr& joint_s
         {
             warn--;
             err++;
-            ui->errorbutton->setText("Joint Warning"+QString::number(err));
-            ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
-            item->setText(joints[i]);
-            errortable->insertRow(0);
-            errortable->setItem(0,0,item);
+            if(warn>0)
+                ui->warn->setStyleSheet("QLabel { background-color : yellow;}");
+            if(warn<=0)
+                ui->warn->setStyleSheet("QLabel { background-color : white;}");
+            if(err>0)
+                ui->fault->setStyleSheet("QLabel { background-color : red;}");
+            //ui->errorbutton->setText("Joint Warning"+QString::number(err));
+            //ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
+           /* item->setText(joints[i]);
+            item->setTextColor(color.red());
+            warnerrtable->insertRow(0);
+            warnerrtable->setItem(0,0,item);
            /* joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(1,Qt::red);
             joints[i]->parent()->setBackgroundColor(0,Qt::red);*/
@@ -216,10 +215,16 @@ void glancehubsbar::updateList( const sensor_msgs::JointState::ConstPtr& joint_s
         if(joint_states->position[i] >= warnMin*upPoseLimit[i])
         {
             warn++;
-            ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
-            item->setText(joints[i]);
-            warntable->insertRow(0);
-            warntable->setItem(0,0,item);
+            if(warn>0)
+                ui->warn->setStyleSheet("QLabel { background-color : yellow;}");
+            /*item->setText(joints[i]);
+            item->setTextColor(color.yellow());
+            warnerrtable->insertRow(0);
+            warnerrtable->setItem(0,0,item);
+            //ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
+            //item->setText(joints[i]);
+            //warntable->insertRow(0);
+           // warntable->setItem(0,0,item);
 
             /*joints[i]->setBackgroundColor(0,Qt::yellow);
             joints[i]->setBackgroundColor(1,Qt::yellow);
@@ -233,13 +238,22 @@ void glancehubsbar::updateList( const sensor_msgs::JointState::ConstPtr& joint_s
         {
             warn--;
             err++;
+            if(warn>0)
+                ui->warn->setStyleSheet("QLabel { background-color : yellow;}");
+            if(warn<=0)
+                ui->warn->setStyleSheet("QLabel { background-color : white;}");
+            if(err>0)
+                ui->fault->setStyleSheet("QLabel { background-color : red;}");
+            /*item->setText(joints[i]);
+            item->setTextColor(color.red());
+            warnerrtable->insertRow(0);
+            warnerrtable->setItem(0,0,item);
 
-
-            ui->errorbutton->setText("Joint Warning"+QString::number(err));
-            ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
-            item->setText(joints[i]);
-            errortable->insertRow(0);
-            errortable->setItem(0,0,item);
+            //ui->errorbutton->setText("Joint Warning"+QString::number(err));
+            //ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
+            //item->setText(joints[i]);
+            //errortable->insertRow(0);
+            //errortable->setItem(0,0,item);
             /*joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(1,Qt::red);
             joints[i]->parent()->setBackgroundColor(0,Qt::red);*/
@@ -248,10 +262,16 @@ void glancehubsbar::updateList( const sensor_msgs::JointState::ConstPtr& joint_s
         if(joint_states->effort[i] >= warnMin*effortLimits[i])
         {
             warn++;
-            ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
-            item->setText(joints[i]);
-            warntable->insertRow(0);
-            warntable->setItem(0,0,item);
+            if(warn>0)
+                ui->warn->setStyleSheet("QLabel { background-color : yellow;}");
+            /*item->setText(joints[i]);
+            item->setTextColor(color.yellow());
+            warnerrtable->insertRow(0);
+            warnerrtable->setItem(0,0,item);
+           // ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
+            //item->setText(joints[i]);
+           // warntable->insertRow(0);
+           // warntable->setItem(0,0,item);
 
             /*joints[i]->setBackgroundColor(0,Qt::yellow);
             joints[i]->setBackgroundColor(3,Qt::yellow);
@@ -264,11 +284,21 @@ void glancehubsbar::updateList( const sensor_msgs::JointState::ConstPtr& joint_s
         {
             warn--;
             err++;
-            ui->errorbutton->setText("Joint Warning"+QString::number(err));
-            ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
-            item->setText(joints[i]);
-            errortable->insertRow(0);
-            errortable->setItem(0,0,item);
+            if(warn>0)
+                ui->warn->setStyleSheet("QLabel { background-color : yellow;}");
+            if(warn<=0)
+                ui->warn->setStyleSheet("QLabel { background-color : white;}");
+            if(err>0)
+                ui->fault->setStyleSheet("QLabel { background-color : red;}");
+           /* item->setText(joints[i]);
+            item->setTextColor(color.red());
+            warnerrtable->insertRow(0);
+            warnerrtable->setItem(0,0,item);
+            //ui->errorbutton->setText("Joint Warning"+QString::number(err));
+            //ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
+            //item->setText(joints[i]);
+            //errortable->insertRow(0);
+            //errortable->setItem(0,0,item);
             /*
             joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(3,Qt::red);
@@ -279,10 +309,16 @@ void glancehubsbar::updateList( const sensor_msgs::JointState::ConstPtr& joint_s
         if(joint_states->effort[i] <= -(warnMin*effortLimits[i]))
         {
             warn++;
-            ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
-            item->setText(joints[i]);
-            warntable->insertRow(0);
-            warntable->setItem(0,0,item);
+            if(warn>0)
+                ui->warn->setStyleSheet("QLabel { background-color : yellow;}");
+           /* item->setText(joints[i]);
+            item->setTextColor(color.yellow());
+            warnerrtable->insertRow(0);
+            warnerrtable->setItem(0,0,item);
+            //ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
+            //item->setText(joints[i]);
+           // warntable->insertRow(0);
+           // warntable->setItem(0,0,item);
             /*joints[i]->setBackgroundColor(0,Qt::yellow);
             joints[i]->setBackgroundColor(3,Qt::yellow);
             if(joints[i]->parent()->background(0) != Qt::red)
@@ -294,11 +330,21 @@ void glancehubsbar::updateList( const sensor_msgs::JointState::ConstPtr& joint_s
         {
             warn--;
             err++;
-            ui->errorbutton->setText("Joint Warning"+QString::number(err));
-            ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
-            item->setText(joints[i]);
-            errortable->insertRow(0);
-            errortable->setItem(0,0,item);
+            if(warn>0)
+                ui->warn->setStyleSheet("QLabel { background-color : yellow;}");
+            if(warn<=0)
+                ui->warn->setStyleSheet("QLabel { background-color : white;}");
+            if(err>0)
+                ui->fault->setStyleSheet("QLabel { background-color : red;}");
+            /*item->setText(joints[i]);
+            item->setTextColor(color.red());
+            warnerrtable->insertRow(0);
+            warnerrtable->setItem(0,0,item);
+            //ui->errorbutton->setText("Joint Warning"+QString::number(err));
+            //ui->warnbutton->setText("Joint Faults:"+QString::number(warn));
+            //item->setText(joints[i]);
+            //errortable->insertRow(0);
+            //errortable->setItem(0,0,item);
 
             /*joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(3,Qt::red);
@@ -306,16 +352,9 @@ void glancehubsbar::updateList( const sensor_msgs::JointState::ConstPtr& joint_s
         }
     }
 }
-void glancehubsbar::on_warnbutton_clicked()
-{
-    warnwidget->show();
 
-}
 
-void glancehubsbar::on_errorbutton_clicked()
-{
-    errorwidget->show();
-}
+
 
 void glancehubsbar::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr &msg)
 {

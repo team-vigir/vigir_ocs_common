@@ -1942,6 +1942,36 @@ void Base3DView::sendCartesianLeft()
 
     cmd.waypoints = cartesian_waypoint_list_;
 
+    // get position of the wrist in world coordinates
+    Ogre::Vector3 wrist_position(0,0,0);
+    Ogre::Quaternion wrist_orientation(1,0,0,0);
+    transform(wrist_position, wrist_orientation, "/l_hand", "/world");
+
+    // get position of the marker in world coordinates
+    geometry_msgs::PoseStamped hand, marker;
+    hand.pose.position.x = wrist_position.x;
+    hand.pose.position.y = wrist_position.y;
+    hand.pose.position.z = wrist_position.z;
+    hand.pose.orientation.x = wrist_orientation.x;
+    hand.pose.orientation.y = wrist_orientation.y;
+    hand.pose.orientation.z = wrist_orientation.z;
+    hand.pose.orientation.w = wrist_orientation.w;
+    calcWristTarget(hand,r_hand_T_marker_,marker);
+
+    // calculate the difference between them
+    Ogre::Vector3 diff_vector;
+    diff_vector.x = wrist_position.x - marker.pose.position.x;
+    diff_vector.y = wrist_position.y - marker.pose.position.y;
+    diff_vector.z = wrist_position.z - marker.pose.position.z;
+
+    for(int i = 0; i < cmd.waypoints.size(); i++)
+    {
+        // apply the difference to each one of the waypoints
+        cmd.waypoints[i].position.x = cmd.waypoints[i].position.x + diff_vector.x;
+        cmd.waypoints[i].position.y = cmd.waypoints[i].position.y + diff_vector.y;
+        cmd.waypoints[i].position.z = cmd.waypoints[i].position.z + diff_vector.z;
+    }
+
     cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
 
     if(!ghost_planning_group_[2]) // torso selected in the ghost widget
@@ -1964,6 +1994,36 @@ void Base3DView::sendCartesianRight()
 
     cmd.waypoints = cartesian_waypoint_list_;
 
+    // get position of the wrist in world coordinates
+    Ogre::Vector3 wrist_position(0,0,0);
+    Ogre::Quaternion wrist_orientation(1,0,0,0);
+    transform(wrist_position, wrist_orientation, "/r_hand", "/world");
+
+    // get position of the marker in world coordinates
+    geometry_msgs::PoseStamped hand, marker;
+    hand.pose.position.x = wrist_position.x;
+    hand.pose.position.y = wrist_position.y;
+    hand.pose.position.z = wrist_position.z;
+    hand.pose.orientation.x = wrist_orientation.x;
+    hand.pose.orientation.y = wrist_orientation.y;
+    hand.pose.orientation.z = wrist_orientation.z;
+    hand.pose.orientation.w = wrist_orientation.w;
+    calcWristTarget(hand,r_hand_T_marker_,marker);
+
+    // calculate the difference between them
+    Ogre::Vector3 diff_vector;
+    diff_vector.x = wrist_position.x - marker.pose.position.x;
+    diff_vector.y = wrist_position.y - marker.pose.position.y;
+    diff_vector.z = wrist_position.z - marker.pose.position.z;
+
+    for(int i = 0; i < cmd.waypoints.size(); i++)
+    {
+        // apply the difference to each one of the waypoints
+        cmd.waypoints[i].position.x = cmd.waypoints[i].position.x + diff_vector.x;
+        cmd.waypoints[i].position.y = cmd.waypoints[i].position.y + diff_vector.y;
+        cmd.waypoints[i].position.z = cmd.waypoints[i].position.z + diff_vector.z;
+    }
+
     cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
 
     if(!ghost_planning_group_[2]) // torso selected in the ghost widget
@@ -1985,6 +2045,38 @@ void Base3DView::sendCircularLeft()
     pose.header.frame_id = "/world";
     pose.header.stamp = ros::Time::now();
     pose.pose = circular_center_;
+
+    // calculating the rotation based on position of the markers
+    if(circular_keep_orientation_->isChecked())
+    {
+    // get position of the wrist in world coordinates
+    Ogre::Vector3 wrist_position(0,0,0);
+    Ogre::Quaternion wrist_orientation(1,0,0,0);
+    transform(wrist_position, wrist_orientation, "/l_hand", "/world");
+
+    // get position of the marker in world coordinates
+    geometry_msgs::PoseStamped hand, marker;
+    hand.pose.position.x = wrist_position.x;
+    hand.pose.position.y = wrist_position.y;
+    hand.pose.position.z = wrist_position.z;
+    hand.pose.orientation.x = wrist_orientation.x;
+    hand.pose.orientation.y = wrist_orientation.y;
+    hand.pose.orientation.z = wrist_orientation.z;
+    hand.pose.orientation.w = wrist_orientation.w;
+    calcWristTarget(hand,l_hand_T_marker_,marker);
+
+    // calculate the difference between them
+    Ogre::Vector3 diff_vector;
+    diff_vector.x = wrist_position.x - marker.pose.position.x;
+    diff_vector.y = wrist_position.y - marker.pose.position.y;
+    diff_vector.z = wrist_position.z - marker.pose.position.z;
+
+    // apply the difference to the circular center
+    pose.pose.position.x = circular_center_.position.x + diff_vector.x;
+    pose.pose.position.y = circular_center_.position.y + diff_vector.y;
+    pose.pose.position.z = circular_center_.position.z + diff_vector.z;
+    }
+
     cmd.rotation_center_pose = pose;
 
     cmd.rotation_angle = circular_angle_->value()*0.0174532925; // UI in deg, msg in rad
@@ -2012,6 +2104,38 @@ void Base3DView::sendCircularRight()
     pose.header.frame_id = "/world";
     pose.header.stamp = ros::Time::now();
     pose.pose = circular_center_;
+
+    // calculating the rotation based on position of the markers
+    if(circular_keep_orientation_->isChecked())
+    {
+    // get position of the wrist in world coordinates
+    Ogre::Vector3 wrist_position(0,0,0);
+    Ogre::Quaternion wrist_orientation(1,0,0,0);
+    transform(wrist_position, wrist_orientation, "/r_hand", "/world");
+
+    // get position of the marker in world coordinates
+    geometry_msgs::PoseStamped hand, marker;
+    hand.pose.position.x = wrist_position.x;
+    hand.pose.position.y = wrist_position.y;
+    hand.pose.position.z = wrist_position.z;
+    hand.pose.orientation.x = wrist_orientation.x;
+    hand.pose.orientation.y = wrist_orientation.y;
+    hand.pose.orientation.z = wrist_orientation.z;
+    hand.pose.orientation.w = wrist_orientation.w;
+    calcWristTarget(hand,r_hand_T_marker_,marker);
+
+    // calculate the difference between them
+    Ogre::Vector3 diff_vector;
+    diff_vector.x = wrist_position.x - marker.pose.position.x;
+    diff_vector.y = wrist_position.y - marker.pose.position.y;
+    diff_vector.z = wrist_position.z - marker.pose.position.z;
+
+    // apply the difference to the circular center
+    pose.pose.position.x = circular_center_.position.x + diff_vector.x;
+    pose.pose.position.y = circular_center_.position.y + diff_vector.y;
+    pose.pose.position.z = circular_center_.position.z + diff_vector.z;
+    }
+
     cmd.rotation_center_pose = pose;
 
     cmd.rotation_angle = circular_angle_->value()*0.0174532925; // UI in deg, msg in rad
