@@ -2,6 +2,7 @@
 #include <QVBoxLayout>
 #include <ros/ros.h>
 #include <flor_ocs_msgs/RobotStatusCodes.h>
+#include <ros/package.h>
 
 robotStatus::robotStatus(QWidget *parent) :
     QWidget(parent)
@@ -56,7 +57,7 @@ robotStatus::robotStatus(QWidget *parent) :
     if(nh.getParam("robotErrorFileLocation",fileName))
         messagesPath = fileName;
     else
-        messagesPath = "/opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/messages.csv";
+        messagesPath = (ros::package::getPath("flor_ocs_msgs"))+"/include/flor_ocs_msgs/messages.csv";
 
     std::cerr << "Reading messages from <" << messagesPath << ">" << std::endl;
     loadFile();
