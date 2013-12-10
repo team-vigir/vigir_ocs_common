@@ -127,6 +127,7 @@ public Q_SLOTS:
     void lidarPointCloudToggled( bool );
     void stereoPointCloudToggled( bool );
     void laserScanToggled( bool );
+    void ft_sensorToggled( bool );
     void markerArrayToggled( bool );
     void gridMapToggled( bool );
     void footstepPlanningToggled( bool );
@@ -220,6 +221,10 @@ protected:
     rviz::Display* goal_pose_step_;
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
+    rviz::Display* footsteps_path_body_array_;
+
+    rviz::Display* left_ft_sensor_;
+    rviz::Display* right_ft_sensor_;
 
     rviz::Display* left_grasp_hand_model_;
     rviz::Display* right_grasp_hand_model_;
@@ -307,6 +312,7 @@ protected:
     bool snap_ghost_to_robot_;
     bool left_marker_moveit_loopback_;
     bool right_marker_moveit_loopback_;
+    bool position_only_ik_;
     
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
@@ -336,6 +342,9 @@ protected:
 
     tf::Transform l_hand_T_palm_;
     tf::Transform r_hand_T_palm_;
+
+    tf::Transform l_hand_T_marker_;
+    tf::Transform r_hand_T_marker_;
 
     QBasicTimer timer;
 

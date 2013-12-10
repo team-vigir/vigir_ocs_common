@@ -15,6 +15,7 @@ std::vector<unsigned char> GhostControlWidget::saved_state_pose_source_;
 std::vector<unsigned char> GhostControlWidget::saved_state_world_lock_;
 unsigned char GhostControlWidget::saved_state_collision_avoidance_;
 unsigned char GhostControlWidget::saved_state_lock_pelvis_;
+unsigned char GhostControlWidget::saved_state_position_only_ik_;
 
 GhostControlWidget::GhostControlWidget(QWidget *parent) :
     QWidget(parent),
@@ -41,6 +42,8 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &GhostControlWidget::processNewKeyEvent, this );
 
     timer.start(33, this);
+
+    //ui->position_only_ik_->hide();
 }
 
 GhostControlWidget::~GhostControlWidget()
@@ -78,6 +81,8 @@ void GhostControlWidget::publishState( bool snap )
     cmd.snap = snap;
     cmd.left_moveit_marker_loopback = ui->left_moveit_marker_lock->isChecked();
     cmd.right_moveit_marker_loopback = ui->right_moveit_marker_lock->isChecked();
+    cmd.position_only_ik = saved_state_position_only_ik_;
+
     state_pub_.publish(cmd);
 }
 
@@ -114,7 +119,7 @@ void GhostControlWidget::saveState()
     }
 
     saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();
-
+    saved_state_position_only_ik_ = ui->position_only_ik_->isChecked();
 }
 
 // default arguments are class members for saved state
@@ -159,22 +164,7 @@ void GhostControlWidget::sendTargetPoseClicked()
 {
     std_msgs::String cmd;
 
-    bool left = saved_state_planning_group_[0];
-    bool right = saved_state_planning_group_[1];
-    bool torso = saved_state_planning_group_[2];
-
-    if(left && !right && !torso)
-        cmd.data = "l_arm_group";
-    else if(left && !right && torso)
-        cmd.data = "l_arm_with_torso_group";
-    else if(!left && right && !torso)
-        cmd.data = "r_arm_group";
-    else if(!left && right && torso)
-        cmd.data = "r_arm_with_torso_group";
-    else if(left && right && !torso)
-        cmd.data = "both_arms_group";
-    else if(left && right && torso)
-        cmd.data = "both_arms_with_torso_group";
+    cmd.data = this->getGroupNameForSettings(saved_state_planning_group_);
 
     set_to_target_pose_pub_.publish(cmd);
 }
@@ -183,22 +173,7 @@ void GhostControlWidget::sendTargetConfigClicked()
 {
     std_msgs::String cmd;
 
-    bool left = saved_state_planning_group_[0];
-    bool right = saved_state_planning_group_[1];
-    bool torso = saved_state_planning_group_[2];
-
-    if(left && !right && !torso)
-        cmd.data = "l_arm_group";
-    else if(left && !right && torso)
-        cmd.data = "l_arm_with_torso_group";
-    else if(!left && right && !torso)
-        cmd.data = "r_arm_group";
-    else if(!left && right && torso)
-        cmd.data = "r_arm_with_torso_group";
-    else if(left && right && !torso)
-        cmd.data = "both_arms_group";
-    else if(left && right && torso)
-        cmd.data = "both_arms_with_torso_group";
+    cmd.data = this->getGroupNameForSettings(saved_state_planning_group_);
 
     set_to_target_config_pub_.publish(cmd);
 }
@@ -218,6 +193,12 @@ void GhostControlWidget::on_planning_left__clicked()
 }
 
 void GhostControlWidget::on_planning_torso__clicked()
+{
+    saveState();
+    publishState();
+}
+
+void GhostControlWidget::on_position_only_ik__clicked()
 {
     saveState();
     publishState();
@@ -411,9 +392,9 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
         keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
 
     // process hotkeys
-    std::vector<int>::iterator ctrl_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    std::vector<int>::iterator shift_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50);
-    std::vector<int>::iterator alt_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64);
+    bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37) != keys_pressed_list_.end());
+    bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
+    bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
 
     /*if(key_event->key == 12 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+3
     {
@@ -428,11 +409,11 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
         }
     }*/
 
-    if(key_event->key == 26 && key_event->state)
+    if(key_event->key == 26 && key_event->state && ctrl_is_pressed)
         on_send_left_configuration_button__clicked();
-    else if(key_event->key == 27 && key_event->state)
+    else if(key_event->key == 27 && key_event->state && ctrl_is_pressed)
         on_send_right_configuration_button__clicked();
-    else if(key_event->key == 41 && key_event->state)
+    else if(key_event->key == 41 && key_event->state && ctrl_is_pressed)
         on_send_upper_body_button__clicked();
 }
 
@@ -458,4 +439,26 @@ void GhostControlWidget::on_pushButton_2_clicked()
     std_msgs::Bool cmd;
     cmd.data = true;
     send_pelvis_pub_.publish(cmd);
+}
+
+std::string GhostControlWidget::getGroupNameForSettings(const std::vector<unsigned char>& settings)
+{
+  bool left = settings[0];
+  bool right = settings[1];
+  bool torso = settings[2];
+
+  if(left && !right && !torso)
+      return "l_arm_group";
+  else if(left && !right && torso)
+      return "l_arm_with_torso_group";
+  else if(!left && right && !torso)
+      return "r_arm_group";
+  else if(!left && right && torso)
+      return "r_arm_with_torso_group";
+  else if(left && right && !torso)
+      return "both_arms_group";
+  else if(left && right && torso)
+      return "both_arms_with_torso_group";
+
+  return "INVALID_GROUP";
 }

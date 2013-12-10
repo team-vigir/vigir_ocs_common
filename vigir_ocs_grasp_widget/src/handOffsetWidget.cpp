@@ -90,11 +90,69 @@ void handOffsetWidget::on_yaw_dec_clicked()
     calc_offset();
 }
 
+void handOffsetWidget::on_x_inc_clicked()
+{
+    x = ui->x_current->value();
+    x += ui->x_adj->value();
+    ui->x_current->display(x);
+
+    calc_offset();
+}
+
+void handOffsetWidget::on_x_dec_clicked()
+{
+    x = ui->x_current->value();
+    x -= ui->x_adj->value();
+    ui->x_current->display(x);
+
+    calc_offset();
+}
+
+void handOffsetWidget::on_y_inc_clicked()
+{
+    y = ui->y_current->value();
+    y += ui->y_adj->value();
+    ui->y_current->display(y);
+
+    calc_offset();
+}
+
+void handOffsetWidget::on_y_dec_clicked()
+{
+    y = ui->y_current->value();
+    y -= ui->y_adj->value();
+    ui->y_current->display(y);
+
+    calc_offset();
+}
+
+void handOffsetWidget::on_z_inc_clicked()
+{
+    z = ui->z_current->value();
+    z += ui->z_adj->value();
+    ui->z_current->display(z);
+
+    calc_offset();
+}
+
+void handOffsetWidget::on_z_dec_clicked()
+{
+    z = ui->z_current->value();
+    z -= ui->z_adj->value();
+    ui->z_current->display(z);
+
+    calc_offset();
+}
+
 void handOffsetWidget::calc_offset()
 {
     roll = ui->roll_current->value();
     pitch = ui->pitch_current->value();
     yaw = ui->yaw_current->value();
+
+    x = ui->x_current->value();
+    y = ui->y_current->value();
+    z = ui->z_current->value();
 
     tf::Quaternion hand_quat;
 
@@ -104,9 +162,9 @@ void handOffsetWidget::calc_offset()
     hand_offset.pose.orientation.x = hand_quat.x();
     hand_offset.pose.orientation.y = hand_quat.y();
     hand_offset.pose.orientation.z = hand_quat.z();
-    hand_offset.pose.position.x = 0;
-    hand_offset.pose.position.y = 0;
-    hand_offset.pose.position.z = 0;
+    hand_offset.pose.position.x = x/100;
+    hand_offset.pose.position.y = y/100;
+    hand_offset.pose.position.z = z/100;
 
     if(hand_ == "left")
         l_hand_template_offset_pub_.publish(hand_offset);
@@ -133,6 +191,10 @@ void handOffsetWidget::on_load_offset_clicked()
     ui->roll_current->display(roll);
     ui->pitch_current->display(pitch);
     ui->yaw_current->display(yaw);
+
+    ui->x_current->display(x);
+    ui->y_current->display(y);
+    ui->z_current->display(z);
 }
 
 void handOffsetWidget::on_save_offset_clicked()

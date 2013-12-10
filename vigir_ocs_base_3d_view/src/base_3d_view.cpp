@@ -66,6 +66,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
     , moving_r_arm_(false)
     , left_marker_moveit_loopback_(true)
     , right_marker_moveit_loopback_(true)
+    , position_only_ik_(false)
     , visualize_grid_map_(true)
     , initializing_context_menu_(0)
     , circular_marker_(0)
@@ -226,6 +227,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         footsteps_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps array", true );
         footsteps_array_->subProp( "Marker Topic" )->setValue( "/flor/walk_monitor/footsteps_array" );
 
+        footsteps_path_body_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps Path Body", true );
+        footsteps_path_body_array_->subProp( "Marker Topic" )->setValue( "/flor/walk_monitor/footsteps_path_body_array" );
+
         goal_pose_walk_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
         goal_pose_walk_->subProp( "Topic" )->setValue( "/goal_pose_walk" );
         goal_pose_walk_->subProp( "Shape" )->setValue( "Axes" );
@@ -240,6 +244,19 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
 
         planned_path_ = manager_->createDisplay( "rviz/Path", "Planned path", true );
         planned_path_->subProp( "Topic" )->setValue( "/flor/walk_monitor/path" );
+
+        left_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Left F/T sensor", false);
+        left_ft_sensor_->subProp("Topic")->setValue("/flor/l_hand/force_torque_sensor");
+        left_ft_sensor_->subProp("Alpha")->setValue(0.5);
+        left_ft_sensor_->subProp("Arrow Scale")->setValue(0.01);
+        left_ft_sensor_->subProp("Arrow Width")->setValue(0.3);
+
+        right_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Right F/T sensor", false);
+        right_ft_sensor_->subProp("Topic")->setValue("/flor/r_hand/force_torque_sensor");
+        right_ft_sensor_->subProp("Alpha")->setValue(0.5);
+        right_ft_sensor_->subProp("Arrow Scale")->setValue(0.01);
+        right_ft_sensor_->subProp("Arrow Width")->setValue(0.3);
+
 
         // create the grasp hands displays
         left_grasp_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left hand model", true );
@@ -495,7 +512,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
 
         circular_use_collision_ = new QCheckBox("Use Collision Avoidance");
 
-        circular_keep_orientation_ = new QCheckBox("Use Collision Avoidance");
+        circular_keep_orientation_ = new QCheckBox("Keep Endeffector Orientation");
 
         QLabel* circular_angle_label_ = new QLabel("Rotation");
         circular_angle_ = new QDoubleSpinBox();
@@ -599,6 +616,14 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
     r_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
     r_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
 
+    nh_.getParam("/l_hand_tf/hand_T_marker", hand_T_palm);
+    l_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
+    l_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+
+    nh_.getParam("/r_hand_tf/hand_T_marker", hand_T_palm);
+    r_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
+    r_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+
     nh_.getParam("/l_hand_type", l_hand_type);
     nh_.getParam("/r_hand_type", r_hand_type);
 
@@ -682,6 +707,12 @@ void Base3DView::stereoPointCloudToggled( bool selected )
 void Base3DView::laserScanToggled( bool selected )
 {
     laser_scan_->setEnabled( selected );
+}
+
+void Base3DView::ft_sensorToggled(bool selected )
+{
+    left_ft_sensor_->setEnabled( selected );
+    right_ft_sensor_->setEnabled( selected );
 }
 
 void Base3DView::markerArrayToggled( bool selected )
@@ -1099,6 +1130,8 @@ void Base3DView::processContextMenu(int x, int y)
             rviz::Display* cartesian_marker = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Cartesian Marker ")+boost::to_string((unsigned int)id)).c_str(), true );
             cartesian_marker->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
             cartesian_marker->setEnabled( true );
+            cartesian_marker->subProp( "Show Axes" )->setValue( true );
+            cartesian_marker->subProp( "Show Visual Aids" )->setValue( true );
             cartesian_marker_list_.push_back(cartesian_marker);
 
             // Add it in front of the robot
@@ -1163,6 +1196,8 @@ void Base3DView::processContextMenu(int x, int y)
             circular_marker_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Circular Marker", true );
             circular_marker_->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
             circular_marker_->setEnabled( true );
+            circular_marker_->subProp( "Show Axes" )->setValue( true );
+            circular_marker_->subProp( "Show Visual Aids" )->setValue( true );
 
             // Add it in front of the robot
             geometry_msgs::PoseStamped pose;
@@ -1276,7 +1311,7 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
         publishHandPose("left",*pose);
 
         geometry_msgs::PoseStamped wrist_pose;
-        calcWristTarget(*pose,l_hand_T_palm_,wrist_pose);
+        calcWristTarget(*pose,l_hand_T_marker_,wrist_pose);
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/l_arm_pose_marker";
@@ -1301,7 +1336,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
         publishHandPose("right",*pose);
 
         geometry_msgs::PoseStamped wrist_pose;
-        calcWristTarget(*pose,r_hand_T_palm_,wrist_pose);
+        calcWristTarget(*pose,r_hand_T_marker_,wrist_pose);
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/r_arm_pose_marker";
@@ -1532,7 +1567,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         //ROS_INFO("LEFT GHOST HAND POSE:");
         //ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
         //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
-        calcWristTarget(msg->pose,l_hand_T_palm_.inverse(),joint_pose);
+        calcWristTarget(msg->pose,l_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("left"),joint_pose);
     }
     else if(msg->topic == "/r_arm_pose_marker")
@@ -1546,7 +1581,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         //ROS_INFO("RIGHT GHOST HAND POSE:");
         //ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
         //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
-        calcWristTarget(msg->pose,r_hand_T_palm_.inverse(),joint_pose);
+        calcWristTarget(msg->pose,r_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("right"),joint_pose);
     }
     else if(msg->topic == "/pelvis_pose_marker")
@@ -1673,6 +1708,10 @@ void Base3DView::publishGhostPoses()
     else if(left && right && torso)
         cmd.planning_group.data = "both_arms_with_torso_group";
 
+    // IK not possible for multi appendage (non-chain) groups
+    if(position_only_ik_ && !(left && right && torso) && !(left && right && !torso))
+        cmd.planning_group.data += "_position_only_ik";
+
     if(left || right)
         end_effector_pub_.publish(cmd);
 
@@ -1737,6 +1776,8 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
 
     left_marker_moveit_loopback_ = msg->left_moveit_marker_loopback;
     right_marker_moveit_loopback_ = msg->right_moveit_marker_loopback;
+
+    position_only_ik_ = msg->position_only_ik;
 }
 
 void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &states)
@@ -1901,12 +1942,45 @@ void Base3DView::sendCartesianLeft()
 
     cmd.waypoints = cartesian_waypoint_list_;
 
+    // get position of the wrist in world coordinates
+    Ogre::Vector3 wrist_position(0,0,0);
+    Ogre::Quaternion wrist_orientation(1,0,0,0);
+    transform(wrist_position, wrist_orientation, "/l_hand", "/world");
+
+    // get position of the marker in world coordinates
+    geometry_msgs::PoseStamped hand, marker;
+    hand.pose.position.x = wrist_position.x;
+    hand.pose.position.y = wrist_position.y;
+    hand.pose.position.z = wrist_position.z;
+    hand.pose.orientation.x = wrist_orientation.x;
+    hand.pose.orientation.y = wrist_orientation.y;
+    hand.pose.orientation.z = wrist_orientation.z;
+    hand.pose.orientation.w = wrist_orientation.w;
+    calcWristTarget(hand,r_hand_T_marker_,marker);
+
+    // calculate the difference between them
+    Ogre::Vector3 diff_vector;
+    diff_vector.x = marker.pose.position.x - wrist_position.x;
+    diff_vector.y = marker.pose.position.x - wrist_position.y;
+    diff_vector.z = marker.pose.position.x - wrist_position.z;
+
+    for(int i = 0; i < cmd.waypoints.size(); i++)
+    {
+        // apply the difference to each one of the waypoints
+        cmd.waypoints[i].position.x = circular_center_.position.x - diff_vector.x;
+        cmd.waypoints[i].position.y = circular_center_.position.y - diff_vector.y;
+        cmd.waypoints[i].position.z = circular_center_.position.z - diff_vector.z;
+    }
+
     cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
 
     if(!ghost_planning_group_[2]) // torso selected in the ghost widget
         cmd.planning_group = "l_arm_group";
     else
         cmd.planning_group = "l_arm_with_torso_group";
+
+    if(position_only_ik_)
+        cmd.planning_group += "_position_only_ik";
 
     cartesian_plan_request_pub_.publish(cmd);
 }
@@ -1920,12 +1994,45 @@ void Base3DView::sendCartesianRight()
 
     cmd.waypoints = cartesian_waypoint_list_;
 
+    // get position of the wrist in world coordinates
+    Ogre::Vector3 wrist_position(0,0,0);
+    Ogre::Quaternion wrist_orientation(1,0,0,0);
+    transform(wrist_position, wrist_orientation, "/r_hand", "/world");
+
+    // get position of the marker in world coordinates
+    geometry_msgs::PoseStamped hand, marker;
+    hand.pose.position.x = wrist_position.x;
+    hand.pose.position.y = wrist_position.y;
+    hand.pose.position.z = wrist_position.z;
+    hand.pose.orientation.x = wrist_orientation.x;
+    hand.pose.orientation.y = wrist_orientation.y;
+    hand.pose.orientation.z = wrist_orientation.z;
+    hand.pose.orientation.w = wrist_orientation.w;
+    calcWristTarget(hand,r_hand_T_marker_,marker);
+
+    // calculate the difference between them
+    Ogre::Vector3 diff_vector;
+    diff_vector.x = marker.pose.position.x - wrist_position.x;
+    diff_vector.y = marker.pose.position.x - wrist_position.y;
+    diff_vector.z = marker.pose.position.x - wrist_position.z;
+
+    for(int i = 0; i < cmd.waypoints.size(); i++)
+    {
+        // apply the difference to each one of the waypoints
+        cmd.waypoints[i].position.x = circular_center_.position.x - diff_vector.x;
+        cmd.waypoints[i].position.y = circular_center_.position.y - diff_vector.y;
+        cmd.waypoints[i].position.z = circular_center_.position.z - diff_vector.z;
+    }
+
     cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
 
     if(!ghost_planning_group_[2]) // torso selected in the ghost widget
         cmd.planning_group = "r_arm_group";
     else
         cmd.planning_group = "r_arm_with_torso_group";
+
+    if(position_only_ik_)
+        cmd.planning_group += "_position_only_ik";
 
     cartesian_plan_request_pub_.publish(cmd);
 }
@@ -1938,18 +2045,52 @@ void Base3DView::sendCircularLeft()
     pose.header.frame_id = "/world";
     pose.header.stamp = ros::Time::now();
     pose.pose = circular_center_;
+
+    // calculating the rotation based on position of the markers
+    {
+    // get position of the wrist in world coordinates
+    Ogre::Vector3 wrist_position(0,0,0);
+    Ogre::Quaternion wrist_orientation(1,0,0,0);
+    transform(wrist_position, wrist_orientation, "/l_hand", "/world");
+
+    // get position of the marker in world coordinates
+    geometry_msgs::PoseStamped hand, marker;
+    hand.pose.position.x = wrist_position.x;
+    hand.pose.position.y = wrist_position.y;
+    hand.pose.position.z = wrist_position.z;
+    hand.pose.orientation.x = wrist_orientation.x;
+    hand.pose.orientation.y = wrist_orientation.y;
+    hand.pose.orientation.z = wrist_orientation.z;
+    hand.pose.orientation.w = wrist_orientation.w;
+    calcWristTarget(hand,l_hand_T_marker_,marker);
+
+    // calculate the difference between them
+    Ogre::Vector3 diff_vector;
+    diff_vector.x = marker.pose.position.x - wrist_position.x;
+    diff_vector.y = marker.pose.position.x - wrist_position.y;
+    diff_vector.z = marker.pose.position.x - wrist_position.z;
+
+    // apply the difference to the circular center
+    pose.pose.position.x = circular_center_.position.x - diff_vector.x;
+    pose.pose.position.y = circular_center_.position.y - diff_vector.y;
+    pose.pose.position.z = circular_center_.position.z - diff_vector.z;
+    }
+
     cmd.rotation_center_pose = pose;
 
     cmd.rotation_angle = circular_angle_->value()*0.0174532925; // UI in deg, msg in rad
 
     cmd.use_environment_obstacle_avoidance = circular_use_collision_->isChecked();
 
-    //cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
+    cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
 
     if(!ghost_planning_group_[2]) // torso selected in the ghost widget
         cmd.planning_group = "l_arm_group";
     else
         cmd.planning_group = "l_arm_with_torso_group";
+
+    if(position_only_ik_)
+        cmd.planning_group += "_position_only_ik";
 
     circular_plan_request_pub_.publish(cmd);
 }
@@ -1962,18 +2103,52 @@ void Base3DView::sendCircularRight()
     pose.header.frame_id = "/world";
     pose.header.stamp = ros::Time::now();
     pose.pose = circular_center_;
+
+    // calculating the rotation based on position of the markers
+    {
+    // get position of the wrist in world coordinates
+    Ogre::Vector3 wrist_position(0,0,0);
+    Ogre::Quaternion wrist_orientation(1,0,0,0);
+    transform(wrist_position, wrist_orientation, "/r_hand", "/world");
+
+    // get position of the marker in world coordinates
+    geometry_msgs::PoseStamped hand, marker;
+    hand.pose.position.x = wrist_position.x;
+    hand.pose.position.y = wrist_position.y;
+    hand.pose.position.z = wrist_position.z;
+    hand.pose.orientation.x = wrist_orientation.x;
+    hand.pose.orientation.y = wrist_orientation.y;
+    hand.pose.orientation.z = wrist_orientation.z;
+    hand.pose.orientation.w = wrist_orientation.w;
+    calcWristTarget(hand,r_hand_T_marker_,marker);
+
+    // calculate the difference between them
+    Ogre::Vector3 diff_vector;
+    diff_vector.x = marker.pose.position.x - wrist_position.x;
+    diff_vector.y = marker.pose.position.x - wrist_position.y;
+    diff_vector.z = marker.pose.position.x - wrist_position.z;
+
+    // apply the difference to the circular center
+    pose.pose.position.x = circular_center_.position.x - diff_vector.x;
+    pose.pose.position.y = circular_center_.position.y - diff_vector.y;
+    pose.pose.position.z = circular_center_.position.z - diff_vector.z;
+    }
+
     cmd.rotation_center_pose = pose;
 
     cmd.rotation_angle = circular_angle_->value()*0.0174532925; // UI in deg, msg in rad
 
     cmd.use_environment_obstacle_avoidance = circular_use_collision_->isChecked();
 
-    //cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
+    cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
 
     if(!ghost_planning_group_[2]) // torso selected in the ghost widget
         cmd.planning_group = "r_arm_group";
     else
         cmd.planning_group = "r_arm_with_torso_group";
+
+    if(position_only_ik_)
+        cmd.planning_group += "_position_only_ik";
 
     circular_plan_request_pub_.publish(cmd);
 }
@@ -2004,9 +2179,9 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
     bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
     bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
 
-    if(key_event->key == 24 && key_event->state) // 'q'
+    if(key_event->key == 24 && key_event->state && ctrl_is_pressed) // 'q'
         robotModelToggled(!robot_model_->isEnabled());
-    else if(key_event->key == 25 && key_event->state) // 'w'
+    else if(key_event->key == 25 && key_event->state && ctrl_is_pressed) // 'w'
         simulationRobotToggled(!ghost_robot_model_->isEnabled());
     else if(key_event->key == 11 && key_event->state && ctrl_is_pressed)
         clearPointCloudRequests();

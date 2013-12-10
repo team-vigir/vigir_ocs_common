@@ -91,13 +91,27 @@ graspWidget::graspWidget(QWidget *parent)
         template_stitch_pose_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/grasp_control/l_hand/template_stitch_pose",1, &graspWidget::templateStitchPoseCallback,  this );
         template_stitch_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/grasp_control/l_hand/template_stitch_request", 1, false );
 
-        nh_.getParam("/l_hand_tf/hand_T_palm", hand_T_palm);
-        hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-        hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+        if(nh_.getParam("/l_hand_tf/hand_T_palm", hand_T_palm))
+        {
+            hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
+            hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+        }
+        else
+        {
+            hand_T_palm_.setOrigin(tf::Vector3(0,0,0));
+            hand_T_palm_.setRotation(tf::Quaternion(0,0,0,1));
+        }
 
-        nh_.getParam("/l_hand_tf/gp_T_palm", hand_T_palm);
-        gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-        gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+        if(nh_.getParam("/l_hand_tf/gp_T_palm", hand_T_palm))
+        {
+            gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
+            gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+        }
+        else
+        {
+            gp_T_palm_.setOrigin(tf::Vector3(0,0,0));
+            gp_T_palm_.setRotation(tf::Quaternion(0,0,0,1));
+        }
 
         color_r = 1.0f;
         color_g = 1.0f;
@@ -127,13 +141,27 @@ graspWidget::graspWidget(QWidget *parent)
         template_stitch_pose_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/grasp_control/r_hand/template_stitch_pose",1, &graspWidget::templateStitchPoseCallback,  this );
         template_stitch_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/grasp_control/r_hand/template_stitch_request", 1, false );
 
-        nh_.getParam("/r_hand_tf/hand_T_palm", hand_T_palm);
-        hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-        hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+        if(nh_.getParam("/r_hand_tf/hand_T_palm", hand_T_palm))
+        {
+            hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
+            hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+        }
+        else
+        {
+            hand_T_palm_.setOrigin(tf::Vector3(0,0,0));
+            hand_T_palm_.setRotation(tf::Quaternion(0,0,0,1));
+        }
 
-        nh_.getParam("/r_hand_tf/gp_T_palm", hand_T_palm);
-        gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-        gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+        if(nh_.getParam("/r_hand_tf/gp_T_palm", hand_T_palm))
+        {
+            gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
+            gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+        }
+        else
+        {
+            gp_T_palm_.setOrigin(tf::Vector3(0,0,0));
+            gp_T_palm_.setRotation(tf::Quaternion(0,0,0,1));
+        }
 
         color_r = 0.0f;
         color_g = 1.0f;
@@ -785,6 +813,17 @@ void graspWidget::on_graspBox_activated(const QString &arg1)
     }
 }
 
+void graspWidget::on_noneRadio_clicked()
+{
+    ui->performButton->setDisabled(true);
+
+    flor_grasp_msgs::GraspState msg;
+    msg.grasp_state.data  = (flor_grasp_msgs::GraspState::GRASP_MODE_NONE)<<4;
+    msg.grip.data         = 0;
+
+    grasp_mode_command_pub_.publish(msg);
+}
+
 void graspWidget::on_templateRadio_clicked()
 {
     for (uint32_t ndx=0; ndx < ui->graspBox->count(); ++ndx)
@@ -806,6 +845,10 @@ void graspWidget::on_templateRadio_clicked()
     {
         ui->graspBox->setDisabled(true); // nothing to select
         ui->performButton->setDisabled(true);
+    }
+    else
+    {
+        ui->performButton->setDisabled(false);
     }
     flor_grasp_msgs::GraspState msg;
     msg.grasp_state.data  = (flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4;
