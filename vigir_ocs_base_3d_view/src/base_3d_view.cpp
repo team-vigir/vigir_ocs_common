@@ -509,7 +509,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         circular_use_collision_ = new QCheckBox("Use Collision Avoidance");
 
         circular_keep_orientation_ = new QCheckBox("Keep Endeffector Orientation");
-        circular_keep_orientation_->setEnabled(false);
 
         QLabel* circular_angle_label_ = new QLabel("Rotation");
         circular_angle_ = new QDoubleSpinBox();
@@ -1569,9 +1568,9 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_l_arm_ = false;
         moving_r_arm_ = true;
 
-        ROS_INFO("RIGHT GHOST HAND POSE:");
-        ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
-        ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
+        //ROS_INFO("RIGHT GHOST HAND POSE:");
+        //ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
+        //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
         calcWristTarget(msg->pose,r_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("right"),joint_pose);
     }
@@ -1981,7 +1980,7 @@ void Base3DView::sendCircularLeft()
 
     cmd.use_environment_obstacle_avoidance = circular_use_collision_->isChecked();
 
-    //cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
+    cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
 
     if(!ghost_planning_group_[2]) // torso selected in the ghost widget
         cmd.planning_group = "l_arm_group";
@@ -2008,7 +2007,7 @@ void Base3DView::sendCircularRight()
 
     cmd.use_environment_obstacle_avoidance = circular_use_collision_->isChecked();
 
-    //cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
+    cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
 
     if(!ghost_planning_group_[2]) // torso selected in the ghost widget
         cmd.planning_group = "r_arm_group";
