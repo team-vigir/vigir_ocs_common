@@ -37,7 +37,7 @@ public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
     void robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& msg );
-    void behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg );
+    void behavstate( const flor_control_msgs::FlorControlMode::ConstPtr& msg );
     void controlstate(const flor_control_msgs::FlorRobotStateCommand::ConstPtr& msg);
     void robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg);
     void receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
@@ -90,7 +90,7 @@ private:
     QFont normal;
     QStringList labels;
     std::string messagesPath;
-
+    double      filter_rate_;
 
 
 };

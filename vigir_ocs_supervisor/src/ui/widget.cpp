@@ -50,6 +50,10 @@ Widget::Widget(QWidget *parent) :
     avg_pump_rpm=-1;
     avg_pump_return_pressure=-1;
     avg_pump_supply_pressure=-1;
+    filter_rate_ = 0.003;
+
+    ros::NodeHandle nh;
+    nh.getParam("filter_rate",filter_rate_);
 
     ui->cs->setEnabled(false);
     ui->cs_list->setEnabled(false);
@@ -125,9 +129,9 @@ Widget::Widget(QWidget *parent) :
     //sub_control = nh.subscribe<flor_control_msgs::FlorRobotStateCommand>("/flor/controller/robot_state_command", 5, &Widget::controlstate, this);
     pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
     sub_state = nh.subscribe<flor_control_msgs::FlorRobotStatus>("/flor/controller/robot_status", 5, &Widget::robotstate, this);
-    sub_behav = nh.subscribe<atlas_msgs::AtlasSimInterfaceState>("/atlas/atlas_sim_interface_state", 5, &Widget::behavstate, this);
-    sub_fault = nh.subscribe<flor_control_msgs::FlorRobotFault >("/flor/controller/robot_fault", 5, &Widget::robotfault, this);
-    status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor/controller/status", 100, &Widget::receivedMessage, this );
+    sub_behav = nh.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode",    5, &Widget::behavstate, this);
+    sub_fault = nh.subscribe<flor_control_msgs::FlorRobotFault >("/flor/controller/robot_fault",  5, &Widget::robotfault, this);
+    status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor/controller/status",    100, &Widget::receivedMessage, this );
 
     timer.start(33, this);
 }
@@ -391,15 +395,16 @@ void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& ms
     }
 
 
-    // Average the noisy signals (at 200Hz after 10 seconds only 0.002 remaining)
-    avg_inlet_pr               = 0.003*msg->pump_inlet_pressure      + 0.997*avg_inlet_pr            ;
-    avg_air_sump_pressure      = 0.003*msg->air_sump_pressure        + 0.997*avg_air_sump_pressure   ;
-    avg_pump_rpm               = 0.003*msg->current_pump_rpm         + 0.997*avg_pump_rpm            ;
-    avg_pump_return_pressure   = 0.003*msg->pump_return_pressure     + 0.997*avg_pump_return_pressure;
-    avg_pump_supply_pressure   = 0.003*msg->pump_supply_pressure     + 0.997*avg_pump_supply_pressure;
-    avg_pump_supply_temperature= 0.003*msg->pump_supply_temperature  + 0.997*avg_pump_supply_temperature;
-    avg_motor_temperature      = 0.003*msg->motor_temperature        + 0.997*avg_motor_temperature      ;
-    avg_motor_driver_temp      = 0.003*msg->motor_driver_temperature + 0.997*avg_motor_driver_temp      ;
+    // Average the noisy signals
+    double one_minus = 1.0 - filter_rate_;
+    avg_inlet_pr               = filter_rate_*msg->pump_inlet_pressure      + one_minus*avg_inlet_pr            ;
+    avg_air_sump_pressure      = filter_rate_*msg->air_sump_pressure        + one_minus*avg_air_sump_pressure   ;
+    avg_pump_rpm               = filter_rate_*msg->current_pump_rpm         + one_minus*avg_pump_rpm            ;
+    avg_pump_return_pressure   = filter_rate_*msg->pump_return_pressure     + one_minus*avg_pump_return_pressure;
+    avg_pump_supply_pressure   = filter_rate_*msg->pump_supply_pressure     + one_minus*avg_pump_supply_pressure;
+    avg_pump_supply_temperature= filter_rate_*msg->pump_supply_temperature  + one_minus*avg_pump_supply_temperature;
+    avg_motor_temperature      = filter_rate_*msg->motor_temperature        + one_minus*avg_motor_temperature      ;
+    avg_motor_driver_temp      = filter_rate_*msg->motor_driver_temperature + one_minus*avg_motor_driver_temp      ;
 
     // Update the text
     ui->inlet->setText(QString::number(avg_inlet_pr,'f',2));
@@ -556,9 +561,9 @@ void Widget::robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg)
 
 }
 
-void Widget:: behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& msg )
+void Widget:: behavstate( const flor_control_msgs::FlorControlMode::ConstPtr& msg )
 {
-    switch(msg->current_behavior)
+    switch(msg->bdi_current_behavior)
     { // defined in flor_control_msgs::FlorControlModeCommand.msg
     case 0: ui->cur_st->setText("STAND"); break;
     case 1: ui->cur_st->setText("USER"); break;
@@ -570,7 +575,7 @@ void Widget:: behavstate( const atlas_msgs::AtlasSimInterfaceState::ConstPtr& ms
     case 16: ui->cur_st->setText("CALIBRATE"); break;
     default: ui->cur_st->setText("Unknown!"); break;
     }
-    switch(msg->desired_behavior)
+    switch(msg->bdi_desired_behavior)
     {
     case 0: ui->d_state->setText("STAND"); break;
     case 1: ui->d_state->setText("USER"); break;
