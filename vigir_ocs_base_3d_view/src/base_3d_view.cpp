@@ -481,6 +481,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
 
         cartesian_use_collision_ = new QCheckBox("Use Collision Avoidance");
 
+        cartesian_keep_orientation_ = new QCheckBox("Keep Endeffector Orientation");
+
         QPushButton* cartesian_send_left_ = new QPushButton("Send to left arm");
         QObject::connect(cartesian_send_left_, SIGNAL(clicked()), this, SLOT(sendCartesianLeft()));
         cartesian_send_left_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
@@ -497,6 +499,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         cartesian_layout_->setMargin(3);
         cartesian_layout_->setSpacing(3);
         cartesian_layout_->addWidget(cartesian_use_collision_);
+        cartesian_layout_->addWidget(cartesian_keep_orientation_);
         cartesian_layout_->addLayout(cartesian_button_layout_);
 
         cartesian_config_widget_->setLayout(cartesian_layout_);
@@ -1933,8 +1936,10 @@ rviz::ViewController* Base3DView::getCurrentViewController()
      return manager_->getViewManager()->getCurrent();
 }
 
-void Base3DView::sendCartesianLeft()
+void Base3DView::sendCartesianTarget(bool right_hand) // 0 left 1 right
 {
+    std::string prefix = (right_hand ? "r" : "l");
+
     flor_planning_msgs::CartesianMotionRequest cmd;
 
     cmd.header.frame_id = "/world";
@@ -1945,7 +1950,7 @@ void Base3DView::sendCartesianLeft()
     // get position of the wrist in world coordinates
     Ogre::Vector3 wrist_position(0,0,0);
     Ogre::Quaternion wrist_orientation(1,0,0,0);
-    transform(wrist_position, wrist_orientation, "/l_hand", "/world");
+    transform(wrist_position, wrist_orientation, (std::string("/")+prefix+"_hand").c_str(), "/world");
 
     // get position of the marker in world coordinates
     geometry_msgs::PoseStamped hand, marker;
@@ -1956,7 +1961,7 @@ void Base3DView::sendCartesianLeft()
     hand.pose.orientation.y = wrist_orientation.y;
     hand.pose.orientation.z = wrist_orientation.z;
     hand.pose.orientation.w = wrist_orientation.w;
-    calcWristTarget(hand,l_hand_T_marker_,marker);
+    calcWristTarget(hand,(right_hand ? r_hand_T_marker_ : l_hand_T_marker_),marker);
 
     // calculate the difference between them
     Ogre::Vector3 diff_vector;
@@ -1970,34 +1975,55 @@ void Base3DView::sendCartesianLeft()
         cmd.waypoints[i].position.x = cmd.waypoints[i].position.x + diff_vector.x;
         cmd.waypoints[i].position.y = cmd.waypoints[i].position.y + diff_vector.y;
         cmd.waypoints[i].position.z = cmd.waypoints[i].position.z + diff_vector.z;
+        if(cartesian_keep_orientation_->isChecked())
+        {
+            cmd.waypoints[i].orientation.x = wrist_orientation.x;
+            cmd.waypoints[i].orientation.y = wrist_orientation.y;
+            cmd.waypoints[i].orientation.z = wrist_orientation.z;
+            cmd.waypoints[i].orientation.w = wrist_orientation.w;
+        }
     }
 
     cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
 
     if(!ghost_planning_group_[2]) // torso selected in the ghost widget
-        cmd.planning_group = "l_arm_group";
+        cmd.planning_group = prefix+"_arm_group";
     else
-        cmd.planning_group = "l_arm_with_torso_group";
+        cmd.planning_group = prefix+"_arm_with_torso_group";
 
     if(position_only_ik_)
-        cmd.planning_group += "_position_only_ik";
+        cmd.planning_group += prefix+"_position_only_ik";
 
     cartesian_plan_request_pub_.publish(cmd);
+}
+
+void Base3DView::sendCartesianLeft()
+{
+    sendCartesianTarget(0);
 }
 
 void Base3DView::sendCartesianRight()
 {
-    flor_planning_msgs::CartesianMotionRequest cmd;
+    sendCartesianTarget(1);
+}
 
-    cmd.header.frame_id = "/world";
-    cmd.header.stamp = ros::Time::now();
+void Base3DView::sendCircularTarget(bool right_hand)
+{
+    std::string prefix = (right_hand ? "r" : "l");
+    flor_planning_msgs::CircularMotionRequest cmd;
 
-    cmd.waypoints = cartesian_waypoint_list_;
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = "/world";
+    pose.header.stamp = ros::Time::now();
+    pose.pose = circular_center_;
 
+    // calculating the rotation based on position of the markers
+    if(circular_keep_orientation_->isChecked())
+    {
     // get position of the wrist in world coordinates
     Ogre::Vector3 wrist_position(0,0,0);
     Ogre::Quaternion wrist_orientation(1,0,0,0);
-    transform(wrist_position, wrist_orientation, "/r_hand", "/world");
+    transform(wrist_position, wrist_orientation, (std::string("/")+prefix+"_hand").c_str(), "/world");
 
     // get position of the marker in world coordinates
     geometry_msgs::PoseStamped hand, marker;
@@ -2008,7 +2034,7 @@ void Base3DView::sendCartesianRight()
     hand.pose.orientation.y = wrist_orientation.y;
     hand.pose.orientation.z = wrist_orientation.z;
     hand.pose.orientation.w = wrist_orientation.w;
-    calcWristTarget(hand,r_hand_T_marker_,marker);
+    calcWristTarget(hand,(right_hand ? r_hand_T_marker_ : l_hand_T_marker_),marker);
 
     // calculate the difference between them
     Ogre::Vector3 diff_vector;
@@ -2016,143 +2042,39 @@ void Base3DView::sendCartesianRight()
     diff_vector.y = wrist_position.y - marker.pose.position.y;
     diff_vector.z = wrist_position.z - marker.pose.position.z;
 
-    for(int i = 0; i < cmd.waypoints.size(); i++)
-    {
-        // apply the difference to each one of the waypoints
-        cmd.waypoints[i].position.x = cmd.waypoints[i].position.x + diff_vector.x;
-        cmd.waypoints[i].position.y = cmd.waypoints[i].position.y + diff_vector.y;
-        cmd.waypoints[i].position.z = cmd.waypoints[i].position.z + diff_vector.z;
+    // apply the difference to the circular center
+    pose.pose.position.x = circular_center_.position.x + diff_vector.x;
+    pose.pose.position.y = circular_center_.position.y + diff_vector.y;
+    pose.pose.position.z = circular_center_.position.z + diff_vector.z;
     }
 
-    cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
+    cmd.rotation_center_pose = pose;
+
+    cmd.rotation_angle = circular_angle_->value()*0.0174532925; // UI in deg, msg in rad
+
+    cmd.use_environment_obstacle_avoidance = circular_use_collision_->isChecked();
+
+    cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
 
     if(!ghost_planning_group_[2]) // torso selected in the ghost widget
-        cmd.planning_group = "r_arm_group";
+        cmd.planning_group = prefix+"_arm_group";
     else
-        cmd.planning_group = "r_arm_with_torso_group";
+        cmd.planning_group = prefix+"_arm_with_torso_group";
 
     if(position_only_ik_)
         cmd.planning_group += "_position_only_ik";
 
-    cartesian_plan_request_pub_.publish(cmd);
+    circular_plan_request_pub_.publish(cmd);
 }
 
 void Base3DView::sendCircularLeft()
 {
-    flor_planning_msgs::CircularMotionRequest cmd;
-
-    geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = "/world";
-    pose.header.stamp = ros::Time::now();
-    pose.pose = circular_center_;
-
-    // calculating the rotation based on position of the markers
-    if(circular_keep_orientation_->isChecked())
-    {
-    // get position of the wrist in world coordinates
-    Ogre::Vector3 wrist_position(0,0,0);
-    Ogre::Quaternion wrist_orientation(1,0,0,0);
-    transform(wrist_position, wrist_orientation, "/l_hand", "/world");
-
-    // get position of the marker in world coordinates
-    geometry_msgs::PoseStamped hand, marker;
-    hand.pose.position.x = wrist_position.x;
-    hand.pose.position.y = wrist_position.y;
-    hand.pose.position.z = wrist_position.z;
-    hand.pose.orientation.x = wrist_orientation.x;
-    hand.pose.orientation.y = wrist_orientation.y;
-    hand.pose.orientation.z = wrist_orientation.z;
-    hand.pose.orientation.w = wrist_orientation.w;
-    calcWristTarget(hand,l_hand_T_marker_,marker);
-
-    // calculate the difference between them
-    Ogre::Vector3 diff_vector;
-    diff_vector.x = wrist_position.x - marker.pose.position.x;
-    diff_vector.y = wrist_position.y - marker.pose.position.y;
-    diff_vector.z = wrist_position.z - marker.pose.position.z;
-
-    // apply the difference to the circular center
-    pose.pose.position.x = circular_center_.position.x + diff_vector.x;
-    pose.pose.position.y = circular_center_.position.y + diff_vector.y;
-    pose.pose.position.z = circular_center_.position.z + diff_vector.z;
-    }
-
-    cmd.rotation_center_pose = pose;
-
-    cmd.rotation_angle = circular_angle_->value()*0.0174532925; // UI in deg, msg in rad
-
-    cmd.use_environment_obstacle_avoidance = circular_use_collision_->isChecked();
-
-    cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
-
-    if(!ghost_planning_group_[2]) // torso selected in the ghost widget
-        cmd.planning_group = "l_arm_group";
-    else
-        cmd.planning_group = "l_arm_with_torso_group";
-
-    if(position_only_ik_)
-        cmd.planning_group += "_position_only_ik";
-
-    circular_plan_request_pub_.publish(cmd);
+    sendCircularTarget(false);
 }
 
 void Base3DView::sendCircularRight()
 {
-    flor_planning_msgs::CircularMotionRequest cmd;
-
-    geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = "/world";
-    pose.header.stamp = ros::Time::now();
-    pose.pose = circular_center_;
-
-    // calculating the rotation based on position of the markers
-    if(circular_keep_orientation_->isChecked())
-    {
-    // get position of the wrist in world coordinates
-    Ogre::Vector3 wrist_position(0,0,0);
-    Ogre::Quaternion wrist_orientation(1,0,0,0);
-    transform(wrist_position, wrist_orientation, "/r_hand", "/world");
-
-    // get position of the marker in world coordinates
-    geometry_msgs::PoseStamped hand, marker;
-    hand.pose.position.x = wrist_position.x;
-    hand.pose.position.y = wrist_position.y;
-    hand.pose.position.z = wrist_position.z;
-    hand.pose.orientation.x = wrist_orientation.x;
-    hand.pose.orientation.y = wrist_orientation.y;
-    hand.pose.orientation.z = wrist_orientation.z;
-    hand.pose.orientation.w = wrist_orientation.w;
-    calcWristTarget(hand,r_hand_T_marker_,marker);
-
-    // calculate the difference between them
-    Ogre::Vector3 diff_vector;
-    diff_vector.x = wrist_position.x - marker.pose.position.x;
-    diff_vector.y = wrist_position.y - marker.pose.position.y;
-    diff_vector.z = wrist_position.z - marker.pose.position.z;
-
-    // apply the difference to the circular center
-    pose.pose.position.x = circular_center_.position.x + diff_vector.x;
-    pose.pose.position.y = circular_center_.position.y + diff_vector.y;
-    pose.pose.position.z = circular_center_.position.z + diff_vector.z;
-    }
-
-    cmd.rotation_center_pose = pose;
-
-    cmd.rotation_angle = circular_angle_->value()*0.0174532925; // UI in deg, msg in rad
-
-    cmd.use_environment_obstacle_avoidance = circular_use_collision_->isChecked();
-
-    cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
-
-    if(!ghost_planning_group_[2]) // torso selected in the ghost widget
-        cmd.planning_group = "r_arm_group";
-    else
-        cmd.planning_group = "r_arm_with_torso_group";
-
-    if(position_only_ik_)
-        cmd.planning_group += "_position_only_ik";
-
-    circular_plan_request_pub_.publish(cmd);
+    sendCircularTarget(true);
 }
 
 bool Base3DView::eventFilter( QObject * o, QEvent * e )

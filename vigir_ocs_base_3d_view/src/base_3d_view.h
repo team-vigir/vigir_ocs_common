@@ -194,6 +194,8 @@ protected:
     void publishHandPose(std::string hand, const geometry_msgs::PoseStamped& end_effector_transform);
     void publishHandJointStates(std::string hand);
     int calcWristTarget(const geometry_msgs::PoseStamped& end_effector_pose, tf::Transform hand_T_palm, geometry_msgs::PoseStamped& final_pose);
+    void sendCartesianTarget(bool right_hand);
+    void sendCircularTarget(bool right_hand);
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
@@ -379,6 +381,7 @@ protected:
 
     QWidget* cartesian_config_widget_;
     QCheckBox* cartesian_use_collision_;
+    QCheckBox* cartesian_keep_orientation_;
 
     QWidget* circular_config_widget_;
     QCheckBox* circular_use_collision_;
