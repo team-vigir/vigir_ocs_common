@@ -1956,7 +1956,7 @@ void Base3DView::sendCartesianLeft()
     hand.pose.orientation.y = wrist_orientation.y;
     hand.pose.orientation.z = wrist_orientation.z;
     hand.pose.orientation.w = wrist_orientation.w;
-    calcWristTarget(hand,r_hand_T_marker_,marker);
+    calcWristTarget(hand,l_hand_T_marker_,marker);
 
     // calculate the difference between them
     Ogre::Vector3 diff_vector;
