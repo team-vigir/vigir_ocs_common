@@ -87,7 +87,7 @@ void GlobalHotkey::onUpdate()
         //if (keys_return[i] != 0)
 		{
 			int pos = 0;
-            char num = keys_return[i];
+            unsigned char num = keys_return[i];
 			while (pos < 8) 
 			{
 				if ((num & 0x01) == 1) 
@@ -97,7 +97,8 @@ void GlobalHotkey::onUpdate()
 				}
 				pos++; num /= 2;
 			}
-            printf("%x ",(char)keys_return[i]);
+
+            printf("%x ",(unsigned char)keys_return[i]);
 		}
 	}
     printf("\n");

@@ -539,7 +539,7 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
         on_send_right_configuration_button__clicked();
     else if(key_event->key == 41 && key_event->state && ctrl_is_pressed)
         on_send_upper_body_button__clicked();
-    else if(key_event->key == 38 && key_event->state && ctrl_is_pressed)
+    else if(key_event->key == 39 && key_event->state && ctrl_is_pressed)
         snapClicked();
 
     std::cout << "key code:" << key_event->key << std::endl;

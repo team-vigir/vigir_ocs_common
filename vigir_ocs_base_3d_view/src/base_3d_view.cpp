@@ -1982,6 +1982,18 @@ void Base3DView::sendCartesianTarget(bool right_hand) // 0 left 1 right
             cmd.waypoints[i].orientation.z = wrist_orientation.z;
             cmd.waypoints[i].orientation.w = wrist_orientation.w;
         }
+        /*else
+        {
+
+            Ogre::Quaternion wrist_orientation(1,0,0,0);
+            Ogre::Quaternion waypoint_orientation(cmd.waypoints[i].orientation.w,cmd.waypoints[i].orientation.x,cmd.waypoints[i].orientation.y,cmd.waypoints[i].orientation.z);
+            waypoint_orientation = waypoint_orientation * wrist_orientation;
+            cmd.waypoints[i].orientation.x = waypoint_orientation.x;
+            cmd.waypoints[i].orientation.y = waypoint_orientation.y;
+            cmd.waypoints[i].orientation.z = waypoint_orientation.z;
+            cmd.waypoints[i].orientation.w = waypoint_orientation.w;
+        }*/
+
     }
 
     cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
