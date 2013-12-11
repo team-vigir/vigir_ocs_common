@@ -104,6 +104,7 @@ public:
     void processPelvisResetRequest( const std_msgs::Bool::ConstPtr& msg );
     void processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg );
     void processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr& msg );
+    void processSendCartesian( const std_msgs::Bool::ConstPtr& msg );
 
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
 
@@ -194,7 +195,7 @@ protected:
     void publishHandPose(std::string hand, const geometry_msgs::PoseStamped& end_effector_transform);
     void publishHandJointStates(std::string hand);
     int calcWristTarget(const geometry_msgs::PoseStamped& end_effector_pose, tf::Transform hand_T_palm, geometry_msgs::PoseStamped& final_pose);
-    void sendCartesianTarget(bool right_hand);
+    void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints);
     void sendCircularTarget(bool right_hand);
 
     rviz::VisualizationManager* manager_;
@@ -370,6 +371,9 @@ protected:
 
     bool is_primary_view_;
 
+    geometry_msgs::Pose last_l_arm_marker_pose_;
+    geometry_msgs::Pose last_r_arm_marker_pose_;
+
     std::vector<rviz::Display*> cartesian_marker_list_;
     rviz::Display* circular_marker_;
 
@@ -387,6 +391,8 @@ protected:
     QCheckBox* circular_use_collision_;
     QCheckBox* circular_keep_orientation_;
     QDoubleSpinBox* circular_angle_;
+
+    ros::Subscriber send_cartesian_sub_;
 };
 }
 #endif // BASE_3D_VIEW_H

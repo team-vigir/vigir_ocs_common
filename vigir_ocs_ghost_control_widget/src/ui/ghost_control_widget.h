@@ -102,6 +102,8 @@ private Q_SLOTS:
     void on_send_ghost_to_template_button_clicked();
     void on_templateBox_activated(const QString &arg1);
     void on_graspBox_activated(const QString &arg1);
+    void on_send_left_cartesian_button__clicked();
+    void on_send_right_cartesian_button__clicked();
 
 private:
 
@@ -120,6 +122,7 @@ private:
     ros::Publisher send_pelvis_pub_;
     ros::Publisher send_inverse_rechability_req_pub_;
     ros::Publisher send_ghost_to_template_pub_;
+    ros::Publisher send_ghost_cartesian_pub_;
 
     // variables that hold saved state of the widget
     static std::vector<unsigned char> saved_state_planning_group_;

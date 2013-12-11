@@ -38,6 +38,7 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     state_pub_ = nh_.advertise<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 1, false );
     reset_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 1, false );
     send_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 1, false );
+    send_ghost_cartesian_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/send_cartesian", 1, false );
 
     // advertise set pose buttons
     set_to_target_pose_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/planning/plan_to_pose_state", 1, false );
@@ -374,7 +375,10 @@ void GhostControlWidget::on_send_left_pose_button__clicked()
 {
     std_msgs::String cmd;
 
-    cmd.data = "l_arm_group";
+    if(ui->planning_torso_->isChecked())
+        cmd.data = "l_arm_with_torso_group";
+    else
+        cmd.data = "l_arm_group";
 
     set_to_target_pose_pub_.publish(cmd);
 }
@@ -392,7 +396,10 @@ void GhostControlWidget::on_send_right_pose_button__clicked()
 {
     std_msgs::String cmd;
 
-    cmd.data = "r_arm_group";
+    if(ui->planning_torso_->isChecked())
+        cmd.data = "r_arm_with_torso_group";
+    else
+        cmd.data = "r_arm_group";
 
     set_to_target_pose_pub_.publish(cmd);
 }
@@ -446,7 +453,10 @@ void GhostControlWidget::on_send_left_configuration_button__clicked()
 {
     std_msgs::String cmd;
 
-    cmd.data = "l_arm_group";
+    if(ui->planning_torso_->isChecked())
+        cmd.data = "l_arm_with_torso_group";
+    else
+        cmd.data = "l_arm_group";
 
     set_to_target_config_pub_.publish(cmd);
 }
@@ -464,7 +474,10 @@ void GhostControlWidget::on_send_right_configuration_button__clicked()
 {
     std_msgs::String cmd;
 
-    cmd.data = "r_arm_group";
+    if(ui->planning_torso_->isChecked())
+        cmd.data = "r_arm_with_torso_group";
+    else
+        cmd.data = "r_arm_group";
 
     set_to_target_config_pub_.publish(cmd);
 }
@@ -553,6 +566,20 @@ void GhostControlWidget::on_left_moveit_marker_lock_clicked()
 void GhostControlWidget::on_right_moveit_marker_lock_clicked()
 {
     publishState();
+}
+
+void GhostControlWidget::on_send_left_cartesian_button__clicked()
+{
+    std_msgs::Bool cmd;
+    cmd.data = false;
+    send_ghost_cartesian_pub_.publish(cmd);
+}
+
+void GhostControlWidget::on_send_right_cartesian_button__clicked()
+{
+    std_msgs::Bool cmd;
+    cmd.data = true;
+    send_ghost_cartesian_pub_.publish(cmd);
 }
 
 void GhostControlWidget::on_pushButton_clicked()

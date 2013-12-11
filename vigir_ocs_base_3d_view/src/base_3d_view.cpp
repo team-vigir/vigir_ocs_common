@@ -555,6 +555,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         // and necessary publisher
         circular_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request", 1, false );
 
+        // subscribe to the topic sent by the ghost widget
+        send_cartesian_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_cartesian", 5, &Base3DView::processSendCartesian, this );
+
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
     }
 
@@ -1570,6 +1573,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         //ROS_INFO("LEFT GHOST HAND POSE:");
         //ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
         //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
+        last_l_arm_marker_pose_ = msg->pose.pose;
         calcWristTarget(msg->pose,l_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("left"),joint_pose);
     }
@@ -1584,6 +1588,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         //ROS_INFO("RIGHT GHOST HAND POSE:");
         //ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
         //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
+        last_r_arm_marker_pose_ = msg->pose.pose;
         calcWristTarget(msg->pose,r_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("right"),joint_pose);
     }
@@ -1936,7 +1941,21 @@ rviz::ViewController* Base3DView::getCurrentViewController()
      return manager_->getViewManager()->getCurrent();
 }
 
-void Base3DView::sendCartesianTarget(bool right_hand) // 0 left 1 right
+void Base3DView::processSendCartesian(const std_msgs::Bool::ConstPtr &msg)
+{
+    std::vector<geometry_msgs::Pose> waypoints;
+    // send the marker position
+    if(msg->data)
+        waypoints.push_back(last_r_arm_marker_pose_);
+    else
+        waypoints.push_back(last_l_arm_marker_pose_);
+    bool old_state = cartesian_keep_orientation_->isChecked();
+    cartesian_keep_orientation_->setChecked(false);
+    sendCartesianTarget(msg->data, waypoints);
+    cartesian_keep_orientation_->setChecked(old_state);
+}
+
+void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints) // 0 left 1 right
 {
     std::string prefix = (right_hand ? "r" : "l");
 
@@ -1945,7 +1964,7 @@ void Base3DView::sendCartesianTarget(bool right_hand) // 0 left 1 right
     cmd.header.frame_id = "/world";
     cmd.header.stamp = ros::Time::now();
 
-    cmd.waypoints = cartesian_waypoint_list_;
+    cmd.waypoints = waypoints;
 
     // get position of the wrist in world coordinates
     Ogre::Vector3 wrist_position(0,0,0);
@@ -2011,12 +2030,12 @@ void Base3DView::sendCartesianTarget(bool right_hand) // 0 left 1 right
 
 void Base3DView::sendCartesianLeft()
 {
-    sendCartesianTarget(0);
+    sendCartesianTarget(0,cartesian_waypoint_list_);
 }
 
 void Base3DView::sendCartesianRight()
 {
-    sendCartesianTarget(1);
+    sendCartesianTarget(1,cartesian_waypoint_list_);
 }
 
 void Base3DView::sendCircularTarget(bool right_hand)
@@ -2032,32 +2051,32 @@ void Base3DView::sendCircularTarget(bool right_hand)
     // calculating the rotation based on position of the markers
     if(circular_keep_orientation_->isChecked())
     {
-    // get position of the wrist in world coordinates
-    Ogre::Vector3 wrist_position(0,0,0);
-    Ogre::Quaternion wrist_orientation(1,0,0,0);
-    transform(wrist_position, wrist_orientation, (std::string("/")+prefix+"_hand").c_str(), "/world");
+        // get position of the wrist in world coordinates
+        Ogre::Vector3 wrist_position(0,0,0);
+        Ogre::Quaternion wrist_orientation(1,0,0,0);
+        transform(wrist_position, wrist_orientation, (std::string("/")+prefix+"_hand").c_str(), "/world");
 
-    // get position of the marker in world coordinates
-    geometry_msgs::PoseStamped hand, marker;
-    hand.pose.position.x = wrist_position.x;
-    hand.pose.position.y = wrist_position.y;
-    hand.pose.position.z = wrist_position.z;
-    hand.pose.orientation.x = wrist_orientation.x;
-    hand.pose.orientation.y = wrist_orientation.y;
-    hand.pose.orientation.z = wrist_orientation.z;
-    hand.pose.orientation.w = wrist_orientation.w;
-    calcWristTarget(hand,(right_hand ? r_hand_T_marker_ : l_hand_T_marker_),marker);
+        // get position of the marker in world coordinates
+        geometry_msgs::PoseStamped hand, marker;
+        hand.pose.position.x = wrist_position.x;
+        hand.pose.position.y = wrist_position.y;
+        hand.pose.position.z = wrist_position.z;
+        hand.pose.orientation.x = wrist_orientation.x;
+        hand.pose.orientation.y = wrist_orientation.y;
+        hand.pose.orientation.z = wrist_orientation.z;
+        hand.pose.orientation.w = wrist_orientation.w;
+        calcWristTarget(hand,(right_hand ? r_hand_T_marker_ : l_hand_T_marker_),marker);
 
-    // calculate the difference between them
-    Ogre::Vector3 diff_vector;
-    diff_vector.x = wrist_position.x - marker.pose.position.x;
-    diff_vector.y = wrist_position.y - marker.pose.position.y;
-    diff_vector.z = wrist_position.z - marker.pose.position.z;
+        // calculate the difference between them
+        Ogre::Vector3 diff_vector;
+        diff_vector.x = wrist_position.x - marker.pose.position.x;
+        diff_vector.y = wrist_position.y - marker.pose.position.y;
+        diff_vector.z = wrist_position.z - marker.pose.position.z;
 
-    // apply the difference to the circular center
-    pose.pose.position.x = circular_center_.position.x + diff_vector.x;
-    pose.pose.position.y = circular_center_.position.y + diff_vector.y;
-    pose.pose.position.z = circular_center_.position.z + diff_vector.z;
+        // apply the difference to the circular center
+        pose.pose.position.x = circular_center_.position.x + diff_vector.x;
+        pose.pose.position.y = circular_center_.position.y + diff_vector.y;
+        pose.pose.position.z = circular_center_.position.z + diff_vector.z;
     }
 
     cmd.rotation_center_pose = pose;

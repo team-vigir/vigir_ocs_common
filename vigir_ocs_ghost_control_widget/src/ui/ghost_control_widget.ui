@@ -7,20 +7,20 @@
     <x>0</x>
     <y>0</y>
     <width>419</width>
-    <height>692</height>
+    <height>652</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>400</width>
-    <height>692</height>
+    <width>419</width>
+    <height>652</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>GhostControlWidget</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_7">
-   <item row="3" column="0">
+   <item row="4" column="0">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
       <string>Send End Effector Pose to Robot</string>
@@ -38,28 +38,14 @@
       <item row="0" column="2">
        <widget class="QPushButton" name="send_right_pose_button_">
         <property name="text">
-         <string>Send Right Arm</string>
+         <string>Send End Effector Right</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
        <widget class="QPushButton" name="send_left_pose_button_">
         <property name="text">
-         <string>Send Left Arm</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="send_left_torso_pose_button_">
-        <property name="text">
-         <string>Send Left Arm + Torso</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QPushButton" name="send_right_torso_pose_button_">
-        <property name="text">
-         <string>Send Right Arm + Torso</string>
+         <string>Send End Effector Left</string>
         </property>
        </widget>
       </item>
@@ -98,7 +84,7 @@
      </layout>
     </widget>
    </item>
-   <item row="4" column="0">
+   <item row="6" column="0">
     <widget class="QGroupBox" name="groupBox_5">
      <property name="title">
       <string>Send Joint Configuration to Robot</string>
@@ -121,29 +107,21 @@
          </property>
          <item row="0" column="2">
           <widget class="QPushButton" name="send_right_configuration_button_">
+           <property name="minimumSize">
+            <size>
+             <width>19</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="text">
-            <string>Send Right Arm</string>
+            <string>Send Right Configuration</string>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
           <widget class="QPushButton" name="send_left_configuration_button_">
            <property name="text">
-            <string>Send Left Arm</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QPushButton" name="send_right_torso_configuration_button_">
-           <property name="text">
-            <string>Send Right Arm + Torso</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QPushButton" name="send_left_torso_configuration_button_">
-           <property name="text">
-            <string>Send Left Arm + Torso</string>
+            <string>Send Left Configuration</string>
            </property>
           </widget>
          </item>
@@ -160,7 +138,7 @@
      </layout>
     </widget>
    </item>
-   <item row="5" column="0">
+   <item row="7" column="0">
     <widget class="QGroupBox" name="groupBox_4">
      <property name="title">
       <string>Send to Footstep Planner</string>
@@ -201,7 +179,7 @@
      </layout>
     </widget>
    </item>
-   <item row="6" column="0">
+   <item row="8" column="0">
     <widget class="QGroupBox" name="groupBox_6">
      <property name="title">
       <string>Move ghost robot to ghost hand grasp pose</string>
@@ -475,7 +453,7 @@
      </layout>
     </widget>
    </item>
-   <item row="7" column="0">
+   <item row="9" column="0">
     <widget class="QGroupBox" name="groupBox_7">
      <property name="title">
       <string>Move ghost to Template control</string>
@@ -572,6 +550,41 @@
        <widget class="QPushButton" name="send_ghost_to_template_button">
         <property name="text">
          <string>Send Ghost to Template</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QGroupBox" name="groupBox_8">
+     <property name="title">
+      <string>Send End Effector Pose to Robot - Cartesian</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>9</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="send_left_cartesian_button_">
+        <property name="text">
+         <string>Send Cartesian Left</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="send_right_cartesian_button_">
+        <property name="text">
+         <string>Send Cartesian Right</string>
         </property>
        </widget>
       </item>
