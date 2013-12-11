@@ -84,10 +84,10 @@ void GlobalHotkey::onUpdate()
 	XQueryKeymap(display_name_,keys_return);
 	for(int i = 0; i < 32; i++) 
 	{
-		if (keys_return[i] != 0) 
+        //if (keys_return[i] != 0)
 		{
 			int pos = 0;
-			int num = keys_return[i];
+            char num = keys_return[i];
 			while (pos < 8) 
 			{
 				if ((num & 0x01) == 1) 
@@ -97,9 +97,10 @@ void GlobalHotkey::onUpdate()
 				}
 				pos++; num /= 2;
 			}
+            printf("%x ",(char)keys_return[i]);
 		}
 	}
-    //printf("\n");
+    printf("\n");
 
     // RUN 'xev' TO GET KEYCODES
 

@@ -542,7 +542,7 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
     else if(key_event->key == 38 && key_event->state && ctrl_is_pressed)
         snapClicked();
 
-    //std::cout << "key code:" << key_event->key << std::endl;
+    std::cout << "key code:" << key_event->key << std::endl;
 }
 
 void GhostControlWidget::on_left_moveit_marker_lock_clicked()
