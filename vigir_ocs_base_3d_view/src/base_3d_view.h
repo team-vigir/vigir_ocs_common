@@ -162,7 +162,9 @@ public Q_SLOTS:
 
     void resetView();
 
-    void clearPointCloudRequests();
+    void clearPointCloudRaycastRequests();
+    void clearPointCloudStereoRequests();
+    void clearPointCloudRegionRequests();
     void clearMapRequests();
 
     void sendCartesianLeft();
@@ -208,14 +210,14 @@ protected:
     rviz::Display* interactive_marker_template_;
     rviz::Display* octomap_;
     rviz::Display* laser_scan_;
-    rviz::Display* lidar_point_cloud_viewer_;
+    rviz::Display* region_point_cloud_viewer_;
     rviz::Display* stereo_point_cloud_viewer_;
     rviz::Display* selection_3d_display_;
     rviz::Display* template_display_;
     rviz::Display* waypoints_display_;
     rviz::Display* achieved_waypoints_display_;
     rviz::Display* octomap_roi_;
-    rviz::Display* point_cloud_request_viewer_;
+    rviz::Display* raycast_point_cloud_viewer_;
     std::map<std::string,rviz::Display*> frustum_viewer_list_;
 
     // new displays for walking

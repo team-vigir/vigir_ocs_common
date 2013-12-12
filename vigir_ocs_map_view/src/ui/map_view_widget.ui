@@ -60,7 +60,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-660</y>
         <width>292</width>
         <height>1883</height>
        </rect>
@@ -606,7 +606,7 @@ color: rgb(255, 26, 26);</string>
              <item>
               <widget class="QCheckBox" name="point_cloud_request">
                <property name="text">
-                <string>Point Cloud Request</string>
+                <string>Raycast Point Cloud</string>
                </property>
                <property name="checked">
                 <bool>true</bool>
@@ -634,26 +634,78 @@ color: rgb(255, 26, 26);</string>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="lidar_point_cloud_2">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="text">
-             <string>LIDAR Point Cloud</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
+           <widget class="QWidget" name="widget_6" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QCheckBox" name="lidar_point_cloud_2">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="text">
+                <string>Region Point Cloud</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="reset_point_cloud_lidar">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>18</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
+color: rgb(255, 26, 26);</string>
+               </property>
+               <property name="text">
+                <string>reset</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="stereo_point_cloud_2">
-            <property name="text">
-             <string>Stereo Point Cloud</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
+           <widget class="QWidget" name="widget_7" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QCheckBox" name="stereo_point_cloud_2">
+               <property name="text">
+                <string>Stereo Point Cloud</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="reset_point_cloud_stereo">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>18</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
+color: rgb(255, 26, 26);</string>
+               </property>
+               <property name="text">
+                <string>reset</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>
@@ -742,11 +794,13 @@ color: rgb(255, 26, 26);</string>
     <slot>graspModelToggled(bool)</slot>
     <slot>templatesToggled(bool)</slot>
     <slot>requestedPointCloudToggled(bool)</slot>
-    <slot>clearPointCloudRequests()</slot>
+    <slot>clearPointCloudRaycastRequests()</slot>
     <slot>clearMapRequests()</slot>
     <slot>defineStepPosePressed()</slot>
     <slot>defineWalkPosePressed()</slot>
     <slot>selectionToolToggle(bool)</slot>
+    <slot>clearPointCloudRegionRequests()</slot>
+    <slot>clearPointCloudStereoRequests()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -1092,7 +1146,7 @@ color: rgb(255, 26, 26);</string>
    <sender>reset_point_cloud</sender>
    <signal>clicked()</signal>
    <receiver>map_view_</receiver>
-   <slot>clearPointCloudRequests()</slot>
+   <slot>clearPointCloudRaycastRequests()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>769</x>
@@ -1133,6 +1187,38 @@ color: rgb(255, 26, 26);</string>
     <hint type="destinationlabel">
      <x>406</x>
      <y>334</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>reset_point_cloud_lidar</sender>
+   <signal>clicked()</signal>
+   <receiver>map_view_</receiver>
+   <slot>clearPointCloudRegionRequests()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>948</x>
+     <y>488</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>341</x>
+     <y>364</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>reset_point_cloud_stereo</sender>
+   <signal>clicked()</signal>
+   <receiver>map_view_</receiver>
+   <slot>clearPointCloudStereoRequests()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>948</x>
+     <y>513</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>341</x>
+     <y>364</y>
     </hint>
    </hints>
   </connection>

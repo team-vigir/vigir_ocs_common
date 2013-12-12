@@ -181,25 +181,25 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         stereo_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
         stereo_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
-        lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "LIDAR Point Cloud", false );
-        ROS_ASSERT( lidar_point_cloud_viewer_ != NULL );
-        lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
-        lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/cloud_result" );
-        lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
-        lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-        lidar_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
-        lidar_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
-        lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
+        region_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "LIDAR Point Cloud", false );
+        ROS_ASSERT( region_point_cloud_viewer_ != NULL );
+        region_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
+        region_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/cloud_result" );
+        region_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+        region_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
+        region_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
+        region_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
         // point cloud request
-        point_cloud_request_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Raycast Point Cloud", true );
-        ROS_ASSERT( point_cloud_request_viewer_ != NULL );
-        point_cloud_request_viewer_->subProp( "Style" )->setValue( "Points" );
-        point_cloud_request_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/dist_query_pointcloud_result" );
-        point_cloud_request_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
-        point_cloud_request_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-        point_cloud_request_viewer_->subProp( "Decay Time" )->setValue( 0 );
-        point_cloud_request_viewer_->subProp( "Selectable" )->setValue( false );
+        raycast_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Raycast Point Cloud", true );
+        ROS_ASSERT( raycast_point_cloud_viewer_ != NULL );
+        raycast_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
+        raycast_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/dist_query_pointcloud_result" );
+        raycast_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+        raycast_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+        raycast_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
+        raycast_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
         // Create a template display to display all templates listed by the template nodelet
         template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
@@ -702,13 +702,13 @@ void Base3DView::templatesToggled( bool selected )
 void Base3DView::requestedPointCloudToggled( bool selected )
 {
     // we can't enable/disable point cloud requests, since the existing ones are lost if we disable them
-    point_cloud_request_viewer_->subProp("Alpha")->setValue(selected ? 1.0f : 0.0f);
+    raycast_point_cloud_viewer_->subProp("Alpha")->setValue(selected ? 1.0f : 0.0f);
 }
 
 void Base3DView::lidarPointCloudToggled( bool selected )
 {
     //lidar_point_cloud_viewer_->setEnabled( selected );
-    lidar_point_cloud_viewer_->subProp("Alpha")->setValue(selected ? 1.0f : 0.0f);
+    region_point_cloud_viewer_->subProp("Alpha")->setValue(selected ? 1.0f : 0.0f);
 }
 
 void Base3DView::stereoPointCloudToggled( bool selected )
@@ -1933,10 +1933,22 @@ void Base3DView::resetView()
     //    ((rviz::FixedOrientationOrthoViewController*)manager_->getViewManager()->getCurrent())->lookAt(position);
 }
 
-void Base3DView::clearPointCloudRequests()
+void Base3DView::clearPointCloudRaycastRequests()
 {
-    point_cloud_request_viewer_->setEnabled(false);
-    point_cloud_request_viewer_->setEnabled(true);
+    raycast_point_cloud_viewer_->setEnabled(false);
+    raycast_point_cloud_viewer_->setEnabled(true);
+}
+
+void Base3DView::clearPointCloudStereoRequests()
+{
+    stereo_point_cloud_viewer_->setEnabled(false);
+    stereo_point_cloud_viewer_->setEnabled(true);
+}
+
+void Base3DView::clearPointCloudRegionRequests()
+{
+    region_point_cloud_viewer_->setEnabled(false);
+    region_point_cloud_viewer_->setEnabled(true);
 }
 
 void Base3DView::clearMapRequests()
@@ -2153,8 +2165,13 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         robotModelToggled(!robot_model_->isEnabled());
     else if(key_event->key == 25 && key_event->state && ctrl_is_pressed) // 'w'
         simulationRobotToggled(!ghost_robot_model_->isEnabled());
-    else if(key_event->key == 11 && key_event->state && ctrl_is_pressed)
-        clearPointCloudRequests();
+    else if(key_event->key == 11 && key_event->state && ctrl_is_pressed) // ctrl+2
+    {
+        clearPointCloudRaycastRequests();
+        clearPointCloudRegionRequests();
+        clearPointCloudStereoRequests();
+    }
+
 }
 
 }

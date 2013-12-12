@@ -190,7 +190,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-327</y>
+        <y>-180</y>
         <width>292</width>
         <height>1483</height>
        </rect>
@@ -488,7 +488,7 @@ color: rgb(255, 26, 26);</string>
              <item>
               <widget class="QCheckBox" name="point_cloud_request">
                <property name="text">
-                <string>Point Cloud Request</string>
+                <string>Raycast Point Cloud</string>
                </property>
                <property name="checked">
                 <bool>true</bool>
@@ -516,23 +516,75 @@ color: rgb(255, 26, 26);</string>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="lidar_point_cloud_2">
-            <property name="text">
-             <string>LIDAR Point Cloud</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
+           <widget class="QWidget" name="widget_6" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_9">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QCheckBox" name="lidar_point_cloud_2">
+               <property name="text">
+                <string>Region Point Cloud</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="reset_point_cloud_lidar">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>18</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
+color: rgb(255, 26, 26);</string>
+               </property>
+               <property name="text">
+                <string>reset</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="stereo_point_cloud_2">
-            <property name="text">
-             <string>Stereo Point Cloud</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
+           <widget class="QWidget" name="widget_7" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_10">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QCheckBox" name="stereo_point_cloud_2">
+               <property name="text">
+                <string>Stereo Point Cloud</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="reset_point_cloud_stereo">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>18</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
+color: rgb(255, 26, 26);</string>
+               </property>
+               <property name="text">
+                <string>reset</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>

@@ -85,7 +85,9 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
             QObject::connect(ui->point_cloud_request, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(requestedPointCloudToggled(bool)));
             QObject::connect(ui->request_point_cloud_, SIGNAL(clicked()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(publishPointCloudWorldRequest()));
             QObject::connect(ui->reset_map, SIGNAL(clicked()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(clearMapRequests()));
-            QObject::connect(ui->reset_point_cloud, SIGNAL(clicked()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(clearPointCloudRequests()));
+            QObject::connect(ui->reset_point_cloud, SIGNAL(clicked()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(clearPointCloudRaycastRequests()));
+            QObject::connect(ui->reset_point_cloud_lidar, SIGNAL(clicked()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(clearPointCloudRegionRequests()));
+            QObject::connect(ui->reset_point_cloud_stereo, SIGNAL(clicked()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(clearPointCloudStereoRequests()));
             QObject::connect(ui->robot_model_2, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(robotModelToggled(bool)));
             QObject::connect(ui->simulation_robot, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(simulationRobotToggled(bool)));
             QObject::connect(ui->stereo_point_cloud_2, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(stereoPointCloudToggled(bool)));
