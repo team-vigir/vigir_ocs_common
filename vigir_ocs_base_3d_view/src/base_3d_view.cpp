@@ -178,6 +178,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         stereo_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
         stereo_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/stereo_cloud_result" );
         stereo_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+        stereo_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
         stereo_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
         lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "LIDAR Point Cloud", false );
@@ -187,16 +188,18 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
         lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
         lidar_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
+        lidar_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
         lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
         // point cloud request
         point_cloud_request_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Raycast Point Cloud", true );
+        ROS_ASSERT( point_cloud_request_viewer_ != NULL );
         point_cloud_request_viewer_->subProp( "Style" )->setValue( "Points" );
         point_cloud_request_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/dist_query_pointcloud_result" );
         point_cloud_request_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
         point_cloud_request_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
         point_cloud_request_viewer_->subProp( "Decay Time" )->setValue( 0 );
-//        point_cloud_request_viewer_->subProp( "Selectable" )->setValue( false );
+        point_cloud_request_viewer_->subProp( "Selectable" )->setValue( false );
 
         // Create a template display to display all templates listed by the template nodelet
         template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
