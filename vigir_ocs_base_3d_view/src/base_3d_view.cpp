@@ -558,6 +558,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         // subscribe to the topic sent by the ghost widget
         send_cartesian_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_cartesian", 5, &Base3DView::processSendCartesian, this );
 
+        send_ghost_pelvis_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/set_pose", 5, &Base3DView::processGhostPelvisPose, this );
+
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
     }
 
@@ -1554,6 +1556,14 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
         end_effector_pose_list_["/r_arm_pose_marker"].pose = transformed_pose;
         publishGhostPoses();
     }
+}
+
+void Base3DView::processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg)
+{
+    flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+    cmd.pose = *msg;
+    cmd.topic = "/pelvis_pose_marker";
+    onMarkerFeedback((const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr)&cmd);
 }
 
 void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)

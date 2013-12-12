@@ -105,6 +105,7 @@ public:
     void processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg );
     void processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr& msg );
     void processSendCartesian( const std_msgs::Bool::ConstPtr& msg );
+    void processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg);
 
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
 
@@ -393,6 +394,7 @@ protected:
     QDoubleSpinBox* circular_angle_;
 
     ros::Subscriber send_cartesian_sub_;
+    ros::Subscriber send_ghost_pelvis_pose_sub_;
 };
 }
 #endif // BASE_3D_VIEW_H
