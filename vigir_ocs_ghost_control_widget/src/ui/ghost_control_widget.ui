@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>419</width>
-    <height>652</height>
+    <height>702</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -453,6 +453,41 @@
      </layout>
     </widget>
    </item>
+   <item row="5" column="0">
+    <widget class="QGroupBox" name="groupBox_8">
+     <property name="title">
+      <string>Send End Effector Pose to Robot - Cartesian</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>9</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="send_left_cartesian_button_">
+        <property name="text">
+         <string>Send Cartesian Left</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="send_right_cartesian_button_">
+        <property name="text">
+         <string>Send Cartesian Right</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="9" column="0">
     <widget class="QGroupBox" name="groupBox_7">
      <property name="title">
@@ -547,46 +582,25 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="send_ghost_to_template_button">
-        <property name="text">
-         <string>Send Ghost to Template</string>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <property name="topMargin">
+         <number>9</number>
         </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QGroupBox" name="groupBox_8">
-     <property name="title">
-      <string>Send End Effector Pose to Robot - Cartesian</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>9</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QPushButton" name="send_left_cartesian_button_">
-        <property name="text">
-         <string>Send Cartesian Left</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="send_right_cartesian_button_">
-        <property name="text">
-         <string>Send Cartesian Right</string>
-        </property>
-       </widget>
+        <item>
+         <widget class="QPushButton" name="send_ghost_to_template_button">
+          <property name="text">
+           <string>Send Ghost to Template</string>
+          </property>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignRight">
+         <widget class="QPushButton" name="send_template_to_behavior">
+          <property name="text">
+           <string>Send Template to Behavior</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>

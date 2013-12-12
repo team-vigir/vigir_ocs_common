@@ -47,6 +47,7 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     send_inverse_rechability_req_pub_ = nh_.advertise<flor_ocs_msgs::OCSInverseReachability>( "/flor/ocs/ghost/inverse_rechability", 1, false );
 
     send_ghost_to_template_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/set_pose", 1, false );
+    send_template_to_behavior_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/behavior_pose", 1, false );;
 
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &GhostControlWidget::processNewKeyEvent, this );
 
@@ -617,6 +618,35 @@ std::string GhostControlWidget::getGroupNameForSettings(const std::vector<unsign
 
   return "INVALID_GROUP";
 }
+
+void GhostControlWidget::on_send_template_to_behavior_button_clicked()
+{
+    unsigned int pose_index;
+    for(pose_index = 0; pose_index < pose_db_.size(); pose_index++)
+        if(pose_db_[pose_index].pose_id == selected_grasp_id_)
+            break;
+
+    if(pose_index == pose_db_.size()){
+        ROS_ERROR("Pose not found in database");
+    }
+    else
+    {
+        if(send_template_to_behavior_pub_)
+        {
+        ROS_INFO("Pose found in database");
+        geometry_msgs::PoseStamped pose;
+        pose.header.frame_id = "/world";
+        pose.header.stamp = ros::Time::now();
+        pose.pose = last_template_list_.pose[ui->templateBox->currentIndex()].pose;
+        send_template_to_behavior_pub_.publish(pose);
+        }
+        else{
+            ROS_ERROR("No Publisher for ghost to template pose");
+        }
+    }
+
+}
+
 
 void GhostControlWidget::on_send_ghost_to_template_button_clicked()
 {
