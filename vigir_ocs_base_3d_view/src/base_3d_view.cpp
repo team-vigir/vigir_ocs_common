@@ -396,7 +396,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
 
         interactive_marker_add_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 1, true );
         interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
-        interactive_marker_feedback_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );;
+        interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );;
         interactive_marker_remove_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 1, false );
 
         // subscribe to the pose topics
@@ -1563,16 +1563,16 @@ void Base3DView::processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstP
     flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
     cmd.pose = *msg;
     cmd.topic = "/pelvis_pose_marker";
-    onMarkerFeedback((const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr)&cmd);
+    onMarkerFeedback(cmd);
 }
 
-void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
+void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
 {
     geometry_msgs::PoseStamped joint_pose;
-    joint_pose = msg->pose;
+    joint_pose = msg.pose;
 
-    //ROS_ERROR("Marker feedback on topic %s, have markers instantiated",msg->topic.c_str());
-    if(msg->topic == "/l_arm_pose_marker")
+    //ROS_ERROR("Marker feedback on topic %s, have markers instantiated",msg.topic.c_str());
+    if(msg.topic == "/l_arm_pose_marker")
     {
         ghost_planning_group_[0] = 1;
         ghost_planning_group_[1] = 0;
@@ -1581,13 +1581,13 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_r_arm_ = false;
 
         //ROS_INFO("LEFT GHOST HAND POSE:");
-        //ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
-        //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
-        last_l_arm_marker_pose_ = msg->pose.pose;
-        calcWristTarget(msg->pose,l_hand_T_marker_.inverse(),joint_pose);
+        //ROS_INFO("  position: %.2f %.2f %.2f",msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.position.z);
+        //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg.pose.pose.orientation.w,msg.pose.pose.orientation.x,msg.pose.pose.orientation.y,msg.pose.pose.orientation.z);
+        last_l_arm_marker_pose_ = msg.pose.pose;
+        calcWristTarget(msg.pose,l_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("left"),joint_pose);
     }
-    else if(msg->topic == "/r_arm_pose_marker")
+    else if(msg.topic == "/r_arm_pose_marker")
     {
         ghost_planning_group_[0] = 0;
         ghost_planning_group_[1] = 1;
@@ -1596,21 +1596,21 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_r_arm_ = true;
 
         //ROS_INFO("RIGHT GHOST HAND POSE:");
-        //ROS_INFO("  position: %.2f %.2f %.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z);
-        //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg->pose.pose.orientation.w,msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z);
-        last_r_arm_marker_pose_ = msg->pose.pose;
-        calcWristTarget(msg->pose,r_hand_T_marker_.inverse(),joint_pose);
+        //ROS_INFO("  position: %.2f %.2f %.2f",msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.position.z);
+        //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg.pose.pose.orientation.w,msg.pose.pose.orientation.x,msg.pose.pose.orientation.y,msg.pose.pose.orientation.z);
+        last_r_arm_marker_pose_ = msg.pose.pose;
+        calcWristTarget(msg.pose,r_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("right"),joint_pose);
     }
-    else if(msg->topic == "/pelvis_pose_marker")
+    else if(msg.topic == "/pelvis_pose_marker")
     {
         moving_pelvis_ = true;
         moving_l_arm_ = false;
         moving_r_arm_ = false;
     }
-    else if(msg->topic.find("/cartesian_pose_") != std::string::npos)
+    else if(msg.topic.find("/cartesian_pose_") != std::string::npos)
     {
-        std::string id_str = msg->topic.substr(16);
+        std::string id_str = msg.topic.substr(16);
         try
         {
             int id = boost::lexical_cast<int>(id_str);
@@ -1625,28 +1625,28 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
 
         return;
     }
-    else if(msg->topic == "/circular_pose")
+    else if(msg.topic == "/circular_pose")
     {
         circular_center_ = joint_pose.pose;
         return;
     }
 
-    end_effector_pose_list_[msg->topic] = joint_pose; //msg->pose;
+    end_effector_pose_list_[msg.topic] = joint_pose; //msg.pose;
 
     if(marker_published_ < 3)
     {
         publishMarkers();
 
-        if(msg->topic == "/l_arm_pose_marker" && marker_published_ == 0)
+        if(msg.topic == "/l_arm_pose_marker" && marker_published_ == 0)
             marker_published_++;
-        else if(msg->topic == "/r_arm_pose_marker" && marker_published_ == 1)
+        else if(msg.topic == "/r_arm_pose_marker" && marker_published_ == 1)
             marker_published_++;
-        else if(msg->topic == "/pelvis_pose_marker" && marker_published_ == 2)
+        else if(msg.topic == "/pelvis_pose_marker" && marker_published_ == 2)
             marker_published_++;
     }
 
     //else
-    //    ROS_ERROR("Marker feedback on topic %s, have no markers instantiated",msg->topic.c_str());
+    //    ROS_ERROR("Marker feedback on topic %s, have no markers instantiated",msg.topic.c_str());
     publishGhostPoses();
 }
 
