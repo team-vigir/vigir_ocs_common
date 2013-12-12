@@ -173,24 +173,24 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         octomap_->subProp( "Octomap Topic" )->setValue( "/flor/worldmodel/ocs/octomap_result" );
 
         // Create a point cloud display.
-        stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
+        stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Stereo Point Cloud", false );
         ROS_ASSERT( stereo_point_cloud_viewer_ != NULL );
         stereo_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
-        stereo_point_cloud_viewer_->subProp( "Topic" )->setValue( "/multisense_sl/camera/points2" );
+        stereo_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/stereo_cloud_result" );
         stereo_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
         stereo_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
-        lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", false );
+        lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "LIDAR Point Cloud", false );
         ROS_ASSERT( lidar_point_cloud_viewer_ != NULL );
         lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
-        lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/worldmodel_main/pointcloud_vis" );
-        lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 2 );
+        lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/cloud_result" );
+        lidar_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
         lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
         lidar_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
         lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
         // point cloud request
-        point_cloud_request_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Point Cloud", true );
+        point_cloud_request_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Raycast Point Cloud", true );
         point_cloud_request_viewer_->subProp( "Style" )->setValue( "Points" );
         point_cloud_request_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/dist_query_pointcloud_result" );
         point_cloud_request_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
@@ -704,12 +704,14 @@ void Base3DView::requestedPointCloudToggled( bool selected )
 
 void Base3DView::lidarPointCloudToggled( bool selected )
 {
-    lidar_point_cloud_viewer_->setEnabled( selected );
+    //lidar_point_cloud_viewer_->setEnabled( selected );
+    lidar_point_cloud_viewer_->subProp("Alpha")->setValue(selected ? 1.0f : 0.0f);
 }
 
 void Base3DView::stereoPointCloudToggled( bool selected )
 {
-    stereo_point_cloud_viewer_->setEnabled( selected );
+    //stereo_point_cloud_viewer_->setEnabled( selected );
+    stereo_point_cloud_viewer_->subProp("Alpha")->setValue(selected ? 1.0f : 0.0f);
 }
 
 void Base3DView::laserScanToggled( bool selected )
