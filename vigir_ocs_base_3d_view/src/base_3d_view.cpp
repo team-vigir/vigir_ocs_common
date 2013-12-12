@@ -175,9 +175,12 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         // Create a point cloud display.
         stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Stereo Point Cloud", false );
         ROS_ASSERT( stereo_point_cloud_viewer_ != NULL );
-        stereo_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
+        stereo_point_cloud_viewer_->subProp( "Style" )->setValue( "Flat Squares" );
         stereo_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/stereo_cloud_result" );
-        stereo_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+        stereo_point_cloud_viewer_->subProp( "Size (m)" )->setValue( 0.01 );
+        stereo_point_cloud_viewer_->subProp( "Color Transformer" )->setValue("Intensity");
+        stereo_point_cloud_viewer_->subProp( "Channel Name" )->setValue("intensity");
+        stereo_point_cloud_viewer_->subProp( "Use rainbow" )->setValue(false);
         stereo_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
         stereo_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
