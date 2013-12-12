@@ -273,9 +273,9 @@ void MainCameraViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::
     bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
 
     // process hotkeys
-    if(key_event->key == 12 && key_event->state && ctrl_is_pressed) // '3' - get single image in the main view
+    if(key_event->key == 13 && key_event->state && ctrl_is_pressed) // '4' - get single image in the main view
         ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->requestSingleFeedImage();
-    else if(key_event->key == 13 && key_event->state && ctrl_is_pressed) // '4' - set main view to 5 fps
+    else if(key_event->key == 14 && key_event->state && ctrl_is_pressed) // '5' - set main view to 5 fps
     {
         ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderChanged(5);
         ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderReleased();

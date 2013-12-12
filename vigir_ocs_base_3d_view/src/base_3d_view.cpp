@@ -2168,7 +2168,7 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         robotModelToggled(!robot_model_->isEnabled());
     else if(key_event->key == 25 && key_event->state && ctrl_is_pressed) // 'w'
         simulationRobotToggled(!ghost_robot_model_->isEnabled());
-    else if(key_event->key == 11 && key_event->state && ctrl_is_pressed) // ctrl+2
+    else if(key_event->key == 10 && key_event->state && ctrl_is_pressed) // ctrl+1
     {
         clearPointCloudRaycastRequests();
         clearPointCloudRegionRequests();

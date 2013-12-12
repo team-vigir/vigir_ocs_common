@@ -35,6 +35,7 @@ public:
     void requestMap(double min_z, double max_z, double resolution);
     void requestOctomap(double min_z, double max_z, double resolution);
     void requestPointCloud(double min_z, double max_z, double resolution, int type);
+    void requestPointCloud(int type);
 
 Q_SIGNALS:
     void queryPosition( int, int, Ogre::Vector3& );
@@ -57,6 +58,8 @@ private:
     bool selection_tool_enabled_;
 
     int selected_area_[4];
+
+    flor_perception_msgs::PointCloudTypeRegionRequest last_request_;
 };
 }
 #endif // map_view_H

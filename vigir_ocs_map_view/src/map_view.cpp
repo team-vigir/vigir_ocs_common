@@ -181,6 +181,14 @@ void MapView::requestOctomap(double min_z, double max_z, double resolution)
     Q_EMIT unHighlight();
 }
 
+void MapView::requestPointCloud(int type)
+{
+    flor_perception_msgs::PointCloudTypeRegionRequest cmd;
+    cmd.environment_region_request = last_request_.environment_region_request;
+    cmd.data_source = type;
+    point_cloud_request_pub_.publish(cmd);
+}
+
 void MapView::requestPointCloud(double min_z, double max_z, double resolution, int type)
 {
     float win_width = render_panel_->width();
@@ -208,6 +216,8 @@ void MapView::requestPointCloud(double min_z, double max_z, double resolution, i
     cmd.data_source = type;
 
     point_cloud_request_pub_.publish(cmd);
+
+    last_request_.cmd();
 
     Q_EMIT unHighlight();
 }

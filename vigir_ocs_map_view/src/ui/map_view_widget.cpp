@@ -107,6 +107,12 @@ void MapViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPt
     //    requestOctomap();
     //if(key_event->key == 58 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+m
     //    requestMap();
-    if(key_event->key == 10 && key_event->state && ctrl_is_pressed) // '1'
-        requestPointCloud();
+    if(key_event->key == 11 && key_event->state && ctrl_is_pressed) // '2' - unfiltered
+    {
+        requestPointCloud(1);
+    }
+    else if(key_event->key == 12 && key_event->state && ctrl_is_pressed) // '3' - stereo
+    {
+        requestPointCloud(2);
+    }
 }
