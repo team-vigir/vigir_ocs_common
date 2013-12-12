@@ -594,7 +594,7 @@
          </widget>
         </item>
         <item alignment="Qt::AlignRight">
-         <widget class="QPushButton" name="send_template_to_behavior">
+         <widget class="QPushButton" name="send_template_to_behavior_button">
           <property name="text">
            <string>Send Template to Behavior</string>
           </property>

@@ -633,7 +633,6 @@ void GhostControlWidget::on_send_template_to_behavior_button_clicked()
     {
         if(send_template_to_behavior_pub_)
         {
-        ROS_INFO("Pose found in database");
         geometry_msgs::PoseStamped pose;
         pose.header.frame_id = "/world";
         pose.header.stamp = ros::Time::now();
