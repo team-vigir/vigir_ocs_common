@@ -195,8 +195,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         point_cloud_request_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/dist_query_pointcloud_result" );
         point_cloud_request_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
         point_cloud_request_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-        point_cloud_request_viewer_->subProp( "Decay Time" )->setValue( 9999999 );
-        point_cloud_request_viewer_->subProp( "Selectable" )->setValue( false );
+        point_cloud_request_viewer_->subProp( "Decay Time" )->setValue( 0 );
+//        point_cloud_request_viewer_->subProp( "Selectable" )->setValue( false );
 
         // Create a template display to display all templates listed by the template nodelet
         template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );

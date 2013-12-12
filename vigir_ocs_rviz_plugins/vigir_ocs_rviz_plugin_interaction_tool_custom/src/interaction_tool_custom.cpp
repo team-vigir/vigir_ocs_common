@@ -145,7 +145,7 @@ void InteractionToolCustom::updateFocus( const ViewportMouseEvent& event )
     context_->getSelectionManager()->pick( event.viewport,
                                            event.x, event.y,
                                            event.x + 1, event.y + 1,
-                                           results, false );
+                                           results, true );
 
     for(int i = 0; i < num_displays; i++)
     {
