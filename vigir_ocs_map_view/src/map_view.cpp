@@ -19,7 +19,6 @@
 #include <render_panel_custom.h>
 
 #include <flor_perception_msgs/EnvironmentRegionRequest.h>
-#include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_ocs_msgs/TwoPoint.h>
 #include <flor_ocs_msgs/OCSAugmentRegions.h>
 
@@ -217,7 +216,7 @@ void MapView::requestPointCloud(double min_z, double max_z, double resolution, i
 
     point_cloud_request_pub_.publish(cmd);
 
-    last_request_.cmd();
+    last_request_ = cmd;
 
     Q_EMIT unHighlight();
 }

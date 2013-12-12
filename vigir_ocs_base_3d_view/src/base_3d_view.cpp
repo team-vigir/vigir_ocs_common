@@ -155,6 +155,11 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         set_step_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
         set_step_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
 
+        grid_ = manager_->createDisplay( "rviz/Grid", "Grid", true );
+        ROS_ASSERT( grid_ != NULL );
+        grid_->subProp( "Plane Cell Count" )->setValue( 50 );
+        grid_->subProp( "Cell Size" )->setValue( .5 );
+
         // Create a LaserScan display.
         laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
         ROS_ASSERT( laser_scan_ != NULL );

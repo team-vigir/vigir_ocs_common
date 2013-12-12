@@ -53,6 +53,7 @@
 #include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_perception_msgs/RaycastRequest.h>
+#include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
 #include <flor_control_msgs/FlorControlMode.h>
 
@@ -209,6 +210,7 @@ protected:
     //std::vector<InteractiveMarkerServerCustom*> im_ghost_robot_server_;
     rviz::Display* interactive_marker_template_;
     rviz::Display* octomap_;
+    rviz::Display* grid_;
     rviz::Display* laser_scan_;
     rviz::Display* region_point_cloud_viewer_;
     rviz::Display* stereo_point_cloud_viewer_;
