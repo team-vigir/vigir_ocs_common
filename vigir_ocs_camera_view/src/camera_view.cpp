@@ -249,6 +249,9 @@ void CameraView::changeCameraTopic( int t )
         return;
 
     std::cout << "Camera topic changed:" << t << std::endl;
+    closeSelectedArea();
+    ((rviz::CameraDisplayCustom*)camera_viewer_)->closeFull();
+
 
     camera_viewer_->subProp( "Image Topic" )->setValue( (camera_[t].topic_prefix+"_full/image_raw").c_str() );
     camera_viewer_->subProp( "Image Request Topic" )->setValue( (camera_[t].topic_prefix+"_full/image_request").c_str() );
@@ -256,7 +259,6 @@ void CameraView::changeCameraTopic( int t )
     camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( (camera_[t].topic_prefix+"_cropped/image_request").c_str() );
 
     //applyFeedChanges();
-    closeSelectedArea();
 }
 
 void CameraView::changeFullImageResolution( int t )
