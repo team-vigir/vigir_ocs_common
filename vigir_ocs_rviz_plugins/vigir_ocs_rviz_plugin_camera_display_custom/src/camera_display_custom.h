@@ -109,6 +109,7 @@ public:
     void setAlpha(float newAlpha);
     void updateSelectedAlpha(float newSelectedAlpha);
     void setZoom(float newZoom);
+    void closeFull();
     void closeSelected();
     static const QString BACKGROUND;
     static const QString OVERLAY;

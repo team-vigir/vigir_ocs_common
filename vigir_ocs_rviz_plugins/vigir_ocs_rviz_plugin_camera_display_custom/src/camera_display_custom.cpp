@@ -1113,6 +1113,15 @@ void CameraDisplayCustom::setZoom(float newZoom)
 }
 
 
+void CameraDisplayCustom::closeFull()
+{
+    if(publish_frequency_ > 0)
+    {
+        publish_frequency_ = 0;
+        publishFullImageRequest();
+    }
+}
+
 void CameraDisplayCustom::closeSelected()
 {
     int x1,y1,x2,y2;
