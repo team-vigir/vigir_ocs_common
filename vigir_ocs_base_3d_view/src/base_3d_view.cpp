@@ -531,8 +531,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         QLabel* circular_angle_label_ = new QLabel("Rotation");
         circular_angle_ = new QDoubleSpinBox();
         circular_angle_->setDecimals(2);
-        circular_angle_->setMaximum(360);
-        circular_angle_->setMinimum(-360);
+        circular_angle_->setMaximum(1080);
+        circular_angle_->setMinimum(-1080);
 
         QHBoxLayout* circular_angle_layout_ = new QHBoxLayout();
         circular_angle_layout_->setMargin(0);
@@ -2026,27 +2026,30 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
     for(int i = 0; i < cmd.waypoints.size(); i++)
     {
         // apply the difference to each one of the waypoints
-        cmd.waypoints[i].position.x = cmd.waypoints[i].position.x + diff_vector.x;
-        cmd.waypoints[i].position.y = cmd.waypoints[i].position.y + diff_vector.y;
-        cmd.waypoints[i].position.z = cmd.waypoints[i].position.z + diff_vector.z;
         if(cartesian_keep_orientation_->isChecked())
         {
+            cmd.waypoints[i].position.x = cmd.waypoints[i].position.x + diff_vector.x;
+            cmd.waypoints[i].position.y = cmd.waypoints[i].position.y + diff_vector.y;
+            cmd.waypoints[i].position.z = cmd.waypoints[i].position.z + diff_vector.z;
             cmd.waypoints[i].orientation.x = wrist_orientation.x;
             cmd.waypoints[i].orientation.y = wrist_orientation.y;
             cmd.waypoints[i].orientation.z = wrist_orientation.z;
             cmd.waypoints[i].orientation.w = wrist_orientation.w;
         }
-        /*else
+        else
         {
+            geometry_msgs::PoseStamped waypoint, new_waypoint;
+            waypoint.pose.position.x = cmd.waypoints[i].position.x;
+            waypoint.pose.position.y = cmd.waypoints[i].position.y;
+            waypoint.pose.position.z = cmd.waypoints[i].position.z;
+            waypoint.pose.orientation.x = cmd.waypoints[i].orientation.x;
+            waypoint.pose.orientation.y = cmd.waypoints[i].orientation.y;
+            waypoint.pose.orientation.z = cmd.waypoints[i].orientation.z;
+            waypoint.pose.orientation.w = cmd.waypoints[i].orientation.w;
+            calcWristTarget(waypoint,(right_hand ? r_hand_T_marker_.inverse() : l_hand_T_marker_.inverse()),new_waypoint);
 
-            Ogre::Quaternion wrist_orientation(1,0,0,0);
-            Ogre::Quaternion waypoint_orientation(cmd.waypoints[i].orientation.w,cmd.waypoints[i].orientation.x,cmd.waypoints[i].orientation.y,cmd.waypoints[i].orientation.z);
-            waypoint_orientation = waypoint_orientation * wrist_orientation;
-            cmd.waypoints[i].orientation.x = waypoint_orientation.x;
-            cmd.waypoints[i].orientation.y = waypoint_orientation.y;
-            cmd.waypoints[i].orientation.z = waypoint_orientation.z;
-            cmd.waypoints[i].orientation.w = waypoint_orientation.w;
-        }*/
+            cmd.waypoints[i] = new_waypoint.pose;
+        }
 
     }
 
