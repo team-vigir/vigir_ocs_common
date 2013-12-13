@@ -178,7 +178,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         octomap_->subProp( "Octomap Topic" )->setValue( "/flor/worldmodel/ocs/octomap_result" );
 
         // Create a point cloud display.
-        stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Stereo Point Cloud", false );
+        stereo_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Stereo Point Cloud", true );
         ROS_ASSERT( stereo_point_cloud_viewer_ != NULL );
         stereo_point_cloud_viewer_->subProp( "Style" )->setValue( "Flat Squares" );
         stereo_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/stereo_cloud_result" );
@@ -189,7 +189,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         stereo_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
         stereo_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
-        region_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "LIDAR Point Cloud", false );
+        region_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "LIDAR Point Cloud", true );
         ROS_ASSERT( region_point_cloud_viewer_ != NULL );
         region_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
         region_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/cloud_result" );
