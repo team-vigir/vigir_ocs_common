@@ -214,25 +214,25 @@ QString timeFromMsg(const ros::Time& stamp)
 
 void BandwidthWidget::processVRCData(const flor_ocs_msgs::VRCdata::ConstPtr& msg)
 {
-    ui->competition_score->setText(QString::number(msg->competition_score));
-    ui->falls->setText(QString::number(msg->falls));
+    //ui->competition_score->setText(QString::number(msg->competition_score));
+    ui->latency->setText(QString::number(msg->latency));
     ui->message->setText(QString(msg->message.c_str()));
-    if(!bytes_remaining_initialized && msg->downlink_bytes_remaining < UINT_MAX)
+    if(!bytes_remaining_initialized && msg->downlink_bytes_average < UINT_MAX)
     {
-        std::cout << "got max upload = " << msg->uplink_bytes_remaining << " max download = " <<msg->downlink_bytes_remaining <<std::endl;
-        down_max = msg->downlink_bytes_remaining;
-        up_max = msg->uplink_bytes_remaining;
+        std::cout << "got max upload = " << msg->uplink_bytes_average << " max download = " <<msg->downlink_bytes_average <<std::endl;
+        down_max = msg->downlink_bytes_average;
+        up_max = msg->uplink_bytes_average;
         bytes_remaining_initialized = true;
     }
     else if (bytes_remaining_initialized)
     {
-        float down = (msg->downlink_bytes_remaining / (double)down_max)*1000.0;
-        float up = (msg->uplink_bytes_remaining/(double)up_max)*1000.0;
-        std::cout << "new usage message recieved up = " << up << " down = " <<down <<  " dwn_raw = " << msg->downlink_bytes_remaining << std::endl;
-        ui->down_remaining_bar->setValue((msg->downlink_bytes_remaining/(double)down_max)*1000.0);
-        ui->up_remaining_bar->setValue((msg->uplink_bytes_remaining/(double)up_max)*1000.0);
-        ui->upLabel->setText(QString::number(msg->uplink_bytes_remaining));
-        ui->downLabel->setText(QString::number(msg->downlink_bytes_remaining));
+        float down = (msg->downlink_bytes_average / (double)down_max)*1000.0;
+        float up = (msg->uplink_bytes_average/(double)up_max)*1000.0;
+        std::cout << "new usage message recieved up = " << up << " down = " <<down <<  " dwn_raw = " << msg->downlink_bytes_average << std::endl;
+        ui->down_remaining_bar->setValue((msg->downlink_bytes_average/(double)down_max)*1000.0);
+        ui->up_remaining_bar->setValue((msg->uplink_bytes_average/(double)up_max)*1000.0);
+        ui->upLabel->setText(QString::number(msg->uplink_bytes_average));
+        ui->downLabel->setText(QString::number(msg->downlink_bytes_average));
     }
     //ui->remaining_download->setText(QString::number(msg->downlink_bytes_remaining));
     //ui->remaining_upload->setText(QString::number(msg->uplink_bytes_remaining));
