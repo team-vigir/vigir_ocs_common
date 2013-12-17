@@ -157,13 +157,14 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     displays_layout->addWidget(displays_panel);
     ui->rviz_options->setLayout(displays_layout);
     
-    connect(ui->pitch, SIGNAL(valueChanged(int)), this, SLOT(updatePitch(int)));
+    connect(ui->pitch, SIGNAL(sliderReleased()), this, SLOT(sendPitch()));
 
     views_initialized_ = 0;
 
     fourViewToggle();
 
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
+	neck_pos_sub_ = nh_.subscribe<std_msg::Float32> ( "/flor/_" , 2, &MainCameraViewWidget::updatePitch, this );
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()
@@ -171,8 +172,10 @@ MainCameraViewWidget::~MainCameraViewWidget()
     delete ui;
 }
 
-void MainCameraViewWidget::updatePitch(int value)
+void MainCameraViewWidget::sendPitch()
 {
+	int value = ui->pitch->getValue();
+
     if(value != 0 && value > -10 && value < 10)
         ui->pitch->setValue(0);
     else
@@ -185,6 +188,11 @@ void MainCameraViewWidget::updatePitch(int value)
 
         ((CameraViewWidget*)views_list_["Top Left"])->updatePitch(value);
     }
+	
+}
+void MainCameraViewWidget::updatePitch(int value)
+{
+	((CameraViewWidget*)views_list_["Top Left"])->updateCurrentPitch(value);
 }
 
 bool MainCameraViewWidget::eventFilter( QObject * o, QEvent * e )

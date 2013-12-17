@@ -1,7 +1,7 @@
 /* 
  * CameraView class definition.
  * 
- * Author: Felipe Bacim.
+ * Author: Felipe Bacim.CameraViewWidgetCameraViewWidget
  * 
  * Based on librviz_tutorials.
  * 
@@ -17,6 +17,8 @@
 #include <ros/ros.h>
 
 #include <std_msgs/Float64.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <trajectory_msgs/JointTrajectoryPoint.h>
 
 #include "base_3d_view.h"
 
@@ -46,6 +48,7 @@ public:
     virtual ~CameraView();
 
     void setCameraPitch( int );
+	void setCurrentCameraPitch( int );
 
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
 
@@ -106,6 +109,7 @@ private:
     rviz::Tool* previous_tool_;
 
     ros::Publisher head_pitch_update_pub_;
+	ros::Publisher head_pitch_update_traj_pub_;
     ros::Publisher pointcloud_request_frame_pub_;
 
     int feed_rate_;

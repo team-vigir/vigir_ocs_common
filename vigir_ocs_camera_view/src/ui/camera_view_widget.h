@@ -43,6 +43,7 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void updatePitch(int);
+	void updateCurrentPitch(int);
     void updateFeedFPS(int);
     void updateSelectedFPS(int);
     void scan();

@@ -114,6 +114,7 @@ CameraView::CameraView( QWidget* parent, Base3DView* copy_from )
 
     // and advertise the head pitch update function
     head_pitch_update_pub_ = nh_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ry", 1, false );
+	head_pitch_update_traj_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory > ("topic",1,false);
 
     rviz::EmptyViewController* camera_controller = new rviz::EmptyViewController();
     camera_controller->initialize( render_panel_->getManager() );
@@ -229,7 +230,26 @@ void CameraView::setCameraPitch( int degrees )
 {
     std_msgs::Float64 cmd;
     cmd.data = degrees*0.0174532925;
-    head_pitch_update_pub_.publish(cmd);
+
+	
+    //head_pitch_update_pub_.publish(cmd);
+	trajectory_msgs::JointTrajectory msg;
+
+	msg.header.stamp = ros::Time::now();
+
+	trajectory.points.push_back( JointTrajectoryPoint() );
+	trajectory.points.push_back( JointTrajectoryPoint() );
+
+	trajectory.points[0].positions = 0; // current
+	trajectory.points[1].positions = 0; // next
+
+	trajectory.points[0].velocities = 0; // current
+	trajectory.points[1].velocities = 0; // next
+
+	trajectory.points[0].time_from_start = 0; //rospy.Duration(0.0)
+    trajectory.points[1].time_from_start = 3*(next - current); 
+
+	head_pitch_update_traj_pub_.publish( msg );
 }
 
 void CameraView::select( int x1, int y1, int x2, int y2 )
