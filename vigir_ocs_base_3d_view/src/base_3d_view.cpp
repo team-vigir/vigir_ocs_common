@@ -192,9 +192,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
 
         region_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "LIDAR Point Cloud", true );
         ROS_ASSERT( region_point_cloud_viewer_ != NULL );
-        region_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
+        region_point_cloud_viewer_->subProp( "Style" )->setValue( "Flat Squares" );
         region_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/cloud_result" );
-        region_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
+        region_point_cloud_viewer_->subProp( "Size (m)" )->setValue( 0.01 );
         region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
         region_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
         region_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
@@ -203,7 +203,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         // point cloud request
         raycast_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Raycast Point Cloud", true );
         ROS_ASSERT( raycast_point_cloud_viewer_ != NULL );
-        raycast_point_cloud_viewer_->subProp( "Style" )->setValue( "Points" );
+        raycast_point_cloud_viewer_->subProp( "Style" )->setValue( "Flat Squares" );
         raycast_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/dist_query_pointcloud_result" );
         raycast_point_cloud_viewer_->subProp( "Size (Pixels)" )->setValue( 3 );
         raycast_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
