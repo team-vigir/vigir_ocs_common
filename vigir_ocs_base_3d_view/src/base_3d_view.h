@@ -52,6 +52,7 @@
 #include <flor_ocs_msgs/OCSInteractiveMarkerAdd.h>
 #include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <flor_ocs_msgs/OCSHotkeyRelay.h>
 #include <flor_perception_msgs/RaycastRequest.h>
 #include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
@@ -107,6 +108,7 @@ public:
     void processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr& msg );
     void processSendCartesian( const std_msgs::Bool::ConstPtr& msg );
     void processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    void processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr& msg);
 
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
 
@@ -373,6 +375,7 @@ protected:
     std::vector<int> keys_pressed_list_;
 
     ros::Subscriber key_event_sub_;
+    ros::Subscriber hotkey_relay_sub_;
 
     bool is_primary_view_;
 

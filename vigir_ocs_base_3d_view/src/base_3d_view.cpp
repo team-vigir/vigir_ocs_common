@@ -1,4 +1,4 @@
-/*
+j/*
  * Base3DView class implementation.
  *
  * Author: Felipe Bacim.
@@ -573,6 +573,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         send_ghost_pelvis_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/set_pose", 5, &Base3DView::processGhostPelvisPose, this );
 
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
+        hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/key_event", 5, &Base3DView::processHotkeyRelayMessage, this );
     }
 
     // Connect the 3D selection tool to
@@ -2189,6 +2190,16 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         clearPointCloudStereoRequests();
     }
 
+}
+
+void Base3DView::processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr &msg)
+{
+    if(msg->reset_cloud)
+    {
+        clearPointCloudRaycastRequests();
+        clearPointCloudRegionRequests();
+        clearPointCloudStereoRequests();
+    }
 }
 
 }

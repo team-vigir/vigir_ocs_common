@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 
-#include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <flor_ocs_msgs/OCSHotkeyRelay.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -17,9 +17,6 @@ namespace vigir_ocs
         ~HotkeyRelay();
 
         void processKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& msg);
-
-        void publishKeyPressed(int k, int x, int y);
-        void publishKeyReleased(int k, int x, int y);
 
       private:
         ros::NodeHandle n_;

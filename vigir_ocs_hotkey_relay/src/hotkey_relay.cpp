@@ -7,7 +7,7 @@ HotkeyRelay::HotkeyRelay()
     ros::NodeHandle nh_out(n_, "/flor/ocs");
 
     // create publishers for visualization
-    key_event_pub_  = nh_out.advertise<flor_ocs_msgs::OCSKeyEvent>( "key_event", 1, false );
+    key_event_pub_  = nh_out.advertise<flor_ocs_msgs::OCSHotkeyRelay>( "hotkey_relay", 1, false );
 
     key_event_sub_ = nh_out.subscribe<flor_ocs_msgs::OCSKeyEvent>( "secondary/key_event", 5, &HotkeyRelay::processKeyEvent, this );
 	
@@ -31,45 +31,11 @@ void HotkeyRelay::processKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &ke
     bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
     bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
 
-
-
-    if(key_event->key == 37 && key_event->state) // send ctrl
+    if(key_event->key == 10 && key_event->state && ctrl_is_pressed) // ctrl+1
     {
-        publishKeyPressed(37,key_event->cursor_x,key_event->cursor_y);
+        flor_ocs_msgs::OCSHotkeyRelay cmd;
+        cmd.reset_cloud = 1;
+        key_event_pub_.publish(cmd);
     }
-    else if(key_event->key == 10 && key_event->state && ctrl_is_pressed) // ctrl+1
-    {
-        publishKeyPressed(10,key_event->cursor_x,key_event->cursor_y); // send 1
-        // sleep
-        publishKeyReleased(10,key_event->cursor_x,key_event->cursor_y); // send 1
-    }
-
 }
-
-void HotkeyRelay::publishKeyPressed(int k, int x, int y)
-{
-    flor_ocs_msgs::OCSKeyEvent cmd;
-
-    cmd.key = k;
-    cmd.state = 1;
-    cmd.cursor_x = x;
-    cmd.cursor_y = y;
-
-    // publish key event and cursor position information
-    key_event_pub_.publish(cmd);
-}
-
-void HotkeyRelay::publishKeyReleased(int k, int x, int y)
-{
-    flor_ocs_msgs::OCSKeyEvent cmd;
-
-    cmd.key = k;
-    cmd.state = 0;
-    cmd.cursor_x = x;
-    cmd.cursor_y = y;
-
-    // publish key event and cursor position information
-    key_event_pub_.publish(cmd);
-}
-
 }
