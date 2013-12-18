@@ -87,12 +87,12 @@
        </column>
        <column>
         <property name="text">
-         <string>Total Download (bytes)</string>
+         <string>Down Rate (bytes/sec)</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>Total Upload (bytes)</string>
+         <string>Up Rate (bytes/sec)</string>
         </property>
        </column>
       </widget>
