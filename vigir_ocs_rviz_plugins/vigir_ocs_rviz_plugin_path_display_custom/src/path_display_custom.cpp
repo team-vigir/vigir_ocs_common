@@ -205,6 +205,7 @@ void PathDisplayCustom::draw(nav_msgs::Path path)
     }
 
     manual_object->end();
+    glLineWidth(1.0f);
 }
 
 void PathDisplayCustom::processMessage( const nav_msgs::Path::ConstPtr& msg )

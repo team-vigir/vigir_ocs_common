@@ -159,6 +159,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         ROS_ASSERT( grid_ != NULL );
         grid_->subProp( "Plane Cell Count" )->setValue( 50 );
         grid_->subProp( "Cell Size" )->setValue( .5 );
+        grid_->subProp( "Alpha" )->setValue( 0.1 );
 
         // Create a LaserScan display.
         laser_scan_ = manager_->createDisplay( "rviz/LaserScan", "Laser Scan", false );
@@ -1324,6 +1325,8 @@ void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
 
 void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
+    geometry_msgs::PoseStamped wrist_pose;
+    calcWristTarget(*pose,l_hand_T_marker_,wrist_pose);
     if(left_marker_moveit_loopback_)
     {
         if(marker_published_ < 3)
@@ -1331,8 +1334,7 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
 
         publishHandPose("left",*pose);
 
-        geometry_msgs::PoseStamped wrist_pose;
-        calcWristTarget(*pose,l_hand_T_marker_,wrist_pose);
+
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/l_arm_pose_marker";
@@ -1345,10 +1347,13 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
         if(!moving_pelvis_ && ghost_pose_source_[0] == 0)
             end_effector_pose_list_[cmd.topic] = cmd.pose;
     }
+    last_l_arm_marker_pose_ = wrist_pose.pose;
 }
 
 void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
+    geometry_msgs::PoseStamped wrist_pose;
+    calcWristTarget(*pose,r_hand_T_marker_,wrist_pose);
     if(right_marker_moveit_loopback_)
     {
         if(marker_published_ < 3)
@@ -1356,8 +1361,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
 
         publishHandPose("right",*pose);
 
-        geometry_msgs::PoseStamped wrist_pose;
-        calcWristTarget(*pose,r_hand_T_marker_,wrist_pose);
+
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/r_arm_pose_marker";
@@ -1370,6 +1374,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
         if(!moving_pelvis_ && ghost_pose_source_[1] == 0)
             end_effector_pose_list_[cmd.topic] = cmd.pose;
     }
+    last_r_arm_marker_pose_ = wrist_pose.pose;
 }
 
 int staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform hand_T_palm)
@@ -1576,6 +1581,7 @@ void Base3DView::processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstP
     flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
     cmd.pose = *msg;
     cmd.topic = "/pelvis_pose_marker";
+    interactive_marker_update_pub_.publish(cmd);
     onMarkerFeedback(cmd);
 }
 
@@ -1596,7 +1602,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         //ROS_INFO("LEFT GHOST HAND POSE:");
         //ROS_INFO("  position: %.2f %.2f %.2f",msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.position.z);
         //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg.pose.pose.orientation.w,msg.pose.pose.orientation.x,msg.pose.pose.orientation.y,msg.pose.pose.orientation.z);
-        last_l_arm_marker_pose_ = msg.pose.pose;
+
         calcWristTarget(msg.pose,l_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("left"),joint_pose);
     }
@@ -1611,7 +1617,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         //ROS_INFO("RIGHT GHOST HAND POSE:");
         //ROS_INFO("  position: %.2f %.2f %.2f",msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.position.z);
         //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg.pose.pose.orientation.w,msg.pose.pose.orientation.x,msg.pose.pose.orientation.y,msg.pose.pose.orientation.z);
-        last_r_arm_marker_pose_ = msg.pose.pose;
+
         calcWristTarget(msg.pose,r_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("right"),joint_pose);
     }
