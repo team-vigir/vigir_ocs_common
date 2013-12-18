@@ -63,8 +63,6 @@ private Q_SLOTS:
 
     void enableStart();
 
-    void on_enablehand_clicked();
-
     void on_enableapplyhand_stateChanged(int arg1);
 
     void on_applyhand_clicked();

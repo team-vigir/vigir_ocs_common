@@ -542,6 +542,13 @@ void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& ms
 //        ui->mdt->setEnabled(true);
 //        ui->pmdt->setEnabled(true);
 //        ui->pmt->setEnabled(true);
+        ui->right->setEnabled(true);
+        ui->left->setEnabled(true);
+        ui->both->setEnabled(true);
+        ui->offhand->setEnabled(true);
+        ui->onhand->setEnabled(true);
+        ui->applyhand->setEnabled(false);
+        ui->enableapplyhand->setEnabled(true);
     }
 
     if(msg->robot_critical_fault==1)
@@ -661,6 +668,12 @@ void Widget::on_start_clicked()
 //        ui->ptimemeter->setEnabled(false);
 //        ui->rfault->setEnabled(false);
 //        ui->fault->setEnabled(false);
+         ui->right->setEnabled(false);
+         ui->left->setEnabled(false);
+         ui->both->setEnabled(false);
+         ui->offhand->setEnabled(false);
+         ui->onhand->setEnabled(false);
+         ui->applyhand->setEnabled(false);
         // NEED TO SEND STOP MESSAGE HERE
         flor_control_msgs::FlorRobotStateCommand stop ;
         stop.state_command = flor_control_msgs::FlorRobotStateCommand::STOP;
@@ -729,16 +742,7 @@ void Widget::on_send_mode_clicked()
     }
 }
 
-void Widget::on_enablehand_clicked()
-{
-    ui->right->setEnabled(true);
-    ui->left->setEnabled(true);
-    ui->both->setEnabled(true);
-    ui->offhand->setEnabled(true);
-    ui->onhand->setEnabled(true);
-    ui->applyhand->setEnabled(false);
-    ui->enableapplyhand->setEnabled(true);
-}
+
 
 void Widget::on_enableapplyhand_stateChanged(int arg1)
 {
