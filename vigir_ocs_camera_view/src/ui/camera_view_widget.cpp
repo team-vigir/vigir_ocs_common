@@ -249,6 +249,16 @@ void CameraViewWidget::updatePitch(int value)
 }
 
 /**
+  * Thid method sets the current pitch value used for creating a trajectory
+  **/
+void CameraViewWidget::updateCurrentPitch(int value)
+{
+    camera_view_->setCurrentCameraPitch(value);
+}
+
+
+
+/**
   * Thid method takes in the selected fps on the feed slider
   * and updates the title so that the value is clearly
   * shown.
