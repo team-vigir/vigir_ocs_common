@@ -188,7 +188,7 @@ void MapView::requestPointCloud(int type)
     point_cloud_request_pub_.publish(cmd);
 }
 
-void MapView::requestPointCloud(double min_z, double max_z, double resolution, int type)
+void MapView::requestPointCloud(double min_z, double max_z, double resolution, int type, int aggregation_size)
 {
     float win_width = render_panel_->width();
     float win_height = render_panel_->height();
@@ -197,7 +197,10 @@ void MapView::requestPointCloud(double min_z, double max_z, double resolution, i
     Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
     Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
 
-    flor_perception_msgs::EnvironmentRegionRequest env;
+    flor_perception_msgs::PointCloudTypeRegionRequest cmd;
+
+
+    flor_perception_msgs::EnvironmentRegionRequest& env = cmd.environment_region_request;
 
     env.bounding_box_min.x = min.x;
     env.bounding_box_min.y = min.y;
@@ -209,10 +212,13 @@ void MapView::requestPointCloud(double min_z, double max_z, double resolution, i
 
     env.resolution = resolution;
 
-    flor_perception_msgs::PointCloudTypeRegionRequest cmd;
-
-    cmd.environment_region_request = env;
     cmd.data_source = type;
+
+    if (aggregation_size >= 0){
+      cmd.aggregation_size = static_cast<unsigned int>(aggregation_size);
+    }else{
+      cmd.aggregation_size = 0;
+    }
 
     point_cloud_request_pub_.publish(cmd);
 

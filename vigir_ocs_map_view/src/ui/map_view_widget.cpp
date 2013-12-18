@@ -69,12 +69,12 @@ void MapViewWidget::requestMap()
 
 void MapViewWidget::requestOctomap()
 {
-    ui->map_view_->requestOctomap(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->oct_res->value());
+    ui->map_view_->requestOctomap(ui->oct_min_z->value(),ui->oct_max_z->value(),0.05);
 }
 
 void MapViewWidget::requestPointCloud()
 {
-    ui->map_view_->requestPointCloud(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->oct_res->value(),ui->point_cloud_type->currentIndex());
+  ui->map_view_->requestPointCloud(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->vox_res->value(),ui->point_cloud_type->currentIndex(),ui->agg_size->value());
 }
 
 bool MapViewWidget::eventFilter( QObject * o, QEvent * e )

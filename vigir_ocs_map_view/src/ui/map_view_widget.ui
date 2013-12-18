@@ -60,9 +60,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-660</y>
+        <y>0</y>
         <width>292</width>
-        <height>1883</height>
+        <height>1916</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -277,7 +277,7 @@
              <item row="2" column="0">
               <widget class="QLabel" name="label_3">
                <property name="text">
-                <string>Resolution</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;VoxelGrid (PC)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
               </widget>
              </item>
@@ -311,12 +311,38 @@
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QDoubleSpinBox" name="oct_res">
+              <widget class="QDoubleSpinBox" name="vox_res">
                <property name="minimum">
-                <double>0.050000000000000</double>
+                <double>0.000000000000000</double>
                </property>
                <property name="maximum">
                 <double>10.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.010000000000000</double>
+               </property>
+               <property name="value">
+                <double>0.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>Aggreg. Size (PC)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QSpinBox" name="agg_size">
+               <property name="minimum">
+                <number>0</number>
+               </property>
+               <property name="maximum">
+                <number>100000</number>
+               </property>
+               <property name="value">
+                <number>500</number>
                </property>
               </widget>
              </item>

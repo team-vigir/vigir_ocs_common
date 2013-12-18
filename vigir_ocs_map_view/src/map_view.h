@@ -34,7 +34,7 @@ public:
 
     void requestMap(double min_z, double max_z, double resolution);
     void requestOctomap(double min_z, double max_z, double resolution);
-    void requestPointCloud(double min_z, double max_z, double resolution, int type);
+    void requestPointCloud(double min_z, double max_z, double resolution, int type, int aggregation_size);
     void requestPointCloud(int type);
 
 Q_SIGNALS:
