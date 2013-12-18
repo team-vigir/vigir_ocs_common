@@ -180,6 +180,24 @@ void MapView::requestOctomap(double min_z, double max_z, double resolution)
     Q_EMIT unHighlight();
 }
 
+bool MapView::hasValidSelection()
+{
+    // need to check if selection is within bounds
+    //float win_width = render_panel_->width();
+    //float win_height = render_panel_->height();
+
+    int min_x, min_y, max_x, max_y;
+    min_x = std::min(selected_area_[0],selected_area_[2]);
+    min_y = std::min(selected_area_[1],selected_area_[3]);
+    max_x = std::max(selected_area_[0],selected_area_[2]);
+    max_y = std::max(selected_area_[1],selected_area_[3]);
+
+    if(((max_x-min_x)*(max_y-min_y)) < 9) // if area of selection is too small to actually be a selection (less than 9 pixels), return false
+        return false;
+
+    return true;
+}
+
 void MapView::requestPointCloud(int type)
 {
     flor_perception_msgs::PointCloudTypeRegionRequest cmd;
