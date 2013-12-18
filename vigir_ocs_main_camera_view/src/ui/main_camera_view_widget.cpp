@@ -174,7 +174,7 @@ MainCameraViewWidget::~MainCameraViewWidget()
 
 void MainCameraViewWidget::sendPitch()
 {
-	int value = ui->pitch->sliderPosition();
+    int value = ui->pitch->sliderPosition();
 
     if(value != 0 && value > -10 && value < 10)
         ui->pitch->setValue(0);

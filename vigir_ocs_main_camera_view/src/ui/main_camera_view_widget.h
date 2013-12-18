@@ -34,8 +34,7 @@ public:
 public Q_SLOTS:
     void oneViewToggle();
     void fourViewToggle();
-	void sendPitch();
-    void updatePitch(int value);
+    void sendPitch();
     void cameraInitialized();
     
 private:

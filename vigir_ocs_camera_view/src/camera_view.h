@@ -48,7 +48,7 @@ public:
     virtual ~CameraView();
 
     void setCameraPitch( int );
-	void setCurrentCameraPitch( int );
+    void setCurrentCameraPitch( int );
 
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
 
@@ -110,7 +110,7 @@ private:
     rviz::Tool* previous_tool_;
 
     ros::Publisher head_pitch_update_pub_;
-	ros::Publisher head_pitch_update_traj_pub_;
+    ros::Publisher head_pitch_update_traj_pub_;
     ros::Publisher pointcloud_request_frame_pub_;
 
     int feed_rate_;
