@@ -109,10 +109,16 @@ void MapViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPt
     //    requestMap();
     if(key_event->key == 11 && key_event->state && ctrl_is_pressed) // '2' - unfiltered
     {
-        ui->map_view_->requestPointCloud(1);
+        if(ui->map_view_->hasValidSelection())
+            ui->map_view_->requestPointCloud(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->vox_res->value(),1,ui->agg_size->value());
+        else
+            ui->map_view_->requestPointCloud(1);
     }
     else if(key_event->key == 12 && key_event->state && ctrl_is_pressed) // '3' - stereo
     {
-        ui->map_view_->requestPointCloud(2);
+        if(ui->map_view_->hasValidSelection())
+            ui->map_view_->requestPointCloud(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->vox_res->value(),2,ui->agg_size->value());
+        else
+            ui->map_view_->requestPointCloud(2);
     }
 }

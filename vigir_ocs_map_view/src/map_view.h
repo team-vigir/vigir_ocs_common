@@ -37,6 +37,8 @@ public:
     void requestPointCloud(double min_z, double max_z, double resolution, int type, int aggregation_size);
     void requestPointCloud(int type);
 
+    bool hasValidSelection();
+
 Q_SIGNALS:
     void queryPosition( int, int, Ogre::Vector3& );
     void unHighlight();
