@@ -101,8 +101,8 @@ void BandwidthWidget::updateRateValues()
         node_bandwidth_info_[index].last_calculated_bytes_down = node_bandwidth_info_[index].total_bytes_read;
         node_bandwidth_info_[index].last_calculated_bytes_up = node_bandwidth_info_[index].total_bytes_sent;
     }
-    double total_down = (last_max_bytes_down - ui->downTotalLabel->text().toDouble())/SECONDS_BETWEEN_UPDATES;
-    double total_up = (last_max_bytes_up - ui->upTotalLabel->text().toDouble())/SECONDS_BETWEEN_UPDATES;
+    double total_down = (last_max_bytes_down - ui->downTotalLabel->text().toInt())/SECONDS_BETWEEN_UPDATES;
+    double total_up = (last_max_bytes_up - ui->upTotalLabel->text().toInt())/SECONDS_BETWEEN_UPDATES;
     ui->downTotalLabel->setText(QString::number(total_down));
     ui->upTotalLabel->setText(QString::number(total_up));
     flor_ocs_msgs::DRCdata msg;
@@ -144,9 +144,9 @@ void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth:
         // create new items
         item = new QTableWidgetItem(QString(node_bandwidth_info_[rcv_index].node_name.c_str()));
         ui->tableWidget->setItem(rcv_index,1,item);
-        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].total_bytes_read));
+        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].last_calculated_bytes_down));
         ui->tableWidget->setItem(rcv_index,2,item);
-        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].total_bytes_sent));
+        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].last_calculated_bytes_up));
         ui->tableWidget->setItem(rcv_index,3,item);
         item = new QTableWidgetItem();
         item->setBackgroundColor(Qt::red);
@@ -178,7 +178,8 @@ void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth:
         total_sent += node_bandwidth_info_[i].total_bytes_sent;
     }
     last_max_bytes_down = total_read;
-    ui->upTotalLabel->setText(QString::number(total_sent));
+    last_max_bytes_up = total_sent;
+    //ui->upTotalLabel->setText(QString::number(total_sent));
 
 //    total_bytes_sent_item = new QTableWidgetItem(QString::number(total_sent));
 //    total_bytes_read_item = new QTableWidgetItem(QString::number(total_read));
