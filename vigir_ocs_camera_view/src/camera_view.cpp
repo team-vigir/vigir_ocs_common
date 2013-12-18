@@ -233,23 +233,23 @@ void CameraView::setCameraPitch( int degrees )
 
 	
     //head_pitch_update_pub_.publish(cmd);
-	trajectory_msgs::JointTrajectory msg;
+	trajectory_msgs::JointTrajectory trajectory;
 
-	msg.header.stamp = ros::Time::now();
+	trajectory.header.stamp = ros::Time::now();
 
-	trajectory.points.push_back( JointTrajectoryPoint() );
-	trajectory.points.push_back( JointTrajectoryPoint() );
+	trajectory.points.push_back( trajectory_msgs::JointTrajectoryPoint() );
+	trajectory.points.push_back( trajectory_msgs::JointTrajectoryPoint() );
 
-	trajectory.points[0].positions = 0; // current
-	trajectory.points[1].positions = 0; // next
+	trajectory.points[0].positions.push_back(0.0); // current
+	trajectory.points[1].positions.push_back(0.0); // next
 
-	trajectory.points[0].velocities = 0; // current
-	trajectory.points[1].velocities = 0; // next
+	//trajectory.points[0].velocities = 0; // current
+	//trajectory.points[1].velocities = 0; // next
 
-	trajectory.points[0].time_from_start = 0; //rospy.Duration(0.0)
-    trajectory.points[1].time_from_start = 3*(next - current); 
+	trajectory.points[0].time_from_start = ros::Duration(0.0); //rospy.Duration(0.0)
+        trajectory.points[1].time_from_start = ros::Duration(3.0); //*(next - current); 
 
-	head_pitch_update_traj_pub_.publish( msg );
+	head_pitch_update_traj_pub_.publish( trajectory );
 }
 
 void CameraView::select( int x1, int y1, int x2, int y2 )
