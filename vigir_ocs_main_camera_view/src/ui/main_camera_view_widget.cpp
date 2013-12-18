@@ -164,7 +164,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     fourViewToggle();
 
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
-	neck_pos_sub_ = nh_.subscribe<std_msg::Float32> ( "/flor/_" , 2, &MainCameraViewWidget::updatePitch, this );
+	neck_pos_sub_ = nh_.subscribe<std_msgs::Float32> ( "/flor/neck_controller/current_position" , 2, &MainCameraViewWidget::updatePitch, this );
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()
@@ -174,7 +174,7 @@ MainCameraViewWidget::~MainCameraViewWidget()
 
 void MainCameraViewWidget::sendPitch()
 {
-	int value = ui->pitch->getValue();
+	int value = ui->pitch->sliderPosition();
 
     if(value != 0 && value > -10 && value < 10)
         ui->pitch->setValue(0);
@@ -190,9 +190,10 @@ void MainCameraViewWidget::sendPitch()
     }
 	
 }
-void MainCameraViewWidget::updatePitch(int value)
+
+void MainCameraViewWidget::updatePitch( const std_msgs::Float32::ConstPtr &pitch)
 {
-	((CameraViewWidget*)views_list_["Top Left"])->updateCurrentPitch(value);
+	((CameraViewWidget*)views_list_["Top Left"])->updateCurrentPitch((int)(pitch->data/0.0174532925));
 }
 
 bool MainCameraViewWidget::eventFilter( QObject * o, QEvent * e )

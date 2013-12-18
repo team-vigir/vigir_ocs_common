@@ -29,6 +29,7 @@ public:
     virtual bool eventFilter( QObject * o, QEvent * e );
 
     virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    virtual void updatePitch( const std_msgs::Float32::ConstPtr &pitch);
 
 public Q_SLOTS:
     void oneViewToggle();

@@ -102,6 +102,7 @@ private:
     int selected_area_[4];
     int last_selected_area_[4];
     std::string camera_frame_topic_;
+    float m_current_pitch;
 
     rviz::Display* camera_viewer_;
 

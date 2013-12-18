@@ -114,7 +114,7 @@ CameraView::CameraView( QWidget* parent, Base3DView* copy_from )
 
     // and advertise the head pitch update function
     head_pitch_update_pub_ = nh_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ry", 1, false );
-	head_pitch_update_traj_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory > ("topic",1,false);
+	head_pitch_update_traj_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory > ("/flor/neck_controller/current_position",1,false);
 
     rviz::EmptyViewController* camera_controller = new rviz::EmptyViewController();
     camera_controller->initialize( render_panel_->getManager() );
@@ -226,13 +226,13 @@ int CameraView::getDefaultCamera()
     return default_cam;
 }
 
+void CameraView::setCurrentCameraPitch( int degrees )
+{
+    m_current_pitch = degrees;
+}
+
 void CameraView::setCameraPitch( int degrees )
 {
-    std_msgs::Float64 cmd;
-    cmd.data = degrees*0.0174532925;
-
-	
-    //head_pitch_update_pub_.publish(cmd);
 	trajectory_msgs::JointTrajectory trajectory;
 
 	trajectory.header.stamp = ros::Time::now();
@@ -240,14 +240,11 @@ void CameraView::setCameraPitch( int degrees )
 	trajectory.points.push_back( trajectory_msgs::JointTrajectoryPoint() );
 	trajectory.points.push_back( trajectory_msgs::JointTrajectoryPoint() );
 
-	trajectory.points[0].positions.push_back(0.0); // current
-	trajectory.points[1].positions.push_back(0.0); // next
+	trajectory.points[0].positions.push_back( m_current_pitch*0.0174532925 ); // current
+	trajectory.points[1].positions.push_back( degrees*0.0174532925); // next
 
-	//trajectory.points[0].velocities = 0; // current
-	//trajectory.points[1].velocities = 0; // next
-
-	trajectory.points[0].time_from_start = ros::Duration(0.0); //rospy.Duration(0.0)
-        trajectory.points[1].time_from_start = ros::Duration(3.0); //*(next - current); 
+	trajectory.points[0].time_from_start = ros::Duration(0.0); 
+    trajectory.points[1].time_from_start = ros::Duration(abs(m_current_pitch-degrees)/(65+40)*3.0); //range from 0-> 3 
 
 	head_pitch_update_traj_pub_.publish( trajectory );
 }
