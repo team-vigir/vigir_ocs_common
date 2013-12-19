@@ -15,9 +15,7 @@ BandwidthWidget::BandwidthWidget(QWidget *parent) :
     , ui(new Ui::BandwidthWidget)
 {
     ui->setupUi(this);
-    avgLatency = 0;
     bytes_remaining_initialized = false;
-    numLatencyEntries = 0;
     // subscribe to the topic to monitor bandwidth usage
     drc_data_pub_ = nh_.advertise<flor_ocs_msgs::DRCdata>("/drc_data_sumary",false);
     ocs_bandwidth_sub_ = nh_.subscribe<flor_ocs_msgs::OCSBandwidth>( "/flor_ocs_bandwidth", 5, &BandwidthWidget::processBandwidthMessage, this );
@@ -106,8 +104,13 @@ void BandwidthWidget::updateRateValues()
     ui->downTotalLabel->setText(QString::number(total_down));
     ui->upTotalLabel->setText(QString::number(total_up));
     flor_ocs_msgs::DRCdata msg;
-    if(numLatencyEntries > 0)
-    	msg.latency = avgLatency/numLatencyEntries;
+    if(latencyNums.size() > 0)
+    {
+        int total=0;
+        for(int i=0;i<latencyNums.size();i++)
+            total += latencyNums[i];
+        msg.latency = total/latencyNums.size();
+    }
     else
         msg.latency = 0;
     msg.downlink_bytes_average = total_down;
@@ -144,9 +147,9 @@ void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth:
         // create new items
         item = new QTableWidgetItem(QString(node_bandwidth_info_[rcv_index].node_name.c_str()));
         ui->tableWidget->setItem(rcv_index,1,item);
-        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].last_calculated_bytes_down));
+        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].total_bytes_read));
         ui->tableWidget->setItem(rcv_index,2,item);
-        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].last_calculated_bytes_up));
+        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].total_bytes_sent));
         ui->tableWidget->setItem(rcv_index,3,item);
         item = new QTableWidgetItem();
         item->setBackgroundColor(Qt::red);
@@ -242,28 +245,36 @@ QString timeFromMsg(const ros::Time& stamp)
     return QString::fromStdString(stream.str());
 }
 
+void BandwidthWidget::resizeLatencyVector()
+{
+    for(int i=1;i<latencyNums.size();i++)
+        latencyNums[i-1] = latencyNums[i];
+}
+
 void BandwidthWidget::processDRCData(const flor_ocs_msgs::DRCdata::ConstPtr& msg)
 {
     //ui->competition_score->setText(QString::number(msg->competition_score));
+    ui->latency->setText(QString::number(0));
     if(msg->latency > 0)
-    {
-        ui->latency->setText(QString::number(msg->latency));
-        numLatencyEntries++;
-        avgLatency += msg->latency;
+    { 
+        if(latencyNums.size() >= 11)
+            resizeLatencyVector();
+        latencyNums.push_back(msg->latency);
         if(msg->latency >= 500 && lowBWMode)
         {
             modeStartTime = ros::Time::now();
             lowBWMode = false;
-            avgLatency = msg->latency;
-            numLatencyEntries = 1;
+            latencyNums.empty();
+            latencyNums.push_back(msg->latency);
         }
         if(msg->latency < 500 && !lowBWMode)
         {
             modeStartTime = ros::Time::now();
             lowBWMode = true;
-            avgLatency = msg->latency;
-	    numLatencyEntries = 1;
+            latencyNums.empty();
+            latencyNums.push_back(msg->latency);
         }
+        ui->latency->setText(QString::number(msg->latency));
     }
     ui->message->setText(QString(msg->message.c_str()));
     if(!bytes_remaining_initialized && msg->downlink_bytes_average < UINT_MAX)

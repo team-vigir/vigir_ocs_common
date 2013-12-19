@@ -33,6 +33,7 @@ public:
     void processDRCData(const flor_ocs_msgs::DRCdata::ConstPtr& msg);
     void heartbeatRecieved(const std_msgs::String::ConstPtr& msg);
     void updateRateValues();
+    void resizeLatencyVector();
 private:
     Ui::BandwidthWidget* ui;
     ros::Publisher drc_data_pub_;
@@ -56,10 +57,9 @@ private:
     int foobar;
     bool lowBWMode;
     ros::Time modeStartTime;
-    float avgLatency;
-    int numLatencyEntries;
     double last_max_bytes_up;
     double last_max_bytes_down;
+    std::vector<int> latencyNums;
     QTableWidgetItem* total_bytes_sent_item;
     bool bytes_remaining_initialized;
     int32_t down_max;
