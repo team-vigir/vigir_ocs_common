@@ -8,6 +8,7 @@
 #include <flor_control_msgs/FlorRobotStateCommand.h>
 #include <flor_control_msgs/FlorRobotFault.h>
 #include <atlas_msgs/AtlasSimInterfaceState.h>
+#include <flor_atlas_msgs/AtlasHandPower.h>
 #include<QTableWidget>
 #include<QTableWidgetItem>
 #include <QWidget>
@@ -62,6 +63,10 @@ private Q_SLOTS:
 
     void enableStart();
 
+    void on_enableapplyhand_stateChanged(int arg1);
+
+    void on_applyhand_clicked();
+
 private:
 
     Ui::Widget *ui;
@@ -70,6 +75,7 @@ private:
     ros::Subscriber sub_behav;
     ros::Subscriber sub_control;
     ros::Publisher pub;
+    ros::Publisher pub_hand_power ;
     ros::Subscriber sub_fault;
     ros::Subscriber status_msg_sub;
     QBasicTimer timer;
