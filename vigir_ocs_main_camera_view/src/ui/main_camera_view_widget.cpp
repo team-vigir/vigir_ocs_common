@@ -202,7 +202,10 @@ void MainCameraViewWidget::sendPitch()
 void MainCameraViewWidget::updatePitch( const std_msgs::Float32::ConstPtr &pitch)
 {
     if(!lock_pitch_slider_)
+    {
     	((CameraViewWidget*)views_list_["Top Left"])->updateCurrentPitch((int)(pitch->data/0.0174532925));
+    	ui->pitch->setValue((int)(pitch->data/0.0174532925));
+    }
 }
 
 bool MainCameraViewWidget::eventFilter( QObject * o, QEvent * e )
