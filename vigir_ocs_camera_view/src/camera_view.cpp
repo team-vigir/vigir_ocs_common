@@ -244,7 +244,7 @@ void CameraView::setCameraPitch( int degrees )
 	trajectory.points[1].positions.push_back( ((double)degrees)*0.0174532925); // next
 
 	trajectory.points[0].time_from_start = ros::Duration(0.0); 
-    trajectory.points[1].time_from_start = ros::Duration(abs(m_current_pitch-degrees)/(65+40)*3.0); //range from 0-> 3 
+    trajectory.points[1].time_from_start = ros::Duration(0.25+fabs(((double)m_current_pitch)-((double)degrees))/(65.0+40.0)*1.5); //range from 0-> 3
 
 	head_pitch_update_traj_pub_.publish( trajectory );
 }
