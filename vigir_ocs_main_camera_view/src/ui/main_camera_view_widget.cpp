@@ -301,4 +301,8 @@ void MainCameraViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::
         ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderChanged(5);
         ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderReleased();
     }
+    else if(key_event->key == 15 && key_event->state && ctrl_is_pressed) // '6' - close selected
+    {
+        ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->closeSelectedArea();
+    }
 }

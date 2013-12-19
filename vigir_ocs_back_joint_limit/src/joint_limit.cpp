@@ -215,7 +215,7 @@ void joint_limit::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr 
     std::vector<int>::iterator key_is_pressed;
 
     key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    if(key_event->key == 13 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+4
+    /*if(key_event->key == 13 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+4
     {
         if(this->isVisible())
         {
@@ -226,7 +226,7 @@ void joint_limit::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr 
             this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
             this->show();
         }
-    }
+    }*/
 }
 
 void joint_limit::on_lock_yaw__toggled(bool checked)

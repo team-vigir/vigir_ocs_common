@@ -2189,16 +2189,34 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         clearPointCloudRegionRequests();
         clearPointCloudStereoRequests();
     }
+    else if(key_event->key == 18 && key_event->state && ctrl_is_pressed) // ctrl+9
+    {
+        // rainbow color
+        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+    }
+    else if(key_event->key == 19 && key_event->state && ctrl_is_pressed) // ctrl+9
+    {
+        // intensity
+        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
+    }
 
 }
 
 void Base3DView::processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr &msg)
 {
-    if(msg->reset_cloud)
+    if(msg->relay_code == flor_ocs_msgs::OCSHotkeyRelay::CLEAR_CLOUD_DATA)
     {
         clearPointCloudRaycastRequests();
         clearPointCloudRegionRequests();
         clearPointCloudStereoRequests();
+    }
+    if(msg->relay_code == flor_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_RAINBOW)
+    {
+        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+    }
+    if(msg->relay_code == flor_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_INTENSITY)
+    {
+        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
     }
 }
 

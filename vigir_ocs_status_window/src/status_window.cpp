@@ -284,7 +284,7 @@ void status_window::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPt
     std::vector<int>::iterator key_is_pressed;
 
     key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    if(key_event->key == 18 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+9
+    /*if(key_event->key == 18 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+9
     {
         if(this->isVisible())
         {
@@ -295,5 +295,5 @@ void status_window::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPt
             //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
             this->show();
         }
-    }
+    }*/
 }

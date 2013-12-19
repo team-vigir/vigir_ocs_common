@@ -51,6 +51,7 @@ public:
     void setCurrentCameraPitch( int );
 
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
+    virtual void processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr& msg);
 
     std::vector<std::string> getCameraNames();
 

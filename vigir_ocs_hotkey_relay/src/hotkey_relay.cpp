@@ -34,7 +34,27 @@ void HotkeyRelay::processKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &ke
     if(key_event->key == 10 && key_event->state && ctrl_is_pressed) // ctrl+1
     {
         flor_ocs_msgs::OCSHotkeyRelay cmd;
-        cmd.reset_cloud = 1;
+        cmd.relay_code = 1;
+        key_event_pub_.publish(cmd);
+    }
+    else if(key_event->key == 15 && key_event->state && ctrl_is_pressed) // ctrl+6
+    {
+        flor_ocs_msgs::OCSHotkeyRelay cmd;
+        cmd.relay_code = flor_ocs_msgs::OCSHotkeyRelay::CLEAR_IMAGE_SELECTED;
+        key_event_pub_.publish(cmd);
+    }
+    else if(key_event->key == 18 && key_event->state && ctrl_is_pressed) // ctrl+9
+    {
+        // rainbow color
+        flor_ocs_msgs::OCSHotkeyRelay cmd;
+        cmd.relay_code = flor_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_RAINBOW;
+        key_event_pub_.publish(cmd);
+    }
+    else if(key_event->key == 19 && key_event->state && ctrl_is_pressed) // ctrl+0
+    {
+        // intensity
+        flor_ocs_msgs::OCSHotkeyRelay cmd;
+        cmd.relay_code = flor_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_INTENSITY;
         key_event_pub_.publish(cmd);
     }
 }

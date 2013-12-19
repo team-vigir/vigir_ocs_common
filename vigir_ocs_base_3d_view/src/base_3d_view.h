@@ -108,13 +108,12 @@ public:
     void processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr& msg );
     void processSendCartesian( const std_msgs::Bool::ConstPtr& msg );
     void processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg);
-    void processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr& msg);
 
+    virtual void processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr& msg);
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
+    virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event);
 
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
-
-    virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event);
 
     // functions needed for shared contexts
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }

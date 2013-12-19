@@ -1291,7 +1291,7 @@ void graspWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr 
     std::vector<int>::iterator key_is_pressed;
 
     key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    if(key_event->key == 16 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+7
+    /*if(key_event->key == 16 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+7
     {
         if(this->isVisible())
         {
@@ -1302,7 +1302,7 @@ void graspWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr 
             //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
             this->show();
         }
-    }
+    }*/
 }
 
 void graspWidget::on_verticalSlider_sliderReleased()

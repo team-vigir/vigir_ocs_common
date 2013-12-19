@@ -339,7 +339,7 @@ void jointList::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &k
     std::vector<int>::iterator key_is_pressed;
 
     key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    if(key_event->key == 17 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+8
+    /*if(key_event->key == 17 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+8
     {
         if(this->isVisible())
         {
@@ -350,6 +350,6 @@ void jointList::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &k
             //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
             this->show();
         }
-    }
+    }*/
 }
 
