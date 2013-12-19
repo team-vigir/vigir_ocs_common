@@ -126,6 +126,7 @@ private:
     {
         std::string topic_prefix;
         std::string name;
+        std::string frame;
         int width;
         int height;
     } Camera;
