@@ -126,13 +126,13 @@ Widget::Widget(QWidget *parent) :
     ui->pmdt->setEnabled(true);
     ui->pmt->setEnabled(true);
 
-    ui->right->setEnabled(false);
-    ui->left->setEnabled(false);
-    ui->both->setEnabled(false);
-    ui->offhand->setEnabled(false);
-    ui->onhand->setEnabled(false);
+    ui->right->setEnabled(true);
+    ui->left->setEnabled(true);
+    ui->both->setEnabled(true);
+    ui->offhand->setEnabled(true);
+    ui->onhand->setEnabled(true);
     ui->applyhand->setEnabled(false);
-    ui->enableapplyhand->setEnabled(false);
+    ui->enableapplyhand->setEnabled(true);
 
     //sub_control = nh.subscribe<flor_control_msgs::FlorRobotStateCommand>("/flor/controller/robot_state_command", 5, &Widget::controlstate, this);
     pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
