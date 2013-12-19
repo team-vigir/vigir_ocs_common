@@ -126,12 +126,22 @@ Widget::Widget(QWidget *parent) :
     ui->pmdt->setEnabled(true);
     ui->pmt->setEnabled(true);
 
+    ui->right->setEnabled(true);
+    ui->left->setEnabled(true);
+    ui->both->setEnabled(true);
+    ui->offhand->setEnabled(true);
+    ui->onhand->setEnabled(true);
+    ui->applyhand->setEnabled(false);
+    ui->enableapplyhand->setEnabled(true);
+
     //sub_control = nh.subscribe<flor_control_msgs::FlorRobotStateCommand>("/flor/controller/robot_state_command", 5, &Widget::controlstate, this);
     pub = nh.advertise<flor_control_msgs::FlorRobotStateCommand> ("/flor/controller/robot_state_command",5,false);
     sub_state = nh.subscribe<flor_control_msgs::FlorRobotStatus>("/flor/controller/robot_status", 5, &Widget::robotstate, this);
     sub_behav = nh.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode",    5, &Widget::behavstate, this);
     sub_fault = nh.subscribe<flor_control_msgs::FlorRobotFault >("/flor/controller/robot_fault",  5, &Widget::robotfault, this);
     status_msg_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor/controller/status",    100, &Widget::receivedMessage, this );
+
+    pub_hand_power = nh.advertise<flor_atlas_msgs::AtlasHandPower> ("/flor/controller/hand_power",5,false);
 
     timer.start(33, this);
 }
@@ -538,6 +548,13 @@ void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& ms
 //        ui->mdt->setEnabled(true);
 //        ui->pmdt->setEnabled(true);
 //        ui->pmt->setEnabled(true);
+        ui->right->setEnabled(true);
+        ui->left->setEnabled(true);
+        ui->both->setEnabled(true);
+        ui->offhand->setEnabled(true);
+        ui->onhand->setEnabled(true);
+        ui->applyhand->setEnabled(false);
+        ui->enableapplyhand->setEnabled(true);
     }
 
     if(msg->robot_critical_fault==1)
@@ -657,6 +674,12 @@ void Widget::on_start_clicked()
 //        ui->ptimemeter->setEnabled(false);
 //        ui->rfault->setEnabled(false);
 //        ui->fault->setEnabled(false);
+         ui->right->setEnabled(false);
+         ui->left->setEnabled(false);
+         ui->both->setEnabled(false);
+         ui->offhand->setEnabled(false);
+         ui->onhand->setEnabled(false);
+         ui->applyhand->setEnabled(false);
         // NEED TO SEND STOP MESSAGE HERE
         flor_control_msgs::FlorRobotStateCommand stop ;
         stop.state_command = flor_control_msgs::FlorRobotStateCommand::STOP;
@@ -723,4 +746,36 @@ void Widget::on_send_mode_clicked()
         calibrate.state_command= flor_control_msgs::FlorRobotStateCommand::CALIBRATE;
         pub.publish(calibrate);
     }
+}
+
+
+
+void Widget::on_enableapplyhand_stateChanged(int arg1)
+{
+    qDebug()<<"enable"<<arg1;
+    if (arg1==0 )
+        ui->applyhand->setEnabled(false);
+    if(arg1>0)
+    {
+        if((ui->right->isChecked()||ui->left->isChecked()||ui->both->isChecked()) && (ui->onhand->isChecked()||ui->offhand->isChecked()))
+        ui->applyhand->setEnabled(true);
+     }
+}
+
+void Widget::on_applyhand_clicked()
+{
+    flor_atlas_msgs::AtlasHandPower handpower;
+    if(ui->right->isChecked())
+        handpower.hand=flor_atlas_msgs::AtlasHandPower::HAND_RIGHT;
+    if(ui->left->isChecked())
+        handpower.hand=flor_atlas_msgs::AtlasHandPower::HAND_LEFT;
+    if(ui->both->isChecked())
+        handpower.hand= -1;
+    if(ui->onhand->isChecked())
+        handpower.power=flor_atlas_msgs::AtlasHandPower::HAND_POWER_ON;
+    if(ui->offhand->isChecked())
+        handpower.power = flor_atlas_msgs::AtlasHandPower::HAND_POWER_OFF;
+
+
+    pub_hand_power.publish (handpower);
 }

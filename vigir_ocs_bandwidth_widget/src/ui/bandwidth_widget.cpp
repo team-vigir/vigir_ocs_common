@@ -8,20 +8,25 @@
 #include <QtGui>
 #include <QSignalMapper>
 
-
+#define SECONDS_BETWEEN_UPDATES 5
 
 BandwidthWidget::BandwidthWidget(QWidget *parent) :
     QWidget(parent)
     , ui(new Ui::BandwidthWidget)
 {
     ui->setupUi(this);
+    avgLatency = 0;
     bytes_remaining_initialized = false;
-
+    numLatencyEntries = 0;
     // subscribe to the topic to monitor bandwidth usage
+    drc_data_pub_ = nh_.advertise<flor_ocs_msgs::DRCdata>("/drc_data_sumary",false);
     ocs_bandwidth_sub_ = nh_.subscribe<flor_ocs_msgs::OCSBandwidth>( "/flor_ocs_bandwidth", 5, &BandwidthWidget::processBandwidthMessage, this );
     // subscribe to the topic to load all waypoints
-    vrc_data_sub_ = nh_.subscribe<flor_ocs_msgs::VRCdata>( "/vrc_data", 5, &BandwidthWidget::processVRCData, this );
+    vrc_data_sub_ = nh_.subscribe<flor_ocs_msgs::DRCdata>( "/vrc_data", 5, &BandwidthWidget::processDRCData, this );
     timer.start(33, this);
+    updateTimer.start(SECONDS_BETWEEN_UPDATES*1000,this);
+    lowBWMode = false;
+    last_max_bytes_up = last_max_bytes_down = 0;
     topic_heartbeat_sub_ = nh_.subscribe<std_msgs::String>("/flor_ocs_bandwidth/heartbeat",1, &BandwidthWidget::heartbeatRecieved, this);
     ui->tableWidget->setColumnWidth(0,  10);
     ui->tableWidget->setColumnWidth(1,  155);
@@ -55,10 +60,11 @@ void BandwidthWidget::timerEvent(QTimerEvent *event)
 	// check if ros is still running; if not, just kill the application
     if(!ros::ok())
         qApp->quit();
-        
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     if(event->timerId() == timer.timerId())
         ros::spinOnce();
+    else if(event->timerId() == updateTimer.timerId())
+        updateRateValues();
     else
     {
         int timerNum = 0;
@@ -86,7 +92,29 @@ void BandwidthWidget::timerEvent(QTimerEvent *event)
     }
 }
 
-
+void BandwidthWidget::updateRateValues()
+{
+    for(int index=0;index<node_bandwidth_info_.size();index++)
+    {
+        double average_down = (node_bandwidth_info_[index].total_bytes_read - node_bandwidth_info_[index].last_calculated_bytes_down)/SECONDS_BETWEEN_UPDATES;
+        double average_up = (node_bandwidth_info_[index].total_bytes_sent - node_bandwidth_info_[index].last_calculated_bytes_up)/SECONDS_BETWEEN_UPDATES;
+        node_bandwidth_info_[index].last_calculated_bytes_down = node_bandwidth_info_[index].total_bytes_read;
+        node_bandwidth_info_[index].last_calculated_bytes_up = node_bandwidth_info_[index].total_bytes_sent;
+    }
+    double total_down = (last_max_bytes_down - ui->downTotalLabel->text().toInt())/SECONDS_BETWEEN_UPDATES;
+    double total_up = (last_max_bytes_up - ui->upTotalLabel->text().toInt())/SECONDS_BETWEEN_UPDATES;
+    ui->downTotalLabel->setText(QString::number(total_down));
+    ui->upTotalLabel->setText(QString::number(total_up));
+    flor_ocs_msgs::DRCdata msg;
+    if(numLatencyEntries > 0)
+    	msg.latency = avgLatency/numLatencyEntries;
+    else
+        msg.latency = 0;
+    msg.downlink_bytes_average = total_down;
+    msg.uplink_bytes_average = total_up;
+    msg.message = ui->message->text().toStdString();
+    drc_data_pub_.publish(msg);
+}
 
 void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth::ConstPtr& msg)
 {
@@ -106,6 +134,8 @@ void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth:
         new_item.node_name = msg->node_name;
         new_item.total_bytes_read = msg->bytes_read;
         new_item.total_bytes_sent = msg->bytes_sent;
+        new_item.last_calculated_bytes_down = 0;
+        new_item.last_calculated_bytes_up = 0;
         node_bandwidth_info_.push_back(new_item);
 
         //std::cout << "Adding new item.... rcv_index = " <<rcv_index<<" node bandwith info " << node_bandwidth_info_.size() << " name="<< msg->node_name <<std::endl;
@@ -114,9 +144,9 @@ void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth:
         // create new items
         item = new QTableWidgetItem(QString(node_bandwidth_info_[rcv_index].node_name.c_str()));
         ui->tableWidget->setItem(rcv_index,1,item);
-        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].total_bytes_read));
+        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].last_calculated_bytes_down));
         ui->tableWidget->setItem(rcv_index,2,item);
-        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].total_bytes_sent));
+        item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].last_calculated_bytes_up));
         ui->tableWidget->setItem(rcv_index,3,item);
         item = new QTableWidgetItem();
         item->setBackgroundColor(Qt::red);
@@ -135,10 +165,10 @@ void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth:
         node_bandwidth_info_[rcv_index].total_bytes_sent = msg->bytes_sent;
 
         // simply update the existing ones
-        item = ui->tableWidget->item(rcv_index,2);
+        /*item = ui->tableWidget->item(rcv_index,2);
         item->setText(QString::number(node_bandwidth_info_[rcv_index].total_bytes_read));
         item = ui->tableWidget->item(rcv_index,3);
-        item->setText(QString::number(node_bandwidth_info_[rcv_index].total_bytes_sent));
+        item->setText(QString::number(node_bandwidth_info_[rcv_index].total_bytes_sent));*/
     }
 
     unsigned long total_read = 0, total_sent = 0;
@@ -147,8 +177,9 @@ void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth:
         total_read += node_bandwidth_info_[i].total_bytes_read;
         total_sent += node_bandwidth_info_[i].total_bytes_sent;
     }
-    ui->downTotalLabel->setText(QString::number(total_read));
-    ui->upTotalLabel->setText(QString::number(total_sent));
+    last_max_bytes_down = total_read;
+    last_max_bytes_up = total_sent;
+    //ui->upTotalLabel->setText(QString::number(total_sent));
 
 //    total_bytes_sent_item = new QTableWidgetItem(QString::number(total_sent));
 //    total_bytes_read_item = new QTableWidgetItem(QString::number(total_read));
@@ -177,7 +208,6 @@ void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth:
     //ui->tableWidget->setItem(rcv_index,4,item);
     //item = new QTableWidgetItem(QString::number(node_bandwidth_info_[rcv_index].total_bytes_sent/total_sent));
     //ui->tableWidget->setItem(rcv_index,3,item);
-
     if(starting_row_count < 2)
     {
         ui->tableWidget->setColumnWidth(0,  10);
@@ -212,27 +242,46 @@ QString timeFromMsg(const ros::Time& stamp)
     return QString::fromStdString(stream.str());
 }
 
-void BandwidthWidget::processVRCData(const flor_ocs_msgs::VRCdata::ConstPtr& msg)
+void BandwidthWidget::processDRCData(const flor_ocs_msgs::DRCdata::ConstPtr& msg)
 {
-    ui->competition_score->setText(QString::number(msg->competition_score));
-    ui->falls->setText(QString::number(msg->falls));
-    ui->message->setText(QString(msg->message.c_str()));
-    if(!bytes_remaining_initialized && msg->downlink_bytes_remaining < UINT_MAX)
+    //ui->competition_score->setText(QString::number(msg->competition_score));
+    if(msg->latency > 0)
     {
-        std::cout << "got max upload = " << msg->uplink_bytes_remaining << " max download = " <<msg->downlink_bytes_remaining <<std::endl;
-        down_max = msg->downlink_bytes_remaining;
-        up_max = msg->uplink_bytes_remaining;
+        ui->latency->setText(QString::number(msg->latency));
+        numLatencyEntries++;
+        avgLatency += msg->latency;
+        if(msg->latency >= 500 && lowBWMode)
+        {
+            modeStartTime = ros::Time::now();
+            lowBWMode = false;
+            avgLatency = msg->latency;
+            numLatencyEntries = 1;
+        }
+        if(msg->latency < 500 && !lowBWMode)
+        {
+            modeStartTime = ros::Time::now();
+            lowBWMode = true;
+            avgLatency = msg->latency;
+	    numLatencyEntries = 1;
+        }
+    }
+    ui->message->setText(QString(msg->message.c_str()));
+    if(!bytes_remaining_initialized && msg->downlink_bytes_average < UINT_MAX)
+    {
+        std::cout << "got max upload = " << msg->uplink_bytes_average << " max download = " <<msg->downlink_bytes_average <<std::endl;
+        down_max = msg->downlink_bytes_average;
+        up_max = msg->uplink_bytes_average;
         bytes_remaining_initialized = true;
     }
     else if (bytes_remaining_initialized)
     {
-        float down = (msg->downlink_bytes_remaining / (double)down_max)*1000.0;
-        float up = (msg->uplink_bytes_remaining/(double)up_max)*1000.0;
-        std::cout << "new usage message recieved up = " << up << " down = " <<down <<  " dwn_raw = " << msg->downlink_bytes_remaining << std::endl;
-        ui->down_remaining_bar->setValue((msg->downlink_bytes_remaining/(double)down_max)*1000.0);
-        ui->up_remaining_bar->setValue((msg->uplink_bytes_remaining/(double)up_max)*1000.0);
-        ui->upLabel->setText(QString::number(msg->uplink_bytes_remaining));
-        ui->downLabel->setText(QString::number(msg->downlink_bytes_remaining));
+        float down = (msg->downlink_bytes_average / (double)down_max)*1000.0;
+        float up = (msg->uplink_bytes_average/(double)up_max)*1000.0;
+        std::cout << "new usage message recieved up = " << up << " down = " <<down <<  " dwn_raw = " << msg->downlink_bytes_average << std::endl;
+        ui->down_remaining_bar->setValue((msg->downlink_bytes_average/(double)down_max)*1000.0);
+        ui->up_remaining_bar->setValue((msg->uplink_bytes_average/(double)up_max)*1000.0);
+        ui->upLabel->setText(QString::number(msg->uplink_bytes_average));
+        ui->downLabel->setText(QString::number(msg->downlink_bytes_average));
     }
     //ui->remaining_download->setText(QString::number(msg->downlink_bytes_remaining));
     //ui->remaining_upload->setText(QString::number(msg->uplink_bytes_remaining));

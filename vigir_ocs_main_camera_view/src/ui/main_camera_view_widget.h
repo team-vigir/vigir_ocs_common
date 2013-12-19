@@ -11,6 +11,7 @@
 #include <ros/ros.h>
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <std_msgs/Float32.h>
 
 namespace Ui
 {
@@ -28,11 +29,13 @@ public:
     virtual bool eventFilter( QObject * o, QEvent * e );
 
     virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    virtual void updatePitch( const std_msgs::Float32::ConstPtr &pitch);
 
 public Q_SLOTS:
     void oneViewToggle();
     void fourViewToggle();
-    void updatePitch(int value);
+    void lockPitchUpdates();
+    void sendPitch();
     void cameraInitialized();
     
 private:
@@ -52,6 +55,9 @@ private:
     ros::NodeHandle nh_;
 
     ros::Subscriber key_event_sub_;
+	ros::Subscriber neck_pos_sub_;
+	
+	bool lock_pitch_slider_;
 
 };
 
