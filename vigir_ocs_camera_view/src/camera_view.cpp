@@ -240,8 +240,8 @@ void CameraView::setCameraPitch( int degrees )
 	trajectory.points.push_back( trajectory_msgs::JointTrajectoryPoint() );
 	trajectory.points.push_back( trajectory_msgs::JointTrajectoryPoint() );
 
-	trajectory.points[0].positions.push_back( m_current_pitch*0.0174532925 ); // current
-	trajectory.points[1].positions.push_back( degrees*0.0174532925); // next
+	trajectory.points[0].positions.push_back( ((double)m_current_pitch)*0.0174532925 ); // current
+	trajectory.points[1].positions.push_back( ((double)degrees)*0.0174532925); // next
 
 	trajectory.points[0].time_from_start = ros::Duration(0.0); 
     trajectory.points[1].time_from_start = ros::Duration(abs(m_current_pitch-degrees)/(65+40)*3.0); //range from 0-> 3 
