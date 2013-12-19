@@ -157,6 +157,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     displays_layout->addWidget(displays_panel);
     ui->rviz_options->setLayout(displays_layout);
     
+    connect(ui->pitch, SIGNAL(sliderPressed()), this, SLOT(lockPitchUpdates()));
     connect(ui->pitch, SIGNAL(sliderReleased()), this, SLOT(sendPitch()));
 
     views_initialized_ = 0;
@@ -172,8 +173,15 @@ MainCameraViewWidget::~MainCameraViewWidget()
     delete ui;
 }
 
+void MainCameraViewWidget::lockPitchUpdates()
+{
+    lock_pitch_slider_ = true;
+}
+
 void MainCameraViewWidget::sendPitch()
 {
+    lock_pitch_slider_ = false;
+
     int value = ui->pitch->sliderPosition();
 
     if(value != 0 && value > -10 && value < 10)
@@ -193,7 +201,8 @@ void MainCameraViewWidget::sendPitch()
 
 void MainCameraViewWidget::updatePitch( const std_msgs::Float32::ConstPtr &pitch)
 {
-	((CameraViewWidget*)views_list_["Top Left"])->updateCurrentPitch((int)(pitch->data/0.0174532925));
+    if(!lock_pitch_slider_)
+    	((CameraViewWidget*)views_list_["Top Left"])->updateCurrentPitch((int)(pitch->data/0.0174532925));
 }
 
 bool MainCameraViewWidget::eventFilter( QObject * o, QEvent * e )

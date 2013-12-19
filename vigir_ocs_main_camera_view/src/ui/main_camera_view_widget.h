@@ -34,6 +34,7 @@ public:
 public Q_SLOTS:
     void oneViewToggle();
     void fourViewToggle();
+    void lockPitchUpdates();
     void sendPitch();
     void cameraInitialized();
     
@@ -55,6 +56,8 @@ private:
 
     ros::Subscriber key_event_sub_;
 	ros::Subscriber neck_pos_sub_;
+	
+	bool lock_pitch_slider_;
 
 };
 
