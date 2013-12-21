@@ -52,8 +52,9 @@ Widget::Widget(QWidget *parent) :
     avg_pump_supply_pressure=-1;
     filter_rate_ = 0.003;
 
-    ros::NodeHandle nh;
-    nh.getParam("filter_rate",filter_rate_);
+    ros::NodeHandle pnh("~");
+    pnh.getParam("filter_rate",filter_rate_);
+    ROS_INFO("Using Filter rate = %f for pump parameters", filter_rate_);
 
     ui->cs->setEnabled(false);
     ui->cs_list->setEnabled(false);
@@ -582,27 +583,27 @@ void Widget:: behavstate( const flor_control_msgs::FlorControlMode::ConstPtr& ms
 {
     switch(msg->bdi_current_behavior)
     { // defined in flor_control_msgs::FlorControlModeCommand.msg
-    case 0: ui->cur_st->setText("STAND"); break;
-    case 1: ui->cur_st->setText("USER"); break;
-    case 2: ui->cur_st->setText("FREEZE"); break;
-    case 3: ui->cur_st->setText("STAND_PREP"); break;
-    case 4: ui->cur_st->setText("WALK"); break;
-    case 5: ui->cur_st->setText("STEP"); break;
-    case 6: ui->cur_st->setText("MANIPULATE"); break;
-    case 16: ui->cur_st->setText("CALIBRATE"); break;
-    default: ui->cur_st->setText("Unknown!"); break;
+    case flor_control_msgs::FlorControlModeCommand::STAND:      ui->cur_st->setText("STAND"); break;
+    case flor_control_msgs::FlorControlModeCommand::USER:       ui->cur_st->setText("USER"); break;
+    case flor_control_msgs::FlorControlModeCommand::FREEZE:     ui->cur_st->setText("FREEZE"); break;
+    case flor_control_msgs::FlorControlModeCommand::STAND_PREP: ui->cur_st->setText("STAND_PREP"); break;
+    case flor_control_msgs::FlorControlModeCommand::WALK:       ui->cur_st->setText("WALK"); break;
+    case flor_control_msgs::FlorControlModeCommand::STEP:       ui->cur_st->setText("STEP"); break;
+    case flor_control_msgs::FlorControlModeCommand::MANIPULATE: ui->cur_st->setText("MANIPULATE"); break;
+    case flor_control_msgs::FlorControlModeCommand::CALIBRATE:  ui->cur_st->setText("CALIBRATE"); break;
+    default: ROS_ERROR("Unknown current behavior = %d", msg->bdi_current_behavior); ui->cur_st->setText("Unknown!"); break;
     }
     switch(msg->bdi_desired_behavior)
     {
-    case 0: ui->d_state->setText("STAND"); break;
-    case 1: ui->d_state->setText("USER"); break;
-    case 2: ui->d_state->setText("FREEZE"); break;
-    case 3: ui->d_state->setText("STAND_PREP"); break;
-    case 4: ui->d_state->setText("WALK"); break;
-    case 5: ui->d_state->setText("STEP"); break;
-    case 6: ui->d_state->setText("MANIPULATE"); break;
-    case 16: ui->d_state->setText("CALIBRATE"); break;
-    default: ui->cur_st->setText("Unknown!"); break;
+    case flor_control_msgs::FlorControlModeCommand::STAND:      ui->d_state->setText("STAND"); break;
+    case flor_control_msgs::FlorControlModeCommand::USER:       ui->d_state->setText("USER"); break;
+    case flor_control_msgs::FlorControlModeCommand::FREEZE:     ui->d_state->setText("FREEZE"); break;
+    case flor_control_msgs::FlorControlModeCommand::STAND_PREP: ui->d_state->setText("STAND_PREP"); break;
+    case flor_control_msgs::FlorControlModeCommand::WALK:       ui->d_state->setText("WALK"); break;
+    case flor_control_msgs::FlorControlModeCommand::STEP:       ui->d_state->setText("STEP"); break;
+    case flor_control_msgs::FlorControlModeCommand::MANIPULATE: ui->d_state->setText("MANIPULATE"); break;
+    case flor_control_msgs::FlorControlModeCommand::CALIBRATE:  ui->d_state->setText("CALIBRATE"); break;
+    default: ROS_ERROR("Unknown desired behavior = %d", msg->bdi_desired_behavior); ui->d_state->setText("Unknown!"); break;
     }
 
 }

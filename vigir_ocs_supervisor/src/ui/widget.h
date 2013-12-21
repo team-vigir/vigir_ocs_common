@@ -5,6 +5,7 @@
 #include <flor_control_msgs/FlorRobotStatus.h>
 #include<flor_ocs_msgs/OCSRobotStatus.h>
 #include <flor_control_msgs/FlorControlMode.h>
+#include <flor_control_msgs/FlorControlModeCommand.h>
 #include <flor_control_msgs/FlorRobotStateCommand.h>
 #include <flor_control_msgs/FlorRobotFault.h>
 #include <atlas_msgs/AtlasSimInterfaceState.h>
