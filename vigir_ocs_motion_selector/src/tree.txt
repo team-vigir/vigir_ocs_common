@@ -68,6 +68,14 @@ stationary{
 		drive_car_pedal_right_empty
 		drive_car_pedal_right_half
 		drive_car_pedal_right_full
+		ladder_arms_flex
+		ladder_arms_in
+		ladder_kneel
+		ladder_kneel_2
+		ladder_kneel_2_left
+		ladder_kneel_2_right
+		ladder_left_leg_up
+		ladder_move_up
 		}
 	Demo{
 		demo_1
