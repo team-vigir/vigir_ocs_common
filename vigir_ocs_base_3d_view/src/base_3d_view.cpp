@@ -667,12 +667,39 @@ void Base3DView::timerEvent(QTimerEvent *event)
     if(!ros::ok())
         qApp->quit();
 
+    // send the camera transform associated with this render panel to whoever connects to this
+    Ogre::Camera* camera = this->render_panel_->getCamera();
+    Ogre::Vector3 position = camera->getPosition();
+    Ogre::Quaternion orientation = camera->getOrientation();
+
+    // if it's ortho, we need to calculate distance from the viewing plane 0 again
+    if(camera->getProjectionType() == Ogre::PT_ORTHOGRAPHIC)
+    {
+        // calculate projection matrix for orthographic window
+        Ogre::Matrix4 m = camera->getProjectionMatrix();
+        float near   =  (1+m[2][3])/m[2][2];
+        float far    = -(1-m[2][3])/m[2][2];
+        float bottom =  (1-m[1][3])/m[1][1];
+        float top    = -(1+m[1][3])/m[1][1];
+        float left   = -(1+m[0][3])/m[0][0];
+        float right  =  (1-m[0][3])/m[0][0];
+        //std::cout << "ortho:\n\t" << left << "\n\t" << right << "\n\t" << bottom << "\n\t" << top << "\n\t" << near << "\n\t" << far << std::endl;
+        // get t
+        if(position.z == 500)
+            position.z = fabs(bottom)+fabs(top);
+        else if(position.y == -500)
+            position.y = fabs(bottom)+fabs(top);
+        else if(position.x == 500)
+            position.x = fabs(bottom)+fabs(top);
+    }
+
+    Q_EMIT sendCameraTransform( view_id_, position.x, position.y, position.z, orientation.x, orientation.y, orientation.z, orientation.w );
+
     // make sure the selection point is visible
     //position_widget_->setGeometry(0,
     //                              this->geometry().bottomLeft().y()-18,
     //                              this->geometry().bottomRight().x()-this->geometry().bottomLeft().x()+2,
     //                              20);
-
 
 
     //std::bitset<32> x(render_panel_->getViewport()->getVisibilityMask());
