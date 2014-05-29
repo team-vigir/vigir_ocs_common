@@ -50,7 +50,7 @@
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="page">
          <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -207,7 +207,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-600</y>
+        <y>0</y>
         <width>292</width>
         <height>1629</height>
        </rect>

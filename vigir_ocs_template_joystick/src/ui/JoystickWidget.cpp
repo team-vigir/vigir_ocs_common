@@ -1,12 +1,12 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include "JoystickWidget.h"
+#include "ui_JoystickWidget.h"
 #include <QLabel>
 #include <QSignalMapper>
 #include <QDebug>
 
-MainWindow::MainWindow(QWidget *parent) :
+JoystickWidget::JoystickWidget(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::JoystickWidget)
 {       
     ui->setupUi(this);
     controller = new vigir_ocs::Controller();
@@ -50,7 +50,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->templateComboBox,SIGNAL(currentIndexChanged(int)),controller,SLOT(changeTemplateID(int)));
 
     //connect buttons for Left and Right arm modes
-    connect(ui->leftArmBtn,SIGNAL(pressed()),controller,SLOT(leftModeToggle()));
+    connect(ui->leftArmBtn,SIGNAL(pressed()),controller,SLOT(leftModeOn()));
+    connect(ui->rightArmBtn,SIGNAL(pressed()),controller,SLOT(rightModeOn()));
+    connect(ui->templateRadioBtn,SIGNAL(pressed()),controller,SLOT(templateModeOn()));    
 
     //place graphics on buttons
     QPixmap upArrow("/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_template_joystick/src/ui/up.png");
@@ -78,11 +80,17 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->RightRButton->setIcon(right);
     ui->RightRButton->setIconSize(rightArrow.rect().size()/2);
 
-// ui->widget->setStyleSheet(QString("image:url('/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_template_joystick/src/ui/up.png');"));
+    //set template Radio button on by default
+    ui->templateRadioBtn->setChecked(true);
 
 }
 
-void MainWindow::populateTemplateComboBox(int tempId)
+void JoystickWidget::receiveCameraData()
+{
+
+}
+
+void JoystickWidget::populateTemplateComboBox(int tempId)
 {
     //clear comboBox
     while(ui->templateComboBox->count()>0)
@@ -101,23 +109,23 @@ void MainWindow::populateTemplateComboBox(int tempId)
     ui->templateComboBox->setCurrentIndex(tempId);
 }
 
-void MainWindow::selectTemplate()
+void JoystickWidget::selectTemplate()
 {
     controller->changeTemplate();
 }
 
 //clear text to display nothing when no button is pressed
-void MainWindow::disableLeftLabel()
+void JoystickWidget::disableLeftLabel()
 {
     ui->directionL->setText("");
 }
-void MainWindow::disableRightLabel()
+void JoystickWidget::disableRightLabel()
 {
     ui->directionR->setText("");
 }
 
 //set direction based on unique strings
-void MainWindow::setDirection(QString str)
+void JoystickWidget::setDirection(QString str)
 {
     float x = 0;
     float z = 0;
@@ -166,15 +174,13 @@ void MainWindow::setDirection(QString str)
     controller->buildmsg(x,z,rotX,rotY);
 }
 
-void MainWindow::keyPressEvent(QKeyEvent *event)
+void JoystickWidget::keyPressEvent(QKeyEvent *event)
 {
     keysPressed.insert((Qt::Key) event->key());
-
     processKeys();
-
 }
 
-void MainWindow::keyReleaseEvent(QKeyEvent *event)
+void JoystickWidget::keyReleaseEvent(QKeyEvent *event)
 {
     keysPressed.remove((Qt::Key)event->key());
 
@@ -183,11 +189,10 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event)
     else if (event->key() == Qt::Key_I ||event->key() == Qt::Key_J || event->key() == Qt::Key_K || event->key() == Qt::Key_L)
         disableRightLabel();
     //ui->glwidget->keyReleaseEvent(event);
-
 }
 
 //handles multiple/single keys pressed
-void MainWindow::processKeys()
+void JoystickWidget::processKeys()
 {
     float x = 0;
     float z = 0;
@@ -237,10 +242,9 @@ void MainWindow::processKeys()
     controller->buildmsg(x,z,rotX,rotY);
 }
 
-MainWindow::~MainWindow()
-{
+JoystickWidget::~JoystickWidget()
+{    
     delete(controller);
     delete(mapper);
     delete ui;
-
 }

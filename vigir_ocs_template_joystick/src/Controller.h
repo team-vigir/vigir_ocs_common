@@ -66,7 +66,8 @@ private:
    QBasicTimer timer;
    int templateIndex;
    bool initialPublish;
-   bool robotMode;
+   bool leftMode;
+   bool rightMode;
    void buildTransformation(float posX, float posY ,float posZ, float rotX, float rotY,float rotZ, QQuaternion* rotation, QVector3D* position);
    void handleJoystick();
    bool compareJoyData();
@@ -76,11 +77,13 @@ private:
 
 
 Q_SIGNALS:
-   void updateTemplateComboBox(int tempID);
+   void updateTemplateComboBox(int tempID);   
 
 public Q_SLOTS:
     void changeTemplateID(int newID);
-    void leftModeToggle();
+    void leftModeOn();
+    void rightModeOn();
+    void templateModeOn();
 
 };
 }

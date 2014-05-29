@@ -113,7 +113,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     std::string ip = ros::package::getPath("vigir_ocs_main_view")+"/icons/";
     icon_path_ = QString(ip.c_str());
 
-    position_widget_ = new QWidget(this);
+    position_widget_ = new QWidget(views_list["Top Left"]);
     position_widget_->setStyleSheet("background-color: rgb(108, 108, 108);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
     position_widget_->setMaximumSize(46,22);
 
@@ -154,6 +154,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     position_layout->addWidget(four_view_button_);
     position_widget_->setLayout(position_layout);
 
+
+
     rviz::DisplaysPanel* displays_panel = new rviz::DisplaysPanel(this);
     displays_panel->initialize( ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
 
@@ -167,11 +169,34 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     QObject::connect(ui->zero_right, SIGNAL(pressed()), this, SLOT(zero_rightPressed()));
 
     ft_zero_pub_ = n_.advertise<std_msgs::Int8>("/flor/controller/zero_hand_wrench",1,false);
+
+    //place graphic on joystick toggle
+    QPixmap controllerPic("/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_main_view/src/ui/controllerIcon.png");
+    QIcon controlIcon(controllerPic);
+    ui->JoystickToggle->setIcon(controlIcon);
+    ui->JoystickToggle->setIconSize(controllerPic.rect().size()/7);
+
+    connect(ui->JoystickToggle,SIGNAL(pressed()),this,SLOT(toggleJoystick()));
+    joystick = new JoystickWidget();
+    //connect(joystick,SIGNAL(sendCamera??),joystick,SLOT());
+    joystick->hide();
 }
 
 MainViewWidget::~MainViewWidget()
 {
     delete ui;
+}
+
+void MainViewWidget::toggleJoystick()
+{
+    if(joystick->isVisible())
+    {
+        joystick->hide();
+    }
+    else
+    {
+        joystick->show();
+    }
 }
 
 bool MainViewWidget::eventFilter( QObject * o, QEvent * e )

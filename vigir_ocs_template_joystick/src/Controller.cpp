@@ -82,7 +82,8 @@ namespace vigir_ocs
 
         templateIndex = 0;
         initialPublish = true;
-        robotMode = false;
+        leftMode = false;
+        rightMode = false;
     }
 
     // Destructor
@@ -126,9 +127,21 @@ namespace vigir_ocs
 
     }
 
-    void Controller::leftModeToggle()
+    void Controller::leftModeOn()
     {
-        robotMode = !robotMode;
+        leftMode = true;
+        rightMode = false;        
+    }
+    void Controller::rightModeOn()
+    {
+        rightMode = true;
+        leftMode = false;        
+    }
+    //template mode is default if no arms
+    void Controller::templateModeOn()
+    {
+        leftMode = false;
+        rightMode = false;       
     }
 
     void Controller::handleJoystick()
@@ -278,7 +291,7 @@ namespace vigir_ocs
         if(oldJoy.buttons[PS3_BUTTON_ACTION_CROSS] != joy.buttons[PS3_BUTTON_ACTION_CROSS] && joy.buttons[PS3_BUTTON_ACTION_CROSS]==1)
             changeTemplate();
         if(oldJoy.buttons[PS3_AXIS_BUTTON_ACTION_SQUARE] != joy.buttons[PS3_AXIS_BUTTON_ACTION_SQUARE])
-            robotMode = !robotMode;
+            leftMode = !leftMode;
 
     }
     //handles rumble
@@ -293,7 +306,7 @@ namespace vigir_ocs
        // ROS_INFO("building Message! %d %d %d %d",posX, posZ, rotY, rotX);
         QQuaternion * rotation;
         QVector3D* position;
-        if(robotMode)
+        if(leftMode)
         {
             rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
                                        leftHand.pose.orientation.y,leftHand.pose.orientation.z);
@@ -309,9 +322,9 @@ namespace vigir_ocs
 
         buildTransformation(posX,posY,0,rotX,rotY,0,rotation,position);
 
-        if(robotMode)
+        if(leftMode)
         {
-            ROS_INFO("sending robot arm data");
+            //ROS_INFO("sending robot arm data");
             flor_ocs_msgs::OCSInteractiveMarkerUpdate msg;
             msg.topic = "/l_arm_pose_marker";
             msg.pose.header.frame_id = "/world";

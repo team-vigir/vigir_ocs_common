@@ -1,29 +1,31 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef JOYSTICKWIDGET_H
+#define JOYSTICKWIDGET_H
 
 #include <QMainWindow>
 #include <QString>
 #include <QWidget>
 #include <QtGui>
 #include <QComboBox>
-#include "Controller.h"
+//#include "Controller.h"
+#include "/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_template_joystick/src/Controller.h"
 
-namespace Ui {
-class MainWindow;
+namespace Ui
+{
+    class JoystickWidget;
 }
 
-class MainWindow : public QMainWindow
+class JoystickWidget : public QMainWindow
 {
     Q_OBJECT
     
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    explicit JoystickWidget(QWidget *parent = 0);
+    ~JoystickWidget();
 protected:
     void keyPressEvent(QKeyEvent *);
     void keyReleaseEvent(QKeyEvent *);
 private:
-    Ui::MainWindow *ui;
+    Ui::JoystickWidget *ui;
     //handle multiple keys at once
     QSet<Qt::Key> keysPressed;
     void processKeys();
@@ -36,6 +38,7 @@ public Q_SLOTS:
     void disableRightLabel();
     void selectTemplate();
     void populateTemplateComboBox(int tempId);
+    void receiveCameraData();
 };
 
-#endif // MAINWINDOW_H
+#endif // JOYSTICKWIDGET_H

@@ -12,6 +12,8 @@
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <std_msgs/Int8.h>
+#include "ui/JoystickWidget.h"
+
 
 namespace Ui
 {
@@ -36,6 +38,7 @@ public Q_SLOTS:
     void ft_sensorToggled(bool);
     void zero_leftPressed();
     void zero_rightPressed();
+    void toggleJoystick();
 
 private:
     Ui::MainViewWidget *ui;
@@ -54,6 +57,8 @@ private:
 
     ros::Subscriber key_event_sub_;
     ros::Publisher ft_zero_pub_;
+    QWidget* test;
+    JoystickWidget* joystick;
 
 };
 

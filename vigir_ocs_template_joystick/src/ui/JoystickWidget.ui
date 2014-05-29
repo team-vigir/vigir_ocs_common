@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>JoystickWidget</class>
+ <widget class="QMainWindow" name="JoystickWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>764</width>
-    <height>294</height>
+    <width>771</width>
+    <height>269</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -110,13 +110,6 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="2">
-           <widget class="QPushButton" name="leftArmBtn">
-            <property name="text">
-             <string>Left Arm</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
@@ -130,6 +123,27 @@
            <widget class="QPushButton" name="selectTemplate">
             <property name="text">
              <string>Next Template</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="templateRadioBtn">
+            <property name="text">
+             <string>Template Mode</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="leftArmBtn">
+            <property name="text">
+             <string>Left Arm</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="rightArmBtn">
+            <property name="text">
+             <string>Right Arm</string>
             </property>
            </widget>
           </item>
@@ -152,12 +166,6 @@
             </property>
             <property name="text">
              <string>J</string>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>120</width>
-              <height>120</height>
-             </size>
             </property>
            </widget>
           </item>
@@ -216,13 +224,6 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="pushButton_2">
-            <property name="text">
-             <string>Right Arm</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
@@ -236,7 +237,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>764</width>
+     <width>771</width>
      <height>25</height>
     </rect>
    </property>

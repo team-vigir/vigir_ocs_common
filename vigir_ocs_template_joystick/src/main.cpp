@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <QtGui/QApplication>
-#include "ui/mainwindow.h"
+#include "ui/JoystickWidget.h"
 //#include "ui/GlWidget.h"
 
 int main(int argc, char *argv[])
@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
         ros::init( argc, argv, "template_joystick", ros::init_options::AnonymousName );
     }
     QApplication a(argc, argv);
-    MainWindow w;
+    JoystickWidget w;
     w.show();
     
 
