@@ -186,6 +186,7 @@ Q_SIGNALS:
     void enableTemplateMarkers( bool );
     void setFrustum( const float &, const float &, const float&, const float& );
     void finishedContextMenuSetup( int x, int y );
+    void sendCameraTransform( float x, float y, float z, float rx, float ry, float rz, float rw );
 
 protected:
     virtual void timerEvent(QTimerEvent *event);
@@ -202,6 +203,8 @@ protected:
     int calcWristTarget(const geometry_msgs::PoseStamped& end_effector_pose, tf::Transform hand_T_palm, geometry_msgs::PoseStamped& final_pose);
     void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints);
     void sendCircularTarget(bool right_hand);
+
+    Ogre::Camera* getCamera();
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
