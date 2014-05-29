@@ -186,7 +186,7 @@ Q_SIGNALS:
     void enableTemplateMarkers( bool );
     void setFrustum( const float &, const float &, const float&, const float& );
     void finishedContextMenuSetup( int x, int y );
-    void sendCameraTransform( float x, float y, float z, float rx, float ry, float rz, float rw );
+    void sendCameraTransform( int view_id_, float x, float y, float z, float rx, float ry, float rz, float rw );
 
 protected:
     virtual void timerEvent(QTimerEvent *event);
