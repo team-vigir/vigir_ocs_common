@@ -684,7 +684,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
         float left   = -(1+m[0][3])/m[0][0];
         float right  =  (1-m[0][3])/m[0][0];
         //std::cout << "ortho:\n\t" << left << "\n\t" << right << "\n\t" << bottom << "\n\t" << top << "\n\t" << near << "\n\t" << far << std::endl;
-        // get t
+        // get the new distance from 0 relative to the viewing plane
         if(position.z == 500)
             position.z = fabs(bottom)+fabs(top);
         else if(position.y == -500)
