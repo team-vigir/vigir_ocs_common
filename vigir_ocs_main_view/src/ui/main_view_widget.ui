@@ -109,7 +109,7 @@
      font-size: 10px;</string>
               </property>
               <property name="text">
-               <string>Joystick</string>
+               <string>Manipulation Tool</string>
               </property>
              </widget>
             </item>
@@ -160,6 +160,22 @@
                 </widget>
                </item>
               </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_18" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_14">
+            <item>
+             <widget class="QComboBox" name="comboBox">
+              <property name="maxVisibleItems">
+               <number>2</number>
+              </property>
+              <property name="maxCount">
+               <number>2</number>
+              </property>
              </widget>
             </item>
            </layout>
@@ -349,7 +365,6 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <zorder>Toolbar</zorder>
            </widget>
           </item>
          </layout>
@@ -992,9 +1007,6 @@ color: rgb(255, 26, 26);</string>
        </widget>
       </item>
      </layout>
-     <zorder>center_parent_</zorder>
-     <zorder>view_stack_</zorder>
-     <zorder>scrollArea</zorder>
     </widget>
    </item>
   </layout>

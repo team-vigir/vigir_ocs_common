@@ -179,8 +179,11 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //create joystick widget
     connect(ui->JoystickToggle,SIGNAL(pressed()),this,SLOT(toggleJoystick()));
     joystick = new JoystickWidget();
+    //connect joystick to perspective camera to receive camera data
     connect(views_list["Top Left"],SIGNAL(sendCameraTransform(int, float, float, float, float, float, float, float)),joystick,SLOT(receiveCameraTransform(int, float, float, float, float, float, float, float)));
     joystick->hide();
+    //combo box for manipulation modes
+    connect(ui->modeBox,SIGNAL(currentIndexChanged(int),joystick,SLOT()))
 }
 
 MainViewWidget::~MainViewWidget()

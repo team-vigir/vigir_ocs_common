@@ -84,6 +84,7 @@ namespace vigir_ocs
         initialPublish = true;
         leftMode = false;
         rightMode = false;
+        world = true;
     }
 
     // Destructor
@@ -180,6 +181,10 @@ namespace vigir_ocs
     {
         leftMode = false;
         rightMode = false;       
+    }
+    void Controller::setWorld(int torf)
+    {
+        world = (bool)torf;
     }
 
     void Controller::handleJoystick()
@@ -412,7 +417,7 @@ namespace vigir_ocs
         *offset = cameraOrientation.rotatedVector(*offset);
 
        ROS_ERROR("rotation before: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
-        //Camera relative rotation
+
         rotation->normalize();      
         //build quaternion that stores desired rotation offset
         QQuaternion* r = new QQuaternion();
@@ -420,36 +425,56 @@ namespace vigir_ocs
         *r *= QQuaternion::fromAxisAndAngle(0,1,0,rotY);
         *r *= QQuaternion::fromAxisAndAngle(0,0,1,rotZ);
 
-        //calculate difference between camera orientation and original rotation of object
-        //difference of q1 and q2 is  q` = q^-1 * q2
-        QQuaternion difference = cameraOrientation.conjugate() * *rotation;
-        //set object orientation to camera
-        *rotation = cameraOrientation;
-        rotation->normalize();
-        ROS_ERROR("rotation camera: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
+        QQuaternion difference;
 
-        //apply desired rotation
-        *rotation *= *r;
-        rotation->normalize();
-        ROS_ERROR("rotation r: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
-        //revert back change of camera rotation to leave object in newly rotated state
-        *rotation *= difference;
-        rotation->normalize();
-        ROS_ERROR("rotation difference: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
+        if(world)
+        {
+            QQuaternion* identity = new QQuaternion();
+            difference = identity->conjugate() * *rotation;
+            *rotation = *identity;
+            *rotation *= *r;
+            *rotation *= difference;
+            delete(identity);
+        }
+        else //Camera relative rotation
+        {
+            //calculate difference between camera orientation and original rotation of object
+            //difference of q1 and q2 is  q` = q^-1 * q2
+            difference = cameraOrientation.conjugate() * *rotation;
+            //set object orientation to camera
+            *rotation = cameraOrientation;
+            rotation->normalize();
+            ROS_ERROR("rotation camera: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
+
+            //apply desired rotation
+            *rotation *= *r;
+            rotation->normalize();
+            ROS_ERROR("rotation r: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
+            //revert back change of camera rotation to leave object in newly rotated state
+            *rotation *= difference;
+            rotation->normalize();
+            ROS_ERROR("rotation difference: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
+        }
+
        // QQuaternion n = cameraOrientation.conjugate()*( *r * cameraOrientation);
        // n *= *rotation;
        // *rotation = n;
 
-
-           //keep values within reasonable limits to secure additional calculations
-       //  rotation->normalize();
-
-         //update coordinates based on latest data from list
-         position->setX(position->x()+offset->x());
-         position->setY(position->y()+offset->y());
-         position->setZ(position->z()+offset->z());
+        if(world)
+        {
+            position->setX(position->x()+posX);
+            position->setY(position->y()+posY);
+            position->setZ(position->z()+posZ);
+        }
+        else //camera relative translation
+        {
+            //update coordinates based on latest data from list
+            position->setX(position->x()+offset->x());
+            position->setY(position->y()+offset->y());
+            position->setZ(position->z()+offset->z());
+        }
          delete(offset);
-       //  delete(r);
+         delete(r);
 }
 
     void Controller::timerEvent(QTimerEvent *event)

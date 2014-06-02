@@ -69,6 +69,7 @@ private:
    bool initialPublish;
    bool leftMode;
    bool rightMode;
+   bool world;
    void buildTransformation(float posX, float posY ,float posZ, float rotX, float rotY,float rotZ, QQuaternion* rotation, QVector3D* position);
    void handleJoystick();
    bool compareJoyData();
@@ -80,7 +81,6 @@ private:
    QQuaternion cameraOrientation;
    QQuaternion rotate(float rotateLeftRight, float rotateUpDown, QQuaternion* rotation);
 
-
 Q_SIGNALS:
    void updateTemplateComboBox(int tempID);   
 
@@ -89,6 +89,8 @@ public Q_SLOTS:
     void leftModeOn();
     void rightModeOn();
     void templateModeOn();
+    void worldModeOn();
+    void cameraModeOn();
 
 };
 }
