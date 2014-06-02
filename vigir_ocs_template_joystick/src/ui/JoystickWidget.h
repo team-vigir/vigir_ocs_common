@@ -38,7 +38,7 @@ public Q_SLOTS:
     void disableRightLabel();
     void selectTemplate();
     void populateTemplateComboBox(int tempId);
-    void receiveCameraData();
+    void receiveCameraTransform(int viewId, float x, float y, float z, float rx, float ry, float rz, float w);
 };
 
 #endif // JOYSTICKWIDGET_H

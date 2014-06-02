@@ -107,6 +107,44 @@ namespace vigir_ocs
         }
     }
 
+    void Controller::setCameraTransform(int viewId, float x, float y, float z, float rx, float ry, float rz, float w)
+    {
+       // ROS_ERROR("camera data: %f %f %f %f %f %f %f",x,y,z,rx,ry,rz,w );
+        cameraPosition.setX(x);
+        cameraPosition.setX(y);
+        cameraPosition.setX(z);
+        cameraOrientation.setX(rx);
+        cameraOrientation.setY(ry);
+        cameraOrientation.setZ(rz);
+        cameraOrientation.setScalar(w);
+       // fromQuaternionToEuler(cameraOrientation);
+    }
+
+    void Controller::fromQuaternionToEuler(QQuaternion q1)
+    {
+
+
+//        double test = q1.x()*q1.y() + q1.z()*q1.scalar();
+//        if (test > 0.499) { // singularity at north pole
+//            heading = 2 * atan2(q1.x(),q1.scalar());
+//            attitude = Math.PI/2;
+//            bank = 0;
+//            return;
+//        }
+//        if (test < -0.499) { // singularity at south pole
+//            heading = -2 * atan2(q1.x(),q1.scalar());
+//            attitude = - Math.PI/2;
+//            bank = 0;
+//            return;
+//        }
+//        double sqx = q1.x()*q1.x();
+//        double sqy = q1.y()*q1.y();
+//        double sqz = q1.z()*q1.z();
+//        heading = atan2(2*q1.y()*q1.scalar()-2*q1.x()*q1.z() , 1 - 2*sqy - 2*sqz);
+//        attitude = asin(2*test);
+//        bank = atan2(2*q1.x()*q1.scalar()-2*q1.y()*q1.z() , 1 - 2*sqx - 2*sqz);
+    }
+
     void Controller::joyCB(const sensor_msgs::Joy::ConstPtr& oldJoyData)
     {
         //grab current joystick data
@@ -302,8 +340,7 @@ namespace vigir_ocs
 
     //update position and rotation
     void Controller::buildmsg(float posX, float posY , float rotY, float rotX)
-    {
-       // ROS_INFO("building Message! %d %d %d %d",posX, posZ, rotY, rotX);
+    {       
         QQuaternion * rotation;
         QVector3D* position;
         if(leftMode)
@@ -368,19 +405,52 @@ namespace vigir_ocs
     //apply rotation and transform to Quaternion and position
     void Controller::buildTransformation(float posX, float posY ,float posZ, float rotX, float rotY,float rotZ, QQuaternion* rotation, QVector3D* position)
     {
-         //rotate quaternion
-         *rotation *= QQuaternion::fromAxisAndAngle(0,1,0,(qreal)rotY);
-         *rotation *= QQuaternion::fromAxisAndAngle(1,0,0,(qreal)rotX);
-         *rotation *= QQuaternion::fromAxisAndAngle(0,0,1,(qreal)rotZ);
+        //Translation- move relative to camera for direction but still translate in world space
+        //create a vector representing the offset to be applied to position.
+        QVector3D* offset = new QVector3D(posX,posY,posZ);
+        //rotate the offset to be relative to camera orientation, can now be applied to position to move relative to camera
+        *offset = cameraOrientation.rotatedVector(*offset);
 
-         //keep values within reasonable limits to secure additional calculations
-         rotation->normalize();
+       ROS_ERROR("rotation before: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
+        //Camera relative rotation
+        rotation->normalize();      
+        //build quaternion that stores desired rotation offset
+        QQuaternion* r = new QQuaternion();
+        *r *= QQuaternion::fromAxisAndAngle(1,0,0,rotX);
+        *r *= QQuaternion::fromAxisAndAngle(0,1,0,rotY);
+        *r *= QQuaternion::fromAxisAndAngle(0,0,1,rotZ);
+
+        //calculate difference between camera orientation and original rotation of object
+        //difference of q1 and q2 is  q` = q^-1 * q2
+        QQuaternion difference = cameraOrientation.conjugate() * *rotation;
+        //set object orientation to camera
+        *rotation = cameraOrientation;
+        rotation->normalize();
+        ROS_ERROR("rotation camera: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
+
+        //apply desired rotation
+        *rotation *= *r;
+        rotation->normalize();
+        ROS_ERROR("rotation r: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
+        //revert back change of camera rotation to leave object in newly rotated state
+        *rotation *= difference;
+        rotation->normalize();
+        ROS_ERROR("rotation difference: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
+       // QQuaternion n = cameraOrientation.conjugate()*( *r * cameraOrientation);
+       // n *= *rotation;
+       // *rotation = n;
+
+
+           //keep values within reasonable limits to secure additional calculations
+       //  rotation->normalize();
 
          //update coordinates based on latest data from list
-         position->setX(position->x()+posX);
-         position->setY(position->y()+posY);
-         position->setZ(position->z()+posZ);
-    }
+         position->setX(position->x()+offset->x());
+         position->setY(position->y()+offset->y());
+         position->setZ(position->z()+offset->z());
+         delete(offset);
+       //  delete(r);
+}
 
     void Controller::timerEvent(QTimerEvent *event)
     {
@@ -418,4 +488,36 @@ namespace vigir_ocs
     {        
         return temList.template_list;
     }
+
+    QQuaternion Controller::rotate(float rotateLeftRight, float rotateUpDown, QQuaternion* rotation)
+    {
+
+    //Get Main camera in Use.
+
+    //Gets the world vector space for cameras up vector
+    //Vector3 relativeUp = cam.transform.TransformDirection(Vector3.up);
+    QVector3D relativeUp(0,1,0);
+    relativeUp = cameraOrientation.rotatedVector(relativeUp);
+    //Gets world vector for space cameras right vector
+    //Vector3 relativeRight = cam.transform.TransformDirection(Vector3.right);
+    QVector3D relativeRight(1,0,0);
+    relativeRight = cameraOrientation.rotatedVector(relativeRight);
+    //Turns relativeUp vector from world to objects local space
+    //Vector3 objectRelativeUp = transform.InverseTransformDirection(relativeUp);
+    QVector3D objectRelativeUp = -rotation->rotatedVector(relativeUp);
+    //Turns relativeRight vector from world to object local space
+    //Vector3 objectRelaviveRight = transform.InverseTransformDirection(relativeRight);
+    QVector3D objectRelativeRight = -rotation->rotatedVector(relativeRight);
+
+
+//    rotateBy = Quaternion.AngleAxis(rotateLeftRight / gameObject.transform.localScale.x * sensitivity, objectRelativeUp)
+  //  * Quaternion.AngleAxis(-rotateUpDown / gameObject.transform.localScale.x * sensitivity, objectRelaviveRight);
+
+
+    return QQuaternion::fromAxisAndAngle(objectRelativeUp,rotateLeftRight) * QQuaternion::fromAxisAndAngle(objectRelativeRight,-rotateUpDown);
+
+
+    }
+
+
 }

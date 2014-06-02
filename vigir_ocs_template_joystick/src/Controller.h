@@ -45,6 +45,7 @@ public:
     void rightCB(const geometry_msgs::PoseStamped::ConstPtr& msg);
     void changeTemplate();
     std::vector<std::string> getTemplateNames();
+    void setCameraTransform(int viewId, float x, float y, float z, float rx, float ry, float rz, float w);
 
 protected:
     ros::Subscriber template_list_sub;
@@ -74,6 +75,10 @@ private:
    void handleButtons();    
    void buildJoy();
    void handleArms();
+   void fromQuaternionToEuler(QQuaternion q1);
+   QVector3D cameraPosition;
+   QQuaternion cameraOrientation;
+   QQuaternion rotate(float rotateLeftRight, float rotateUpDown, QQuaternion* rotation);
 
 
 Q_SIGNALS:
