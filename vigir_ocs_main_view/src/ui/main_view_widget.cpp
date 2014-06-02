@@ -5,7 +5,9 @@
 #include "ortho_view.h"
 #include <ros/package.h>
 
+#include <rviz/visualization_manager.h>
 #include <rviz/displays_panel.h>
+#include <rviz/views_panel.h>
 
 MainViewWidget::MainViewWidget(QWidget *parent) :
     QWidget(parent),
@@ -159,9 +161,13 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     rviz::DisplaysPanel* displays_panel = new rviz::DisplaysPanel(this);
     displays_panel->initialize( ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
 
+    rviz::ViewsPanel* views_panel = new rviz::ViewsPanel(this);
+    views_panel->setViewManager(((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()->getViewManager());
+
     QVBoxLayout* displays_layout = new QVBoxLayout();
     displays_layout->setMargin(0);
     displays_layout->addWidget(displays_panel);
+    displays_layout->addWidget(views_panel);
     ui->rviz_options->setLayout(displays_layout);
 
     QObject::connect(ui->ft_sensor, SIGNAL(toggled(bool)), this, SLOT(ft_sensorToggled(bool)));
