@@ -12,6 +12,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui(new Ui::MainViewWidget)
 {
     ui->setupUi(this);
+    //will not call destructor immediately without setting attribute
+    this->setAttribute(Qt::WA_DeleteOnClose);
 
     Q_FOREACH( QDoubleSpinBox * sp, findChildren<QDoubleSpinBox*>() ) {
         sp->installEventFilter( this );
@@ -154,8 +156,6 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     position_layout->addWidget(four_view_button_);
     position_widget_->setLayout(position_layout);
 
-
-
     rviz::DisplaysPanel* displays_panel = new rviz::DisplaysPanel(this);
     displays_panel->initialize( ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
 
@@ -176,15 +176,17 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui->JoystickToggle->setIcon(controlIcon);
     ui->JoystickToggle->setIconSize(controllerPic.rect().size()/7);
 
+    //create joystick widget
     connect(ui->JoystickToggle,SIGNAL(pressed()),this,SLOT(toggleJoystick()));
     joystick = new JoystickWidget();
-    //connect(joystick,SIGNAL(sendCamera??),joystick,SLOT());
+    connect(views_list["Top Left"],SIGNAL(sendCameraTransform(int, float, float, float, float, float, float, float)),joystick,SLOT(receiveCameraTransform(int, float, float, float, float, float, float, float)));
     joystick->hide();
 }
 
 MainViewWidget::~MainViewWidget()
 {
-    delete ui;
+    delete(joystick);
+    delete ui;    
 }
 
 void MainViewWidget::toggleJoystick()
@@ -192,10 +194,12 @@ void MainViewWidget::toggleJoystick()
     if(joystick->isVisible())
     {
         joystick->hide();
+       // ui->JoystickToggle->setChecked(false);
     }
     else
     {
         joystick->show();
+        //ui->JoystickToggle->setChecked(true);
     }
 }
 
