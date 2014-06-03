@@ -87,7 +87,7 @@ JoystickWidget::JoystickWidget(QWidget *parent) :
 
 void JoystickWidget::setManipulationMode(int mode)
 {
-    controller->setWorld();
+    controller->setManipulation(mode);
 }
 
 void JoystickWidget::receiveCameraTransform(int viewId, float x,float y, float z, float rx, float ry, float rz, float w)

@@ -177,19 +177,192 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ft_zero_pub_ = n_.advertise<std_msgs::Int8>("/flor/controller/zero_hand_wrench",1,false);
 
     //place graphic on joystick toggle
-    QPixmap controllerPic("/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_main_view/src/ui/controllerIcon.png");
+    QPixmap controllerPic( icon_path_+ "controllerIcon.png");
     QIcon controlIcon(controllerPic);
     ui->JoystickToggle->setIcon(controlIcon);
-    ui->JoystickToggle->setIconSize(controllerPic.rect().size()/7);
+    ui->JoystickToggle->setIconSize(controllerPic.rect().size()/8);
 
+    QPixmap jointPic(icon_path_+"jointIcon.png");
+    QIcon jointIcon(jointPic);
+    ui->jointControlBtn->setIcon(jointIcon);
+    ui->jointControlBtn->setIconSize(jointPic.rect().size()/1.5);
+
+    QPixmap pelvisPic(icon_path_+"pelvis.png");
+    QIcon pelvisIcon(pelvisPic);
+    ui->pelvisControlBtn->setIcon(pelvisIcon);
+    ui->pelvisControlBtn->setIconSize(pelvisPic.rect().size()/12);
+
+    QPixmap ghostPic(icon_path_+"ghostIcon.png");
+    QIcon ghostIcon(ghostPic);
+    ui->ghostControlBtn->setIcon(ghostIcon);
+    ui->ghostControlBtn->setIconSize(ghostPic.rect().size()/20);
+
+    QPixmap positionPic(icon_path_+"positionIcon.png");
+    QIcon positionIcon(positionPic);
+    ui->positionModeBtn->setIcon(positionIcon);
+    ui->positionModeBtn->setIconSize(positionPic.rect().size()/4);
+
+    QPixmap footBasicPic(icon_path_+"footBasicIcon.png");
+    QIcon footBasicIcon(footBasicPic);
+    ui->basicStepBtn->setIcon(footBasicIcon);
+    ui->basicStepBtn->setIconSize(footBasicPic.rect().size()/25);
+
+    QPixmap footAdvancedPic(icon_path_+"footAdvancedIcon.png");
+    QIcon footAdvancedIcon(footAdvancedPic);
+    ui->stepBtn->setIcon(footAdvancedIcon);
+    ui->stepBtn->setIconSize(footAdvancedPic.rect().size()/25);
+
+    QPixmap footParamPic(icon_path_+"footParamIcon.png");
+    QIcon footParamIcon(footParamPic);
+    ui->footstepParamBtn->setIcon(footParamIcon);
+    ui->footstepParamBtn->setIconSize(footParamPic.rect().size()/15);
+
+    ui->JoystickToggle->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image-position: top left"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      "}");
+    ui->jointControlBtn->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image-position: top left"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      "}");
+    ui->pelvisControlBtn->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image-position: top left"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      "}");
+    ui->basicStepBtn->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image-position: top left"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      "}");
+    ui->stepBtn->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image-position: top left"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      "}");
+    ui->footstepParamBtn->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image-position: top left"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      "}");
+    ui->ghostControlBtn->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image-position: top left"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      "}");
+    ui->positionModeBtn->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image-position: top left"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      "}");
+    ui->plannerConfigBtn->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image-position: top left"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      "}");
     //create joystick widget
     connect(ui->JoystickToggle,SIGNAL(pressed()),this,SLOT(toggleJoystick()));
     joystick = new JoystickWidget();
     //connect joystick to perspective camera to receive camera data
     connect(views_list["Top Left"],SIGNAL(sendCameraTransform(int, float, float, float, float, float, float, float)),joystick,SLOT(receiveCameraTransform(int, float, float, float, float, float, float, float)));
     joystick->hide();
+
     //combo box for manipulation modes
-    connect(ui->modeBox,SIGNAL(currentIndexChanged(int),joystick,SLOT()))
+    connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),joystick,SLOT(setManipulationMode(int)));
+    ui->modeBox->addItem(QString("Camera"));
+    ui->modeBox->addItem(QString("World"));
+    ui->modeBox->addItem(QString("Object"));
+
+    // workaround to be able to use images from stylesheet without knowing the path in advance
+    QString stylesheet = ui->modeBox->styleSheet() + "\n" +
+            "QComboBox::down-arrow {\n" +
+            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
+            "}";
+    ui->modeBox->setStyleSheet(stylesheet);
+
 }
 
 MainViewWidget::~MainViewWidget()

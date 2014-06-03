@@ -84,7 +84,8 @@ namespace vigir_ocs
         initialPublish = true;
         leftMode = false;
         rightMode = false;
-        world = true;
+        worldMode = true;
+        objectMode = false;
     }
 
     // Destructor
@@ -182,10 +183,27 @@ namespace vigir_ocs
         leftMode = false;
         rightMode = false;       
     }
-    void Controller::setWorld(int torf)
+    void Controller::setManipulation(int mode)
     {
-        world = (bool)torf;
+        //will be 0,1,or 2
+        if(mode==0) //camera
+        {
+            worldMode = false;
+            objectMode = false;
+        }
+        else if (mode ==1) // world
+        {
+            objectMode = false;
+            worldMode = true;
+        }
+        else  // object
+        {
+            worldMode = false;
+            objectMode = true;
+        }
+
     }
+
 
     void Controller::handleJoystick()
     {
@@ -416,18 +434,18 @@ namespace vigir_ocs
         //rotate the offset to be relative to camera orientation, can now be applied to position to move relative to camera
         *offset = cameraOrientation.rotatedVector(*offset);
 
-       ROS_ERROR("rotation before: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
+      // ROS_ERROR("rotation before: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
 
         rotation->normalize();      
         //build quaternion that stores desired rotation offset
         QQuaternion* r = new QQuaternion();
-        *r *= QQuaternion::fromAxisAndAngle(1,0,0,rotX);
         *r *= QQuaternion::fromAxisAndAngle(0,1,0,rotY);
+        *r *= QQuaternion::fromAxisAndAngle(1,0,0,rotX);
         *r *= QQuaternion::fromAxisAndAngle(0,0,1,rotZ);
-
+       // r->normalize();
         QQuaternion difference;
 
-        if(world)
+        if(worldMode) //world relative rotation
         {
             QQuaternion* identity = new QQuaternion();
             difference = identity->conjugate() * *rotation;
@@ -436,42 +454,52 @@ namespace vigir_ocs
             *rotation *= difference;
             delete(identity);
         }
+        else if(objectMode) //object relative rotation
+        {
+            *rotation *= *r;
+        }
         else //Camera relative rotation
         {
+            QQuaternion* rot = new QQuaternion();
+            *rot *= QQuaternion::fromAxisAndAngle(0,1,0,rotY); //more intuitive for camera if reversed
+            *rot *= QQuaternion::fromAxisAndAngle(1,0,0,-rotX);
+            *rot *= QQuaternion::fromAxisAndAngle(0,0,1,rotZ);
             //calculate difference between camera orientation and original rotation of object
             //difference of q1 and q2 is  q` = q^-1 * q2
             difference = cameraOrientation.conjugate() * *rotation;
             //set object orientation to camera
             *rotation = cameraOrientation;
-            rotation->normalize();
-            ROS_ERROR("rotation camera: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
-
             //apply desired rotation
-            *rotation *= *r;
-            rotation->normalize();
-            ROS_ERROR("rotation r: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
+            *rotation *= *rot;
             //revert back change of camera rotation to leave object in newly rotated state
             *rotation *= difference;
-            rotation->normalize();
-            ROS_ERROR("rotation difference: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
+            delete(rot);
         }
+        //rotation->normalize();
 
-       // QQuaternion n = cameraOrientation.conjugate()*( *r * cameraOrientation);
-       // n *= *rotation;
-       // *rotation = n;
-
-        if(world)
+        if(worldMode)
         {
             position->setX(position->x()+posX);
             position->setY(position->y()+posY);
             position->setZ(position->z()+posZ);
         }
-        else //camera relative translation
+        else if(objectMode)//object relative translation
+        {
+            QVector3D* objectOffset = new QVector3D(posX,posY,posZ);
+            *objectOffset = rotation->rotatedVector(*objectOffset);
+
+            position->setX(position->x()+objectOffset->x());
+            position->setY(position->y()+objectOffset->y());
+            position->setZ(position->z()+objectOffset->z());
+            delete(objectOffset);
+        }
+        else // camera relative
         {
             //update coordinates based on latest data from list
             position->setX(position->x()+offset->x());
             position->setY(position->y()+offset->y());
             position->setZ(position->z()+offset->z());
+
         }
          delete(offset);
          delete(r);

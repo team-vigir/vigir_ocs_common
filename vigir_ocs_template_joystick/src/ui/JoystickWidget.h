@@ -39,8 +39,7 @@ public Q_SLOTS:
     void selectTemplate();
     void populateTemplateComboBox(int tempId);
     void receiveCameraTransform(int viewId, float x, float y, float z, float rx, float ry, float rz, float w);
-    void setWorld();
-    void setCamera();
+    void setManipulationMode(int);
 };
 
 #endif // JOYSTICKWIDGET_H
