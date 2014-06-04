@@ -362,6 +362,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
             "}";
     ui->modeBox->setStyleSheet(stylesheet);
+    //connect view to update position data
+    connect(views_list["Top Left"],SIGNAL(sendPositionText(QString)),this,SLOT(receivePositionText(QString)));
 
 }
 
@@ -369,6 +371,11 @@ MainViewWidget::~MainViewWidget()
 {
     delete(joystick);
     delete ui;    
+}
+
+void MainViewWidget::receivePositionText(QString s)
+{
+    ui->positionLabel->setText(s);
 }
 
 void MainViewWidget::toggleJoystick()

@@ -40,6 +40,12 @@ private:
     std::vector<std::string> errors;
     std::string messagesPath;
 
+Q_SIGNALS:
+    void sendMoveitStatus(bool);
+    void sendFootstepStatus(int);
+    void sendFlorStatus(int);
+
+
 };
 
 #endif // glancehub_H

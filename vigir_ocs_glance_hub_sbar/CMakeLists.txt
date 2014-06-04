@@ -3,13 +3,13 @@ project(vigir_ocs_glance_hub_sbar)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib tf std_msgs sensor_msgs flor_ocs_msgs rviz flor_control_msgs)# vigir_perception_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib tf std_msgs sensor_msgs flor_ocs_msgs vigir_ocs_glance_hub)# vigir_perception_msgs)
 
 ## Declare things to be passed to other projects
 catkin_package(
     INCLUDE_DIRS src
     LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS roscpp rospy roslib tf std_msgs sensor_msgs flor_ocs_msgs rviz
+    CATKIN_DEPENDS roscpp rospy roslib tf std_msgs sensor_msgs flor_ocs_msgs vigir_ocs_glance_hub
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
@@ -24,13 +24,13 @@ add_definitions(-DQT_NO_KEYWORDS)
 ## Qt's meta-object compiler.
 
 qt4_wrap_cpp(MOC_FILES
-  src/glancehubsbar.h
+  src/glancehubSbar.h
 )
 
 
 ## Here we add QtCreator ui files
 qt4_wrap_ui(UIC_FILES
-  src/glancehubsbar.ui
+  src/glancehubSbar.ui
 )
 
 ## Here we specify the list of source files, including the output of
@@ -40,13 +40,18 @@ qt4_wrap_ui(UIC_FILES
 set(SOURCE_FILES
   ${MOC_FILES}
   src/main.cpp
-  src/glancehubsbar.cpp
+  src/glancehubSbar.cpp
 )
 include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src)
 
-add_executable(glance_hubsbar ${UIC_FILES} ${SOURCE_FILES})
-target_link_libraries(glance_hubsbar ${catkin_LIBRARIES} ${QT_LIBRARIES})
+add_executable(glance_hub_sbar ${UIC_FILES} ${SOURCE_FILES})
+target_link_libraries(glance_hub_sbar ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
-add_dependencies(glance_hubsbar ${catkin_EXPORTED_TARGETS})
+add_dependencies(glance_hub_sbar ${catkin_EXPORTED_TARGETS})
+
+add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 

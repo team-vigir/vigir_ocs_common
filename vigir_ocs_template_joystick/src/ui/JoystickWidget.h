@@ -31,6 +31,7 @@ private:
     void processKeys();
     vigir_ocs::Controller * controller;
     QSignalMapper * mapper;
+    QString icon_path_;
 
 public Q_SLOTS:
     void setDirection(QString s);

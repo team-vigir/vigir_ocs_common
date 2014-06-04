@@ -602,30 +602,31 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
         sp->setMouseTracking( true );
     }
 
-    position_widget_ = new QWidget(this);
-    position_widget_->setStyleSheet("background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
-    position_widget_->setMaximumHeight(18);
-    position_label_ = new QLineEditSmall("",position_widget_);
-    position_label_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    position_label_->setReadOnly(true);
-    position_label_->setStyleSheet("background-color: rgb(0, 0, 0);font: 8pt \"MS Shell Dlg 2\";color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
-    position_label_->setFrame(false);
+//    position_widget_ = new QWidget(this);
+//    position_widget_->setStyleSheet("background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
+//    position_widget_->setMaximumHeight(18);
+//    position_label_ = new QLineEditSmall("",position_widget_);
+//    position_label_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+//    position_label_->setReadOnly(true);
+//    position_label_->setStyleSheet("background-color: rgb(0, 0, 0);font: 8pt \"MS Shell Dlg 2\";color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
+//    position_label_->setFrame(false);
 
     reset_view_button_ = new QPushButton("Reset View", this);
-    reset_view_button_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
+    reset_view_button_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
     reset_view_button_->setMaximumSize(68,18);
     reset_view_button_->adjustSize();
+   // reset_view_button_->move(0,300);
     QObject::connect(reset_view_button_, SIGNAL(clicked()), this, SLOT(resetView()));
 
-    QHBoxLayout* position_layout = new QHBoxLayout();
-    position_layout->setSpacing(0);
-    position_layout->setMargin(0);
-    position_layout->addWidget(reset_view_button_);
-    position_layout->addWidget(position_label_);
-    position_widget_->setLayout(position_layout);
+//    QHBoxLayout* position_layout = new QHBoxLayout();
+//    position_layout->setSpacing(0);
+//    position_layout->setMargin(0);
+//    position_layout->addWidget(reset_view_button_);
+   // position_layout->addWidget(position_label_);
+   // position_widget_->setLayout(position_layout);
     main_layout->setMargin(0);
     main_layout->setSpacing(0);
-    main_layout->addWidget(position_widget_);
+  //  main_layout->addWidget(position_widget_);
 
     XmlRpc::XmlRpcValue   hand_T_palm;
 
@@ -695,6 +696,8 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     Q_EMIT sendCameraTransform( view_id_, position.x, position.y, position.z, orientation.x, orientation.y, orientation.z, orientation.w );
 
+    //set button on corner of views on any size
+    reset_view_button_->setGeometry(0,this->geometry().bottomLeft().y()-18,68,20);
     // make sure the selection point is visible
     //position_widget_->setGeometry(0,
     //                              this->geometry().bottomLeft().y()-18,
@@ -929,7 +932,8 @@ void Base3DView::processControlMode( const flor_control_msgs::FlorControlMode::C
 void Base3DView::newSelection( Ogre::Vector3 position )
 {
     QString new_label = QString::number(position.x,'f',2)+", "+QString::number(position.y,'f',2)+", "+QString::number(position.z,'f',2);
-    position_label_->setText(new_label);
+    //position_label_->setText(new_label);
+    Q_EMIT sendPositionText(new_label);
 
     selection_position_ = position;
     selected_ = true;

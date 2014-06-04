@@ -3,6 +3,7 @@
 #include <QLabel>
 #include <QSignalMapper>
 #include <QDebug>
+#include <ros/package.h>
 
 JoystickWidget::JoystickWidget(QWidget *parent) :
     QMainWindow(parent),
@@ -54,11 +55,14 @@ JoystickWidget::JoystickWidget(QWidget *parent) :
     connect(ui->rightArmBtn,SIGNAL(pressed()),controller,SLOT(rightModeOn()));
     connect(ui->templateRadioBtn,SIGNAL(pressed()),controller,SLOT(templateModeOn()));    
 
+    std::string ip = ros::package::getPath("vigir_ocs_template_joystick")+"/icons/";
+    icon_path_ = QString(ip.c_str());
+
     //place graphics on buttons
-    QPixmap upArrow("/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_template_joystick/src/ui/up.png");
-    QPixmap rightArrow("/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_template_joystick/src/ui/right.png");
-    QPixmap leftArrow("/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_template_joystick/src/ui/left.png");
-    QPixmap downArrow("/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_template_joystick/src/ui/down.png");
+    QPixmap upArrow("up.png");
+    QPixmap rightArrow("right.png");
+    QPixmap leftArrow("left.png");
+    QPixmap downArrow("down.png");
     QIcon up(upArrow);
     QIcon right(rightArrow);
     QIcon left(leftArrow);

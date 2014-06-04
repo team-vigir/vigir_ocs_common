@@ -187,6 +187,7 @@ Q_SIGNALS:
     void setFrustum( const float &, const float &, const float&, const float& );
     void finishedContextMenuSetup( int x, int y );
     void sendCameraTransform( int view_id_, float x, float y, float z, float rx, float ry, float rz, float rw );
+    void sendPositionText(QString s);
 
 protected:
     virtual void timerEvent(QTimerEvent *event);

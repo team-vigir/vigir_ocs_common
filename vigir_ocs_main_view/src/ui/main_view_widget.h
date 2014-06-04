@@ -39,6 +39,7 @@ public Q_SLOTS:
     void zero_leftPressed();
     void zero_rightPressed();
     void toggleJoystick();
+    void receivePositionText(QString);
 
 private:
     Ui::MainViewWidget *ui;

@@ -207,6 +207,10 @@ namespace vigir_ocs
 
     void Controller::handleJoystick()
     {
+        //null check for templates
+        if(temList.template_id_list.size()==0)
+            return;
+
         float x = 0;
         float y = 0;
         float z = 0;
@@ -364,6 +368,8 @@ namespace vigir_ocs
     //update position and rotation
     void Controller::buildmsg(float posX, float posY , float rotY, float rotX)
     {       
+
+
         QQuaternion * rotation;
         QVector3D* position;
         if(leftMode)
@@ -372,8 +378,10 @@ namespace vigir_ocs
                                        leftHand.pose.orientation.y,leftHand.pose.orientation.z);
             position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
         }
-        else
+        else //moving templates
         {
+            if(temList.template_id_list.size()==0)
+                return;
             //build quaternion based on current rotation
             rotation = new QQuaternion(temList.pose[templateIndex].pose.orientation.w,temList.pose[templateIndex].pose.orientation.x,
                                                  temList.pose[templateIndex].pose.orientation.y,temList.pose[templateIndex].pose.orientation.z);

@@ -53,6 +53,8 @@ void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr 
         ui->plannerLight->setStyleSheet("QLabel { background-color: red; }");
     else
         ui->plannerLight->setStyleSheet("QLabel { background-color: green; }");
+    //update status bar
+    Q_EMIT sendMoveitStatus(msg->status != RobotStatusCodes::PLANNER_MOVEIT_PLAN_ACTIVE);
 
     uint8_t  level;
     uint16_t code;
@@ -153,15 +155,17 @@ void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPt
     switch(msg->status)
     {
     case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE:
-        ui->footLight->setStyleSheet("QLabel { background-color: yellow; }");
+        ui->footLight->setStyleSheet("QLabel { background-color: yellow; }");        
         break;
     case RobotStatusCodes::FOOTSTEP_PLANNER_FAILED:
-        ui->footLight->setStyleSheet("QLabel { background-color: red; }");
+        ui->footLight->setStyleSheet("QLabel { background-color: red; }");        
         break;
     case RobotStatusCodes::FOOTSTEP_PLANNER_SUCCESS:
-        ui->footLight->setStyleSheet("QLabel { background-color: green; }");
+        ui->footLight->setStyleSheet("QLabel { background-color: green; }");        
         break;
     }
+    //notify status bar
+    Q_EMIT sendFootstepStatus(msg->status);
 
     uint8_t  level;
     uint16_t code;
@@ -261,27 +265,30 @@ void glancehub::controlModeMsgRcv(const flor_control_msgs::FlorControlModeComman
         newText = QString::fromStdString("Flor WBC");
         break;
     case flor_control_msgs::FlorControlModeCommand::FREEZE:
-        newText = QString::fromStdString("Flor Freeze");
+        newText = QString::fromStdString("Freeze");
         break;
     case flor_control_msgs::FlorControlModeCommand::MANIPULATE:
-        newText = QString::fromStdString("Flor Manipulate");
+        newText = QString::fromStdString("Manipulate");
         break;
     case flor_control_msgs::FlorControlModeCommand::STAND:
-        newText = QString::fromStdString("Flor Stand");
+        newText = QString::fromStdString("Stand");
         break;
     case flor_control_msgs::FlorControlModeCommand::STAND_PREP:
-        newText = QString::fromStdString("Flor Stand Prep");
+        newText = QString::fromStdString("Stand Prep");
         break;
     case flor_control_msgs::FlorControlModeCommand::STEP:
-        newText = QString::fromStdString("Flor Step");
+        newText = QString::fromStdString("Step");
         break;
     case flor_control_msgs::FlorControlModeCommand::USER:
-        newText = QString::fromStdString("Flor User");
+        newText = QString::fromStdString("User");
         break;
     case flor_control_msgs::FlorControlModeCommand::WALK:
-        newText = QString::fromStdString("Flor Walk");
+        newText = QString::fromStdString("Walk");
         break;
     }
+    //notify status bar
+    Q_EMIT sendFlorStatus(msg->behavior);
+
     ui->controlModeLabel->setText(newText);
     std::cout << "Changing to "<< newText.toStdString() << " Mode" << std::endl;
 }

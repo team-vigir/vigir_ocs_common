@@ -6,13 +6,13 @@
 
 QT       += core gui
 
-TARGET = vigir_ocs_glance_hub_sbar
+TARGET = vigir_ocs_glance_hub
 TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        glancehubsbar.cpp
+        glancehub.cpp
 
-HEADERS  += glancehubsbar.h
+HEADERS  += glancehub.h
 
-FORMS    += glancehubsbar.ui
+FORMS    += glancehub.ui
