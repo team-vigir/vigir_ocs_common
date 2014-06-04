@@ -31,6 +31,7 @@ public Q_SLOTS:
     void receiveMoveitStatus(bool);
     void receiveFootstepStatus(int);
     void receiveFlorStatus(int);
+    void receiveModeChange(int);
 
 };
 

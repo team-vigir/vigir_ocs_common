@@ -76,7 +76,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="comboBox">
+        <widget class="QComboBox" name="modeBox">
          <property name="maximumSize">
           <size>
            <width>25</width>

@@ -17,8 +17,33 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     connect(ghub,SIGNAL(sendMoveitStatus(bool)),this,SLOT(receiveMoveitStatus(bool)));
     connect(ghub,SIGNAL(sendFoostepStatus(int)),this,SLOT(receiveFootstepStatus(int)));
     connect(ghub,SIGNAL(sendFlorStatus(int)),this,SLOT(receiveFlorStatus(int)));
+    connect(ui->modeBox,SIGNAL(currentIndexChanged(int),this,SLOT(receiveModeChange(int))));
 }
 
+void glancehubSbar::receiveModeChange(int mode)
+{
+    switch(mode)
+    {
+    case 0: //
+        break;
+    case 1: //
+        break;
+    case 2: //
+        break;
+    case 3: //
+        break;
+    case 4: //
+        break;
+    case 5: //
+        break;
+    case 6: //
+        break;
+    case 7: //
+        break;
+    case 8: //
+        break;
+    }
+}
 void glancehubSbar::receiveMoveitStatus(bool status)
 {
     if(status)
