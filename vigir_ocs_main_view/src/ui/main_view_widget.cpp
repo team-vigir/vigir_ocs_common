@@ -252,6 +252,32 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui->positionModeBtn->setStyleSheet(btnStyle);
     ui->plannerConfigBtn->setStyleSheet(btnStyle);
 
+    //use signalmapper to avoid having one function for each one of the toggle buttons
+    toggle_mapper_ = new QSignalMapper(this);
+    connect(toggle_mapper_,SIGNAL(mapped(QString)),this,SLOT(toggleWindow(int)));
+
+    //map all toggles button to their identifiers
+    toggle_mapper_->setMapping(this->ui->joystickBtn,WINDOW_JOYSTICK);
+    toggle_mapper_->setMapping(this->ui->jointControlBtn,WINDOW_JOINT_CONTROL);
+    toggle_mapper_->setMapping(this->ui->pelvisControlBtn,WINDOW_BDI_PELVIS_POSE);
+    toggle_mapper_->setMapping(this->ui->basicStepBtn,WINDOW_FOOTSTEP_BASIC);
+    toggle_mapper_->setMapping(this->ui->stepBtn,WINDOW_FOOTSTEP_ADVANCED);
+    toggle_mapper_->setMapping(this->ui->footstepParamBtn,WINDOW_FOOTSTEP_PARAMETER);
+    toggle_mapper_->setMapping(this->ui->ghostControlBtn,WINDOW_GHOST_CONFIG);
+    toggle_mapper_->setMapping(this->ui->positionModeBtn,WINDOW_POSITION_MODE);
+    toggle_mapper_->setMapping(this->ui->plannerConfigBtn,WINDOW_PLANNER_CONFIG);
+
+    //connect all buttons for mouse presses
+    connect(ui->joystickBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
+    connect(ui->jointControlBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
+    connect(ui->pelvisControlBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
+    connect(ui->basicStepBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
+    connect(ui->stepBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
+    connect(ui->footstepParamBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
+    connect(ui->ghostControlBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
+    connect(ui->positionModeBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
+    connect(ui->plannerConfigBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
+
     //create joystick widget
     connect(ui->joystickBtn,SIGNAL(pressed()),this,SLOT(toggleJoystick()));
     joystick = new JoystickWidget();
@@ -282,23 +308,6 @@ MainViewWidget::~MainViewWidget()
     delete ui;    
 }
 
-void MainViewWidget::receivePositionText(QString s)
-{
-    ui->positionLabel->setText(s);
-}
-
-void MainViewWidget::toggleJoystick()
-{
-    if(joystick->isVisible())
-    {
-        joystick->hide();
-    }
-    else
-    {
-        joystick->show();
-    }
-}
-
 bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
 {
     if ( e->type() == QEvent::Wheel &&
@@ -308,6 +317,18 @@ bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
         return true;
     }
     return QWidget::eventFilter( o, e );
+}
+
+void MainViewWidget::receivePositionText(QString s)
+{
+    ui->positionLabel->setText(s);
+}
+
+void MainViewWidget::toggleWindow(int window)
+{
+    std_msgs::Int8 cmd;
+    cmd.data = window;
+    window_control_pub_.publish(cmd);
 }
 
 void MainViewWidget::oneViewToggle()
@@ -363,6 +384,31 @@ void MainViewWidget::fourViewToggle()
         ((vigir_ocs::Base3DView*)iter->second)->updateRenderMask(true);
 }
 
+void MainViewWidget::ft_sensorToggled(bool toggled){
+    ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->ft_sensorToggled(toggled);
+}
+
+void MainViewWidget::zero_leftPressed(){
+    if(ft_zero_pub_){
+        std_msgs::Int8 msg;
+        msg.data = -1;
+        ft_zero_pub_.publish(msg);
+    }
+    else{
+        ROS_ERROR("No publisher for Zero F/T Wrench");
+    }
+}
+void MainViewWidget::zero_rightPressed(){
+    if(ft_zero_pub_){
+        std_msgs::Int8 msg;
+        msg.data = 1;
+        ft_zero_pub_.publish(msg);
+    }
+    else{
+        ROS_ERROR("No publisher for Zero F/T Wrench");
+    }
+}
+
 void MainViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 {
     // store key state
@@ -388,7 +434,7 @@ void MainViewWidget::processWindowControl(const std_msgs::Int8::ConstPtr &visibl
 
     switch(abs(visibility))
     {
-        case HIDE_ALL:
+        case HIDE_ALL_WINDOWS:
             ui->joystickBtn->setChecked(false);
             ui->jointControlBtn->setChecked(false);
             ui->pelvisControlBtn->setChecked(false);
@@ -399,70 +445,46 @@ void MainViewWidget::processWindowControl(const std_msgs::Int8::ConstPtr &visibl
             ui->positionModeBtn->setChecked(false);
             ui->plannerConfigBtn->setChecked(false);
             break;
-        case FOOTSTEP_BASIC:
+        case WINDOW_FOOTSTEP_BASIC:
             ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
             break;
-        case FOOTSTEP_ADVANCED:
+        case WINDOW_FOOTSTEP_ADVANCED:
             ui->stepBtn->setChecked(visibility > 0 ? true : false);
             break;
-        case FOOTSTEP_PARAMETER:
+        case WINDOW_FOOTSTEP_PARAMETER:
             ui->footstepParamBtn->setChecked(visibility > 0 ? true : false);
             break;
-        case BDI_PELVIS_POSE:
+        case WINDOW_BDI_PELVIS_POSE:
             ui->pelvisControlBtn->setChecked(visibility > 0 ? true : false);
             break;
-        case GHOST_CONFIG:
+        case WINDOW_GHOST_CONFIG:
             ui->ghostControlBtn->setChecked(visibility > 0 ? true : false);
             break;
-        case PLANNER_CONFIG:
+        case WINDOW_PLANNER_CONFIG:
             ui->plannerConfigBtn->setChecked(visibility > 0 ? true : false);
             break;
-        case JOINT_CONTROL:
+        case WINDOW_JOINT_CONTROL:
             ui->jointControlBtn->setChecked(visibility > 0 ? true : false);
             break;
-        case POSITION_MODE:
+        case WINDOW_POSITION_MODE:
             ui->positionModeBtn->setChecked(visibility > 0 ? true : false);
             break;
-        case CONTROL_MODE:
+        case WINDOW_CONTROL_MODE:
             //ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
             break;
-        case GLANCE_HUB:
+        case WINDOW_GLANCE_HUB:
             //ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
             break;
-        case STATUS_WINDOW:
+        case WINDOW_STATUS_WINDOW:
             //ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
             break;
-        case SYSTEM_COMMAND:
+        case WINDOW_SYSTEM_COMMAND:
             //ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
             break;
-        case JOYSTICK:
+        case WINDOW_JOYSTICK:
             ui->joystickBtn->setChecked(visibility > 0 ? true : false);
             break;
-
-    }
-}
-
-void MainViewWidget::ft_sensorToggled(bool toggled){
-    ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->ft_sensorToggled(toggled);
-}
-
-void MainViewWidget::zero_leftPressed(){
-    if(ft_zero_pub_){
-        std_msgs::Int8 msg;
-        msg.data = -1;
-        ft_zero_pub_.publish(msg);
-    }
-    else{
-        ROS_ERROR("No publisher for Zero F/T Wrench");
-    }
-}
-void MainViewWidget::zero_rightPressed(){
-    if(ft_zero_pub_){
-        std_msgs::Int8 msg;
-        msg.data = 1;
-        ft_zero_pub_.publish(msg);
-    }
-    else{
-        ROS_ERROR("No publisher for Zero F/T Wrench");
+        default:
+            break;
     }
 }
