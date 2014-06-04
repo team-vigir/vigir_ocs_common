@@ -100,7 +100,7 @@ void glancehubSbar::receiveFlorStatus(int status)
         newText = QString::fromStdString("Walk");
         break;
     }
-    ui->modelabel.setText(newText);
+    ui->modelabel->setText(newText);
 }
 
 glancehubSbar::~glancehubSbar()
