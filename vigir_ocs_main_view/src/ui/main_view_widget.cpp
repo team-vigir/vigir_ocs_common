@@ -9,6 +9,8 @@
 #include <rviz/displays_panel.h>
 #include <rviz/views_panel.h>
 
+#include <flor_ocs_msgs/WindowCodes.h>
+
 MainViewWidget::MainViewWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainViewWidget)
@@ -17,6 +19,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //will not call destructor immediately without setting attribute
     this->setAttribute(Qt::WA_DeleteOnClose);
 
+    //remove mousewheel support from objects in sidebar
     Q_FOREACH( QDoubleSpinBox * sp, findChildren<QDoubleSpinBox*>() ) {
         sp->installEventFilter( this );
         sp->setFocusPolicy( Qt::StrongFocus );
@@ -34,8 +37,10 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
         sp->setFocusPolicy( Qt::StrongFocus );
     }
 
+    //hide waypoint button since we're not using it anymore
     ui->insert_waypoint->hide();
 
+    //subscribe to the global hotkey message
     key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainViewWidget::processNewKeyEvent, this );
 
     QHBoxLayout* aux_layout;
@@ -174,177 +179,81 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     QObject::connect(ui->zero_left, SIGNAL(pressed()), this, SLOT(zero_leftPressed()));
     QObject::connect(ui->zero_right, SIGNAL(pressed()), this, SLOT(zero_rightPressed()));
 
+    //reset for the hand f/t sensors
     ft_zero_pub_ = n_.advertise<std_msgs::Int8>("/flor/controller/zero_hand_wrench",1,false);
+
+    //publisher and subscriber for window visibility control
+    window_control_sub_ = n_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &MainViewWidget::processWindowControl, this );
+    window_control_pub_ = n_.advertise<std_msgs::Int8>( "/flor/ocs/window_control", 1, false);
 
     //place graphic on joystick toggle
     QPixmap controllerPic( icon_path_+ "controllerIcon.png");
     QIcon controlIcon(controllerPic);
-    ui->JoystickToggle->setIcon(controlIcon);
-    ui->JoystickToggle->setIconSize(controllerPic.rect().size()/8);
+    ui->joystickBtn->setIcon(controlIcon);
+    ui->joystickBtn->setIconSize(QSize(24,24));
 
     QPixmap jointPic(icon_path_+"jointIcon.png");
     QIcon jointIcon(jointPic);
     ui->jointControlBtn->setIcon(jointIcon);
-    ui->jointControlBtn->setIconSize(jointPic.rect().size()/1.5);
+    ui->jointControlBtn->setIconSize(QSize(24,24));
 
     QPixmap pelvisPic(icon_path_+"pelvis.png");
     QIcon pelvisIcon(pelvisPic);
     ui->pelvisControlBtn->setIcon(pelvisIcon);
-    ui->pelvisControlBtn->setIconSize(pelvisPic.rect().size()/12);
+    ui->pelvisControlBtn->setIconSize(QSize(24,24));
 
     QPixmap ghostPic(icon_path_+"ghostIcon.png");
     QIcon ghostIcon(ghostPic);
     ui->ghostControlBtn->setIcon(ghostIcon);
-    ui->ghostControlBtn->setIconSize(ghostPic.rect().size()/20);
+    ui->ghostControlBtn->setIconSize(QSize(24,24));
 
     QPixmap positionPic(icon_path_+"positionIcon.png");
     QIcon positionIcon(positionPic);
     ui->positionModeBtn->setIcon(positionIcon);
-    ui->positionModeBtn->setIconSize(positionPic.rect().size()/4);
+    ui->positionModeBtn->setIconSize(QSize(24,24));
 
     QPixmap footBasicPic(icon_path_+"footBasicIcon.png");
     QIcon footBasicIcon(footBasicPic);
     ui->basicStepBtn->setIcon(footBasicIcon);
-    ui->basicStepBtn->setIconSize(footBasicPic.rect().size()/25);
+    ui->basicStepBtn->setIconSize(QSize(24,24));
 
     QPixmap footAdvancedPic(icon_path_+"footAdvancedIcon.png");
     QIcon footAdvancedIcon(footAdvancedPic);
     ui->stepBtn->setIcon(footAdvancedIcon);
-    ui->stepBtn->setIconSize(footAdvancedPic.rect().size()/25);
+    ui->stepBtn->setIconSize(QSize(24,24));
 
     QPixmap footParamPic(icon_path_+"footParamIcon.png");
     QIcon footParamIcon(footParamPic);
     ui->footstepParamBtn->setIcon(footParamIcon);
-    ui->footstepParamBtn->setIconSize(footParamPic.rect().size()/15);
+    ui->footstepParamBtn->setIconSize(QSize(24,24));
 
-    ui->JoystickToggle->setStyleSheet(QString("QPushButton  { ") +
-                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                                      " border-style: solid;" +
-                                      " border-width: 1px;" +
-                                      " border-radius: 1px;" +
-                                      " border-color: gray;" +
-                                      " padding: 0px;" +
-                                      " image-position: top left"
-                                      "}" +
-                                      "QPushButton:pressed  {" +
-                                      " padding-top:1px; padding-left:1px;" +
-                                      " background-color: rgb(180,180,180);" +
-                                      " border-style: inset;" +
-                                      "}");
-    ui->jointControlBtn->setStyleSheet(QString("QPushButton  { ") +
-                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                                      " border-style: solid;" +
-                                      " border-width: 1px;" +
-                                      " border-radius: 1px;" +
-                                      " border-color: gray;" +
-                                      " padding: 0px;" +
-                                      " image-position: top left"
-                                      "}" +
-                                      "QPushButton:pressed  {" +
-                                      " padding-top:1px; padding-left:1px;" +
-                                      " background-color: rgb(180,180,180);" +
-                                      " border-style: inset;" +
-                                      "}");
-    ui->pelvisControlBtn->setStyleSheet(QString("QPushButton  { ") +
-                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                                      " border-style: solid;" +
-                                      " border-width: 1px;" +
-                                      " border-radius: 1px;" +
-                                      " border-color: gray;" +
-                                      " padding: 0px;" +
-                                      " image-position: top left"
-                                      "}" +
-                                      "QPushButton:pressed  {" +
-                                      " padding-top:1px; padding-left:1px;" +
-                                      " background-color: rgb(180,180,180);" +
-                                      " border-style: inset;" +
-                                      "}");
-    ui->basicStepBtn->setStyleSheet(QString("QPushButton  { ") +
-                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                                      " border-style: solid;" +
-                                      " border-width: 1px;" +
-                                      " border-radius: 1px;" +
-                                      " border-color: gray;" +
-                                      " padding: 0px;" +
-                                      " image-position: top left"
-                                      "}" +
-                                      "QPushButton:pressed  {" +
-                                      " padding-top:1px; padding-left:1px;" +
-                                      " background-color: rgb(180,180,180);" +
-                                      " border-style: inset;" +
-                                      "}");
-    ui->stepBtn->setStyleSheet(QString("QPushButton  { ") +
-                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                                      " border-style: solid;" +
-                                      " border-width: 1px;" +
-                                      " border-radius: 1px;" +
-                                      " border-color: gray;" +
-                                      " padding: 0px;" +
-                                      " image-position: top left"
-                                      "}" +
-                                      "QPushButton:pressed  {" +
-                                      " padding-top:1px; padding-left:1px;" +
-                                      " background-color: rgb(180,180,180);" +
-                                      " border-style: inset;" +
-                                      "}");
-    ui->footstepParamBtn->setStyleSheet(QString("QPushButton  { ") +
-                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                                      " border-style: solid;" +
-                                      " border-width: 1px;" +
-                                      " border-radius: 1px;" +
-                                      " border-color: gray;" +
-                                      " padding: 0px;" +
-                                      " image-position: top left"
-                                      "}" +
-                                      "QPushButton:pressed  {" +
-                                      " padding-top:1px; padding-left:1px;" +
-                                      " background-color: rgb(180,180,180);" +
-                                      " border-style: inset;" +
-                                      "}");
-    ui->ghostControlBtn->setStyleSheet(QString("QPushButton  { ") +
-                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                                      " border-style: solid;" +
-                                      " border-width: 1px;" +
-                                      " border-radius: 1px;" +
-                                      " border-color: gray;" +
-                                      " padding: 0px;" +
-                                      " image-position: top left"
-                                      "}" +
-                                      "QPushButton:pressed  {" +
-                                      " padding-top:1px; padding-left:1px;" +
-                                      " background-color: rgb(180,180,180);" +
-                                      " border-style: inset;" +
-                                      "}");
-    ui->positionModeBtn->setStyleSheet(QString("QPushButton  { ") +
-                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                                      " border-style: solid;" +
-                                      " border-width: 1px;" +
-                                      " border-radius: 1px;" +
-                                      " border-color: gray;" +
-                                      " padding: 0px;" +
-                                      " image-position: top left"
-                                      "}" +
-                                      "QPushButton:pressed  {" +
-                                      " padding-top:1px; padding-left:1px;" +
-                                      " background-color: rgb(180,180,180);" +
-                                      " border-style: inset;" +
-                                      "}");
-    ui->plannerConfigBtn->setStyleSheet(QString("QPushButton  { ") +
-                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                                      " border-style: solid;" +
-                                      " border-width: 1px;" +
-                                      " border-radius: 1px;" +
-                                      " border-color: gray;" +
-                                      " padding: 0px;" +
-                                      " image-position: top left"
-                                      "}" +
-                                      "QPushButton:pressed  {" +
-                                      " padding-top:1px; padding-left:1px;" +
-                                      " background-color: rgb(180,180,180);" +
-                                      " border-style: inset;" +
-                                      "}");
+    //set button style
+    QString btnStyle = QString("QPushButton  { ") +
+                               " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                               " border-style: solid;" +
+                               " border-width: 1px;" +
+                               " border-radius: 1px;" +
+                               " border-color: gray;" +
+                               " padding: 0px;" +
+                               " image-position: top left"
+                               "}" +
+                               "QPushButton:pressed  {" +
+                               " padding-top:1px; padding-left:1px;" +
+                               " background-color: rgb(180,180,180);" +
+                               " border-style: inset;" +
+                               "}";
+    ui->joystickBtn->setStyleSheet(btnStyle);
+    ui->jointControlBtn->setStyleSheet(btnStyle);
+    ui->pelvisControlBtn->setStyleSheet(btnStyle);
+    ui->basicStepBtn->setStyleSheet(btnStyle);
+    ui->stepBtn->setStyleSheet(btnStyle);
+    ui->footstepParamBtn->setStyleSheet(btnStyle);
+    ui->ghostControlBtn->setStyleSheet(btnStyle);
+    ui->positionModeBtn->setStyleSheet(btnStyle);
+    ui->plannerConfigBtn->setStyleSheet(btnStyle);
+
     //create joystick widget
-    connect(ui->JoystickToggle,SIGNAL(pressed()),this,SLOT(toggleJoystick()));
+    connect(ui->joystickBtn,SIGNAL(pressed()),this,SLOT(toggleJoystick()));
     joystick = new JoystickWidget();
     //connect joystick to perspective camera to receive camera data
     connect(views_list["Top Left"],SIGNAL(sendCameraTransform(int, float, float, float, float, float, float, float)),joystick,SLOT(receiveCameraTransform(int, float, float, float, float, float, float, float)));
@@ -383,12 +292,10 @@ void MainViewWidget::toggleJoystick()
     if(joystick->isVisible())
     {
         joystick->hide();
-       // ui->JoystickToggle->setChecked(false);
     }
     else
     {
         joystick->show();
-        //ui->JoystickToggle->setChecked(true);
     }
 }
 
@@ -470,6 +377,69 @@ void MainViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstP
     // ctrl
     //key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
 
+}
+
+//ADD THIS FUNCTION TO THE INDIVIDUAL WINDOWS
+//SETUP PUBLISHER FOR TOGGLE
+
+void MainViewWidget::processWindowControl(const std_msgs::Int8::ConstPtr &visible)
+{
+    char visibility = visible->data;
+
+    switch(abs(visibility))
+    {
+        case HIDE_ALL:
+            ui->joystickBtn->setChecked(false);
+            ui->jointControlBtn->setChecked(false);
+            ui->pelvisControlBtn->setChecked(false);
+            ui->basicStepBtn->setChecked(false);
+            ui->stepBtn->setChecked(false);
+            ui->footstepParamBtn->setChecked(false);
+            ui->ghostControlBtn->setChecked(false);
+            ui->positionModeBtn->setChecked(false);
+            ui->plannerConfigBtn->setChecked(false);
+            break;
+        case FOOTSTEP_BASIC:
+            ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case FOOTSTEP_ADVANCED:
+            ui->stepBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case FOOTSTEP_PARAMETER:
+            ui->footstepParamBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case BDI_PELVIS_POSE:
+            ui->pelvisControlBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case GHOST_CONFIG:
+            ui->ghostControlBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case PLANNER_CONFIG:
+            ui->plannerConfigBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case JOINT_CONTROL:
+            ui->jointControlBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case POSITION_MODE:
+            ui->positionModeBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case CONTROL_MODE:
+            //ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case GLANCE_HUB:
+            //ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case STATUS_WINDOW:
+            //ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case SYSTEM_COMMAND:
+            //ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case JOYSTICK:
+            ui->joystickBtn->setChecked(visibility > 0 ? true : false);
+            break;
+
+    }
 }
 
 void MainViewWidget::ft_sensorToggled(bool toggled){

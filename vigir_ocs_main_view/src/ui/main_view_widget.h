@@ -32,6 +32,9 @@ public:
 
     void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
+    // process window control messages to update toggle buttons
+    void processWindowControl(const std_msgs::Int8::ConstPtr& visible);
+
 public Q_SLOTS:
     void oneViewToggle();
     void fourViewToggle();
@@ -56,6 +59,8 @@ private:
 
     ros::NodeHandle n_;
 
+    ros::Subscriber window_control_sub_;
+    ros::Publisher window_control_pub_;
     ros::Subscriber key_event_sub_;
     ros::Publisher ft_zero_pub_;
     QWidget* test;
