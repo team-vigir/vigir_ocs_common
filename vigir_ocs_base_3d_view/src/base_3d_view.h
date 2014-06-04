@@ -186,7 +186,6 @@ Q_SIGNALS:
     void enableTemplateMarkers( bool );
     void setFrustum( const float &, const float &, const float&, const float& );
     void finishedContextMenuSetup( int x, int y );
-    void sendCameraTransform( int view_id_, float x, float y, float z, float rx, float ry, float rz, float rw );
     void sendPositionText(QString s);
 
 protected:
@@ -201,6 +200,7 @@ protected:
 
     void publishHandPose(std::string hand, const geometry_msgs::PoseStamped& end_effector_transform);
     void publishHandJointStates(std::string hand);
+    void publishCameraTransform();
     int calcWristTarget(const geometry_msgs::PoseStamped& end_effector_pose, tf::Transform hand_T_palm, geometry_msgs::PoseStamped& final_pose);
     void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints);
     void sendCircularTarget(bool right_hand);
@@ -315,6 +315,8 @@ protected:
 
     ros::Publisher flor_mode_command_pub_;
     ros::Subscriber flor_mode_sub_;
+
+    ros::Publisher camera_transform_pub_;
 
     std::vector<unsigned char> ghost_planning_group_;
     std::vector<unsigned char> ghost_pose_source_;

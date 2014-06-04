@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QPushButton>
+#include <QSignalMapper>
 
 #include <map>
 #include <vector>
@@ -42,7 +43,9 @@ public Q_SLOTS:
     void ft_sensorToggled(bool);
     void zero_leftPressed();
     void zero_rightPressed();
-    void toggleJoystick();    
+    void toggleWindow(int);
+    void receivePositionText(QString);
+
 
 private:
     Ui::MainViewWidget *ui;
@@ -52,6 +55,7 @@ private:
     QWidget* position_widget_;
     QPushButton* four_view_button_;
     QPushButton* one_view_button_;
+    QSignalMapper* toggle_mapper_;
 
     QString icon_path_;
 

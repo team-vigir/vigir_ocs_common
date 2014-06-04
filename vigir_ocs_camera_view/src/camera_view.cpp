@@ -145,9 +145,10 @@ CameraView::CameraView( QWidget* parent, Base3DView* copy_from )
     // advertise pointcloud request
     pointcloud_request_frame_pub_ = nh_.advertise<geometry_msgs::PointStamped>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_frame", 1, false );
 
-    reset_view_button_->setParent(0);
-    delete reset_view_button_;
-    reset_view_button_ = NULL;
+    //reset_view_button_->setParent(0);
+    //delete reset_view_button_;
+    //reset_view_button_ = NULL;
+    reset_view_button_->hide();
 
     // make sure we're still able to cancel set goal pose
     QObject::connect(render_panel_, SIGNAL(signalKeyPressEvent(QKeyEvent*)), this, SLOT(keyPressEvent(QKeyEvent*)));

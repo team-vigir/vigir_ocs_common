@@ -44,6 +44,7 @@
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
 #include "flor_ocs_msgs/OCSTemplateRemove.h"
 #include "flor_ocs_msgs/OCSWaypointAdd.h"
+#include "flor_ocs_msgs/OCSCameraTransform.h"
 #include "flor_perception_msgs/EnvironmentRegionRequest.h"
 #include "flor_planning_msgs/TargetConfigIkRequest.h"
 #include "flor_planning_msgs/CartesianMotionRequest.h"
@@ -574,6 +575,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
 
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
         hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );
+
+        // advertise publisher for camera transform
+        camera_transform_pub_ = nh_.advertise<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform", 1, false );
     }
 
     // Connect the 3D selection tool to
@@ -668,6 +672,31 @@ void Base3DView::timerEvent(QTimerEvent *event)
     if(!ros::ok())
         qApp->quit();
 
+    //set button on corner of views on any size
+    reset_view_button_->setGeometry(0,this->geometry().bottomLeft().y()-18,68,20);
+    // make sure the selection point is visible
+    //position_widget_->setGeometry(0,
+    //                              this->geometry().bottomLeft().y()-18,
+    //                              this->geometry().bottomRight().x()-this->geometry().bottomLeft().x()+2,
+    //                              20);
+
+    publishCameraTransform();
+
+    //std::bitset<32> x(render_panel_->getViewport()->getVisibilityMask());
+    //std::cout << x << std::endl;
+
+    //render_panel_->getRenderWindow()->update(true);
+
+    //float lastFPS, avgFPS, bestFPS, worstFPS;
+    //Ogre::RenderTarget::FrameStats stats = render_panel_->getRenderWindow()->getStatistics();
+    //std::cout << "View (" << view_id_ << "): " << stats.lastFPS << ", " << stats.avgFPS << ", " << stats.bestFrameTime << ", " << stats.worstFrameTime << ", " << stats.triangleCount << std::endl;
+
+    // no need to spin as rviz is already doing that for us.
+    //ros::spinOnce();
+}
+
+void Base3DView::publishCameraTransform()
+{
     // send the camera transform associated with this render panel to whoever connects to this
     Ogre::Camera* camera = this->render_panel_->getCamera();
     Ogre::Vector3 position = camera->getPosition();
@@ -694,28 +723,12 @@ void Base3DView::timerEvent(QTimerEvent *event)
             position.x = fabs(bottom)+fabs(top);
     }
 
-    Q_EMIT sendCameraTransform( view_id_, position.x, position.y, position.z, orientation.x, orientation.y, orientation.z, orientation.w );
+    flor_ocs_msgs::OCSCameraTransform cmd;
+    cmd.view_id = view_id_;
 
-    //set button on corner of views on any size
-    reset_view_button_->setGeometry(0,this->geometry().bottomLeft().y()-18,68,20);
-    // make sure the selection point is visible
-    //position_widget_->setGeometry(0,
-    //                              this->geometry().bottomLeft().y()-18,
-    //                              this->geometry().bottomRight().x()-this->geometry().bottomLeft().x()+2,
-    //                              20);
+    camera_transform_pub_.publish(cmd);
 
-
-    //std::bitset<32> x(render_panel_->getViewport()->getVisibilityMask());
-    //std::cout << x << std::endl;
-
-    //render_panel_->getRenderWindow()->update(true);
-
-    //float lastFPS, avgFPS, bestFPS, worstFPS;
-    //Ogre::RenderTarget::FrameStats stats = render_panel_->getRenderWindow()->getStatistics();
-    //std::cout << "View (" << view_id_ << "): " << stats.lastFPS << ", " << stats.avgFPS << ", " << stats.bestFrameTime << ", " << stats.worstFrameTime << ", " << stats.triangleCount << std::endl;
-
-    // no need to spin as rviz is already doing that for us.
-    //ros::spinOnce();
+    //Q_EMIT sendCameraTransform( view_id_, position.x, position.y, position.z, orientation.x, orientation.y, orientation.z, orientation.w );
 }
 
 void Base3DView::updateRenderMask( bool mask )
