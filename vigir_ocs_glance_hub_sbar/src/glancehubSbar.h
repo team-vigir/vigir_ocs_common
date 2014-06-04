@@ -9,6 +9,7 @@
 #include <QTableWidgetItem>
 #include <QTableWidget>
 #include "glancehub.h"
+#include <ros/ros.h>
 
 namespace Ui {
 class glancehubSbar;
@@ -26,6 +27,8 @@ public:
 private:
     Ui::glancehubSbar *ui;
     glancehub* ghub;
+    ros::NodeHandle nh;
+    ros::Publisher mode_pub;
 
 public Q_SLOTS:
     void receiveMoveitStatus(bool);

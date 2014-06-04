@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>444</width>
+    <width>350</width>
     <height>16</height>
    </rect>
   </property>
@@ -18,8 +18,8 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>16777215</width>
-    <height>16</height>
+    <width>350</width>
+    <height>20</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -32,6 +32,12 @@
      <height>0</height>
     </size>
    </property>
+   <property name="maximumSize">
+    <size>
+     <width>350</width>
+     <height>20</height>
+    </size>
+   </property>
    <layout class="QVBoxLayout">
     <property name="spacing">
      <number>0</number>
@@ -41,6 +47,12 @@
     </property>
     <item>
      <widget class="QWidget" name="widget" native="true">
+      <property name="maximumSize">
+       <size>
+        <width>550</width>
+        <height>20</height>
+       </size>
+      </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
         <number>0</number>
@@ -58,8 +70,8 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>120</width>
-           <height>16777215</height>
+           <width>110</width>
+           <height>18</height>
           </size>
          </property>
          <property name="font">
@@ -148,7 +160,7 @@
         <widget class="QLabel" name="plannerLight">
          <property name="maximumSize">
           <size>
-           <width>40</width>
+           <width>25</width>
            <height>16777215</height>
           </size>
          </property>
@@ -161,7 +173,7 @@
         <widget class="QLabel" name="MoviIt">
          <property name="maximumSize">
           <size>
-           <width>50</width>
+           <width>45</width>
            <height>16777215</height>
           </size>
          </property>
@@ -179,7 +191,7 @@
         <widget class="QLabel" name="footstepLight">
          <property name="maximumSize">
           <size>
-           <width>40</width>
+           <width>25</width>
            <height>16777215</height>
           </size>
          </property>
