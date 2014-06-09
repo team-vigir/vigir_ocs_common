@@ -95,6 +95,9 @@ protected:
     void timerEvent(QTimerEvent *event);
 private:
     QBasicTimer timer;
+
+Q_SIGNALS:
+    void sendErrorData(QString,QString);
 };
 
 #endif // ROBOTSTATUS_H

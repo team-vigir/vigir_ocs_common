@@ -43,8 +43,7 @@ public Q_SLOTS:
     void ft_sensorToggled(bool);
     void zero_leftPressed();
     void zero_rightPressed();
-    void toggleWindow(int);
-    void receivePositionText(QString);
+    void toggleWindow(int);    
 
 
 private:

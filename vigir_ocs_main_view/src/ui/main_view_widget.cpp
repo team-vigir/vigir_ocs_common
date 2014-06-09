@@ -4,11 +4,10 @@
 #include "perspective_view.h"
 #include "ortho_view.h"
 #include <ros/package.h>
-
 #include <rviz/visualization_manager.h>
 #include <rviz/displays_panel.h>
 #include <rviz/views_panel.h>
-
+#include <QPropertyAnimation>
 #include <flor_ocs_msgs/WindowCodes.h>
 
 MainViewWidget::MainViewWidget(QWidget *parent) :
@@ -321,11 +320,6 @@ bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
         return true;
     }
     return QWidget::eventFilter( o, e );
-}
-
-void MainViewWidget::receivePositionText(QString s)
-{
-    ui->positionLabel->setText(s);
 }
 
 void MainViewWidget::toggleWindow(int window)

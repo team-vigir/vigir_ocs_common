@@ -6,8 +6,8 @@
 #include <QWidget>
 #include <QtGui>
 #include <QComboBox>
-//#include "Controller.h"
-#include "/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_template_joystick/src/Controller.h"
+#include "Controller.h"
+//#include "/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_template_joystick/src/Controller.h"
 
 namespace Ui
 {

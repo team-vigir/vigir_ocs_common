@@ -4,12 +4,14 @@
 #include <QMainWindow>
 #include <ros/subscriber.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
-#include <QBasicTimer>
 #include <flor_ocs_msgs/OCSRobotStatus.h>
-#include <QTableWidgetItem>
-#include <QTableWidget>
+#include "flor_ocs_msgs/RobotStatusCodes.h"
+//#include <QTableWidgetItem>
+//#include <QTableWidget>
 #include "glancehub.h"
 #include <ros/ros.h>
+#include <QPropertyAnimation>
+#include <QDialog>
 
 namespace Ui {
 class glancehubSbar;
@@ -29,6 +31,12 @@ private:
     glancehub* ghub;
     ros::NodeHandle nh;
     ros::Publisher mode_pub;
+    void enterEvent(QEvent*);
+    void leaveEvent(QEvent*);
+    QTimer *timer;
+    QPropertyAnimation * animation;
+    QPropertyAnimation * fadeOut;
+    //oid layoutPopup();
 
 public Q_SLOTS:
     void receiveMoveitStatus(bool);

@@ -1,32 +1,69 @@
 #include "glancehubSbar.h"
 #include <ros/ros.h>
 #include "ui_glancehubSbar.h"
-#include<QFile>
-#include<QTextStream>
-#include<QDebug>
+//#include<QFile>
+//#include<QTextStream>
+//#include<QDebug>
 #include <ros/package.h>
-#include "flor_ocs_msgs/RobotStatusCodes.h"
+
 
 glancehubSbar::glancehubSbar(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::glancehubSbar)
 {
     ui->setupUi(this);
-    ghub = new glancehub();
+    ghub = new glancehub(this);
+    //remove window border and set on top
+    Qt::WindowFlags flags = ghub->windowFlags();
+    flags |= Qt::WindowStaysOnTopHint;
+    flags |= Qt::FramelessWindowHint;
+    flags |= Qt::Dialog; // //ensure ghub as a dialog box, not a seperate window/tab
+    ghub->setWindowFlags(flags);
+
+    ghub->setWindowOpacity(0);   
 
     connect(ghub,SIGNAL(sendMoveitStatus(bool)),this,SLOT(receiveMoveitStatus(bool)));
-    connect(ghub,SIGNAL(sendFoostepStatus(int)),this,SLOT(receiveFootstepStatus(int)));
+    connect(ghub,SIGNAL(sendFootstepStatus(int)),this,SLOT(receiveFootstepStatus(int)));
     connect(ghub,SIGNAL(sendFlorStatus(int)),this,SLOT(receiveFlorStatus(int)));
     connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(receiveModeChange(int)));
 
-    ui->modelabel->setText("Flor_Off");// default setting is off
+    ui->modelabel->setText("Flor_Off");// default setting is off on start
 
-    // self.mode_pub = rospy.Publisher('/flor/controller/mode_command', FlorControlModeCommand)
+    //setup publisher to change modes
     mode_pub = nh.advertise<flor_control_msgs::FlorControlModeCommand>("/flor/controller/mode_command", 1, false);
 
     ui->plannerLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
     ui->footstepLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
+    ui->modeBox->setStyleSheet("QComboBox {selection-color: grey;}");
+
+    //init animations
+    animation = new QPropertyAnimation(ghub, "windowOpacity");
+    animation->setEasingCurve(QEasingCurve::InOutQuad);
+    animation->setDuration(500);
+    animation->setStartValue(0.0);
+    animation->setEndValue(.74);
+
+    fadeOut = new QPropertyAnimation(ghub, "windowOpacity");
+    fadeOut->setEasingCurve(QEasingCurve::InOutQuad);
+    fadeOut->setDuration(300);
+    fadeOut->setStartValue(0.74);
+    fadeOut->setEndValue(0.0);
 }
+
+//called when mouse hovers over widget
+void glancehubSbar::enterEvent(QEvent * event)
+{
+    ghub->show();
+    animation->start();
+    //set popup position
+    ghub->setGeometry(ui->modeBox->mapToGlobal(QPoint(0,0)).x() - 200,ui->modeBox->mapToGlobal(QPoint(0,0)).y() - 276,300, 300);
+}
+void glancehubSbar::leaveEvent(QEvent * event)
+{   
+    ghub->hide();
+    fadeOut->start();
+}
+
 
 void glancehubSbar::receiveModeChange(int mode)
 {
@@ -38,7 +75,7 @@ void glancehubSbar::receiveModeChange(int mode)
 
     flor_control_msgs::FlorControlModeCommand msg;
     msg.header.stamp = ros::Time::now();
-
+    ui->modelabel->setStyleSheet("QLabel{color:red; }");
     switch(mode)
     {
     case 0:
@@ -80,6 +117,7 @@ void glancehubSbar::receiveModeChange(int mode)
     }
     mode_pub.publish(msg);
 }
+
 void glancehubSbar::receiveMoveitStatus(bool status)
 {
     if(status)
@@ -160,13 +198,15 @@ void glancehubSbar::receiveFlorStatus(int status)
     case flor_control_msgs::FlorControlModeCommand::WALK:
         newText = QString::fromStdString("Walk");
         break;
-    }
-    ROS_ERROR("receiving status : %s", qPrintable(newText));
+    }    
+    ui->modelabel->setStyleSheet("QLabel{color: rgb(80,80,80); }");
     ui->modelabel->setText(newText);
 }
 
 glancehubSbar::~glancehubSbar()
 {
+    delete(animation);
+    delete(fadeOut);
     delete(ghub);
     delete ui;    
 }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>350</width>
-    <height>16</height>
+    <width>474</width>
+    <height>20</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -18,7 +18,7 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>350</width>
+    <width>500</width>
     <height>20</height>
    </size>
   </property>
@@ -34,11 +34,11 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>350</width>
+     <width>500</width>
      <height>20</height>
     </size>
    </property>
-   <layout class="QVBoxLayout">
+   <layout class="QVBoxLayout" name="mainLayout">
     <property name="spacing">
      <number>0</number>
     </property>
@@ -49,13 +49,13 @@
      <widget class="QWidget" name="widget" native="true">
       <property name="maximumSize">
        <size>
-        <width>550</width>
+        <width>500</width>
         <height>20</height>
        </size>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
-        <number>0</number>
+        <number>4</number>
        </property>
        <property name="margin">
         <number>0</number>
@@ -63,14 +63,14 @@
        <item>
         <widget class="QLabel" name="modelabel">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
          <property name="maximumSize">
           <size>
-           <width>110</width>
+           <width>220</width>
            <height>18</height>
           </size>
          </property>
@@ -85,13 +85,16 @@
          <property name="text">
           <string/>
          </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
         </widget>
        </item>
        <item>
         <widget class="QComboBox" name="modeBox">
          <property name="maximumSize">
           <size>
-           <width>25</width>
+           <width>20</width>
            <height>16777215</height>
           </size>
          </property>
@@ -104,10 +107,10 @@
           <bool>false</bool>
          </property>
          <property name="maxVisibleItems">
-          <number>17</number>
+          <number>9</number>
          </property>
          <property name="maxCount">
-          <number>17</number>
+          <number>9</number>
          </property>
          <item>
           <property name="text">
@@ -158,9 +161,15 @@
        </item>
        <item>
         <widget class="QLabel" name="plannerLight">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="maximumSize">
           <size>
-           <width>25</width>
+           <width>40</width>
            <height>16777215</height>
           </size>
          </property>
@@ -189,9 +198,15 @@
        </item>
        <item>
         <widget class="QLabel" name="footstepLight">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="maximumSize">
           <size>
-           <width>25</width>
+           <width>30</width>
            <height>16777215</height>
           </size>
          </property>
