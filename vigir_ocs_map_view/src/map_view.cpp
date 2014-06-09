@@ -28,7 +28,7 @@ namespace vigir_ocs
 {
 // Constructor for MapView.  This does most of the work of the class.
 MapView::MapView( QWidget* parent )
-    : OrthoView( NULL, "/world", parent ),
+    : OrthoView( NULL, "/world", "MapView", parent ),
       selection_tool_enabled_( true )
 {
     // block sending left/right mouse events to rviz by default

@@ -34,7 +34,7 @@ namespace vigir_ocs
 {
 
 CameraView::CameraView( QWidget* parent, Base3DView* copy_from )
-    : Base3DView( copy_from, "/world", parent )
+    : Base3DView( copy_from, "/world", "CameraView", parent )
     , camera_frame_topic_("")
     , feed_rate_(0)
     , feed_resolution_(4)
