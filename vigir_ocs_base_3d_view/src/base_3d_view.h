@@ -91,7 +91,7 @@ class Base3DView: public QWidget
 {
     Q_OBJECT
 public:
-    Base3DView( Base3DView* copy_from = NULL, std::string base_frame = "/pelvis", QWidget *parent = 0 );
+    Base3DView( Base3DView* copy_from = NULL, std::string base_frame = "/pelvis", std::string widget_name = "", QWidget *parent = 0 );
     virtual ~Base3DView();
 
     void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
@@ -121,6 +121,9 @@ public:
     MouseEventHandler* getMouseEventHander() { return mouse_event_handler_; }
 
     void updateRenderMask( bool );
+
+    // returns name of the class that was instanced
+    std::string getWidgetName() { return widget_name_; }
 
 public Q_SLOTS:
     // displays
@@ -332,6 +335,7 @@ protected:
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
     std::string base_frame_;
+    std::string widget_name_;
 
     bool selected_;
     QString selected_template_path_;

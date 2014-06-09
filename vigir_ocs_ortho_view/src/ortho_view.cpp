@@ -29,8 +29,8 @@
 namespace vigir_ocs
 {
 // Constructor for OrthoView.  This does most of the work of the class.
-OrthoView::OrthoView( Base3DView* copy_from, std::string base_frame, QWidget* parent )
-    : Base3DView( copy_from, base_frame, parent )
+OrthoView::OrthoView( Base3DView* copy_from, std::string base_frame, std::string widget_name, QWidget* parent )
+    : Base3DView( copy_from, base_frame, widget_name, parent )
     , setting_pose_(false)
 {
     // set the camera to our own ortho view controller; needs to be initialized

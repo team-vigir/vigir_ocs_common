@@ -45,10 +45,10 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     QHBoxLayout* aux_layout;
 
     // setup default views
-    views_list["Top Left"] = new vigir_ocs::PerspectiveView();
-    views_list["Top Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"]),"/pelvis"); //views_list["Top Right"] = new vigir_ocs::OrthoView();
-    views_list["Bottom Left"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"]),"/pelvis"); //views_list["Bottom Left"] = new vigir_ocs::OrthoView();
-    views_list["Bottom Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"]),"/pelvis"); //views_list["Bottom Right"] = new vigir_ocs::OrthoView();
+    views_list["Top Left"] = new vigir_ocs::PerspectiveView(NULL, "/world", "MainView");
+    views_list["Top Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"]),"/pelvis", "MainView"); //views_list["Top Right"] = new vigir_ocs::OrthoView();
+    views_list["Bottom Left"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"]),"/pelvis", "MainView"); //views_list["Bottom Left"] = new vigir_ocs::OrthoView();
+    views_list["Bottom Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"]),"/pelvis", "MainView"); //views_list["Bottom Right"] = new vigir_ocs::OrthoView();
 
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
@@ -165,13 +165,13 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     rviz::DisplaysPanel* displays_panel = new rviz::DisplaysPanel(this);
     displays_panel->initialize( ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
 
-    rviz::ViewsPanel* views_panel = new rviz::ViewsPanel(this);
-    views_panel->setViewManager(((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()->getViewManager());
+    //rviz::ViewsPanel* views_panel = new rviz::ViewsPanel(this);
+    //views_panel->setViewManager(((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()->getViewManager());
 
     QVBoxLayout* displays_layout = new QVBoxLayout();
     displays_layout->setMargin(0);
     displays_layout->addWidget(displays_panel);
-    displays_layout->addWidget(views_panel);
+    //displays_layout->addWidget(views_panel);
     ui->rviz_options->setLayout(displays_layout);
 
     QObject::connect(ui->ft_sensor, SIGNAL(toggled(bool)), this, SLOT(ft_sensorToggled(bool)));
@@ -185,46 +185,59 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     window_control_sub_ = n_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &MainViewWidget::processWindowControl, this );
     window_control_pub_ = n_.advertise<std_msgs::Int8>( "/flor/ocs/window_control", 1, false);
 
+    // setup all buttons/icons in the toolbar
+    setupToolbar();
+
+    //combo box for manipulation modes
+    //connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),joystick,SLOT(setManipulationMode(int)));
+    ui->modeBox->addItem(QString("Camera"));
+    ui->modeBox->addItem(QString("World"));
+    ui->modeBox->addItem(QString("Object"));
+
+    // workaround to be able to use images from stylesheet without knowing the path in advance
+    QString stylesheet = ui->modeBox->styleSheet() + "\n" +
+            "QComboBox::down-arrow {\n" +
+            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
+            "}";
+    ui->modeBox->setStyleSheet(stylesheet);    
+
+    statusBar = new StatusBar();
+
+    //connect view to update position data
+    connect(views_list["Top Left"],SIGNAL(sendPositionText(QString)),statusBar,SLOT(receivePositionText(QString)));
+
+    ui->statusLayout->addWidget(statusBar);
+
+}
+
+MainViewWidget::~MainViewWidget()
+{
+    //delete(joystick);
+    delete ui;    
+}
+
+bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
+{
+    if ( e->type() == QEvent::Wheel &&
+         (qobject_cast<QAbstractSpinBox*>( o ) || qobject_cast<QAbstractSlider*>( o ) || qobject_cast<QComboBox*>( o )))
+    {
+        e->ignore();
+        return true;
+    }
+    return QWidget::eventFilter( o, e );
+}
+
+void MainViewWidget::setupToolbar()
+{
     //place graphic on joystick toggle
-    QPixmap controllerPic( icon_path_+ "controllerIcon.png");
-    QIcon controlIcon(controllerPic);
-    ui->joystickBtn->setIcon(controlIcon);
-    ui->joystickBtn->setIconSize(QSize(24,24));
-
-    QPixmap jointPic(icon_path_+"jointIcon.png");
-    QIcon jointIcon(jointPic);
-    ui->jointControlBtn->setIcon(jointIcon);
-    ui->jointControlBtn->setIconSize(QSize(24,24));
-
-    QPixmap pelvisPic(icon_path_+"pelvis.png");
-    QIcon pelvisIcon(pelvisPic);
-    ui->pelvisControlBtn->setIcon(pelvisIcon);
-    ui->pelvisControlBtn->setIconSize(QSize(24,24));
-
-    QPixmap ghostPic(icon_path_+"ghostIcon.png");
-    QIcon ghostIcon(ghostPic);
-    ui->ghostControlBtn->setIcon(ghostIcon);
-    ui->ghostControlBtn->setIconSize(QSize(24,24));
-
-    QPixmap positionPic(icon_path_+"positionIcon.png");
-    QIcon positionIcon(positionPic);
-    ui->positionModeBtn->setIcon(positionIcon);
-    ui->positionModeBtn->setIconSize(QSize(24,24));
-
-    QPixmap footBasicPic(icon_path_+"footBasicIcon.png");
-    QIcon footBasicIcon(footBasicPic);
-    ui->basicStepBtn->setIcon(footBasicIcon);
-    ui->basicStepBtn->setIconSize(QSize(24,24));
-
-    QPixmap footAdvancedPic(icon_path_+"footAdvancedIcon.png");
-    QIcon footAdvancedIcon(footAdvancedPic);
-    ui->stepBtn->setIcon(footAdvancedIcon);
-    ui->stepBtn->setIconSize(QSize(24,24));
-
-    QPixmap footParamPic(icon_path_+"footParamIcon.png");
-    QIcon footParamIcon(footParamPic);
-    ui->footstepParamBtn->setIcon(footParamIcon);
-    ui->footstepParamBtn->setIconSize(QSize(24,24));
+    loadButtonIcon(ui->joystickBtn, "controllerIcon.png");
+    loadButtonIcon(ui->jointControlBtn, "jointIcon.png");
+    loadButtonIcon(ui->pelvisControlBtn, "pelvis.png");
+    loadButtonIcon(ui->ghostControlBtn, "ghostIcon.png");
+    loadButtonIcon(ui->positionModeBtn, "positionIcon.png");
+    loadButtonIcon(ui->basicStepBtn, "footBasicIcon.png");
+    loadButtonIcon(ui->stepBtn, "footAdvancedIcon.png");
+    loadButtonIcon(ui->footstepParamBtn, "footParamIcon.png");
 
     //set button style
     QString btnStyle = QString("QPushButton  { ") +
@@ -253,7 +266,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     //use signalmapper to avoid having one function for each one of the toggle buttons
     toggle_mapper_ = new QSignalMapper(this);
-    connect(toggle_mapper_,SIGNAL(mapped(QString)),this,SLOT(toggleWindow(int)));
+    connect(toggle_mapper_,SIGNAL(mapped(int)),this,SLOT(toggleWindow(int)));
 
     //map all toggles button to their identifiers
     toggle_mapper_->setMapping(this->ui->joystickBtn,WINDOW_JOYSTICK);
@@ -277,49 +290,17 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     connect(ui->positionModeBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
     connect(ui->plannerConfigBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
 
-    //create joystick widget
-    connect(ui->joystickBtn,SIGNAL(pressed()),this,SLOT(toggleJoystick()));
-    joystick = new JoystickWidget();
-    //connect joystick to perspective camera to receive camera data
-    connect(views_list["Top Left"],SIGNAL(sendCameraTransform(int, float, float, float, float, float, float, float)),joystick,SLOT(receiveCameraTransform(int, float, float, float, float, float, float, float)));
-    joystick->hide();
 
-    //combo box for manipulation modes
-    connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),joystick,SLOT(setManipulationMode(int)));
-    ui->modeBox->addItem(QString("Camera"));
-    ui->modeBox->addItem(QString("World"));
-    ui->modeBox->addItem(QString("Object"));
-
-    // workaround to be able to use images from stylesheet without knowing the path in advance
-    QString stylesheet = ui->modeBox->styleSheet() + "\n" +
-            "QComboBox::down-arrow {\n" +
-            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
-            "}";
-    ui->modeBox->setStyleSheet(stylesheet);
-
-    statusBar = new StatusBar();
-
-    //connect view to update position data
-    connect(views_list["Top Left"],SIGNAL(sendPositionText(QString)),statusBar,SLOT(receivePositionText(QString)));
-
-    ui->statusLayout->addWidget(statusBar);
 }
 
-MainViewWidget::~MainViewWidget()
-{
-    delete(joystick);    
-    delete ui;    
-}
-
-bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
-{
-    if ( e->type() == QEvent::Wheel &&
-         (qobject_cast<QAbstractSpinBox*>( o ) || qobject_cast<QAbstractSlider*>( o ) || qobject_cast<QComboBox*>( o )))
-    {
-        e->ignore();
-        return true;
-    }
-    return QWidget::eventFilter( o, e );
+void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
+{        
+    QPixmap pixmap( icon_path_+ image_name );
+    QIcon icon(pixmap);
+    btn->setIcon(icon);
+    QSize size(btn->size());
+    size -= QSize(4,4);
+    btn->setIconSize(size);
 }
 
 void MainViewWidget::toggleWindow(int window)
@@ -481,6 +462,12 @@ void MainViewWidget::processWindowControl(const std_msgs::Int8::ConstPtr &visibl
             break;
         case WINDOW_JOYSTICK:
             ui->joystickBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case WINDOW_SYSTEM_LOG:
+            //ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case WINDOW_JOINT_STATUS:
+            //ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
             break;
         default:
             break;

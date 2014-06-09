@@ -26,8 +26,25 @@
 namespace vigir_ocs
 {
 // Constructor for PerspectiveView.  This does most of the work of the class.
-PerspectiveView::PerspectiveView( QWidget* parent, Base3DView* copy_from )
-    : Base3DView( copy_from, "/world", parent )
+PerspectiveView::PerspectiveView( QWidget *parent, Base3DView* copy_from, std::string base_frame, std::string widget_name )
+    : Base3DView( copy_from, base_frame, widget_name, parent )
+{
+    init();
+}
+
+PerspectiveView::PerspectiveView( Base3DView* copy_from, std::string base_frame, std::string widget_name, QWidget *parent )
+    : Base3DView( copy_from, base_frame, widget_name, parent )
+{
+    init();
+}
+
+// Destructor.
+PerspectiveView::~PerspectiveView()
+{
+
+}
+
+void PerspectiveView::init()
 {
     // set the camera to be topdownortho
     //rviz::ViewManager* view_man_ = manager_->getViewManager();
@@ -36,12 +53,6 @@ PerspectiveView::PerspectiveView( QWidget* parent, Base3DView* copy_from )
     //ortho_view_controller_->initialize(context);
     orbit_view_controller_->initialize(manager_);
     render_panel_->setViewController(orbit_view_controller_);
-}
-
-// Destructor.
-PerspectiveView::~PerspectiveView()
-{
-
 }
 
 void PerspectiveView::timerEvent(QTimerEvent *event)

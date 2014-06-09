@@ -54,9 +54,10 @@ namespace vigir_ocs
 {
 
 // Constructor for Base3DView.  This does most of the work of the class.
-Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* parent )
+Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::string widget_name, QWidget *parent )
     : QWidget( parent )
     , base_frame_(base_frame)
+    , widget_name_(widget_name)
     , selected_(false)
     , update_markers_(false)
     , snap_ghost_to_robot_(true)
@@ -575,9 +576,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
 
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
         hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );
-
-        // advertise publisher for camera transform
-        camera_transform_pub_ = nh_.advertise<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform", 1, false );
     }
 
     // Connect the 3D selection tool to
@@ -656,6 +654,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, QWidget* 
     // set background color to rviz default
     render_panel_->getViewport()->setBackgroundColour(rviz::qtToOgre(QColor(48,48,48)));
 
+    // advertise publisher for camera transform
+    camera_transform_pub_ = nh_.advertise<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform", 1, false );
+
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
 }
@@ -724,11 +725,16 @@ void Base3DView::publishCameraTransform()
     }
 
     flor_ocs_msgs::OCSCameraTransform cmd;
+    cmd.widget_name = widget_name_;
     cmd.view_id = view_id_;
-
+    cmd.pose.position.x = position.x;
+    cmd.pose.position.y = position.y;
+    cmd.pose.position.z = position.z;
+    cmd.pose.orientation.x = orientation.x;
+    cmd.pose.orientation.y = orientation.y;
+    cmd.pose.orientation.z = orientation.z;
+    cmd.pose.orientation.w = orientation.w;
     camera_transform_pub_.publish(cmd);
-
-    //Q_EMIT sendCameraTransform( view_id_, position.x, position.y, position.z, orientation.x, orientation.y, orientation.z, orientation.w );
 }
 
 void Base3DView::updateRenderMask( bool mask )

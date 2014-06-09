@@ -36,7 +36,7 @@ namespace vigir_ocs
 {
 
 CameraViewerCustom::CameraViewerCustom( QWidget* parent )
-    : Base3DView( NULL, "/world", parent )
+    : Base3DView( NULL, "/world", "CameraViewerCustom", parent )
     , camera_frame_topic_("")
     , feed_rate_(0)
     , feed_resolution_(4)

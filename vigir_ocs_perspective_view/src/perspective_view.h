@@ -30,7 +30,8 @@ class PerspectiveView: public Base3DView
 {
     Q_OBJECT
 public:
-    PerspectiveView( QWidget* parent = 0, Base3DView* copy_from = NULL );
+    PerspectiveView( QWidget *parent, Base3DView *copy_from = NULL, std::string base_frame = "/world" , std::string widget_name = "PerspectiveView" );
+    PerspectiveView( Base3DView *copy_from = NULL, std::string base_frame = "/world" , std::string widget_name = "PerspectiveView", QWidget *parent = NULL );
     virtual ~PerspectiveView();
 
 protected:
@@ -38,6 +39,8 @@ protected:
     virtual rviz::ViewController* getCurrentViewController();
 
 private:
+    void init();
+
     rviz::ViewController* orbit_view_controller_;
 };
 }
