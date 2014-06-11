@@ -1,7 +1,6 @@
 #include <ros/ros.h>
 #include <QtGui/QApplication>
 #include "ui/JoystickWidget.h"
-//#include "ui/GlWidget.h"
 
 int main(int argc, char *argv[])
 {
@@ -13,7 +12,5 @@ int main(int argc, char *argv[])
     JoystickWidget w;
     w.show();
     
-
-
     return a.exec();
 }

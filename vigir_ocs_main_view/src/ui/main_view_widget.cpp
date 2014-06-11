@@ -245,7 +245,7 @@ void MainViewWidget::setupToolbar()
                                " padding: 0px;" +
                                " image-position: top left"
                                "}" +
-                               "QPushButton:pressed  {" +
+                               "QPushButton:checked  {" +
                                " padding-top:1px; padding-left:1px;" +
                                " background-color: rgb(180,180,180);" +
                                " border-style: inset;" +
@@ -276,10 +276,10 @@ void MainViewWidget::setupToolbar()
     toggle_mapper_->setMapping(this->ui->plannerConfigBtn,WINDOW_PLANNER_CONFIG);
 
     //connect all buttons for mouse presses
-    connect(ui->joystickBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
-    connect(ui->jointControlBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
-    connect(ui->pelvisControlBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
-    connect(ui->basicStepBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
+    connect(ui->joystickBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
+    connect(ui->jointControlBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
+    connect(ui->pelvisControlBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
+    connect(ui->basicStepBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->stepBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
     connect(ui->footstepParamBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
     connect(ui->ghostControlBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
@@ -305,7 +305,7 @@ void MainViewWidget::receivePositionText(QString s)
 void MainViewWidget::toggleWindow(int window)
 {
     std_msgs::Int8 cmd;
-    cmd.data = window;
+    cmd.data = ((QPushButton*)toggle_mapper_->mapping(window))->isChecked() ? window : -window;
     window_control_pub_.publish(cmd);
 }
 

@@ -25,7 +25,6 @@ add_definitions(-DQT_NO_KEYWORDS)
 ## Qt's meta-object compiler.
 
 qt4_wrap_cpp(MOC_FILES
-#  src/ui/GlWidget.h
   src/ui/JoystickWidget.h
   src/Controller.h
 )
@@ -48,6 +47,11 @@ set(SOURCE_FILES
 #  src/ui/GlWidget.cpp
 )
 include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src)
+
+add_executable(template_joystick ${UIC_FILES} ${SOURCE_FILES})
+target_link_libraries(template_joystick ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+add_dependencies(template_joystick ${catkin_EXPORTED_TARGETS})
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
