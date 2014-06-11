@@ -177,7 +177,7 @@ public Q_SLOTS:
     void sendCircularLeft();
     void sendCircularRight();
 
-    virtual bool eventFilter( QObject * o, QEvent * e );
+    virtual bool eventFilter( QObject * o, QEvent * e );    
 
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
@@ -189,7 +189,8 @@ Q_SIGNALS:
     void enableTemplateMarkers( bool );
     void setFrustum( const float &, const float &, const float&, const float& );
     void finishedContextMenuSetup( int x, int y );
-    void sendPositionText(QString s);
+    void sendPositionText(QString s);    
+
 
 protected:
     virtual void timerEvent(QTimerEvent *event);
@@ -357,7 +358,7 @@ protected:
     QWidget* position_widget_;
     QLineEdit* position_label_;
 
-    QPushButton* reset_view_button_;
+    QPushButton* reset_view_button_;    
 
     tf::Transform l_hand_T_palm_;
     tf::Transform r_hand_T_palm_;

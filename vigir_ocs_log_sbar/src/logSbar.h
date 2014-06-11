@@ -2,14 +2,15 @@
 #define LOGSBAR_H
 
 #include <QMainWindow>
-#include <ros/subscriber.h>
 #include <ros/ros.h>
 #include <ros/publisher.h>
 #include <ros/subscriber.h>
 #include <ros/package.h>
 #include <QPropertyAnimation>
+#include <std_msgs/Int8.h>
 #include "miniError.h"
 #include "miniJoint.h"
+#include <flor_ocs_msgs/WindowCodes.h>
 
 namespace Ui {
 class LogSbar;
@@ -19,24 +20,58 @@ class LogSbar : public QMainWindow
 {
     Q_OBJECT
 
-public:
-    ~LogSbar();
-    explicit LogSbar(QWidget *parent = 0);
-    void setErrorCount(int);
-    Ui::LogSbar * getUi();    
+private:
+    Ui::LogSbar *ui;
+    int numError;
+    void setJointStatus(int);
+    ros::NodeHandle n_;
     QPropertyAnimation * errorFadeIn;
     QPropertyAnimation * errorFadeOut;
     QPropertyAnimation * jointFadeIn;
     QPropertyAnimation * jointFadeOut;
     MiniError * miniError;
     MiniJoint * miniJoint;
+    ros::Publisher window_control_pub_;
+
+public:
+    ~LogSbar();
+    explicit LogSbar(QWidget *parent = 0);
+    void setErrorCount(int);
+    Ui::LogSbar * getUi()
+    {
+        return ui;
+    }
+    QPropertyAnimation* getErrorFadeIn()
+    {
+        return errorFadeIn;
+    }
+    QPropertyAnimation* getErrorFadeOut()
+    {
+        return errorFadeOut;
+    }
+    QPropertyAnimation* getJointFadeIn()
+    {
+        return jointFadeIn;
+    }
+    QPropertyAnimation* getJointFadeOut()
+    {
+        return jointFadeOut;
+    }
+    MiniError * getMiniError()
+    {
+        return miniError;
+    }
+    MiniJoint * getMiniJoint()
+    {
+        return miniJoint;
+    }
+    ros::Publisher getWindowPublisher()
+    {
+        return window_control_pub_;
+    }
     void notifyMiniError();
     void notifyMiniJoint();
 
-private:    
-    Ui::LogSbar *ui;
-    int numError;    
-    void setJointStatus(int);
 
 public Q_SLOTS:
     void receiveErrorData(QString time, QString message);

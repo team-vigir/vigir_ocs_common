@@ -675,6 +675,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     //set button on corner of views on any size
     reset_view_button_->setGeometry(0,this->geometry().bottomLeft().y()-18,68,20);
+
     // make sure the selection point is visible
     //position_widget_->setGeometry(0,
     //                              this->geometry().bottomLeft().y()-18,
@@ -695,6 +696,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
     // no need to spin as rviz is already doing that for us.
     //ros::spinOnce();
 }
+
 
 void Base3DView::publishCameraTransform()
 {

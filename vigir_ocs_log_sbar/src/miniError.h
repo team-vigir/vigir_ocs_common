@@ -43,6 +43,9 @@ public Q_SLOTS:
     void receiveErrorData(QString,QString);
     void startActiveTimer();
 
+private Q_SLOTS:
+    void hideWindow();
+
 };
 
 

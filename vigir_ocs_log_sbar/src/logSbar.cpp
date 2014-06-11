@@ -70,6 +70,8 @@ LogSbar::LogSbar(QWidget *parent) :
     connect(errorFadeOut,SIGNAL(finished()),this,SLOT(hideErrorWindow()));
     connect(jointFadeOut,SIGNAL(finished()),this,SLOT(hideJointWindow()));
 
+    window_control_pub_ = n_.advertise<std_msgs::Int8>( "/flor/ocs/window_control", 1, false);
+
 }
 
 void LogSbar::hideJointWindow()
@@ -113,11 +115,6 @@ void LogSbar::receiveErrorData(QString time, QString message)
     ui->errorCount->setStyleSheet("QLabel{color: red; }");
 }
 
-Ui::LogSbar * LogSbar::getUi()
-{
-    return ui;
-}
-
 //always used to set 0
 void LogSbar::setErrorCount(int num)
 {
@@ -157,20 +154,24 @@ ErrorWidget::ErrorWidget(QWidget * parent):
 void ErrorWidget::enterEvent(QEvent * event)
 {
     //pull up mini error window
-    myParent->miniError->show();
-    myParent->errorFadeIn->start();
-    myParent->miniError->setGeometry(myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).x(),myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).y() - 180,420, 230);
+    myParent->getMiniError()->show();
+    myParent->getErrorFadeIn()->start();
+    myParent->getMiniError()->setGeometry(myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).x(),myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).y() - 180,420, 230);
     myParent->notifyMiniError();
 }
 void ErrorWidget::leaveEvent(QEvent * event)
 {
-    myParent->errorFadeOut->start();
+    myParent->getErrorFadeOut()->start();
     myParent->setErrorCount(0);    
 }
 
 void ErrorWidget::mousePressEvent(QMouseEvent * event)
 {
     //pull up log window from main view
+    std_msgs::Int8 cmd;
+    cmd.data = WINDOW_SYSTEM_LOG;
+    myParent->getWindowPublisher().publish(cmd);
+
 }
 
 ErrorWidget::~ErrorWidget()
@@ -186,19 +187,22 @@ JointWidget::JointWidget(QWidget * parent):
 
 void JointWidget::enterEvent(QEvent * event)
 {
-    myParent->miniJoint->show();
-    myParent->jointFadeIn->start();
-    myParent->miniJoint->setGeometry(myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).x() + 100,myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).y() - 200,400, 200);
+    myParent->getMiniJoint()->show();
+    myParent->getJointFadeIn()->start();
+    myParent->getMiniJoint()->setGeometry(myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).x() + 100,myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).y() - 200,400, 200);
     myParent->notifyMiniJoint();
 }
 void JointWidget::leaveEvent(QEvent * event)
 {
-    myParent->jointFadeOut->start();    
+    myParent->getJointFadeOut()->start();
 }
 
 void JointWidget::mousePressEvent(QMouseEvent * event)
 {
     //pull up joint window from main view
+    std_msgs::Int8 cmd;
+    cmd.data = WINDOW_JOINT_STATUS;
+    myParent->getWindowPublisher().publish(cmd);
 }
 
 JointWidget::~JointWidget()

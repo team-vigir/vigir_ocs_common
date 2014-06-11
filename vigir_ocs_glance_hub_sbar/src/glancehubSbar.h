@@ -6,8 +6,6 @@
 #include <flor_control_msgs/FlorControlModeCommand.h>
 #include <flor_ocs_msgs/OCSRobotStatus.h>
 #include "flor_ocs_msgs/RobotStatusCodes.h"
-//#include <QTableWidgetItem>
-//#include <QTableWidget>
 #include "glancehub.h"
 #include <ros/ros.h>
 #include <QPropertyAnimation>
@@ -36,6 +34,7 @@ private:
     QTimer *timer;
     QPropertyAnimation * animation;
     QPropertyAnimation * fadeOut;
+
     //oid layoutPopup();
 
 public Q_SLOTS:
@@ -43,6 +42,9 @@ public Q_SLOTS:
     void receiveFootstepStatus(int);
     void receiveFlorStatus(int);
     void receiveModeChange(int);
+
+private Q_SLOTS:
+    void hideWindow();
 
 };
 

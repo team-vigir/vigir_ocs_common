@@ -10,6 +10,7 @@
 #include <QPropertyAnimation>
 #include <flor_ocs_msgs/WindowCodes.h>
 
+
 MainViewWidget::MainViewWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainViewWidget)
@@ -116,14 +117,19 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
         {
             ((vigir_ocs::Base3DView*)iter->second)->updateRenderMask(false);
         }
+
+
     }
 
     std::string ip = ros::package::getPath("vigir_ocs_main_view")+"/icons/";
     icon_path_ = QString(ip.c_str());
 
+    //contains both view buttons for alignment
     position_widget_ = new QWidget(views_list["Top Left"]);
     position_widget_->setStyleSheet("background-color: rgb(108, 108, 108);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
     position_widget_->setMaximumSize(46,22);
+
+
 
     one_view_button_ = new QPushButton("",this);//𐌎", this);
     QPixmap pixmap1(icon_path_+"one_view_checked.png");
@@ -159,7 +165,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     position_layout->setMargin(2);
     position_layout->setSpacing(6);
     position_layout->addWidget(one_view_button_);
-    position_layout->addWidget(four_view_button_);
+    position_layout->addWidget(four_view_button_);                
     position_widget_->setLayout(position_layout);
 
     rviz::DisplaysPanel* displays_panel = new rviz::DisplaysPanel(this);
@@ -199,21 +205,75 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             "QComboBox::down-arrow {\n" +
             " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
             "}";
-    ui->modeBox->setStyleSheet(stylesheet);    
+    ui->modeBox->setStyleSheet(stylesheet);
+
+    ui->objectBox->addItem(QString("Template"));
+    ui->objectBox->addItem(QString("Left Arm"));
+    ui->objectBox->addItem(QString("Right Arm"));
+
+    stylesheet = ui->objectBox->styleSheet() + "\n" +
+            "QComboBox::down-arrow {\n" +
+            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
+            "}";
+    ui->objectBox->setStyleSheet(stylesheet);
 
     statusBar = new StatusBar();
 
     //connect view to update position data
     connect(views_list["Top Left"],SIGNAL(sendPositionText(QString)),statusBar,SLOT(receivePositionText(QString)));
 
+
     ui->statusLayout->addWidget(statusBar);
 
+    grasp_toggle_button_ = new QPushButton("Grasp",this);
+    grasp_toggle_button_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
+    grasp_toggle_button_->setMaximumSize(120,18);
+    grasp_toggle_button_->adjustSize();
+
+    connect(grasp_toggle_button_, SIGNAL(clicked()), this, SLOT(graspWidgetToggle()));
+
+    leftGraspWidget = new graspWidget(this);
+    rightGraspWidget = new graspWidget(this);
+
+     QSpacerItem* spacer = new QSpacerItem(300,0,QSizePolicy::Expanding,QSizePolicy::Expanding);
+     QSpacerItem* spacer2 = new QSpacerItem(20,0,QSizePolicy::Expanding,QSizePolicy::Expanding);
+     QSpacerItem* spacer3 = new QSpacerItem(300,0,QSizePolicy::Expanding,QSizePolicy::Expanding);
+    ui->graspLayout->addSpacerItem(spacer);
+    ui->graspLayout->addWidget(leftGraspWidget);
+    ui->graspLayout->addSpacerItem(spacer3);
+    ui->graspLayout->addWidget(rightGraspWidget);
+    ui->graspLayout->addSpacerItem(spacer2);
+    leftGraspWidget->hide();
+    rightGraspWidget->hide();
+
+    timer.start(100, this);
+}
+
+
+void MainViewWidget::graspWidgetToggle()
+{
+    if(!leftGraspWidget->isVisible())
+    {
+        leftGraspWidget->show();
+        rightGraspWidget->show();
+    }
+    else // visible
+    {
+        leftGraspWidget->hide();
+        rightGraspWidget->hide();
+    }
 }
 
 MainViewWidget::~MainViewWidget()
 {
     //delete(joystick);
     delete ui;    
+}
+
+void MainViewWidget::timerEvent(QTimerEvent *event)
+{
+    //reposition grasp button
+    grasp_toggle_button_->setGeometry(ui->drawer->geometry().topRight().x()/2,ui->drawer->geometry().topLeft().y()+ 23,68,18);
 }
 
 bool MainViewWidget::eventFilter( QObject * o, QEvent * e )

@@ -38,10 +38,14 @@ private:
     jointList * jList;    
     QTimer* timer;
     bool visible;
+    void removeDuplicates(int,QString);
 
 public Q_SLOTS:
     void receiveJointData(int,QString);
     void startActiveTimer();
+
+private Q_SLOTS:
+    void hideWindow();
 
 };
 

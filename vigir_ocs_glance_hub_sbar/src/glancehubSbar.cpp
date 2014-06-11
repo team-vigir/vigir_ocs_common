@@ -48,6 +48,13 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     fadeOut->setDuration(300);
     fadeOut->setStartValue(0.74);
     fadeOut->setEndValue(0.0);
+    //hide when animation finishes
+    connect(fadeOut,SIGNAL(finished()),this,SLOT(hideWindow()));
+}
+
+void glancehubSbar::hideWindow()
+{
+    ghub->hide();
 }
 
 //called when mouse hovers over widget
@@ -59,8 +66,7 @@ void glancehubSbar::enterEvent(QEvent * event)
     ghub->setGeometry(ui->modeBox->mapToGlobal(QPoint(0,0)).x() - 200,ui->modeBox->mapToGlobal(QPoint(0,0)).y() - 276,300, 300);
 }
 void glancehubSbar::leaveEvent(QEvent * event)
-{   
-    ghub->hide();
+{       
     fadeOut->start();
 }
 

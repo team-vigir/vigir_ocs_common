@@ -15,6 +15,9 @@
 #include <std_msgs/Int8.h>
 
 #include "statusBar.h"
+#include "graspWidget.h"
+#include <QSpacerItem>
+#include <QBasicTimer>
 
 
 
@@ -38,13 +41,16 @@ public:
     // process window control messages to update toggle buttons
     void processWindowControl(const std_msgs::Int8::ConstPtr& visible);
 
+    virtual void timerEvent(QTimerEvent *event);
+
 public Q_SLOTS:
     void oneViewToggle();
     void fourViewToggle();
     void ft_sensorToggled(bool);
     void zero_leftPressed();
     void zero_rightPressed();
-    void toggleWindow(int);    
+    void toggleWindow(int);
+    void graspWidgetToggle();
 
 
 private:
@@ -65,17 +71,16 @@ private:
     std::vector<int> keys_pressed_list_;
 
     ros::NodeHandle n_;
-
     ros::Subscriber window_control_sub_;
     ros::Publisher window_control_pub_;
     ros::Subscriber key_event_sub_;
+    ros::Publisher ft_zero_pub_;
 
-    ros::Publisher ft_zero_pub_;    
-
-    StatusBar * statusBar;
-
-    QWidget* test;
-
+    StatusBar * statusBar;    
+    graspWidget * leftGraspWidget;
+    graspWidget * rightGraspWidget;
+    QPushButton* grasp_toggle_button_;
+    QBasicTimer timer;
 
 };
 

@@ -2,12 +2,7 @@
 #define STATUSBAR_H
 
 #include <QMainWindow>
-#include <ros/subscriber.h>
-#include <flor_control_msgs/FlorControlModeCommand.h>
-#include <QBasicTimer>
-#include <flor_ocs_msgs/OCSRobotStatus.h>
-#include <QTableWidgetItem>
-#include <QTableWidget>
+#include <QSpacerItem>
 #include "glancehubSbar.h"
 #include "logSbar.h"
 
