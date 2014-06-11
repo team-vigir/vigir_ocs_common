@@ -14,6 +14,9 @@
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <std_msgs/Int8.h>
 
+#include "statusBar.h"
+
+
 
 namespace Ui
 {
@@ -41,8 +44,8 @@ public Q_SLOTS:
     void ft_sensorToggled(bool);
     void zero_leftPressed();
     void zero_rightPressed();
-    void toggleWindow(int);
-    void receivePositionText(QString);
+    void toggleWindow(int);    
+
 
 private:
     void setupToolbar();
@@ -66,8 +69,13 @@ private:
     ros::Subscriber window_control_sub_;
     ros::Publisher window_control_pub_;
     ros::Subscriber key_event_sub_;
-    ros::Publisher ft_zero_pub_;
+
+    ros::Publisher ft_zero_pub_;    
+
+    StatusBar * statusBar;
+
     QWidget* test;
+
 
 };
 

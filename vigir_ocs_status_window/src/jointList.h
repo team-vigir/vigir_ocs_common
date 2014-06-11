@@ -50,6 +50,7 @@ private:
     float errorMin;
     int warn;
     int err;
+    bool jointsOkay;
 
     std::vector<int> keys_pressed_list_;
 
@@ -61,6 +62,9 @@ protected:
     void timerEvent(QTimerEvent *event);
 private:
     QBasicTimer timer;
+
+Q_SIGNALS:
+    void sendJointData(int,QString);
 };
 
 #endif // JOINTLIST_H

@@ -232,6 +232,8 @@ int jointList::getNumWarn()
 
 void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_states )
 {
+    jointsOkay = true;
+
     warn = 0;
     err = 0;
     for(int i=0;i<joint_states->name.size(); i++)
@@ -249,7 +251,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
         //std::cout << " e=" << joint_states->effort[i] << " dpl=" << downPoseLimit[i];
         //std::cout << " upl=" << upPoseLimit[i] << " el=" << effortLimits[i] << std::endl;
         if(joint_states->position[i] <= warnMin*downPoseLimit[i])
-        {
+        {           
             warn++;
             joints[i]->setBackgroundColor(0,Qt::yellow);
             joints[i]->setBackgroundColor(1,Qt::yellow);
@@ -257,6 +259,10 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             {
                 joints[i]->parent()->setBackgroundColor(0,Qt::yellow);
             }
+
+            jointsOkay = false;
+            //notify popup miniJoint widget
+            Q_EMIT sendJointData(1,joints[i]->text(0));
         }
         if(joint_states->position[i] <= errorMin*downPoseLimit[i])
         {
@@ -265,6 +271,9 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(1,Qt::red);
             joints[i]->parent()->setBackgroundColor(0,Qt::red);
+
+            jointsOkay = false;
+            Q_EMIT sendJointData(2,joints[i]->text(0));
         }
 
         if(joint_states->position[i] >= warnMin*upPoseLimit[i])
@@ -277,6 +286,9 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
                 joints[i]->parent()->setBackgroundColor(0,Qt::yellow);
             }
 
+            jointsOkay = false;
+            Q_EMIT sendJointData(1,joints[i]->text(0));
+
         }
         if(joint_states->position[i] >= errorMin*upPoseLimit[i])
         {
@@ -285,6 +297,9 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(1,Qt::red);
             joints[i]->parent()->setBackgroundColor(0,Qt::red);
+
+            jointsOkay = false;
+            Q_EMIT sendJointData(2,joints[i]->text(0));
         }
 
         if(joint_states->effort[i] >= warnMin*effortLimits[i])
@@ -296,6 +311,9 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             {
                 joints[i]->parent()->setBackgroundColor(0,Qt::yellow);
             }
+
+            jointsOkay = false;
+            Q_EMIT sendJointData(1,joints[i]->text(0));
         }
         if(joint_states->effort[i] >= errorMin*effortLimits[i])
         {
@@ -304,6 +322,9 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(3,Qt::red);
             joints[i]->parent()->setBackgroundColor(0,Qt::red);
+
+            jointsOkay = false;
+            Q_EMIT sendJointData(2,joints[i]->text(0));
         }
 
         if(joint_states->effort[i] <= -(warnMin*effortLimits[i]))
@@ -315,6 +336,9 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             {
                 joints[i]->parent()->setBackgroundColor(0,Qt::yellow);
             }
+
+            jointsOkay = false;
+            Q_EMIT sendJointData(1,joints[i]->text(0));
         }
         if(joint_states->effort[i] <= -(errorMin*effortLimits[i]))
         {
@@ -323,8 +347,15 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
             joints[i]->setBackgroundColor(0,Qt::red);
             joints[i]->setBackgroundColor(3,Qt::red);
             joints[i]->parent()->setBackgroundColor(0,Qt::red);
+
+            jointsOkay = false;
+            Q_EMIT sendJointData(2,joints[i]->text(0));
         }
+
     }
+    //notify main view status bar that all joints are fine
+    if(jointsOkay)
+        Q_EMIT sendJointData(0,"No bad Joints");
 }
 
 void jointList::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)

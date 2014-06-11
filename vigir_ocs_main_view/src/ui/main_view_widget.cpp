@@ -4,11 +4,10 @@
 #include "perspective_view.h"
 #include "ortho_view.h"
 #include <ros/package.h>
-
 #include <rviz/visualization_manager.h>
 #include <rviz/displays_panel.h>
 #include <rviz/views_panel.h>
-
+#include <QPropertyAnimation>
 #include <flor_ocs_msgs/WindowCodes.h>
 
 MainViewWidget::MainViewWidget(QWidget *parent) :
@@ -200,9 +199,14 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             "QComboBox::down-arrow {\n" +
             " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
             "}";
-    ui->modeBox->setStyleSheet(stylesheet);
+    ui->modeBox->setStyleSheet(stylesheet);    
+
+    statusBar = new StatusBar();
+
     //connect view to update position data
-    connect(views_list["Top Left"],SIGNAL(sendPositionText(QString)),this,SLOT(receivePositionText(QString)));
+    connect(views_list["Top Left"],SIGNAL(sendPositionText(QString)),statusBar,SLOT(receivePositionText(QString)));
+
+    ui->statusLayout->addWidget(statusBar);
 
 }
 
@@ -285,21 +289,18 @@ void MainViewWidget::setupToolbar()
     connect(ui->ghostControlBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
     connect(ui->positionModeBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
     connect(ui->plannerConfigBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
+
+
 }
 
 void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
-{
+{        
     QPixmap pixmap( icon_path_+ image_name );
     QIcon icon(pixmap);
     btn->setIcon(icon);
     QSize size(btn->size());
     size -= QSize(4,4);
     btn->setIconSize(size);
-}
-
-void MainViewWidget::receivePositionText(QString s)
-{
-    ui->positionLabel->setText(s);
 }
 
 void MainViewWidget::toggleWindow(int window)
