@@ -208,12 +208,106 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     ui->statusLayout->addWidget(statusBar);
 
+    grasp_toggle_button_ = new QPushButton("Grasp",this);
+    grasp_toggle_button_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
+    grasp_toggle_button_->setMaximumSize(68,22);
+    grasp_toggle_button_->adjustSize();
+   // loadButtonIcon(grasp_toggle_button_,"down_arrow_white.png");
+    //grasp_toggle_button_->setIconSize(size);
+
+    QPixmap pixmap(icon_path_+"down_arrow_white.png");
+    QIcon ButtonIcon(pixmap);
+    grasp_toggle_button_->setIcon(ButtonIcon);
+    grasp_toggle_button_->setIconSize(pixmap.rect().size()*200);
+
+    connect(grasp_toggle_button_, SIGNAL(clicked()), this, SLOT(graspWidgetToggle()));
+
+    leftGraspWidget = new graspWidget(this);
+    rightGraspWidget = new graspWidget(this);
+
+    leftGraspWidget->setStyleSheet("QWidget { border-width: 3px; border-color: yellow;}");
+    rightGraspWidget->setStyleSheet("QWidget { border-width: 3px; border-color: cyan;}");
+
+    Qt::WindowFlags flags = leftGraspWidget->windowFlags();
+    //flags |= Qt::WindowStaysOnTopHint;
+    flags |= Qt::FramelessWindowHint;
+    flags |= Qt::Dialog; // //ensure ghub as a dialog box, not a seperate window/tab
+    leftGraspWidget->setWindowFlags(flags);
+    rightGraspWidget->setWindowFlags(flags);
+
+    rightGraspFadeIn = new QPropertyAnimation(rightGraspWidget, "windowOpacity");
+    rightGraspFadeIn->setEasingCurve(QEasingCurve::InOutQuad);
+    rightGraspFadeIn->setDuration(500);
+    rightGraspFadeIn->setStartValue(0.0);
+    rightGraspFadeIn->setEndValue(.8);
+
+    rightGraspFadeOut = new QPropertyAnimation(rightGraspWidget, "windowOpacity");
+    rightGraspFadeOut->setEasingCurve(QEasingCurve::InOutQuad);
+    rightGraspFadeOut->setDuration(300);
+    rightGraspFadeOut->setStartValue(0.8);
+    rightGraspFadeOut->setEndValue(0.0);
+
+    leftGraspFadeIn = new QPropertyAnimation(leftGraspWidget, "windowOpacity");
+    leftGraspFadeIn->setEasingCurve(QEasingCurve::InOutQuad);
+    leftGraspFadeIn->setDuration(500);
+    leftGraspFadeIn->setStartValue(0.0);
+    leftGraspFadeIn->setEndValue(.8);
+
+    leftGraspFadeOut = new QPropertyAnimation(leftGraspWidget, "windowOpacity");
+    leftGraspFadeOut->setEasingCurve(QEasingCurve::InOutQuad);
+    leftGraspFadeOut->setDuration(300);
+    leftGraspFadeOut->setStartValue(0.8);
+    leftGraspFadeOut->setEndValue(0.0);
+
+
+//     QSpacerItem* spacer = new QSpacerItem(300,0,QSizePolicy::Expanding,QSizePolicy::Expanding);
+//     QSpacerItem* spacer2 = new QSpacerItem(20,0,QSizePolicy::Expanding,QSizePolicy::Expanding);
+//     QSpacerItem* spacer3 = new QSpacerItem(300,0,QSizePolicy::Expanding,QSizePolicy::Expanding);
+//    ui->graspLayout->addSpacerItem(spacer);
+//    ui->graspLayout->addWidget(leftGraspWidget);
+//    ui->graspLayout->addSpacerItem(spacer3);
+//    ui->graspLayout->addWidget(rightGraspWidget);
+//    ui->graspLayout->addSpacerItem(spacer2);
+    leftGraspWidget->hide();
+    rightGraspWidget->hide();
+
+    timer.start(100, this);
+}
+
+
+void MainViewWidget::graspWidgetToggle()
+{
+    if(!leftGraspWidget->isVisible())
+    {
+        //leftGraspWidget->setWindowOpacity(75);
+        //rightGraspWidget->setWindowOpacity(75);
+        leftGraspWidget->show();
+        rightGraspWidget->show();
+        rightGraspFadeIn->start();
+        leftGraspFadeIn->start();
+
+    }
+    else // visible
+    {
+        leftGraspWidget->hide();
+        rightGraspWidget->hide();
+    }
 }
 
 MainViewWidget::~MainViewWidget()
 {
     //delete(joystick);
     delete ui;    
+}
+
+
+void MainViewWidget::timerEvent(QTimerEvent *event)
+{
+    //reposition grasp button
+    grasp_toggle_button_->setGeometry(ui->view_stack_->geometry().bottomRight().x()-68,ui->view_stack_->geometry().bottom()+ 24,68,18);
+
+    leftGraspWidget->setGeometry(ui->view_stack_->geometry().bottomLeft().x() + 250,ui->view_stack_->geometry().bottomRight().y()- 197, 300,200);
+    rightGraspWidget->setGeometry(ui->view_stack_->geometry().bottomRight().x()- 750,ui->view_stack_->geometry().bottomRight().y()- 197, 300,200);
 }
 
 bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
@@ -298,8 +392,7 @@ void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
     QPixmap pixmap( icon_path_+ image_name );
     QIcon icon(pixmap);
     btn->setIcon(icon);
-    QSize size(btn->size());
-    size -= QSize(4,4);
+    QSize size(btn->size());    
     btn->setIconSize(size);
 }
 

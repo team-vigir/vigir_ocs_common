@@ -16,6 +16,12 @@
 
 #include "statusBar.h"
 
+#include "graspWidget.h"
+#include <QSpacerItem>
+#include <QBasicTimer>
+#include <QPropertyAnimation>
+
+
 
 
 namespace Ui
@@ -76,6 +82,11 @@ private:
 
     QWidget* test;
 
+
+    QPropertyAnimation * rightGraspFadeIn;
+    QPropertyAnimation * rightGraspFadeOut;
+    QPropertyAnimation * leftGraspFadeIn;
+    QPropertyAnimation * leftGraspFadeOut;
 
 };
 
