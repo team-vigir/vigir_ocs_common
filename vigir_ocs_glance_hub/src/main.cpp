@@ -1,7 +1,6 @@
+#include <ros/ros.h>
 #include <QtGui/QApplication>
 #include "glancehub.h"
-#include <ros/ros.h>
-
 
 int main(int argc, char *argv[])
 {

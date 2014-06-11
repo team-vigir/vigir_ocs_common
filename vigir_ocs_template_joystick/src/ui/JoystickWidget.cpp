@@ -5,11 +5,16 @@
 #include <QDebug>
 #include <ros/package.h>
 
+#include <flor_ocs_msgs/WindowCodes.h>
+
 JoystickWidget::JoystickWidget(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::JoystickWidget)
 {       
     ui->setupUi(this);
+
+    ros::NodeHandle nh;
+
     controller = new vigir_ocs::Controller();
     mapper = new QSignalMapper(this);
     connect(mapper,SIGNAL(mapped(QString)),this,SLOT(setDirection(QString)));
@@ -59,10 +64,10 @@ JoystickWidget::JoystickWidget(QWidget *parent) :
     icon_path_ = QString(ip.c_str());
 
     //place graphics on buttons
-    QPixmap upArrow("up.png");
-    QPixmap rightArrow("right.png");
-    QPixmap leftArrow("left.png");
-    QPixmap downArrow("down.png");
+    QPixmap upArrow(icon_path_+ "up.png");
+    QPixmap rightArrow(icon_path_+ "right.png");
+    QPixmap leftArrow(icon_path_+ "left.png");
+    QPixmap downArrow(icon_path_+ "down.png");
     QIcon up(upArrow);
     QIcon right(rightArrow);
     QIcon left(leftArrow);
@@ -87,6 +92,14 @@ JoystickWidget::JoystickWidget(QWidget *parent) :
     //set template Radio button on by default
     ui->templateRadioBtn->setChecked(true);
 
+    window_control_sub = nh.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &JoystickWidget::processWindowControl, this );
+}
+
+JoystickWidget::~JoystickWidget()
+{
+    delete(controller);
+    delete(mapper);
+    delete ui;
 }
 
 void JoystickWidget::setManipulationMode(int mode)
@@ -180,6 +193,7 @@ void JoystickWidget::setDirection(QString str)
         ui->directionR->setText("Down");
         rotY = -5;
     }
+
     controller->buildmsg(x,z,rotX,rotY);
 }
 
@@ -251,9 +265,16 @@ void JoystickWidget::processKeys()
     controller->buildmsg(x,z,rotX,rotY);
 }
 
-JoystickWidget::~JoystickWidget()
-{    
-    delete(controller);
-    delete(mapper);
-    delete ui;
+void JoystickWidget::processWindowControl(const std_msgs::Int8::ConstPtr& msg)
+{
+    if(!isVisible() && msg->data == WINDOW_JOYSTICK)
+    {
+        this->show();
+        this->setGeometry(geometry_);
+    }
+    else if(isVisible() && (!msg->data || msg->data == -WINDOW_JOYSTICK))
+    {
+        geometry_ = this->geometry();
+        this->hide();
+    }
 }

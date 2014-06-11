@@ -1,13 +1,16 @@
 #ifndef JOYSTICKWIDGET_H
 #define JOYSTICKWIDGET_H
 
+#include <ros/ros.h>
+
+#include <std_msgs/Int8.h>
+
 #include <QMainWindow>
 #include <QString>
 #include <QWidget>
 #include <QtGui>
 #include <QComboBox>
-#include "Controller.h"
-//#include "/opt/vigir/catkin_ws/src/vigir_ocs_common/vigir_ocs_template_joystick/src/Controller.h"
+#include "../Controller.h"
 
 namespace Ui
 {
@@ -21,17 +24,8 @@ class JoystickWidget : public QMainWindow
 public:
     explicit JoystickWidget(QWidget *parent = 0);
     ~JoystickWidget();
-protected:
-    void keyPressEvent(QKeyEvent *);
-    void keyReleaseEvent(QKeyEvent *);
-private:
-    Ui::JoystickWidget *ui;
-    //handle multiple keys at once
-    QSet<Qt::Key> keysPressed;
-    void processKeys();
-    vigir_ocs::Controller * controller;
-    QSignalMapper * mapper;
-    QString icon_path_;
+
+    void processWindowControl(const std_msgs::Int8::ConstPtr& msg);
 
 public Q_SLOTS:
     void setDirection(QString s);
@@ -41,6 +35,23 @@ public Q_SLOTS:
     void populateTemplateComboBox(int tempId);
     void receiveCameraTransform(int viewId, float x, float y, float z, float rx, float ry, float rz, float w);
     void setManipulationMode(int);
+
+protected:
+    void keyPressEvent(QKeyEvent *);
+    void keyReleaseEvent(QKeyEvent *);
+
+private:
+    ros::Subscriber window_control_sub;
+
+    QRect geometry_;
+
+    Ui::JoystickWidget *ui;
+    //handle multiple keys at once
+    QSet<Qt::Key> keysPressed;
+    void processKeys();
+    vigir_ocs::Controller * controller;
+    QSignalMapper * mapper;
+    QString icon_path_;
 };
 
 #endif // JOYSTICKWIDGET_H

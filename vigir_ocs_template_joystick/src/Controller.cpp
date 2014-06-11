@@ -75,8 +75,6 @@ namespace vigir_ocs
         right_sub = nh.subscribe<geometry_msgs::PoseStamped>("/flor/ghost/pose/right_hand",1,&Controller::rightCB,this );
 
         ghost_hand_pub = nh.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>("/flor/ocs/interactive_marker_server/update", 1, false);
-       // pose_pub = nh.advertise<>
-
 
         timer.start(33, this);
 
@@ -94,7 +92,19 @@ namespace vigir_ocs
 
     }
 
+    void Controller::timerEvent(QTimerEvent *event)
+    {
+        // check if ros is still running; if not, just kill the application
+        if(!ros::ok())
+            qApp->quit();
 
+        //Spin at beginning of Qt timer callback, so current ROS time is retrieved
+        ros::spinOnce();
+
+        //joy must be initialized to update joystick data
+        if(joy.axes.size() >0)
+            handleJoystick();
+    }
 
     //sends data to list and updates it
     void Controller::templateListCb(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg)
@@ -511,19 +521,6 @@ namespace vigir_ocs
         }
          delete(offset);
          delete(r);
-}
-
-    void Controller::timerEvent(QTimerEvent *event)
-    {
-        //joy must be initialized to update joystick data
-        if(joy.axes.size() >0)
-            handleJoystick();
-        // check if ros is still running; if not, just kill the application
-        if(!ros::ok())
-            qApp->quit();
-
-        //Spin at beginning of Qt timer callback, so current ROS time is retrieved
-        ros::spinOnce();
     }
 
     void Controller::changeTemplate()
@@ -553,29 +550,29 @@ namespace vigir_ocs
     QQuaternion Controller::rotate(float rotateLeftRight, float rotateUpDown, QQuaternion* rotation)
     {
 
-    //Get Main camera in Use.
+        //Get Main camera in Use.
 
-    //Gets the world vector space for cameras up vector
-    //Vector3 relativeUp = cam.transform.TransformDirection(Vector3.up);
-    QVector3D relativeUp(0,1,0);
-    relativeUp = cameraOrientation.rotatedVector(relativeUp);
-    //Gets world vector for space cameras right vector
-    //Vector3 relativeRight = cam.transform.TransformDirection(Vector3.right);
-    QVector3D relativeRight(1,0,0);
-    relativeRight = cameraOrientation.rotatedVector(relativeRight);
-    //Turns relativeUp vector from world to objects local space
-    //Vector3 objectRelativeUp = transform.InverseTransformDirection(relativeUp);
-    QVector3D objectRelativeUp = -rotation->rotatedVector(relativeUp);
-    //Turns relativeRight vector from world to object local space
-    //Vector3 objectRelaviveRight = transform.InverseTransformDirection(relativeRight);
-    QVector3D objectRelativeRight = -rotation->rotatedVector(relativeRight);
-
-
-//    rotateBy = Quaternion.AngleAxis(rotateLeftRight / gameObject.transform.localScale.x * sensitivity, objectRelativeUp)
-  //  * Quaternion.AngleAxis(-rotateUpDown / gameObject.transform.localScale.x * sensitivity, objectRelaviveRight);
+        //Gets the world vector space for cameras up vector
+        //Vector3 relativeUp = cam.transform.TransformDirection(Vector3.up);
+        QVector3D relativeUp(0,1,0);
+        relativeUp = cameraOrientation.rotatedVector(relativeUp);
+        //Gets world vector for space cameras right vector
+        //Vector3 relativeRight = cam.transform.TransformDirection(Vector3.right);
+        QVector3D relativeRight(1,0,0);
+        relativeRight = cameraOrientation.rotatedVector(relativeRight);
+        //Turns relativeUp vector from world to objects local space
+        //Vector3 objectRelativeUp = transform.InverseTransformDirection(relativeUp);
+        QVector3D objectRelativeUp = -rotation->rotatedVector(relativeUp);
+        //Turns relativeRight vector from world to object local space
+        //Vector3 objectRelaviveRight = transform.InverseTransformDirection(relativeRight);
+        QVector3D objectRelativeRight = -rotation->rotatedVector(relativeRight);
 
 
-    return QQuaternion::fromAxisAndAngle(objectRelativeUp,rotateLeftRight) * QQuaternion::fromAxisAndAngle(objectRelativeRight,-rotateUpDown);
+    //    rotateBy = Quaternion.AngleAxis(rotateLeftRight / gameObject.transform.localScale.x * sensitivity, objectRelativeUp)
+      //  * Quaternion.AngleAxis(-rotateUpDown / gameObject.transform.localScale.x * sensitivity, objectRelaviveRight);
+
+
+        return QQuaternion::fromAxisAndAngle(objectRelativeUp,rotateLeftRight) * QQuaternion::fromAxisAndAngle(objectRelativeRight,-rotateUpDown);
 
 
     }
