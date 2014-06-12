@@ -12,6 +12,7 @@
 #include <ros/ros.h>
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <flor_ocs_msgs/OCSJoystick.h>
 #include <std_msgs/Int8.h>
 
 #include "statusBar.h"
@@ -20,6 +21,7 @@
 #include <QSpacerItem>
 #include <QBasicTimer>
 #include <QPropertyAnimation>
+#include <QFrame>
 
 
 
@@ -51,7 +53,9 @@ public Q_SLOTS:
     void zero_leftPressed();
     void zero_rightPressed();
     void toggleWindow(int);    
-
+    void graspWidgetToggle();
+    void setManipulationMode(int);
+    void setObjectMode(int);
 
 private:
     void setupToolbar();
@@ -76,17 +80,22 @@ private:
     ros::Publisher window_control_pub_;
     ros::Subscriber key_event_sub_;
 
-    ros::Publisher ft_zero_pub_;    
+    ros::Publisher ft_zero_pub_;
+
+    ros::Publisher joystick_pub_;
 
     StatusBar * statusBar;
 
-    QWidget* test;
+    QBasicTimer timer;
 
-
+    graspWidget * leftGraspWidget;
+    graspWidget * rightGraspWidget;
+    QPushButton * grasp_toggle_button_;
     QPropertyAnimation * rightGraspFadeIn;
     QPropertyAnimation * rightGraspFadeOut;
     QPropertyAnimation * leftGraspFadeIn;
     QPropertyAnimation * leftGraspFadeOut;
+    void timerEvent(QTimerEvent *event);
 
 };
 

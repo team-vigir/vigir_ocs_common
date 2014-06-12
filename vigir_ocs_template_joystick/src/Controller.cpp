@@ -57,7 +57,9 @@ namespace vigir_ocs
     Controller::Controller( QWidget* parent )
         : QWidget(parent)
     {
-        ros::NodeHandle nh_out(nh, "/template");        
+        ros::NodeHandle nh_out(nh, "/template");
+
+        joystick_modes_sub = nh.subscribe<flor_ocs_msgs::OCSJoystick>("/flor/ocs/joystick",1,&Controller::modeCb,this);
 
         //subscribe to list to grab movement data
         template_list_sub = nh_out.subscribe<flor_ocs_msgs::OCSTemplateList>( "list", 1, &Controller::templateListCb ,this );
@@ -80,10 +82,18 @@ namespace vigir_ocs
 
         templateIndex = 0;
         initialPublish = true;
+
+        //camera mode and template mode by default
         leftMode = false;
         rightMode = false;
-        worldMode = true;
+        worldMode = false;
         objectMode = false;
+
+        //commit/
+        //new branch
+        //merge with grasp
+        //check changes
+        //switch to ocs_development
     }
 
     // Destructor
@@ -104,6 +114,15 @@ namespace vigir_ocs
         //joy must be initialized to update joystick data
         if(joy.axes.size() >0)
             handleJoystick();
+    }
+
+    void Controller::modeCb(const flor_ocs_msgs::OCSJoystick::ConstPtr& msg)
+    {
+        joyModes = *msg;
+        //set current modes based on subscribed data
+        setObjectMode(joyModes.objectMode);
+        setManipulation(joyModes.manipulationMode);
+        ROS_ERROR("Joystick Mode CB %d %d",joyModes.objectMode,joyModes.manipulationMode );
     }
 
     //sends data to list and updates it
@@ -128,34 +147,9 @@ namespace vigir_ocs
         cameraOrientation.setX(rx);
         cameraOrientation.setY(ry);
         cameraOrientation.setZ(rz);
-        cameraOrientation.setScalar(w);
-       // fromQuaternionToEuler(cameraOrientation);
+        cameraOrientation.setScalar(w);       
     }
 
-    void Controller::fromQuaternionToEuler(QQuaternion q1)
-    {
-
-
-//        double test = q1.x()*q1.y() + q1.z()*q1.scalar();
-//        if (test > 0.499) { // singularity at north pole
-//            heading = 2 * atan2(q1.x(),q1.scalar());
-//            attitude = Math.PI/2;
-//            bank = 0;
-//            return;
-//        }
-//        if (test < -0.499) { // singularity at south pole
-//            heading = -2 * atan2(q1.x(),q1.scalar());
-//            attitude = - Math.PI/2;
-//            bank = 0;
-//            return;
-//        }
-//        double sqx = q1.x()*q1.x();
-//        double sqy = q1.y()*q1.y();
-//        double sqz = q1.z()*q1.z();
-//        heading = atan2(2*q1.y()*q1.scalar()-2*q1.x()*q1.z() , 1 - 2*sqy - 2*sqz);
-//        attitude = asin(2*test);
-//        bank = atan2(2*q1.x()*q1.scalar()-2*q1.y()*q1.z() , 1 - 2*sqx - 2*sqz);
-    }
 
     void Controller::joyCB(const sensor_msgs::Joy::ConstPtr& oldJoyData)
     {
@@ -177,6 +171,26 @@ namespace vigir_ocs
 
     }
 
+    //set which object to be manipulated
+    //for changing on subscribed data
+    void Controller::setObjectMode(int mode)
+    {
+        switch (mode)
+        {
+        case 0:
+            templateModeOn();
+            break;
+        case 1:
+            leftModeOn();
+            break;
+        case 2:
+            rightModeOn();
+            break;
+        }
+    }
+
+    //methods to set which object is manipulated
+    //for radio button use
     void Controller::leftModeOn()
     {
         leftMode = true;
@@ -546,36 +560,5 @@ namespace vigir_ocs
     {        
         return temList.template_list;
     }
-
-    QQuaternion Controller::rotate(float rotateLeftRight, float rotateUpDown, QQuaternion* rotation)
-    {
-
-        //Get Main camera in Use.
-
-        //Gets the world vector space for cameras up vector
-        //Vector3 relativeUp = cam.transform.TransformDirection(Vector3.up);
-        QVector3D relativeUp(0,1,0);
-        relativeUp = cameraOrientation.rotatedVector(relativeUp);
-        //Gets world vector for space cameras right vector
-        //Vector3 relativeRight = cam.transform.TransformDirection(Vector3.right);
-        QVector3D relativeRight(1,0,0);
-        relativeRight = cameraOrientation.rotatedVector(relativeRight);
-        //Turns relativeUp vector from world to objects local space
-        //Vector3 objectRelativeUp = transform.InverseTransformDirection(relativeUp);
-        QVector3D objectRelativeUp = -rotation->rotatedVector(relativeUp);
-        //Turns relativeRight vector from world to object local space
-        //Vector3 objectRelaviveRight = transform.InverseTransformDirection(relativeRight);
-        QVector3D objectRelativeRight = -rotation->rotatedVector(relativeRight);
-
-
-    //    rotateBy = Quaternion.AngleAxis(rotateLeftRight / gameObject.transform.localScale.x * sensitivity, objectRelativeUp)
-      //  * Quaternion.AngleAxis(-rotateUpDown / gameObject.transform.localScale.x * sensitivity, objectRelaviveRight);
-
-
-        return QQuaternion::fromAxisAndAngle(objectRelativeUp,rotateLeftRight) * QQuaternion::fromAxisAndAngle(objectRelativeRight,-rotateUpDown);
-
-
-    }
-
 
 }

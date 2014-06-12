@@ -199,7 +199,25 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             "QComboBox::down-arrow {\n" +
             " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
             "}";
-    ui->modeBox->setStyleSheet(stylesheet);    
+    ui->modeBox->setStyleSheet(stylesheet);
+
+    ui->objectBox->addItem(QString("Template"));
+    ui->objectBox->addItem(QString("Left Arm"));
+    ui->objectBox->addItem(QString("Right Arm"));
+
+
+    stylesheet = ui->objectBox->styleSheet() + "\n" +
+            "QComboBox::down-arrow {\n" +
+            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
+            "}";
+    ui->objectBox->setStyleSheet(stylesheet);
+
+    //allow combo boxes to send messages to joystick
+    connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(setManipulationMode(int)));
+    connect(ui->objectBox,SIGNAL(currentIndexChanged(int)),this,SLOT(setObjectMode(int)));
+
+    //publisher for joystick modes
+    joystick_pub_ = n_.advertise<flor_ocs_msgs::OCSJoystick>("/flor/ocs/joystick",1,false);
 
     statusBar = new StatusBar();
 
@@ -212,28 +230,51 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     grasp_toggle_button_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
     grasp_toggle_button_->setMaximumSize(68,22);
     grasp_toggle_button_->adjustSize();
-   // loadButtonIcon(grasp_toggle_button_,"down_arrow_white.png");
-    //grasp_toggle_button_->setIconSize(size);
+//    loadButtonIcon(grasp_toggle_button_,"down_arrow_white.png");
 
-    QPixmap pixmap(icon_path_+"down_arrow_white.png");
+    QPixmap pixmap(icon_path_+"up_arrow_white.png");
     QIcon ButtonIcon(pixmap);
     grasp_toggle_button_->setIcon(ButtonIcon);
-    grasp_toggle_button_->setIconSize(pixmap.rect().size()*200);
+    grasp_toggle_button_->setIconSize(pixmap.rect().size()/10);
 
     connect(grasp_toggle_button_, SIGNAL(clicked()), this, SLOT(graspWidgetToggle()));
 
     leftGraspWidget = new graspWidget(this);
     rightGraspWidget = new graspWidget(this);
 
-    leftGraspWidget->setStyleSheet("QWidget { border-width: 3px; border-color: yellow;}");
-    rightGraspWidget->setStyleSheet("QWidget { border-width: 3px; border-color: cyan;}");
+    //leftGraspWidget->setStyleSheet(".QWidget {border-style: solid;  border-radius: 1px;border-width: 1px; border-color: yellow;}");
+    //rightGraspWidget->setStyleSheet(".QWidget {border-style: solid;  border-radius: 1px;border-width: 1px; border-color: cyan;}");
 
     Qt::WindowFlags flags = leftGraspWidget->windowFlags();
     //flags |= Qt::WindowStaysOnTopHint;
     flags |= Qt::FramelessWindowHint;
-    flags |= Qt::Dialog; // //ensure ghub as a dialog box, not a seperate window/tab
+    flags |= Qt::Dialog;
     leftGraspWidget->setWindowFlags(flags);
     rightGraspWidget->setWindowFlags(flags);
+
+    //set border color of left grasp widget
+    QFrame* leftFrame = new QFrame(leftGraspWidget);
+    leftFrame->setFrameStyle(QFrame::Panel| QFrame::Plain);
+    //leftFrame->setFrameRect(leftGraspWidget->rect());
+    leftFrame->setFixedSize(633,290);
+    leftFrame->setLineWidth(2);
+
+
+    QPalette* palette = new QPalette();
+    palette->setColor(QPalette::Foreground,Qt::yellow);
+    leftFrame->setPalette(*palette);
+
+    //set border color of right grasp widget
+    QFrame* rightFrame = new QFrame(rightGraspWidget);
+    rightFrame->setFrameStyle(QFrame::WinPanel | QFrame::Plain);
+    //rightFrame->setFrameRect(rightGraspWidget->rect());
+    rightFrame->setFixedSize(633,290);
+    rightFrame->setLineWidth(2);
+
+
+    palette->setColor(QPalette::Foreground,Qt::cyan);
+    rightFrame->setPalette(*palette);
+    delete(palette);
 
     rightGraspFadeIn = new QPropertyAnimation(rightGraspWidget, "windowOpacity");
     rightGraspFadeIn->setEasingCurve(QEasingCurve::InOutQuad);
@@ -274,6 +315,23 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     timer.start(100, this);
 }
 
+void MainViewWidget::setManipulationMode(int mode)
+{
+    flor_ocs_msgs::OCSJoystick msg;
+    msg.manipulationMode =  mode;
+    msg.objectMode = ui->objectBox->currentIndex();
+    joystick_pub_.publish(msg);
+    ROS_ERROR("publish joystick mode %d %d",msg.manipulationMode, msg.objectMode);
+}
+
+void MainViewWidget::setObjectMode(int mode)
+{    
+    flor_ocs_msgs::OCSJoystick msg;
+    msg.objectMode =  mode;
+    msg.manipulationMode = ui->modeBox->currentIndex();
+    joystick_pub_.publish(msg);
+     ROS_ERROR("publish joystick mode %d %d",msg.manipulationMode, msg.objectMode);
+}
 
 void MainViewWidget::graspWidgetToggle()
 {
@@ -286,11 +344,21 @@ void MainViewWidget::graspWidgetToggle()
         rightGraspFadeIn->start();
         leftGraspFadeIn->start();
 
+        QPixmap pixmap(icon_path_+"down_arrow_white.png");
+        QIcon ButtonIcon(pixmap);
+        grasp_toggle_button_->setIcon(ButtonIcon);
+        grasp_toggle_button_->setIconSize(pixmap.rect().size()/10);
+
     }
     else // visible
     {
         leftGraspWidget->hide();
         rightGraspWidget->hide();
+
+        QPixmap pixmap(icon_path_+"up_arrow_white.png");
+        QIcon ButtonIcon(pixmap);
+        grasp_toggle_button_->setIcon(ButtonIcon);
+        grasp_toggle_button_->setIconSize(pixmap.rect().size()/10);
     }
 }
 
@@ -306,8 +374,10 @@ void MainViewWidget::timerEvent(QTimerEvent *event)
     //reposition grasp button
     grasp_toggle_button_->setGeometry(ui->view_stack_->geometry().bottomRight().x()-68,ui->view_stack_->geometry().bottom()+ 24,68,18);
 
-    leftGraspWidget->setGeometry(ui->view_stack_->geometry().bottomLeft().x() + 250,ui->view_stack_->geometry().bottomRight().y()- 197, 300,200);
-    rightGraspWidget->setGeometry(ui->view_stack_->geometry().bottomRight().x()- 750,ui->view_stack_->geometry().bottomRight().y()- 197, 300,200);
+    leftGraspWidget->setGeometry(ui->view_stack_->geometry().bottomLeft().x() + 200,ui->view_stack_->geometry().bottomRight().y()- 197, 300,200);
+    rightGraspWidget->setGeometry(ui->view_stack_->geometry().bottomRight().x()- 740,ui->view_stack_->geometry().bottomRight().y()- 197, 300,200);
+
+
 }
 
 bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
@@ -383,8 +453,6 @@ void MainViewWidget::setupToolbar()
     connect(ui->ghostControlBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
     connect(ui->positionModeBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
     connect(ui->plannerConfigBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
-
-
 }
 
 void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
