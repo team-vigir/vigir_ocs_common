@@ -33,7 +33,7 @@ public Q_SLOTS:
     void disableRightLabel();
     void selectTemplate();
     void populateTemplateComboBox(int tempId);
-    void receiveCameraTransform(int viewId, float x, float y, float z, float rx, float ry, float rz, float w);
+    //void receiveCameraTransform(int viewId, float x, float y, float z, float rx, float ry, float rz, float w);
     void setManipulationMode(int);
 
 protected:

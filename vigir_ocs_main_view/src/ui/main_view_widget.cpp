@@ -1,14 +1,8 @@
 #include "main_view_widget.h"
 #include "ui_main_view_widget.h"
-#include "ui/template_loader_widget.h"
-#include "perspective_view.h"
-#include "ortho_view.h"
-#include <ros/package.h>
-#include <rviz/visualization_manager.h>
-#include <rviz/displays_panel.h>
-#include <rviz/views_panel.h>
-#include <QPropertyAnimation>
-#include <flor_ocs_msgs/WindowCodes.h>
+
+
+
 
 MainViewWidget::MainViewWidget(QWidget *parent) :
     QWidget(parent),
@@ -116,14 +110,19 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
         {
             ((vigir_ocs::Base3DView*)iter->second)->updateRenderMask(false);
         }
+
+
     }
 
     std::string ip = ros::package::getPath("vigir_ocs_main_view")+"/icons/";
     icon_path_ = QString(ip.c_str());
 
+    //contains both view buttons for alignment
     position_widget_ = new QWidget(views_list["Top Left"]);
     position_widget_->setStyleSheet("background-color: rgb(108, 108, 108);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
     position_widget_->setMaximumSize(46,22);
+
+
 
     one_view_button_ = new QPushButton("",this);//𐌎", this);
     QPixmap pixmap1(icon_path_+"one_view_checked.png");
@@ -159,7 +158,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     position_layout->setMargin(2);
     position_layout->setSpacing(6);
     position_layout->addWidget(one_view_button_);
-    position_layout->addWidget(four_view_button_);
+    position_layout->addWidget(four_view_button_);                
     position_widget_->setLayout(position_layout);
 
     rviz::DisplaysPanel* displays_panel = new rviz::DisplaysPanel(this);
@@ -205,12 +204,12 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui->objectBox->addItem(QString("Left Arm"));
     ui->objectBox->addItem(QString("Right Arm"));
 
-
     stylesheet = ui->objectBox->styleSheet() + "\n" +
             "QComboBox::down-arrow {\n" +
             " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
             "}";
     ui->objectBox->setStyleSheet(stylesheet);
+
 
     //allow combo boxes to send messages to joystick
     connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(setManipulationMode(int)));
@@ -218,6 +217,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     //publisher for joystick modes
     joystick_pub_ = n_.advertise<flor_ocs_msgs::OCSJoystick>("/flor/ocs/joystick",1,false);
+
+
 
     statusBar = new StatusBar();
 
@@ -227,20 +228,22 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui->statusLayout->addWidget(statusBar);
 
     grasp_toggle_button_ = new QPushButton("Grasp",this);
+
     grasp_toggle_button_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
     grasp_toggle_button_->setMaximumSize(68,22);
     grasp_toggle_button_->adjustSize();
-//    loadButtonIcon(grasp_toggle_button_,"down_arrow_white.png");
 
     QPixmap pixmap(icon_path_+"up_arrow_white.png");
     QIcon ButtonIcon(pixmap);
     grasp_toggle_button_->setIcon(ButtonIcon);
     grasp_toggle_button_->setIconSize(pixmap.rect().size()/10);
 
+
     connect(grasp_toggle_button_, SIGNAL(clicked()), this, SLOT(graspWidgetToggle()));
 
     leftGraspWidget = new graspWidget(this);
     rightGraspWidget = new graspWidget(this);
+
 
     //leftGraspWidget->setStyleSheet(".QWidget {border-style: solid;  border-radius: 1px;border-width: 1px; border-color: yellow;}");
     //rightGraspWidget->setStyleSheet(".QWidget {border-style: solid;  border-radius: 1px;border-width: 1px; border-color: cyan;}");
@@ -308,11 +311,243 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 //    ui->graspLayout->addWidget(leftGraspWidget);
 //    ui->graspLayout->addSpacerItem(spacer3);
 //    ui->graspLayout->addWidget(rightGraspWidget);
-//    ui->graspLayout->addSpacerItem(spacer2);
-    leftGraspWidget->hide();
-    rightGraspWidget->hide();
+
+    sys_command_pub_ = n_.advertise<std_msgs::String>("/syscommand",1,false);
+
+    addContextMenu();
 
     timer.start(100, this);
+}
+
+//define all context menu items to be displayed for main view and add them to base 3d view
+void MainViewWidget::addContextMenu()
+{    
+    //can tell context menu to add a seperator when this item is added
+    contextMenuItem * seperator = new contextMenuItem();
+    seperator->name = "Seperator";
+
+    //create Menu items,
+    //the order in which they are created matters
+    //must do parent objects before children
+    //and in the order you want them to show up in the context menu
+
+    makeContextChild("Joystick",boost::bind(&MainViewWidget::toggleJoystick,this), NULL);
+//    contextMenuItem * joyStick = new contextMenuItem();
+//    joyStick->name = "Joystick";
+//    joyStick->function = boost::bind(&MainViewWidget::toggleJoystick,this);
+//    joyStick->hasChildren = false;
+//    contextMenuElements.push_back(joyStick);
+
+    contextMenuItem * manipulationModes = makeContextParent("Manipulation Mode");
+
+    makeContextChild("Camera",boost::bind(&MainViewWidget::setCameraMode,this), manipulationModes);
+    makeContextChild("World",boost::bind(&MainViewWidget::setWorldMode,this), manipulationModes);
+    makeContextChild("Object",boost::bind(&MainViewWidget::setObjectMode,this), manipulationModes);
+
+    contextMenuItem * objectModes = makeContextParent("Object Mode");
+
+    makeContextChild("Template",boost::bind(&MainViewWidget::setTemplateMode,this), objectModes);
+    makeContextChild("Left Arm",boost::bind(&MainViewWidget::setLeftArmMode,this), objectModes);
+    makeContextChild("Right Arm",boost::bind(&MainViewWidget::setRightArmMode,this), objectModes);
+
+    contextMenuElements.push_back(seperator);
+
+    contextMenuItem * jointControlMenu = makeContextParent("Joint Control");
+    //elements from joint control toolbar
+    makeContextChild("Joint Control",boost::bind(&MainViewWidget::toggleJointControl,this), jointControlMenu);
+    makeContextChild("Pelvis Pose",boost::bind(&MainViewWidget::togglePelvis,this), jointControlMenu);
+    makeContextChild("Ghost Control",boost::bind(&MainViewWidget::toggleGhost,this), jointControlMenu);
+    makeContextChild("Planner Configuration",boost::bind(&MainViewWidget::togglePlanner,this), jointControlMenu);
+
+    contextMenuElements.push_back(seperator);
+
+    contextMenuItem * footstepControl = makeContextParent("Footstep Control");
+
+    //elements from footstep control toolbar
+
+    makeContextChild("Basic Footstep Interface",boost::bind(&MainViewWidget::toggleBasicFootstep,this), footstepControl);
+    makeContextChild("Advanced Footstep Interface",boost::bind(&MainViewWidget::toggleAdvancedFootstep,this), footstepControl);
+    makeContextChild("Footstep Parameter Control",boost::bind(&MainViewWidget::toggleFootstepParameter,this), footstepControl);
+
+    contextMenuElements.push_back(seperator);
+
+    makeContextChild("Position Mode",boost::bind(&MainViewWidget::togglePositionMode,this), NULL);
+    makeContextChild("Grasp",boost::bind(&MainViewWidget::graspWidgetToggle,this), NULL);
+
+    contextMenuItem * systemCommands = makeContextParent("System Commands");
+
+//    contextMenuItem * systemCommands = new contextMenuItem();
+//    systemCommands->name = "System Commands";
+//    systemCommands->hasChildren = true;
+//    contextMenuElements.push_back(systemCommands);
+
+    makeContextChild("Reset World Model",boost::bind(&MainViewWidget::resetWorldContext,this), systemCommands);
+    makeContextChild("Save Octomap",boost::bind(&MainViewWidget::saveOctoContext,this), systemCommands);
+    makeContextChild("Save Pointcloud",boost::bind(&MainViewWidget::savePointCloudContext,this), systemCommands);
+    makeContextChild("Save Image Head",boost::bind(&MainViewWidget::saveImageHeadContext,this), systemCommands);
+    makeContextChild("Save Left Hand Image",boost::bind(&MainViewWidget::saveLeftHandContext,this), systemCommands);
+    makeContextChild("Save Right Hand Image",boost::bind(&MainViewWidget::saveRightHandContext,this), systemCommands);
+
+//    contextMenuItem * saveRightHand = new contextMenuItem();
+//    saveRightHand->name = "Save Right Hand Image";
+//    saveRightHand->function = boost::bind(&MainViewWidget::saveRightHandContext,this);
+//    saveRightHand->parent = systemCommands;
+//    saveRightHand->hasChildren = false;
+//    contextMenuElements.push_back(saveRightHand);
+
+    //add all context menu items to each view
+    for(int i=0;i<contextMenuElements.size();i++)
+    {        
+        ((vigir_ocs::Base3DView*) views_list["Top Left"])->addToContextVector(contextMenuElements[i]);
+        ((vigir_ocs::Base3DView*) views_list["Top Right"])->addToContextVector(contextMenuElements[i]);
+        ((vigir_ocs::Base3DView*) views_list["Bottom Left"])->addToContextVector(contextMenuElements[i]);
+        ((vigir_ocs::Base3DView*) views_list["Bottom Right"])->addToContextVector(contextMenuElements[i]);
+    }
+}
+
+contextMenuItem * MainViewWidget::makeContextParent(QString name)
+{
+    contextMenuItem * parent = new contextMenuItem();
+    parent->name = name;
+    parent->hasChildren = true;
+    contextMenuElements.push_back(parent);
+    return parent;
+}
+
+void MainViewWidget::makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent)
+{
+    contextMenuItem * child = new contextMenuItem();
+    child->name = name;
+    child->function = function;
+    child->parent = parent;
+    child->hasChildren = false;
+    contextMenuElements.push_back(child);
+}
+
+//callback functions for context menu
+void MainViewWidget::resetWorldContext()
+{
+    sysCmdMsg.data = "reset";
+    sys_command_pub_.publish(sysCmdMsg);
+}
+void MainViewWidget::saveOctoContext()
+{
+    sysCmdMsg.data = "save_octomap";
+    sys_command_pub_.publish(sysCmdMsg);
+}
+void MainViewWidget::savePointCloudContext()
+{
+    sysCmdMsg.data = "save_pointcloud";
+    sys_command_pub_.publish(sysCmdMsg);
+}
+void MainViewWidget::saveImageHeadContext()
+{
+    sysCmdMsg.data = "save_image_left_eye";
+    sys_command_pub_.publish(sysCmdMsg);
+}
+void MainViewWidget::saveLeftHandContext()
+{
+    sysCmdMsg.data = "save_image_left_hand";
+    sys_command_pub_.publish(sysCmdMsg);
+}
+void MainViewWidget::saveRightHandContext()
+{
+    sysCmdMsg.data = "save_image_right_hand";
+    sys_command_pub_.publish(sysCmdMsg);
+}
+
+void MainViewWidget::toggleJoystick()
+{
+    if(!ui->joystickBtn->isChecked())
+        ui->joystickBtn->setChecked(true);
+    else
+        ui->joystickBtn->setChecked(false);
+}
+void MainViewWidget::toggleJointControl()
+{
+    if(!ui->jointControlBtn->isChecked())
+        ui->jointControlBtn->setChecked(true);
+    else
+        ui->jointControlBtn->setChecked(false);
+}
+void MainViewWidget::togglePelvis()
+{
+    if(!ui->pelvisControlBtn->isChecked())
+        ui->pelvisControlBtn->setChecked(true);
+    else
+        ui->pelvisControlBtn->setChecked(false);
+}
+void MainViewWidget::toggleGhost()
+{
+    if(!ui->ghostControlBtn->isChecked())
+        ui->ghostControlBtn->setChecked(true);
+    else
+        ui->ghostControlBtn->setChecked(false);
+}
+void MainViewWidget::toggleBasicFootstep()
+{
+    if(!ui->basicStepBtn->isChecked())
+        ui->basicStepBtn->setChecked(true);
+    else
+        ui->basicStepBtn->setChecked(false);
+}
+void MainViewWidget::togglePlanner()
+{
+    if(!ui->plannerConfigBtn->isChecked())
+        ui->plannerConfigBtn->setChecked(true);
+    else
+        ui->plannerConfigBtn->setChecked(false);
+}
+void MainViewWidget::toggleAdvancedFootstep()
+{
+    if(!ui->stepBtn->isChecked())
+        ui->stepBtn->setChecked(true);
+    else
+        ui->stepBtn->setChecked(false);
+}
+void MainViewWidget::toggleFootstepParameter()
+{
+    if(!ui->footstepParamBtn->isChecked())
+        ui->footstepParamBtn->setChecked(true);
+    else
+        ui->footstepParamBtn->setChecked(false);
+}
+void MainViewWidget::togglePositionMode()
+{
+    if(!ui->positionModeBtn->isChecked())
+        ui->positionModeBtn->setChecked(true);
+    else
+        ui->positionModeBtn->setChecked(false);
+}
+void MainViewWidget::setTemplateMode()
+{
+    ui->objectBox->setCurrentIndex(0);
+    setObjectMode(0);
+}
+void MainViewWidget::setLeftArmMode()
+{
+    ui->objectBox->setCurrentIndex(1);
+    setObjectMode(1);
+}
+void MainViewWidget::setRightArmMode()
+{
+    ui->objectBox->setCurrentIndex(2);
+    setObjectMode(2);
+}
+void MainViewWidget::setCameraMode()
+{
+    ui->modeBox->setCurrentIndex(0);
+    setManipulationMode(0);
+}
+void MainViewWidget::setWorldMode()
+{
+    ui->modeBox->setCurrentIndex(1);
+    setManipulationMode(1);
+}
+void MainViewWidget::setObjectMode()
+{
+    ui->modeBox->setCurrentIndex(2);
+    setManipulationMode(2);
 }
 
 void MainViewWidget::setManipulationMode(int mode)
@@ -337,8 +572,6 @@ void MainViewWidget::graspWidgetToggle()
 {
     if(!leftGraspWidget->isVisible())
     {
-        //leftGraspWidget->setWindowOpacity(75);
-        //rightGraspWidget->setWindowOpacity(75);
         leftGraspWidget->show();
         rightGraspWidget->show();
         rightGraspFadeIn->start();
@@ -348,12 +581,12 @@ void MainViewWidget::graspWidgetToggle()
         QIcon ButtonIcon(pixmap);
         grasp_toggle_button_->setIcon(ButtonIcon);
         grasp_toggle_button_->setIconSize(pixmap.rect().size()/10);
-
     }
     else // visible
     {
         leftGraspWidget->hide();
         rightGraspWidget->hide();
+
 
         QPixmap pixmap(icon_path_+"up_arrow_white.png");
         QIcon ButtonIcon(pixmap);
@@ -363,11 +596,9 @@ void MainViewWidget::graspWidgetToggle()
 }
 
 MainViewWidget::~MainViewWidget()
-{
-    //delete(joystick);
+{    
     delete ui;    
 }
-
 
 void MainViewWidget::timerEvent(QTimerEvent *event)
 {
@@ -377,8 +608,8 @@ void MainViewWidget::timerEvent(QTimerEvent *event)
     leftGraspWidget->setGeometry(ui->view_stack_->geometry().bottomLeft().x() + 200,ui->view_stack_->geometry().bottomRight().y()- 197, 300,200);
     rightGraspWidget->setGeometry(ui->view_stack_->geometry().bottomRight().x()- 740,ui->view_stack_->geometry().bottomRight().y()- 197, 300,200);
 
-
 }
+
 
 bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
 {
@@ -466,6 +697,7 @@ void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
 
 void MainViewWidget::toggleWindow(int window)
 {
+    ROS_ERROR("window being toggled");
     std_msgs::Int8 cmd;
     cmd.data = ((QPushButton*)toggle_mapper_->mapping(window))->isChecked() ? window : -window;
     window_control_pub_.publish(cmd);

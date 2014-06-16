@@ -33,6 +33,13 @@ MiniJoint::MiniJoint(QWidget *parent) :
 
     visible = false;
 
+    connect(jointFadeOut,SIGNAL(finished()),this,SLOT(hideWindow()));
+
+}
+
+void MiniJoint::hideWindow()
+{
+    this->hide();
 }
 
 void MiniJoint::receiveJointData(int status, QString jointName)
@@ -42,7 +49,8 @@ void MiniJoint::receiveJointData(int status, QString jointName)
      {
      case 0: //no need to know about joints that are okay
          break;
-     case 1:         
+     case 1:
+         removeDuplicates(status,jointName);
          joint = new QTableWidgetItem();
          jointStatus = new QTableWidgetItem();
          ui->table->insertRow(0);
@@ -51,7 +59,8 @@ void MiniJoint::receiveJointData(int status, QString jointName)
          ui->table->setItem(0,0,jointStatus);
          ui->table->setItem(0,1,joint);
          break;
-     case 2:         
+     case 2:
+         removeDuplicates(status,jointName);
          joint = new QTableWidgetItem();
          jointStatus = new QTableWidgetItem();
          ui->table->insertRow(0);
@@ -62,6 +71,19 @@ void MiniJoint::receiveJointData(int status, QString jointName)
          break;
      }
 
+}
+
+//searches table for joint. if found will delete entry/row
+void MiniJoint::removeDuplicates(int status, QString jointName)
+{
+    for(int i=0;i<ui->table->rowCount();i++)
+    {
+         if (ui->table->item(i,1)->text().compare(jointName) == 0) // found joint?
+         {
+             ui->table->removeRow(i);
+             return; // can only have one duplicate max
+         }
+    }
 }
 
 void MiniJoint::enterEvent(QEvent * event)
@@ -78,7 +100,6 @@ void MiniJoint::leaveEvent(QEvent * event)
     if(visible)
     {
         jointFadeOut->start();
-        this->hide();
     }
     visible = false;
     timer->stop();

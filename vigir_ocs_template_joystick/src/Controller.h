@@ -15,6 +15,7 @@
 #include <QQuaternion>
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSJoystick.h>
+#include <flor_ocs_msgs/OCSCameraTransform.h>
 #include <flor_ocs_msgs/OCSTemplateUpdate.h>
 #include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <sensor_msgs/Joy.h>
@@ -47,10 +48,11 @@ public:
     void modeCb(const flor_ocs_msgs::OCSJoystick::ConstPtr& msg);
     void changeTemplate();
     std::vector<std::string> getTemplateNames();
-    void setCameraTransform(int viewId, float x, float y, float z, float rx, float ry, float rz, float w);
+    void cameraCb(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg);
 
 protected:
     ros::Subscriber joystick_modes_sub;
+    ros::Subscriber camera_sub;
     ros::Subscriber template_list_sub;
     ros::Publisher template_update_pub;
     ros::Subscriber joy_sub;
@@ -60,6 +62,7 @@ protected:
     ros::Publisher ghost_hand_pub;
     flor_ocs_msgs::OCSTemplateList temList;
     flor_ocs_msgs::OCSJoystick joyModes;
+    flor_ocs_msgs::OCSCameraTransform cameraUpdate;
     sensor_msgs::Joy joy;
     sensor_msgs::Joy oldJoy;
     geometry_msgs::PoseStamped leftHand;

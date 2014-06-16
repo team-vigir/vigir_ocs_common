@@ -76,12 +76,12 @@
       </attribute>
       <column>
        <property name="text">
-        <string>Joint</string>
+        <string>Status</string>
        </property>
       </column>
       <column>
        <property name="text">
-        <string>Status</string>
+        <string>Joint</string>
        </property>
       </column>
      </widget>

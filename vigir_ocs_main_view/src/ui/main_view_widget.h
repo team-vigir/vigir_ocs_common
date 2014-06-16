@@ -4,24 +4,32 @@
 #include <QWidget>
 #include <QPushButton>
 #include <QSignalMapper>
-
 #include <map>
 #include <vector>
 #include <algorithm>
-
 #include <ros/ros.h>
-
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSJoystick.h>
 #include <std_msgs/Int8.h>
 
 #include "statusBar.h"
-
 #include "graspWidget.h"
 #include <QSpacerItem>
 #include <QBasicTimer>
+#include "graspWidget.h"
 #include <QPropertyAnimation>
 #include <QFrame>
+#include <boost/bind.hpp>
+
+#include "ui/template_loader_widget.h"
+#include "perspective_view.h"
+#include "ortho_view.h"
+#include <ros/package.h>
+#include <rviz/visualization_manager.h>
+#include <rviz/displays_panel.h>
+#include <rviz/views_panel.h>
+#include <QPropertyAnimation>
+#include <flor_ocs_msgs/WindowCodes.h>
 
 
 
@@ -46,6 +54,8 @@ public:
     // process window control messages to update toggle buttons
     void processWindowControl(const std_msgs::Int8::ConstPtr& visible);
 
+    virtual void timerEvent(QTimerEvent *event);
+
 public Q_SLOTS:
     void oneViewToggle();
     void fourViewToggle();
@@ -57,9 +67,39 @@ public Q_SLOTS:
     void setManipulationMode(int);
     void setObjectMode(int);
 
+
+
+
 private:
+    void addContextMenu();
+    void setTemplateMode();
+    void setLeftArmMode();
+    void setRightArmMode();
+    void setCameraMode();
+    void setWorldMode();
+    void setObjectMode();
     void setupToolbar();
+    void toggleJoystick();
+    void toggleJointControl();
+    void togglePelvis();
+    void toggleGhost();
+    void toggleBasicFootstep();
+    void togglePlanner();
+    void toggleAdvancedFootstep();
+    void toggleFootstepParameter();
+    void togglePositionMode();
+    void resetWorldContext();
+    void saveOctoContext();
+    void savePointCloudContext();
+    void saveImageHeadContext();
+    void saveLeftHandContext();
+    void saveRightHandContext();
     void loadButtonIcon(QPushButton* btn, QString image_name);
+
+    contextMenuItem *makeContextParent(QString name);
+    void makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent);
+
+    std::vector<contextMenuItem *> contextMenuElements;
 
     Ui::MainViewWidget *ui;
 
@@ -75,14 +115,15 @@ private:
     std::vector<int> keys_pressed_list_;
 
     ros::NodeHandle n_;
-
     ros::Subscriber window_control_sub_;
     ros::Publisher window_control_pub_;
     ros::Subscriber key_event_sub_;
-
     ros::Publisher ft_zero_pub_;
+    ros::Publisher sys_command_pub_;
 
     ros::Publisher joystick_pub_;
+
+    std_msgs::String sysCmdMsg;
 
     StatusBar * statusBar;
 
@@ -95,7 +136,7 @@ private:
     QPropertyAnimation * rightGraspFadeOut;
     QPropertyAnimation * leftGraspFadeIn;
     QPropertyAnimation * leftGraspFadeOut;
-    void timerEvent(QTimerEvent *event);
+
 
 };
 

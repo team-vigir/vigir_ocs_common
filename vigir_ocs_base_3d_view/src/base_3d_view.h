@@ -59,6 +59,23 @@
 #include <flor_control_msgs/FlorControlMode.h>
 
 #include <string>
+#include <boost/bind.hpp>
+#include <vector>
+#include <map>
+
+struct contextMenuItem
+{
+    QString name;
+    //callback function of this item, sometimes null for parent items
+    boost::function<void()> function;    
+    struct contextMenuItem * parent;
+    //menu associated with this item, for children to add to menu
+    QMenu* menu;
+    //can only have action or menu. never both
+    QAction* action;
+    //tells whether to make an action or a menu object
+    bool hasChildren;
+};
 
 namespace rviz
 {
@@ -94,6 +111,7 @@ public:
     Base3DView( Base3DView* copy_from = NULL, std::string base_frame = "/pelvis", std::string widget_name = "", QWidget *parent = 0 );
     virtual ~Base3DView();
 
+    void addToContextVector(contextMenuItem* item);
     void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
     void processNewSelection( const geometry_msgs::Point::ConstPtr& pose );
     void processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc );
@@ -179,6 +197,8 @@ public Q_SLOTS:
 
     virtual bool eventFilter( QObject * o, QEvent * e );
 
+    void emergencyStop();
+
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
     void resetSelection();
@@ -189,9 +209,14 @@ Q_SIGNALS:
     void enableTemplateMarkers( bool );
     void setFrustum( const float &, const float &, const float&, const float& );
     void finishedContextMenuSetup( int x, int y );
-    void sendPositionText(QString s);
+    void sendPositionText(QString s);    
 
-protected:
+
+protected:    
+    void addBase3DContextElements();
+    void processContextMenuVector();
+    void addToContextMenuFromVector();
+    std::vector<contextMenuItem*> contextMenuItems;
     virtual void timerEvent(QTimerEvent *event);
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
@@ -358,6 +383,7 @@ protected:
     QLineEdit* position_label_;
 
     QPushButton* reset_view_button_;
+    QPushButton* stop_button_;
 
     tf::Transform l_hand_T_palm_;
     tf::Transform r_hand_T_palm_;
@@ -411,6 +437,27 @@ protected:
 
     ros::Subscriber send_cartesian_sub_;
     ros::Subscriber send_ghost_pelvis_pose_sub_;
+
+    void insertTemplateContextMenu();
+    void removeTemplateContextMenu();
+    void executeFootstepPlanContextMenu();
+    void createCartesianContextMenu();
+    void removeCartesianContextMenu();
+    void createCircularContextMenu();
+    void removeCircularContextMenu();
+
+    contextMenuItem * insertTemplateMenu;
+    contextMenuItem * removeTemplateMenu;
+    contextMenuItem * footstepPlanMenuWalk;
+    contextMenuItem * footstepPlanMenuWalkManipulation;
+    contextMenuItem * cartesianMotionMenu;
+    contextMenuItem * createCartesianMarkerMenu;
+    contextMenuItem * removeCartesianMarkerMenu;
+    contextMenuItem * circularMotionMenu;
+    contextMenuItem * createCircularMarkerMenu;
+    contextMenuItem * removeCircularMarkerMenu;
+
+
 };
 }
 #endif // BASE_3D_VIEW_H

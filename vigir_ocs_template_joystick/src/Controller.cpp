@@ -78,6 +78,8 @@ namespace vigir_ocs
 
         ghost_hand_pub = nh.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>("/flor/ocs/interactive_marker_server/update", 1, false);
 
+        camera_sub = nh.subscribe<flor_ocs_msgs::OCSCameraTransform>( "flor/ocs/camera_transform",1,&Controller::cameraCb,this);
+
         timer.start(33, this);
 
         templateIndex = 0;
@@ -88,12 +90,6 @@ namespace vigir_ocs
         rightMode = false;
         worldMode = false;
         objectMode = false;
-
-        //commit/
-        //new branch
-        //merge with grasp
-        //check changes
-        //switch to ocs_development
     }
 
     // Destructor
@@ -121,8 +117,7 @@ namespace vigir_ocs
         joyModes = *msg;
         //set current modes based on subscribed data
         setObjectMode(joyModes.objectMode);
-        setManipulation(joyModes.manipulationMode);
-        ROS_ERROR("Joystick Mode CB %d %d",joyModes.objectMode,joyModes.manipulationMode );
+        setManipulation(joyModes.manipulationMode);        
     }
 
     //sends data to list and updates it
@@ -138,16 +133,21 @@ namespace vigir_ocs
         }
     }
 
-    void Controller::setCameraTransform(int viewId, float x, float y, float z, float rx, float ry, float rz, float w)
-    {
-       // ROS_ERROR("camera data: %f %f %f %f %f %f %f",x,y,z,rx,ry,rz,w );
-        cameraPosition.setX(x);
-        cameraPosition.setX(y);
-        cameraPosition.setX(z);
-        cameraOrientation.setX(rx);
-        cameraOrientation.setY(ry);
-        cameraOrientation.setZ(rz);
-        cameraOrientation.setScalar(w);       
+    //copy camera information and store
+    void Controller::cameraCb(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
+    {       
+        cameraUpdate = *msg;
+        if(cameraUpdate.widget_name == "MainView" && cameraUpdate.view_id == 0)
+        {
+            //update camera geometry
+            cameraPosition.setX(cameraUpdate.pose.position.x);
+            cameraPosition.setX(cameraUpdate.pose.position.y);
+            cameraPosition.setX(cameraUpdate.pose.position.z);
+            cameraOrientation.setX(cameraUpdate.pose.orientation.x);
+            cameraOrientation.setY(cameraUpdate.pose.orientation.y);
+            cameraOrientation.setZ(cameraUpdate.pose.orientation.z);
+            cameraOrientation.setScalar(cameraUpdate.pose.orientation.w);
+        }
     }
 
 
@@ -174,16 +174,16 @@ namespace vigir_ocs
     //set which object to be manipulated
     //for changing on subscribed data
     void Controller::setObjectMode(int mode)
-    {
+    {        
         switch (mode)
         {
-        case 0:
+        case 0:     
             templateModeOn();
             break;
-        case 1:
+        case 1:            
             leftModeOn();
             break;
-        case 2:
+        case 2:            
             rightModeOn();
             break;
         }
@@ -211,21 +211,20 @@ namespace vigir_ocs
     {
         //will be 0,1,or 2
         if(mode==0) //camera
-        {
+        {         
             worldMode = false;
             objectMode = false;
         }
         else if (mode ==1) // world
-        {
+        {           
             objectMode = false;
             worldMode = true;
         }
         else  // object
-        {
+        {            
             worldMode = false;
             objectMode = true;
         }
-
     }
 
 
@@ -389,11 +388,9 @@ namespace vigir_ocs
 
     }
 
-    //update position and rotation
+    //update position and rotation and publish
     void Controller::buildmsg(float posX, float posY , float rotY, float rotX)
     {       
-
-
         QQuaternion * rotation;
         QVector3D* position;
         if(leftMode)
@@ -401,6 +398,16 @@ namespace vigir_ocs
             rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
                                        leftHand.pose.orientation.y,leftHand.pose.orientation.z);
             position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
+        }
+        else if (rightMode)
+        {
+            //NOT VALID .. TO BE IMPLEMENTED
+            // to avoid seg fault on deleting rotation and position
+            rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
+                                       leftHand.pose.orientation.y,leftHand.pose.orientation.z);
+            position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
+           ///////
+
         }
         else //moving templates
         {
@@ -432,7 +439,11 @@ namespace vigir_ocs
             ghost_hand_pub.publish(msg);
 
         }
-        else
+        else if (rightMode)
+        {
+            //TO BE IMPLEMENTED
+        }
+        else //template mode
         {
             //create msg to publish
             flor_ocs_msgs::OCSTemplateUpdate msg;
@@ -451,8 +462,7 @@ namespace vigir_ocs
 
             //publish
             template_update_pub.publish(msg);
-        }
-        //delete(v);
+        }        
         delete(rotation);
         delete(position);
     }
@@ -464,9 +474,7 @@ namespace vigir_ocs
         //create a vector representing the offset to be applied to position.
         QVector3D* offset = new QVector3D(posX,posY,posZ);
         //rotate the offset to be relative to camera orientation, can now be applied to position to move relative to camera
-        *offset = cameraOrientation.rotatedVector(*offset);
-
-      // ROS_ERROR("rotation before: %f %f %f %f",rotation->x(),rotation->y(), rotation->z(),rotation->scalar());
+        *offset = cameraOrientation.rotatedVector(*offset);      
 
         rotation->normalize();      
         //build quaternion that stores desired rotation offset
@@ -491,7 +499,7 @@ namespace vigir_ocs
             *rotation *= *r;
         }
         else //Camera relative rotation
-        {
+        {            
             QQuaternion* rot = new QQuaternion();
             *rot *= QQuaternion::fromAxisAndAngle(0,1,0,rotY); //more intuitive for camera if reversed
             *rot *= QQuaternion::fromAxisAndAngle(1,0,0,-rotX);
@@ -510,13 +518,13 @@ namespace vigir_ocs
         //rotation->normalize();
 
         if(worldMode)
-        {
+        {            
             position->setX(position->x()+posX);
             position->setY(position->y()+posY);
             position->setZ(position->z()+posZ);
         }
         else if(objectMode)//object relative translation
-        {
+        {            
             QVector3D* objectOffset = new QVector3D(posX,posY,posZ);
             *objectOffset = rotation->rotatedVector(*objectOffset);
 
@@ -526,7 +534,7 @@ namespace vigir_ocs
             delete(objectOffset);
         }
         else // camera relative
-        {
+        {            
             //update coordinates based on latest data from list
             position->setX(position->x()+offset->x());
             position->setY(position->y()+offset->y());

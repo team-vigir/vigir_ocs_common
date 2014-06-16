@@ -107,10 +107,10 @@ void JoystickWidget::setManipulationMode(int mode)
     controller->setManipulation(mode);
 }
 
-void JoystickWidget::receiveCameraTransform(int viewId, float x,float y, float z, float rx, float ry, float rz, float w)
-{
-    controller->setCameraTransform(viewId,x,y,z,rx,ry,rz,w);
-}
+//void JoystickWidget::receiveCameraTransform(int viewId, float x,float y, float z, float rx, float ry, float rz, float w)
+//{
+//    controller->setCameraTransform(viewId,x,y,z,rx,ry,rz,w);
+//}
 
 void JoystickWidget::populateTemplateComboBox(int tempId)
 {

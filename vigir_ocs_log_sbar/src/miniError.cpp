@@ -36,11 +36,18 @@ MiniError::MiniError(QWidget *parent) :
     errorFadeOut->setStartValue(0.75);
     errorFadeOut->setEndValue(0.0);
 
+    connect(errorFadeOut,SIGNAL(finished()),this,SLOT(hideWindow()));
+
     newErrors = 0;
 
     //originalGeometry
 
     visible = false;
+}
+
+void MiniError::hideWindow()
+{
+    this->hide();
 }
 
 void MiniError::receiveErrorData(QString time, QString message)
@@ -76,9 +83,9 @@ void MiniError::leaveEvent(QEvent * event)
 {
     if(visible)
     {
-        this->hide();
         errorFadeOut->start();
     }
+
     //set errors as viewed
     for(int i=0;i<newErrors;i++)
     {

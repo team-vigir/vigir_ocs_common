@@ -1,10 +1,7 @@
 
 #include "ui_statusBar.h"
 #include "statusBar.h"
-#include<QFile>
-#include<QTextStream>
-#include<QDebug>
-#include <QSpacerItem>
+
 
 StatusBar::StatusBar(QWidget *parent) :
     QMainWindow(parent),
@@ -14,11 +11,11 @@ StatusBar::StatusBar(QWidget *parent) :
     glanceSbar = new glancehubSbar(this);
     logSbar = new LogSbar(this);
 
-    ui->errorLayout->addWidget(logSbar);
+    ui->errorLayout->addWidget(logSbar);    
+
     ui->glanceLayout->addWidget(glanceSbar);
 
-    QSpacerItem* spacer = new QSpacerItem(0,0,QSizePolicy::Expanding,QSizePolicy::Expanding);
-    ui->statusBarLayout->addSpacerItem(spacer);
+    ui->positionLabel->setText("None Selected");
 }
 
 
