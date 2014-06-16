@@ -332,11 +332,6 @@ void MainViewWidget::addContextMenu()
     //and in the order you want them to show up in the context menu
 
     makeContextChild("Joystick",boost::bind(&MainViewWidget::toggleJoystick,this), NULL);
-//    contextMenuItem * joyStick = new contextMenuItem();
-//    joyStick->name = "Joystick";
-//    joyStick->function = boost::bind(&MainViewWidget::toggleJoystick,this);
-//    joyStick->hasChildren = false;
-//    contextMenuElements.push_back(joyStick);
 
     contextMenuItem * manipulationModes = makeContextParent("Manipulation Mode");
 
@@ -376,24 +371,12 @@ void MainViewWidget::addContextMenu()
 
     contextMenuItem * systemCommands = makeContextParent("System Commands");
 
-//    contextMenuItem * systemCommands = new contextMenuItem();
-//    systemCommands->name = "System Commands";
-//    systemCommands->hasChildren = true;
-//    contextMenuElements.push_back(systemCommands);
-
     makeContextChild("Reset World Model",boost::bind(&MainViewWidget::resetWorldContext,this), systemCommands);
     makeContextChild("Save Octomap",boost::bind(&MainViewWidget::saveOctoContext,this), systemCommands);
     makeContextChild("Save Pointcloud",boost::bind(&MainViewWidget::savePointCloudContext,this), systemCommands);
     makeContextChild("Save Image Head",boost::bind(&MainViewWidget::saveImageHeadContext,this), systemCommands);
     makeContextChild("Save Left Hand Image",boost::bind(&MainViewWidget::saveLeftHandContext,this), systemCommands);
     makeContextChild("Save Right Hand Image",boost::bind(&MainViewWidget::saveRightHandContext,this), systemCommands);
-
-//    contextMenuItem * saveRightHand = new contextMenuItem();
-//    saveRightHand->name = "Save Right Hand Image";
-//    saveRightHand->function = boost::bind(&MainViewWidget::saveRightHandContext,this);
-//    saveRightHand->parent = systemCommands;
-//    saveRightHand->hasChildren = false;
-//    contextMenuElements.push_back(saveRightHand);
 
     //add all context menu items to each view
     for(int i=0;i<contextMenuElements.size();i++)
