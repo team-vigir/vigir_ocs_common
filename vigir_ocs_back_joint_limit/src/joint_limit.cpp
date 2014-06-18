@@ -2,6 +2,7 @@
 #include "ui_joint_limit.h"
 #include <ros/package.h>
 #include <flor_planning_msgs/PlannerConfiguration.h>
+#include <flor_ocs_msgs/WindowCodes.h>
 
 joint_limit::joint_limit(QWidget *parent) :
     QWidget(parent),
@@ -18,6 +19,8 @@ joint_limit::joint_limit(QWidget *parent) :
     ubxMinVal = -0.790809;
     ubxMaxVal = 0.790809;
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &joint_limit::processNewKeyEvent, this );
+
+    window_control_sub = nh_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &joint_limit::processWindowControl, this );
 
     timer.start(33, this);
 }
@@ -245,4 +248,18 @@ void joint_limit::on_lock_roll__toggled(bool checked)
 {
     ui->ubxMin->setEnabled(!checked);
     ui->ubxMax->setEnabled(!checked);
+}
+
+void joint_limit::processWindowControl(const std_msgs::Int8::ConstPtr& msg)
+{
+    if(!isVisible() && msg->data == WINDOW_PLANNER_CONFIG)
+    {
+        this->show();
+        this->setGeometry(geometry_);
+    }
+    else if(isVisible() && (!msg->data || msg->data == -WINDOW_PLANNER_CONFIG))
+    {
+        geometry_ = this->geometry();
+        this->hide();
+    }
 }
