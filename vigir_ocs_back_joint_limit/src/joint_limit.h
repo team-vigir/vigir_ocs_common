@@ -10,6 +10,8 @@
 #include <ros/ros.h>
 #include <ros/publisher.h>
 
+#include <std_msgs/Int8.h>
+
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 
 namespace Ui {
@@ -24,9 +26,14 @@ public:
     explicit joint_limit(QWidget *parent = 0);
     ~joint_limit();
 
+    void processWindowControl(const std_msgs::Int8::ConstPtr& msg);
+
     void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
 private:
+    ros::Subscriber window_control_sub;
+    QRect geometry_;
+
     Ui::joint_limit *ui;
     ros::NodeHandle nh_;
     ros::Publisher constraints_pub_;

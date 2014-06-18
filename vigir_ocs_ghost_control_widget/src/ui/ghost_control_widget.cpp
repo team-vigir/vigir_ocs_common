@@ -8,9 +8,11 @@
 #include <QtGui>
 #include <QSignalMapper>
 
-#include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
 #include <boost/exception/to_string.hpp>
+
+#include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
 #include <flor_ocs_msgs/OCSInverseReachability.h>
+#include <flor_ocs_msgs/WindowCodes.h>
 
 std::vector<unsigned char> GhostControlWidget::saved_state_planning_group_;
 std::vector<unsigned char> GhostControlWidget::saved_state_pose_source_;
@@ -63,6 +65,8 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     initPoseDB();
 
     //ui->position_only_ik_->hide();
+
+    window_control_sub = nh_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &GhostControlWidget::processWindowControl, this );
 }
 
 GhostControlWidget::~GhostControlWidget()
@@ -797,4 +801,18 @@ int GhostControlWidget::calcTargetPose(const geometry_msgs::Pose& pose_1, const 
     pose_result.position.y = pose_result_vector.getY();
     pose_result.position.z = pose_result_vector.getZ();
     return 0;
+}
+
+void GhostControlWidget::processWindowControl(const std_msgs::Int8::ConstPtr& msg)
+{
+    if(!isVisible() && msg->data == WINDOW_GHOST_CONFIG)
+    {
+        this->show();
+        this->setGeometry(geometry_);
+    }
+    else if(isVisible() && (!msg->data || msg->data == -WINDOW_GHOST_CONFIG))
+    {
+        geometry_ = this->geometry();
+        this->hide();
+    }
 }

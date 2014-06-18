@@ -662,11 +662,11 @@ void MainViewWidget::setupToolbar()
     connect(ui->jointControlBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->pelvisControlBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->basicStepBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
-    connect(ui->stepBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
-    connect(ui->footstepParamBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
-    connect(ui->ghostControlBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
-    connect(ui->positionModeBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
-    connect(ui->plannerConfigBtn,SIGNAL(pressed()),toggle_mapper_,SLOT(map()));
+    connect(ui->stepBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
+    connect(ui->footstepParamBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
+    connect(ui->ghostControlBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
+    connect(ui->positionModeBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
+    connect(ui->plannerConfigBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
 }
 
 void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)

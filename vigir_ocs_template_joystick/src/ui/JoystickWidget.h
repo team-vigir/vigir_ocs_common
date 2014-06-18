@@ -42,7 +42,6 @@ protected:
 
 private:
     ros::Subscriber window_control_sub;
-
     QRect geometry_;
 
     Ui::JoystickWidget *ui;
