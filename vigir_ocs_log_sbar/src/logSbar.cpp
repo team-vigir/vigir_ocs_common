@@ -1,21 +1,6 @@
 #include "ui_logSbar.h"
 #include "logSbar.h"
 
-//hover over error: list of last 5 errors or so   on click bring up log_messages window
-//hover over joint: list of joints with errors or warnings, nothing if okay  on clikc bring up joint_Lists as window
-
-//to do
-//make small error table window
-//    highlight new errors in red
-//make small joint table
-//detect mouse clicks on mini windows to pull up robstatus and joint status as seperate windows
-//hide mini windows on leave mini window  must detect on enter for those as well to keep alive from transition of errorWidget to mini window
-
-//worry about max rows in mini tables?
-//timer events so you can only make mini windows appear after you have been in corresponding spot in LogSbar
-//how to register mouse clicks over the table
-//add more stuff to mini joint list?
-
 LogSbar::LogSbar(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::LogSbar)
@@ -28,13 +13,13 @@ LogSbar::LogSbar(QWidget *parent) :
     flags |= Qt::FramelessWindowHint;
     flags |= Qt::Dialog; // //ensure ghub as a dialog box, not a seperate window/tab
     miniError->setWindowFlags(flags);
-    miniError->show();
-    miniError->setWindowOpacity(0);
+   // miniError->show();
+    //miniError->setWindowOpacity(0);
 
     miniJoint = new MiniJoint(this);
     miniJoint->setWindowFlags(flags);
-    miniJoint->show();
-    miniJoint->setWindowOpacity(0);
+   // miniJoint->show();
+   // miniJoint->setWindowOpacity(0);
 
     //create animations
     errorFadeIn = new QPropertyAnimation(miniError, "windowOpacity");

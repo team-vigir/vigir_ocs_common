@@ -23,6 +23,7 @@ class TemplateLoaderWidget : public QWidget
 public:
     explicit TemplateLoaderWidget(QWidget *parent = 0);
     ~TemplateLoaderWidget();
+    QTreeWidget * getTreeRoot();
     
 private:
     void addTreeWidgetChild(QTreeWidgetItem* item);

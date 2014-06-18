@@ -1331,3 +1331,12 @@ void graspWidget::on_pushButton_clicked()
 
     ui2->show();
 }
+
+Ui::graspWidget * graspWidget::getUi()
+{
+    return ui;
+}
+QLayout* graspWidget::getMainLayout()
+{
+    return ui->mainLayout;
+}

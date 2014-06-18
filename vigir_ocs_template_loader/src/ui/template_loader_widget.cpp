@@ -80,6 +80,11 @@ void TemplateLoaderWidget::addTreeWidgetChild(QTreeWidgetItem* item)
     }
 }
 
+QTreeWidget * TemplateLoaderWidget::getTreeRoot()
+{    
+    return ui->treeWidget;
+}
+
 void TemplateLoaderWidget::treeItemChanged(QTreeWidgetItem * current, QTreeWidgetItem * previous)
 {
     if(current->parent()) // it means that it is a sub-item/mesh file

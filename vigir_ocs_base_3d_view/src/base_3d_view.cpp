@@ -1128,77 +1128,97 @@ void Base3DView::insertWaypoint()
     }
 }
 
+void Base3DView::setTemplateTree(QTreeWidget * root)
+{   
+    if(root != NULL)
+    {
+        templateRoot = root;
+        addTemplatesToContext();
+    } 
+}
+
 void Base3DView::addBase3DContextElements()
 {
-    insertTemplateMenu = new contextMenuItem();
-    insertTemplateMenu->function = boost::bind(&Base3DView::insertTemplateContextMenu,this);
-    insertTemplateMenu->hasChildren = false;
-    insertTemplateMenu->name = "Insert Template";
-    addToContextVector(insertTemplateMenu);
+    insertTemplateMenu = makeContextParent("Insert Template",contextMenuItems);
 
-    removeTemplateMenu = new contextMenuItem();
-    removeTemplateMenu->function = boost::bind(&Base3DView::removeTemplateContextMenu,this);
-    removeTemplateMenu->hasChildren = false;
-    removeTemplateMenu->name = "Remove Template";
-    addToContextVector(removeTemplateMenu);
+    removeTemplateMenu = makeContextChild("Remove Template",boost::bind(&Base3DView::removeTemplateContextMenu,this),NULL,contextMenuItems);
 
     contextMenuItem * seperator = new contextMenuItem();
     seperator->name = "Seperator";
     addToContextVector(seperator);
 
-    footstepPlanMenuWalk = new contextMenuItem();
-    footstepPlanMenuWalk->function = boost::bind(&Base3DView::executeFootstepPlanContextMenu,this);
-    footstepPlanMenuWalk->hasChildren = false;
-    footstepPlanMenuWalk->name = QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk");
-    addToContextVector(footstepPlanMenuWalk);
-
-    footstepPlanMenuWalkManipulation = new contextMenuItem();
-    footstepPlanMenuWalkManipulation->function = boost::bind(&Base3DView::executeFootstepPlanContextMenu,this);
-    footstepPlanMenuWalkManipulation->hasChildren = false;
-    footstepPlanMenuWalkManipulation->name = QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate";
-    addToContextVector(footstepPlanMenuWalkManipulation);
+    footstepPlanMenuWalk = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
+    footstepPlanMenuWalkManipulation = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate",boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
 
     addToContextVector(seperator);
 
-    cartesianMotionMenu = new contextMenuItem();
-    cartesianMotionMenu->hasChildren = true;
-    cartesianMotionMenu->name = "Cartesian Motion";
-    addToContextVector(cartesianMotionMenu);
+    cartesianMotionMenu = makeContextParent("Cartesian Motion", contextMenuItems);
 
-    createCartesianMarkerMenu = new contextMenuItem();
-    createCartesianMarkerMenu->hasChildren = false;
-    createCartesianMarkerMenu->function = boost::bind(&Base3DView::createCartesianContextMenu,this);
-    createCartesianMarkerMenu->name = "Create Cartesian Motion Marker";
-    createCartesianMarkerMenu->parent = cartesianMotionMenu;
-    addToContextVector(createCartesianMarkerMenu);
+    createCartesianMarkerMenu = makeContextChild("Create Cartesian Motion Marker",boost::bind(&Base3DView::createCartesianContextMenu,this),cartesianMotionMenu,contextMenuItems);
+    removeCartesianMarkerMenu = makeContextChild("Remove All Markers",boost::bind(&Base3DView::removeCartesianContextMenu,this),cartesianMotionMenu,contextMenuItems);
 
-    removeCartesianMarkerMenu = new contextMenuItem();
-    removeCartesianMarkerMenu->hasChildren = false;
-    removeCartesianMarkerMenu->function = boost::bind(&Base3DView::removeCartesianContextMenu,this);
-    removeCartesianMarkerMenu->name = "Remove All Markers";
-    removeCartesianMarkerMenu->parent = cartesianMotionMenu;
-    addToContextVector(removeCartesianMarkerMenu);
+    circularMotionMenu = makeContextParent("Circular Motion", contextMenuItems);
 
-    circularMotionMenu = new contextMenuItem();
-    circularMotionMenu->hasChildren = true;
-    circularMotionMenu->name = "Circular Motion";
-    addToContextVector(circularMotionMenu);
+    createCircularMarkerMenu = makeContextChild("Create Circular Motion Marker",boost::bind(&Base3DView::createCircularContextMenu,this),circularMotionMenu,contextMenuItems);
+    removeCircularMarkerMenu = makeContextChild("Remove marker",boost::bind(&Base3DView::removeCircularContextMenu,this),circularMotionMenu,contextMenuItems);
 
-    createCircularMarkerMenu = new contextMenuItem();
-    createCircularMarkerMenu->hasChildren = false;
-    createCircularMarkerMenu->function = boost::bind(&Base3DView::createCircularContextMenu,this);
-    createCircularMarkerMenu->name = "Create Circular Motion Marker";
-    createCircularMarkerMenu->parent = circularMotionMenu;
-    addToContextVector(createCircularMarkerMenu);
+    addToContextVector(seperator);   
+}
 
-    removeCircularMarkerMenu = new contextMenuItem();
-    removeCircularMarkerMenu->hasChildren = false;
-    removeCircularMarkerMenu->function = boost::bind(&Base3DView::removeCircularContextMenu,this);
-    removeCircularMarkerMenu->name = "Remove Marker";
-    removeCircularMarkerMenu->parent = circularMotionMenu;
-    addToContextVector(removeCircularMarkerMenu);
+void Base3DView::addTemplatesToContext()
+{
+    if(templateRoot != NULL)
+    {
+        QTreeWidgetItemIterator it(templateRoot);
+        while (*it)
+        {            
+            contextMenuItem * localParent;
+            if(!(*it)->text(0).contains(".mesh")) //only templates have .mesh
+            {
+                //will be traversed before children, can be used locally for children as well
+                //next parent won't be called until after all children, preorder traversal
+                //need to make manually as we have a parent with a parent(not handled by built-in method)
+                localParent = new contextMenuItem();
+                localParent->hasChildren = true;
+                localParent->name = (*it)->text(0);
+                localParent->parent = insertTemplateMenu;
+                addToContextVector(localParent);
+            }
+            else
+            {
+                //build path to template for insertion
+                QString path = localParent->name + "/" + (*it)->text(0);
+                makeContextChild((*it)->text(0),boost::bind(&Base3DView::contextInsertTemplate,this,path),localParent,contextMenuItems);
+            }
+            ++it;
+        }
+    }
+}
 
-    addToContextVector(seperator);
+
+void Base3DView::contextInsertTemplate(QString path)
+{    
+    insertTemplate(path);
+}
+
+contextMenuItem * Base3DView::makeContextParent(QString name,std::vector<contextMenuItem * > &contextMenuElements)
+{
+    contextMenuItem * parent = new contextMenuItem();
+    parent->name = name;
+    parent->hasChildren = true;
+    contextMenuElements.push_back(parent);
+    return parent;
+}
+
+contextMenuItem * Base3DView::makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent,std::vector<contextMenuItem * > &contextMenuElements)
+{
+    contextMenuItem * child = new contextMenuItem();
+    child->name = name;
+    child->function = function;
+    child->parent = parent;
+    child->hasChildren = false;
+    contextMenuElements.push_back(child);
+    return child;
 }
 
 void Base3DView::createContextMenu(bool, int x, int y)
@@ -1213,15 +1233,13 @@ void Base3DView::createContextMenu(bool, int x, int y)
     // first we need to query the 3D scene to retrieve the context
     Q_EMIT queryContext(x,y);
     // context is stored in the active_context_ variable
-    std::cout << "Active context: " << active_context_ << std::endl;
-
+    std::cout << "Active context: " << active_context_ << std::endl;     
 
     addToContextMenuFromVector();
 
     //insert stuff in constructor
     //have special case for empty vector item. insert seperator when found
     //context_menu_.addAction("Insert Template");
-
 
     if(active_context_name_.find("template") != std::string::npos)
         removeTemplateMenu->action->setEnabled(true);
@@ -1237,7 +1255,7 @@ void Base3DView::createContextMenu(bool, int x, int y)
     {
         footstepPlanMenuWalk->action->setEnabled(false);
         footstepPlanMenuWalkManipulation->action->setEnabled(false);
-    }
+    }    
 
     if(cartesian_marker_list_.size() == 0)
         removeCartesianMarkerMenu->action->setEnabled(false);
@@ -1257,7 +1275,7 @@ void Base3DView::createContextMenu(bool, int x, int y)
     //if(selected_) context_menu_.addAction("Insert Waypoint");
 
     if(initializing_context_menu_ == 1)
-        processContextMenu(x, y);
+        processContextMenu(x, y);    
 
     initializing_context_menu_--;
 }
@@ -1293,17 +1311,16 @@ void Base3DView::addToContextMenuFromVector()
         else // can guarantee parent has already been added provided elements were added in correct order to vector
         {
             if(contextMenuItems[i]->hasChildren)
-            {
+            {                
                 QMenu * menu = contextMenuItems[i]->parent->menu->addMenu(contextMenuItems[i]->name);
-                contextMenuItems[i]->menu = menu;
-            }
+                contextMenuItems[i]->menu = menu;             
+            }            
             else
-            {
+            {                
                 QAction * action = contextMenuItems[i]->parent->menu->addAction(contextMenuItems[i]->name);
-                contextMenuItems[i]->action = action;
+                contextMenuItems[i]->action = action;                
             }
         }
-
     }
 }
 
@@ -1340,7 +1357,10 @@ void Base3DView::processContextMenuVector()
 void Base3DView::insertTemplateContextMenu()
 {
     if(!selected_template_path_.isEmpty())
+    {
         insertTemplate(selected_template_path_);
+    }
+
 }
 
 void Base3DView::removeTemplateContextMenu()

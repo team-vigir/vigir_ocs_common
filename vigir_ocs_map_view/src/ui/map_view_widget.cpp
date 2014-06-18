@@ -45,6 +45,8 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
     ui->rviz_options->setLayout(displays_layout);
 
     key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MapViewWidget::processNewKeyEvent, this );
+
+    ((vigir_ocs::Base3DView*)ui->map_view_)->setTemplateTree(ui->template_widget_3->getTreeRoot());
 }
 
 MapViewWidget::~MapViewWidget()

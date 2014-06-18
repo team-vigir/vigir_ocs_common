@@ -56,7 +56,8 @@ public:
     ~graspWidget();
 
     void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
-
+    Ui::graspWidget * getUi();
+    QLayout * getMainLayout();
 public Q_SLOTS:
     void on_userSlider_sliderReleased();
     void on_templateBox_activated(const QString &arg1);

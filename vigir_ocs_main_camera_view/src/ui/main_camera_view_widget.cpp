@@ -166,6 +166,12 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
 	neck_pos_sub_ = nh_.subscribe<std_msgs::Float32> ( "/flor/neck_controller/current_position" , 2, &MainCameraViewWidget::updatePitch, this );
+
+    //send template list to views for context menu
+    ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((CameraViewWidget*)views_list_["Top Right"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((CameraViewWidget*)views_list_["Bottom Left"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((CameraViewWidget*)views_list_["Bottom Right"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()

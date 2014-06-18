@@ -66,6 +66,7 @@ public Q_SLOTS:
     void graspWidgetToggle();
     void setManipulationMode(int);
     void setObjectMode(int);
+    void hideGraspWidgets();
 
 
 
@@ -79,25 +80,12 @@ private:
     void setWorldMode();
     void setObjectMode();
     void setupToolbar();
-    void toggleJoystick();
-    void toggleJointControl();
-    void togglePelvis();
-    void toggleGhost();
-    void toggleBasicFootstep();
-    void togglePlanner();
-    void toggleAdvancedFootstep();
-    void toggleFootstepParameter();
-    void togglePositionMode();
-    void resetWorldContext();
-    void saveOctoContext();
-    void savePointCloudContext();
-    void saveImageHeadContext();
-    void saveLeftHandContext();
-    void saveRightHandContext();
+    void contextToggleWindow(int window);
+    void systemCommandContext(std::string command);
     void loadButtonIcon(QPushButton* btn, QString image_name);
 
-    contextMenuItem *makeContextParent(QString name);
-    void makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent);
+    //contextMenuItem *makeContextParent(QString name);
+    //void makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent);
 
     std::vector<contextMenuItem *> contextMenuElements;
 
@@ -132,10 +120,11 @@ private:
     graspWidget * leftGraspWidget;
     graspWidget * rightGraspWidget;
     QPushButton * grasp_toggle_button_;
-    QPropertyAnimation * rightGraspFadeIn;
-    QPropertyAnimation * rightGraspFadeOut;
-    QPropertyAnimation * leftGraspFadeIn;
-    QPropertyAnimation * leftGraspFadeOut;
+    QPropertyAnimation * graspFadeIn;
+    QPropertyAnimation * graspFadeOut;
+
+
+    QWidget *graspContainer;
 
 
 };

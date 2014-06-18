@@ -64,7 +64,7 @@ MapView::MapView( QWidget* parent )
     selected_area_[2] = 0;
     selected_area_[3] = 0;
 
-    setViewPlane("XY");
+    setViewPlane("XY");   
 }
 
 // Destructor.

@@ -23,6 +23,7 @@
 #include <QMenu>
 #include <QCheckBox>
 #include <QDoubleSpinBox>
+#include <QTreeWidget>
 
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
@@ -67,7 +68,7 @@ struct contextMenuItem
 {
     QString name;
     //callback function of this item, sometimes null for parent items
-    boost::function<void()> function;    
+    boost::function<void()> function;
     struct contextMenuItem * parent;
     //menu associated with this item, for children to add to menu
     QMenu* menu;
@@ -111,6 +112,10 @@ public:
     Base3DView( Base3DView* copy_from = NULL, std::string base_frame = "/pelvis", std::string widget_name = "", QWidget *parent = 0 );
     virtual ~Base3DView();
 
+    static contextMenuItem * makeContextParent(QString name,std::vector<contextMenuItem * > &contextMenuElements);
+    static contextMenuItem * makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent,std::vector<contextMenuItem * > &contextMenuElements);
+
+    void setTemplateTree(QTreeWidget * root);
     void addToContextVector(contextMenuItem* item);
     void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
     void processNewSelection( const geometry_msgs::Point::ConstPtr& pose );
@@ -212,7 +217,9 @@ Q_SIGNALS:
     void sendPositionText(QString s);    
 
 
-protected:    
+protected:
+    void addTemplatesToContext();
+    void contextInsertTemplate(QString name);
     void addBase3DContextElements();
     void processContextMenuVector();
     void addToContextMenuFromVector();
@@ -456,6 +463,8 @@ protected:
     contextMenuItem * circularMotionMenu;
     contextMenuItem * createCircularMarkerMenu;
     contextMenuItem * removeCircularMarkerMenu;
+
+    QTreeWidget * templateRoot;
 
 
 };
