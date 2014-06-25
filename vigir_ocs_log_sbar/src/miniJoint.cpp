@@ -47,7 +47,9 @@ void MiniJoint::receiveJointData(int status, QString jointName)
     //ROS_ERROR("Joint %d %s", status, qPrintable(jointName));
      switch(status)
      {
-     case 0: //no need to know about joints that are okay
+     case 0:
+         //all joint must be fine
+         ui->table->clearContents();
          break;
      case 1:
          removeDuplicates(status,jointName);

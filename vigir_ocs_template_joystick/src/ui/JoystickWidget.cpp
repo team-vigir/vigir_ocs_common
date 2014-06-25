@@ -10,7 +10,7 @@
 JoystickWidget::JoystickWidget(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::JoystickWidget)
-{       
+{
     ui->setupUi(this);
 
     ros::NodeHandle nh;
@@ -55,10 +55,9 @@ JoystickWidget::JoystickWidget(QWidget *parent) :
     //selection within combox box
     connect(ui->templateComboBox,SIGNAL(currentIndexChanged(int)),controller,SLOT(changeTemplateID(int)));
 
-    //connect buttons for Left and Right arm modes
-    connect(ui->leftArmBtn,SIGNAL(pressed()),controller,SLOT(leftModeOn()));
-    connect(ui->rightArmBtn,SIGNAL(pressed()),controller,SLOT(rightModeOn()));
-    connect(ui->templateRadioBtn,SIGNAL(pressed()),controller,SLOT(templateModeOn()));    
+    //combo boxes for changing modes
+    connect(ui->manipulateModeBox,SIGNAL(currentIndexChanged(int)),controller,SLOT(setManipulation(int)));
+    connect(ui->objectModeBox,SIGNAL(currentIndexChanged(int)),controller,SLOT(setObjectMode(int)));
 
     std::string ip = ros::package::getPath("vigir_ocs_template_joystick")+"/icons/";
     icon_path_ = QString(ip.c_str());
@@ -89,9 +88,6 @@ JoystickWidget::JoystickWidget(QWidget *parent) :
     ui->RightRButton->setIcon(right);
     ui->RightRButton->setIconSize(rightArrow.rect().size()/2);
 
-    //set template Radio button on by default
-    ui->templateRadioBtn->setChecked(true);
-
     window_control_sub = nh.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &JoystickWidget::processWindowControl, this );
 }
 
@@ -101,16 +97,6 @@ JoystickWidget::~JoystickWidget()
     delete(mapper);
     delete ui;
 }
-
-void JoystickWidget::setManipulationMode(int mode)
-{
-    controller->setManipulation(mode);
-}
-
-//void JoystickWidget::receiveCameraTransform(int viewId, float x,float y, float z, float rx, float ry, float rz, float w)
-//{
-//    controller->setCameraTransform(viewId,x,y,z,rx,ry,rz,w);
-//}
 
 void JoystickWidget::populateTemplateComboBox(int tempId)
 {
@@ -124,7 +110,7 @@ void JoystickWidget::populateTemplateComboBox(int tempId)
     int size = templates.size();
     //add new updated contents from vector
     for(int i =0;i<size;i++)
-    {        
+    {
         ui->templateComboBox->addItem(QString::fromStdString(templates[i]));
     }
     //make item selected

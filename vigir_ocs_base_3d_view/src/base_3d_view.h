@@ -1,10 +1,10 @@
 /*
  * Base3DView class definition.
- * 
+ *
  * Author: Felipe Bacim.
- * 
+ *
  * Based on librviz_tutorials and the .
- * 
+ *
  * Latest changes (12/08/2012):
  * - created class
  */
@@ -214,7 +214,8 @@ Q_SIGNALS:
     void enableTemplateMarkers( bool );
     void setFrustum( const float &, const float &, const float&, const float& );
     void finishedContextMenuSetup( int x, int y );
-    void sendPositionText(QString s);    
+    void sendPositionText(QString s);
+    void updateMainViewItems();
 
 
 protected:
@@ -363,7 +364,7 @@ protected:
     bool left_marker_moveit_loopback_;
     bool right_marker_moveit_loopback_;
     bool position_only_ik_;
-    
+
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
     std::string base_frame_;

@@ -1,10 +1,10 @@
 /*
  * RobotModel class definition.
- * 
+ *
  * Author: Brian Wright
- * 
+ *
  * Based on librviz_tutorials and the .
- * 
+ *
  */
 
 #ifndef CONTROLLER_H
@@ -81,21 +81,18 @@ private:
    void buildTransformation(float posX, float posY ,float posZ, float rotX, float rotY,float rotZ, QQuaternion* rotation, QVector3D* position);
    void handleJoystick();
    bool compareJoyData();
-   void handleButtons();    
+   void handleButtons();
    void buildJoy();
-   void setObjectMode(int mode);
-   void handleArms();   
+   void handleArms();
    QVector3D cameraPosition;
-   QQuaternion cameraOrientation;   
+   QQuaternion cameraOrientation;
 
 Q_SIGNALS:
-   void updateTemplateComboBox(int tempID);   
+   void updateTemplateComboBox(int tempID);
 
 public Q_SLOTS:
     void changeTemplateID(int newID);
-    void leftModeOn();
-    void rightModeOn();
-    void templateModeOn();
+    void setObjectMode(int mode);
     void setManipulation(int mode);
 
 

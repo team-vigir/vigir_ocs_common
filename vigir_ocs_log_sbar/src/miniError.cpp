@@ -51,7 +51,7 @@ void MiniError::hideWindow()
 }
 
 void MiniError::receiveErrorData(QString time, QString message)
-{    
+{
     //used for insertions
     simTime = new QTableWidgetItem();
     errorMessage = new QTableWidgetItem();
@@ -79,13 +79,8 @@ void MiniError::enterEvent(QEvent * event)
 
 }
 
-void MiniError::leaveEvent(QEvent * event)
+void MiniError::setViewed()
 {
-    if(visible)
-    {
-        errorFadeOut->start();
-    }
-
     //set errors as viewed
     for(int i=0;i<newErrors;i++)
     {
@@ -93,6 +88,16 @@ void MiniError::leaveEvent(QEvent * event)
         ui->table->item(i,1)->setBackgroundColor(Qt::white);
     }
     newErrors = 0;
+}
+
+void MiniError::leaveEvent(QEvent * event)
+{
+    if(visible)
+    {
+        errorFadeOut->start();
+    }
+
+
     visible = false;
     timer->stop(); //ensure stopped
 }

@@ -101,9 +101,9 @@ void LogSbar::receiveErrorData(QString time, QString message)
 }
 
 //always used to set 0
-void LogSbar::setErrorCount(int num)
+void LogSbar::resetErrorCount()
 {
-    numError = num;
+    numError = 0;
     QString s = QString::number(numError);
     ui->errorCount->setText(s);
     ui->errorCount->setStyleSheet("QLabel{color: rgb(80,80,80); }");
@@ -120,12 +120,12 @@ void LogSbar::notifyMiniJoint()
 }
 
 LogSbar::~LogSbar()
-{    
+{
     delete(errorFadeIn);
     delete(errorFadeOut);
     delete(jointFadeIn);
     delete(jointFadeOut);
-    delete ui;    
+    delete ui;
 }
 
 ErrorWidget::ErrorWidget(QWidget * parent):
@@ -147,16 +147,13 @@ void ErrorWidget::enterEvent(QEvent * event)
 void ErrorWidget::leaveEvent(QEvent * event)
 {
     myParent->getErrorFadeOut()->start();
-    myParent->setErrorCount(0);    
+
 }
 
 void ErrorWidget::mousePressEvent(QMouseEvent * event)
 {
-    //pull up log window from main view
-    std_msgs::Int8 cmd;
-    cmd.data = WINDOW_SYSTEM_LOG;
-    myParent->getWindowPublisher().publish(cmd);
-
+    myParent->resetErrorCount();
+    myParent->getMiniError()->setViewed();
 }
 
 ErrorWidget::~ErrorWidget()

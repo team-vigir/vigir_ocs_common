@@ -9,7 +9,7 @@
 #include <algorithm>
 
 #include <ros/ros.h>
-
+#include "base_3d_view.h"
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <std_msgs/Float32.h>
 
@@ -21,7 +21,7 @@ namespace Ui
 class MainCameraViewWidget : public QWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit MainCameraViewWidget(QWidget *parent = 0);
     ~MainCameraViewWidget();
@@ -37,10 +37,14 @@ public Q_SLOTS:
     void lockPitchUpdates();
     void sendPitch();
     void cameraInitialized();
-    
+
 private:
     Ui::MainCameraViewWidget *ui;
 
+    std::vector<contextMenuItem *> contextMenuElements;
+
+    void addContextMenu();
+    void systemCommandContext(std::string command);
     std::map<std::string,QWidget*> views_list_;
     int views_initialized_;
 
@@ -55,9 +59,12 @@ private:
     ros::NodeHandle nh_;
 
     ros::Subscriber key_event_sub_;
-	ros::Subscriber neck_pos_sub_;
-	
-	bool lock_pitch_slider_;
+    ros::Subscriber neck_pos_sub_;
+    ros::Publisher sys_command_pub_;
+
+    std_msgs::String sysCmdMsg;
+
+    bool lock_pitch_slider_;
 
 };
 

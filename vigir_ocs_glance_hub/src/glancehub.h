@@ -26,6 +26,8 @@ public:
     void robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
     void loadFile();
     QString timeFromMsg(ros::Time stamp);
+    QString getMoveitStat();
+    QString getFootstepStat();
 
 protected:
     void timerEvent(QTimerEvent *event);

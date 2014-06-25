@@ -20,7 +20,7 @@ namespace Ui
 class JoystickWidget : public QMainWindow
 {
     Q_OBJECT
-    
+
 public:
     explicit JoystickWidget(QWidget *parent = 0);
     ~JoystickWidget();
@@ -33,8 +33,6 @@ public Q_SLOTS:
     void disableRightLabel();
     void selectTemplate();
     void populateTemplateComboBox(int tempId);
-    //void receiveCameraTransform(int viewId, float x, float y, float z, float rx, float ry, float rz, float w);
-    void setManipulationMode(int);
 
 protected:
     void keyPressEvent(QKeyEvent *);

@@ -22,6 +22,7 @@ class MiniError : public QMainWindow
 
 public:
     ~MiniError();
+    void setViewed();
     explicit MiniError(QWidget *parent = 0);
 
 
@@ -33,7 +34,7 @@ private:
     QPropertyAnimation * errorFadeIn;
     QPropertyAnimation * errorFadeOut;
     QTableWidgetItem * simTime;
-    QTableWidgetItem * errorMessage;    
+    QTableWidgetItem * errorMessage;
     robotStatus * robStatus;
     QTimer* timer;
     bool visible;

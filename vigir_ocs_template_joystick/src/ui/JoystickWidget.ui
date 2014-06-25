@@ -158,35 +158,178 @@
           <property name="margin">
            <number>0</number>
           </property>
+          <item alignment="Qt::AlignHCenter">
+           <widget class="QLabel" name="label_3">
+            <property name="minimumSize">
+             <size>
+              <width>10</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>10</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Template</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QComboBox" name="templateComboBox"/>
           </item>
-          <item>
+          <item alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="selectTemplate">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>120</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
              <string>Next Template</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="templateRadioBtn">
+           <widget class="QLabel" name="label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>15</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
-             <string>Template Mode</string>
+             <string>Manipulation Mode</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QRadioButton" name="leftArmBtn">
-            <property name="text">
-             <string>Left Arm</string>
+          <item alignment="Qt::AlignHCenter">
+           <widget class="QComboBox" name="manipulateModeBox">
+            <property name="maximumSize">
+             <size>
+              <width>80</width>
+              <height>16777215</height>
+             </size>
             </property>
+            <property name="maxVisibleItems">
+             <number>3</number>
+            </property>
+            <property name="maxCount">
+             <number>3</number>
+            </property>
+            <property name="minimumContentsLength">
+             <number>3</number>
+            </property>
+            <item>
+             <property name="text">
+              <string>Camera</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>World</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Object</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="rightArmBtn">
-            <property name="text">
-             <string>Right Arm</string>
+           <widget class="QLabel" name="label_2">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>15</height>
+             </size>
             </property>
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Object Mode</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignHCenter">
+           <widget class="QComboBox" name="objectModeBox">
+            <property name="minimumSize">
+             <size>
+              <width>95</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>110</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="maxVisibleItems">
+             <number>3</number>
+            </property>
+            <property name="maxCount">
+             <number>3</number>
+            </property>
+            <property name="minimumContentsLength">
+             <number>3</number>
+            </property>
+            <item>
+             <property name="text">
+              <string>Template</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Left Arm</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Right Arm</string>
+             </property>
+            </item>
            </widget>
           </item>
          </layout>

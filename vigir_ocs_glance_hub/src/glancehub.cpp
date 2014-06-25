@@ -39,6 +39,15 @@ void glancehub::timerEvent(QTimerEvent *event)
         ros::spinOnce();
 }
 
+QString glancehub::getMoveitStat()
+{
+    return ui->moveitstat->text();
+}
+QString glancehub::getFootstepStat()
+{
+    return ui->footstepstat->text();
+}
+
 void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr &msg)
 {
     int count_row;
@@ -155,13 +164,13 @@ void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPt
     switch(msg->status)
     {
     case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE:
-        ui->footLight->setStyleSheet("QLabel { background-color: yellow; }");        
+        ui->footLight->setStyleSheet("QLabel { background-color: yellow; }");
         break;
     case RobotStatusCodes::FOOTSTEP_PLANNER_FAILED:
-        ui->footLight->setStyleSheet("QLabel { background-color: red; }");        
+        ui->footLight->setStyleSheet("QLabel { background-color: red; }");
         break;
     case RobotStatusCodes::FOOTSTEP_PLANNER_SUCCESS:
-        ui->footLight->setStyleSheet("QLabel { background-color: green; }");        
+        ui->footLight->setStyleSheet("QLabel { background-color: green; }");
         break;
     }
     //notify status bar

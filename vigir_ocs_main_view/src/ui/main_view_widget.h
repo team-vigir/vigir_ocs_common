@@ -42,7 +42,7 @@ namespace Ui
 class MainViewWidget : public QWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit MainViewWidget(QWidget *parent = 0);
     ~MainViewWidget();
@@ -62,13 +62,12 @@ public Q_SLOTS:
     void ft_sensorToggled(bool);
     void zero_leftPressed();
     void zero_rightPressed();
-    void toggleWindow(int);    
+    void toggleWindow(int);
     void graspWidgetToggle();
     void setManipulationMode(int);
     void setObjectMode(int);
     void hideGraspWidgets();
-
-
+    void updateContextMenu();
 
 
 private:
@@ -125,6 +124,8 @@ private:
 
 
     QWidget *graspContainer;
+
+    contextMenuItem * joystickContext;
 
 
 };

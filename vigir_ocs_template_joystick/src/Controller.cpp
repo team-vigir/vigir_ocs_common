@@ -117,7 +117,7 @@ namespace vigir_ocs
         joyModes = *msg;
         //set current modes based on subscribed data
         setObjectMode(joyModes.objectMode);
-        setManipulation(joyModes.manipulationMode);        
+        setManipulation(joyModes.manipulationMode);
     }
 
     //sends data to list and updates it
@@ -135,7 +135,7 @@ namespace vigir_ocs
 
     //copy camera information and store
     void Controller::cameraCb(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
-    {       
+    {
         cameraUpdate = *msg;
         if(cameraUpdate.widget_name == "MainView" && cameraUpdate.view_id == 0)
         {
@@ -174,54 +174,42 @@ namespace vigir_ocs
     //set which object to be manipulated
     //for changing on subscribed data
     void Controller::setObjectMode(int mode)
-    {        
+    {
+        ROS_ERROR("object mode %d",mode);
         switch (mode)
         {
-        case 0:     
-            templateModeOn();
+        case 0:
+            //template mode is default if no arms
+            leftMode = false;
+            rightMode = false;
             break;
-        case 1:            
-            leftModeOn();
+        case 1:
+            leftMode = true;
+            rightMode = false;
             break;
-        case 2:            
-            rightModeOn();
+        case 2:
+            rightMode = true;
+            leftMode = false;
             break;
         }
     }
 
-    //methods to set which object is manipulated
-    //for radio button use
-    void Controller::leftModeOn()
-    {
-        leftMode = true;
-        rightMode = false;        
-    }
-    void Controller::rightModeOn()
-    {
-        rightMode = true;
-        leftMode = false;        
-    }
-    //template mode is default if no arms
-    void Controller::templateModeOn()
-    {
-        leftMode = false;
-        rightMode = false;       
-    }
     void Controller::setManipulation(int mode)
     {
+        ROS_ERROR("manipulation mode %d",mode);
         //will be 0,1,or 2
         if(mode==0) //camera
-        {         
+        {
             worldMode = false;
             objectMode = false;
         }
         else if (mode ==1) // world
-        {           
+        {
             objectMode = false;
             worldMode = true;
         }
         else  // object
-        {            
+        {
             worldMode = false;
             objectMode = true;
         }
@@ -390,7 +378,7 @@ namespace vigir_ocs
 
     //update position and rotation and publish
     void Controller::buildmsg(float posX, float posY , float rotY, float rotX)
-    {       
+    {
         QQuaternion * rotation;
         QVector3D* position;
         if(leftMode)
@@ -462,7 +450,7 @@ namespace vigir_ocs
 
             //publish
             template_update_pub.publish(msg);
-        }        
+        }
         delete(rotation);
         delete(position);
     }
@@ -474,9 +462,9 @@ namespace vigir_ocs
         //create a vector representing the offset to be applied to position.
         QVector3D* offset = new QVector3D(posX,posY,posZ);
         //rotate the offset to be relative to camera orientation, can now be applied to position to move relative to camera
-        *offset = cameraOrientation.rotatedVector(*offset);      
+        *offset = cameraOrientation.rotatedVector(*offset);
 
-        rotation->normalize();      
+        rotation->normalize();
         //build quaternion that stores desired rotation offset
         QQuaternion* r = new QQuaternion();
         *r *= QQuaternion::fromAxisAndAngle(0,1,0,rotY);
@@ -499,7 +487,7 @@ namespace vigir_ocs
             *rotation *= *r;
         }
         else //Camera relative rotation
-        {            
+        {
             QQuaternion* rot = new QQuaternion();
             *rot *= QQuaternion::fromAxisAndAngle(0,1,0,rotY); //more intuitive for camera if reversed
             *rot *= QQuaternion::fromAxisAndAngle(1,0,0,-rotX);
@@ -518,13 +506,13 @@ namespace vigir_ocs
         //rotation->normalize();
 
         if(worldMode)
-        {            
+        {
             position->setX(position->x()+posX);
             position->setY(position->y()+posY);
             position->setZ(position->z()+posZ);
         }
         else if(objectMode)//object relative translation
-        {            
+        {
             QVector3D* objectOffset = new QVector3D(posX,posY,posZ);
             *objectOffset = rotation->rotatedVector(*objectOffset);
 
@@ -534,7 +522,7 @@ namespace vigir_ocs
             delete(objectOffset);
         }
         else // camera relative
-        {            
+        {
             //update coordinates based on latest data from list
             position->setX(position->x()+offset->x());
             position->setY(position->y()+offset->y());
@@ -551,7 +539,7 @@ namespace vigir_ocs
         if(templateIndex == temList.template_id_list.size() -1)
             templateIndex = 0;
         else
-            templateIndex++;        
+            templateIndex++;
         //update selected item in comboBox (will update contents unnecessarily and call changeTemplateID redundantly)
         Q_EMIT updateTemplateComboBox(templateIndex);
     }
@@ -565,7 +553,7 @@ namespace vigir_ocs
     }
 
     std::vector<std::string> Controller::getTemplateNames()
-    {        
+    {
         return temList.template_list;
     }
 

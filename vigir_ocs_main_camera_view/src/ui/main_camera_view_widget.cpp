@@ -156,7 +156,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     displays_layout->setMargin(0);
     displays_layout->addWidget(displays_panel);
     ui->rviz_options->setLayout(displays_layout);
-    
+
     connect(ui->pitch, SIGNAL(sliderPressed()), this, SLOT(lockPitchUpdates()));
     connect(ui->pitch, SIGNAL(sliderReleased()), this, SLOT(sendPitch()));
 
@@ -165,18 +165,54 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     fourViewToggle();
 
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
-	neck_pos_sub_ = nh_.subscribe<std_msgs::Float32> ( "/flor/neck_controller/current_position" , 2, &MainCameraViewWidget::updatePitch, this );
+    neck_pos_sub_ = nh_.subscribe<std_msgs::Float32> ( "/flor/neck_controller/current_position" , 2, &MainCameraViewWidget::updatePitch, this );
 
     //send template list to views for context menu
     ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
     ((CameraViewWidget*)views_list_["Top Right"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
     ((CameraViewWidget*)views_list_["Bottom Left"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
     ((CameraViewWidget*)views_list_["Bottom Right"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
+
+    sys_command_pub_ = nh_.advertise<std_msgs::String>("/syscommand",1,false);
+
+    addContextMenu();
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()
 {
     delete ui;
+}
+
+void MainCameraViewWidget::addContextMenu()
+{
+    //can tell context menu to add a seperator when this item is added
+    contextMenuItem * seperator = new contextMenuItem();
+    seperator->name = "Seperator";
+
+    contextMenuItem * systemCommands = vigir_ocs::Base3DView::makeContextParent("System Commands", contextMenuElements);
+
+    vigir_ocs::Base3DView::makeContextChild("Reset World Model",boost::bind(&MainCameraViewWidget::systemCommandContext,this, "reset"), systemCommands, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Save Octomap",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_octomap"), systemCommands, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Save Pointcloud",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_pointcloud"), systemCommands, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Save Image Head",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_left_eye"), systemCommands, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Save Left Hand Image",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_left_hand"), systemCommands, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Save Right Hand Image",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_right_hand"), systemCommands, contextMenuElements);
+
+    //add all context menu items to each view
+    for(int i=0;i<contextMenuElements.size();i++)
+    {
+        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())->addToContextVector(contextMenuElements[i]);
+        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Right"])->getCameraView())->addToContextVector(contextMenuElements[i]);
+        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Bottom Left"])->getCameraView())->addToContextVector(contextMenuElements[i]);
+        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Bottom Right"])->getCameraView())->addToContextVector(contextMenuElements[i]);
+    }
+}
+
+//callback function for context menu
+void MainCameraViewWidget::systemCommandContext(std::string command)
+{
+    sysCmdMsg.data = command;
+    sys_command_pub_.publish(sysCmdMsg);
 }
 
 void MainCameraViewWidget::lockPitchUpdates()
@@ -202,15 +238,15 @@ void MainCameraViewWidget::sendPitch()
 
         ((CameraViewWidget*)views_list_["Top Left"])->updatePitch(value);
     }
-	
+
 }
 
 void MainCameraViewWidget::updatePitch( const std_msgs::Float32::ConstPtr &pitch)
 {
     if(!lock_pitch_slider_)
     {
-    	((CameraViewWidget*)views_list_["Top Left"])->updateCurrentPitch((int)(pitch->data/0.0174532925));
-    	ui->pitch->setValue((int)(pitch->data/0.0174532925));
+        ((CameraViewWidget*)views_list_["Top Left"])->updateCurrentPitch((int)(pitch->data/0.0174532925));
+        ui->pitch->setValue((int)(pitch->data/0.0174532925));
     }
 }
 

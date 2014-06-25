@@ -36,7 +36,7 @@ private:
 public:
     ~LogSbar();
     explicit LogSbar(QWidget *parent = 0);
-    void setErrorCount(int);
+    void resetErrorCount();
     Ui::LogSbar * getUi()
     {
         return ui;

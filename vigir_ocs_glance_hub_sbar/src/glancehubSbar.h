@@ -29,22 +29,13 @@ private:
     glancehub* ghub;
     ros::NodeHandle nh;
     ros::Publisher mode_pub;
-    void enterEvent(QEvent*);
-    void leaveEvent(QEvent*);
     QTimer *timer;
-    QPropertyAnimation * animation;
-    QPropertyAnimation * fadeOut;
-
-    //oid layoutPopup();
 
 public Q_SLOTS:
     void receiveMoveitStatus(bool);
     void receiveFootstepStatus(int);
     void receiveFlorStatus(int);
     void receiveModeChange(int);
-
-private Q_SLOTS:
-    void hideWindow();
 
 };
 

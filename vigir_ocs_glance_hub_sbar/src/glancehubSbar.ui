@@ -179,7 +179,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="MoviIt">
+        <widget class="QLabel" name="moveitLabel">
          <property name="maximumSize">
           <size>
            <width>45</width>
@@ -216,7 +216,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="Footstep">
+        <widget class="QLabel" name="footstepLabel">
          <property name="maximumSize">
           <size>
            <width>55</width>

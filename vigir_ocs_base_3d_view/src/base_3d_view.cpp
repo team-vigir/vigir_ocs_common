@@ -613,9 +613,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 //    position_label_->setStyleSheet("background-color: rgb(0, 0, 0);font: 8pt \"MS Shell Dlg 2\";color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
 //    position_label_->setFrame(false);
 
-    reset_view_button_ = new QPushButton("Reset View", this);
+    reset_view_button_ = new QPushButton("Center On Robot", this);
     reset_view_button_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
-    reset_view_button_->setMaximumSize(68,18);
+    reset_view_button_->setMaximumSize(100,20);
     reset_view_button_->adjustSize();
    // reset_view_button_->move(0,300);
     QObject::connect(reset_view_button_, SIGNAL(clicked()), this, SLOT(resetView()));
@@ -686,7 +686,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
         qApp->quit();
 
     //set button on corner of views on any size
-    reset_view_button_->setGeometry(0,this->geometry().bottomLeft().y()-18,68,20);
+    reset_view_button_->setGeometry(0,this->geometry().bottomLeft().y()-18,100,20);
 
     // make sure the selection point is visible
     //position_widget_->setGeometry(0,
@@ -1129,12 +1129,12 @@ void Base3DView::insertWaypoint()
 }
 
 void Base3DView::setTemplateTree(QTreeWidget * root)
-{   
+{
     if(root != NULL)
     {
         templateRoot = root;
         addTemplatesToContext();
-    } 
+    }
 }
 
 void Base3DView::addBase3DContextElements()
@@ -1162,7 +1162,7 @@ void Base3DView::addBase3DContextElements()
     createCircularMarkerMenu = makeContextChild("Create Circular Motion Marker",boost::bind(&Base3DView::createCircularContextMenu,this),circularMotionMenu,contextMenuItems);
     removeCircularMarkerMenu = makeContextChild("Remove marker",boost::bind(&Base3DView::removeCircularContextMenu,this),circularMotionMenu,contextMenuItems);
 
-    addToContextVector(seperator);   
+    addToContextVector(seperator);
 }
 
 void Base3DView::addTemplatesToContext()
@@ -1171,7 +1171,7 @@ void Base3DView::addTemplatesToContext()
     {
         QTreeWidgetItemIterator it(templateRoot);
         while (*it)
-        {            
+        {
             contextMenuItem * localParent;
             if(!(*it)->text(0).contains(".mesh")) //only templates have .mesh
             {
@@ -1197,7 +1197,7 @@ void Base3DView::addTemplatesToContext()
 
 
 void Base3DView::contextInsertTemplate(QString path)
-{    
+{
     insertTemplate(path);
 }
 
@@ -1233,7 +1233,7 @@ void Base3DView::createContextMenu(bool, int x, int y)
     // first we need to query the 3D scene to retrieve the context
     Q_EMIT queryContext(x,y);
     // context is stored in the active_context_ variable
-    std::cout << "Active context: " << active_context_ << std::endl;     
+    std::cout << "Active context: " << active_context_ << std::endl;
 
     addToContextMenuFromVector();
 
@@ -1255,7 +1255,7 @@ void Base3DView::createContextMenu(bool, int x, int y)
     {
         footstepPlanMenuWalk->action->setEnabled(false);
         footstepPlanMenuWalkManipulation->action->setEnabled(false);
-    }    
+    }
 
     if(cartesian_marker_list_.size() == 0)
         removeCartesianMarkerMenu->action->setEnabled(false);
@@ -1272,10 +1272,10 @@ void Base3DView::createContextMenu(bool, int x, int y)
         createCircularMarkerMenu->action->setEnabled(true);
         removeCircularMarkerMenu->action->setEnabled(false);
     }
-    //if(selected_) context_menu_.addAction("Insert Waypoint");
+
 
     if(initializing_context_menu_ == 1)
-        processContextMenu(x, y);    
+        processContextMenu(x, y);
 
     initializing_context_menu_--;
 }
@@ -1311,17 +1311,18 @@ void Base3DView::addToContextMenuFromVector()
         else // can guarantee parent has already been added provided elements were added in correct order to vector
         {
             if(contextMenuItems[i]->hasChildren)
-            {                
+            {
                 QMenu * menu = contextMenuItems[i]->parent->menu->addMenu(contextMenuItems[i]->name);
-                contextMenuItems[i]->menu = menu;             
-            }            
+                contextMenuItems[i]->menu = menu;
+            }
             else
-            {                
+            {
                 QAction * action = contextMenuItems[i]->parent->menu->addAction(contextMenuItems[i]->name);
-                contextMenuItems[i]->action = action;                
+                contextMenuItems[i]->action = action;
             }
         }
     }
+    Q_EMIT updateMainViewItems();
 }
 
 void Base3DView::processContextMenuVector()
@@ -1339,6 +1340,9 @@ void Base3DView::processContextMenuVector()
                     contextMenuItems[i]->function(); //call binded function
                 }
             }
+
+
+
         }
         else // no parent, must still check item
         {
@@ -1347,6 +1351,24 @@ void Base3DView::processContextMenuVector()
                 if(contextMenuItems[i]->function != NULL)
                 {
                     contextMenuItems[i]->function(); //call binded function
+                }
+            }
+            //special cases for toggles on main view
+            if(context_menu_selected_item_->text() == "Joystick" && contextMenuItems[i]->name == "Joystick")
+            {
+                ROS_ERROR("before %d",contextMenuItems[i]->action->isChecked());
+                if(!contextMenuItems[i]->action->isCheckable())
+                    contextMenuItems[i]->action->setCheckable(true);
+                ROS_ERROR("after %d",contextMenuItems[i]->action->isChecked());
+                if(contextMenuItems[i]->action->isChecked())
+                {
+                    ROS_ERROR("joy 2");
+                    contextMenuItems[i]->action->setChecked(false);
+                }
+                else
+                {
+                    contextMenuItems[i]->action->setChecked(true);
+                    ROS_ERROR("joy 3 checked: %d",contextMenuItems[i]->action->isChecked());
                 }
             }
         }

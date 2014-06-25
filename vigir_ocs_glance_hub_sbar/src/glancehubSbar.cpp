@@ -20,7 +20,7 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     flags |= Qt::Dialog; // //ensure ghub as a dialog box, not a seperate window/tab
     ghub->setWindowFlags(flags);
 
-    ghub->setWindowOpacity(0);   
+    ghub->setWindowOpacity(0);
 
     connect(ghub,SIGNAL(sendMoveitStatus(bool)),this,SLOT(receiveMoveitStatus(bool)));
     connect(ghub,SIGNAL(sendFootstepStatus(int)),this,SLOT(receiveFootstepStatus(int)));
@@ -36,40 +36,13 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     ui->footstepLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
     ui->modeBox->setStyleSheet("QComboBox {selection-color: grey;}");
 
-    //init animations
-    animation = new QPropertyAnimation(ghub, "windowOpacity");
-    animation->setEasingCurve(QEasingCurve::InOutQuad);
-    animation->setDuration(500);
-    animation->setStartValue(0.0);
-    animation->setEndValue(.74);
+    ui->plannerLight->setToolTip("waiting for status update");
+    ui->moveitLabel->setToolTip("waiting for status update");
 
-    fadeOut = new QPropertyAnimation(ghub, "windowOpacity");
-    fadeOut->setEasingCurve(QEasingCurve::InOutQuad);
-    fadeOut->setDuration(300);
-    fadeOut->setStartValue(0.74);
-    fadeOut->setEndValue(0.0);
-    //hide when animation finishes
-    connect(fadeOut,SIGNAL(finished()),this,SLOT(hideWindow()));
-}
+    ui->footstepLight->setToolTip("waiting for status update");
+    ui->footstepLabel->setToolTip("waiting for status update");
 
-void glancehubSbar::hideWindow()
-{
-    ghub->hide();
 }
-
-//called when mouse hovers over widget
-void glancehubSbar::enterEvent(QEvent * event)
-{
-    ghub->show();
-    animation->start();
-    //set popup position
-    ghub->setGeometry(ui->modeBox->mapToGlobal(QPoint(0,0)).x() - 200,ui->modeBox->mapToGlobal(QPoint(0,0)).y() - 276,300, 300);
-}
-void glancehubSbar::leaveEvent(QEvent * event)
-{       
-    fadeOut->start();
-}
-
 
 void glancehubSbar::receiveModeChange(int mode)
 {
@@ -119,7 +92,7 @@ void glancehubSbar::receiveModeChange(int mode)
     case 8:
         ui->modelabel->setText(modeBefore+" -> Flor_WBC");
         msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_WBC;
-        break;                        
+        break;
     }
     mode_pub.publish(msg);
 }
@@ -130,10 +103,12 @@ void glancehubSbar::receiveMoveitStatus(bool status)
         ui->plannerLight->setStyleSheet("QLabel { background-color: red;border:2px solid grey; }");
     else
         ui->plannerLight->setStyleSheet("QLabel { background-color: green; border:2px solid grey; }");
+    ui->plannerLight->setToolTip(ghub->getMoveitStat());
+    ui->moveitLabel->setToolTip(ghub->getMoveitStat());
 }
 
 void glancehubSbar::receiveFootstepStatus(int status)
-{    
+{
     switch(status)
     {
     case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE:
@@ -146,10 +121,12 @@ void glancehubSbar::receiveFootstepStatus(int status)
         ui->footstepLight->setStyleSheet("QLabel { background-color: green; border:2px solid grey;}");
         break;
     }
+    ui->footstepLight->setToolTip(ghub->getFootstepStat());
+    ui->footstepLabel->setToolTip(ghub->getFootstepStat());
 }
 
 void glancehubSbar::receiveFlorStatus(int status)
-{    
+{
     QString newText;
     switch(status)
     {
@@ -204,15 +181,13 @@ void glancehubSbar::receiveFlorStatus(int status)
     case flor_control_msgs::FlorControlModeCommand::WALK:
         newText = QString::fromStdString("Walk");
         break;
-    }    
+    }
     ui->modelabel->setStyleSheet("QLabel{color: rgb(80,80,80); }");
     ui->modelabel->setText(newText);
 }
 
 glancehubSbar::~glancehubSbar()
 {
-    delete(animation);
-    delete(fadeOut);
     delete(ghub);
-    delete ui;    
+    delete ui;
 }
