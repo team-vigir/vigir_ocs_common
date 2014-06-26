@@ -1340,9 +1340,6 @@ void Base3DView::processContextMenuVector()
                     contextMenuItems[i]->function(); //call binded function
                 }
             }
-
-
-
         }
         else // no parent, must still check item
         {
@@ -1351,24 +1348,6 @@ void Base3DView::processContextMenuVector()
                 if(contextMenuItems[i]->function != NULL)
                 {
                     contextMenuItems[i]->function(); //call binded function
-                }
-            }
-            //special cases for toggles on main view
-            if(context_menu_selected_item_->text() == "Joystick" && contextMenuItems[i]->name == "Joystick")
-            {
-                ROS_ERROR("before %d",contextMenuItems[i]->action->isChecked());
-                if(!contextMenuItems[i]->action->isCheckable())
-                    contextMenuItems[i]->action->setCheckable(true);
-                ROS_ERROR("after %d",contextMenuItems[i]->action->isChecked());
-                if(contextMenuItems[i]->action->isChecked())
-                {
-                    ROS_ERROR("joy 2");
-                    contextMenuItems[i]->action->setChecked(false);
-                }
-                else
-                {
-                    contextMenuItems[i]->action->setChecked(true);
-                    ROS_ERROR("joy 3 checked: %d",contextMenuItems[i]->action->isChecked());
                 }
             }
         }

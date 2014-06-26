@@ -126,7 +126,17 @@ private:
 
     QWidget *graspContainer;
 
+    //context item references for checking/unchecking in context menu
     contextMenuItem * joystickContext;
+    contextMenuItem * positionContext;
+    contextMenuItem * graspContext;
+    contextMenuItem * jointControlContext;
+    contextMenuItem * pelvisContext;
+    contextMenuItem * ghostContext;
+    contextMenuItem * plannerContext;
+    contextMenuItem * footBasicContext;
+    contextMenuItem * footAdvancedContext;
+    contextMenuItem * footParameterContext;
 
 
 };

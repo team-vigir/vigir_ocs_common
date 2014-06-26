@@ -46,7 +46,7 @@ LogSbar::LogSbar(QWidget *parent) :
     jointFadeOut->setStartValue(0.74);
     jointFadeOut->setEndValue(0.0);
 
-    setJointStatus(JOINT_OK);//default?
+    setJointStatus(JOINT_OK);//default
 
     numError = 0;
     ui->errorCount->setText("0");
@@ -55,6 +55,9 @@ LogSbar::LogSbar(QWidget *parent) :
     connect(errorFadeOut,SIGNAL(finished()),this,SLOT(hideErrorWindow()));
     connect(jointFadeOut,SIGNAL(finished()),this,SLOT(hideJointWindow()));
 
+    //connect right click windows
+    connect(ui->jointWidget,SIGNAL(toggleJointList()),miniJoint,SLOT(toggleJointListWindow()));
+    connect(ui->errorWidget,SIGNAL(toggleErrorLog()),miniError,SLOT(toggleErrorLogWindow()));
     window_control_pub_ = n_.advertise<std_msgs::Int8>( "/flor/ocs/window_control", 1, false);
 
 }
@@ -154,6 +157,11 @@ void ErrorWidget::mousePressEvent(QMouseEvent * event)
 {
     myParent->resetErrorCount();
     myParent->getMiniError()->setViewed();
+    //pull up log messages on right click
+    if (event->button() == Qt::RightButton)
+    {
+        Q_EMIT toggleErrorLog();
+    }
 }
 
 ErrorWidget::~ErrorWidget()
@@ -181,10 +189,12 @@ void JointWidget::leaveEvent(QEvent * event)
 
 void JointWidget::mousePressEvent(QMouseEvent * event)
 {
-    //pull up joint window from main view
-    std_msgs::Int8 cmd;
-    cmd.data = WINDOW_JOINT_STATUS;
-    myParent->getWindowPublisher().publish(cmd);
+    //pull up joint list on right click
+    if (event->button() == Qt::RightButton)
+    {
+        Q_EMIT toggleJointList();
+    }
+
 }
 
 JointWidget::~JointWidget()

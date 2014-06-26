@@ -735,7 +735,6 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
-               <zorder>statusBar</zorder>
               </widget>
              </item>
             </layout>
@@ -946,15 +945,18 @@
        <widget class="QScrollArea" name="scrollArea">
         <property name="minimumSize">
          <size>
-          <width>310</width>
+          <width>225</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>310</width>
+          <width>225</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
         </property>
         <property name="widgetResizable">
          <bool>true</bool>
@@ -962,11 +964,20 @@
         <widget class="QWidget" name="scrollAreaWidgetContents">
          <property name="geometry">
           <rect>
-           <x>0</x>
-           <y>-719</y>
-           <width>292</width>
-           <height>1483</height>
+           <x>-8</x>
+           <y>-470</y>
+           <width>215</width>
+           <height>1468</height>
           </rect>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>225</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 8pt &quot;Ubuntu&quot;;</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <property name="margin">
@@ -978,6 +989,12 @@
              <size>
               <width>0</width>
               <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>225</width>
+              <height>16777215</height>
              </size>
             </property>
             <property name="baseSize">
@@ -997,7 +1014,7 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QGroupBox" name="groupBox">
+              <widget class="QGroupBox" name="Tools">
                <property name="title">
                 <string>Tools</string>
                </property>
@@ -1055,7 +1072,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QGroupBox" name="groupBox_2">
+              <widget class="QGroupBox" name="Navigation">
                <property name="title">
                 <string>Navigation</string>
                </property>
@@ -1103,7 +1120,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QGroupBox" name="groupBox_3">
+              <widget class="QGroupBox" name="Template">
                <property name="title">
                 <string>Template</string>
                </property>
@@ -1144,6 +1161,12 @@
           </item>
           <item>
            <widget class="QGroupBox" name="groupBox_4">
+            <property name="maximumSize">
+             <size>
+              <width>225</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="title">
              <string>Visibility</string>
             </property>
@@ -1326,6 +1349,12 @@ color: rgb(255, 26, 26);</string>
              </item>
              <item>
               <widget class="QWidget" name="widget_7" native="true">
+               <property name="maximumSize">
+                <size>
+                 <width>225</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <layout class="QHBoxLayout" name="horizontalLayout_10">
                 <property name="margin">
                  <number>0</number>
@@ -1441,6 +1470,12 @@ color: rgb(255, 26, 26);</string>
           </item>
           <item>
            <widget class="QGroupBox" name="groupBox_5">
+            <property name="maximumSize">
+             <size>
+              <width>225</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="title">
              <string>RViz Display Options</string>
             </property>
@@ -1454,7 +1489,12 @@ color: rgb(255, 26, 26);</string>
               <height>600</height>
              </size>
             </property>
-            <zorder>cameraViewWidget</zorder>
+            <property name="maximumSize">
+             <size>
+              <width>195</width>
+              <height>16777215</height>
+             </size>
+            </property>
            </widget>
           </item>
           <item>

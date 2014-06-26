@@ -157,6 +157,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     position_widget_->setLayout(position_layout);
 
     rviz::DisplaysPanel* displays_panel = new rviz::DisplaysPanel(this);
+    displays_panel->setMaximumWidth(225);
     displays_panel->initialize( ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
 
     //rviz::ViewsPanel* views_panel = new rviz::ViewsPanel(this);
@@ -234,7 +235,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     QLabel * leftLabel = new QLabel("Left Hand");
     leftLabel->setAlignment(Qt::AlignCenter);
     leftLayout->addWidget(leftLabel);
-    leftGraspWidget = new graspWidget(this);
+    leftGraspWidget = new graspWidget(graspContainer);
     leftGraspWidget->show();
     leftLayout->addWidget(leftGraspWidget);
     leftGrasp->setLayout(leftLayout);
@@ -244,7 +245,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     QLabel * rightLabel = new QLabel("Right Hand");
     rightLabel->setAlignment(Qt::AlignCenter);
     rightLayout->addWidget(rightLabel);
-    rightGraspWidget = new graspWidget(this);
+    rightGraspWidget = new graspWidget(graspContainer);
     rightGraspWidget->show();
     rightLayout->addWidget(rightGraspWidget);
     rightGrasp->setLayout(rightLayout);
@@ -261,7 +262,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     graspContainer->setWindowFlags(flags);
 
     //set border color of left grasp widget
-    QFrame* leftFrame = new QFrame();
+    QFrame* leftFrame = new QFrame(graspContainer);
     leftFrame->setLayout(leftLayout);
     leftFrame->setFrameStyle(QFrame::Panel| QFrame::Plain);
     leftFrame->setLineWidth(2);
@@ -270,7 +271,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     graspContainer->layout()->addWidget(leftFrame); //adds graspwidgets as well
 
     //set border color of right grasp widget
-    QFrame* rightFrame = new QFrame();
+    QFrame* rightFrame = new QFrame(graspContainer);
     rightFrame->setLayout(rightLayout);
     rightFrame->setFrameStyle(QFrame::WinPanel | QFrame::Plain);
     rightFrame->setLineWidth(2);
@@ -305,63 +306,72 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     connect(((vigir_ocs::Base3DView*) views_list["Top Left"]),SIGNAL(updateMainViewItems()),this,SLOT(updateContextMenu()));
 
     timer.start(100, this);
+
+    //hide items in toolbar that are no longer needed
+    ui->Tools->hide();
+    ui->Navigation->hide();
+    ui->Template->hide();
 }
 
 void MainViewWidget::updateContextMenu()
 {
+    //change default checkable values of context items
     joystickContext->action->setCheckable(true);
+    positionContext->action->setCheckable(true);
+    graspContext->action->setCheckable(true);
+    jointControlContext->action->setCheckable(true);
+    pelvisContext->action->setCheckable(true);
+    ghostContext->action->setCheckable(true);
+    plannerContext->action->setCheckable(true);
+    footBasicContext->action->setCheckable(true);
+    footAdvancedContext->action->setCheckable(true);
+    footParameterContext->action->setCheckable(true);
 
+    //update context menu elements with checks
     if(!ui->joystickBtn->isChecked())
-        joystickContext->action->setChecked(true);
-    else
         joystickContext->action->setChecked(false);
+    else
+        joystickContext->action->setChecked(true);
 
+    if(!ui->jointControlBtn->isChecked())
+        jointControlContext->action->setChecked(false);
+    else
+        jointControlContext->action->setChecked(true);
 
+    if(!ui->pelvisControlBtn->isChecked())
+        pelvisContext->action->setChecked(false);
+    else
+        pelvisContext->action->setChecked(true);
 
-//    if(!ui->jointControlBtn->isChecked())
-//        //ui->jointControlBtn->setChecked(true);
-//    else
-//        //ui->jointControlBtn->setChecked(false);
+    if(!ui->basicStepBtn->isChecked())
+        footBasicContext->action->setChecked(false);
+    else
+        footBasicContext->action->setChecked(true);
 
-//    if(!ui->pelvisControlBtn->isChecked())
-//        //ui->pelvisControlBtn->setChecked(true);
-//    else
-//        //ui->pelvisControlBtn->setChecked(false);
+    if(!ui->stepBtn->isChecked())
+        footAdvancedContext->action->setChecked(false);
+    else
+        footAdvancedContext->action->setChecked(true);
 
-//    if(!ui->basicStepBtn->isChecked())
-//        //ui->basicStepBtn->setChecked(true);
-//    else
-//        //ui->basicStepBtn->setChecked(false);
+    if(!ui->footstepParamBtn->isChecked())
+        footParameterContext->action->setChecked(false);
+    else
+        footParameterContext->action->setChecked(true);
 
+    if(!ui->ghostControlBtn->isChecked())
+        ghostContext->action->setChecked(false);
+    else
+        ghostContext->action->setChecked(true);
 
-//    if(!ui->stepBtn->isChecked())
-//        //ui->stepBtn->setChecked(true);
-//    else
-//        //ui->stepBtn->setChecked(false);
+    if(!ui->positionModeBtn->isChecked())
+         positionContext->action->setChecked(false);
+    else
+         positionContext->action->setChecked(true);
 
-
-//    if(!ui->footstepParamBtn->isChecked())
-//        //ui->footstepParamBtn->setChecked(true);
-//    else
-//        //ui->footstepParamBtn->setChecked(false);
-
-
-//    if(!ui->ghostControlBtn->isChecked())
-//        //ui->ghostControlBtn->setChecked(true);
-//    else
-//        //ui->ghostControlBtn->setChecked(false);
-
-
-//    if(!ui->positionModeBtn->isChecked())
-//        //ui->positionModeBtn->setChecked(true);
-//    else
-//        ///->positionModeBtn->setChecked(false);
-
-
-//    if(!ui->plannerConfigBtn->isChecked())
-//       // ui->plannerConfigBtn->setChecked(true);
-//    else
-//        //ui->plannerConfigBtn->setChecked(false);
+    if(!ui->plannerConfigBtn->isChecked())
+       plannerContext->action->setChecked(false);
+    else
+       plannerContext->action->setChecked(true);
 }
 
 void MainViewWidget::hideGraspWidgets()
@@ -380,6 +390,15 @@ void MainViewWidget::addContextMenu()
     //the order in which they are created matters
     //must do parent objects before children
     //and in the order you want them to show up in the context menu
+    vigir_ocs::Base3DView::makeContextChild("Define Target Pose-Walk",boost::bind(&vigir_ocs::Base3DView::defineWalkPosePressed,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Define Target Pose-Step",boost::bind(&vigir_ocs::Base3DView::defineStepPosePressed,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
+
+    contextMenuElements.push_back(seperator);
+
+    vigir_ocs::Base3DView::makeContextChild("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView:: publishPointCloudWorldRequest,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
+
+    contextMenuElements.push_back(seperator);
+
     joystickContext =  vigir_ocs::Base3DView::makeContextChild("Joystick",boost::bind(&MainViewWidget::contextToggleWindow,this, WINDOW_JOYSTICK), NULL, contextMenuElements);
 
     contextMenuItem * manipulationModes = vigir_ocs::Base3DView::makeContextParent("Manipulation Mode", contextMenuElements);
@@ -398,27 +417,27 @@ void MainViewWidget::addContextMenu()
 
     contextMenuItem * jointControlMenu = vigir_ocs::Base3DView::makeContextParent("Joint Control", contextMenuElements);
     //elements from joint control toolbar
-    vigir_ocs::Base3DView::makeContextChild("Joint Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_JOINT_CONTROL), jointControlMenu, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Pelvis Pose",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_BDI_PELVIS_POSE), jointControlMenu, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Ghost Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_GHOST_CONFIG), jointControlMenu, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Planner Configuration",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_PLANNER_CONFIG), jointControlMenu, contextMenuElements);
+    jointControlContext = vigir_ocs::Base3DView::makeContextChild("Joint Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_JOINT_CONTROL), jointControlMenu, contextMenuElements);
+    pelvisContext = vigir_ocs::Base3DView::makeContextChild("Pelvis Pose",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_BDI_PELVIS_POSE), jointControlMenu, contextMenuElements);
+    ghostContext = vigir_ocs::Base3DView::makeContextChild("Ghost Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_GHOST_CONFIG), jointControlMenu, contextMenuElements);
+    plannerContext = vigir_ocs::Base3DView::makeContextChild("Planner Configuration",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_PLANNER_CONFIG), jointControlMenu, contextMenuElements);
 
     contextMenuElements.push_back(seperator);
 
     contextMenuItem * footstepControl = vigir_ocs::Base3DView::makeContextParent("Footstep Control", contextMenuElements);
 
     //elements from footstep control toolbar
-    vigir_ocs::Base3DView::makeContextChild("Basic Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_BASIC), footstepControl, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Advanced Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_ADVANCED), footstepControl, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Footstep Parameter Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_PARAMETER), footstepControl, contextMenuElements);
+    footBasicContext = vigir_ocs::Base3DView::makeContextChild("Basic Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_BASIC), footstepControl, contextMenuElements);
+    footAdvancedContext = vigir_ocs::Base3DView::makeContextChild("Advanced Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_ADVANCED), footstepControl, contextMenuElements);
+    footParameterContext = vigir_ocs::Base3DView::makeContextChild("Footstep Parameter Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_PARAMETER), footstepControl, contextMenuElements);
 
     contextMenuElements.push_back(seperator);
 
-    vigir_ocs::Base3DView::makeContextChild("Position Mode",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_POSITION_MODE), NULL, contextMenuElements);
+    positionContext = vigir_ocs::Base3DView::makeContextChild("Position Mode",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_POSITION_MODE), NULL, contextMenuElements);
 
     contextMenuElements.push_back(seperator);
 
-    vigir_ocs::Base3DView::makeContextChild("Grasp",boost::bind(&MainViewWidget::graspWidgetToggle,this), NULL , contextMenuElements);
+    graspContext = vigir_ocs::Base3DView::makeContextChild("Grasp",boost::bind(&MainViewWidget::graspWidgetToggle,this), NULL , contextMenuElements);
 
     contextMenuElements.push_back(seperator);
 
@@ -586,10 +605,10 @@ MainViewWidget::~MainViewWidget()
 
 void MainViewWidget::timerEvent(QTimerEvent *event)
 {
-    //reposition grasp button
-    grasp_toggle_button_->setGeometry(ui->view_stack_->geometry().bottomRight().x()-68,ui->view_stack_->geometry().bottom()+ 22,68,30);
-
-    graspContainer->setGeometry(ui->view_stack_->geometry().bottomRight().x()/2 - 600,ui->view_stack_->geometry().bottom()- 242, 500,300);
+    grasp_toggle_button_->setGeometry(ui->view_stack_->geometry().bottomRight().x()-68,ui->view_stack_->geometry().bottom()+ 22,68,30);    
+    //ROS_ERROR("grasp button pos x:%d y:%d ",ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x()/2 - 68,ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).y()+22 );
+    //must be global, as it is treated as dialog window
+    graspContainer->setGeometry(ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x() - graspContainer->geometry().width()/2 - ui->view_stack_->geometry().width()/2,ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).y() - graspContainer->geometry().height(), graspContainer->geometry().width(),graspContainer->geometry().height());
 
 }
 

@@ -185,13 +185,13 @@
     <widget class="QScrollArea" name="scrollArea">
      <property name="minimumSize">
       <size>
-       <width>310</width>
+       <width>225</width>
        <height>0</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>310</width>
+       <width>225</width>
        <height>16777215</height>
       </size>
      </property>
@@ -200,6 +200,9 @@
        <pointsize>11</pointsize>
       </font>
      </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
      <property name="widgetResizable">
       <bool>true</bool>
      </property>
@@ -207,10 +210,13 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
-        <width>292</width>
-        <height>1629</height>
+        <y>-603</y>
+        <width>207</width>
+        <height>1615</height>
        </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 8pt &quot;Ubuntu&quot;;</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
@@ -541,7 +547,11 @@
                      </property>
                      <property name="font">
                       <font>
-                       <pointsize>10</pointsize>
+                       <family>Ubuntu</family>
+                       <pointsize>8</pointsize>
+                       <weight>50</weight>
+                       <italic>false</italic>
+                       <bold>false</bold>
                       </font>
                      </property>
                      <property name="text">
@@ -578,7 +588,11 @@
                      </property>
                      <property name="font">
                       <font>
-                       <pointsize>10</pointsize>
+                       <family>Ubuntu</family>
+                       <pointsize>8</pointsize>
+                       <weight>50</weight>
+                       <italic>false</italic>
+                       <bold>false</bold>
                       </font>
                      </property>
                      <property name="text">
@@ -620,8 +634,11 @@
                      </property>
                      <property name="font">
                       <font>
-                       <weight>75</weight>
-                       <bold>true</bold>
+                       <family>Ubuntu</family>
+                       <pointsize>8</pointsize>
+                       <weight>50</weight>
+                       <italic>false</italic>
+                       <bold>false</bold>
                       </font>
                      </property>
                      <property name="text">
@@ -645,9 +662,11 @@
                      </property>
                      <property name="font">
                       <font>
-                       <pointsize>11</pointsize>
-                       <weight>75</weight>
-                       <bold>true</bold>
+                       <family>Ubuntu</family>
+                       <pointsize>8</pointsize>
+                       <weight>50</weight>
+                       <italic>false</italic>
+                       <bold>false</bold>
                       </font>
                      </property>
                      <property name="text">
@@ -934,6 +953,12 @@ color: rgb(255, 26, 26);</string>
           <size>
            <width>0</width>
            <height>600</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>185</width>
+           <height>16777215</height>
           </size>
          </property>
         </widget>

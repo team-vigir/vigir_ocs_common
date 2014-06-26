@@ -99,7 +99,8 @@ private:
     void enterEvent(QEvent*);
     void leaveEvent(QEvent*);
     void mousePressEvent(QMouseEvent*);
-
+Q_SIGNALS:
+    void toggleErrorLog();
 
 };
 
@@ -114,6 +115,8 @@ private:
     void enterEvent(QEvent*);
     void leaveEvent(QEvent*);
     void mousePressEvent(QMouseEvent*);
+Q_SIGNALS:
+    void toggleJointList();
 };
 
 #endif // LOGSBAR_H

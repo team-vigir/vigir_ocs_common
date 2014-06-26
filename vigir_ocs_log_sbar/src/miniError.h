@@ -38,11 +38,12 @@ private:
     robotStatus * robStatus;
     QTimer* timer;
     bool visible;
-    QRect * originalGeometry;
+    QRect * originalGeometry;    
 
 public Q_SLOTS:
     void receiveErrorData(QString,QString);
     void startActiveTimer();
+    void toggleErrorLogWindow();
 
 private Q_SLOTS:
     void hideWindow();
