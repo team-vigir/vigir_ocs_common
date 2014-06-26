@@ -50,6 +50,14 @@ void MiniError::hideWindow()
     this->hide();
 }
 
+void MiniError::toggleErrorLogWindow()
+{
+    if(robStatus->isVisible())
+        robStatus->hide();
+    else
+        robStatus->show();
+}
+
 void MiniError::receiveErrorData(QString time, QString message)
 {
     //used for insertions

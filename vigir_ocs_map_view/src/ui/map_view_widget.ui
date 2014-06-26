@@ -40,18 +40,21 @@
      </property>
      <property name="minimumSize">
       <size>
-       <width>310</width>
+       <width>225</width>
        <height>0</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>310</width>
+       <width>225</width>
        <height>16777215</height>
       </size>
      </property>
      <property name="lineWidth">
       <number>0</number>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
      </property>
      <property name="widgetResizable">
       <bool>true</bool>
@@ -60,10 +63,13 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
-        <width>292</width>
-        <height>1916</height>
+        <y>-1148</y>
+        <width>207</width>
+        <height>1876</height>
        </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 8pt &quot;Ubuntu&quot;;</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="margin">
@@ -770,6 +776,12 @@ color: rgb(255, 26, 26);</string>
           <size>
            <width>0</width>
            <height>600</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>190</width>
+           <height>16777215</height>
           </size>
          </property>
         </widget>

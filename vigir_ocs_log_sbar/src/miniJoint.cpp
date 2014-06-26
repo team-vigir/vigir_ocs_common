@@ -37,6 +37,14 @@ MiniJoint::MiniJoint(QWidget *parent) :
 
 }
 
+void MiniJoint::toggleJointListWindow()
+{
+    if(jList->isVisible())
+        jList->hide();
+    else
+        jList->show();
+}
+
 void MiniJoint::hideWindow()
 {
     this->hide();
@@ -48,7 +56,7 @@ void MiniJoint::receiveJointData(int status, QString jointName)
      switch(status)
      {
      case 0:
-         //all joint must be fine
+         //all joints must be fine
          ui->table->clearContents();
          break;
      case 1:
