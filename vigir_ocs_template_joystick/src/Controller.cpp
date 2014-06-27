@@ -378,8 +378,13 @@ namespace vigir_ocs
             if(oldJoy.buttons[i] != joy.buttons[i])
             {
                 //ignore rb and lb as they should always write if 1
-                //if(joy.buttons[XBOX_LB] != 1 || joy.buttons[XBOX_RB] != 1)
+                if(joy.buttons[XBOX_LB] == 1 || joy.buttons[XBOX_RB] == 1)
+                {
+                }
+                else
+                {
                     buttonDup = false;
+                }
             }
         }
         //ROS_ERROR("dups axes: %d button %d",axesDup,buttonDup);
