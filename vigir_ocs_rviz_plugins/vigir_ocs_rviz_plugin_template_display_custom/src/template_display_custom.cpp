@@ -263,6 +263,15 @@ void TemplateDisplayCustom::reset()
     has_new_transforms_ = true;
 }
 
+void TemplateDisplayCustom::enableTemplateMarker( int i, bool enable )
+{
+    ROS_ERROR("Enabling template marker %d", i);
+    if(i >= 0 && i < display_template_marker_list_.size())
+    {
+        display_template_marker_list_[i]->setEnabled( enable );
+    }
+}
+
 void TemplateDisplayCustom::enableTemplateMarkers( bool enable )
 {
     //ROS_ERROR("Disabling the template markers");
@@ -322,7 +331,10 @@ void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char i
     // Add template marker
     rviz::Display* interactive_marker_template = vis_manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker template ")+boost::to_string((unsigned int)id)).c_str(), true );
     interactive_marker_template->subProp( "Update Topic" )->setValue( (template_pose_string+std::string("/pose_marker/update")).c_str() );
-    interactive_marker_template->setEnabled( true );
+    if(!display_template_marker_list_.size())
+        interactive_marker_template->setEnabled( true );
+    else
+        interactive_marker_template->setEnabled( false );
     display_template_marker_list_.push_back(interactive_marker_template);
 
     // initialize template interactive marker server if it doesn't exist yet

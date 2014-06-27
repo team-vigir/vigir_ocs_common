@@ -213,6 +213,7 @@ Q_SIGNALS:
     // send position of the mouse when clicked to create context menu
     void queryContext( int, int );
     void setMarkerPosition( float, float, float );
+    void enableTemplateMarker( int, bool );
     void enableTemplateMarkers( bool );
     void setFrustum( const float &, const float &, const float&, const float& );
     void finishedContextMenuSetup( int x, int y );
@@ -461,6 +462,7 @@ protected:
 
     contextMenuItem * insertTemplateMenu;
     contextMenuItem * removeTemplateMenu;
+    contextMenuItem * selectMenu;
     contextMenuItem * footstepPlanMenuWalk;
     contextMenuItem * footstepPlanMenuWalkManipulation;
     contextMenuItem * cartesianMotionMenu;
@@ -473,7 +475,7 @@ protected:
     QTreeWidget * templateRoot;
 
     void selectTemplate(int id);
-    void selectTemplateContextMenu();
+    void selectContextMenu();
 
 
 };

@@ -382,9 +382,9 @@ void MainViewWidget::hideGraspWidgets()
 //define all context menu items to be displayed for main view and add them to base 3d view
 void MainViewWidget::addContextMenu()
 {
-    //can tell context menu to add a seperator when this item is added
-    contextMenuItem * seperator = new contextMenuItem();
-    seperator->name = "Seperator";
+    //can tell context menu to add a separator when this item is added
+    contextMenuItem * separator = new contextMenuItem();
+    separator->name = "Separator";
 
     //create Menu items,
     //the order in which they are created matters
@@ -393,11 +393,11 @@ void MainViewWidget::addContextMenu()
     vigir_ocs::Base3DView::makeContextChild("Define Target Pose-Walk",boost::bind(&vigir_ocs::Base3DView::defineWalkPosePressed,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
     vigir_ocs::Base3DView::makeContextChild("Define Target Pose-Step",boost::bind(&vigir_ocs::Base3DView::defineStepPosePressed,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
 
-    contextMenuElements.push_back(seperator);
+    contextMenuElements.push_back(separator);
 
     vigir_ocs::Base3DView::makeContextChild("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
 
-    contextMenuElements.push_back(seperator);
+    contextMenuElements.push_back(separator);
 
     joystickContext =  vigir_ocs::Base3DView::makeContextChild("Joystick",boost::bind(&MainViewWidget::contextToggleWindow,this, WINDOW_JOYSTICK), NULL, contextMenuElements);
 
@@ -413,7 +413,7 @@ void MainViewWidget::addContextMenu()
     vigir_ocs::Base3DView::makeContextChild("Left Arm",boost::bind(&MainViewWidget::setLeftArmMode,this), objectModes, contextMenuElements);
     vigir_ocs::Base3DView::makeContextChild("Right Arm",boost::bind(&MainViewWidget::setRightArmMode,this), objectModes, contextMenuElements);
 
-    contextMenuElements.push_back(seperator);
+    contextMenuElements.push_back(separator);
 
     contextMenuItem * jointControlMenu = vigir_ocs::Base3DView::makeContextParent("Joint Control", contextMenuElements);
     //elements from joint control toolbar
@@ -422,7 +422,7 @@ void MainViewWidget::addContextMenu()
     ghostContext = vigir_ocs::Base3DView::makeContextChild("Ghost Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_GHOST_CONFIG), jointControlMenu, contextMenuElements);
     plannerContext = vigir_ocs::Base3DView::makeContextChild("Planner Configuration",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_PLANNER_CONFIG), jointControlMenu, contextMenuElements);
 
-    contextMenuElements.push_back(seperator);
+    contextMenuElements.push_back(separator);
 
     contextMenuItem * footstepControl = vigir_ocs::Base3DView::makeContextParent("Footstep Control", contextMenuElements);
 
@@ -431,15 +431,15 @@ void MainViewWidget::addContextMenu()
     footAdvancedContext = vigir_ocs::Base3DView::makeContextChild("Advanced Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_ADVANCED), footstepControl, contextMenuElements);
     footParameterContext = vigir_ocs::Base3DView::makeContextChild("Footstep Parameter Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_PARAMETER), footstepControl, contextMenuElements);
 
-    contextMenuElements.push_back(seperator);
+    contextMenuElements.push_back(separator);
 
     positionContext = vigir_ocs::Base3DView::makeContextChild("Position Mode",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_POSITION_MODE), NULL, contextMenuElements);
 
-    contextMenuElements.push_back(seperator);
+    contextMenuElements.push_back(separator);
 
     graspContext = vigir_ocs::Base3DView::makeContextChild("Grasp",boost::bind(&MainViewWidget::graspWidgetToggle,this), NULL , contextMenuElements);
 
-    contextMenuElements.push_back(seperator);
+    contextMenuElements.push_back(separator);
 
     contextMenuItem * systemCommands = vigir_ocs::Base3DView::makeContextParent("System Commands", contextMenuElements);
 

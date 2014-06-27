@@ -235,7 +235,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         selection_position_ = Ogre::Vector3(0,0,0);
 
         // Make the move camera tool the currently selected one
-        manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+        manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
 
         // Footstep array
         footsteps_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps array", true );
@@ -484,6 +484,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         flor_mode_sub_ = nh_.subscribe<flor_control_msgs::FlorControlMode>( "/flor/controller/mode", 5, &Base3DView::processControlMode, this );
 
         // Connect to the template markers
+        QObject::connect(this, SIGNAL(enableTemplateMarker(int, bool)), template_display_, SLOT(enableTemplateMarker(int, bool)));
         QObject::connect(this, SIGNAL(enableTemplateMarkers(bool)), template_display_, SLOT(enableTemplateMarkers(bool)));
 
         // set frustum
@@ -1146,13 +1147,17 @@ void Base3DView::setTemplateTree(QTreeWidget * root)
 
 void Base3DView::addBase3DContextElements()
 {
-    insertTemplateMenu = makeContextParent("Insert Template",contextMenuItems);
+    contextMenuItem * separator = new contextMenuItem();
+    separator->name = "Separator";
 
+    selectMenu = makeContextChild("Select",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+
+    addToContextVector(separator);
+
+    insertTemplateMenu = makeContextParent("Insert Template",contextMenuItems);
     removeTemplateMenu = makeContextChild("Remove Template",boost::bind(&Base3DView::removeTemplateContextMenu,this),NULL,contextMenuItems);
 
-    contextMenuItem * seperator = new contextMenuItem();
-    seperator->name = "Seperator";
-    addToContextVector(seperator);   
+    addToContextVector(separator);
 
     cartesianMotionMenu = makeContextParent("Cartesian Motion", contextMenuItems);
 
@@ -1164,12 +1169,12 @@ void Base3DView::addBase3DContextElements()
     createCircularMarkerMenu = makeContextChild("Create Circular Motion Marker",boost::bind(&Base3DView::createCircularContextMenu,this),circularMotionMenu,contextMenuItems);
     removeCircularMarkerMenu = makeContextChild("Remove marker",boost::bind(&Base3DView::removeCircularContextMenu,this),circularMotionMenu,contextMenuItems);
 
-    addToContextVector(seperator);
+    addToContextVector(separator);
 
     footstepPlanMenuWalk = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
     footstepPlanMenuWalkManipulation = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate",boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
 
-    addToContextVector(seperator);
+    addToContextVector(separator);
 }
 
 void Base3DView::addTemplatesToContext()
@@ -1245,13 +1250,20 @@ void Base3DView::createContextMenu(bool, int x, int y)
     addToContextMenuFromVector();
 
     //insert stuff in constructor
-    //have special case for empty vector item. insert seperator when found
+    //have special case for empty vector item. insert separator when found
     //context_menu_.addAction("Insert Template");
+
+    selectMenu->action->setEnabled(false);
+    ROS_ERROR("CONTEXT: %s",active_context_name_.c_str());
+
+    if(active_context_name_.find("template") != std::string::npos)
+        selectMenu->action->setEnabled(true);
 
     if(active_context_name_.find("template") != std::string::npos)
         removeTemplateMenu->action->setEnabled(true);
     else
         removeTemplateMenu->action->setEnabled(false);
+
 
     if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100)
     {
@@ -1296,7 +1308,7 @@ void Base3DView::addToContextMenuFromVector()
 {
     for(int i=0;i<contextMenuItems.size();i++)
     {
-        if(contextMenuItems[i]->name == "Seperator")
+        if(contextMenuItems[i]->name == "Separator")
         {
             context_menu_.addSeparator();
             continue;
@@ -1382,21 +1394,53 @@ void Base3DView::removeTemplateContextMenu()
     if(ok) removeTemplate(t);
 }
 
-void Base3DView::selectTemplateContextMenu()
+void Base3DView::selectContextMenu()
 {
-    int start = active_context_name_.find(" ")+1;
-    int end = active_context_name_.find(".");
-    QString template_number(active_context_name_.substr(start, end-start).c_str());
-    ROS_INFO("%d %d %s",start,end,template_number.toStdString().c_str());
-    bool ok;
-    int t = template_number.toInt(&ok);
-    if(ok)
-        selectTemplate(t);
+    if(active_context_name_.find("template") != std::string::npos)
+    {
+        int start = active_context_name_.find(" ")+1;
+        int end = active_context_name_.find(".");
+        QString template_number(active_context_name_.substr(start, end-start).c_str());
+        ROS_INFO("%d %d %s",start,end,template_number.toStdString().c_str());
+        bool ok;
+        int t = template_number.toInt(&ok);
+        if(ok) selectTemplate(t);
+    }
 }
 
 void Base3DView::selectTemplate(int id)
 {
+    flor_ocs_msgs::OCSObjectSelection cmd;
+    cmd.type = flor_ocs_msgs::OCSObjectSelection::TEMPLATE;
+    cmd.id = id;
+    select_template_pub_.publish(cmd);
+}
 
+void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
+{
+    // disable all template markers
+    Q_EMIT enableTemplateMarkers( false );
+
+    // disable all robot IK markers
+    for( int i = 0; i < im_ghost_robot_.size(); i++ )
+    {
+        im_ghost_robot_[i]->setEnabled( false );
+    }
+
+    switch(msg->type)
+    {
+        case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
+            // enable template marker
+            im_ghost_robot_[msg->id]->setEnabled( true );
+            break;
+        case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
+            // enable template marker
+            Q_EMIT enableTemplateMarker( msg->id, true );
+            break;
+        case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
+        default:
+            break;
+    }
 }
 
 void Base3DView::executeFootstepPlanContextMenu()
@@ -2451,11 +2495,6 @@ bool Base3DView::eventFilter( QObject * o, QEvent * e )
         Q_EMIT setRenderPanel(this->render_panel_);
     }
     return QWidget::eventFilter( o, e );
-}
-
-void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
-{
-
 }
 
 void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
