@@ -472,6 +472,9 @@ protected:
 
     QTreeWidget * templateRoot;
 
+    void selectTemplate(int id);
+    void selectTemplateContextMenu();
+
 
 };
 }

@@ -43,6 +43,9 @@ private:
 
     ros::Subscriber key_event_sub_;
 
+
+
+
 };
 
 #endif // map_view_WIDGET_H

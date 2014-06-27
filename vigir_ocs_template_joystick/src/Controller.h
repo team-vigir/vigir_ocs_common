@@ -86,6 +86,8 @@ private:
    void handleArms();
    QVector3D cameraPosition;
    QQuaternion cameraOrientation;
+   int currentManipulationController;
+   void changeManipulationController();
 
 Q_SIGNALS:
    void updateTemplateComboBox(int tempID);

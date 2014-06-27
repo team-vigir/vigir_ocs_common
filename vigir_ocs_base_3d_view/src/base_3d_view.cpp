@@ -1152,12 +1152,7 @@ void Base3DView::addBase3DContextElements()
 
     contextMenuItem * seperator = new contextMenuItem();
     seperator->name = "Seperator";
-    addToContextVector(seperator);
-
-    footstepPlanMenuWalk = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
-    footstepPlanMenuWalkManipulation = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate",boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
-
-    addToContextVector(seperator);
+    addToContextVector(seperator);   
 
     cartesianMotionMenu = makeContextParent("Cartesian Motion", contextMenuItems);
 
@@ -1168,6 +1163,11 @@ void Base3DView::addBase3DContextElements()
 
     createCircularMarkerMenu = makeContextChild("Create Circular Motion Marker",boost::bind(&Base3DView::createCircularContextMenu,this),circularMotionMenu,contextMenuItems);
     removeCircularMarkerMenu = makeContextChild("Remove marker",boost::bind(&Base3DView::removeCircularContextMenu,this),circularMotionMenu,contextMenuItems);
+
+    addToContextVector(seperator);
+
+    footstepPlanMenuWalk = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
+    footstepPlanMenuWalkManipulation = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate",boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
 
     addToContextVector(seperator);
 }
@@ -1380,6 +1380,23 @@ void Base3DView::removeTemplateContextMenu()
     bool ok;
     int t = template_number.toInt(&ok);
     if(ok) removeTemplate(t);
+}
+
+void Base3DView::selectTemplateContextMenu()
+{
+    int start = active_context_name_.find(" ")+1;
+    int end = active_context_name_.find(".");
+    QString template_number(active_context_name_.substr(start, end-start).c_str());
+    ROS_INFO("%d %d %s",start,end,template_number.toStdString().c_str());
+    bool ok;
+    int t = template_number.toInt(&ok);
+    if(ok)
+        selectTemplate(t);
+}
+
+void Base3DView::selectTemplate(int id)
+{
+
 }
 
 void Base3DView::executeFootstepPlanContextMenu()
