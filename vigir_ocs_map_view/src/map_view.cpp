@@ -64,7 +64,9 @@ MapView::MapView( QWidget* parent )
     selected_area_[2] = 0;
     selected_area_[3] = 0;
 
-    setViewPlane("XY");   
+    setViewPlane("XY");
+
+    addContextMenu();
 }
 
 // Destructor.
@@ -249,6 +251,24 @@ void MapView::requestPointCloud(double min_z, double max_z, double resolution, i
     last_request_ = cmd;
 
     Q_EMIT unHighlight();
+}
+
+void MapView::addContextMenu()
+{
+//    //can tell context menu to add a seperator when this item is added
+//    contextMenuItem * seperator = new contextMenuItem();
+//    seperator->name = "Seperator";
+
+//    ROS_ERROR("adding seperators");
+//    contextMenuElements.push_back(seperator);
+//    contextMenuElements.push_back(seperator);
+//    contextMenuElements.push_back(seperator);
+//    contextMenuElements.push_back(seperator);
+//    //add all context menu items to each view
+//    for(int i=0;i<contextMenuElements.size();i++)
+//    {
+//        this->addToContextVector(contextMenuElements[i]);
+//    }
 }
 
 void MapView::createContextMenu(bool, int x, int y)

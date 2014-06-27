@@ -46,7 +46,7 @@
      </property>
      <property name="maximumSize">
       <size>
-       <width>225</width>
+       <width>230</width>
        <height>16777215</height>
       </size>
      </property>
@@ -63,10 +63,16 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-1148</y>
+        <y>0</y>
         <width>207</width>
         <height>1876</height>
        </rect>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>207</width>
+        <height>16777215</height>
+       </size>
       </property>
       <property name="styleSheet">
        <string notr="true">font: 8pt &quot;Ubuntu&quot;;</string>
@@ -76,7 +82,7 @@
         <number>7</number>
        </property>
        <item>
-        <widget class="QGroupBox" name="groupBox">
+        <widget class="QGroupBox" name="Tools">
          <property name="title">
           <string>Tools</string>
          </property>
@@ -400,7 +406,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_3">
+        <widget class="QGroupBox" name="Navigation">
          <property name="title">
           <string>Navigation Options</string>
          </property>
@@ -483,7 +489,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_4">
+        <widget class="QGroupBox" name="Template">
          <property name="title">
           <string>Template</string>
          </property>

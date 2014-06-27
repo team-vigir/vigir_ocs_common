@@ -47,6 +47,10 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
     key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MapViewWidget::processNewKeyEvent, this );
 
     ((vigir_ocs::Base3DView*)ui->map_view_)->setTemplateTree(ui->template_widget_3->getTreeRoot());
+
+    //hide sidebar elements that aren't necessary
+    //ui->Template->hide();
+    //ui->Tools->hide();
 }
 
 MapViewWidget::~MapViewWidget()

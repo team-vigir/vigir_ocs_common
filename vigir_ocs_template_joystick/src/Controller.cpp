@@ -12,44 +12,30 @@
 
 #include "Controller.h"
 
-#define PS3_BUTTON_SELECT            0
-#define PS3_BUTTON_STICK_LEFT        1
-#define PS3_BUTTON_STICK_RIGHT       2
-#define PS3_BUTTON_START             3
-#define PS3_BUTTON_CROSS_UP          4
-#define PS3_BUTTON_CROSS_RIGHT       5
-#define PS3_BUTTON_CROSS_DOWN        6
-#define PS3_BUTTON_CROSS_LEFT        7
-#define PS3_BUTTON_REAR_LEFT_2       8
-#define PS3_BUTTON_REAR_RIGHT_2      9
-#define PS3_BUTTON_REAR_LEFT_1       10
-#define PS3_BUTTON_REAR_RIGHT_1      11
-#define PS3_BUTTON_ACTION_TRIANGLE   12
-#define PS3_BUTTON_ACTION_CIRCLE     13
-#define PS3_BUTTON_ACTION_CROSS      14
-#define PS3_BUTTON_ACTION_SQUARE     15
-#define PS3_BUTTON_PAIRING           16
+//buttons
+#define XBOX_A                          0
+#define XBOX_B                          1
+#define XBOX_X                          2
+#define XBOX_Y                          3
+#define XBOX_LB                         4
+#define XBOX_RB                         5
+#define XBOX_BACK                       6
+#define XBOX_START                      7
+#define XBOX_POWER                      8
+#define XBOX_BUTTON_STICK_LEFT          9
+#define XBOX_BUTTON_STICK_RIGHT         10
 
-#define PS3_AXIS_STICK_LEFT_LEFTWARDS    0
-#define PS3_AXIS_STICK_LEFT_UPWARDS      1
-#define PS3_AXIS_STICK_RIGHT_LEFTWARDS   2
-#define PS3_AXIS_STICK_RIGHT_UPWARDS     3
-#define PS3_AXIS_BUTTON_CROSS_UP         4
-#define PS3_AXIS_BUTTON_CROSS_RIGHT      5
-#define PS3_AXIS_BUTTON_CROSS_DOWN       6
-#define PS3_AXIS_BUTTON_CROSS_LEFT       7
-#define PS3_AXIS_BUTTON_REAR_LEFT_2      8
-#define PS3_AXIS_BUTTON_REAR_RIGHT_2     9
-#define PS3_AXIS_BUTTON_REAR_LEFT_1      10
-#define PS3_AXIS_BUTTON_REAR_RIGHT_1     11
-#define PS3_AXIS_BUTTON_ACTION_TRIANGLE  12
-#define PS3_AXIS_BUTTON_ACTION_CIRCLE    13
-#define PS3_AXIS_BUTTON_ACTION_CROSS     14
-#define PS3_AXIS_BUTTON_ACTION_SQUARE    15
-#define PS3_AXIS_ACCELEROMETER_LEFT      16
-#define PS3_AXIS_ACCELEROMETER_FORWARD   17
-#define PS3_AXIS_ACCELEROMETER_UP        18
-#define PS3_AXIS_GYRO_YAW                19
+//axis
+#define XBOX_AXIS_STICK_LEFT_LEFTWARDS   0
+#define XBOX_AXIS_STICK_LEFT_UPWARDS     1
+#define XBOX_LT                          2
+#define XBOX_AXIS_STICK_RIGHT_LEFTWARDS  3
+#define XBOX_AXIS_STICK_RIGHT_UPWARDS    4
+#define XBOX_RT                          5
+#define XBOX_CROSS_LEFT                  6
+#define XBOX_CROSS_DOWN                  7
+
+
 
 namespace vigir_ocs
 {
@@ -90,6 +76,9 @@ namespace vigir_ocs
         rightMode = false;
         worldMode = false;
         objectMode = false;
+
+        //allows joystick to keep track of mode
+        currentManipulationController = 0;
     }
 
     // Destructor
@@ -196,127 +185,165 @@ namespace vigir_ocs
 
     void Controller::setManipulation(int mode)
     {
-        ROS_ERROR("manipulation mode %d",mode);
-        //will be 0,1,or 2
-        if(mode==0) //camera
+        ROS_ERROR("manipulation mode %d",mode);        
+        switch(mode)
         {
+        case 0://camera
             worldMode = false;
             objectMode = false;
-        }
-        else if (mode ==1) // world
-        {
+            break;
+        case 1: // world
             objectMode = false;
             worldMode = true;
-        }
-        else  // object
-        {
+            break;
+        case 2: // object
             worldMode = false;
             objectMode = true;
+            break;
         }
+    }
+
+    void Controller::changeManipulationController()
+    {
+        //change modes in circular fashion
+        if(currentManipulationController == 2)
+            currentManipulationController = 0;
+        else
+            currentManipulationController++;
+
+        setManipulation(currentManipulationController);
     }
 
 
     void Controller::handleJoystick()
     {
         //null check for templates
-        if(temList.template_id_list.size()==0)
-            return;
-
+        if(temList.template_id_list.size() == 0 && !leftMode && !rightMode)
+            return;        
         float x = 0;
         float y = 0;
         float z = 0;
         float rotX = 0;
         float rotY = 0;
         float rotZ = 0;
-        bool tiltLeft = false;
-        bool tiltRight = false;
 
         //read controller values
         //left stick translation
-        if(joy.axes[PS3_AXIS_STICK_LEFT_LEFTWARDS] > .5)
+        if(joy.axes[XBOX_AXIS_STICK_LEFT_LEFTWARDS] > .5)
             x = -.1;
-        if(joy.axes[PS3_AXIS_STICK_LEFT_UPWARDS] > .5)
+        if(joy.axes[XBOX_AXIS_STICK_LEFT_UPWARDS] > .5)
             y = .1;
-        if(joy.axes[PS3_AXIS_STICK_LEFT_LEFTWARDS] < -.5)
+        if(joy.axes[XBOX_AXIS_STICK_LEFT_LEFTWARDS] < -.5)
             x = .1;
-        if(joy.axes[PS3_AXIS_STICK_LEFT_UPWARDS] < -.5)
+        if(joy.axes[XBOX_AXIS_STICK_LEFT_UPWARDS]  <-.5)
             y = -.1;
         //dpad
-        if(joy.buttons[PS3_BUTTON_CROSS_UP] == 1)
+        if(joy.axes[XBOX_CROSS_DOWN] > 0)
             y = .1;
-        if(joy.buttons[PS3_BUTTON_CROSS_LEFT] == 1)
+        if(joy.axes[XBOX_CROSS_LEFT] < 0)
             x = -.1;
-        if(joy.buttons[PS3_BUTTON_CROSS_RIGHT] == 1)
+        if(joy.axes[XBOX_CROSS_LEFT] > 0)
             x = .1;
-        if(joy.buttons[PS3_BUTTON_CROSS_DOWN] == 1)
+        if(joy.axes[XBOX_CROSS_DOWN] < 0)
             y = -.1;
         //rotation right stick
-        if(joy.axes[PS3_AXIS_STICK_RIGHT_UPWARDS] > .5)
+        if(joy.axes[XBOX_AXIS_STICK_RIGHT_UPWARDS] > .5)
             rotY = 5;
-        if(joy.axes[PS3_AXIS_STICK_RIGHT_UPWARDS] < -.5)
+        if(joy.axes[XBOX_AXIS_STICK_RIGHT_UPWARDS] < -.5)
             rotY = -5;
-        if(joy.axes[PS3_AXIS_STICK_RIGHT_LEFTWARDS] > .5)
+        if(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS] > .5)
             rotX = -5;
-        if(joy.axes[PS3_AXIS_STICK_RIGHT_LEFTWARDS] < -.5)
+        if(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS] < -.5)
             rotX = 5;
-        if(joy.buttons[PS3_AXIS_BUTTON_REAR_RIGHT_1])
-            z = .1;
-        if(joy.buttons[PS3_AXIS_BUTTON_REAR_LEFT_1])
+        if(joy.buttons[XBOX_LB] == 1)
             z = -.1;
-
-        if(joy.axes[PS3_AXIS_ACCELEROMETER_LEFT] < -.1)
-            tiltLeft = true;
-        else if (joy.axes[PS3_AXIS_ACCELEROMETER_LEFT] > .1)
-            tiltRight = true;
-        //switch axes on tilt
-        if(tiltLeft)
+        if(joy.buttons[XBOX_RB] == 1)
+            z = .1;
+        if(joy.buttons[XBOX_A] == 1)
         {
-            float tmp = z;
-            z = x;
-            x = -tmp;
-
-            rotZ = rotX;
-            rotX = 0;
+            //set to template mode if either arm mode is true, otherwise switch current template
+            if(!leftMode && !rightMode)
+                changeTemplate();
+            else
+                setObjectMode(0);
         }
-        else if(tiltRight)
+        if(joy.buttons[XBOX_X] == 1) //left mode on
+            setObjectMode(1);
+        if(joy.buttons[XBOX_B] == 1)//right mode on
+            setObjectMode(2);
+        if(joy.buttons[XBOX_Y] == 1)
+            changeManipulationController();
+
+        QQuaternion * rotation;
+        QVector3D * position;
+
+        if(leftMode)
         {
-            float tmp = z;
-            z = -x;
-            x = tmp;
-
-            rotZ = -rotX;
-            rotX = 0;
+            rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
+                                       leftHand.pose.orientation.y,leftHand.pose.orientation.z);
+            position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
         }
-
-        QQuaternion * rotation = new QQuaternion(temList.pose[templateIndex].pose.orientation.w,temList.pose[templateIndex].pose.orientation.x,
+        else if(rightMode)
+        {
+            ///placeholder
+            rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
+                                       leftHand.pose.orientation.y,leftHand.pose.orientation.z);
+            position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
+        }
+        else //template manipulation
+        {
+            rotation = new QQuaternion(temList.pose[templateIndex].pose.orientation.w,temList.pose[templateIndex].pose.orientation.x,
                                                  temList.pose[templateIndex].pose.orientation.y,temList.pose[templateIndex].pose.orientation.z);
-        QVector3D * position = new QVector3D(temList.pose[templateIndex].pose.position.x,temList.pose[templateIndex].pose.position.y,temList.pose[templateIndex].pose.position.z);
+            position = new QVector3D(temList.pose[templateIndex].pose.position.x,temList.pose[templateIndex].pose.position.y,temList.pose[templateIndex].pose.position.z);
+        }
         buildTransformation(x,y,z,rotX,rotY,rotZ,rotation,position);
 
-        //create msg to publish
+
         flor_ocs_msgs::OCSTemplateUpdate msg;
-        msg.template_id = temList.template_id_list[templateIndex];
 
-        //copy rotation first
-        msg.pose.pose.orientation.x = rotation->x();
-        msg.pose.pose.orientation.y = rotation->y();
-        msg.pose.pose.orientation.z = rotation->z();
-        msg.pose.pose.orientation.w = rotation->scalar();
-
-        //update coordinates based on latest data from list
-        msg.pose.pose.position.x = position->x();
-        msg.pose.pose.position.y = position->y();
-        msg.pose.pose.position.z = position->z();
-
-        //don't publish if sending same data
-        if(!compareJoyData())
+        if(leftMode)
         {
-            //ROS_INFO(" PUBLISHING");
-            template_update_pub.publish(msg);
+
+        }
+        else if(rightMode)
+        {
+
         }
         else
         {
-           // ROS_INFO("NOT PUBLISHING");
+            //create msg to publish
+
+            msg.template_id = temList.template_id_list[templateIndex];
+
+            //copy rotation first
+            msg.pose.pose.orientation.x = rotation->x();
+            msg.pose.pose.orientation.y = rotation->y();
+            msg.pose.pose.orientation.z = rotation->z();
+            msg.pose.pose.orientation.w = rotation->scalar();
+
+            //update coordinates based on latest data from list
+            msg.pose.pose.position.x = position->x();
+            msg.pose.pose.position.y = position->y();
+            msg.pose.pose.position.z = position->z();
+        }
+        //don't publish if sending same data
+        if(!compareJoyData())
+        {            
+            ROS_ERROR(" PUBLISHING ");
+            if(leftMode)
+            {
+            }
+            else if(rightMode)
+            {
+            }
+            else
+            {
+                template_update_pub.publish(msg);
+            }
+        }
+        else
+        {
+            ROS_ERROR("NOT PUBLISHING");
         }
         //store last joystick state for comparisons
         oldJoy = joy;
@@ -336,38 +363,60 @@ namespace vigir_ocs
 
         bool axesDup = true;
         bool buttonDup = true;
-        //ignore gyro and accel (16-19)
-        for(int i=0;i<16;i++)
+
+        for(int i=0;i<oldJoy.axes.size();i++)
         {
-            if(oldJoy.axes[i] != joy.axes[i] || joy.axes[i]!=0)
-                axesDup = false;
+            if(oldJoy.axes[i] != joy.axes[i] || joy.axes[i] > 0.5 || joy.axes[i] < -0.5 )
+            {
+                //bumpers are 1 by default
+                if(joy.axes[XBOX_LT] != 1 || joy.axes[XBOX_RT] != 1)
+                    axesDup = false;
+            }
         }
         for(int i=0;i<oldJoy.buttons.size();i++)
         {
             if(oldJoy.buttons[i] != joy.buttons[i])
-                buttonDup = false;
+            {
+                //ignore rb and lb as they should always write if 1
+                //if(joy.buttons[XBOX_LB] != 1 || joy.buttons[XBOX_RB] != 1)
+                    buttonDup = false;
+            }
         }
+        //ROS_ERROR("dups axes: %d button %d",axesDup,buttonDup);
         //handle buttons on difference only
         if(!buttonDup)
         {
             handleButtons();
         }
-        //publish if anything different
+        //publish if anything different or needs to be written(like a constant direction)
         if(!axesDup||!buttonDup)
             return false;
         else
             return true;
+
+
     }
 
     //handles buttons that only actuate once(selecting or changing modes)
     void Controller::handleButtons()
     {
         //only want to send different values
-        //change template on X
-        if(oldJoy.buttons[PS3_BUTTON_ACTION_CROSS] != joy.buttons[PS3_BUTTON_ACTION_CROSS] && joy.buttons[PS3_BUTTON_ACTION_CROSS]==1)
-            changeTemplate();
-        if(oldJoy.buttons[PS3_AXIS_BUTTON_ACTION_SQUARE] != joy.buttons[PS3_AXIS_BUTTON_ACTION_SQUARE])
-            leftMode = !leftMode;
+        //change template on A
+        //oldJoy.buttons[XBOX_A] != joy.buttons[XBOX_A] &&
+
+        //oldJoy.buttons[XBOX_X] != joy.buttons[XBOX_X] &&
+//                if(joy.buttons[XBOX_A] == 1)
+//                {
+//                    //set to template mode if either arm mode is true, otherwise switch current template
+//                    if(!leftMode && !rightMode)
+//                        changeTemplate();
+//                    else
+//                        setObjectMode(0);
+//                }
+//                if(joy.buttons[XBOX_X] == 1); //left mode on
+//                    setObjectMode(1);
+//                if(joy.buttons[XBOX_B] == 1);//right mode on
+//                    setObjectMode(2);
 
     }
     //handles rumble

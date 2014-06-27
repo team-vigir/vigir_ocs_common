@@ -63,6 +63,8 @@ void MiniJoint::receiveJointData(int status, QString jointName)
          removeDuplicates(status,jointName);
          joint = new QTableWidgetItem();
          jointStatus = new QTableWidgetItem();
+         joint->setBackgroundColor(Qt::yellow);
+         jointStatus->setBackgroundColor(Qt::yellow);
          ui->table->insertRow(0);
          joint->setText(jointName);
          jointStatus->setText("WARN");
@@ -73,6 +75,8 @@ void MiniJoint::receiveJointData(int status, QString jointName)
          removeDuplicates(status,jointName);
          joint = new QTableWidgetItem();
          jointStatus = new QTableWidgetItem();
+         joint->setBackgroundColor(Qt::red);
+         jointStatus->setBackgroundColor(Qt::red);
          ui->table->insertRow(0);
          joint->setText(jointName);
          jointStatus->setText("ERROR");

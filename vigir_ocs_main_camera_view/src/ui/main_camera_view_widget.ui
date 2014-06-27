@@ -210,7 +210,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-603</y>
+        <y>-941</y>
         <width>207</width>
         <height>1615</height>
        </rect>
@@ -247,7 +247,7 @@
            <number>6</number>
           </property>
           <item>
-           <widget class="QGroupBox" name="groupBox">
+           <widget class="QGroupBox" name="Tools">
             <property name="title">
              <string>Tools</string>
             </property>
@@ -305,7 +305,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QGroupBox" name="groupBox_2">
+           <widget class="QGroupBox" name="Navigation">
             <property name="title">
              <string>Navigation</string>
             </property>
@@ -356,7 +356,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QGroupBox" name="groupBox_3">
+           <widget class="QGroupBox" name="Template">
             <property name="title">
              <string>Template</string>
             </property>
@@ -957,7 +957,7 @@ color: rgb(255, 26, 26);</string>
          </property>
          <property name="maximumSize">
           <size>
-           <width>185</width>
+           <width>190</width>
            <height>16777215</height>
           </size>
          </property>
