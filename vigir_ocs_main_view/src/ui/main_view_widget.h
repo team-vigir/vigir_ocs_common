@@ -109,6 +109,7 @@ private:
     ros::Publisher sys_command_pub_;
 
     ros::Publisher joystick_pub_;
+    ros::Publisher interactive_marker_mode_pub_;
 
     std_msgs::String sysCmdMsg;
 

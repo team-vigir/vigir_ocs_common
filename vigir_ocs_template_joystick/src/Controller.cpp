@@ -164,7 +164,7 @@ namespace vigir_ocs
     //for changing on subscribed data
     void Controller::setObjectMode(int mode)
     {
-        ROS_ERROR("object mode %d",mode);
+        //ROS_ERROR("object mode %d",mode);
         switch (mode)
         {
         case 0:
@@ -188,7 +188,7 @@ namespace vigir_ocs
         ROS_ERROR("manipulation mode %d",mode);        
         switch(mode)
         {
-        case 0://camera
+        case 2://camera
             worldMode = false;
             objectMode = false;
             break;
@@ -196,7 +196,7 @@ namespace vigir_ocs
             objectMode = false;
             worldMode = true;
             break;
-        case 2: // object
+        case 0: // object
             worldMode = false;
             objectMode = true;
             break;

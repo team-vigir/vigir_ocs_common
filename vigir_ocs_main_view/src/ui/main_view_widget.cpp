@@ -1,9 +1,6 @@
 #include "main_view_widget.h"
 #include "ui_main_view_widget.h"
 
-
-
-
 MainViewWidget::MainViewWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainViewWidget)
@@ -122,8 +119,6 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     position_widget_->setStyleSheet("background-color: rgb(108, 108, 108);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
     position_widget_->setMaximumSize(46,22);
 
-
-
     one_view_button_ = new QPushButton("",this);//𐌎", this);
     QPixmap pixmap1(icon_path_+"one_view_checked.png");
     QIcon ButtonIcon1(pixmap1);
@@ -190,9 +185,9 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     //combo box for manipulation modes
     //connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),joystick,SLOT(setManipulationMode(int)));
-    ui->modeBox->addItem(QString("Camera"));
-    ui->modeBox->addItem(QString("World"));
     ui->modeBox->addItem(QString("Object"));
+    ui->modeBox->addItem(QString("World"));
+    ui->modeBox->addItem(QString("Camera"));
 
     // workaround to be able to use images from stylesheet without knowing the path in advance
     QString stylesheet = ui->modeBox->styleSheet() + "\n" +
@@ -207,8 +202,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     //publisher for joystick modes
     joystick_pub_ = n_.advertise<flor_ocs_msgs::OCSJoystick>("/flor/ocs/joystick",1,false);
-
-
+    //publisher for the interactive marker mode
+    interactive_marker_mode_pub_ = n_.advertise<std_msgs::Int8>("/flor/ocs/interactive_marker_server/set_mode",1,false);
 
     statusBar = new StatusBar();
 
@@ -542,8 +537,8 @@ void MainViewWidget::setRightArmMode()
 }
 void MainViewWidget::setCameraMode()
 {
-    ui->modeBox->setCurrentIndex(0);
-    setManipulationMode(0);
+    ui->modeBox->setCurrentIndex(2);
+    setManipulationMode(2);
 }
 void MainViewWidget::setWorldMode()
 {
@@ -552,15 +547,20 @@ void MainViewWidget::setWorldMode()
 }
 void MainViewWidget::setObjectMode()
 {
-    ui->modeBox->setCurrentIndex(2);
-    setManipulationMode(2);
+    ui->modeBox->setCurrentIndex(0);
+    setManipulationMode(0);
 }
 
 void MainViewWidget::setManipulationMode(int mode)
 {
+    // update template joystick
     flor_ocs_msgs::OCSJoystick msg;
     msg.manipulationMode =  mode;
     joystick_pub_.publish(msg);
+    // update interactive markers
+    std_msgs::Int8 m;
+    m.data = mode;
+    interactive_marker_mode_pub_.publish(m);
 }
 
 void MainViewWidget::setObjectMode(int mode)
