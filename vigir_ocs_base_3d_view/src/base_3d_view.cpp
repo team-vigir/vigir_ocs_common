@@ -571,11 +571,20 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // subscribe to the topic sent by the ghost widget
         send_cartesian_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_cartesian", 5, &Base3DView::processSendCartesian, this );
-
         send_ghost_pelvis_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/set_pose", 5, &Base3DView::processGhostPelvisPose, this );
 
+        // create publisher and subscriber for object selection
+        // PUBLISHER WILL BE USED BY THE RIGHT/DOUBLE CLICK TO INFORM WHICH TEMPLATE/HAND/OBJECT HAS BEEN selected
+        // SUBSCRIBER WILL BE USED TO CHANGE VISIBILITY OF THE OBJECT THAT IS BEING USED (E.G., TALK TO TEMPLATE DISPLAY AND SET VISIBILITY OF MARKERS)
+        // ALSO, HIDE THE TEMPLATE NAME AND SHOW IT ON MOUSE OVER?
+        select_template_pub_ = nh_.advertise<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 1, false );
+        select_template_sub_ = nh_.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &Base3DView::processObjectSelection, this );
+
+        // finally the key events
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
         hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );
+
+
     }
 
     // Connect the 3D selection tool to
@@ -662,15 +671,13 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     render_panel_->getViewport()->setBackgroundColour(rviz::qtToOgre(QColor(48,48,48)));
 
     // advertise publisher for camera transform
-    camera_transform_pub_ = nh_.advertise<flor_ocs_msgs::OCSCameraTransform>( "flor/ocs/camera_transform", 1, false );
+    camera_transform_pub_ = nh_.advertise<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform", 1, false );
 
     //build context menu
     addBase3DContextElements();
 
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
-
-
 }
 
 // Destructor.
@@ -2427,6 +2434,11 @@ bool Base3DView::eventFilter( QObject * o, QEvent * e )
         Q_EMIT setRenderPanel(this->render_panel_);
     }
     return QWidget::eventFilter( o, e );
+}
+
+void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
+{
+
 }
 
 void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
