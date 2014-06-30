@@ -272,7 +272,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         right_ft_sensor_->subProp("Arrow Width")->setValue(0.3);
 
 
-        // create the grasp hands displays
+        // create the grasp hands displays (blue/yellow hands)
         left_grasp_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left hand model", true );
         left_grasp_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
         left_grasp_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_left_hand" );
@@ -285,7 +285,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         right_grasp_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
         right_grasp_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
 
-        // create the hands displays
+        // create the hands displays (iron man hands)
         left_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left hand model", true );
         left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
         left_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/marker_left_hand" );
@@ -1164,6 +1164,14 @@ void Base3DView::addBase3DContextElements()
 
     addToContextVector(separator);
 
+    makeContextChild("Lock Left Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL,contextMenuItems);
+    makeContextChild("Unlock Left Arm",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL,contextMenuItems);
+
+    makeContextChild("Lock Right Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL,contextMenuItems);
+    makeContextChild("Unlock Right Arm",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL,contextMenuItems);
+
+    addToContextVector(separator);
+
     cartesianMotionMenu = makeContextParent("Cartesian Motion", contextMenuItems);
 
     createCartesianMarkerMenu = makeContextChild("Create Cartesian Motion Marker",boost::bind(&Base3DView::createCartesianContextMenu,this),cartesianMotionMenu,contextMenuItems);
@@ -1401,7 +1409,14 @@ void Base3DView::removeTemplateContextMenu()
 
 void Base3DView::selectContextMenu()
 {
-    if(active_context_name_.find("template") != std::string::npos)
+    int id;
+    if((id = findObjectContext("template")) != -1)
+        selectTemplate(id);
+}
+
+int Base3DView::findObjectContext(std::string obj_type)
+{
+    if(active_context_name_.find(obj_type) != std::string::npos)
     {
         int start = active_context_name_.find(" ")+1;
         int end = active_context_name_.find(".");
@@ -1409,7 +1424,9 @@ void Base3DView::selectContextMenu()
         ROS_INFO("%d %d %s",start,end,template_number.toStdString().c_str());
         bool ok;
         int t = template_number.toInt(&ok);
-        if(ok) selectTemplate(t);
+        if(ok) return t;
+        return -1;
+
     }
 }
 
@@ -1437,6 +1454,19 @@ void Base3DView::selectRightArm()
     select_template_pub_.publish(cmd);
 }
 
+// this function will toggle the template grasp lock
+void Base3DView::setTemplateGraspLock(int arm)
+{
+    int id;
+    if((id = findObjectContext("template")) != -1)
+    {
+        selectTemplate(id);
+
+        ghost_pose_source_[arm] = !ghost_pose_source_[arm];
+        ghost_world_lock_[arm] = !ghost_world_lock_[arm];
+    }
+}
+
 void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
 {
     // disable all template markers
@@ -1444,14 +1474,20 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
 
     // disable all robot IK markers
     for( int i = 0; i < im_ghost_robot_.size(); i++ )
-    {
         im_ghost_robot_[i]->setEnabled( false );
-    }
+
+    // enable loopback for both arms
+    left_marker_moveit_loopback_ = true;
+    right_marker_moveit_loopback_ = true;
 
     switch(msg->type)
     {
         case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
             // enable template marker
+            if(msg->id == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
+                left_marker_moveit_loopback_ = false;
+            else if(msg->id == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
+                right_marker_moveit_loopback_ = false;
             im_ghost_robot_[msg->id]->setEnabled( true );
             break;
         case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
@@ -1700,6 +1736,8 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
         //ROS_ERROR("LEFT ARM POSE:");
         //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
         //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
+
+        // doesn't happen if in template lock mode
         if(!moving_pelvis_ && ghost_pose_source_[0] == 0)
             end_effector_pose_list_[cmd.topic] = cmd.pose;
     }
@@ -1729,6 +1767,8 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
         //ROS_ERROR("RIGHT ARM POSE:");
         //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
         //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
+
+        // doesn't happen if in template lock mode
         if(!moving_pelvis_ && ghost_pose_source_[1] == 0)
             end_effector_pose_list_[cmd.topic] = cmd.pose;
     }
@@ -1914,14 +1954,14 @@ void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::Cons
     //ROS_INFO("  position: %.2f %.2f %.2f",pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
     //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",pose->pose.orientation.w,pose->pose.orientation.x,pose->pose.orientation.y,pose->pose.orientation.z);
 
-    // will only process this if in world_lock mode
-    //if(!moving_pelvis_ && ghost_world_lock_[0] == 1)
-    //{
-    //    geometry_msgs::Pose transformed_pose = pose->pose;
-    //    staticTransform(transformed_pose, l_hand_T_palm_);
-    //    end_effector_pose_list_["/l_arm_pose_marker"].pose = transformed_pose;
-    //    publishGhostPoses();
-    //}
+    // will only process this if in template lock
+    if(!moving_pelvis_ && ghost_world_lock_[0] == 1)
+    {
+        geometry_msgs::Pose transformed_pose = pose->pose;
+        staticTransform(transformed_pose, l_hand_T_palm_);
+        end_effector_pose_list_["/l_arm_pose_marker"].pose = transformed_pose;
+        publishGhostPoses();
+    }
 }
 
 // callback for the grasp widget right hand pose
@@ -1931,14 +1971,14 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
     //ROS_INFO("  position: %.2f %.2f %.2f",pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
     //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",pose->pose.orientation.w,pose->pose.orientation.x,pose->pose.orientation.y,pose->pose.orientation.z);
 
-    // will only process this if in world_lock mode
-    //if(!moving_pelvis_ && ghost_world_lock_[1] == 1)
-    //{
-    //    geometry_msgs::Pose transformed_pose = pose->pose;
-    //    staticTransform(transformed_pose, r_hand_T_palm_);
-    //    end_effector_pose_list_["/r_arm_pose_marker"].pose = transformed_pose;
-    //    publishGhostPoses();
-    //}
+    // will only process this if in template lock
+    if(!moving_pelvis_ && ghost_world_lock_[1] == 1)
+    {
+        geometry_msgs::Pose transformed_pose = pose->pose;
+        staticTransform(transformed_pose, r_hand_T_palm_);
+        end_effector_pose_list_["/r_arm_pose_marker"].pose = transformed_pose;
+        publishGhostPoses();
+    }
 }
 
 void Base3DView::processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg)
@@ -1968,6 +2008,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         //ROS_INFO("  position: %.2f %.2f %.2f",msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.position.z);
         //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg.pose.pose.orientation.w,msg.pose.pose.orientation.x,msg.pose.pose.orientation.y,msg.pose.pose.orientation.z);
 
+        // this will publish the iron man hand position based on the left arm marker pose
         calcWristTarget(msg.pose,l_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("left"),joint_pose);
     }
@@ -1983,6 +2024,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         //ROS_INFO("  position: %.2f %.2f %.2f",msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.position.z);
         //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg.pose.pose.orientation.w,msg.pose.pose.orientation.x,msg.pose.pose.orientation.y,msg.pose.pose.orientation.z);
 
+        // this will publish the iron man hand position based on the right arm marker pose
         calcWristTarget(msg.pose,r_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("right"),joint_pose);
     }
@@ -2034,6 +2076,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
     publishGhostPoses();
 }
 
+// sends marker poses and so on to moveit
 void Base3DView::publishGhostPoses()
 {
     bool left = ghost_planning_group_[0];

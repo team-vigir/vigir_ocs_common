@@ -7,13 +7,15 @@
 
 //grasp_testing grasp_testing_simple.launch
 
-graspWidget::graspWidget(QWidget *parent)
+graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_type)
     : QWidget(parent)
     , ui(new Ui::graspWidget)
     , selected_template_id_(-1)
     , selected_grasp_id_(-1)
     , show_grasp_(false)
     , stitch_template_(false)
+    , hand_(hand)
+    , hand_type_(hand_type)
 {
     // setup UI
     ui->setupUi(this);
@@ -21,12 +23,11 @@ graspWidget::graspWidget(QWidget *parent)
     ui->graspBox->setDisabled(true);
     ui->performButton->setDisabled(true);
     ui->stitch_template->setDisabled(true);
-    //ui->templateButton->setDisabled(true);
-    //ui->releaseButton->setDisabled(true);
-    // initialize arguments from parameter server
-    ros::NodeHandle nhp("~");
-    nhp.param<std::string>("hand",hand_,"left"); // private parameter
-    nhp.param<std::string>("hand_type",hand_type_,"irobot"); // global parameter
+
+    // these are not parameters anymore, but arguments in the constructor
+    //ros::NodeHandle nhp("~");
+    //nhp.param<std::string>("hand",hand_,"left"); // private parameter
+    //nhp.param<std::string>("hand_type",hand_type_,"irobot"); // global parameter
     //ROS_ERROR("  Grasp widget using %s hand (%s)",hand_.c_str(), hand_type_.c_str());
 
     // initialize path variables for template/grasp databases
@@ -56,14 +57,15 @@ graspWidget::graspWidget(QWidget *parent)
     initTemplateIdMap();
     initGraspDB();
 
+    std::string grasp_control_prefix = (hand_ == "left") ? "/grasp_control/l_hand" : "/grasp_control/r_hand";
     // initialize template subscribers and publishers
     template_list_sub_           = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",                    5, &graspWidget::processTemplateList, this );
-    template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>("/template/template_match_feedback", 1, &graspWidget::templateMatchFeedback, this );
-    grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(       "/template/active_state",            1, &graspWidget::graspStateReceived,  this );
+    template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>("/grasp_control/template_selection", 1, &graspWidget::templateMatchFeedback, this );
+    grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(       grasp_control_prefix+"/active_state",            1, &graspWidget::graspStateReceived,  this );
 
-    grasp_selection_pub_        = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/template/grasp_selection",        1, false);
-    grasp_release_pub_          = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/template/release_grasp" ,         1, false);
-    grasp_mode_command_pub_     = nh_.advertise<flor_grasp_msgs::GraspState>(        "/template/grasp_mode_command",     1, false);
+    grasp_selection_pub_        = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/grasp_selection",        1, false);
+    grasp_release_pub_          = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/release_grasp" ,         1, false);
+    grasp_mode_command_pub_     = nh_.advertise<flor_grasp_msgs::GraspState>(        grasp_control_prefix+"/mode_command",     1, false);
     template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/template_match_request", 1, false );
 
     // create subscribers for grasp status
