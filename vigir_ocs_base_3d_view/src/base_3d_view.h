@@ -54,6 +54,7 @@
 #include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSHotkeyRelay.h>
+#include <flor_ocs_msgs/OCSObjectSelection.h>
 #include <flor_perception_msgs/RaycastRequest.h>
 #include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
@@ -131,6 +132,7 @@ public:
     void processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr& msg );
     void processSendCartesian( const std_msgs::Bool::ConstPtr& msg );
     void processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg);
 
     virtual void processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr& msg);
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
@@ -211,6 +213,7 @@ Q_SIGNALS:
     // send position of the mouse when clicked to create context menu
     void queryContext( int, int );
     void setMarkerPosition( float, float, float );
+    void enableTemplateMarker( int, bool );
     void enableTemplateMarkers( bool );
     void setFrustum( const float &, const float &, const float&, const float& );
     void finishedContextMenuSetup( int x, int y );
@@ -352,6 +355,9 @@ protected:
     ros::Publisher flor_mode_command_pub_;
     ros::Subscriber flor_mode_sub_;
 
+    ros::Publisher select_template_pub_;
+    ros::Subscriber select_template_sub_;
+
     ros::Publisher camera_transform_pub_;
 
     std::vector<unsigned char> ghost_planning_group_;
@@ -456,6 +462,7 @@ protected:
 
     contextMenuItem * insertTemplateMenu;
     contextMenuItem * removeTemplateMenu;
+    contextMenuItem * selectMenu;
     contextMenuItem * footstepPlanMenuWalk;
     contextMenuItem * footstepPlanMenuWalkManipulation;
     contextMenuItem * cartesianMotionMenu;
@@ -468,7 +475,7 @@ protected:
     QTreeWidget * templateRoot;
 
     void selectTemplate(int id);
-    void selectTemplateContextMenu();
+    void selectContextMenu();
 
 
 };

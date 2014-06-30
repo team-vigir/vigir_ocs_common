@@ -255,15 +255,15 @@ void MapView::requestPointCloud(double min_z, double max_z, double resolution, i
 
 void MapView::addContextMenu()
 {
-//    //can tell context menu to add a seperator when this item is added
-//    contextMenuItem * seperator = new contextMenuItem();
-//    seperator->name = "Seperator";
+//    //can tell context menu to add a separator when this item is added
+//    contextMenuItem * separator = new contextMenuItem();
+//    separator->name = "Separator";
 
-//    ROS_ERROR("adding seperators");
-//    contextMenuElements.push_back(seperator);
-//    contextMenuElements.push_back(seperator);
-//    contextMenuElements.push_back(seperator);
-//    contextMenuElements.push_back(seperator);
+//    ROS_ERROR("adding separators");
+//    contextMenuElements.push_back(separator);
+//    contextMenuElements.push_back(separator);
+//    contextMenuElements.push_back(separator);
+//    contextMenuElements.push_back(separator);
 //    //add all context menu items to each view
 //    for(int i=0;i<contextMenuElements.size();i++)
 //    {
