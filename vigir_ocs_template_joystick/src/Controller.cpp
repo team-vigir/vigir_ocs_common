@@ -261,117 +261,64 @@ namespace vigir_ocs
             z = -.1;
         if(joy.buttons[XBOX_RB] == 1)
             z = .1;
-        if(joy.buttons[XBOX_A] == 1)
-        {
-            //set to template mode if either arm mode is true, otherwise switch current template
-            if(!leftMode && !rightMode)
-                changeTemplate();
-            else
-                setObjectMode(0);
-        }
-        if(joy.buttons[XBOX_X] == 1) //left mode on
-            setObjectMode(1);
-        if(joy.buttons[XBOX_B] == 1)//right mode on
-            setObjectMode(2);
-        if(joy.buttons[XBOX_Y] == 1)
-            changeManipulationController();
 
         QQuaternion * rotation;
         QVector3D * position;
 
-        if(leftMode)
-        {
-            rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
-                                       leftHand.pose.orientation.y,leftHand.pose.orientation.z);
-            position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
-        }
-        else if(rightMode)
-        {
-            ///placeholder
-            rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
-                                       leftHand.pose.orientation.y,leftHand.pose.orientation.z);
-            position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
-        }
-        else //template manipulation
-        {
-            rotation = new QQuaternion(temList.pose[templateIndex].pose.orientation.w,temList.pose[templateIndex].pose.orientation.x,
-                                                 temList.pose[templateIndex].pose.orientation.y,temList.pose[templateIndex].pose.orientation.z);
-            position = new QVector3D(temList.pose[templateIndex].pose.position.x,temList.pose[templateIndex].pose.position.y,temList.pose[templateIndex].pose.position.z);
-        }
-
-        buildTransformation(x,y,z,rotX,rotY,rotZ,rotation,position);
-
         flor_ocs_msgs::OCSTemplateUpdate msg;
 
-        if(leftMode)
-        {
-
-        }
-        else if(rightMode)
-        {
-
-        }
-        else
-        {
-            //create msg to publish
-
-            msg.template_id = temList.template_id_list[templateIndex];
-
-            //copy rotation first
-            msg.pose.pose.orientation.x = rotation->x();
-            msg.pose.pose.orientation.y = rotation->y();
-            msg.pose.pose.orientation.z = rotation->z();
-            msg.pose.pose.orientation.w = rotation->scalar();
-
-            //update coordinates based on latest data from list
-            msg.pose.pose.position.x = position->x();
-            msg.pose.pose.position.y = position->y();
-            msg.pose.pose.position.z = position->z();
-        }
         //don't publish if sending same data
         if(!compareJoyData())
         {            
             ROS_ERROR(" PUBLISHING ");
             if(leftMode)
             {
-//                rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
-//                                           leftHand.pose.orientation.y,leftHand.pose.orientation.z);
-//                position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
+                rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
+                                           leftHand.pose.orientation.y,leftHand.pose.orientation.z);
+                position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
 
                 //build arm msg and publish
+
+
+                delete(rotation);
+                delete(position);
             }
             else if(rightMode)
             {
-//                rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
-//                                       leftHand.pose.orientation.y,leftHand.pose.orientation.z);
-//                position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
+                rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
+                                       leftHand.pose.orientation.y,leftHand.pose.orientation.z);
+                position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
+
+
+                delete(rotation);
+                delete(position);
             }
             else
             {
-//                rotation = new QQuaternion(temList.pose[templateIndex].pose.orientation.w,temList.pose[templateIndex].pose.orientation.x,
-//                                                     temList.pose[templateIndex].pose.orientation.y,temList.pose[templateIndex].pose.orientation.z);
-//                position = new QVector3D(temList.pose[templateIndex].pose.position.x,temList.pose[templateIndex].pose.position.y,temList.pose[templateIndex].pose.position.z);
+                rotation = new QQuaternion(temList.pose[templateIndex].pose.orientation.w,temList.pose[templateIndex].pose.orientation.x,
+                                                     temList.pose[templateIndex].pose.orientation.y,temList.pose[templateIndex].pose.orientation.z);
+                position = new QVector3D(temList.pose[templateIndex].pose.position.x,temList.pose[templateIndex].pose.position.y,temList.pose[templateIndex].pose.position.z);
 
-//                buildTransformation(x,y,z,rotX,rotY,rotZ,rotation,position);
-//                //create msg to publish
+                buildTransformation(x,y,z,rotX,rotY,rotZ,rotation,position);
+                //create msg to publish
 
-//                msg.template_id = temList.template_id_list[templateIndex];
+                msg.template_id = temList.template_id_list[templateIndex];
 
-//                //copy rotation first
-//                msg.pose.pose.orientation.x = rotation->x();
-//                msg.pose.pose.orientation.y = rotation->y();
-//                msg.pose.pose.orientation.z = rotation->z();
-//                msg.pose.pose.orientation.w = rotation->scalar();
+                //copy rotation first
+                msg.pose.pose.orientation.x = rotation->x();
+                msg.pose.pose.orientation.y = rotation->y();
+                msg.pose.pose.orientation.z = rotation->z();
+                msg.pose.pose.orientation.w = rotation->scalar();
 
-//                //update coordinates based on latest data from list
-//                msg.pose.pose.position.x = position->x();
-//                msg.pose.pose.position.y = position->y();
-//                msg.pose.pose.position.z = position->z();
+                //update coordinates based on latest data from list
+                msg.pose.pose.position.x = position->x();
+                msg.pose.pose.position.y = position->y();
+                msg.pose.pose.position.z = position->z();
 
                 template_update_pub.publish(msg);
 
-//                delete(rotation);
-//                delete(position);
+                delete(rotation);
+                delete(position);
             }
         }
         else
@@ -380,9 +327,6 @@ namespace vigir_ocs
         }
         //store last joystick state for comparisons
         oldJoy = joy;
-
-        delete(rotation);
-        delete(position);
     }
 
     //compares previous joystick state and current joystick state
@@ -410,10 +354,8 @@ namespace vigir_ocs
         //check if all buttons are the same
         for(int i=0;i<oldJoy.buttons.size();i++)
         {
-            if(oldJoy.buttons[i] != joy.buttons[i])
-            {
-                buttonDup = false;
-            }
+            if(oldJoy.buttons[i] != joy.buttons[i])            
+                buttonDup = false;            
         }
 
         // should always write if  lb or rb on (treated more like an axis)(may cause unexpected behavior if other buttons are pressed with rb or lb enabled?)
@@ -440,18 +382,20 @@ namespace vigir_ocs
     void Controller::handleButtons()
     {
         //only want to send different values
-//        if(oldJoy.buttons[XBOX_A] != joy.buttons[XBOX_A] && joy.buttons[XBOX_A] == 1)
-//        {
-//            //set to template mode if either arm mode is true, otherwise switch current template
-//            if(!leftMode && !rightMode)
-//                changeTemplate();
-//            else
-//                setObjectMode(0);
-//        }
-//        if(oldJoy.buttons[XBOX_X] != joy.buttons[XBOX_X] && joy.buttons[XBOX_X] == 1); //left mode on
-//            setObjectMode(1);
-//        if(oldJoy.buttons[XBOX_B] != joy.buttons[XBOX_B] &&joy.buttons[XBOX_B] == 1);//right mode on
-//            setObjectMode(2);
+        if(oldJoy.buttons[XBOX_A] != joy.buttons[XBOX_A] && joy.buttons[XBOX_A] == 1)
+        {
+            //set to template mode if either arm mode is true, otherwise switch current template
+            if(!leftMode && !rightMode)
+                changeTemplate();
+            else
+                setObjectMode(0);
+        }
+        if(oldJoy.buttons[XBOX_X] != joy.buttons[XBOX_X] && joy.buttons[XBOX_X] == 1) //left mode on
+            setObjectMode(1);
+        if(oldJoy.buttons[XBOX_B] != joy.buttons[XBOX_B] && joy.buttons[XBOX_B] == 1)//right mode on
+            setObjectMode(2);
+        if(oldJoy.buttons[XBOX_Y] != joy.buttons[XBOX_Y] && joy.buttons[XBOX_Y] == 1)
+            changeManipulationController();
 
     }
     //handles rumble
