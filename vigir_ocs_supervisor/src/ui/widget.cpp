@@ -52,6 +52,9 @@ Widget::Widget(QWidget *parent) :
     avg_pump_supply_pressure=-1;
     filter_rate_ = 0.003;
 
+    //How many data points until starts averaging
+    averaging_delay = 5;
+
     ros::NodeHandle pnh("~");
     pnh.getParam("filter_rate",filter_rate_);
     ROS_INFO("Using Filter rate = %f for pump parameters", filter_rate_);
@@ -154,10 +157,10 @@ Widget::~Widget()
 
 void Widget::timerEvent(QTimerEvent *event)
 {
-	// check if ros is still running; if not, just kill the application
+    // check if ros is still running; if not, just kill the application
     if(!ros::ok())
         qApp->quit();
-    
+
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
 }
@@ -187,6 +190,7 @@ void Widget::on_connect_clicked()
         flor_control_msgs::FlorRobotStateCommand disconnect ;
         disconnect.state_command=flor_control_msgs::FlorRobotStateCommand::DISCONNECT;
         pub.publish(disconnect);
+        averaging_delay = 5;
     }
 }
 
@@ -392,8 +396,8 @@ void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& ms
     case 5:ui->r_state->setText("STOP");break;
     }
 
-    // Initialize the averages on first pass
-    if(avg_inlet_pr==-1)
+    // Initialize the averages on first pass with a delay
+    if(avg_inlet_pr==-1 || averaging_delay >= 0)
     {
         avg_inlet_pr                = msg->pump_inlet_pressure;
         avg_air_sump_pressure       = msg->air_sump_pressure;
@@ -403,19 +407,23 @@ void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& ms
         avg_pump_supply_temperature = msg->pump_supply_temperature;
         avg_motor_temperature       = msg->motor_temperature;
         avg_motor_driver_temp       = msg->motor_driver_temperature;
+        averaging_delay--;
+    }
+    else
+    {
+        // Average the noisy signals
+        double one_minus = 1.0 - filter_rate_;
+        avg_inlet_pr               = filter_rate_*msg->pump_inlet_pressure      + one_minus*avg_inlet_pr            ;
+        avg_air_sump_pressure      = filter_rate_*msg->air_sump_pressure        + one_minus*avg_air_sump_pressure   ;
+        avg_pump_rpm               = filter_rate_*msg->current_pump_rpm         + one_minus*avg_pump_rpm            ;
+        avg_pump_return_pressure   = filter_rate_*msg->pump_return_pressure     + one_minus*avg_pump_return_pressure;
+        avg_pump_supply_pressure   = filter_rate_*msg->pump_supply_pressure     + one_minus*avg_pump_supply_pressure;
+        avg_pump_supply_temperature= filter_rate_*msg->pump_supply_temperature  + one_minus*avg_pump_supply_temperature;
+        avg_motor_temperature      = filter_rate_*msg->motor_temperature        + one_minus*avg_motor_temperature      ;
+        avg_motor_driver_temp      = filter_rate_*msg->motor_driver_temperature + one_minus*avg_motor_driver_temp      ;
     }
 
 
-    // Average the noisy signals
-    double one_minus = 1.0 - filter_rate_;
-    avg_inlet_pr               = filter_rate_*msg->pump_inlet_pressure      + one_minus*avg_inlet_pr            ;
-    avg_air_sump_pressure      = filter_rate_*msg->air_sump_pressure        + one_minus*avg_air_sump_pressure   ;
-    avg_pump_rpm               = filter_rate_*msg->current_pump_rpm         + one_minus*avg_pump_rpm            ;
-    avg_pump_return_pressure   = filter_rate_*msg->pump_return_pressure     + one_minus*avg_pump_return_pressure;
-    avg_pump_supply_pressure   = filter_rate_*msg->pump_supply_pressure     + one_minus*avg_pump_supply_pressure;
-    avg_pump_supply_temperature= filter_rate_*msg->pump_supply_temperature  + one_minus*avg_pump_supply_temperature;
-    avg_motor_temperature      = filter_rate_*msg->motor_temperature        + one_minus*avg_motor_temperature      ;
-    avg_motor_driver_temp      = filter_rate_*msg->motor_driver_temperature + one_minus*avg_motor_driver_temp      ;
 
     // Update the text
     ui->inlet->setText(QString::number(avg_inlet_pr,'f',2));
@@ -500,6 +508,7 @@ void Widget:: robotstate( const flor_control_msgs::FlorRobotStatus::ConstPtr& ms
         ui->connect->setStyleSheet("background-color: green; color: black");
         ui->start->setStyleSheet("background-color: gray; color: black");
         ui->start->setEnabled(false);
+        averaging_delay = 5;
     }
     // check if we need to enable start
     if(msg->robot_run_state==0)
