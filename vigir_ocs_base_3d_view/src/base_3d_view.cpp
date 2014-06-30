@@ -413,7 +413,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );;
         interactive_marker_remove_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 1, false );
 
-        // subscribe to the pose topics
+        // subscribe to the moveit pose topics
         end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
         end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
 
@@ -422,7 +422,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_root_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/set_root_pose", 1, false );
         ghost_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>( "/flor/ghost/set_joint_states", 1, false );
 
-        // subscribe to the ghost hands pose
+        // subscribe to the grasp ghost hands pose
         ghost_hand_left_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_left_hand_pose", 5, &Base3DView::processLeftGhostHandPose, this );
         ghost_hand_right_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_right_hand_pose", 5, &Base3DView::processRightGhostHandPose, this );
 
@@ -1655,19 +1655,22 @@ void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
     gridMapToggled(visualize_grid_map_);
 }
 
+// Moveit callback for left arm end effector
 void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
+    // calculate pose of the marker based on interactive marker transform
     geometry_msgs::PoseStamped wrist_pose;
     calcWristTarget(*pose,l_hand_T_marker_,wrist_pose);
+    // if the moveit loopback is enabled, we update the interactive marker based a possible configuration returned by moveit
     if(left_marker_moveit_loopback_)
     {
         if(marker_published_ < 3)
             publishMarkers();
 
+        // publishes the grasp hands pose
         publishHandPose("left",*pose);
 
-
-
+        // update interactive marker pose
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/l_arm_pose_marker";
         cmd.pose = wrist_pose;
@@ -1682,10 +1685,13 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
     last_l_arm_marker_pose_ = wrist_pose.pose;
 }
 
+// Moveit callback for right arm end effector
 void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
+    // calculate pose of the marker based on interactive marker transform
     geometry_msgs::PoseStamped wrist_pose;
     calcWristTarget(*pose,r_hand_T_marker_,wrist_pose);
+    // if the moveit loopback is enabled, we update the interactive marker based a possible configuration returned by moveit
     if(right_marker_moveit_loopback_)
     {
         if(marker_published_ < 3)
@@ -1693,8 +1699,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
 
         publishHandPose("right",*pose);
 
-
-
+        // update interactive marker pose
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/r_arm_pose_marker";
         cmd.pose = wrist_pose;
@@ -1739,6 +1744,7 @@ int staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform hand_T_palm)
     return 0;
 }
 
+// publishes the grasp ghost robot hands
 void Base3DView::publishHandPose(std::string hand, const geometry_msgs::PoseStamped& end_effector_transform)
 {
     geometry_msgs::PoseStamped hand_transform; // the first hand transform is really where I want the palm to be, or identity in this case
@@ -1880,32 +1886,38 @@ int Base3DView::calcWristTarget(const geometry_msgs::PoseStamped& end_effector_p
     return 0;
 }
 
+// callback for the grasp widget left hand pose
 void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
     //ROS_INFO("LEFT GHOST HAND POSE:");
     //ROS_INFO("  position: %.2f %.2f %.2f",pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
     //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",pose->pose.orientation.w,pose->pose.orientation.x,pose->pose.orientation.y,pose->pose.orientation.z);
-    if(!moving_pelvis_ && ghost_world_lock_[0] == 1)
-    {
-        geometry_msgs::Pose transformed_pose = pose->pose;
-        staticTransform(transformed_pose, l_hand_T_palm_);
-        end_effector_pose_list_["/l_arm_pose_marker"].pose = transformed_pose;
-        publishGhostPoses();
-    }
+
+    // will only process this if in world_lock mode
+    //if(!moving_pelvis_ && ghost_world_lock_[0] == 1)
+    //{
+    //    geometry_msgs::Pose transformed_pose = pose->pose;
+    //    staticTransform(transformed_pose, l_hand_T_palm_);
+    //    end_effector_pose_list_["/l_arm_pose_marker"].pose = transformed_pose;
+    //    publishGhostPoses();
+    //}
 }
 
+// callback for the grasp widget right hand pose
 void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
     //ROS_INFO("RIGHT GHOST HAND POSE:");
     //ROS_INFO("  position: %.2f %.2f %.2f",pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
     //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",pose->pose.orientation.w,pose->pose.orientation.x,pose->pose.orientation.y,pose->pose.orientation.z);
-    if(!moving_pelvis_ && ghost_world_lock_[1] == 1)
-    {
-        geometry_msgs::Pose transformed_pose = pose->pose;
-        staticTransform(transformed_pose, r_hand_T_palm_);
-        end_effector_pose_list_["/r_arm_pose_marker"].pose = transformed_pose;
-        publishGhostPoses();
-    }
+
+    // will only process this if in world_lock mode
+    //if(!moving_pelvis_ && ghost_world_lock_[1] == 1)
+    //{
+    //    geometry_msgs::Pose transformed_pose = pose->pose;
+    //    staticTransform(transformed_pose, r_hand_T_palm_);
+    //    end_effector_pose_list_["/r_arm_pose_marker"].pose = transformed_pose;
+    //    publishGhostPoses();
+    //}
 }
 
 void Base3DView::processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg)
