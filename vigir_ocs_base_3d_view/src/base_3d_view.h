@@ -222,6 +222,8 @@ Q_SIGNALS:
 
 
 protected:
+    void selectLeftArm();
+    void selectRightArm();
     void addTemplatesToContext();
     void contextInsertTemplate(QString name);
     void addBase3DContextElements();

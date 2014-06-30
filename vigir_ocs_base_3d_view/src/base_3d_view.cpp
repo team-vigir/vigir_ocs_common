@@ -1154,6 +1154,11 @@ void Base3DView::addBase3DContextElements()
 
     addToContextVector(separator);
 
+    makeContextChild("Select Left Arm",boost::bind(&Base3DView::selectLeftArm,this),NULL,contextMenuItems);
+    makeContextChild("Select Right Arm",boost::bind(&Base3DView::selectRightArm,this),NULL,contextMenuItems);
+
+    addToContextVector(separator);
+
     insertTemplateMenu = makeContextParent("Insert Template",contextMenuItems);
     removeTemplateMenu = makeContextChild("Remove Template",boost::bind(&Base3DView::removeTemplateContextMenu,this),NULL,contextMenuItems);
 
@@ -1413,6 +1418,22 @@ void Base3DView::selectTemplate(int id)
     flor_ocs_msgs::OCSObjectSelection cmd;
     cmd.type = flor_ocs_msgs::OCSObjectSelection::TEMPLATE;
     cmd.id = id;
+    select_template_pub_.publish(cmd);
+}
+
+void Base3DView::selectLeftArm()
+{
+    flor_ocs_msgs::OCSObjectSelection cmd;
+    cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
+    cmd.id = flor_ocs_msgs::OCSObjectSelection::LEFT_ARM;
+    select_template_pub_.publish(cmd);
+}
+
+void Base3DView::selectRightArm()
+{
+    flor_ocs_msgs::OCSObjectSelection cmd;
+    cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
+    cmd.id = flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM;
     select_template_pub_.publish(cmd);
 }
 
