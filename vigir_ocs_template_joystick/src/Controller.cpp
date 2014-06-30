@@ -11,6 +11,7 @@
 
 
 #include "Controller.h"
+#include <cmath> //std::abs
 
 //buttons
 #define XBOX_A                          0
@@ -188,17 +189,17 @@ namespace vigir_ocs
         ROS_ERROR("manipulation mode %d",mode);        
         switch(mode)
         {
-        case 2://camera
+        case 0: // object
             worldMode = false;
-            objectMode = false;
+            objectMode = true;
             break;
         case 1: // world
             objectMode = false;
             worldMode = true;
             break;
-        case 0: // object
+        case 2://camera
             worldMode = false;
-            objectMode = true;
+            objectMode = false;
             break;
         }
     }
@@ -219,7 +220,8 @@ namespace vigir_ocs
     {
         //null check for templates
         if(temList.template_id_list.size() == 0 && !leftMode && !rightMode)
-            return;        
+            return;
+
         float x = 0;
         float y = 0;
         float z = 0;
@@ -227,16 +229,16 @@ namespace vigir_ocs
         float rotY = 0;
         float rotZ = 0;
 
-        //read controller values
+        //read controller values, output analog response on sticks
         //left stick translation
-        if(joy.axes[XBOX_AXIS_STICK_LEFT_LEFTWARDS] > .5)
-            x = -.1;
-        if(joy.axes[XBOX_AXIS_STICK_LEFT_UPWARDS] > .5)
-            y = .1;
-        if(joy.axes[XBOX_AXIS_STICK_LEFT_LEFTWARDS] < -.5)
-            x = .1;
-        if(joy.axes[XBOX_AXIS_STICK_LEFT_UPWARDS]  <-.5)
-            y = -.1;
+        if(joy.axes[XBOX_AXIS_STICK_LEFT_LEFTWARDS] > .3) // based on .3 due to inprecise controller(large deadzone), may change to compare with 0 depending on hardware
+            x = -.1 * joy.axes[XBOX_AXIS_STICK_LEFT_LEFTWARDS] ;
+        if(joy.axes[XBOX_AXIS_STICK_LEFT_UPWARDS] > .3)
+            y = .1 * joy.axes[XBOX_AXIS_STICK_LEFT_UPWARDS] ;
+        if(joy.axes[XBOX_AXIS_STICK_LEFT_LEFTWARDS] < -.3)
+            x = .1 * std::abs(joy.axes[XBOX_AXIS_STICK_LEFT_LEFTWARDS]);
+        if(joy.axes[XBOX_AXIS_STICK_LEFT_UPWARDS]  < -.3)
+            y = -.1 * std::abs(joy.axes[XBOX_AXIS_STICK_LEFT_UPWARDS]);
         //dpad
         if(joy.axes[XBOX_CROSS_DOWN] > 0)
             y = .1;
@@ -247,14 +249,14 @@ namespace vigir_ocs
         if(joy.axes[XBOX_CROSS_DOWN] < 0)
             y = -.1;
         //rotation right stick
-        if(joy.axes[XBOX_AXIS_STICK_RIGHT_UPWARDS] > .5)
-            rotY = 5;
-        if(joy.axes[XBOX_AXIS_STICK_RIGHT_UPWARDS] < -.5)
-            rotY = -5;
-        if(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS] > .5)
-            rotX = -5;
-        if(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS] < -.5)
-            rotX = 5;
+        if(joy.axes[XBOX_AXIS_STICK_RIGHT_UPWARDS] > .3)
+            rotX = 5 * joy.axes[XBOX_AXIS_STICK_RIGHT_UPWARDS];
+        if(joy.axes[XBOX_AXIS_STICK_RIGHT_UPWARDS] < -.3)
+            rotX = -5 * std::abs(joy.axes[XBOX_AXIS_STICK_RIGHT_UPWARDS]);
+        if(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS] > .3)
+            rotY = -5 * joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS];
+        if(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS] < -.3)
+            rotY = 5 * std::abs(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS]);
         if(joy.buttons[XBOX_LB] == 1)
             z = -.1;
         if(joy.buttons[XBOX_RB] == 1)
@@ -296,8 +298,8 @@ namespace vigir_ocs
                                                  temList.pose[templateIndex].pose.orientation.y,temList.pose[templateIndex].pose.orientation.z);
             position = new QVector3D(temList.pose[templateIndex].pose.position.x,temList.pose[templateIndex].pose.position.y,temList.pose[templateIndex].pose.position.z);
         }
-        buildTransformation(x,y,z,rotX,rotY,rotZ,rotation,position);
 
+        buildTransformation(x,y,z,rotX,rotY,rotZ,rotation,position);
 
         flor_ocs_msgs::OCSTemplateUpdate msg;
 
@@ -332,12 +334,38 @@ namespace vigir_ocs
             ROS_ERROR(" PUBLISHING ");
             if(leftMode)
             {
+//                rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
+//                                           leftHand.pose.orientation.y,leftHand.pose.orientation.z);
+//                position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
             }
             else if(rightMode)
             {
+//                rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
+//                                       leftHand.pose.orientation.y,leftHand.pose.orientation.z);
+//                position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
             }
             else
             {
+//                rotation = new QQuaternion(temList.pose[templateIndex].pose.orientation.w,temList.pose[templateIndex].pose.orientation.x,
+//                                                     temList.pose[templateIndex].pose.orientation.y,temList.pose[templateIndex].pose.orientation.z);
+//                position = new QVector3D(temList.pose[templateIndex].pose.position.x,temList.pose[templateIndex].pose.position.y,temList.pose[templateIndex].pose.position.z);
+
+//                buildTransformation(x,y,z,rotX,rotY,rotZ,rotation,position);
+//                //create msg to publish
+
+//                msg.template_id = temList.template_id_list[templateIndex];
+
+//                //copy rotation first
+//                msg.pose.pose.orientation.x = rotation->x();
+//                msg.pose.pose.orientation.y = rotation->y();
+//                msg.pose.pose.orientation.z = rotation->z();
+//                msg.pose.pose.orientation.w = rotation->scalar();
+
+//                //update coordinates based on latest data from list
+//                msg.pose.pose.position.x = position->x();
+//                msg.pose.pose.position.y = position->y();
+//                msg.pose.pose.position.z = position->z();
+
                 template_update_pub.publish(msg);
             }
         }
@@ -364,30 +392,33 @@ namespace vigir_ocs
         bool axesDup = true;
         bool buttonDup = true;
 
+        //check axes are the same
         for(int i=0;i<oldJoy.axes.size();i++)
         {
-            if(oldJoy.axes[i] != joy.axes[i] || joy.axes[i] > 0.5 || joy.axes[i] < -0.5 )
+            if(oldJoy.axes[i] != joy.axes[i] || joy.axes[i] > 0.3 || joy.axes[i] < -0.3 )
             {
                 //bumpers are 1 by default
                 if(joy.axes[XBOX_LT] != 1 || joy.axes[XBOX_RT] != 1)
                     axesDup = false;
             }
         }
+        //check if all buttons are the same
         for(int i=0;i<oldJoy.buttons.size();i++)
         {
             if(oldJoy.buttons[i] != joy.buttons[i])
             {
-                //ignore rb and lb as they should always write if 1
-                if(joy.buttons[XBOX_LB] == 1 || joy.buttons[XBOX_RB] == 1)
-                {
-                }
-                else
-                {
-                    buttonDup = false;
-                }
+                buttonDup = false;
             }
         }
+
+        // should always write if  lb or rb on (treated more like an axis)(may cause unexpected behavior if other buttons are pressed with rb or lb enabled?)
+        if(joy.buttons[XBOX_LB] == 1 || joy.buttons[XBOX_RB] == 1)
+        {
+            buttonDup = false;
+        }
+
         //ROS_ERROR("dups axes: %d button %d",axesDup,buttonDup);
+
         //handle buttons on difference only
         if(!buttonDup)
         {
@@ -398,30 +429,24 @@ namespace vigir_ocs
             return false;
         else
             return true;
-
-
     }
 
     //handles buttons that only actuate once(selecting or changing modes)
     void Controller::handleButtons()
     {
         //only want to send different values
-        //change template on A
-        //oldJoy.buttons[XBOX_A] != joy.buttons[XBOX_A] &&
-
-        //oldJoy.buttons[XBOX_X] != joy.buttons[XBOX_X] &&
-//                if(joy.buttons[XBOX_A] == 1)
-//                {
-//                    //set to template mode if either arm mode is true, otherwise switch current template
-//                    if(!leftMode && !rightMode)
-//                        changeTemplate();
-//                    else
-//                        setObjectMode(0);
-//                }
-//                if(joy.buttons[XBOX_X] == 1); //left mode on
-//                    setObjectMode(1);
-//                if(joy.buttons[XBOX_B] == 1);//right mode on
-//                    setObjectMode(2);
+//        if(oldJoy.buttons[XBOX_A] != joy.buttons[XBOX_A] && joy.buttons[XBOX_A] == 1)
+//        {
+//            //set to template mode if either arm mode is true, otherwise switch current template
+//            if(!leftMode && !rightMode)
+//                changeTemplate();
+//            else
+//                setObjectMode(0);
+//        }
+//        if(oldJoy.buttons[XBOX_X] != joy.buttons[XBOX_X] && joy.buttons[XBOX_X] == 1); //left mode on
+//            setObjectMode(1);
+//        if(oldJoy.buttons[XBOX_B] != joy.buttons[XBOX_B] &&joy.buttons[XBOX_B] == 1);//right mode on
+//            setObjectMode(2);
 
     }
     //handles rumble
@@ -447,8 +472,7 @@ namespace vigir_ocs
             // to avoid seg fault on deleting rotation and position
             rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
                                        leftHand.pose.orientation.y,leftHand.pose.orientation.z);
-            position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
-           ///////
+            position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);           
 
         }
         else //moving templates
@@ -543,8 +567,8 @@ namespace vigir_ocs
         else //Camera relative rotation
         {
             QQuaternion* rot = new QQuaternion();
-            *rot *= QQuaternion::fromAxisAndAngle(0,1,0,rotY); //more intuitive for camera if reversed
-            *rot *= QQuaternion::fromAxisAndAngle(1,0,0,-rotX);
+            *rot *= QQuaternion::fromAxisAndAngle(0,1,0,rotY);
+            *rot *= QQuaternion::fromAxisAndAngle(1,0,0,-rotX); //more intuitive for camera if reversed
             *rot *= QQuaternion::fromAxisAndAngle(0,0,1,rotZ);
             //calculate difference between camera orientation and original rotation of object
             //difference of q1 and q2 is  q` = q^-1 * q2

@@ -235,7 +235,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         selection_position_ = Ogre::Vector3(0,0,0);
 
         // Make the move camera tool the currently selected one
-        manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+        manager_->getToolManager()->setCurrentTool( interactive_markers_tool_);//move_camera_tool_ );
 
         // Footstep array
         footsteps_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps array", true );
