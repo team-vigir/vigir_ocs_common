@@ -577,9 +577,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // create publisher and subscriber for object selection
         // PUBLISHER WILL BE USED BY THE RIGHT/DOUBLE CLICK TO INFORM WHICH TEMPLATE/HAND/OBJECT HAS BEEN selected
         // SUBSCRIBER WILL BE USED TO CHANGE VISIBILITY OF THE OBJECT THAT IS BEING USED (E.G., TALK TO TEMPLATE DISPLAY AND SET VISIBILITY OF MARKERS)
-        // ALSO, HIDE THE TEMPLATE NAME AND SHOW IT ON MOUSE OVER?
-        select_template_pub_ = nh_.advertise<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 1, false );
-        select_template_sub_ = nh_.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &Base3DView::processObjectSelection, this );
+        select_object_pub_ = nh_.advertise<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 1, false );
+        select_object_sub_ = nh_.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &Base3DView::processObjectSelection, this );
 
         // finally the key events
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
@@ -1435,7 +1434,7 @@ void Base3DView::selectTemplate(int id)
     flor_ocs_msgs::OCSObjectSelection cmd;
     cmd.type = flor_ocs_msgs::OCSObjectSelection::TEMPLATE;
     cmd.id = id;
-    select_template_pub_.publish(cmd);
+    select_object_pub_.publish(cmd);
 }
 
 void Base3DView::selectLeftArm()
@@ -1443,7 +1442,7 @@ void Base3DView::selectLeftArm()
     flor_ocs_msgs::OCSObjectSelection cmd;
     cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
     cmd.id = flor_ocs_msgs::OCSObjectSelection::LEFT_ARM;
-    select_template_pub_.publish(cmd);
+    select_object_pub_.publish(cmd);
 }
 
 void Base3DView::selectRightArm()
@@ -1451,7 +1450,7 @@ void Base3DView::selectRightArm()
     flor_ocs_msgs::OCSObjectSelection cmd;
     cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
     cmd.id = flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM;
-    select_template_pub_.publish(cmd);
+    select_object_pub_.publish(cmd);
 }
 
 // this function will toggle the template grasp lock

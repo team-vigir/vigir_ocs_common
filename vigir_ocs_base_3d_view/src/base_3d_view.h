@@ -248,6 +248,9 @@ protected:
     void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints);
     void sendCircularTarget(bool right_hand);
 
+    void selectTemplate(int id);
+    void selectContextMenu();
+
     Ogre::Camera* getCamera();
 
     rviz::VisualizationManager* manager_;
@@ -359,8 +362,8 @@ protected:
     ros::Publisher flor_mode_command_pub_;
     ros::Subscriber flor_mode_sub_;
 
-    ros::Publisher select_template_pub_;
-    ros::Subscriber select_template_sub_;
+    ros::Publisher select_object_pub_;
+    ros::Subscriber select_object_sub_;
 
     ros::Publisher camera_transform_pub_;
 
@@ -477,9 +480,6 @@ protected:
     contextMenuItem * removeCircularMarkerMenu;
 
     QTreeWidget * templateRoot;
-
-    void selectTemplate(int id);
-    void selectContextMenu();
 
 
 };

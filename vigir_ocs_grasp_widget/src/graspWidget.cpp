@@ -205,6 +205,12 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
         display_state_msg_.highlight_links.push_back(tmp);
     }
 
+    // create publisher and subscriber for object selection
+    // PUBLISHER WILL BE USED BY THE RIGHT/DOUBLE CLICK TO INFORM WHICH TEMPLATE/HAND/OBJECT HAS BEEN selected
+    // SUBSCRIBER WILL BE USED TO CHANGE VISIBILITY OF THE OBJECT THAT IS BEING USED (E.G., TALK TO TEMPLATE DISPLAY AND SET VISIBILITY OF MARKERS)
+    select_object_pub_ = nh_.advertise<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 1, false );
+    select_object_sub_ = nh_.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &graspWidget::processObjectSelection, this );
+
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &graspWidget::processNewKeyEvent, this );
     timer.start(33, this);
 }
@@ -1279,6 +1285,39 @@ void graspWidget::on_stitch_template_toggled(bool checked)
     msg.pose.header.frame_id = "/world";
     msg.pose.pose = last_template_list_.pose[ui->templateBox->currentIndex()].pose;
     template_stitch_request_pub_.publish(msg);
+}
+
+void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
+{
+    /*// disable all template markers
+    Q_EMIT enableTemplateMarkers( false );
+
+    // disable all robot IK markers
+    for( int i = 0; i < im_ghost_robot_.size(); i++ )
+        im_ghost_robot_[i]->setEnabled( false );
+
+    // enable loopback for both arms
+    left_marker_moveit_loopback_ = true;
+    right_marker_moveit_loopback_ = true;
+
+    switch(msg->type)
+    {
+        case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
+            // enable template marker
+            if(msg->id == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
+                left_marker_moveit_loopback_ = false;
+            else if(msg->id == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
+                right_marker_moveit_loopback_ = false;
+            im_ghost_robot_[msg->id]->setEnabled( true );
+            break;
+        case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
+            // enable template marker
+            Q_EMIT enableTemplateMarker( msg->id, true );
+            break;
+        case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
+        default:
+            break;
+    }*/
 }
 
 void graspWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
