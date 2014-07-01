@@ -600,6 +600,7 @@ void Widget:: behavstate( const flor_control_msgs::FlorControlMode::ConstPtr& ms
     case flor_control_msgs::FlorControlModeCommand::STEP:       ui->cur_st->setText("STEP"); break;
     case flor_control_msgs::FlorControlModeCommand::MANIPULATE: ui->cur_st->setText("MANIPULATE"); break;
     case flor_control_msgs::FlorControlModeCommand::CALIBRATE:  ui->cur_st->setText("CALIBRATE"); break;
+    case flor_control_msgs::FlorControlModeCommand::UNKOWN_BDI: ui->cur_st->setText("UNKOWN"); break;
     default: ROS_ERROR("Unknown current behavior = %d", msg->bdi_current_behavior); ui->cur_st->setText("Unknown!"); break;
     }
     switch(msg->bdi_desired_behavior)
@@ -612,6 +613,7 @@ void Widget:: behavstate( const flor_control_msgs::FlorControlMode::ConstPtr& ms
     case flor_control_msgs::FlorControlModeCommand::STEP:       ui->d_state->setText("STEP"); break;
     case flor_control_msgs::FlorControlModeCommand::MANIPULATE: ui->d_state->setText("MANIPULATE"); break;
     case flor_control_msgs::FlorControlModeCommand::CALIBRATE:  ui->d_state->setText("CALIBRATE"); break;
+    case flor_control_msgs::FlorControlModeCommand::UNKNOWN_BDI:ui->d_state->setText("UNKNOWN"); break;
     default: ROS_ERROR("Unknown desired behavior = %d", msg->bdi_desired_behavior); ui->d_state->setText("Unknown!"); break;
     }
 
