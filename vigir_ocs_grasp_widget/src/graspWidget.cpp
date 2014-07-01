@@ -1,6 +1,7 @@
 #include "graspWidget.h"
 #include "ui_graspWidget.h"
 #include <ros/package.h>
+#include <algorithm>
 #include <QColor>
 #include <QProgressBar>
 #include <QSlider>
@@ -1289,35 +1290,23 @@ void graspWidget::on_stitch_template_toggled(bool checked)
 
 void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
 {
-    /*// disable all template markers
-    Q_EMIT enableTemplateMarkers( false );
-
-    // disable all robot IK markers
-    for( int i = 0; i < im_ghost_robot_.size(); i++ )
-        im_ghost_robot_[i]->setEnabled( false );
-
-    // enable loopback for both arms
-    left_marker_moveit_loopback_ = true;
-    right_marker_moveit_loopback_ = true;
-
     switch(msg->type)
     {
         case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
-            // enable template marker
-            if(msg->id == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
-                left_marker_moveit_loopback_ = false;
-            else if(msg->id == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
-                right_marker_moveit_loopback_ = false;
-            im_ghost_robot_[msg->id]->setEnabled( true );
             break;
         case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
+            {
             // enable template marker
-            Q_EMIT enableTemplateMarker( msg->id, true );
+            std::vector<unsigned char>::iterator it;
+            it = std::find(last_template_list_.template_id_list.begin(), last_template_list_.template_id_list.end(), msg->id);
+            if(it != last_template_list_.template_id_list.end())
+                ui->templateBox->setCurrentIndex(std::distance(last_template_list_.template_id_list.begin(),it));
+            }
             break;
         case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
         default:
             break;
-    }*/
+    }
 }
 
 void graspWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)

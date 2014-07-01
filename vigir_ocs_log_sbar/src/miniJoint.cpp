@@ -58,9 +58,10 @@ void MiniJoint::receiveJointData(int status, QString jointName)
      case 0:
          //all joints must be fine
          ui->table->clearContents();
+         ui->table->setRowCount(0);
          break;
      case 1:
-         removeDuplicates(status,jointName);
+         //removeDuplicates(status,jointName);
          joint = new QTableWidgetItem();
          jointStatus = new QTableWidgetItem();
          joint->setBackgroundColor(Qt::yellow);
@@ -72,7 +73,7 @@ void MiniJoint::receiveJointData(int status, QString jointName)
          ui->table->setItem(0,1,joint);
          break;
      case 2:
-         removeDuplicates(status,jointName);
+         //removeDuplicates(status,jointName);
          joint = new QTableWidgetItem();
          jointStatus = new QTableWidgetItem();
          joint->setBackgroundColor(Qt::red);

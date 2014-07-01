@@ -232,6 +232,9 @@ int jointList::getNumWarn()
 
 void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_states )
 {
+    // clear joint status messages
+    Q_EMIT sendJointData(0,"");
+
     jointsOkay = true;
 
     warn = 0;
@@ -354,8 +357,8 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
 
     }
     //notify main view status bar that all joints are fine
-    if(jointsOkay)
-        Q_EMIT sendJointData(0,"No bad Joints");
+    //if(jointsOkay)
+    //    Q_EMIT sendJointData(0,"No bad Joints");
 }
 
 void jointList::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
