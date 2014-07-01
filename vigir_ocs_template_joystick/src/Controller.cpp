@@ -243,9 +243,9 @@ namespace vigir_ocs
         if(joy.axes[XBOX_CROSS_DOWN] > 0)
             y = .1;
         if(joy.axes[XBOX_CROSS_LEFT] < 0)
-            x = -.1;
-        if(joy.axes[XBOX_CROSS_LEFT] > 0)
             x = .1;
+        if(joy.axes[XBOX_CROSS_LEFT] > 0)
+            x = -.1;
         if(joy.axes[XBOX_CROSS_DOWN] < 0)
             y = -.1;
         //rotation right stick
@@ -257,10 +257,15 @@ namespace vigir_ocs
             rotY = -5 * joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS];
         if(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS] < -.3)
             rotY = 5 * std::abs(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS]);
+        //handle other axis with shoulder buttons/triggers
         if(joy.buttons[XBOX_LB] == 1)
             z = -.1;
         if(joy.buttons[XBOX_RB] == 1)
             z = .1;
+        if(joy.axes[XBOX_LT] < 1)
+            rotZ = -5;
+        if(joy.axes[XBOX_RT] < 1)
+            rotZ = 5;
 
         QQuaternion * rotation;
         QVector3D * position;
@@ -278,7 +283,6 @@ namespace vigir_ocs
                 position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
 
                 //build arm msg and publish
-
 
                 delete(rotation);
                 delete(position);
@@ -334,6 +338,8 @@ namespace vigir_ocs
     // true if duplicate or should not publish
     bool Controller::compareJoyData()
     {
+        //ISSUE: current xbox controller starts with RT at 0 for some reason. causes object to rotate forever on start until rt pressed
+
         //null check
         if(oldJoy.axes.size() ==0)
             return false; // need to publish once to have old data
@@ -344,13 +350,16 @@ namespace vigir_ocs
         //check axes are the same
         for(int i=0;i<oldJoy.axes.size();i++)
         {
-            if(oldJoy.axes[i] != joy.axes[i] || joy.axes[i] > 0.3 || joy.axes[i] < -0.3 )
-            {
-                //bumpers are 1 by default
-                if(joy.axes[XBOX_LT] != 1 || joy.axes[XBOX_RT] != 1)
-                    axesDup = false;
+            //ignore bumpers right now
+            if(oldJoy.axes[i] != joy.axes[i] || (joy.axes[i] > 0.3 && i != XBOX_LT && i != XBOX_RT) || (joy.axes[i] < -0.3 && i != XBOX_LT && i != XBOX_RT) )
+            {               
+                axesDup = false;
             }
         }
+        //bumpers are 1 by default
+        if(joy.axes[XBOX_LT] < 1 || joy.axes[XBOX_RT] < 1)
+            axesDup = false;
+
         //check if all buttons are the same
         for(int i=0;i<oldJoy.buttons.size();i++)
         {
