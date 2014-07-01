@@ -1254,6 +1254,8 @@ void Base3DView::createContextMenu(bool, int x, int y)
     context_menu_.clear();
     context_menu_.setTitle("Base Menu");
 
+    context_menu_.setStyleSheet("font-size:11px;");
+
     // first we need to query the 3D scene to retrieve the context
     Q_EMIT queryContext(x,y);
     // context is stored in the active_context_ variable
@@ -1265,17 +1267,23 @@ void Base3DView::createContextMenu(bool, int x, int y)
     //have special case for empty vector item. insert separator when found
     //context_menu_.addAction("Insert Template");
 
-    selectMenu->action->setEnabled(false);
     ROS_ERROR("CONTEXT: %s",active_context_name_.c_str());
 
-    if(active_context_name_.find("template") != std::string::npos)
+    //any selectable object
+    if(active_context_name_.find("template") != std::string::npos)// || arms)
         selectMenu->action->setEnabled(true);
 
     if(active_context_name_.find("template") != std::string::npos)
+    {        
         removeTemplateMenu->action->setEnabled(true);
+    }
     else
-        removeTemplateMenu->action->setEnabled(false);
-
+    {
+        //remove context items as not needed
+        context_menu_.removeAction(removeTemplateMenu->action);
+        context_menu_.removeAction(selectMenu->action);
+        //removeTemplateMenu->action->setEnabled(false);
+    }
 
     if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100)
     {
@@ -1284,24 +1292,30 @@ void Base3DView::createContextMenu(bool, int x, int y)
     }
     else
     {
-        footstepPlanMenuWalk->action->setEnabled(false);
-        footstepPlanMenuWalkManipulation->action->setEnabled(false);
+        context_menu_.removeAction(footstepPlanMenuWalk->action);
+        context_menu_.removeAction(footstepPlanMenuWalkManipulation->action);
+        //footstepPlanMenuWalk->action->setEnabled(false);
+        //footstepPlanMenuWalkManipulation->action->setEnabled(false);
     }
 
     if(cartesian_marker_list_.size() == 0)
-        removeCartesianMarkerMenu->action->setEnabled(false);
+    {
+        cartesianMotionMenu->menu->removeAction(removeCartesianMarkerMenu->action);
+        //removeCartesianMarkerMenu->action->setEnabled(false);
+    }
     else
         removeCartesianMarkerMenu->action->setEnabled(true);
 
     if(circular_marker_ != NULL)
-    {
+    {        
         createCircularMarkerMenu->action->setEnabled(false);
         removeCircularMarkerMenu->action->setEnabled(true);
     }
     else if(circular_marker_ == NULL)
     {
         createCircularMarkerMenu->action->setEnabled(true);
-        removeCircularMarkerMenu->action->setEnabled(false);
+        circularMotionMenu->menu->removeAction(removeCircularMarkerMenu->action);
+        //removeCircularMarkerMenu->action->setEnabled(false);
     }
 
 

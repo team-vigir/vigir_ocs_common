@@ -419,7 +419,34 @@ void MainViewWidget::addContextMenu()
 
     contextMenuElements.push_back(separator);
 
-    joystickContext =  vigir_ocs::Base3DView::makeContextChild("Joystick",boost::bind(&MainViewWidget::contextToggleWindow,this, WINDOW_JOYSTICK), NULL, contextMenuElements);
+    //manage windows-------------
+    contextMenuItem * windowVisibility = vigir_ocs::Base3DView::makeContextParent("Window Visibility", contextMenuElements);
+
+    joystickContext =  vigir_ocs::Base3DView::makeContextChild("Joystick",boost::bind(&MainViewWidget::contextToggleWindow,this, WINDOW_JOYSTICK), windowVisibility, contextMenuElements);
+
+    contextMenuItem * jointControlMenu = vigir_ocs::Base3DView::makeContextParent("Joint Windows", contextMenuElements);
+    jointControlMenu->parent = windowVisibility;
+
+    //elements from joint control toolbar
+    jointControlContext = vigir_ocs::Base3DView::makeContextChild("Joint Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_JOINT_CONTROL), jointControlMenu, contextMenuElements);
+    pelvisContext = vigir_ocs::Base3DView::makeContextChild("Pelvis Pose",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_BDI_PELVIS_POSE), jointControlMenu, contextMenuElements);
+    ghostContext = vigir_ocs::Base3DView::makeContextChild("Ghost Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_GHOST_CONFIG), jointControlMenu, contextMenuElements);
+    plannerContext = vigir_ocs::Base3DView::makeContextChild("Planner Configuration",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_PLANNER_CONFIG), jointControlMenu, contextMenuElements);
+
+    contextMenuItem * footstepControl = vigir_ocs::Base3DView::makeContextParent("Footstep Control", contextMenuElements);
+    footstepControl->parent = windowVisibility;
+
+    //elements from footstep control toolbar
+    footBasicContext = vigir_ocs::Base3DView::makeContextChild("Basic Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_BASIC), footstepControl, contextMenuElements);
+    footAdvancedContext = vigir_ocs::Base3DView::makeContextChild("Advanced Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_ADVANCED), footstepControl, contextMenuElements);
+    footParameterContext = vigir_ocs::Base3DView::makeContextChild("Footstep Parameter Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_PARAMETER), footstepControl, contextMenuElements);
+
+    graspContext = vigir_ocs::Base3DView::makeContextChild("Grasp",boost::bind(&MainViewWidget::graspWidgetToggle,this), windowVisibility , contextMenuElements);
+
+    positionContext = vigir_ocs::Base3DView::makeContextChild("Position Mode",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_POSITION_MODE), windowVisibility, contextMenuElements);
+
+    //------------------------
+    contextMenuElements.push_back(separator);
 
     contextMenuItem * manipulationModes = vigir_ocs::Base3DView::makeContextParent("Manipulation Mode", contextMenuElements);
 
@@ -431,33 +458,7 @@ void MainViewWidget::addContextMenu()
 
     vigir_ocs::Base3DView::makeContextChild("Template",boost::bind(&MainViewWidget::setTemplateMode,this), objectModes, contextMenuElements);
     vigir_ocs::Base3DView::makeContextChild("Left Arm",boost::bind(&MainViewWidget::setLeftArmMode,this), objectModes, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Right Arm",boost::bind(&MainViewWidget::setRightArmMode,this), objectModes, contextMenuElements);
-
-    contextMenuElements.push_back(separator);
-
-    contextMenuItem * jointControlMenu = vigir_ocs::Base3DView::makeContextParent("Joint Control", contextMenuElements);
-    //elements from joint control toolbar
-    jointControlContext = vigir_ocs::Base3DView::makeContextChild("Joint Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_JOINT_CONTROL), jointControlMenu, contextMenuElements);
-    pelvisContext = vigir_ocs::Base3DView::makeContextChild("Pelvis Pose",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_BDI_PELVIS_POSE), jointControlMenu, contextMenuElements);
-    ghostContext = vigir_ocs::Base3DView::makeContextChild("Ghost Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_GHOST_CONFIG), jointControlMenu, contextMenuElements);
-    plannerContext = vigir_ocs::Base3DView::makeContextChild("Planner Configuration",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_PLANNER_CONFIG), jointControlMenu, contextMenuElements);
-
-    contextMenuElements.push_back(separator);
-
-    contextMenuItem * footstepControl = vigir_ocs::Base3DView::makeContextParent("Footstep Control", contextMenuElements);
-
-    //elements from footstep control toolbar
-    footBasicContext = vigir_ocs::Base3DView::makeContextChild("Basic Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_BASIC), footstepControl, contextMenuElements);
-    footAdvancedContext = vigir_ocs::Base3DView::makeContextChild("Advanced Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_ADVANCED), footstepControl, contextMenuElements);
-    footParameterContext = vigir_ocs::Base3DView::makeContextChild("Footstep Parameter Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_PARAMETER), footstepControl, contextMenuElements);
-
-    contextMenuElements.push_back(separator);
-
-    positionContext = vigir_ocs::Base3DView::makeContextChild("Position Mode",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_POSITION_MODE), NULL, contextMenuElements);
-
-    contextMenuElements.push_back(separator);
-
-    graspContext = vigir_ocs::Base3DView::makeContextChild("Grasp",boost::bind(&MainViewWidget::graspWidgetToggle,this), NULL , contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Right Arm",boost::bind(&MainViewWidget::setRightArmMode,this), objectModes, contextMenuElements);         
 
     contextMenuElements.push_back(separator);
 
