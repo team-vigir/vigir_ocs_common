@@ -222,8 +222,10 @@ Q_SIGNALS:
 
 
 protected:
+    int findObjectContext(std::string obj_type);
     void selectLeftArm();
     void selectRightArm();
+    void setTemplateGraspLock(int arm);
     void addTemplatesToContext();
     void contextInsertTemplate(QString name);
     void addBase3DContextElements();

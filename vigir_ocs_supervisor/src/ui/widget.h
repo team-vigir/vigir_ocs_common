@@ -90,6 +90,7 @@ private:
     float avg_motor_temperature      ;
     float avg_motor_driver_temp      ;
     int unreadMsgs;
+    int averaging_delay;
     int numError;
     int numWarn;
     int maxRows;

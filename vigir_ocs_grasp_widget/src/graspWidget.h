@@ -52,7 +52,7 @@ class graspWidget : public QWidget
     Q_OBJECT
     
 public:
-    explicit graspWidget(QWidget *parent = 0);
+    explicit graspWidget(QWidget *parent = 0, std::string hand = "left", std::string hand_type = "irobot");
     ~graspWidget();
 
     void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
