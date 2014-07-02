@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MiniError</class>
- <widget class="QMainWindow" name="miniError">
+ <widget class="QMainWindow" name="MiniError">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>420</width>
-    <height>180</height>
+    <width>404</width>
+    <height>95</height>
    </rect>
   </property>
   <property name="sizePolicy">

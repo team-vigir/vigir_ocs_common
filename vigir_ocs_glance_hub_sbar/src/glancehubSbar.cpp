@@ -1,9 +1,6 @@
 #include "glancehubSbar.h"
 #include <ros/ros.h>
 #include "ui_glancehubSbar.h"
-//#include<QFile>
-//#include<QTextStream>
-//#include<QDebug>
 #include <ros/package.h>
 
 
@@ -41,7 +38,6 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
 
     ui->footstepLight->setToolTip("waiting for status update");
     ui->footstepLabel->setToolTip("waiting for status update");
-
 }
 
 void glancehubSbar::receiveModeChange(int mode)
@@ -97,6 +93,47 @@ void glancehubSbar::receiveModeChange(int mode)
     mode_pub.publish(msg);
 }
 
+void glancehubSbar::flashFootstepColor(int status)
+{
+//    QString color;
+//    QString white = "QLabel {background-color: white; border:2px solid grey;}";
+//    switch(status)
+//    {
+//    case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE:
+//        style = "QLabel { background-color: yellow; border:2px solid grey;}";
+//        break;
+//    case RobotStatusCodes::FOOTSTEP_PLANNER_FAILED:
+//        style = "QLabel { background-color: red; border:2px solid grey; }";
+//        break;
+//    case RobotStatusCodes::FOOTSTEP_PLANNER_SUCCESS:
+//        style = "QLabel { background-color: green; border:2px solid grey;}";
+//        break;
+//    }
+//    QTimer * colorTimer = new QTimer();
+//    QTimer * whiteTimer = new QTimer();
+
+//    int flashCount = 0;
+//    //flash 10 times
+//    while(flashCount<10)
+//    {
+//        if(!whiteTimer->isActive())
+//        {
+//            colorTimer->start(500);
+//            whiteTimer->stop();
+//            ui->plannerLight->setStyleSheet(style);
+//        }
+//        else if()
+//        {
+//            whiteTimer->start(500);
+//            colorTimer->stop();
+//            ui->plannerLight->setStyleSheet(white);
+//        }
+//    }
+//    //leave as solid color after flashing
+//    delete(colorTimer);
+//    delete(whiteTimer);
+}
+
 void glancehubSbar::receiveMoveitStatus(bool status)
 {
     if(status)
@@ -123,6 +160,8 @@ void glancehubSbar::receiveFootstepStatus(int status)
     }
     ui->footstepLight->setToolTip(ghub->getFootstepStat());
     ui->footstepLabel->setToolTip(ghub->getFootstepStat());
+    flashFootstepColor(status);
+
 }
 
 void glancehubSbar::receiveFlorStatus(int status)

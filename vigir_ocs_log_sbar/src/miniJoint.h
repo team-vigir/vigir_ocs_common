@@ -38,7 +38,7 @@ private:
     jointList * jList;    
     QTimer* timer;
     bool visible;
-    void removeDuplicates(int,QString);
+    void itemClicked(QTableWidgetItem *);
 
 public Q_SLOTS:
     void receiveJointData(int,QString);
