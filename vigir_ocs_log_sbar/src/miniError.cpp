@@ -22,6 +22,8 @@ MiniError::MiniError(QWidget *parent) :
     //connect(ui->table,SIGNAL(itemClicked(QTableWidgetItem)),this,SLOT(mouseClick(QTableWidgetItem)));
     ui->table->setColumnWidth(0,100);
     ui->table->setColumnWidth(1,300);
+    ui->table->setMouseTracking( true );
+    ui->table->viewport()->installEventFilter( this );
 
     //build animations
     errorFadeIn = new QPropertyAnimation(this, "windowOpacity");
@@ -48,6 +50,21 @@ MiniError::MiniError(QWidget *parent) :
 void MiniError::hideWindow()
 {
     this->hide();
+}
+
+bool MiniError::eventFilter(QObject* object,QEvent* event)
+{
+    if (object == ui->table->viewport())
+    {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+        if(mouseEvent->button() == 1 && mouseEvent->type() == QEvent::MouseButtonPress)
+        {
+            toggleErrorLogWindow();
+            return true;
+        }
+
+    }
+    return QMainWindow::eventFilter(object,event);
 }
 
 void MiniError::toggleErrorLogWindow()
