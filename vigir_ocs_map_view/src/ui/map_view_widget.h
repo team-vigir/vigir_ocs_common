@@ -5,7 +5,7 @@
 
 #include <vector>
 #include <algorithm>
-
+#include "statusBar.h"
 #include <ros/ros.h>
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
@@ -36,7 +36,7 @@ public Q_SLOTS:
     
 private:
     Ui::MapViewWidget *ui;
-
+    StatusBar * statusBar;
     std::vector<int> keys_pressed_list_;
 
     ros::NodeHandle n_;

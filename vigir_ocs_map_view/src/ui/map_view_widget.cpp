@@ -49,8 +49,18 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
     ((vigir_ocs::Base3DView*)ui->map_view_)->setTemplateTree(ui->template_widget_3->getTreeRoot());
 
     //hide sidebar elements that aren't necessary
-    //ui->Template->hide();
-    //ui->Tools->hide();
+    ui->Template->hide();
+    ui->Tools->hide();
+    ui->Navigation->hide();
+
+    statusBar = new StatusBar();
+    //need to connect position text
+
+    ui->sbarLayout->addWidget(statusBar);
+
+    //connect context menu requests that depend on ui values
+    connect(ui->map_view_,SIGNAL(UIrequestAreaMap()),this,SLOT(requestMap()));
+    connect(ui->map_view_,SIGNAL(UIrequestOctomap()),this,SLOT(requestOctomap()));
 }
 
 MapViewWidget::~MapViewWidget()

@@ -83,6 +83,7 @@ private:
     void systemCommandContext(std::string command);
     void loadButtonIcon(QPushButton* btn, QString image_name);
 
+
     //contextMenuItem *makeContextParent(QString name);
     //void makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent);
 

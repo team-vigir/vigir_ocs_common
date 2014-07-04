@@ -7,7 +7,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-
+#include <statusBar.h>
 #include <ros/ros.h>
 #include "base_3d_view.h"
 #include <flor_ocs_msgs/OCSKeyEvent.h>
@@ -66,6 +66,7 @@ private:
 
     bool lock_pitch_slider_;
 
+    StatusBar * statusBar;
 };
 
 #endif // MAIN_CAMERA_VIEW_WIDGET_H

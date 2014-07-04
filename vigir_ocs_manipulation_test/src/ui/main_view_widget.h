@@ -92,6 +92,7 @@ private:
     void contextToggleWindow(int window);
     void systemCommandContext(std::string command);
     void loadButtonIcon(QPushButton* btn, QString image_name);
+    void templateListCb(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg);
 
     //contextMenuItem *makeContextParent(QString name);
     //void makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent);
@@ -123,6 +124,10 @@ private:
     QElapsedTimer * elapsedTimer;
 
     ros::Publisher template_add_pub_;
+    ros::Publisher template_remove_pub_;
+    ros::Subscriber template_list_sub;
+
+    flor_ocs_msgs::OCSTemplateList temList;
 
     ros::NodeHandle n_;
     ros::Subscriber window_control_sub_;

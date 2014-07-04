@@ -205,7 +205,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //publisher for the interactive marker mode
     interactive_marker_mode_pub_ = n_.advertise<std_msgs::Int8>("/flor/ocs/interactive_marker_server/set_mode",1,false);
 
-    statusBar = new StatusBar();
+    statusBar = new StatusBar(this);
 
     //connect view to update position data
     connect(views_list["Top Left"],SIGNAL(sendPositionText(QString)),statusBar,SLOT(receivePositionText(QString)));

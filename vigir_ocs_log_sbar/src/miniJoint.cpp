@@ -17,6 +17,9 @@ MiniJoint::MiniJoint(QWidget *parent) :
     connect(jList,SIGNAL(sendJointData(int,QString)),this->parent(),SLOT(receiveJointData(int, QString)));
     ui->table->setColumnWidth(0,100);
     ui->table->setColumnWidth(1,300);
+    //install event filter to get mouse presses
+    ui->table->setMouseTracking( true );
+    ui->table->viewport()->installEventFilter( this );
 
     //build animations
     jointFadeIn = new QPropertyAnimation(this, "windowOpacity");
@@ -36,6 +39,22 @@ MiniJoint::MiniJoint(QWidget *parent) :
     connect(jointFadeOut,SIGNAL(finished()),this,SLOT(hideWindow()));
 }
 
+
+bool MiniJoint::eventFilter(QObject* object,QEvent* event)
+{
+    if (object == ui->table->viewport())
+    {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+        if(mouseEvent->button() == 1 && mouseEvent->type() == QEvent::MouseButtonPress)
+        {
+            toggleJointListWindow();
+            return true;
+        }
+    }
+    //must propogate events
+    return QMainWindow::eventFilter(object,event);
+}
+
 void MiniJoint::toggleJointListWindow()
 {
     if(jList->isVisible())
@@ -50,8 +69,7 @@ void MiniJoint::hideWindow()
 }
 
 void MiniJoint::receiveJointData(int status, QString jointName)
-{
-    //ROS_ERROR("Joint %d %s", status, qPrintable(jointName));
+{    
      switch(status)
      {
      case 0:
@@ -110,11 +128,6 @@ void MiniJoint::startActiveTimer()
     timer->start(500);
 }
 
-void MiniJoint::itemClicked(QTableWidgetItem * item)
-{
-    ROS_ERROR("clickeys");
-    toggleJointListWindow();
-}
 
 MiniJoint::~MiniJoint()
 {
