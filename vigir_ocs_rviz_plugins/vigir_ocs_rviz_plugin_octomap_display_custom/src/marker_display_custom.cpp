@@ -236,9 +236,14 @@ void MarkerDisplayCustom::incomingMarker( const visualization_msgs::Marker::Cons
   message_queue_.push_back(marker);
 }
 
-void MarkerDisplayCustom::failedMarker(const visualization_msgs::Marker::ConstPtr& marker, tf::FilterFailureReason reason)
+void MarkerDisplayCustom::failedMarker(const ros::MessageEvent<visualization_msgs::Marker>& marker_evt, tf::FilterFailureReason reason)
 {
-  std::string error = context_->getFrameManager()->discoverFailureReason(marker->header.frame_id, marker->header.stamp, marker->__connection_header ? (*marker->__connection_header)["callerid"] : "unknown", reason);
+/// Changed in indigo
+//  std::string error = context_->getFrameManager()->discoverFailureReason(marker->header.frame_id, marker->header.stamp, marker->__connection_header ? (*marker->__connection_header)["callerid"] : "unknown", reason);
+//  setMarkerStatus(MarkerID(marker->ns, marker->id), StatusProperty::Error, error);
+  visualization_msgs::Marker::ConstPtr marker = marker_evt.getConstMessage();
+  std::string authority = marker_evt.getPublisherName();
+  std::string error = context_->getFrameManager()->discoverFailureReason(marker->header.frame_id, marker->header.stamp, authority, reason);
   setMarkerStatus(MarkerID(marker->ns, marker->id), StatusProperty::Error, error);
 }
 
