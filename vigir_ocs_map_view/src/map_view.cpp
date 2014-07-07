@@ -86,7 +86,7 @@ void MapView::enableSelectionTool(bool activate, int x, int y)
             std::cout << "selection tool: " << activate << std::endl;
             if(activate)
             {
-                //if over a interactive marker dont change tool, allow interative marker manipulaion
+                //if over a interactive marker dont change tool, allow interative marker manipulaion                            //lock to access weak ptr
                 if(((rviz::InteractiveObjectWPtr)((rviz::InteractionToolCustom *)interactive_markers_tool_)->getCurrentObject()).lock() == NULL)
                 {
                     selected_area_[0] = x;

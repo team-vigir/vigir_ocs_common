@@ -500,6 +500,8 @@ protected:
     contextMenuItem * lockRightMenu;
     contextMenuItem * unlockArmsMenu;
     contextMenuItem * snapHandMenu;
+    contextMenuItem * leftArmMenu;
+    contextMenuItem * rightArmMenu;
 
     QTreeWidget * templateRoot;
 

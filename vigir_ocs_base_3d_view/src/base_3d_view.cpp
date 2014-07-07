@@ -1173,12 +1173,10 @@ void Base3DView::addBase3DContextElements()
     contextMenuItem * separator = new contextMenuItem();
     separator->name = "Separator";
 
-    selectMenu = makeContextChild("Select",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    selectMenu = makeContextChild("Select Template",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
 
-    addToContextVector(separator);
-
-    makeContextChild("Select Left Arm",boost::bind(&Base3DView::selectLeftArm,this),NULL,contextMenuItems);
-    makeContextChild("Select Right Arm",boost::bind(&Base3DView::selectRightArm,this),NULL,contextMenuItems);
+    leftArmMenu = makeContextChild("Select Left Arm",boost::bind(&Base3DView::selectLeftArm,this),NULL,contextMenuItems);
+    rightArmMenu = makeContextChild("Select Right Arm",boost::bind(&Base3DView::selectRightArm,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
@@ -1298,25 +1296,27 @@ void Base3DView::createContextMenu(bool, int x, int y)
 
     ROS_ERROR("CONTEXT: %s",active_context_name_.c_str());
 
-    //any selectable object
-    if(active_context_name_.find("template") != std::string::npos)// || arms)
-        selectMenu->action->setEnabled(true);
-
-    if(active_context_name_.find("template") != std::string::npos)
-    {        
-        removeTemplateMenu->action->setEnabled(true);
+    //arms selection
+    if(active_context_name_.find("LeftArm") != std::string::npos)
+    {
+        context_menu_.removeAction(rightArmMenu->action);
+    }
+    else if(active_context_name_.find("RightArm") != std::string::npos)
+    {
+        context_menu_.removeAction(leftArmMenu->action);
     }
     else
     {
-        //remove context items as not needed
-        context_menu_.removeAction(removeTemplateMenu->action);
-        context_menu_.removeAction(selectMenu->action);
-        //removeTemplateMenu->action->setEnabled(false);
+        context_menu_.removeAction(rightArmMenu->action);
+        context_menu_.removeAction(leftArmMenu->action);
     }
 
     //lock/unlock arms context items
     if(active_context_name_.find("template") == std::string::npos)
     {
+        //remove context items as not needed
+        context_menu_.removeAction(removeTemplateMenu->action);
+        context_menu_.removeAction(selectMenu->action);
         context_menu_.removeAction(lockLeftMenu->action);
         context_menu_.removeAction(lockRightMenu->action);
     }
@@ -1342,8 +1342,6 @@ void Base3DView::createContextMenu(bool, int x, int y)
     {
         context_menu_.removeAction(footstepPlanMenuWalk->action);
         context_menu_.removeAction(footstepPlanMenuWalkManipulation->action);
-        //footstepPlanMenuWalk->action->setEnabled(false);
-        //footstepPlanMenuWalkManipulation->action->setEnabled(false);
     }
 
     if(cartesian_marker_list_.size() == 0)
