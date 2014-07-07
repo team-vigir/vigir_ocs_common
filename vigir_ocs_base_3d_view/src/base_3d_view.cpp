@@ -1276,8 +1276,7 @@ contextMenuItem * Base3DView::makeContextChild(QString name,boost::function<void
 
 void Base3DView::selectOnDoubleClick(int x, int y)
 {
-    Q_EMIT queryContext(x,y);
-    ROS_ERROR("Double Click: %s",active_context_name_.c_str());
+    Q_EMIT queryContext(x,y);    
     if(active_context_name_.find("LeftArm") != std::string::npos)
         selectLeftArm();
     else if(active_context_name_.find("RightArm") != std::string::npos)
