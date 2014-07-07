@@ -146,6 +146,7 @@ private:
     contextMenuItem * worldContext;
     contextMenuItem * cameraContext;
 
+    QSignalMapper* stop_mapper_;
 
 };
 

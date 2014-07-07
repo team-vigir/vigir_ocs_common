@@ -660,7 +660,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     stop_button_->setStyleSheet("font: 100pt \"MS Shell Dlg 2\";background-color: red;color: white;border-color: red;");
     stop_button_->setMaximumSize(400,300);
     stop_button_->adjustSize();
-    QObject::connect(stop_button_, SIGNAL(clicked()), this, SLOT(emergencyStop()));
+    QObject::connect(stop_button_, SIGNAL(clicked()), this, SIGNAL(emergencyStop()));
     stop_button_->setVisible(false);
 
 //    QHBoxLayout* position_layout = new QHBoxLayout();
@@ -741,11 +741,6 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     // no need to spin as rviz is already doing that for us.
     //ros::spinOnce();
-}
-
-void Base3DView::emergencyStop()
-{
-    ROS_ERROR("EMERGENCY STOP");
 }
 
 void Base3DView::publishCameraTransform()

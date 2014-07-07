@@ -208,8 +208,6 @@ public Q_SLOTS:
 
     virtual bool eventFilter( QObject * o, QEvent * e );
 
-    void emergencyStop();
-
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
     void resetSelection();
@@ -223,6 +221,7 @@ Q_SIGNALS:
     void finishedContextMenuSetup( int x, int y );
     void sendPositionText(QString s);
     void updateMainViewItems();
+    void emergencyStop();
 
 
 protected:
