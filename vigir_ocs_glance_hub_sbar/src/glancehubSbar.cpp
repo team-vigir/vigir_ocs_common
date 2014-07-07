@@ -24,7 +24,7 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     connect(ghub,SIGNAL(sendFlorStatus(int)),this,SLOT(receiveFlorStatus(int)));
     connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(receiveModeChange(int)));
 
-    ui->modelabel->setText("Flor_Off");// default setting is off on start
+    ui->modelabel->setText("");// default setting is off on start
     previousSelection = "Flor_Off";
 
     //sets first item to unselectable

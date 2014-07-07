@@ -198,12 +198,15 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
 
     //allow combo boxes to send messages to joystick
-    connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(setManipulationMode(int)));
+    connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(setManipulationMode(int)));    
 
     //publisher for joystick modes
-    joystick_pub_ = n_.advertise<flor_ocs_msgs::OCSJoystick>("/flor/ocs/joystick",1,false);
+    mode_pub_ = n_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1,false);
+    //need to subscribe to stay in sync with modes
+    mode_sub_ = n_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1, &MainViewWidget::modeCB,this);
+
     //publisher for the interactive marker mode
-    interactive_marker_mode_pub_ = n_.advertise<std_msgs::Int8>("/flor/ocs/interactive_marker_server/set_mode",1,false);
+    //interactive_marker_mode_pub_ = n_.advertise<std_msgs::Int8>("/flor/ocs/interactive_marker_server/set_mode",1,false);
 
     statusBar = new StatusBar(this);
 
@@ -333,9 +336,18 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui->Template->hide();
 }
 
+void MainViewWidget::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
+{
+    controlModes = *msg;
+    //update comboBox
+    ui->modeBox->setCurrentIndex(controlModes.manipulationMode);
+    //need to change object mode as well?
+
+}
+
 void MainViewWidget::updateContextMenu()
 {
-    //change default checkable values of context items
+    //change default checkable values of context items.. must as they are created with menu
     joystickContext->action->setCheckable(true);
     positionContext->action->setCheckable(true);
     graspContext->action->setCheckable(true);
@@ -346,6 +358,9 @@ void MainViewWidget::updateContextMenu()
     footBasicContext->action->setCheckable(true);
     footAdvancedContext->action->setCheckable(true);
     footParameterContext->action->setCheckable(true);
+    objectContext->action->setCheckable(true);
+    worldContext->action->setCheckable(true);
+    cameraContext->action->setCheckable(true);
 
     //update context menu elements with checks
     if(!ui->joystickBtn->isChecked())
@@ -392,6 +407,25 @@ void MainViewWidget::updateContextMenu()
        plannerContext->action->setChecked(false);
     else
        plannerContext->action->setChecked(true);
+
+    switch(ui->modeBox->currentIndex())
+    {
+    case 0:
+        objectContext->action->setChecked(true);
+        worldContext->action->setChecked(false);
+        cameraContext->action->setChecked(false);
+        break;
+    case 1:
+        objectContext->action->setChecked(false);
+        worldContext->action->setChecked(true);
+        cameraContext->action->setChecked(false);
+        break;
+    case 2:
+        objectContext->action->setChecked(false);
+        worldContext->action->setChecked(false);
+        cameraContext->action->setChecked(true);
+        break;
+    }
 }
 
 void MainViewWidget::hideGraspWidgets()
@@ -450,9 +484,9 @@ void MainViewWidget::addContextMenu()
 
     contextMenuItem * manipulationModes = vigir_ocs::Base3DView::makeContextParent("Manipulation Mode", contextMenuElements);
 
-    vigir_ocs::Base3DView::makeContextChild("Camera",boost::bind(&MainViewWidget::setCameraMode,this), manipulationModes, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("World",boost::bind(&MainViewWidget::setWorldMode,this), manipulationModes, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Object",boost::bind(&MainViewWidget::setObjectMode,this), manipulationModes, contextMenuElements);
+    objectContext = vigir_ocs::Base3DView::makeContextChild("Object",boost::bind(&MainViewWidget::setObjectManipulationMode,this), manipulationModes, contextMenuElements);
+    worldContext = vigir_ocs::Base3DView::makeContextChild("World",boost::bind(&MainViewWidget::setWorldMode,this), manipulationModes, contextMenuElements);
+    cameraContext = vigir_ocs::Base3DView::makeContextChild("Camera",boost::bind(&MainViewWidget::setCameraMode,this), manipulationModes, contextMenuElements);
 
     contextMenuItem * objectModes = vigir_ocs::Base3DView::makeContextParent("Object Mode", contextMenuElements);
 
@@ -566,7 +600,7 @@ void MainViewWidget::setWorldMode()
     ui->modeBox->setCurrentIndex(1);
     setManipulationMode(1);
 }
-void MainViewWidget::setObjectMode()
+void MainViewWidget::setObjectManipulationMode()
 {
     ui->modeBox->setCurrentIndex(0);
     setManipulationMode(0);
@@ -575,28 +609,27 @@ void MainViewWidget::setObjectMode()
 void MainViewWidget::setManipulationMode(int mode)
 {
     // update template joystick
-    flor_ocs_msgs::OCSJoystick msg;
+    flor_ocs_msgs::OCSControlMode msg;
     msg.manipulationMode =  mode;
-    joystick_pub_.publish(msg);
+    mode_pub_.publish(msg);
     // update interactive markers
-    std_msgs::Int8 m;
-    m.data = mode;
-    interactive_marker_mode_pub_.publish(m);
+//    std_msgs::Int8 m;
+//    m.data = mode;
+//    interactive_marker_mode_pub_.publish(m);
 }
 
 void MainViewWidget::setObjectMode(int mode)
 {
-    flor_ocs_msgs::OCSJoystick msg;
+    flor_ocs_msgs::OCSControlMode msg;
     msg.objectMode =  mode;
     msg.manipulationMode = ui->modeBox->currentIndex();
-    joystick_pub_.publish(msg);
+    mode_pub_.publish(msg);
 }
 
 void MainViewWidget::graspWidgetToggle()
 {
     if(!graspContainer->isVisible())
     {
-
         graspContainer->show();
         graspFadeIn->start();
         //graspContainer->setGeometry(ui->view_stack_->geometry().bottomRight().x()/2 - 600,ui->view_stack_->geometry().bottomRight().y()- 242, 500,300);

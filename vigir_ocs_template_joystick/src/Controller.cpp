@@ -46,7 +46,8 @@ namespace vigir_ocs
     {
         ros::NodeHandle nh_out(nh, "/template");
 
-        joystick_modes_sub = nh.subscribe<flor_ocs_msgs::OCSJoystick>("/flor/ocs/joystick",1,&Controller::modeCb,this);
+        joystick_modes_sub = nh.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1,&Controller::modeCb,this);
+        joystick_modes_pub = nh.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1,false);
 
         //subscribe to list to grab movement data
         template_list_sub = nh_out.subscribe<flor_ocs_msgs::OCSTemplateList>( "list", 1, &Controller::templateListCb ,this );
@@ -79,7 +80,9 @@ namespace vigir_ocs
         objectMode = false;
 
         //allows joystick to keep track of mode
-        currentManipulationController = 0;
+        currentManipulationController = 0;        
+
+        currentObjectMode = 0;
     }
 
     // Destructor
@@ -102,12 +105,14 @@ namespace vigir_ocs
             handleJoystick();
     }
 
-    void Controller::modeCb(const flor_ocs_msgs::OCSJoystick::ConstPtr& msg)
+    void Controller::modeCb(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
     {
         joyModes = *msg;
         //set current modes based on subscribed data
         setObjectMode(joyModes.objectMode);
         setManipulation(joyModes.manipulationMode);
+
+        Q_EMIT updateUIModes(joyModes.manipulationMode, joyModes.objectMode);
     }
 
     //sends data to list and updates it
@@ -173,20 +178,36 @@ namespace vigir_ocs
             leftMode = false;
             rightMode = false;
             break;
-        case 1:
+        case 1: //left
             leftMode = true;
             rightMode = false;
             break;
-        case 2:
+        case 2: //right
             rightMode = true;
             leftMode = false;
             break;
         }
+        //only publish if different
+        if(mode != currentObjectMode)
+        {
+            //update current mode
+            currentObjectMode = mode;
+            //publish mode change
+            flor_ocs_msgs::OCSControlMode msg;
+            msg.objectMode = mode;
+            msg.manipulationMode = getManipulation();
+            joystick_modes_pub.publish(msg);
+        }
+    }
+
+    int Controller::getObjectMode()
+    {
+        return currentObjectMode;
     }
 
     void Controller::setManipulation(int mode)
     {
-        ROS_ERROR("manipulation mode %d",mode);        
+        //ROS_ERROR("manipulation mode %d",mode);
         switch(mode)
         {
         case 0: // object
@@ -202,6 +223,22 @@ namespace vigir_ocs
             objectMode = false;
             break;
         }
+        if(mode != currentManipulationController)
+        {
+            //ensure controller updated
+            currentManipulationController = mode;
+            //publish mode change
+            flor_ocs_msgs::OCSControlMode msg;
+            msg.manipulationMode = mode;
+            msg.objectMode = getObjectMode();
+            joystick_modes_pub.publish(msg);
+        }
+    }
+
+    int Controller::getManipulation()
+    {
+        //can operate as correct getter as always updated
+        return currentManipulationController;
     }
 
     void Controller::changeManipulationController()
@@ -268,6 +305,7 @@ namespace vigir_ocs
             rotZ = rotX;
             rotX = 0;
         }
+        //TO BE IMPLEMENTED
         //handle grasping
 //        if(joy.axes[XBOX_LT] < 1)
 //            rotZ = -5;
@@ -282,17 +320,13 @@ namespace vigir_ocs
         //don't publish if sending same data
         if(!compareJoyData())
         {            
-            ROS_ERROR(" PUBLISHING ");
+            //ROS_ERROR(" PUBLISHING ");
             if(leftMode)
             {
                 rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
                                            leftHand.pose.orientation.y,leftHand.pose.orientation.z);
                 position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
-
                 //build arm msg and publish
-
-                delete(rotation);
-                delete(position);
             }
             else if(rightMode)
             {
@@ -300,9 +334,6 @@ namespace vigir_ocs
                                        leftHand.pose.orientation.y,leftHand.pose.orientation.z);
                 position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
 
-
-                delete(rotation);
-                delete(position);
             }
             else
             {
@@ -327,15 +358,15 @@ namespace vigir_ocs
                 msg.pose.pose.position.z = position->z();
 
                 template_update_pub.publish(msg);
-
-                delete(rotation);
-                delete(position);
             }
+            delete(rotation);
+            delete(position);
         }
-        else
-        {
-            ROS_ERROR("NOT PUBLISHING");
-        }
+//        else
+//        {
+//            ROS_ERROR("NOT PUBLISHING");
+//        }
+
         //store last joystick state for comparisons
         oldJoy = joy;
     }
@@ -348,7 +379,7 @@ namespace vigir_ocs
         //ISSUE: current xbox controller starts with RT at 0 for some reason. causes object to rotate forever on start until rt pressed
 
         //null check
-        if(oldJoy.axes.size() ==0)
+        if(oldJoy.axes.size() == 0)
             return false; // need to publish once to have old data
 
         bool axesDup = true;

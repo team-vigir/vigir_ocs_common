@@ -254,7 +254,7 @@
             </property>
             <item>
              <property name="text">
-              <string>Camera</string>
+              <string>Object</string>
              </property>
             </item>
             <item>
@@ -264,7 +264,7 @@
             </item>
             <item>
              <property name="text">
-              <string>Object</string>
+              <string>Camera</string>
              </property>
             </item>
            </widget>

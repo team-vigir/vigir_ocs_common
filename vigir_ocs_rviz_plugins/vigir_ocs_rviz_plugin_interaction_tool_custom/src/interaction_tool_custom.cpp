@@ -203,6 +203,13 @@ void InteractionToolCustom::updateFocus( const ViewportMouseEvent& event )
     focused_object_ = new_focused_object;
 }
 
+InteractiveObjectWPtr InteractionToolCustom::getCurrentObject()
+{
+    //could be null
+    return focused_object_;
+}
+
+
 int InteractionToolCustom::processMouseEvent( ViewportMouseEvent& event )
 {
     int flags = 0;

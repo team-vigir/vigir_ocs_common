@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <ros/ros.h>
 #include <flor_ocs_msgs/OCSKeyEvent.h>
-#include <flor_ocs_msgs/OCSJoystick.h>
+#include <flor_ocs_msgs/OCSControlMode.h>
 #include <std_msgs/Int8.h>
 
 #include "statusBar.h"
@@ -64,8 +64,7 @@ public Q_SLOTS:
     void zero_rightPressed();
     void toggleWindow(int);
     void graspWidgetToggle();
-    void setManipulationMode(int);
-    void setObjectMode(int);
+    void setManipulationMode(int);    
     void hideGraspWidgets();
     void updateContextMenu();
 
@@ -77,11 +76,15 @@ private:
     void setRightArmMode();
     void setCameraMode();
     void setWorldMode();
-    void setObjectMode();
+    void setObjectManipulationMode();
+    void setObjectMode(int mode);
     void setupToolbar();
     void contextToggleWindow(int window);
     void systemCommandContext(std::string command);
     void loadButtonIcon(QPushButton* btn, QString image_name);
+    void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
+
+    flor_ocs_msgs::OCSControlMode controlModes;
 
 
     //contextMenuItem *makeContextParent(QString name);
@@ -109,7 +112,8 @@ private:
     ros::Publisher ft_zero_pub_;
     ros::Publisher sys_command_pub_;
 
-    ros::Publisher joystick_pub_;
+    ros::Publisher mode_pub_;
+    ros::Subscriber mode_sub_;
     ros::Publisher interactive_marker_mode_pub_;
 
     std_msgs::String sysCmdMsg;
@@ -138,6 +142,9 @@ private:
     contextMenuItem * footBasicContext;
     contextMenuItem * footAdvancedContext;
     contextMenuItem * footParameterContext;
+    contextMenuItem * objectContext;
+    contextMenuItem * worldContext;
+    contextMenuItem * cameraContext;
 
 
 };
