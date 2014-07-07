@@ -17,6 +17,7 @@
 #include <QSlider>
 #include <QDoubleSpinBox>
 #include <QCheckBox>
+#include <QVector3D>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -61,11 +62,14 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     , selected_(false)
     , update_markers_(false)
     , snap_ghost_to_robot_(true)
+    , snap_hand_to_ghost_(false)
     , marker_published_(0)
     , stored_maps_(30) // determines how many maps will be stored
     , moving_pelvis_(false)
     , moving_l_arm_(false)
     , moving_r_arm_(false)
+    , update_l_arm_color_(false)
+    , update_r_arm_color_(false)
     , left_marker_moveit_loopback_(true)
     , right_marker_moveit_loopback_(true)
     , position_only_ik_(false)
@@ -273,13 +277,13 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
 
         // create the grasp hands displays (blue/yellow hands)
-        left_grasp_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left hand model", true );
+        left_grasp_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left grasp hand model", true );
         left_grasp_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
         left_grasp_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_left_hand" );
         left_grasp_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
         left_grasp_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
 
-        right_grasp_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot right hand model", true );
+        right_grasp_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot right grasp hand model", true );
         right_grasp_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
         right_grasp_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_right_hand" );
         right_grasp_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
@@ -486,6 +490,26 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // Connect to the template markers
         QObject::connect(this, SIGNAL(enableTemplateMarker(int, bool)), template_display_, SLOT(enableTemplateMarker(int, bool)));
         QObject::connect(this, SIGNAL(enableTemplateMarkers(bool)), template_display_, SLOT(enableTemplateMarkers(bool)));
+
+        // publishers for the current marker poses
+        l_arm_marker_pose_pub_  = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/l_arm_marker_pose", 1, false );
+        r_arm_marker_pose_pub_  = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/r_arm_marker_pose", 1, false );
+        pelvis_marker_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/pelvis_marker_pose", 1, false );
+
+        // add bounding boxes for the left/right/pelvis markers
+        rviz::Display* left_hand_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for left hand", true );
+        left_hand_bounding_box_->subProp( "Name" )->setValue( "LeftArm" );
+        left_hand_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/l_arm_marker_pose" );
+        left_hand_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
+        rviz::Display* right_hand_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for right hand", true );
+        right_hand_bounding_box_->subProp( "Name" )->setValue( "RightArm" );
+        right_hand_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/r_arm_marker_pose" );
+        right_hand_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
+        rviz::Display* pelvis_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for pelvis", true );
+        pelvis_bounding_box_->subProp( "Name" )->setValue( "Pelvis" );
+        pelvis_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/pelvis_marker_pose" );
+        pelvis_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
+        pelvis_bounding_box_->subProp( "Scale" )->setValue( QVector3D(0.005f,0.005f,0.005f) );
 
         // set frustum
         QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
@@ -1158,13 +1182,16 @@ void Base3DView::addBase3DContextElements()
 
     addToContextVector(separator);
 
+    snapHandMenu = makeContextChild("Snap Hand to Ghost",boost::bind(&Base3DView::snapHandGhost,this),NULL,contextMenuItems);
+
+    addToContextVector(separator);
+
     insertTemplateMenu = makeContextParent("Insert Template",contextMenuItems);
     removeTemplateMenu = makeContextChild("Remove Template",boost::bind(&Base3DView::removeTemplateContextMenu,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
     lockLeftMenu = makeContextChild("Lock Left Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL,contextMenuItems);
-
     lockRightMenu = makeContextChild("Lock Right Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL,contextMenuItems);
     unlockArmsMenu = makeContextChild("Unlock Arms",boost::bind(&Base3DView::setTemplateGraspLock,this,-1),NULL,contextMenuItems);
 
@@ -1488,6 +1515,11 @@ void Base3DView::selectRightArm()
     select_object_pub_.publish(cmd);
 }
 
+void Base3DView::snapHandGhost()
+{
+    snap_hand_to_ghost_ = true;
+}
+
 // this function will toggle the template grasp lock
 void Base3DView::setTemplateGraspLock(int arm)
 {
@@ -1765,9 +1797,14 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
     // calculate pose of the marker based on interactive marker transform
     geometry_msgs::PoseStamped wrist_pose;
     calcWristTarget(*pose,l_hand_T_marker_,wrist_pose);
-    // if the moveit loopback is enabled, we update the interactive marker based a possible configuration returned by moveit
-    if(left_marker_moveit_loopback_)
+
+    // if the moveit loopback is enabled or we want to snap back to ghost, we update the interactive marker based a possible configuration returned by moveit
+    if(left_marker_moveit_loopback_ || snap_hand_to_ghost_)
     {
+        // reset snap flag
+        snap_hand_to_ghost_ = false;
+
+        // setup interactive markers if they haven't been already
         if(marker_published_ < 3)
             publishMarkers();
 
@@ -1780,6 +1817,8 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
         cmd.pose = wrist_pose;
         interactive_marker_update_pub_.publish(cmd);
 
+        l_arm_marker_pose_pub_.publish(wrist_pose);
+
         //ROS_ERROR("LEFT ARM POSE:");
         //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
         //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
@@ -1788,7 +1827,12 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
         if(!moving_pelvis_ && ghost_pose_source_[0] == 0)
             end_effector_pose_list_[cmd.topic] = cmd.pose;
     }
-    last_l_arm_marker_pose_ = wrist_pose.pose;
+
+    // save last moveit return pose transformed to wrist CS
+    // used for cartesian as well as checking if interactive marker == moveit
+    last_l_arm_moveit_pose_ = wrist_pose.pose;
+
+    updateHandColors();
 }
 
 // Moveit callback for right arm end effector
@@ -1797,9 +1841,14 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
     // calculate pose of the marker based on interactive marker transform
     geometry_msgs::PoseStamped wrist_pose;
     calcWristTarget(*pose,r_hand_T_marker_,wrist_pose);
-    // if the moveit loopback is enabled, we update the interactive marker based a possible configuration returned by moveit
-    if(right_marker_moveit_loopback_)
+
+    // if the moveit loopback is enabled or we want to snap back to ghost, we update the interactive marker based a possible configuration returned by moveit
+    if(right_marker_moveit_loopback_ || snap_hand_to_ghost_)
     {
+        // reset snap flag
+        snap_hand_to_ghost_ = false;
+
+        // setup interactive markers if they haven't been already
         if(marker_published_ < 3)
             publishMarkers();
 
@@ -1811,6 +1860,8 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
         cmd.pose = wrist_pose;
         interactive_marker_update_pub_.publish(cmd);
 
+        r_arm_marker_pose_pub_.publish(wrist_pose);
+
         //ROS_ERROR("RIGHT ARM POSE:");
         //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
         //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
@@ -1819,7 +1870,12 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
         if(!moving_pelvis_ && ghost_pose_source_[1] == 0)
             end_effector_pose_list_[cmd.topic] = cmd.pose;
     }
-    last_r_arm_marker_pose_ = wrist_pose.pose;
+
+    // save last moveit return pose transformed to wrist
+    // used for cartesian as well as checking if interactive marker == moveit
+    last_r_arm_moveit_pose_ = wrist_pose.pose;
+
+    updateHandColors();
 }
 
 int staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform hand_T_palm)
@@ -2037,6 +2093,85 @@ void Base3DView::processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstP
     onMarkerFeedback(cmd);
 }
 
+void Base3DView::updateHandColors()
+{
+    // need to verify if marker pose == moveit, with 5cm and 2deg tolerance
+    if(update_l_arm_color_ && !checkPoseMatch(last_l_arm_moveit_pose_,last_l_arm_marker_pose_,0.005f,2.0f))
+    {
+        // change color of the ghost template hands
+        for (size_t i = 0; i < left_display_state_msg_.highlight_links.size(); ++i)
+        {
+            left_display_state_msg_.highlight_links[i].color.a = 0.7f;
+            left_display_state_msg_.highlight_links[i].color.r = 0.8f;
+            left_display_state_msg_.highlight_links[i].color.g = 0.2f;
+            left_display_state_msg_.highlight_links[i].color.b = 0.2f;
+        }
+    }
+    // if not, restore green
+    else
+    {
+        // change color of the ghost template hands
+        for (size_t i = 0; i < left_display_state_msg_.highlight_links.size(); ++i)
+        {
+            left_display_state_msg_.highlight_links[i].color.a = 0.5f;
+            left_display_state_msg_.highlight_links[i].color.r = 0.2f;
+            left_display_state_msg_.highlight_links[i].color.g = 0.8f;
+            left_display_state_msg_.highlight_links[i].color.b = 0.2f;
+        }
+    }
+
+    // need to verify if marker pose == moveit, with 5cm and 2deg tolerance
+    if(update_r_arm_color_ && !checkPoseMatch(last_r_arm_moveit_pose_,last_r_arm_marker_pose_,0.005f,2.0f))
+    {
+        // change color of the ghost template hands
+        for (size_t i = 0; i < right_display_state_msg_.highlight_links.size(); ++i)
+        {
+            right_display_state_msg_.highlight_links[i].color.a = 0.7f;
+            right_display_state_msg_.highlight_links[i].color.r = 0.8f;
+            right_display_state_msg_.highlight_links[i].color.g = 0.2f;
+            right_display_state_msg_.highlight_links[i].color.b = 0.2f;
+        }
+    }
+    // if not, restore green
+    else
+    {
+        // change color of the ghost template hands
+        for (size_t i = 0; i < right_display_state_msg_.highlight_links.size(); ++i)
+        {
+            right_display_state_msg_.highlight_links[i].color.a = 0.5f;
+            right_display_state_msg_.highlight_links[i].color.r = 0.2f;
+            right_display_state_msg_.highlight_links[i].color.g = 0.8f;
+            right_display_state_msg_.highlight_links[i].color.b = 0.2f;
+        }
+    }
+}
+
+// this will return true if position and orientation are within the acceptable thresholds (default values = 0.0f)
+bool Base3DView::checkPoseMatch(const geometry_msgs::Pose& p1, const geometry_msgs::Pose& p2, float scalar_error_threshold, float angle_error_threshold)
+{
+    Ogre::Vector3 p1_p(p1.position.x,p1.position.y,p1.position.z);
+    Ogre::Vector3 p2_p(p2.position.x,p2.position.y,p2.position.z);
+
+    // first check distance between two positions
+    float diff_position = p1_p.distance(p2_p);
+    if(diff_position > scalar_error_threshold)
+        return false;
+
+    // then we check the angle difference
+    Ogre::Quaternion p1_o(p1.orientation.w,p1.orientation.x,p1.orientation.y,p1.orientation.z);
+    Ogre::Quaternion p2_o(p2.orientation.w,p2.orientation.x,p2.orientation.y,p2.orientation.z);
+
+    Ogre::Quaternion diff_orientation = p2_o * p1_o.Inverse();
+    Ogre::Degree diff_angle;
+    Ogre::Vector3 diff_axis;
+    diff_orientation.ToAngleAxis(diff_angle,diff_axis);
+    if(diff_angle.valueDegrees() > angle_error_threshold)
+        return false;
+
+    // returns true if p1 == p2 considering the thresholds
+    return true;
+}
+
 void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
 {
     geometry_msgs::PoseStamped joint_pose;
@@ -2058,6 +2193,13 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         // this will publish the iron man hand position based on the left arm marker pose
         calcWristTarget(msg.pose,l_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("left"),joint_pose);
+
+        last_l_arm_marker_pose_ = msg.pose.pose;
+
+        update_l_arm_color_ = true;
+        updateHandColors();
+
+        l_arm_marker_pose_pub_.publish(msg.pose);
     }
     else if(msg.topic == "/r_arm_pose_marker")
     {
@@ -2074,12 +2216,21 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         // this will publish the iron man hand position based on the right arm marker pose
         calcWristTarget(msg.pose,r_hand_T_marker_.inverse(),joint_pose);
         publishHandPose(std::string("right"),joint_pose);
+
+        last_r_arm_marker_pose_ = msg.pose.pose;
+
+        update_r_arm_color_ = true;
+        updateHandColors();
+
+        r_arm_marker_pose_pub_.publish(msg.pose);
     }
     else if(msg.topic == "/pelvis_pose_marker")
     {
         moving_pelvis_ = true;
         moving_l_arm_ = false;
         moving_r_arm_ = false;
+
+        pelvis_marker_pose_pub_.publish(msg.pose);
     }
     else if(msg.topic.find("/cartesian_pose_") != std::string::npos)
     {
@@ -2239,11 +2390,15 @@ void Base3DView::publishGhostPoses()
         cmd.topic = "/pelvis_pose_marker";
         cmd.pose = pose;
         interactive_marker_update_pub_.publish(cmd);
+
+        pelvis_marker_pose_pub_.publish(pose);
     }
     else
     {
         // how do I set world lock for torso?
         ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+
+        pelvis_marker_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
     }
 }
 
@@ -2256,11 +2411,11 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
     }
     ghost_planning_group_.clear();
     ghost_pose_source_.clear();
-    ghost_world_lock_.clear();
+    //ghost_world_lock_.clear();
 
     ghost_planning_group_ = msg->planning_group;
     ghost_pose_source_ = msg->pose_source;
-    ghost_world_lock_ = msg->world_lock;
+    //ghost_world_lock_ = msg->world_lock;
     moveit_collision_avoidance_ = msg->collision_avoidance;
     ghost_lock_pelvis_ = msg->lock_pelvis;
 
@@ -2299,6 +2454,8 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
         cmd.topic = "/pelvis_pose_marker";
         cmd.pose = pose;
         interactive_marker_update_pub_.publish(cmd);
+
+        pelvis_marker_pose_pub_.publish(pose);
 
         snap_ghost_to_robot_ = false;
     }
@@ -2348,6 +2505,8 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
         cmd.topic = "/pelvis_pose_marker";
         cmd.pose = pose;
         interactive_marker_update_pub_.publish(cmd);
+
+        pelvis_marker_pose_pub_.publish(pose);
     }
 }
 
@@ -2442,9 +2601,9 @@ void Base3DView::processSendCartesian(const std_msgs::Bool::ConstPtr &msg)
     std::vector<geometry_msgs::Pose> waypoints;
     // send the marker position
     if(msg->data)
-        waypoints.push_back(last_r_arm_marker_pose_);
+        waypoints.push_back(last_r_arm_moveit_pose_);
     else
-        waypoints.push_back(last_l_arm_marker_pose_);
+        waypoints.push_back(last_l_arm_moveit_pose_);
     bool old_state = cartesian_keep_orientation_->isChecked();
     cartesian_keep_orientation_->setChecked(false);
     sendCartesianTarget(msg->data, waypoints);

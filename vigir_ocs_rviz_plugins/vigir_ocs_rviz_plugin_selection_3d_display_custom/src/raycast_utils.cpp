@@ -73,6 +73,8 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
         return (false);
     }
 
+
+
     // at this point we have raycast to a series of different objects bounding boxes.
     // we need to test these different objects to see which is the first polygon hit.
     // there are some minor optimizations (distance based) that mean we wont have to
@@ -101,6 +103,24 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
         if ((query_result[qr_idx].movable != NULL) &&
             (query_result[qr_idx].movable->getMovableType().compare("Entity") == 0))
         {
+            // need to skip BoundingObject if there is a template, which means the bounding box/sphere is occluding it
+            if(boost::algorithm::starts_with(query_result[qr_idx].movable->getName(),"BoundingObject"))
+            {
+                int new_qr_idx;
+                for(new_qr_idx = qr_idx+1; new_qr_idx < query_result.size(); new_qr_idx++)
+                {
+                    if((query_result[new_qr_idx].movable != NULL) &&
+                       query_result[new_qr_idx].movable->getMovableType().compare("Entity") == 0)
+                    {
+                        if(query_result[new_qr_idx].movable->getName().find("Robot") != std::string::npos)
+                            break;
+                        if(boost::algorithm::starts_with(query_result[new_qr_idx].movable->getName(),"template"))
+                            qr_idx = new_qr_idx;
+                    }
+                }
+            }
+
+
             // get the entity to check
             Ogre::Entity *pentity = static_cast<Ogre::Entity*>(query_result[qr_idx].movable);
 

@@ -333,9 +333,9 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
     last_template_list_ = *list;
 
     // enable boxes and buttons
-    if(list->template_list.size() > 0)
+    if(list->template_list.size() > 0 && selected_template_id_ != -1)
     {
-        ui->templateBox->setDisabled(false);
+        //ui->templateBox->setDisabled(false);
         ui->graspBox->setDisabled(false);
         ui->performButton->setDisabled(false);
     }
@@ -399,7 +399,7 @@ void graspWidget::initTemplateMode()
 {
     if(last_template_list_.template_id_list.size() > 0)
     {
-        ui->templateBox->setDisabled(false);
+        //ui->templateBox->setDisabled(false);
         ui->graspBox->setDisabled(false);
     }
 }
@@ -1292,19 +1292,42 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
 {
     switch(msg->type)
     {
-        case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
-            break;
         case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
             {
             // enable template marker
+            //ui->templateBox->setDisabled(false);
+            ui->graspBox->setDisabled(false);
+            ui->performButton->setDisabled(false);
+            ui->stitch_template->setDisabled(false);
             std::vector<unsigned char>::iterator it;
             it = std::find(last_template_list_.template_id_list.begin(), last_template_list_.template_id_list.end(), msg->id);
             if(it != last_template_list_.template_id_list.end())
-                ui->templateBox->setCurrentIndex(std::distance(last_template_list_.template_id_list.begin(),it));
+            {
+                int tmp = std::distance(last_template_list_.template_id_list.begin(),it);
+                ui->templateBox->setCurrentIndex(tmp);
+                on_templateBox_activated(ui->templateBox->itemText(tmp));
+                on_templateRadio_clicked();
+                selected_template_id_ = tmp;
+
+                if(selected_grasp_id_ != -1 && show_grasp_)
+                    publishHandPose(selected_grasp_id_);
+            }
             }
             break;
+        // not a template
+        case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
         case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
         default:
+            {
+            selected_template_id_ = -1;
+            ui->templateBox->setCurrentIndex(-1);
+            ui->graspBox->setCurrentIndex(-1);
+            on_templateRadio_clicked();
+            //ui->templateBox->setDisabled(true);
+            ui->graspBox->setDisabled(true);
+            ui->performButton->setDisabled(true);
+            ui->stitch_template->setDisabled(true);
+            }
             break;
     }
 }
