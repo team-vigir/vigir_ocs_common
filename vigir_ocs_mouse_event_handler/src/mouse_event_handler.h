@@ -4,7 +4,7 @@
 #include <QApplication>
 #include <QMouseEvent>
 #include <QWidget>
-
+#include <ros/ros.h>
 namespace vigir_ocs
 {
 
@@ -24,10 +24,12 @@ Q_SIGNALS:
   void mouseLeftButtonCtrl( bool, int, int );
   void mouseLeftButtonShift( bool, int, int );
   void mouseRightButton( bool, int, int );
+  void signalMouseLeftDoubleClick(int,int);
 
 public Q_SLOTS:
   void mousePressEvent( QMouseEvent* event );
   void mouseReleaseEvent( QMouseEvent* event );
+  void mouseDoubleClick(QMouseEvent * event);
 
 };
 

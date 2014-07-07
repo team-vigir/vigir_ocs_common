@@ -204,6 +204,8 @@ public Q_SLOTS:
     void sendCircularLeft();
     void sendCircularRight();
 
+    void selectOnDoubleClick(int,int);
+
     virtual bool eventFilter( QObject * o, QEvent * e );
 
     void emergencyStop();
