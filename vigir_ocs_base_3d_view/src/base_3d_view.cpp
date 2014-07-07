@@ -1306,7 +1306,7 @@ void Base3DView::createContextMenu(bool, int x, int y)
     {
         context_menu_.removeAction(leftArmMenu->action);
     }
-    else
+    else //neither arm selected
     {
         context_menu_.removeAction(rightArmMenu->action);
         context_menu_.removeAction(leftArmMenu->action);

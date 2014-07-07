@@ -326,7 +326,11 @@ namespace vigir_ocs
                 rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
                                            leftHand.pose.orientation.y,leftHand.pose.orientation.z);
                 position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
+
                 //build arm msg and publish
+
+                delete(rotation);
+                delete(position);
             }
             else if(rightMode)
             {
@@ -334,6 +338,9 @@ namespace vigir_ocs
                                        leftHand.pose.orientation.y,leftHand.pose.orientation.z);
                 position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
 
+
+                delete(rotation);
+                delete(position);
             }
             else
             {
@@ -358,9 +365,10 @@ namespace vigir_ocs
                 msg.pose.pose.position.z = position->z();
 
                 template_update_pub.publish(msg);
+
+                delete(rotation);
+                delete(position);
             }
-            delete(rotation);
-            delete(position);
         }
 //        else
 //        {
