@@ -238,7 +238,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     // try to load grasp environment variables
     std::string env_left_hand = getenv("FLOR_LEFT_HAND_TYPE");
-    if(env_left_hand.find("irobot") != std::string::npos || env_left_hand.find("sandia") != std::string::npos)
+    if(env_left_hand.find("irobot") != std::string::npos || env_left_hand.find("sandia") != std::string::npos || env_left_hand.find("robotiq") != std::string::npos)
     {
         QWidget * leftGrasp = new QWidget(graspContainer);
         QVBoxLayout * leftLayout = new QVBoxLayout();
@@ -250,6 +250,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             leftGraspWidget = new graspWidget(graspContainer, "left", "irobot");
         else if(env_left_hand.find("sandia") != std::string::npos)
             leftGraspWidget = new graspWidget(graspContainer, "left", "sandia");
+        else if(env_left_hand.find("robotiq") != std::string::npos)
+            leftGraspWidget = new graspWidget(graspContainer, "left", "robotiq");
         leftGraspWidget->show();
         leftLayout->addWidget(leftGraspWidget);
         leftGrasp->setLayout(leftLayout);
@@ -271,7 +273,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     }
 
     std::string env_right_hand = getenv("FLOR_RIGHT_HAND_TYPE");
-    if(env_right_hand.find("irobot") != std::string::npos || env_right_hand.find("sandia") != std::string::npos)
+    if(env_right_hand.find("irobot") != std::string::npos || env_right_hand.find("sandia") != std::string::npos || env_right_hand.find("robotiq") != std::string::npos)
     {
         QWidget * rightGrasp = new QWidget(graspContainer);
         QVBoxLayout * rightLayout = new QVBoxLayout();
@@ -282,6 +284,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             rightGraspWidget = new graspWidget(graspContainer, "right", "irobot");
         else if(env_right_hand.find("sandia") != std::string::npos)
             rightGraspWidget = new graspWidget(graspContainer, "right", "sandia");
+        else if(env_right_hand.find("robotiq") != std::string::npos)
+            rightGraspWidget = new graspWidget(graspContainer, "right", "robotiq");
         rightGraspWidget->show();
         rightLayout->addWidget(rightGraspWidget);
         rightGrasp->setLayout(rightLayout);
