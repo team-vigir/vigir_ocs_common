@@ -37,6 +37,7 @@
 #include "rviz/default_plugin/view_controllers/fixed_orientation_ortho_view_controller.h"
 #include "rviz/default_plugin/view_controllers/orbit_view_controller.h"
 #include "rviz/properties/parse_color.h"
+#include "rviz/properties/vector_property.h"
 #include <template_display_custom.h>
 #include "selection_3d_display_custom.h"
 #include "map_display_custom.h"
@@ -509,7 +510,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         pelvis_bounding_box_->subProp( "Name" )->setValue( "Pelvis" );
         pelvis_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/pelvis_marker_pose" );
         pelvis_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
-        pelvis_bounding_box_->subProp( "Scale" )->setValue( QVector3D(0.005f,0.005f,0.005f) );
+        ((rviz::VectorProperty*)pelvis_bounding_box_->subProp( "Scale" ))->setVector( Ogre::Vector3(0.005f,0.005f,0.005f) );
 
         // set frustum
         QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
