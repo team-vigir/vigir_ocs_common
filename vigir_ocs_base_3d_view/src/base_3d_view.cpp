@@ -629,9 +629,11 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     mouse_event_handler_ = new vigir_ocs::MouseEventHandler();
     QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mousePressEvent(QMouseEvent*)));
     QObject::connect(render_panel_, SIGNAL(signalMouseReleaseEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseReleaseEvent(QMouseEvent*)));
+    QObject::connect(render_panel_, SIGNAL(signalMouseDoubleClickEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseDoubleClick(QMouseEvent*)));
     QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(raycastRequest(bool,int,int)));//SLOT(createMarker(bool,int,int))); // RAYCAST -> need createMarkerOnboard that sends raycast query
     QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(raycastRequestROI(bool,int,int)));//SLOT(createROISelection(bool,int,int)));
     QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), this, SLOT(createContextMenu(bool,int,int)));
+    QObject::connect(mouse_event_handler_, SIGNAL(signalMouseLeftDoubleClick(int,int)), this, SLOT(selectOnDoubleClick(int,int)));
 
     Q_FOREACH( QWidget* sp, findChildren<QWidget*>() ) {
         sp->installEventFilter( this );
@@ -658,7 +660,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     stop_button_->setStyleSheet("font: 100pt \"MS Shell Dlg 2\";background-color: red;color: white;border-color: red;");
     stop_button_->setMaximumSize(400,300);
     stop_button_->adjustSize();
-    QObject::connect(stop_button_, SIGNAL(clicked()), this, SLOT(emergencyStop()));
+    QObject::connect(stop_button_, SIGNAL(clicked()), this, SIGNAL(emergencyStop()));
     stop_button_->setVisible(false);
 
 //    QHBoxLayout* position_layout = new QHBoxLayout();
@@ -739,11 +741,6 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     // no need to spin as rviz is already doing that for us.
     //ros::spinOnce();
-}
-
-void Base3DView::emergencyStop()
-{
-    ROS_ERROR("EMERGENCY STOP");
 }
 
 void Base3DView::publishCameraTransform()
@@ -1270,6 +1267,18 @@ contextMenuItem * Base3DView::makeContextChild(QString name,boost::function<void
     child->hasChildren = false;
     contextMenuElements.push_back(child);
     return child;
+}
+
+void Base3DView::selectOnDoubleClick(int x, int y)
+{
+    Q_EMIT queryContext(x,y);
+    ROS_ERROR("Double Click: %s",active_context_name_.c_str());
+    if(active_context_name_.find("LeftArm") != std::string::npos)
+        selectLeftArm();
+    else if(active_context_name_.find("RightArm") != std::string::npos)
+        selectRightArm();
+    else if(active_context_name_.find("template") != std::string::npos)
+        selectContextMenu();
 }
 
 

@@ -204,9 +204,9 @@ public Q_SLOTS:
     void sendCircularLeft();
     void sendCircularRight();
 
-    virtual bool eventFilter( QObject * o, QEvent * e );
+    void selectOnDoubleClick(int,int);
 
-    void emergencyStop();
+    virtual bool eventFilter( QObject * o, QEvent * e );
 
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
@@ -221,6 +221,7 @@ Q_SIGNALS:
     void finishedContextMenuSetup( int x, int y );
     void sendPositionText(QString s);
     void updateMainViewItems();
+    void emergencyStop();
 
 
 protected:

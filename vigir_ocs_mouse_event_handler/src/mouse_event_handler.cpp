@@ -61,4 +61,13 @@ void MouseEventHandler::mouseReleaseEvent( QMouseEvent* event )
     }
 }
 
+void MouseEventHandler::mouseDoubleClick(QMouseEvent * event)
+{
+    //should only handle left double click
+    if( event->button() == Qt::LeftButton )
+    {
+        Q_EMIT signalMouseLeftDoubleClick(event->x(),event->y());
+    }
+}
+
 } // namespace rviz

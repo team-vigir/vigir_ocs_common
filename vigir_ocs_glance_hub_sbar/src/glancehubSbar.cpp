@@ -170,6 +170,11 @@ void glancehubSbar::receiveModeChange(int mode)
         msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_WBC;
         previousSelection = "Flor_WBC";
         break;    
+    case flor_control_msgs::FlorControlModeCommand::FLOR_STOP:
+        ui->modelabel->setText(modeBefore+" -> Flor_Stop");
+        msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_STOP;
+        previousSelection = "Flor_Stop";
+        break;
     }
     mode_pub.publish(msg);
 }
@@ -269,6 +274,12 @@ void glancehubSbar::receiveFlorStatus(int status)
 
 void glancehubSbar::updateBoxSelection(QString mode)
 {
+    if(mode == "Flor_Stop")
+    {
+        ui->modeBox->setCurrentIndex(0);
+        return;
+    }
+
     for(int i=0;i<ui->modeBox->count();i++)
     {
         if(ui->modeBox->itemText(i) == mode)
