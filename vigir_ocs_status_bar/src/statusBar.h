@@ -19,6 +19,8 @@ public:
     ~StatusBar();
     explicit StatusBar(QWidget *parent = 0);
 
+    glancehubSbar* getGlanceSbar() { return glanceSbar; }
+
 private:
     Ui::StatusBar *ui;
     glancehubSbar * glanceSbar;
