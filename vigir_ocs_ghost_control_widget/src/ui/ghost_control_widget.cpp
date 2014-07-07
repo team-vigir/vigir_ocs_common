@@ -202,8 +202,6 @@ void GhostControlWidget::publishState( bool snap )
     //cmd.collision_avoidance = saved_state_collision_avoidance_;
     cmd.lock_pelvis = saved_state_lock_pelvis_;
     cmd.snap = snap;
-    cmd.left_moveit_marker_loopback = ui->left_moveit_marker_lock->isChecked();
-    cmd.right_moveit_marker_loopback = ui->right_moveit_marker_lock->isChecked();
     cmd.position_only_ik = saved_state_position_only_ik_;
 
     state_pub_.publish(cmd);
@@ -219,26 +217,26 @@ void GhostControlWidget::saveState()
     saved_state_planning_group_.push_back(false);
     saved_state_planning_group_.push_back(ui->planning_torso_->isChecked());
 
-    if(ui->left_template_lock->isChecked())
-    {
-        saved_state_pose_source_.push_back(1);
-        saved_state_world_lock_.push_back(1);
-    }
-    else
+    //if(ui->left_template_lock->isChecked())
+    //{
+    //    saved_state_pose_source_.push_back(1);
+    //    saved_state_world_lock_.push_back(1);
+    //}
+    //else
     {
         saved_state_pose_source_.push_back(0);
-        saved_state_world_lock_.push_back(ui->left_marker_lock->isChecked());
+        //saved_state_world_lock_.push_back(ui->left_marker_lock->isChecked());
     }
 
-    if(ui->right_template_lock->isChecked())
-    {
-        saved_state_pose_source_.push_back(1);
-        saved_state_world_lock_.push_back(1);
-    }
-    else
+//    if(ui->right_template_lock->isChecked())
+//    {
+//        saved_state_pose_source_.push_back(1);
+//        saved_state_world_lock_.push_back(1);
+//    }
+//    else
     {
         saved_state_pose_source_.push_back(0);
-        saved_state_world_lock_.push_back(ui->right_marker_lock->isChecked());
+        //saved_state_world_lock_.push_back(ui->right_marker_lock->isChecked());
     }
 
     saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();
@@ -418,41 +416,41 @@ void GhostControlWidget::on_send_right_torso_pose_button__clicked()
     set_to_target_pose_pub_.publish(cmd);
 }
 
-void GhostControlWidget::on_left_no_lock_toggled(bool checked)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_left_no_lock_toggled(bool checked)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_left_marker_lock_toggled(bool checked)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_left_marker_lock_toggled(bool checked)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_left_template_lock_toggled(bool checked)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_left_template_lock_toggled(bool checked)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_right_no_lock_toggled(bool checked)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_right_no_lock_toggled(bool checked)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_right_marker_lock_toggled(bool checked)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_right_marker_lock_toggled(bool checked)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_right_template_lock_toggled(bool checked)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_right_template_lock_toggled(bool checked)
+//{
+//    saveState();
+//    publishState();
+//}
 
 void GhostControlWidget::on_send_left_configuration_button__clicked()
 {
@@ -565,16 +563,6 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
         snapClicked();
 
     std::cout << "key code:" << key_event->key << std::endl;
-}
-
-void GhostControlWidget::on_left_moveit_marker_lock_clicked()
-{
-    publishState();
-}
-
-void GhostControlWidget::on_right_moveit_marker_lock_clicked()
-{
-    publishState();
 }
 
 void GhostControlWidget::on_send_left_cartesian_button__clicked()
