@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <ros/ros.h>
 #include <flor_ocs_msgs/OCSKeyEvent.h>
-#include <flor_ocs_msgs/OCSJoystick.h>
+#include <flor_ocs_msgs/OCSControlMode.h>
 #include <std_msgs/Int8.h>
 
 #include "statusBar.h"

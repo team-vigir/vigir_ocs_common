@@ -43,7 +43,7 @@ private:
 
     ros::Subscriber key_event_sub_;
 
-
+    QSignalMapper* stop_mapper_;
 
 
 };

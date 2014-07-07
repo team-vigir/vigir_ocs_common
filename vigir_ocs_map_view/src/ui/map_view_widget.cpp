@@ -61,6 +61,16 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
     //connect context menu requests that depend on ui values
     connect(ui->map_view_,SIGNAL(UIrequestAreaMap()),this,SLOT(requestMap()));
     connect(ui->map_view_,SIGNAL(UIrequestOctomap()),this,SLOT(requestOctomap()));
+
+    // connect emergency stop button to glancehub
+    stop_mapper_ = new QSignalMapper(this);
+    connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
+
+    //map all toggles button to their identifiers
+    stop_mapper_->setMapping(((vigir_ocs::Base3DView*)ui->map_view_),flor_control_msgs::FlorControlModeCommand::FLOR_STOP);
+
+    //connect all buttons for mouse presses
+    connect(((vigir_ocs::Base3DView*)ui->map_view_),SIGNAL(emergencyStop()),stop_mapper_,SLOT(map()));
 }
 
 MapViewWidget::~MapViewWidget()

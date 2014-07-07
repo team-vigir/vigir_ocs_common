@@ -186,6 +186,16 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     statusBar = new StatusBar(this);
     connect(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),SIGNAL(sendPositionText(QString)),statusBar,SLOT(receivePositionText(QString)));
     ui->statusLayout->addWidget(statusBar);
+
+    // connect emergency stop button to glancehub
+    stop_mapper_ = new QSignalMapper(this);
+    connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
+
+    //map all toggles button to their identifiers
+    stop_mapper_->setMapping(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),flor_control_msgs::FlorControlModeCommand::FLOR_STOP);
+
+    //connect all buttons for mouse presses
+    connect(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),SIGNAL(emergencyStop()),stop_mapper_,SLOT(map()));
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()

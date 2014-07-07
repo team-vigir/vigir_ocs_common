@@ -761,7 +761,7 @@ void MainViewWidget::setObjectMode()
 void MainViewWidget::setManipulationMode(int mode)
 {
     // update template joystick
-    flor_ocs_msgs::OCSJoystick msg;
+    flor_ocs_msgs::OCSControlMode msg;
     msg.manipulationMode =  mode;
     joystick_pub_.publish(msg);
     // update interactive markers

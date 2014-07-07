@@ -67,6 +67,7 @@ private:
     bool lock_pitch_slider_;
 
     StatusBar * statusBar;
+    QSignalMapper* stop_mapper_;
 };
 
 #endif // MAIN_CAMERA_VIEW_WIDGET_H
