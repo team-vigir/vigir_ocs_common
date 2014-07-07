@@ -37,8 +37,8 @@ private:
     QTableWidgetItem * jointStatus;
     jointList * jList;    
     QTimer* timer;
-    bool visible;
-    void removeDuplicates(int,QString);
+    bool visible;    
+    bool eventFilter(QObject* object,QEvent* event);
 
 public Q_SLOTS:
     void receiveJointData(int,QString);

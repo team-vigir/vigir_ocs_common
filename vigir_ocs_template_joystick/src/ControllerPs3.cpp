@@ -11,32 +11,45 @@
 
 
 #include "Controller.h"
-#include <cmath> //std::abs
 
-//buttons
-#define XBOX_A                          0
-#define XBOX_B                          1
-#define XBOX_X                          2
-#define XBOX_Y                          3
-#define XBOX_LB                         4
-#define XBOX_RB                         5
-#define XBOX_BACK                       6
-#define XBOX_START                      7
-#define XBOX_POWER                      8
-#define XBOX_BUTTON_STICK_LEFT          9
-#define XBOX_BUTTON_STICK_RIGHT         10
+#define PS3_BUTTON_SELECT            0
+#define PS3_BUTTON_STICK_LEFT        1
+#define PS3_BUTTON_STICK_RIGHT       2
+#define PS3_BUTTON_START             3
+#define PS3_BUTTON_CROSS_UP          4
+#define PS3_BUTTON_CROSS_RIGHT       5
+#define PS3_BUTTON_CROSS_DOWN        6
+#define PS3_BUTTON_CROSS_LEFT        7
+#define PS3_BUTTON_REAR_LEFT_2       8
+#define PS3_BUTTON_REAR_RIGHT_2      9
+#define PS3_BUTTON_REAR_LEFT_1       10
+#define PS3_BUTTON_REAR_RIGHT_1      11
+#define PS3_BUTTON_ACTION_TRIANGLE   12
+#define PS3_BUTTON_ACTION_CIRCLE     13
+#define PS3_BUTTON_ACTION_CROSS      14
+#define PS3_BUTTON_ACTION_SQUARE     15
+#define PS3_BUTTON_PAIRING           16
 
-//axis
-#define XBOX_AXIS_STICK_LEFT_LEFTWARDS   0
-#define XBOX_AXIS_STICK_LEFT_UPWARDS     1
-#define XBOX_LT                          2
-#define XBOX_AXIS_STICK_RIGHT_LEFTWARDS  3
-#define XBOX_AXIS_STICK_RIGHT_UPWARDS    4
-#define XBOX_RT                          5
-#define XBOX_CROSS_LEFT                  6
-#define XBOX_CROSS_DOWN                  7
-
-
+#define PS3_AXIS_STICK_LEFT_LEFTWARDS    0
+#define PS3_AXIS_STICK_LEFT_UPWARDS      1
+#define PS3_AXIS_STICK_RIGHT_LEFTWARDS   2
+#define PS3_AXIS_STICK_RIGHT_UPWARDS     3
+#define PS3_AXIS_BUTTON_CROSS_UP         4
+#define PS3_AXIS_BUTTON_CROSS_RIGHT      5
+#define PS3_AXIS_BUTTON_CROSS_DOWN       6
+#define PS3_AXIS_BUTTON_CROSS_LEFT       7
+#define PS3_AXIS_BUTTON_REAR_LEFT_2      8
+#define PS3_AXIS_BUTTON_REAR_RIGHT_2     9
+#define PS3_AXIS_BUTTON_REAR_LEFT_1      10
+#define PS3_AXIS_BUTTON_REAR_RIGHT_1     11
+#define PS3_AXIS_BUTTON_ACTION_TRIANGLE  12
+#define PS3_AXIS_BUTTON_ACTION_CIRCLE    13
+#define PS3_AXIS_BUTTON_ACTION_CROSS     14
+#define PS3_AXIS_BUTTON_ACTION_SQUARE    15
+#define PS3_AXIS_ACCELEROMETER_LEFT      16
+#define PS3_AXIS_ACCELEROMETER_FORWARD   17
+#define PS3_AXIS_ACCELEROMETER_UP        18
+#define PS3_AXIS_GYRO_YAW                19
 
 namespace vigir_ocs
 {
@@ -77,9 +90,6 @@ namespace vigir_ocs
         rightMode = false;
         worldMode = false;
         objectMode = false;
-
-        //allows joystick to keep track of mode
-        currentManipulationController = 0;
     }
 
     // Destructor
@@ -165,7 +175,7 @@ namespace vigir_ocs
     //for changing on subscribed data
     void Controller::setObjectMode(int mode)
     {
-        //ROS_ERROR("object mode %d",mode);
+        ROS_ERROR("object mode %d",mode);
         switch (mode)
         {
         case 0:
@@ -186,40 +196,30 @@ namespace vigir_ocs
 
     void Controller::setManipulation(int mode)
     {
-        ROS_ERROR("manipulation mode %d",mode);        
-        switch(mode)
+        ROS_ERROR("manipulation mode %d",mode);
+        //will be 0,1,or 2
+        if(mode==0) //camera
         {
-        case 0: // object
             worldMode = false;
-            objectMode = true;
-            break;
-        case 1: // world
+            objectMode = false;
+        }
+        else if (mode ==1) // world
+        {
             objectMode = false;
             worldMode = true;
-            break;
-        case 2://camera
-            worldMode = false;
-            objectMode = false;
-            break;
         }
-    }
-
-    void Controller::changeManipulationController()
-    {
-        //change modes in circular fashion
-        if(currentManipulationController == 2)
-            currentManipulationController = 0;
-        else
-            currentManipulationController++;
-
-        setManipulation(currentManipulationController);
+        else  // object
+        {
+            worldMode = false;
+            objectMode = true;
+        }
     }
 
 
     void Controller::handleJoystick()
     {
         //null check for templates
-        if(temList.template_id_list.size() == 0 && !leftMode && !rightMode)
+        if(temList.template_id_list.size()==0)
             return;
 
         float x = 0;
@@ -228,116 +228,101 @@ namespace vigir_ocs
         float rotX = 0;
         float rotY = 0;
         float rotZ = 0;
+        bool tiltLeft = false;
+        bool tiltRight = false;
 
-        //read controller values, output analog response on sticks
+        //read controller values
         //left stick translation
-        if(joy.axes[XBOX_AXIS_STICK_LEFT_LEFTWARDS] > .3) // based on .3 due to inprecise controller(large deadzone), may change to compare with 0 depending on hardware
-            x = -.1 * joy.axes[XBOX_AXIS_STICK_LEFT_LEFTWARDS] ;
-        if(joy.axes[XBOX_AXIS_STICK_LEFT_UPWARDS] > .3)
-            y = .1 * joy.axes[XBOX_AXIS_STICK_LEFT_UPWARDS] ;
-        if(joy.axes[XBOX_AXIS_STICK_LEFT_LEFTWARDS] < -.3)
-            x = .1 * std::abs(joy.axes[XBOX_AXIS_STICK_LEFT_LEFTWARDS]);
-        if(joy.axes[XBOX_AXIS_STICK_LEFT_UPWARDS]  < -.3)
-            y = -.1 * std::abs(joy.axes[XBOX_AXIS_STICK_LEFT_UPWARDS]);
-        //dpad
-        if(joy.axes[XBOX_CROSS_DOWN] > 0)
-            y = .1;
-        if(joy.axes[XBOX_CROSS_LEFT] < 0)
-            x = .1;
-        if(joy.axes[XBOX_CROSS_LEFT] > 0)
+        if(joy.axes[PS3_AXIS_STICK_LEFT_LEFTWARDS] > .5)
             x = -.1;
-        if(joy.axes[XBOX_CROSS_DOWN] < 0)
+        if(joy.axes[PS3_AXIS_STICK_LEFT_UPWARDS] > .5)
+            y = .1;
+        if(joy.axes[PS3_AXIS_STICK_LEFT_LEFTWARDS] < -.5)
+            x = .1;
+        if(joy.axes[PS3_AXIS_STICK_LEFT_UPWARDS] < -.5)
+            y = -.1;
+        //dpad
+        if(joy.buttons[PS3_BUTTON_CROSS_UP] == 1)
+            y = .1;
+        if(joy.buttons[PS3_BUTTON_CROSS_LEFT] == 1)
+            x = -.1;
+        if(joy.buttons[PS3_BUTTON_CROSS_RIGHT] == 1)
+            x = .1;
+        if(joy.buttons[PS3_BUTTON_CROSS_DOWN] == 1)
             y = -.1;
         //rotation right stick
-        if(joy.axes[XBOX_AXIS_STICK_RIGHT_UPWARDS] > .3)
-            rotX = 5 * joy.axes[XBOX_AXIS_STICK_RIGHT_UPWARDS];
-        if(joy.axes[XBOX_AXIS_STICK_RIGHT_UPWARDS] < -.3)
-            rotX = -5 * std::abs(joy.axes[XBOX_AXIS_STICK_RIGHT_UPWARDS]);
-        if(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS] > .3)
-            rotY = -5 * joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS];
-        if(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS] < -.3)
-            rotY = 5 * std::abs(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS]);
-        //switch axis on bumper press
-        if(joy.buttons[XBOX_LB] == 1)
+        if(joy.axes[PS3_AXIS_STICK_RIGHT_UPWARDS] > .5)
+            rotY = 5;
+        if(joy.axes[PS3_AXIS_STICK_RIGHT_UPWARDS] < -.5)
+            rotY = -5;
+        if(joy.axes[PS3_AXIS_STICK_RIGHT_LEFTWARDS] > .5)
+            rotX = -5;
+        if(joy.axes[PS3_AXIS_STICK_RIGHT_LEFTWARDS] < -.5)
+            rotX = 5;
+        if(joy.buttons[PS3_AXIS_BUTTON_REAR_RIGHT_1])
+            z = .1;
+        if(joy.buttons[PS3_AXIS_BUTTON_REAR_LEFT_1])
+            z = -.1;
+
+        if(joy.axes[PS3_AXIS_ACCELEROMETER_LEFT] < -.1)
+            tiltLeft = true;
+        else if (joy.axes[PS3_AXIS_ACCELEROMETER_LEFT] > .1)
+            tiltRight = true;
+        //switch axes on tilt
+        if(tiltLeft)
         {
-            z = y;
-            y = 0;
-        }
-        if(joy.buttons[XBOX_RB] == 1)
-        {
+            float tmp = z;
+            z = x;
+            x = -tmp;
+
             rotZ = rotX;
             rotX = 0;
         }
-        //handle grasping
-//        if(joy.axes[XBOX_LT] < 1)
-//            rotZ = -5;
-//        if(joy.axes[XBOX_RT] < 1)
-//            rotZ = 5;
+        else if(tiltRight)
+        {
+            float tmp = z;
+            z = -x;
+            x = tmp;
 
-        QQuaternion * rotation;
-        QVector3D * position;
+            rotZ = -rotX;
+            rotX = 0;
+        }
 
+        QQuaternion * rotation = new QQuaternion(temList.pose[templateIndex].pose.orientation.w,temList.pose[templateIndex].pose.orientation.x,
+                                                 temList.pose[templateIndex].pose.orientation.y,temList.pose[templateIndex].pose.orientation.z);
+        QVector3D * position = new QVector3D(temList.pose[templateIndex].pose.position.x,temList.pose[templateIndex].pose.position.y,temList.pose[templateIndex].pose.position.z);
+        buildTransformation(x,y,z,rotX,rotY,rotZ,rotation,position);
+
+        //create msg to publish
         flor_ocs_msgs::OCSTemplateUpdate msg;
+        msg.template_id = temList.template_id_list[templateIndex];
+
+        //copy rotation first
+        msg.pose.pose.orientation.x = rotation->x();
+        msg.pose.pose.orientation.y = rotation->y();
+        msg.pose.pose.orientation.z = rotation->z();
+        msg.pose.pose.orientation.w = rotation->scalar();
+
+        //update coordinates based on latest data from list
+        msg.pose.pose.position.x = position->x();
+        msg.pose.pose.position.y = position->y();
+        msg.pose.pose.position.z = position->z();
 
         //don't publish if sending same data
         if(!compareJoyData())
-        {            
-            ROS_ERROR(" PUBLISHING ");
-            if(leftMode)
-            {
-                rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
-                                           leftHand.pose.orientation.y,leftHand.pose.orientation.z);
-                position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
-
-                //build arm msg and publish
-
-                delete(rotation);
-                delete(position);
-            }
-            else if(rightMode)
-            {
-                rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
-                                       leftHand.pose.orientation.y,leftHand.pose.orientation.z);
-                position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
-
-
-                delete(rotation);
-                delete(position);
-            }
-            else
-            {
-                rotation = new QQuaternion(temList.pose[templateIndex].pose.orientation.w,temList.pose[templateIndex].pose.orientation.x,
-                                                     temList.pose[templateIndex].pose.orientation.y,temList.pose[templateIndex].pose.orientation.z);
-                position = new QVector3D(temList.pose[templateIndex].pose.position.x,temList.pose[templateIndex].pose.position.y,temList.pose[templateIndex].pose.position.z);
-
-                buildTransformation(x,y,z,rotX,rotY,rotZ,rotation,position);
-                //create msg to publish
-
-                msg.template_id = temList.template_id_list[templateIndex];
-
-                //copy rotation first
-                msg.pose.pose.orientation.x = rotation->x();
-                msg.pose.pose.orientation.y = rotation->y();
-                msg.pose.pose.orientation.z = rotation->z();
-                msg.pose.pose.orientation.w = rotation->scalar();
-
-                //update coordinates based on latest data from list
-                msg.pose.pose.position.x = position->x();
-                msg.pose.pose.position.y = position->y();
-                msg.pose.pose.position.z = position->z();
-
-                template_update_pub.publish(msg);
-
-                delete(rotation);
-                delete(position);
-            }
+        {
+            //ROS_INFO(" PUBLISHING");
+            template_update_pub.publish(msg);
         }
         else
         {
-            ROS_ERROR("NOT PUBLISHING");
+           // ROS_INFO("NOT PUBLISHING");
         }
         //store last joystick state for comparisons
         oldJoy = joy;
+
+        delete(rotation);
+        delete(position);
     }
 
     //compares previous joystick state and current joystick state
@@ -345,49 +330,29 @@ namespace vigir_ocs
     // true if duplicate or should not publish
     bool Controller::compareJoyData()
     {
-        //ISSUE: current xbox controller starts with RT at 0 for some reason. causes object to rotate forever on start until rt pressed
-
         //null check
         if(oldJoy.axes.size() ==0)
             return false; // need to publish once to have old data
 
         bool axesDup = true;
         bool buttonDup = true;
-
-        //check axes are the same
-        for(int i=0;i<oldJoy.axes.size();i++)
+        //ignore gyro and accel (16-19)
+        for(int i=0;i<16;i++)
         {
-            //ignore bumpers right now                     still want to write if axes is pressed enough
-            if(oldJoy.axes[i] != joy.axes[i] || (joy.axes[i] > 0.3 && i != XBOX_LT && i != XBOX_RT) || (joy.axes[i] < -0.3 && i != XBOX_LT && i != XBOX_RT) )
-            {               
+            if(oldJoy.axes[i] != joy.axes[i] || joy.axes[i]!=0)
                 axesDup = false;
-            }
         }
-        //bumpers are 1 by default
-        if(joy.axes[XBOX_LT] < 1 || joy.axes[XBOX_RT] < 1)
-            axesDup = false;
-
-        //check if all buttons are the same
         for(int i=0;i<oldJoy.buttons.size();i++)
         {
-            if(oldJoy.buttons[i] != joy.buttons[i])            
-                buttonDup = false;            
+            if(oldJoy.buttons[i] != joy.buttons[i])
+                buttonDup = false;
         }
-
-        // should always write if  lb or rb on (treated more like an axis)(may cause unexpected behavior if other buttons are pressed with rb or lb enabled?)
-        if(joy.buttons[XBOX_LB] == 1 || joy.buttons[XBOX_RB] == 1)
-        {
-            buttonDup = false;
-        }
-
-        //ROS_ERROR("dups axes: %d button %d",axesDup,buttonDup);
-
         //handle buttons on difference only
         if(!buttonDup)
         {
             handleButtons();
         }
-        //publish if anything different or needs to be written(like a constant direction)
+        //publish if anything different
         if(!axesDup||!buttonDup)
             return false;
         else
@@ -398,20 +363,11 @@ namespace vigir_ocs
     void Controller::handleButtons()
     {
         //only want to send different values
-        if(oldJoy.buttons[XBOX_A] != joy.buttons[XBOX_A] && joy.buttons[XBOX_A] == 1)
-        {
-            //set to template mode if either arm mode is true, otherwise switch current template
-            if(!leftMode && !rightMode)
-                changeTemplate();
-            else
-                setObjectMode(0);
-        }
-        if(oldJoy.buttons[XBOX_X] != joy.buttons[XBOX_X] && joy.buttons[XBOX_X] == 1) //left mode on
-            setObjectMode(1);
-        if(oldJoy.buttons[XBOX_B] != joy.buttons[XBOX_B] && joy.buttons[XBOX_B] == 1)//right mode on
-            setObjectMode(2);
-        if(oldJoy.buttons[XBOX_Y] != joy.buttons[XBOX_Y] && joy.buttons[XBOX_Y] == 1)
-            changeManipulationController();
+        //change template on X
+        if(oldJoy.buttons[PS3_BUTTON_ACTION_CROSS] != joy.buttons[PS3_BUTTON_ACTION_CROSS] && joy.buttons[PS3_BUTTON_ACTION_CROSS]==1)
+            changeTemplate();
+        if(oldJoy.buttons[PS3_AXIS_BUTTON_ACTION_SQUARE] != joy.buttons[PS3_AXIS_BUTTON_ACTION_SQUARE])
+            leftMode = !leftMode;
 
     }
     //handles rumble
@@ -437,7 +393,8 @@ namespace vigir_ocs
             // to avoid seg fault on deleting rotation and position
             rotation = new QQuaternion(leftHand.pose.orientation.w,leftHand.pose.orientation.x,
                                        leftHand.pose.orientation.y,leftHand.pose.orientation.z);
-            position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);           
+            position = new QVector3D(leftHand.pose.position.x,leftHand.pose.position.y,leftHand.pose.position.z);
+           ///////
 
         }
         else //moving templates
@@ -532,8 +489,8 @@ namespace vigir_ocs
         else //Camera relative rotation
         {
             QQuaternion* rot = new QQuaternion();
-            *rot *= QQuaternion::fromAxisAndAngle(0,1,0,rotY);
-            *rot *= QQuaternion::fromAxisAndAngle(1,0,0,-rotX); //more intuitive for camera if reversed
+            *rot *= QQuaternion::fromAxisAndAngle(0,1,0,rotY); //more intuitive for camera if reversed
+            *rot *= QQuaternion::fromAxisAndAngle(1,0,0,-rotX);
             *rot *= QQuaternion::fromAxisAndAngle(0,0,1,rotZ);
             //calculate difference between camera orientation and original rotation of object
             //difference of q1 and q2 is  q` = q^-1 * q2

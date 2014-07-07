@@ -8,7 +8,7 @@
   <!-- But seems to be 0 most of the times -->
   <param name="joy_node/dev" value="/dev/input/js0" />
   <param name="joy_node/autorepeat_rate" value="33000"/>	
-  <node name="ps3_node" pkg="joy" type="joy_node" output="screen" />
+  <node name="controller_node" pkg="joy" type="joy_node" output="screen" />
 	
 
 </launch>

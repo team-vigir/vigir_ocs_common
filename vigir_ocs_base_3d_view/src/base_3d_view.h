@@ -478,6 +478,9 @@ protected:
     contextMenuItem * circularMotionMenu;
     contextMenuItem * createCircularMarkerMenu;
     contextMenuItem * removeCircularMarkerMenu;
+    contextMenuItem * lockLeftMenu;
+    contextMenuItem * lockRightMenu;
+    contextMenuItem * unlockArmsMenu;
 
     QTreeWidget * templateRoot;
 

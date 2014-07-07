@@ -144,7 +144,7 @@ void ErrorWidget::enterEvent(QEvent * event)
     //pull up mini error window
     myParent->getMiniError()->show();
     myParent->getErrorFadeIn()->start();
-    myParent->getMiniError()->setGeometry(myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).x(),myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).y() - 180,420, 230);
+    myParent->getMiniError()->setGeometry(myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).x(),myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).y() - 150,400, 150);
     myParent->notifyMiniError();
 }
 void ErrorWidget::leaveEvent(QEvent * event)
@@ -157,11 +157,6 @@ void ErrorWidget::mousePressEvent(QMouseEvent * event)
 {
     myParent->resetErrorCount();
     myParent->getMiniError()->setViewed();
-    //pull up log messages on right click
-    if (event->button() == Qt::RightButton)
-    {
-        Q_EMIT toggleErrorLog();
-    }
 }
 
 ErrorWidget::~ErrorWidget()
@@ -179,7 +174,7 @@ void JointWidget::enterEvent(QEvent * event)
 {
     myParent->getMiniJoint()->show();
     myParent->getJointFadeIn()->start();
-    myParent->getMiniJoint()->setGeometry(myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).x() + 100,myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).y() - 200,400, 200);
+    myParent->getMiniJoint()->setGeometry(myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).x() + 100,myParent->getUi()->statusBar->mapToGlobal(QPoint(0,0)).y() - 150,400, 150);
     myParent->notifyMiniJoint();
 }
 void JointWidget::leaveEvent(QEvent * event)
@@ -187,15 +182,6 @@ void JointWidget::leaveEvent(QEvent * event)
     myParent->getJointFadeOut()->start();
 }
 
-void JointWidget::mousePressEvent(QMouseEvent * event)
-{
-    //pull up joint list on right click
-    if (event->button() == Qt::RightButton)
-    {
-        Q_EMIT toggleJointList();
-    }
-
-}
 
 JointWidget::~JointWidget()
 {

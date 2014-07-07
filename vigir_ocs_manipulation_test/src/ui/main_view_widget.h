@@ -30,8 +30,13 @@
 #include <rviz/views_panel.h>
 #include <QPropertyAnimation>
 #include <flor_ocs_msgs/WindowCodes.h>
+#include <QElapsedTimer>
+#include <time.h>
+#include <ctime>
+#include <QFile>
 
-
+#include "flor_ocs_msgs/OCSTemplateAdd.h"
+#include "flor_ocs_msgs/OCSTemplateRemove.h"
 
 
 namespace Ui
@@ -71,6 +76,11 @@ public Q_SLOTS:
 
 
 private:
+    void keyPressEvent(QKeyEvent *event);
+    void insertTemplate(QVector3D*  position, QQuaternion* rotation, QString);
+    void newChallenge();
+    void defineTransforms();
+
     void addContextMenu();
     void setTemplateMode();
     void setLeftArmMode();
@@ -82,7 +92,7 @@ private:
     void contextToggleWindow(int window);
     void systemCommandContext(std::string command);
     void loadButtonIcon(QPushButton* btn, QString image_name);
-
+    void templateListCb(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg);
 
     //contextMenuItem *makeContextParent(QString name);
     //void makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent);
@@ -101,6 +111,23 @@ private:
     QString icon_path_;
 
     std::vector<int> keys_pressed_list_;
+
+    std::vector<QVector3D *> templatePositions;
+    std::vector<QQuaternion *> templateRotations;
+    std::vector<QString> templateNames;
+    QVector3D * startingPosition;
+    QQuaternion* startingRotation;
+
+    QFile * results;
+
+    int challengeCount;
+    QElapsedTimer * elapsedTimer;
+
+    ros::Publisher template_add_pub_;
+    ros::Publisher template_remove_pub_;
+    ros::Subscriber template_list_sub;
+
+    flor_ocs_msgs::OCSTemplateList temList;
 
     ros::NodeHandle n_;
     ros::Subscriber window_control_sub_;

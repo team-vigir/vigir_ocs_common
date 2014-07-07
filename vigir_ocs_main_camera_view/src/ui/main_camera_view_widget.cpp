@@ -181,6 +181,11 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     ui->Tools->hide();
     ui->Template->hide();
     ui->Navigation->hide();
+
+    //add status bar
+    statusBar = new StatusBar(this);
+    connect(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),SIGNAL(sendPositionText(QString)),statusBar,SLOT(receivePositionText(QString)));
+    ui->statusLayout->addWidget(statusBar);
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()

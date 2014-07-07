@@ -68,9 +68,15 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="minimumSize">
+          <size>
+           <width>210</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="maximumSize">
           <size>
-           <width>220</width>
+           <width>210</width>
            <height>18</height>
           </size>
          </property>
@@ -94,7 +100,7 @@
         <widget class="QComboBox" name="modeBox">
          <property name="maximumSize">
           <size>
-           <width>20</width>
+           <width>130</width>
            <height>16777215</height>
           </size>
          </property>
@@ -107,11 +113,16 @@
           <bool>false</bool>
          </property>
          <property name="maxVisibleItems">
-          <number>9</number>
+          <number>10</number>
          </property>
          <property name="maxCount">
-          <number>9</number>
+          <number>10</number>
          </property>
+         <item>
+          <property name="text">
+           <string>---Select Mode---</string>
+          </property>
+         </item>
          <item>
           <property name="text">
            <string>Stand</string>

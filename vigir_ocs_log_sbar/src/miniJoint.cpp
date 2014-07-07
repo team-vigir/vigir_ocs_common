@@ -17,6 +17,9 @@ MiniJoint::MiniJoint(QWidget *parent) :
     connect(jList,SIGNAL(sendJointData(int,QString)),this->parent(),SLOT(receiveJointData(int, QString)));
     ui->table->setColumnWidth(0,100);
     ui->table->setColumnWidth(1,300);
+    //install event filter to get mouse presses
+    ui->table->setMouseTracking( true );
+    ui->table->viewport()->installEventFilter( this );
 
     //build animations
     jointFadeIn = new QPropertyAnimation(this, "windowOpacity");
@@ -34,7 +37,22 @@ MiniJoint::MiniJoint(QWidget *parent) :
     visible = false;
 
     connect(jointFadeOut,SIGNAL(finished()),this,SLOT(hideWindow()));
+}
 
+
+bool MiniJoint::eventFilter(QObject* object,QEvent* event)
+{
+    if (object == ui->table->viewport())
+    {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+        if(mouseEvent->button() == 1 && mouseEvent->type() == QEvent::MouseButtonPress)
+        {
+            toggleJointListWindow();
+            return true;
+        }
+    }
+    //must propogate events
+    return QMainWindow::eventFilter(object,event);
 }
 
 void MiniJoint::toggleJointListWindow()
@@ -51,8 +69,7 @@ void MiniJoint::hideWindow()
 }
 
 void MiniJoint::receiveJointData(int status, QString jointName)
-{
-    //ROS_ERROR("Joint %d %s", status, qPrintable(jointName));
+{    
      switch(status)
      {
      case 0:
@@ -60,8 +77,7 @@ void MiniJoint::receiveJointData(int status, QString jointName)
          ui->table->clearContents();
          ui->table->setRowCount(0);
          break;
-     case 1:
-         //removeDuplicates(status,jointName);
+     case 1:         
          joint = new QTableWidgetItem();
          jointStatus = new QTableWidgetItem();
          joint->setBackgroundColor(Qt::yellow);
@@ -72,8 +88,7 @@ void MiniJoint::receiveJointData(int status, QString jointName)
          ui->table->setItem(0,0,jointStatus);
          ui->table->setItem(0,1,joint);
          break;
-     case 2:
-         //removeDuplicates(status,jointName);
+     case 2:         
          joint = new QTableWidgetItem();
          jointStatus = new QTableWidgetItem();
          joint->setBackgroundColor(Qt::red);
@@ -86,19 +101,6 @@ void MiniJoint::receiveJointData(int status, QString jointName)
          break;
      }
 
-}
-
-//searches table for joint. if found will delete entry/row
-void MiniJoint::removeDuplicates(int status, QString jointName)
-{
-    for(int i=0;i<ui->table->rowCount();i++)
-    {
-         if (ui->table->item(i,1)->text().compare(jointName) == 0) // found joint?
-         {
-             ui->table->removeRow(i);
-             return; // can only have one duplicate max
-         }
-    }
 }
 
 void MiniJoint::enterEvent(QEvent * event)
@@ -125,6 +127,7 @@ void MiniJoint::startActiveTimer()
 {
     timer->start(500);
 }
+
 
 MiniJoint::~MiniJoint()
 {

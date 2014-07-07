@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MiniJoint</class>
- <widget class="QMainWindow" name="miniError">
+ <widget class="QMainWindow" name="MiniJoint">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>200</height>
+    <width>393</width>
+    <height>92</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -27,6 +27,11 @@
     <width>400</width>
     <height>200</height>
    </size>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>8</pointsize>
+   </font>
   </property>
   <property name="windowTitle">
    <string>LogSbar</string>
@@ -64,6 +69,14 @@
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>8</pointsize>
+        <weight>50</weight>
+        <italic>false</italic>
+        <bold>false</bold>
+       </font>
       </property>
       <property name="rowCount">
        <number>0</number>

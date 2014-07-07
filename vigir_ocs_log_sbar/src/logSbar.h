@@ -113,8 +113,7 @@ public:
 private:
     LogSbar* myParent;
     void enterEvent(QEvent*);
-    void leaveEvent(QEvent*);
-    void mousePressEvent(QMouseEvent*);
+    void leaveEvent(QEvent*);    
 Q_SIGNALS:
     void toggleJointList();
 };

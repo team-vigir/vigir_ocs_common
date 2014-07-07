@@ -1163,11 +1163,10 @@ void Base3DView::addBase3DContextElements()
 
     addToContextVector(separator);
 
-    makeContextChild("Lock Left Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL,contextMenuItems);
-    makeContextChild("Unlock Left Arm",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL,contextMenuItems);
+    lockLeftMenu = makeContextChild("Lock Left Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL,contextMenuItems);
 
-    makeContextChild("Lock Right Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL,contextMenuItems);
-    makeContextChild("Unlock Right Arm",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL,contextMenuItems);
+    lockRightMenu = makeContextChild("Lock Right Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL,contextMenuItems);
+    unlockArmsMenu = makeContextChild("Unlock Arms",boost::bind(&Base3DView::setTemplateGraspLock,this,-1),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
@@ -1182,6 +1181,7 @@ void Base3DView::addBase3DContextElements()
     removeCircularMarkerMenu = makeContextChild("Remove marker",boost::bind(&Base3DView::removeCircularContextMenu,this),circularMotionMenu,contextMenuItems);
 
     addToContextVector(separator);
+
 
     footstepPlanMenuWalk = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
     footstepPlanMenuWalkManipulation = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate",boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
@@ -1212,6 +1212,7 @@ void Base3DView::addTemplatesToContext()
             {
                 //build path to template for insertion
                 QString path = localParent->name + "/" + (*it)->text(0);
+                // ROS_ERROR("path %s",qPrintable(path));
                 makeContextChild((*it)->text(0),boost::bind(&Base3DView::contextInsertTemplate,this,path),localParent,contextMenuItems);
             }
             ++it;
@@ -1244,6 +1245,7 @@ contextMenuItem * Base3DView::makeContextChild(QString name,boost::function<void
     contextMenuElements.push_back(child);
     return child;
 }
+
 
 void Base3DView::createContextMenu(bool, int x, int y)
 {
@@ -1283,6 +1285,25 @@ void Base3DView::createContextMenu(bool, int x, int y)
         context_menu_.removeAction(removeTemplateMenu->action);
         context_menu_.removeAction(selectMenu->action);
         //removeTemplateMenu->action->setEnabled(false);
+    }
+
+    //lock/unlock arms context items
+    if(active_context_name_.find("template") == std::string::npos)
+    {
+        context_menu_.removeAction(lockLeftMenu->action);
+        context_menu_.removeAction(lockRightMenu->action);
+    }
+
+    if((ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] && ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM]) || (ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] && ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM]))
+    {
+        //show only unlock
+        context_menu_.removeAction(lockLeftMenu->action);
+        context_menu_.removeAction(lockRightMenu->action);
+    }
+    else
+    {
+        //dont show unlock.. both arms are free and ready to be locked
+        context_menu_.removeAction(unlockArmsMenu->action);
     }
 
     if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100)
@@ -1470,14 +1491,27 @@ void Base3DView::selectRightArm()
 // this function will toggle the template grasp lock
 void Base3DView::setTemplateGraspLock(int arm)
 {
-    int id;
-    if((id = findObjectContext("template")) != -1)
+    int id = findObjectContext("template");
+    if (arm == -1) // unlocks both arms
     {
         selectTemplate(id);
 
-        ghost_pose_source_[arm] = !ghost_pose_source_[arm];
-        ghost_world_lock_[arm] = !ghost_world_lock_[arm];
+        ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] = false;
+        ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] = false;
+
+
+        ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] = false;
+        ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] = false;
+        return;
     }
+    else if(id != -1) //locks arm
+    {
+        selectTemplate(id);
+
+        ghost_pose_source_[arm] = true;
+        ghost_world_lock_[arm] = true;
+    }
+
 }
 
 void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
