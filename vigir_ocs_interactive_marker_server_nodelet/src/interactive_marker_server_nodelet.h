@@ -14,6 +14,7 @@
 
 #include <flor_ocs_msgs/OCSInteractiveMarkerAdd.h>
 #include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
+#include <flor_ocs_msgs/OCSControlMode.h>
 
 #include <std_msgs/String.h>
 #include <std_msgs/Int8.h>
@@ -31,7 +32,7 @@ namespace ocs_interactive_marker_server
         void removeInteractiveMarker( const std_msgs::String::ConstPtr& msg );
         void updatePose( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );
         void onMarkerFeedback( std::string topic_name, geometry_msgs::PoseStamped pose );
-        void setMode(const std_msgs::Int8::ConstPtr &msg);
+        void setMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
 
       private:
         ros::NodeHandle nh_;

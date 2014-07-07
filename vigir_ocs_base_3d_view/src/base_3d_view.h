@@ -150,6 +150,8 @@ public:
     // returns name of the class that was instanced
     std::string getWidgetName() { return widget_name_; }
 
+    static bool checkPoseMatch(const geometry_msgs::Pose& p1, const geometry_msgs::Pose& p2, float scalar_error_threshold = 0.0f, float angle_error_threshold = 0.0f);
+
 public Q_SLOTS:
     // displays
     void robotModelToggled( bool );
@@ -202,6 +204,8 @@ public Q_SLOTS:
     void sendCircularLeft();
     void sendCircularRight();
 
+    void selectOnDoubleClick(int,int);
+
     virtual bool eventFilter( QObject * o, QEvent * e );
 
     void emergencyStop();
@@ -231,6 +235,7 @@ protected:
     void addBase3DContextElements();
     void processContextMenuVector();
     void addToContextMenuFromVector();
+    void snapHandGhost();
     std::vector<contextMenuItem*> contextMenuItems;
     virtual void timerEvent(QTimerEvent *event);
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
@@ -250,6 +255,8 @@ protected:
 
     void selectTemplate(int id);
     void selectContextMenu();
+
+    void updateHandColors();
 
     Ogre::Camera* getCamera();
 
@@ -317,6 +324,10 @@ protected:
     rviz::Tool* set_walk_goal_tool_;
     rviz::Tool* set_step_goal_tool_;
 
+    rviz::Display* left_hand_bounding_box_;
+    rviz::Display* right_hand_bounding_box_;
+    rviz::Display* pelvis_hand_bounding_box_;
+
     Ogre::Vector3 selection_position_;
 
     ros::NodeHandle nh_;
@@ -374,6 +385,7 @@ protected:
     unsigned char ghost_lock_pelvis_;
     bool update_markers_;
     bool snap_ghost_to_robot_;
+    bool snap_hand_to_ghost_;
     bool left_marker_moveit_loopback_;
     bool right_marker_moveit_loopback_;
     bool position_only_ik_;
@@ -435,8 +447,16 @@ protected:
 
     bool is_primary_view_;
 
+    geometry_msgs::Pose last_l_arm_moveit_pose_;
+    geometry_msgs::Pose last_r_arm_moveit_pose_;
     geometry_msgs::Pose last_l_arm_marker_pose_;
     geometry_msgs::Pose last_r_arm_marker_pose_;
+    bool update_l_arm_color_;
+    bool update_r_arm_color_;
+
+    ros::Publisher l_arm_marker_pose_pub_;
+    ros::Publisher r_arm_marker_pose_pub_;
+    ros::Publisher pelvis_marker_pose_pub_;
 
     std::vector<rviz::Display*> cartesian_marker_list_;
     rviz::Display* circular_marker_;
@@ -481,6 +501,9 @@ protected:
     contextMenuItem * lockLeftMenu;
     contextMenuItem * lockRightMenu;
     contextMenuItem * unlockArmsMenu;
+    contextMenuItem * snapHandMenu;
+    contextMenuItem * leftArmMenu;
+    contextMenuItem * rightArmMenu;
 
     QTreeWidget * templateRoot;
 

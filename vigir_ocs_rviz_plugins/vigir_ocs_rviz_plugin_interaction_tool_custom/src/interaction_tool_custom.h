@@ -61,6 +61,7 @@ public:
 
     void setChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility, bool visibility);
     void restoreChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility);
+    InteractiveObjectWPtr getCurrentObject();
 
 public Q_SLOTS:
 

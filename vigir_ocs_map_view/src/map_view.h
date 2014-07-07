@@ -16,6 +16,8 @@
 #include <geometry_msgs/PoseStamped.h>
 
 #include "ortho_view.h"
+#include "interaction_tool_custom.h"
+
 
 namespace rviz
 {
@@ -73,7 +75,7 @@ private:
     void blockRegionContext(int boxType);
     void clearRegionContext(int boxType);
     void requestAreaMapContext();
-    void requestOctomapContext();
+    void requestOctomapContext();    
 };
 }
 #endif // map_view_H

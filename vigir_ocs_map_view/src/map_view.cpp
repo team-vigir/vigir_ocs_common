@@ -67,6 +67,9 @@ MapView::MapView( QWidget* parent )
     setViewPlane("XY");
 
     addContextMenu();
+
+    //set default tool
+    manager_->getToolManager()->setCurrentTool( interactive_markers_tool_);
 }
 
 // Destructor.
@@ -83,24 +86,36 @@ void MapView::enableSelectionTool(bool activate, int x, int y)
             std::cout << "selection tool: " << activate << std::endl;
             if(activate)
             {
-                selected_area_[0] = x;
-                selected_area_[1] = y;
-                // change to the selection tool and unblock events
-                manager_->getToolManager()->setCurrentTool( selection_tool_ );
-                ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
-                ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::RightButton);
-                ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+                //if over a interactive marker dont change tool, allow interative marker manipulaion                            //lock to access weak ptr
+                if(((rviz::InteractiveObjectWPtr)((rviz::InteractionToolCustom *)interactive_markers_tool_)->getCurrentObject()).lock() == NULL)
+                {
+                    selected_area_[0] = x;
+                    selected_area_[1] = y;
+                    // change to the selection tool and unblock events
+                    manager_->getToolManager()->setCurrentTool( selection_tool_ );
+                    //resetEventFilters();
+                    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
+                    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+                    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+                }
+                else
+                {
+                    //resetEventFilters();
+                    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
+                    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+                    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
+                }
             }
             else
             {
                 selected_area_[2] = x;
                 selected_area_[3] = y;
                 // block again and change back
+                //resetEventFilters();
                 ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
                 ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
                 ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
-                manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
-
+                manager_->getToolManager()->setCurrentTool( interactive_markers_tool_);
             }
         }
         else
@@ -108,6 +123,7 @@ void MapView::enableSelectionTool(bool activate, int x, int y)
             if(activate)
             {
                 // unblock events if clicked
+               // resetEventFilters();
                 ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
                 ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::RightButton);
                 ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
@@ -115,6 +131,7 @@ void MapView::enableSelectionTool(bool activate, int x, int y)
             else
             {
                 // block again on release
+                //resetEventFilters();
                 ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
                 ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
                 ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);

@@ -59,6 +59,9 @@ JoystickWidget::JoystickWidget(QWidget *parent) :
     connect(ui->manipulateModeBox,SIGNAL(currentIndexChanged(int)),controller,SLOT(setManipulation(int)));
     connect(ui->objectModeBox,SIGNAL(currentIndexChanged(int)),controller,SLOT(setObjectMode(int)));
 
+    //update comboBox on external mode change from controller(controller constantly subscribes)
+    connect(controller,SIGNAL(updateUIModes(int,int)),this,SLOT(updateModeBoxes(int,int)));
+
     std::string ip = ros::package::getPath("vigir_ocs_template_joystick")+"/icons/";
     icon_path_ = QString(ip.c_str());
 
@@ -96,6 +99,12 @@ JoystickWidget::~JoystickWidget()
     delete(controller);
     delete(mapper);
     delete ui;
+}
+
+void JoystickWidget::updateModeBoxes(int manipulationMode,int objectMode)
+{
+    ui->manipulateModeBox->setCurrentIndex(manipulationMode);
+    ui->objectModeBox->setCurrentIndex(objectMode);
 }
 
 void JoystickWidget::populateTemplateComboBox(int tempId)

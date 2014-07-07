@@ -33,6 +33,7 @@ public Q_SLOTS:
     void disableRightLabel();
     void selectTemplate();
     void populateTemplateComboBox(int tempId);
+    void updateModeBoxes(int manipulationMode,int objectMode);
 
 protected:
     void keyPressEvent(QKeyEvent *);
