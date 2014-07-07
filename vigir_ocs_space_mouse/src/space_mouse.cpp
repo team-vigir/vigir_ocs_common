@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+using namespace std;
+
 namespace vigir_ocs
 {
 SpaceMouse::SpaceMouse()
