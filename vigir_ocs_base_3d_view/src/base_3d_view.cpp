@@ -1969,6 +1969,21 @@ void Base3DView::publishHandJointStates(std::string hand)
         joint_states.name.push_back(hand+"_f2_j2"); // 0 for now
 
     }
+    else if(hand_type.find("robotiq") != std::string::npos)
+    {
+        // must match the order used in the .grasp file
+        joint_states.name.push_back(hand+"_f0_j1");
+        joint_states.name.push_back(hand+"_f1_j1");
+        joint_states.name.push_back(hand+"_f2_j1");
+        joint_states.name.push_back(hand+"_f1_j0"); // .grasp finger position [4] -> IGNORE [3], use [4] for both
+        joint_states.name.push_back(hand+"_f2_j0"); // .grasp finger position [4]
+        joint_states.name.push_back(hand+"_f0_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f1_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f2_j2"); // 0 for now
+        joint_states.name.push_back(hand+"_f0_j3");
+        joint_states.name.push_back(hand+"_f1_j3");
+        joint_states.name.push_back(hand+"_f2_j3");
+    }
     else if(hand_type.find("sandia") != std::string::npos)
     {
         // must match those inside of the /sandia_hands/?_hand/joint_states/[right_/left_]+
