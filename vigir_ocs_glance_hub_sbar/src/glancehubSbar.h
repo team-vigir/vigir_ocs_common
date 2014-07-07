@@ -10,7 +10,8 @@
 #include <ros/ros.h>
 #include <QPropertyAnimation>
 #include <QDialog>
-#include <QTimer>
+#include <QBasicTimer>
+#include <QElapsedTimer>
 
 namespace Ui {
 class glancehubSbar;
@@ -30,7 +31,20 @@ private:
     glancehub* ghub;
     ros::NodeHandle nh;
     ros::Publisher mode_pub;    
-    void flashFootstepColor(int status);
+    void updateBoxSelection(QString mode);
+    void timerEvent(QTimerEvent *event);
+    QString previousSelection;
+    QBasicTimer colorTimer;
+    bool flashingMoveIt;
+    bool flashingFootstep;
+    bool coloredMoveIt;
+    bool coloredFootstep;
+    int flashFootstepCounter;
+    int flashMoveItCounter;
+    QString flashColorMoveIt;
+    QString flashColorFootstep;
+    QString white;
+    int maxFlashes;
 
 public Q_SLOTS:
     void receiveMoveitStatus(bool);

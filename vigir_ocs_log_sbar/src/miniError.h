@@ -39,6 +39,7 @@ private:
     QTimer* timer;
     bool visible;
     QRect * originalGeometry;
+    bool eventFilter(QObject* object,QEvent* event);
 
 public Q_SLOTS:
     void receiveErrorData(QString,QString);

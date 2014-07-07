@@ -108,8 +108,6 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
         {
             ((vigir_ocs::Base3DView*)iter->second)->updateRenderMask(false);
         }
-
-
     }
 
     std::string ip = ros::package::getPath("vigir_ocs_main_view")+"/icons/";
@@ -357,6 +355,13 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //make file with current time as name
     results = new QFile("ManipulationResults" + str);
     results->open(QIODevice::WriteOnly | QIODevice::Text);
+
+    template_list_sub = n_.subscribe<flor_ocs_msgs::OCSTemplateList>( "list", 1, &MainViewWidget::templateListCb ,this );
+}
+
+void MainViewWidget::templateListCb(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg)
+{
+    temList = *msg;
 }
 
 //initializing 10 predefined transforms for templates to be placed. also ten different templates by name
@@ -367,14 +372,61 @@ void MainViewWidget::defineTransforms()
     QQuaternion * rotation1 = new QQuaternion(.5,20,50,70);
     templatePositions.push_back(position1);
     templateRotations.push_back(rotation1);
-    templateNames.push_back("");
+    templateNames.push_back("debris/2x4x36.mesh");
 
     QVector3D * position2 = new QVector3D(4,7,2);
     QQuaternion * rotation2 = new QQuaternion(.5,10,110,170);
-    templatePositions.push_back(position1);
-    templateRotations.push_back(rotation1);
-    templateNames.push_back("");
+    templatePositions.push_back(position2);
+    templateRotations.push_back(rotation2);
+    templateNames.push_back("door/door.mesh");
 
+    QVector3D * position3 = new QVector3D(4,7,2);
+    QQuaternion * rotation3 = new QQuaternion(.5,10,110,170);
+    templatePositions.push_back(position3);
+    templateRotations.push_back(rotation3);
+    templateNames.push_back("valve/valve.mesh");
+
+    QVector3D * position4 = new QVector3D(4,7,2);
+    QQuaternion * rotation4 = new QQuaternion(.5,10,110,170);
+    templatePositions.push_back(position4);
+    templateRotations.push_back(rotation4);
+    templateNames.push_back("vehicle/brake_pedal_mm.mesh");
+
+    QVector3D * position5 = new QVector3D(4,7,2);
+    QQuaternion * rotation5 = new QQuaternion(.5,10,110,170);
+    templatePositions.push_back(position5);
+    templateRotations.push_back(rotation5);
+    templateNames.push_back("tools/DRC_drill.mesh");
+
+    QVector3D * position6 = new QVector3D(4,7,2);
+    QQuaternion * rotation6 = new QQuaternion(.5,10,110,170);
+    templatePositions.push_back(position6);
+    templateRotations.push_back(rotation6);
+    templateNames.push_back("valve/QUAL_valve_holes.mesh");
+
+    QVector3D * position7 = new QVector3D(4,7,2);
+    QQuaternion * rotation7 = new QQuaternion(.5,10,110,170);
+    templatePositions.push_back(position7);
+    templateRotations.push_back(rotation7);
+    templateNames.push_back("vehicle/throttle_mm.mesh");
+
+    QVector3D * position8 = new QVector3D(4,7,2);
+    QQuaternion * rotation8 = new QQuaternion(.5,10,110,170);
+    templatePositions.push_back(position8);
+    templateRotations.push_back(rotation8);
+    templateNames.push_back("door/doorhandle.mesh");
+
+    QVector3D * position9 = new QVector3D(4,7,2);
+    QQuaternion * rotation9 = new QQuaternion(.5,10,110,170);
+    templatePositions.push_back(position9);
+    templateRotations.push_back(rotation9);
+    templateNames.push_back("tools/ladder.mesh");
+
+    QVector3D * position10 = new QVector3D(4,7,2);
+    QQuaternion * rotation10 = new QQuaternion(.5,10,110,170);
+    templatePositions.push_back(position10);
+    templateRotations.push_back(rotation10);
+    templateNames.push_back("hose/coupling_hexagon.mesh");
 
 }
 
@@ -394,17 +446,50 @@ void MainViewWidget::newChallenge()
 {
     //write info about template locations, restart timer
 
-    //result is not possible if under 500ms (special case for starting first challenge timer)
     qint64 challengeTime = elapsedTimer->restart();
-    if(!challengeTime < 500)
+
+    if(temList.template_id_list.size() != 0)
     {
-        QString timeStr= QString::number(challengeTime);
-        QTextStream out(results);
-        //out << "time: " + timeStr  +"position Before: "+ ;
+        QString timeStr = QString::number(challengeTime);
+        //grab string form of goal position
+        QString goalPosXStr = QString::number(temList.pose[0].pose.position.x );
+        QString goalPosYStr = QString::number(temList.pose[0].pose.position.y );
+        QString goalPosZStr = QString::number(temList.pose[0].pose.position.z );
+        QString goalRotXStr = QString::number(temList.pose[0].pose.orientation.x );
+        QString goalRotYStr = QString::number(temList.pose[0].pose.orientation.y );
+        QString goalRotZStr = QString::number(temList.pose[0].pose.orientation.z );
+        QString goalRotWStr = QString::number(temList.pose[0].pose.orientation.w );
+        //grab strings of actual position
+        QString actualPosXStr = QString::number(temList.pose[1].pose.position.x );
+        QString actualPosYStr = QString::number(temList.pose[1].pose.position.y );
+        QString actualPosZStr = QString::number(temList.pose[1].pose.position.z );
+        QString actualRotXStr = QString::number(temList.pose[1].pose.orientation.x );
+        QString actualRotYStr = QString::number(temList.pose[1].pose.orientation.y );
+        QString actualRotZStr = QString::number(temList.pose[1].pose.orientation.z );
+        QString actualRotWStr = QString::number(temList.pose[1].pose.orientation.w );
+
+        QTextStream out(results);        
+        out << "Challenge :"+ QString::number(challengeCount) +  " time: " + timeStr  +"Position Goal: "+ goalPosXStr + " " +
+               goalPosYStr + " " + goalPosZStr + " Rotation Goal: " + goalRotXStr + " " +
+               goalRotYStr + " " + goalRotZStr + " " + goalRotWStr + " Actual Position: " +  actualPosXStr + " " +
+               actualPosYStr + " " + actualPosZStr + " Actual Rotation: " + actualRotXStr + " " + actualRotYStr + " " + actualRotZStr + " " + actualRotWStr ;
     }
 
 
     //remove templates if present
+    if(challengeCount > 0)
+    {
+        flor_ocs_msgs::OCSTemplateRemove template1;
+        template1.template_id = 0;
+
+        flor_ocs_msgs::OCSTemplateRemove template2;
+        template2.template_id = 1;
+
+        // publish template to be removed
+        template_remove_pub_.publish( template1 );
+        template_remove_pub_.publish( template2 );
+    }
+
 
     //insert two templates, one goal, one to be manipulated
     insertTemplate(startingPosition,startingRotation, templateNames[challengeCount]);

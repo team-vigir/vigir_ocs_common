@@ -257,15 +257,22 @@ namespace vigir_ocs
             rotY = -5 * joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS];
         if(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS] < -.3)
             rotY = 5 * std::abs(joy.axes[XBOX_AXIS_STICK_RIGHT_LEFTWARDS]);
-        //handle other axis with shoulder buttons/triggers
+        //switch axis on bumper press
         if(joy.buttons[XBOX_LB] == 1)
-            z = -.1;
+        {
+            z = y;
+            y = 0;
+        }
         if(joy.buttons[XBOX_RB] == 1)
-            z = .1;
-        if(joy.axes[XBOX_LT] < 1)
-            rotZ = -5;
-        if(joy.axes[XBOX_RT] < 1)
-            rotZ = 5;
+        {
+            rotZ = rotX;
+            rotX = 0;
+        }
+        //handle grasping
+//        if(joy.axes[XBOX_LT] < 1)
+//            rotZ = -5;
+//        if(joy.axes[XBOX_RT] < 1)
+//            rotZ = 5;
 
         QQuaternion * rotation;
         QVector3D * position;
@@ -350,7 +357,7 @@ namespace vigir_ocs
         //check axes are the same
         for(int i=0;i<oldJoy.axes.size();i++)
         {
-            //ignore bumpers right now
+            //ignore bumpers right now                     still want to write if axes is pressed enough
             if(oldJoy.axes[i] != joy.axes[i] || (joy.axes[i] > 0.3 && i != XBOX_LT && i != XBOX_RT) || (joy.axes[i] < -0.3 && i != XBOX_LT && i != XBOX_RT) )
             {               
                 axesDup = false;
