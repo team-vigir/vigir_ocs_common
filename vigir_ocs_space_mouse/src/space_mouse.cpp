@@ -1,22 +1,12 @@
 #include "space_mouse.h"
-#include <sensor_msgs/Joy.h>
 
-#include <flor_ocs_msgs/OCSTemplateList.h>
-#include <flor_ocs_msgs/OCSObjectSelection.h>
-#include<flor_ocs_msgs/OCSTemplateUpdate.h>
-#include<geometry_msgs/Pose.h>
-#include<geometry_msgs/Point.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
+#define _USE_MATH_DEFINES
 using namespace std;
 
 namespace vigir_ocs
 {
+
+
 SpaceMouse::SpaceMouse()
 {
 
@@ -29,13 +19,14 @@ SpaceMouse::SpaceMouse()
     select_object_sub_ = nh_.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &SpaceMouse::processObjectSelection, this );
 
     //Initialize the the subscriber for the joy topic
-    joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10, &SpaceMouse::joyCallback, this);
+    joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("/spacenav/joy", 10, &SpaceMouse::joyCallback, this);
 
     // update template position
     template_update_pub_  = nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "/template/update", 1, false );
 
     recieved_pose = false;
     cout << "SpaceMouse created";
+
 }
 
 SpaceMouse::~SpaceMouse()
@@ -85,15 +76,35 @@ void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     {
         flor_ocs_msgs::OCSTemplateUpdate template_update;
 
-        //Update x, y, and z values
         geometry_msgs::PoseStamped p = pose;
 
         cout << "Current x value = " << p.pose.position.x << "\n";
         cout << "Adding " << joy->axes[1] << "to x value\n";
 
-        p.pose.position.x += joy->axes[1];
-        p.pose.position.y += joy->axes[0];
-        p.pose.position.z += joy->axes[2];
+        //Update x, y, and z values
+
+        float scale = 0.3;
+
+        p.pose.position.x += joy->axes[1] * scale;
+        p.pose.position.y += joy->axes[0] * scale;
+        p.pose.position.z += joy->axes[2] * scale;
+
+        //Update the rotation
+        Quaternion pre;
+        pre.w = p.pose.orientation.w;
+        pre.x = p.pose.orientation.x;
+        pre.y = p.pose.orientation.y;
+        pre.z = p.pose.orientation.z;
+
+        Vector v = convertToEuler(pre);
+        v.x += joy->axes[3];
+        v.y += joy->axes[4];
+        v.z += joy->axes[5];
+        Quaternion q = convertToQuaternion(v.x, v.y, v.z);
+        p.pose.orientation.w += q.w;
+        p.pose.orientation.x += q.x;
+        p.pose.orientation.y += q.y;
+        p.pose.orientation.z += q.z;
 
         //Add to the template_update
         template_update.template_id = id;
@@ -107,6 +118,68 @@ void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 
         cout << "template updated and published" << "\n";
     }
+}
+
+SpaceMouse::Quaternion SpaceMouse::convertToQuaternion(double heading, double attitude, double bank)
+{
+    // Assuming the angles are in radians.
+    double c1 = cos(heading/2);
+    double s1 = sin(heading/2);
+    double c2 = cos(attitude/2);
+    double s2 = sin(attitude/2);
+    double c3 = cos(bank/2);
+    double s3 = sin(bank/2);
+    double c1c2 = c1*c2;
+    double s1s2 = s1*s2;
+
+    Quaternion q;
+
+    q.w =c1c2*c3 - s1s2*s3;
+    q.x =c1c2*s3 + s1s2*c3;
+    q.y =s1*c2*c3 + c1*s2*s3;
+    q.z =c1*s2*c3 - s1*c2*s3;
+
+    return q;
+}
+
+
+SpaceMouse::Vector SpaceMouse::convertToEuler(Quaternion q1)
+{
+    double heading, attitude, bank;
+
+    double test = q1.x*q1.y + q1.z*q1.w;
+        if (test > 0.499) { // singularity at north pole
+            heading = 2 * atan2(q1.x,q1.w);
+            attitude = M_PI/2;
+            bank = 0;
+            Vector v;
+            v.x = heading;
+            v.y = attitude;
+            v.z = bank;
+            return v;
+        }
+        else if (test < -0.499) { // singularity at south pole
+            heading = -2 * atan2(q1.x,q1.w);
+            attitude = - M_PI/2;
+            bank = 0;
+            Vector v;
+            v.x = heading;
+            v.y = attitude;
+            v.z = bank;
+            return v;
+        }
+        double sqx = q1.x*q1.x;
+        double sqy = q1.y*q1.y;
+        double sqz = q1.z*q1.z;
+        heading = atan2(2*q1.y*q1.w-2*q1.x*q1.z , 1 - 2*sqy - 2*sqz);
+        attitude = asin(2*test);
+        bank = atan2(2*q1.x*q1.w-2*q1.y*q1.z , 1 - 2*sqx - 2*sqz);
+
+        Vector v;
+        v.x = heading;
+        v.y = attitude;
+        v.z = bank;
+    return v;
 }
 
 }
