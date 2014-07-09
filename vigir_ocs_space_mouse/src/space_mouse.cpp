@@ -46,17 +46,20 @@ void SpaceMouse::processTemplateList(const flor_ocs_msgs::OCSTemplateList::Const
 {
     template_id_list = list->template_id_list;
 
-    cout << "Templatelist recieved";
-    cout << "Current id: " << id;
+    cout << "Templatelist recieved\n";
+    cout << "Current id: " << id << "\n";
     //Find the pose within the list we just got
     for(int i = 0; i < template_id_list.size(); i++)
     {
-        cout << "id at position " << i << ": " << template_id_list[i];
+        cout << "id at position " << i << ": " << template_id_list[i] << "\n";
         if(template_id_list[i] == id)
         {
             //Get pose stamped from the array of poses given
-            cout << "Correct pose found!";
+            cout << "Correct pose found!\n";
             pose = list->pose[i];
+            cout << "X: " << pose.pose.position.x << "\n";
+            cout << "Y: " << pose.pose.position.y << "\n";
+            cout << "Z: " << pose.pose.position.z << "\n";
             recieved_pose = true;
         }
     }
@@ -65,18 +68,18 @@ void SpaceMouse::processTemplateList(const flor_ocs_msgs::OCSTemplateList::Const
 void SpaceMouse::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &obj)
 {
     //Get id of object that is selected
-    cout << "id recieved";
+    cout << "id recieved\n";
 
     id = obj->id;
 
-    cout << "id set to: " << id;
+    cout << "id set to: " << id << "\n";
 
 }
 
 void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
-    cout << "joy update";
-    cout<< "value of recieved _pose: " << recieved_pose;
+    cout << "joy update\n";
+    cout<< "value of recieved_pose: " << recieved_pose << "\n";
 
     if(recieved_pose)//Check if a template is selected
     {
@@ -85,8 +88,8 @@ void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
         //Update x, y, and z values
         geometry_msgs::PoseStamped p = pose;
 
-        cout << "Current x value = " << p.pose.position.x;
-        cout << "Adding " << joy->axes[1] << "to x value";
+        cout << "Current x value = " << p.pose.position.x << "\n";
+        cout << "Adding " << joy->axes[1] << "to x value\n";
 
         p.pose.position.x += joy->axes[1];
         p.pose.position.y += joy->axes[0];
@@ -96,13 +99,13 @@ void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
         template_update.template_id = id;
         template_update.pose = p;
 
-        cout << "New x value = " << template_update.pose.pose.position.x;
+        cout << "New x value = " << template_update.pose.pose.position.x << "\n";
 
 
         //Publish the new pose
         template_update_pub_.publish(template_update);
 
-        cout << "template updated and published";
+        cout << "template updated and published" << "\n";
     }
 }
 
