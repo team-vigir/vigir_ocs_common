@@ -55,6 +55,7 @@
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSHotkeyRelay.h>
 #include <flor_ocs_msgs/OCSObjectSelection.h>
+#include "flor_ocs_msgs/OCSCameraTransform.h"
 #include <flor_perception_msgs/RaycastRequest.h>
 #include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
@@ -133,6 +134,7 @@ public:
     void processSendCartesian( const std_msgs::Bool::ConstPtr& msg );
     void processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg);
     void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg);
+    void processCameraTransform(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg);
 
     virtual void processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr& msg);
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
@@ -376,6 +378,7 @@ protected:
     ros::Subscriber select_object_sub_;
 
     ros::Publisher camera_transform_pub_;
+    ros::Subscriber camera_transform_sub_;
 
     std::vector<unsigned char> ghost_planning_group_;
     std::vector<unsigned char> ghost_pose_source_;
@@ -384,7 +387,8 @@ protected:
     unsigned char ghost_lock_pelvis_;
     bool update_markers_;
     bool snap_ghost_to_robot_;
-    bool snap_hand_to_ghost_;
+    bool snap_left_hand_to_ghost_;
+    bool snap_right_hand_to_ghost_;
     bool left_marker_moveit_loopback_;
     bool right_marker_moveit_loopback_;
     bool position_only_ik_;

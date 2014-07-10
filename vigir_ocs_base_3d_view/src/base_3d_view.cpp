@@ -46,7 +46,6 @@
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
 #include "flor_ocs_msgs/OCSTemplateRemove.h"
 #include "flor_ocs_msgs/OCSWaypointAdd.h"
-#include "flor_ocs_msgs/OCSCameraTransform.h"
 #include "flor_perception_msgs/EnvironmentRegionRequest.h"
 #include "flor_planning_msgs/TargetConfigIkRequest.h"
 #include "flor_planning_msgs/CartesianMotionRequest.h"
@@ -63,7 +62,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     , selected_(false)
     , update_markers_(false)
     , snap_ghost_to_robot_(true)
-    , snap_hand_to_ghost_(false)
+    , snap_left_hand_to_ghost_(false)
+    , snap_right_hand_to_ghost_(false)
     , marker_published_(0)
     , stored_maps_(30) // determines how many maps will be stored
     , moving_pelvis_(false)
@@ -609,6 +609,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
         hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );
 
+        // create camera subscriber so we can control the camera from outside
+        camera_transform_sub_ = nh_.subscribe<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/set_camera_transform", 5, &Base3DView::processCameraTransform, this );
+
 
     }
 
@@ -741,6 +744,22 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     // no need to spin as rviz is already doing that for us.
     //ros::spinOnce();
+}
+
+void Base3DView::processCameraTransform(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
+{
+    Ogre::Camera* camera = this->render_panel_->getCamera();
+    Ogre::Vector3 pos;
+    pos.x = msg->pose.position.x;
+    pos.y = msg->pose.position.y;
+    pos.z = msg->pose.position.z;
+    camera->setPosition(pos);
+    Ogre::Quaternion orientation;
+    orientation.x = msg->pose.orientation.x;
+    orientation.y = msg->pose.orientation.y;
+    orientation.z = msg->pose.orientation.z;
+    orientation.w = msg->pose.orientation.w;
+    camera->setOrientation(orientation);
 }
 
 void Base3DView::publishCameraTransform()
@@ -1524,7 +1543,8 @@ void Base3DView::selectRightArm()
 
 void Base3DView::snapHandGhost()
 {
-    snap_hand_to_ghost_ = true;
+    snap_left_hand_to_ghost_ = true;
+    snap_right_hand_to_ghost_ = true;
 }
 
 // this function will toggle the template grasp lock
@@ -1806,10 +1826,10 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
     calcWristTarget(*pose,l_hand_T_marker_,wrist_pose);
 
     // if the moveit loopback is enabled or we want to snap back to ghost, we update the interactive marker based a possible configuration returned by moveit
-    if(left_marker_moveit_loopback_ || snap_hand_to_ghost_)
+    if(left_marker_moveit_loopback_ || snap_left_hand_to_ghost_)
     {
         // reset snap flag
-        snap_hand_to_ghost_ = false;
+        snap_left_hand_to_ghost_ = false;
 
         // setup interactive markers if they haven't been already
         if(marker_published_ < 3)
@@ -1850,10 +1870,10 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
     calcWristTarget(*pose,r_hand_T_marker_,wrist_pose);
 
     // if the moveit loopback is enabled or we want to snap back to ghost, we update the interactive marker based a possible configuration returned by moveit
-    if(right_marker_moveit_loopback_ || snap_hand_to_ghost_)
+    if(right_marker_moveit_loopback_ || snap_right_hand_to_ghost_)
     {
         // reset snap flag
-        snap_hand_to_ghost_ = false;
+        snap_right_hand_to_ghost_ = false;
 
         // setup interactive markers if they haven't been already
         if(marker_published_ < 3)
