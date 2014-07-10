@@ -579,7 +579,7 @@ void graspWidget::initGraspDB()
                 grasp.finger_joints[j] = db[i][j+5].toFloat(&ok);
             }
             // need to set distal joints as 0
-            grasp.finger_joints[4]  = 0;
+            grasp.finger_joints[4]  = -grasp.finger_joints[3];
             grasp.finger_joints[5]  = 0;
             grasp.finger_joints[6]  = 0;
             grasp.finger_joints[7]  = 0;
