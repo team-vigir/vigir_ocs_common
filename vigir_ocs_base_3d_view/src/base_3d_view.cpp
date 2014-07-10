@@ -760,6 +760,7 @@ void Base3DView::processCameraTransform(const flor_ocs_msgs::OCSCameraTransform:
     orientation.z = msg->pose.orientation.z;
     orientation.w = msg->pose.orientation.w;
     camera->setOrientation(orientation);
+    publishCameraTransform();
 }
 
 void Base3DView::publishCameraTransform()

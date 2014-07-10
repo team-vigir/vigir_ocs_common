@@ -43,21 +43,21 @@ SpaceMouse::~SpaceMouse()
 //copy camera information and store
 void SpaceMouse::cameraCb(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
 {
-    cameraUpdate = *msg;
 
-    if(cameraUpdate.widget_name == "MainView" && cameraUpdate.view_id == 0)
+    if(msg->widget_name == "MainView" && msg->view_id == 0)
     {
+        cameraUpdate = *msg;
+
         //ROS_ERROR("CAMERA CALLBACK");
-        cout << "CAMERA CALLBACK";
+        //cout << "CAMERA CALLBACK";
 
         //update camera geometry
         cameraPosition.setX(cameraUpdate.pose.position.x);
         cameraPosition.setY(cameraUpdate.pose.position.y);
         cameraPosition.setZ(cameraUpdate.pose.position.z);
 
-        pose.pose.position.x = cameraUpdate.pose.position.x;
-        pose.pose.position.y = cameraUpdate.pose.position.y;
-        pose.pose.position.z = cameraUpdate.pose.position.z;
+        pose.pose = cameraUpdate.pose;
+
 
         recieved_pose = true;
 
@@ -83,9 +83,9 @@ void SpaceMouse::processTemplateList(const flor_ocs_msgs::OCSTemplateList::Const
             //Get pose stamped from the array of poses given
             //cout << "Correct pose found!\n";
             //pose = list->pose[i];
-            cout << "X: " << pose.pose.position.x << "\n";
-            cout << "Y: " << pose.pose.position.y << "\n";
-            cout << "Z: " << pose.pose.position.z << "\n";
+            //cout << "X: " << pose.pose.position.x << "\n";
+            //cout << "Y: " << pose.pose.position.y << "\n";
+            //cout << "Z: " << pose.pose.position.z << "\n";
             //recieved_pose = true;
         }
     }
@@ -126,20 +126,20 @@ void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
         /*cout << "Object:" << "\n";
         cout << "X: " << p.pose.position.x << "\n";
         cout << "Y: " << p.pose.position.y << "\n";
-        cout << "Z: " << p.pose.position.z << "\n";
+        cout << "Z: " << p.pose.position.z << "\n";*/
         cout << "Camera:" << "\n";
         cout << "X: " << p.pose.position.x << "\n";
         cout << "Y: " << p.pose.position.y << "\n";
-        cout << "Z: " << p.pose.position.z << "\n";*/
+        cout << "Z: " << p.pose.position.z << "\n";
 
         double length = (cam - obj).length();
-        cout << "Length: " << length << "\n";
+        //cout << "Length: " << length << "\n";
 
-        float rotation_scale = 0.05 * length;
-        float scale = 0.005 * length;
+        float rotation_scale = 0.035; //* length;
+        float scale = 0.2; //* length;
         //Translation- move relative to camera for direction but still translate in world space
         //create a vector representing the offset to be applied to position.
-        QVector3D* offset = new QVector3D(joy->axes[1] * scale *-1,joy->axes[0] * scale,joy->axes[2] * scale);
+        QVector3D* offset = new QVector3D(joy->axes[1] * scale *-1,joy->axes[2] * scale, -joy->axes[0] * scale);
         //rotate the offset to be relative to camera orientation, can now be applied to position to move relative to camera
         *offset = cameraOrientation.rotatedVector(*offset);
 
@@ -156,6 +156,9 @@ void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 
 
         cout << "Original W:" << p.pose.orientation.w << "\n";
+        cout << "Original X:" << p.pose.orientation.x << "\n";
+        cout << "Original Y:" << p.pose.orientation.y << "\n";
+        cout << "Original Z:" << p.pose.orientation.z << "\n";
 
         QQuaternion pre;
         pre.setScalar(p.pose.orientation.w);
@@ -167,24 +170,24 @@ void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
         QQuaternion difference;
         //camera relative rotation
         QQuaternion* rot = new QQuaternion();                  //convert from radians to degrees * 180/pi
-        if(std::abs(joy->axes[3]) > 0.1)
-            *rot *= QQuaternion::fromAxisAndAngle(0,1,0,(joy->axes[3]*rotation_scale)* 57.2957795131);
+        if(std::abs(joy->axes[5]) > 0.3)
+            *rot *= QQuaternion::fromAxisAndAngle(0,1,0,(joy->axes[5]*rotation_scale)* 57.2957795131);
         else
             *rot *= QQuaternion::fromAxisAndAngle(0,1,0,(0)* 57.2957795131);
-        if(std::abs(joy->axes[4]) > 0.1)
+        if(std::abs(joy->axes[4]) > 0.3)
             *rot *= QQuaternion::fromAxisAndAngle(1,0,0,-(joy->axes[4]*rotation_scale)* 57.2957795131); //more intuitive for camera if reversed
         else
             *rot *= QQuaternion::fromAxisAndAngle(1,0,0,-(0)* 57.2957795131); //more intuitive for camera if reversed
-        if(std::abs(joy->axes[5]) > 0.1)
-            *rot *= QQuaternion::fromAxisAndAngle(0,0,1,(joy->axes[5]*rotation_scale)* 57.2957795131);
+        if(std::abs(joy->axes[3]) > 0.3)
+            *rot *= QQuaternion::fromAxisAndAngle(0,0,1,(-joy->axes[3]*rotation_scale)* 57.2957795131);
         else
            *rot *= QQuaternion::fromAxisAndAngle(0,0,1,(0)* 57.2957795131);
         //*rot *= QQuaternion::fromAxisAndAngle(1,0,0,-(joy->axes[4]*rotation_scale)* 57.2957795131); //more intuitive for camera if reversed
-        //*rot *= QQuaternion::fromAxisAndAngle(0,0,1,(joy->axes[5]*rotation_scale)* 57.2957795131);
+        //*rot *= QQuaternion::freomAxisAndAngle(0,0,1,(joy->axes[5]*rotation_scale)* 57.2957795131);
 
-        cout << "rot x:" << rot->x() << "\n";
-        cout << "rot y:" << rot->y() << "\n";
-        cout << "rot z:" << rot->z() << "\n";
+        //cout << "rot x:" << rot->x() << "\n";
+        //cout << "rot y:" << rot->y() << "\n";
+        //cout << "rot z:" << rot->z() << "\n";
 
         //calculate difference between camera orientation and original rotation of object
         //difference of q1 and q2 is  q` = q^-1 * q2
@@ -198,7 +201,7 @@ void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
         delete(rot);
 
 
-//        v.x += joy->axes[3]*scale;
+//        v.x += joy->axes[3]*sceale;
 //        v.y += joy->axes[4]*scale;
 //        v.z += joy->axes[5]*scale;
         //Quaternion q = convertToQuaternion(v.x, v.y, v.z);
@@ -212,9 +215,9 @@ void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
         {
             template_update.template_id = id;
             template_update.pose = p;
-            cout << "New x rotation" << template_update.pose.pose.orientation.x << "\n";
-            cout << "New x value = " << template_update.pose.pose.position.x << "\n";
-            cout << "New W: " << template_update.pose.pose.orientation.w << "\n";
+            //cout << "New x rotation" << template_update.pose.pose.orientation.x << "\n";
+            //cout << "New x value = " << template_update.pose.pose.position.x << "\n";
+            cout << "New W: " << p.pose.orientation.w << "\n";
 
             //Publish the new pose
             //template_update_pub_.publish(template_update);
@@ -222,6 +225,11 @@ void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
             update.pose.position.x = p.pose.position.x;
             update.pose.position.y = p.pose.position.y;
             update.pose.position.z = p.pose.position.z;
+
+            update.pose.orientation.w = p.pose.orientation.w;
+            update.pose.orientation.x = p.pose.orientation.x;
+            update.pose.orientation.y = p.pose.orientation.y;
+            update.pose.orientation.z = p.pose.orientation.z;
 
             camera_pub.publish(update);
 
