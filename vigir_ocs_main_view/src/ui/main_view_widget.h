@@ -45,7 +45,7 @@ class MainViewWidget : public QWidget
 
 public:
     explicit MainViewWidget(QWidget *parent = 0);
-    ~MainViewWidget();
+    virtual ~MainViewWidget();
 
     virtual bool eventFilter( QObject * o, QEvent * e );
 
@@ -69,7 +69,7 @@ public Q_SLOTS:
     void updateContextMenu();
 
 
-private:
+protected:
     void addContextMenu();
     void setTemplateMode();
     void setLeftArmMode();

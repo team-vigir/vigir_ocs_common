@@ -1,12 +1,20 @@
+
+#ifndef SPACE_MOUSE_H
+#define SPACE_MOUSE_H
+
+#include <QApplication>
+#include <QVector3D>
+#include <QQuaternion>
 #include <ros/ros.h>
 
 #include <sensor_msgs/Joy.h>
 
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSObjectSelection.h>
-#include<flor_ocs_msgs/OCSTemplateUpdate.h>
-#include<geometry_msgs/Pose.h>
-#include<geometry_msgs/Point.h>
+#include <flor_ocs_msgs/OCSTemplateUpdate.h>
+#include <flor_ocs_msgs/OCSCameraTransform.h>
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Point.h>
 
 #include<math.h>
 
@@ -16,12 +24,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#pragma once
 namespace vigir_ocs
 {
 
-    class SpaceMouse
+    class SpaceMouse// : public QObject
     {
+        //Q_OBJECT
       public:
 
         SpaceMouse();
@@ -42,13 +50,13 @@ namespace vigir_ocs
         void processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr &list);
         void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &obj);
         void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
+        void cameraCb(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg);
 
 
 
 
-
-        Vector convertToEuler(Quaternion q1);
-        Quaternion convertToQuaternion(double heading, double attitude, double bank);
+        Vector convertToEuler(QQuaternion q1);
+        QQuaternion convertToQuaternion(double heading, double attitude, double bank);
 
       private:
         ros::NodeHandle nh_;
@@ -65,9 +73,20 @@ namespace vigir_ocs
 
         geometry_msgs::PoseStamped pose;
 
+        geometry_msgs::PoseStamped camera_pose;
+
+        ros::Subscriber camera_sub;
+        ros::Publisher camera_pub;
+
         bool recieved_pose;
 
-        unsigned char id;
+        int id;
+
+        QVector3D cameraPosition;
+        QQuaternion cameraOrientation;
+        flor_ocs_msgs::OCSCameraTransform cameraUpdate;
+        flor_ocs_msgs::OCSCameraTransform update;
 
     };
 }
+#endif

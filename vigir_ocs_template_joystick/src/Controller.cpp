@@ -46,27 +46,27 @@ namespace vigir_ocs
     {
         ros::NodeHandle nh_out(nh, "/template");
 
-        joystick_modes_sub = nh.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1,&Controller::modeCb,this);
-        joystick_modes_pub = nh.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1,false);
+        joystick_modes_sub = nh.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",5,&Controller::modeCb,this);
+        joystick_modes_pub = nh.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",5,false);
 
         //subscribe to list to grab movement data
-        template_list_sub = nh_out.subscribe<flor_ocs_msgs::OCSTemplateList>( "list", 1, &Controller::templateListCb ,this );
+        template_list_sub = nh_out.subscribe<flor_ocs_msgs::OCSTemplateList>( "list", 5, &Controller::templateListCb ,this );
 
         //create publisher to update movement data
-        template_update_pub = nh_out.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "update", 1, false );
+        template_update_pub = nh_out.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "update", 5, false );
 
         //subscribe to joystick
-        joy_sub = nh.subscribe<sensor_msgs::Joy>( "/joy", 1, &Controller::joyCB ,this );
+        joy_sub = nh.subscribe<sensor_msgs::Joy>( "/joy", 5, &Controller::joyCB ,this );
         //create publisher to joystick
-        joy_pub = nh.advertise<sensor_msgs::JoyFeedbackArray>( "/joy/set_feedback", 1, false );
+        joy_pub = nh.advertise<sensor_msgs::JoyFeedbackArray>( "/joy/set_feedback", 5, false );
 
         //subscribe to robot hands
-        left_sub = nh.subscribe<geometry_msgs::PoseStamped>("/flor/ghost/pose/left_hand",1,&Controller::leftCB,this );
-        right_sub = nh.subscribe<geometry_msgs::PoseStamped>("/flor/ghost/pose/right_hand",1,&Controller::rightCB,this );
+        left_sub = nh.subscribe<geometry_msgs::PoseStamped>("/flor/ghost/pose/left_hand",5,&Controller::leftCB,this );
+        right_sub = nh.subscribe<geometry_msgs::PoseStamped>("/flor/ghost/pose/right_hand",5,&Controller::rightCB,this );
 
-        ghost_hand_pub = nh.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>("/flor/ocs/interactive_marker_server/update", 1, false);
+        ghost_hand_pub = nh.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>("/flor/ocs/interactive_marker_server/update", 5, false);
 
-        camera_sub = nh.subscribe<flor_ocs_msgs::OCSCameraTransform>( "flor/ocs/camera_transform",1,&Controller::cameraCb,this);
+        camera_sub = nh.subscribe<flor_ocs_msgs::OCSCameraTransform>( "flor/ocs/camera_transform",5,&Controller::cameraCb,this);
 
         timer.start(33, this);
 

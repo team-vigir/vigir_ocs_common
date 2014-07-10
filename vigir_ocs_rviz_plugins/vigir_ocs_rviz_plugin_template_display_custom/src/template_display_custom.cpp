@@ -205,13 +205,13 @@ void TemplateDisplayCustom::load()
     template_remove_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 5, &TemplateDisplayCustom::processTemplateRemove, this );
 
     // and advertise the template update to update the manipulator
-    template_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "/template/update", 1, false );
+    template_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "/template/update", 5, false );
 
     // advertise/subscribe to the interactive marker topics
-    interactive_marker_add_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 1, true );
-    interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
+    interactive_marker_add_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, false );
+    interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 5, false );
     interactive_marker_feedback_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback", 5, &TemplateDisplayCustom::onMarkerFeedback, this );;
-    interactive_marker_remove_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 1, false );
+    interactive_marker_remove_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
 
 }
 
@@ -325,6 +325,7 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
 
 void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char id, Ogre::Vector3 pos)
 {
+    ROS_ERROR("Adding template marker %d",id);
     //std::cout << "Adding template marker " << id << std::endl;
     std::string template_pose_string = std::string("/template_pose_")+boost::to_string((unsigned int)id); // one for each template
 
@@ -378,7 +379,7 @@ void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char i
     interactive_marker_add_pub_.publish(marker_server_template);
 
     // add the template pose publisher
-    template_pose_pub_list_.push_back( nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 1, false) );
+    template_pose_pub_list_.push_back( nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 5, false) );
 
     // and subscribe to the template marker feedback loop
     ros::Subscriber template_pose_sub = nh_.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );

@@ -626,10 +626,6 @@ void MainViewWidget::setManipulationMode(int mode)
     flor_ocs_msgs::OCSControlMode msg;
     msg.manipulationMode =  mode;
     mode_pub_.publish(msg);
-    // update interactive markers
-//    std_msgs::Int8 m;
-//    m.data = mode;
-//    interactive_marker_mode_pub_.publish(m);
 }
 
 void MainViewWidget::setObjectMode(int mode)
@@ -645,8 +641,7 @@ void MainViewWidget::graspWidgetToggle()
     if(!graspContainer->isVisible())
     {
         graspContainer->show();
-        graspFadeIn->start();
-        //graspContainer->setGeometry(ui->view_stack_->geometry().bottomRight().x()/2 - 600,ui->view_stack_->geometry().bottomRight().y()- 242, 500,300);
+        graspFadeIn->start();        
 
         //reset graphic on toggle button
         QPixmap pixmap(icon_path_+"down_arrow_white.png");
