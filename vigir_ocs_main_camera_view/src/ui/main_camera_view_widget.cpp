@@ -196,11 +196,25 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     //connect all buttons for mouse presses
     connect(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),SIGNAL(emergencyStop()),stop_mapper_,SLOT(map()));
+
+    //Restore State
+    QSettings settings("OCS", "camera_view");
+    this->restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+    // create docks, toolbars, etc...
+    //this->restoreState(settings.value("mainWindowState").toByteArray());
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()
 {
     delete ui;
+}
+
+void MainCameraViewWidget::closeEvent(QCloseEvent *event)
+{
+        QSettings settings("OCS", "camera_view");
+        settings.setValue("mainWindowGeometry", this->saveGeometry());
+        //settings.setValue("mainWindowState", this->saveState());
+
 }
 
 void MainCameraViewWidget::addContextMenu()

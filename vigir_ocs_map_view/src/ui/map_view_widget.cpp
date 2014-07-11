@@ -71,11 +71,25 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
 
     //connect all buttons for mouse presses
     connect(((vigir_ocs::Base3DView*)ui->map_view_),SIGNAL(emergencyStop()),stop_mapper_,SLOT(map()));
+
+    //Restore State
+    QSettings settings("OCS", "map_view");
+    this->restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+    // create docks, toolbars, etc...
+    //this->restoreState(settings.value("mainWindowState").toByteArray());
 }
 
 MapViewWidget::~MapViewWidget()
 {
     delete ui;
+}
+
+void MapViewWidget::closeEvent(QCloseEvent *event)
+{
+        QSettings settings("OCS", "map_view");
+        settings.setValue("mainWindowGeometry", this->saveGeometry());
+        //settings.setValue("mainWindowState", this->saveState());
+
 }
 
 void MapViewWidget::hideWaypointButton()

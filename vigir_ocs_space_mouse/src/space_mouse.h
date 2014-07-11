@@ -51,12 +51,12 @@ namespace vigir_ocs
         void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &obj);
         void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
         void cameraCb(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg);
+        geometry_msgs::PoseStamped updatePose(geometry_msgs::PoseStamped p, const sensor_msgs::Joy::ConstPtr& joy);
 
 
 
-
-        Vector convertToEuler(QQuaternion q1);
-        QQuaternion convertToQuaternion(double heading, double attitude, double bank);
+        //Vector convertToEuler(QQuaternion q1);
+        //QQuaternion convertToQuaternion(double heading, double attitude, double bank);
 
       private:
         ros::NodeHandle nh_;

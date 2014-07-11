@@ -4,7 +4,7 @@
 MainViewWidget::MainViewWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainViewWidget)
-{
+{   
     ui->setupUi(this);
     //will not call destructor immediately without setting attribute
     this->setAttribute(Qt::WA_DeleteOnClose);
@@ -348,6 +348,13 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     //connect all buttons for mouse presses
     connect(((vigir_ocs::Base3DView*) views_list["Top Left"]),SIGNAL(emergencyStop()),stop_mapper_,SLOT(map()));
+
+    //Restore State
+    QSettings settings("OCS", "main_view");
+    this->restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+    // create docks, toolbars, etc...
+    //this->restoreState(settings.value("mainWindowState").toByteArray());
+
 }
 
 void MainViewWidget::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
@@ -358,6 +365,15 @@ void MainViewWidget::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
     //need to change object mode as well?
 
 }
+
+void MainViewWidget::closeEvent(QCloseEvent *event)
+{
+    QSettings settings("OCS", "main_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
+}
+
 
 void MainViewWidget::updateContextMenu()
 {

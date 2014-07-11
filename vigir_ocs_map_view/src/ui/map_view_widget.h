@@ -44,6 +44,7 @@ private:
     ros::Subscriber key_event_sub_;
 
     QSignalMapper* stop_mapper_;
+    void closeEvent(QCloseEvent *event);
 
 
 };
