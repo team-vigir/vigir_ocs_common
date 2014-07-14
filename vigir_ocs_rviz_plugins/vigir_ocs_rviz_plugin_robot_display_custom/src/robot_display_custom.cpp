@@ -30,8 +30,6 @@
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 
-#include <urdf/model.h>
-
 #include <tf/transform_listener.h>
 
 #include "rviz/display_context.h"

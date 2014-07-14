@@ -39,6 +39,8 @@
 
 #include <map>
 
+#include <urdf/model.h>
+
 namespace Ogre
 {
 class Entity;
