@@ -87,6 +87,8 @@ public:
 
     void processLinkColorChange(const flor_ocs_msgs::OCSLinkColor::ConstPtr& color);
 
+    std::string getChildLinkName(std::string joint);
+
 private Q_SLOTS:
     void updateVisualVisible();
     void updateCollisionVisible();
@@ -123,6 +125,8 @@ protected:
 
     ros::NodeHandle nh_;
     ros::Subscriber link_color_sub_;
+
+    urdf::Model descr;
 };
 
 } // namespace rviz
