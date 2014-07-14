@@ -374,6 +374,22 @@ void MainViewWidget::closeEvent(QCloseEvent *event)
 
 }
 
+void MainViewWidget::resizeEvent(QResizeEvent * event)
+{
+    QSettings settings("OCS", "main_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
+}
+
+void MainViewWidget::moveEvent(QMoveEvent * event)
+{
+    QSettings settings("OCS", "main_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
+}
+
 
 void MainViewWidget::updateContextMenu()
 {

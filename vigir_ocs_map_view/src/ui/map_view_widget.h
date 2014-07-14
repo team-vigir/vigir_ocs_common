@@ -45,6 +45,9 @@ private:
 
     QSignalMapper* stop_mapper_;
     void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent * event);
+    void moveEvent(QMoveEvent * event);
+
 
 
 };

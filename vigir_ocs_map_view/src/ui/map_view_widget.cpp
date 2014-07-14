@@ -92,6 +92,21 @@ void MapViewWidget::closeEvent(QCloseEvent *event)
 
 }
 
+void MapViewWidget::resizeEvent(QResizeEvent * event)
+{
+    QSettings settings("OCS", "map_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
+}
+
+void MapViewWidget::moveEvent(QMoveEvent * event)
+{
+    QSettings settings("OCS", "map_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+}
+
 void MapViewWidget::hideWaypointButton()
 {
     ui->insert_waypoint->hide();
