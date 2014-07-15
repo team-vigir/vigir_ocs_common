@@ -217,6 +217,22 @@ void MainCameraViewWidget::closeEvent(QCloseEvent *event)
 
 }
 
+void MainCameraViewWidget::resizeEvent(QResizeEvent * event)
+{
+    QSettings settings("OCS", "camera_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
+}
+
+void MainCameraViewWidget::moveEvent(QMoveEvent * event)
+{
+    QSettings settings("OCS", "camera_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
+}
+
 void MainCameraViewWidget::addContextMenu()
 {
     //can tell context menu to add a separator when this item is added

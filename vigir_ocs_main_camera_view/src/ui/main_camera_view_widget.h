@@ -49,6 +49,9 @@ private:
     int views_initialized_;
 
     void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent * event);
+    void moveEvent(QMoveEvent * event);
+
 
     QWidget* position_widget_;
     QPushButton* four_view_button_;

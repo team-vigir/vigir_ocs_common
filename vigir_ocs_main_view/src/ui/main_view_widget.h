@@ -84,6 +84,8 @@ protected:
     void loadButtonIcon(QPushButton* btn, QString image_name);
     void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
     void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent * event);
+    void moveEvent(QMoveEvent * event);
 
     flor_ocs_msgs::OCSControlMode controlModes;
 
