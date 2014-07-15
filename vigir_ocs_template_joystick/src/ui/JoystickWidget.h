@@ -10,6 +10,7 @@
 #include <QWidget>
 #include <QtGui>
 #include <QComboBox>
+#include <QSettings>
 #include "../Controller.h"
 
 namespace Ui
@@ -38,9 +39,13 @@ public Q_SLOTS:
 protected:
     void keyPressEvent(QKeyEvent *);
     void keyReleaseEvent(QKeyEvent *);
+    void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent * event);
+    void moveEvent(QMoveEvent * event);
 
 private:
     ros::Subscriber window_control_sub;
+    ros::Publisher window_control_pub;
     QRect geometry_;
 
     Ui::JoystickWidget *ui;
