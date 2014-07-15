@@ -30,8 +30,6 @@
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 
-#include <urdf/model.h>
-
 #include <tf/transform_listener.h>
 
 #include "rviz/display_context.h"
@@ -194,7 +192,7 @@ void RobotDisplayCustom::load()
         return;
     }
 
-    urdf::Model descr;
+
     if( !descr.initXml( doc.RootElement() ))
     {
         clear();
@@ -334,6 +332,11 @@ void RobotDisplayCustom::processLinkColorChange(const flor_ocs_msgs::OCSLinkColo
     {
         robot_->setLinkColor(link_name,QColor(color->r,color->g,color->b));
     }
+}
+
+std::string RobotDisplayCustom::getChildLinkName(std::string joint)
+{
+    return descr.getJoint(joint)->child_link_name;
 }
 
 } // namespace rviz
