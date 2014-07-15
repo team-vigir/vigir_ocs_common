@@ -40,6 +40,7 @@
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
 
+
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <std_msgs/Float64.h>
@@ -75,6 +76,7 @@ class RosTopicProperty;
 class ColorProperty;
 class VectorProperty;
 class StringProperty;
+class QuaternionProperty;
 }
 
 namespace rviz
@@ -108,8 +110,10 @@ private Q_SLOTS:
   void updateObjectProperties();
   void updateTopic();
   void setRenderPanel(rviz::RenderPanel*);
+  void updateName();
 
 protected:
+  void setPose();
   virtual void load();
 
   // overrides from Display
@@ -130,7 +134,10 @@ protected:
   VectorProperty* scale_property_;
   ColorProperty* color_property_;
   VectorProperty* offset_property_;
+  VectorProperty* position_property_;
   StringProperty* name_property_;
+  StringProperty* type_property_;
+  QuaternionProperty* rotation_property_;
 
   geometry_msgs::Pose pose_;
 

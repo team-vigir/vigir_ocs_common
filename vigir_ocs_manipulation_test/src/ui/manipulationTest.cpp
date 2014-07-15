@@ -1,6 +1,9 @@
 #include "manipulationTest.h"
 #include <unistd.h>
 
+
+//bug: templates will not be deleted correctly if the main view is closed and restarted during the test. A full close of ocs is fine
+
 ManipulationTest::ManipulationTest(QWidget *parent) :
     MainViewWidget(parent)
 {    
@@ -23,13 +26,10 @@ ManipulationTest::ManipulationTest(QWidget *parent) :
 
     strftime(buffer,80,"%d_%m_%Y__%I_%M_%S",timeinfo);
     //std::string str(buffer);
-    QString str(buffer);
-
-   // ROS_ERROR("file: ManipulationResults %s",qPrintable(str));
+    QString str(buffer);  
 
     //make file with current time as name
-    results = new QFile(QDir::homePath()+"/ManipulationResults_" + str);
-    //ROS_ERROR("home: %s",QDir::homePath().toStdString().c_str());
+    results = new QFile(QDir::homePath()+"/ManipulationResults_" + str);    
     if(!results->open(QIODevice::WriteOnly | QIODevice::Text))
         ROS_ERROR("Could not open file: %s",qPrintable(QString(QDir::homePath()+"/ManipulationResults_" + str)));
 
@@ -60,8 +60,6 @@ void ManipulationTest::addInteractiveMarker( const flor_ocs_msgs::OCSInteractive
             challengeCount++;
         }
     }
-
-
 }
 
 void ManipulationTest::templateListCb(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg)
@@ -141,7 +139,7 @@ void ManipulationTest::defineTransforms()
 
 
 void ManipulationTest::newChallenge()
-{
+{    
     if(challengeCount < templatePositions.size())
     {
         //write info about template locations, retemplate_id_liststart timer0,0,0,0
@@ -181,7 +179,7 @@ void ManipulationTest::newChallenge()
 
         //remove templates if present
         if(challengeCount > 0)
-        {
+        {            
             //cant reliably remove templates so move them farrrrrr awwwayy
             flor_ocs_msgs::OCSTemplateUpdate msg;
             msg.template_id = temList.template_id_list[challengeCount*2-2];
@@ -199,7 +197,7 @@ void ManipulationTest::newChallenge()
 
             template_update_pub.publish(msg);
 
-            usleep(500000);
+            usleep(1000000);
             flor_ocs_msgs::OCSTemplateUpdate msg2;
             msg2.template_id = temList.template_id_list[challengeCount*2-1];
 
@@ -227,6 +225,44 @@ void ManipulationTest::newChallenge()
     {
         if(results->isOpen())
             results->close();
+
+        //remove last templates
+        flor_ocs_msgs::OCSTemplateUpdate msg;
+        msg.template_id = temList.template_id_list[challengeCount*2-2];
+
+        //copy rotation first
+        msg.pose.pose.orientation.x = 1;
+        msg.pose.pose.orientation.y = 0;
+        msg.pose.pose.orientation.z = 0;
+        msg.pose.pose.orientation.w = 0;
+
+        //update coordinates based on latest data from list
+        msg.pose.pose.position.x = 10001;
+        msg.pose.pose.position.y = 10001;
+        msg.pose.pose.position.z = 10001;
+
+        template_update_pub.publish(msg);
+
+        usleep(1000000);
+        flor_ocs_msgs::OCSTemplateUpdate msg2;
+        msg2.template_id = temList.template_id_list[challengeCount*2-1];
+
+        //copy rotation first
+        msg2.pose.pose.orientation.x = 1;
+        msg2.pose.pose.orientation.y = 0;
+        msg2.pose.pose.orientation.z = 0;
+        msg2.pose.pose.orientation.w = 0;
+
+        //update coordinates based on latest data from list
+        msg2.pose.pose.position.x = 10001;
+        msg2.pose.pose.position.y = 10001;
+        msg2.pose.pose.position.z = 10001;
+
+        template_update_pub.publish(msg2);
+
+        startChallenge->setText("You're Done! File is written to home directory.");
+        startChallenge->setEnabled(false);
+
     }
 }
 

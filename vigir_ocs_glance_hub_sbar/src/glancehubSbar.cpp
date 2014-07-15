@@ -212,8 +212,7 @@ void glancehubSbar::receiveFootstepStatus(int status)
 }
 
 void glancehubSbar::receiveFlorStatus(int status)
-{
-    ROS_ERROR("RECEIVEING MODES");
+{    
     QString newText;
     switch(status)
     {

@@ -38,7 +38,9 @@
 #include "rviz/default_plugin/view_controllers/orbit_view_controller.h"
 #include "rviz/properties/parse_color.h"
 #include "rviz/properties/vector_property.h"
+#include "rviz/properties/quaternion_property.h"
 #include <template_display_custom.h>
+#include "robot_display_custom.h"
 #include "selection_3d_display_custom.h"
 #include "map_display_custom.h"
 #include "base_3d_view.h"
@@ -50,6 +52,8 @@
 #include "flor_planning_msgs/TargetConfigIkRequest.h"
 #include "flor_planning_msgs/CartesianMotionRequest.h"
 #include "flor_planning_msgs/CircularMotionRequest.h"
+
+
 
 namespace vigir_ocs
 {
@@ -499,15 +503,15 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // add bounding boxes for the left/right/pelvis markers
         rviz::Display* left_hand_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for left hand", true );
-        left_hand_bounding_box_->subProp( "Name" )->setValue( "LeftArm" );
+        left_hand_bounding_box_->subProp( "Name" )->setValue( "LeftArm" );        
         left_hand_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/l_arm_marker_pose" );
         left_hand_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
         rviz::Display* right_hand_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for right hand", true );
-        right_hand_bounding_box_->subProp( "Name" )->setValue( "RightArm" );
+        right_hand_bounding_box_->subProp( "Name" )->setValue( "RightArm" );        
         right_hand_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/r_arm_marker_pose" );
         right_hand_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
         rviz::Display* pelvis_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for pelvis", true );
-        pelvis_bounding_box_->subProp( "Name" )->setValue( "Pelvis" );
+        pelvis_bounding_box_->subProp( "Name" )->setValue( "Pelvis" );        
         pelvis_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/pelvis_marker_pose" );
         pelvis_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
         ((rviz::VectorProperty*)pelvis_bounding_box_->subProp( "Scale" ))->setVector( Ogre::Vector3(0.005f,0.005f,0.005f) );
@@ -612,6 +616,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // create camera subscriber so we can control the camera from outside
         camera_transform_sub_ = nh_.subscribe<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/set_camera_transform", 5, &Base3DView::processCameraTransform, this );
 
+        //subscribe to joint states to update joint markers
+        jointStateSub = nh_.subscribe<flor_ocs_msgs::OCSJoints>("/flor/ocs/joint_states",5,&Base3DView::updateJointIcons, this );       
 
     }
 
@@ -706,14 +712,73 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     //build context menu
     addBase3DContextElements();
 
+
+
     // this is only used to make sure we close window if ros::shutdown has already been called
-    timer.start(33, this);
+    timer.start(33, this);    
 }
 
 // Destructor.
 Base3DView::~Base3DView()
 {
     delete manager_;
+}
+
+void Base3DView::updateJointIcons(const flor_ocs_msgs::OCSJoints::ConstPtr& msg)
+{    
+    jointStates = *msg;
+
+    for(int i =0;i<jointStates.jointNames.size();i++)
+    {
+        Ogre::Vector3 jointPosition(0,0,0);
+        Ogre::Quaternion jointRotation(1,0,0,0);
+        transform(jointPosition,jointRotation, ((rviz::RobotDisplayCustom*)robot_model_)->getChildLinkName(jointStates.jointNames[i]).c_str(),"/world");
+        //only create joints bounding boxes if they haven't been created and on error
+        if(jointDisplayMap.find(jointStates.jointNames[i]) == jointDisplayMap.end() && (jointStates.joints[i] != 0))
+        {
+            //align bounding boxes to correct axis based on joint name
+            float x = 0.0023;
+            float y = 0.0023;
+            float z = 0.0023;
+            QString str(jointStates.jointNames[i].c_str());
+            str = str.mid(str.length() - 1, 1); //last char
+            if(str == "x")
+                x = 0.0003f;
+            else if(str == "y")
+                y = 0.0003f;
+            else
+                z = 0.0003f;
+            //create bounding box
+            jointDisplayMap[jointStates.jointNames[i]] = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "Test Joint Object", true );
+            jointDisplayMap[jointStates.jointNames[i]]->subProp( "Name" )->setValue( jointStates.jointNames[i].c_str() );
+            jointDisplayMap[jointStates.jointNames[i]]->subProp( "Alpha" )->setValue( 0.0f );
+            jointDisplayMap[jointStates.jointNames[i]]->subProp( "Color" )->setValue( QColor( 0, 0, 0 ) );
+            ((rviz::VectorProperty*)jointDisplayMap[jointStates.jointNames[i]]->subProp( "Scale" ))->setVector( Ogre::Vector3(x, y, z) );
+        }
+
+        if(jointStates.joints[i] == 1)
+        {
+            //yellow
+            jointDisplayMap[jointStates.jointNames[i]]->subProp( "Alpha" )->setValue( 0.5f );
+            jointDisplayMap[jointStates.jointNames[i]]->subProp("Color")->setValue( QColor( 255, 255, 0 ) );
+            ((rviz::VectorProperty*)jointDisplayMap[jointStates.jointNames[i]]->subProp("Position"))->setVector(jointPosition);
+            ((rviz::QuaternionProperty*)jointDisplayMap[jointStates.jointNames[i]]->subProp("Rotation"))->setQuaternion(jointRotation);
+        }
+        else if(jointStates.joints[i] == 2)
+        {
+            //red
+            jointDisplayMap[jointStates.jointNames[i]]->subProp( "Alpha" )->setValue( 0.5f );
+            jointDisplayMap[jointStates.jointNames[i]]->subProp("Color")->setValue( QColor( 255, 0, 0 ) );
+            ((rviz::VectorProperty*)jointDisplayMap[jointStates.jointNames[i]]->subProp("Position"))->setVector(jointPosition);
+            ((rviz::QuaternionProperty*)jointDisplayMap[jointStates.jointNames[i]]->subProp("Rotation"))->setQuaternion(jointRotation);
+        }
+        else if (jointDisplayMap.find(jointStates.jointNames[i]) != jointDisplayMap.end())
+        {
+            //make invisible
+            jointDisplayMap[jointStates.jointNames[i]]->subProp( "Alpha" )->setValue( 0.0f );
+        }
+    }
+
 }
 
 void Base3DView::timerEvent(QTimerEvent *event)
@@ -2858,7 +2923,7 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
     }
     else if(ctrl_is_pressed && alt_is_pressed) //emergency stop
-    {
+    {        
         stop_button_->setVisible(true);
         stop_button_->setGeometry(this->geometry().bottomRight().x()/2 - 200,this->geometry().bottomRight().y()/2 - 150,400,300);
     }

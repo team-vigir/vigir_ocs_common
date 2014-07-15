@@ -60,11 +60,13 @@
 #include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
 #include <flor_control_msgs/FlorControlMode.h>
+#include <flor_ocs_msgs/OCSJoints.h>
 
 #include <string>
 #include <boost/bind.hpp>
 #include <vector>
 #include <map>
+
 
 struct contextMenuItem
 {
@@ -227,6 +229,7 @@ Q_SIGNALS:
 
 
 protected:
+    void updateJointIcons(const flor_ocs_msgs::OCSJoints::ConstPtr& msg);
     int findObjectContext(std::string obj_type);
     void selectLeftArm();
     void selectRightArm();
@@ -373,6 +376,7 @@ protected:
 
     ros::Publisher flor_mode_command_pub_;
     ros::Subscriber flor_mode_sub_;
+    ros::Subscriber jointStateSub;
 
     ros::Publisher select_object_pub_;
     ros::Subscriber select_object_sub_;
@@ -510,6 +514,9 @@ protected:
 
     QTreeWidget * templateRoot;
 
+    flor_ocs_msgs::OCSJoints jointStates;   
+
+    std::map<std::string,rviz::Display*> jointDisplayMap;
 
 };
 }
