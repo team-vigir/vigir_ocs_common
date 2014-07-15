@@ -16,6 +16,7 @@
 #include <sensor_msgs/JointState.h>
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <flor_ocs_msgs/OCSJoints.h>
 
 namespace rviz
 {
@@ -38,8 +39,10 @@ public:
 
     void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
-private:
+
+private:    
     ros::Subscriber joint_states;
+    ros::Publisher joint_pub;
     std::vector<QTreeWidgetItem*> joints;
     std::vector<double> effortLimits;
     std::vector<double> upPoseLimit;

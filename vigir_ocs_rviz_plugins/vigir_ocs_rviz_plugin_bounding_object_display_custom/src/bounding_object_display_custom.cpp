@@ -1,4 +1,4 @@
-/* 
+/*
  * BoundingObjectDisplayCustom class implementation.
  *
  * Author: Felipe Bacim.
@@ -53,10 +53,12 @@
 #include "rviz/properties/ros_topic_property.h"
 #include "rviz/properties/float_property.h"
 #include "rviz/properties/string_property.h"
+#include "rviz/properties/quaternion_property.h"
 #include "rviz/render_panel.h"
 #include "rviz/validate_floats.h"
 #include "rviz/view_manager.h"
 #include "rviz/visualization_manager.h"
+#include "robot_display_custom.h"
 
 #include "bounding_object_display_custom.h"
 
@@ -70,7 +72,7 @@ BoundingObjectDisplayCustom::BoundingObjectDisplayCustom()
     , initialized_(false)
 {
     name_property_ = new StringProperty( "Name", "",
-                                         "Name of the object.", this );
+                                         "Name of the object.", this , SLOT(updateName()));
 
     color_property_ = new ColorProperty( "Color", QColor( 25, 255, 0 ),
                                          "Color to draw the path.", this, SLOT( updateObjectProperties() ) );
@@ -89,12 +91,27 @@ BoundingObjectDisplayCustom::BoundingObjectDisplayCustom()
 
     offset_property_ = new VectorProperty( "Position Offset", Ogre::Vector3::ZERO,
                                              "Offset of the bounding object in relation to the object",
-                                             this, SLOT( updateObjectProperties() ) );
+                                             this, SLOT( updateObjectProperties() ) );    
     offset_property_->setReadOnly( true );
+
+    position_property_ = new VectorProperty( "Position", Ogre::Vector3::ZERO,
+                                             "position of the bounding object in relation to the object",
+                                             this, SLOT( updateObjectProperties() ) );
+    rotation_property_ = new QuaternionProperty("Rotation", Ogre::Quaternion::IDENTITY,"rotation of bounding object",this,SLOT(updateObjectProperties()));
+
 }
 
 BoundingObjectDisplayCustom::~BoundingObjectDisplayCustom()
 {
+}
+
+void BoundingObjectDisplayCustom::updateName()
+{
+    if(bounding_object_ == NULL)
+    {        
+        load();
+        initialized_ = true;       
+    }
 }
 
 void BoundingObjectDisplayCustom::onInitialize()
@@ -102,30 +119,35 @@ void BoundingObjectDisplayCustom::onInitialize()
     context_->getSceneManager()->addRenderQueueListener(this);
 }
 
+void BoundingObjectDisplayCustom::setPose()
+{
+    Ogre::Quaternion orientation(rotation_property_->getQuaternion().w,
+                                 rotation_property_->getQuaternion().x,
+                                 rotation_property_->getQuaternion().y,
+                                 rotation_property_->getQuaternion().z);
+    Ogre::Vector3 rotated_offset = orientation * offset_property_->getVector();
+    bounding_object_->setPosition(position_property_->getVector().x + rotated_offset.x,
+                                  position_property_->getVector().y + rotated_offset.y,
+                                  position_property_->getVector().z+ rotated_offset.z);
+    bounding_object_->setOrientation(orientation);
+}
+
 void BoundingObjectDisplayCustom::updatePose( const geometry_msgs::PoseStamped::ConstPtr& pose )
 {
     pose_ = pose->pose;
-    bounding_object_->setPosition(pose_.position.x+offset_property_->getVector().x,
-                                  pose_.position.y+offset_property_->getVector().y,
-                                  pose_.position.z+offset_property_->getVector().z);
-    bounding_object_->setOrientation(pose_.orientation.w,
-                                     pose_.orientation.x,
-                                     pose_.orientation.y,
-                                     pose_.orientation.z);
+
+
+    // set properties
+    position_property_->setVector(Ogre::Vector3(pose_.position.x,pose_.position.y,pose_.position.z));
+    rotation_property_->setQuaternion(Ogre::Quaternion(pose_.orientation.w,pose_.orientation.x,pose_.orientation.y,pose_.orientation.z));
+    setPose();
 }
 
 void BoundingObjectDisplayCustom::updateObjectProperties()
 {
     // update transformations
-    Ogre::Quaternion orientation(pose_.orientation.w,
-                                 pose_.orientation.x,
-                                 pose_.orientation.y,
-                                 pose_.orientation.z);
-    Ogre::Vector3 rotated_offset = orientation * offset_property_->getVector();
-    bounding_object_->setPosition(pose_.position.x+rotated_offset.x,
-                                  pose_.position.y+rotated_offset.y,
-                                  pose_.position.z+rotated_offset.z);
-    bounding_object_->setOrientation(orientation);
+    setPose();
+
     bounding_object_->setScale(scale_property_->getVector().x,scale_property_->getVector().y,scale_property_->getVector().z);
 
     // update color/alpha
@@ -168,12 +190,6 @@ void BoundingObjectDisplayCustom::subscribe()
 
     if( !topic_property_->getTopic().isEmpty() )
     {
-        if(bounding_object_ == NULL)
-        {
-            load();
-            initialized_ = true;
-        }
-
         try
         {
             pose_sub_ = nh_.subscribe( topic_property_->getTopicStd(), 1, &BoundingObjectDisplayCustom::updatePose, this );
@@ -192,7 +208,7 @@ void BoundingObjectDisplayCustom::unsubscribe()
 }
 
 void BoundingObjectDisplayCustom::load()
-{
+{    
     static int count = 0;
     std::stringstream ss;
     ss << "BoundingObject" << count++ << "Group";
@@ -230,7 +246,6 @@ void BoundingObjectDisplayCustom::load()
         lFirstPass->setDepthWriteEnabled(false);
     }
 
-    // Create spheres to be used as markers
     Ogre::Entity* lEntity = this->scene_manager_->createEntity(ss.str()+name_property_->getStdString(), Ogre::SceneManager::PT_SPHERE);
     bounding_object_ = this->scene_node_->createChildSceneNode();
     bounding_object_->attachObject(lEntity);
