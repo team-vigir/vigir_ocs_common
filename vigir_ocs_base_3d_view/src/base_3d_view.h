@@ -62,6 +62,8 @@
 #include <flor_control_msgs/FlorControlMode.h>
 #include <flor_ocs_msgs/OCSJoints.h>
 
+#include "jointList.h"
+
 #include <string>
 #include <boost/bind.hpp>
 #include <vector>
@@ -376,7 +378,7 @@ protected:
 
     ros::Publisher flor_mode_command_pub_;
     ros::Subscriber flor_mode_sub_;
-    ros::Subscriber jointStateSub;
+    ros::Subscriber robot_joint_state_sub_;
 
     ros::Publisher select_object_pub_;
     ros::Subscriber select_object_sub_;
@@ -485,6 +487,7 @@ protected:
 
     ros::Subscriber send_cartesian_sub_;
     ros::Subscriber send_ghost_pelvis_pose_sub_;
+    ros::Subscriber ghost_joint_state_sub_;
 
     void insertTemplateContextMenu();
     void removeTemplateContextMenu();
@@ -517,6 +520,9 @@ protected:
     flor_ocs_msgs::OCSJoints jointStates;   
 
     std::map<std::string,rviz::Display*> jointDisplayMap;
+
+    std::vector<int> ghostJointStates;
+    void updateGhostJointsCb(const sensor_msgs::JointState::ConstPtr& msg);
 
 };
 }
