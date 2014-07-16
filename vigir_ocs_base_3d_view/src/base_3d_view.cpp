@@ -619,7 +619,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         robot_state_ = new MoveItOcsModel();
 
         //subscribe to joint states to update joint markers
-        jointStateSub = nh_.subscribe<flor_ocs_msgs::OCSJoints>("/flor/ocs/joint_states",5,&Base3DView::updateJointIcons, this );       
+        robot_joint_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSJoints>("/flor/ocs/joint_states",5,&Base3DView::updateJointIcons, this );
+
+        //sub to ghost joint states
+        ghost_joint_state_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/flor/ghost/get_joint_states", 5, &Base3DView::updateGhostJointsCb, this );
 
     }
 
@@ -724,6 +727,18 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 Base3DView::~Base3DView()
 {
     delete manager_;
+}
+
+void Base3DView::updateGhostJointsCb(const sensor_msgs::JointState::ConstPtr& msg)
+{    
+    sensor_msgs::JointState ghostJoints = *msg;
+
+//    jointList::getGhostJointStates(*msg,ghostJointStates);
+//    for(int i = 0; i<ghostJointStates.size();i++)
+//    {
+//        //ROS_ERROR("name: %s error state: %d", ghostJoints.name[i].c_str(), ghostJointStates[i]);
+//    }
+
 }
 
 void Base3DView::updateJointIcons(const flor_ocs_msgs::OCSJoints::ConstPtr& msg)
