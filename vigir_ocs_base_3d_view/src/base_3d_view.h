@@ -41,8 +41,8 @@
 #include <sensor_msgs/JointState.h>
 #include <mouse_event_handler.h>
 
-#include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/DisplayRobotState.h>
+#include <moveit_msgs/RobotState.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
@@ -92,6 +92,8 @@ class VisualizationManager;
 class ViewController;
 class FrameManager;
 }
+
+class MoveItOcsModel;
 
 class QLineEditSmall : public QLineEdit
 {
@@ -517,6 +519,9 @@ protected:
     flor_ocs_msgs::OCSJoints jointStates;   
 
     std::map<std::string,rviz::Display*> jointDisplayMap;
+
+    MoveItOcsModel* robot_state_;
+    MoveItOcsModel* ghost_robot_state_;
 
 };
 }

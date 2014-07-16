@@ -53,7 +53,7 @@
 #include "flor_planning_msgs/CartesianMotionRequest.h"
 #include "flor_planning_msgs/CircularMotionRequest.h"
 
-
+#include <flor_moveit_ocs_model/moveit_ocs_model.h>
 
 namespace vigir_ocs
 {
@@ -615,6 +615,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // create camera subscriber so we can control the camera from outside
         camera_transform_sub_ = nh_.subscribe<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/set_camera_transform", 5, &Base3DView::processCameraTransform, this );
+
+        robot_state_ = new MoveItOcsModel();
 
         //subscribe to joint states to update joint markers
         jointStateSub = nh_.subscribe<flor_ocs_msgs::OCSJoints>("/flor/ocs/joint_states",5,&Base3DView::updateJointIcons, this );       
@@ -2537,6 +2539,8 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
 
 void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &states)
 {
+    robot_state_->setJointStates(*states);
+
     if(snap_ghost_to_robot_)
     {
         ghost_joint_state_pub_.publish(states);
