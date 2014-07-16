@@ -62,6 +62,9 @@ public:
 
 protected:
     void timerEvent(QTimerEvent *event);
+    void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent * event);
+    void moveEvent(QMoveEvent * event);
 
 private Q_SLOTS:
     void applyClicked();
@@ -111,6 +114,7 @@ private Q_SLOTS:
 
 private:
     ros::Subscriber window_control_sub;
+    ros::Publisher window_control_pub;
     QRect geometry_;
 
     std::string getGroupNameForSettings(const std::vector<unsigned char>& settings);

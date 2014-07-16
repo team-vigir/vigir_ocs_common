@@ -67,11 +67,47 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     //ui->position_only_ik_->hide();
 
     window_control_sub = nh_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &GhostControlWidget::processWindowControl, this );
+    window_control_pub = nh_.advertise<std_msgs::Int8>("/flor/ocs/window_control", 1, false);
+
+    //Restore State
+    //this->show();
+    QSettings settings("OCS", "joint_limit");
+    this->restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+    this->geometry_ = this->geometry();
+    // create docks, toolbars, etc...
+    //this->restoreState(settings.value("mainWindowState").toByteArray());
 }
 
 GhostControlWidget::~GhostControlWidget()
 {
     delete ui;
+}
+
+void GhostControlWidget::closeEvent(QCloseEvent * event)
+{
+    QSettings settings("OCS", "joint_limit");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+    std_msgs::Int8 msg;
+    msg.data = -WINDOW_GHOST_CONFIG;
+    window_control_pub.publish(msg);
+    event->ignore();
+}
+
+void GhostControlWidget::resizeEvent(QResizeEvent * event)
+{
+    QSettings settings("OCS", "joint_limit");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
+}
+
+void GhostControlWidget::moveEvent(QMoveEvent * event)
+{
+    QSettings settings("OCS", "joint_limit");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
 }
 
 void GhostControlWidget::timerEvent(QTimerEvent *event)

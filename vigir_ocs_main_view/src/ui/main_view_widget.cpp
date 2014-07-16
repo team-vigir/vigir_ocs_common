@@ -376,6 +376,7 @@ void MainViewWidget::closeEvent(QCloseEvent *event)
 
 void MainViewWidget::resizeEvent(QResizeEvent * event)
 {
+    ROS_ERROR("Resize Event");
     QSettings settings("OCS", "main_view");
     settings.setValue("mainWindowGeometry", this->saveGeometry());
     //settings.setValue("mainWindowState", this->saveState());
@@ -384,10 +385,10 @@ void MainViewWidget::resizeEvent(QResizeEvent * event)
 
 void MainViewWidget::moveEvent(QMoveEvent * event)
 {
+    ROS_ERROR("Move Event");
     QSettings settings("OCS", "main_view");
     settings.setValue("mainWindowGeometry", this->saveGeometry());
     //settings.setValue("mainWindowState", this->saveState());
-
 }
 
 

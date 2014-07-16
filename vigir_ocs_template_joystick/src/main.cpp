@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
         ros::init( argc, argv, "template_joystick", ros::init_options::AnonymousName );
     }
     QApplication a(argc, argv);
+    a.setOrganizationName("OCS");
     JoystickWidget w;
     w.show();
     w.hide();
