@@ -129,10 +129,12 @@ public:
     void processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc );
     void processLeftArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
     void processRightArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    void processPelvisEndEffector( const geometry_msgs::PoseStamped::ConstPtr &pose );
     void processLeftGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     void processRightGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     void processGhostControlState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
     void processJointStates( const sensor_msgs::JointState::ConstPtr& states );
+    void processGhostJointStates(const sensor_msgs::JointState::ConstPtr& states);
     void processPelvisResetRequest( const std_msgs::Bool::ConstPtr& msg );
     void processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg );
     void processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr& msg );
@@ -232,7 +234,7 @@ Q_SIGNALS:
 
 
 protected:
-    void updateJointIcons(const flor_ocs_msgs::OCSJoints::ConstPtr& msg);
+    void updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose,double effortPercent, double boundPercent);
     int findObjectContext(std::string obj_type);
     void selectLeftArm();
     void selectRightArm();
@@ -264,6 +266,8 @@ protected:
     void selectContextMenu();
 
     void updateHandColors();
+
+    void updateGhostJointsCb(const std::string& name, const geometry_msgs::Pose& pose);
 
     Ogre::Camera* getCamera();
 
@@ -489,6 +493,7 @@ protected:
     ros::Subscriber send_cartesian_sub_;
     ros::Subscriber send_ghost_pelvis_pose_sub_;
     ros::Subscriber ghost_joint_state_sub_;
+    geometry_msgs::Pose ghost_root_pose_;
 
     void insertTemplateContextMenu();
     void removeTemplateContextMenu();
@@ -523,7 +528,6 @@ protected:
     std::map<std::string,rviz::Display*> jointDisplayMap;
 
     std::vector<int> ghostJointStates;
-    void updateGhostJointsCb(const sensor_msgs::JointState::ConstPtr& msg);
 
     MoveItOcsModel* robot_state_;
     MoveItOcsModel* ghost_robot_state_;

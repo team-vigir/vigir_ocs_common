@@ -155,7 +155,7 @@ void jointList::timerEvent(QTimerEvent *event)
     // check if ros is still running; if not, just kill the application
     if(!ros::ok())
         qApp->quit();
-    
+
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
 }
@@ -262,7 +262,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
         //std::cout << " e=" << joint_states->effort[i] << " dpl=" << downPoseLimit[i];
         //std::cout << " upl=" << upPoseLimit[i] << " el=" << effortLimits[i] << std::endl;
         if(joint_states->position[i] <= warnMin*downPoseLimit[i])
-        {           
+        {
             warn++;
             joints[i]->setBackgroundColor(0,Qt::yellow);
             joints[i]->setBackgroundColor(1,Qt::yellow);
