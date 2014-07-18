@@ -5,6 +5,14 @@
 #include <urdf/model.h>
 #include <QDebug>
 
+std::vector<double> jointList::effortLimits;
+std::vector<double> jointList::upPoseLimit;
+std::vector<double> jointList::downPoseLimit;
+std::vector<QTreeWidgetItem*> jointList::joints;
+std::map<std::string, jointList::Limits> jointList::jointNameLimits;
+float jointList::warnMin = 0.75f;
+float jointList::errorMin = 0.9f;
+
 jointList::jointList(QWidget *parent) :
     QWidget(parent)
 {
@@ -134,11 +142,6 @@ jointList::jointList(QWidget *parent) :
     errorMin=.90;
 
     std::cout << "JointList Widget setup now starting subscribing to Ros topic." << std::endl;
-    std::string robotInfo;
-
-    ros::NodeHandle nh;
-    nh.getParam("/robot_description",robotInfo);
-    processRobotInfo(robotInfo);
 
     joint_states = nh_.subscribe<sensor_msgs::JointState>( "/atlas/joint_states", 2, &jointList::updateList, this );
 
@@ -155,16 +158,15 @@ void jointList::timerEvent(QTimerEvent *event)
     // check if ros is still running; if not, just kill the application
     if(!ros::ok())
         qApp->quit();
-    
+
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
 }
 
 void jointList::processRobotInfo(std::string robotInfo)
 {
+    ROS_ERROR("process");
     std::cout << "Setting up limits from ros param..." << std::endl;
-
-
 
     QRegExp effort("<limit effort=\\\"[0-9]*.[0-9]*\\\"");
     QRegExp lowLimit("soft_lower_limit=\\\"(-)*[0-9]*.[0-9]*\\\"");
@@ -177,25 +179,34 @@ void jointList::processRobotInfo(std::string robotInfo)
         int pos = 0;
         while((pos = names.indexIn(robotString,pos)) != -1)
         {
-            if(names.cap(0).remove(0,6).toStdString() == joints[i]->text(0).toStdString().append("\""))
+           // ROS_ERROR("process special");
+            if(jointNameLimits.find(names.cap(0).remove(0,6).toStdString()) != jointNameLimits.end())
+            //if(names.cap(0).remove(0,6).toStdString() == joints[i]->text(0).toStdString().append("\""))
             {
+                joints[i]->text(0).toStdString().append("\"");
+                ROS_ERROR("process 1");
                 int tempPos = pos;
                 QString tempString;
+                jointList::Limits l;
                 tempPos = effort.indexIn(robotString,tempPos);
                 if(tempPos != -1)
                 {
                     tempString = effort.cap(0).remove(0,15);
                     tempString.resize(tempString.size()-1);
+                    l.effortLimit = tempString.toDouble();
                     effortLimits.push_back(tempString.toDouble());
                 }
+                ROS_ERROR("process 2");
                 tempPos = pos;
                 tempPos = lowLimit.indexIn(robotString,tempPos);
                 if(tempPos != -1)
                 {
                     tempString = lowLimit.cap(0).remove(0,18);
                     tempString.resize(tempString.size()-1);
+                    l.downPoseLimit = tempString.toDouble();
                     downPoseLimit.push_back(tempString.toDouble());
                 }
+                ROS_ERROR("process 3");
                 tempPos = pos;
                 pos = robotInfo.size()-100;
                 tempPos = upLimit.indexIn(robotString,tempPos);
@@ -203,12 +214,21 @@ void jointList::processRobotInfo(std::string robotInfo)
                 {
                     tempString = upLimit.cap(0).remove(0,18);
                     tempString.resize(tempString.size()-1);
+                    l.upPoseLimit = tempString.toDouble();
                     upPoseLimit.push_back(tempString.toDouble());
                 }
-            }
-            pos += names.matchedLength();
-        }
+                ROS_ERROR("process 4");
+                //jointNameLimits[names.]
 
+                jointNameLimits[names.cap(0).remove(0,6).toStdString()] = l;
+                ROS_ERROR("joint: %s ", names.cap(0).remove(0,6).toStdString().c_str());
+
+                //ROS_ERROR("joint: %s %d %d %d", names.cap(0).remove(0,6).toStdString().c_str(),jointNameLimits[names.cap(0).remove(0,6).toStdString()].effortLimit,jointNameLimits[names.cap(0).remove(0,6).toStdString()].downPoseLimit, jointNameLimits[names.cap(0).remove(0,6).toStdString()].upPoseLimit);
+            }
+
+            pos += names.matchedLength();
+
+        }
 
     }
     for(int i=0;i<joints.size();i++)
@@ -216,8 +236,9 @@ void jointList::processRobotInfo(std::string robotInfo)
         std::cout << " Joint["<< i <<"]  limits pos(" << downPoseLimit[i] << ", " << upPoseLimit[i] << ") effort=" << effortLimits[i] << std::endl;
     }
     std::cout << "Finished setting up limits. Now subscribing to joint information...." << std::endl;
-}
 
+    ROS_ERROR("set UP ROBOT %d", joints.size());joints[i]->text(0).toStdString().append("\"");
+}
 jointList::~jointList()
 {
     //delete ui;
@@ -233,6 +254,31 @@ int jointList::getNumWarn()
 
 void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_states )
 {
+    if(jointNameLimits.empty())
+    {
+        ROS_ERROR("initializeding 1");
+        //begin initializing joint map
+        for(int i=0;i<joint_states->name.size();i++)
+        {
+            jointList::Limits defaultLimit;
+            QString name = joint_states->name[i].c_str();
+            name.append("\"");
+            jointNameLimits[name.toStdString()] = defaultLimit;
+            ROS_ERROR("setting name to: %s", joint_states->name[i].c_str());
+        }
+        ROS_ERROR("initializeding 2");
+        //need to initialize Robot info, and table items
+        std::string robotInfo;
+        ros::NodeHandle nh;
+        nh.getParam("/robot_description",robotInfo);
+        ROS_ERROR("initializeding 3");
+        jointList::processRobotInfo(robotInfo);
+
+        ROS_ERROR("initializeding 4");
+        //table stuff
+    }
+
+
     // clear joint status messages and send Okay state
     Q_EMIT sendJointData(0,"");
 
@@ -262,7 +308,7 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
         //std::cout << " e=" << joint_states->effort[i] << " dpl=" << downPoseLimit[i];
         //std::cout << " upl=" << upPoseLimit[i] << " el=" << effortLimits[i] << std::endl;
         if(joint_states->position[i] <= warnMin*downPoseLimit[i])
-        {           
+        {
             warn++;
             joints[i]->setBackgroundColor(0,Qt::yellow);
             joints[i]->setBackgroundColor(1,Qt::yellow);
@@ -387,6 +433,47 @@ void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_state
     jointStatesUpdate.joints = jointUpdater;
     jointStatesUpdate.jointNames = jointNames;
     joint_pub.publish(jointStatesUpdate);
+}
+
+//grabs errors for a set of ghost joint states, stores states into a vector, ghost joints have no effort
+void jointList::getGhostJointStates(sensor_msgs::JointState joint_info, std::vector<int>& ghostJointStates)
+{
+    //not initialized?
+    if(downPoseLimit.empty()|| upPoseLimit.empty())
+        return;
+
+    std::vector<int> jointStates(joint_info.name.size());
+    for(int i=0;i<joint_info.name.size(); i++)
+    {
+        bool errorUpdate = false;
+        //joints are okay by default
+        jointStates[i] = 0;
+
+        if(joint_info.position[i] <= warnMin*downPoseLimit[i])
+        {
+            jointStates[i] = 1;
+        }
+        if(joint_info.position[i] <= errorMin*downPoseLimit[i])
+        {
+            //update joint msg
+            errorUpdate = true;
+            jointStates[i] = 2;
+        }
+
+        if(joint_info.position[i] >= warnMin*upPoseLimit[i])
+        {
+            if(!errorUpdate)
+            {
+                jointStates[i] = 1;
+            }
+        }
+        if(joint_info.position[i] >= errorMin*upPoseLimit[i])
+        {
+            errorUpdate = true;
+            jointStates[i] = 2;
+        }
+    }
+    ghostJointStates = jointStates;
 }
 
 void jointList::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)

@@ -70,6 +70,7 @@ MapView::MapView( QWidget* parent )
 
     //set default tool
     manager_->getToolManager()->setCurrentTool( interactive_markers_tool_);
+
 }
 
 // Destructor.

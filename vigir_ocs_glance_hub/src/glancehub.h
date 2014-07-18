@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <ros/subscriber.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
+#include <flor_control_msgs/FlorControlMode.h>
 #include <QBasicTimer>
 #include <flor_ocs_msgs/OCSRobotStatus.h>
 #include<QTableWidgetItem>
@@ -21,7 +22,7 @@ class glancehub : public QMainWindow
 public:
     explicit glancehub(QWidget *parent = 0);
     ~glancehub();
-    void controlModeMsgRcv(const flor_control_msgs::FlorControlModeCommand::ConstPtr& msg);
+    void controlModeMsgRcv(const flor_control_msgs::FlorControlMode::ConstPtr& msg);
     void robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
     void robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
     void loadFile();

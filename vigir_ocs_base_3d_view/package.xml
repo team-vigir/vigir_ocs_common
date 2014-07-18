@@ -21,6 +21,7 @@
   <build_depend>vigir_ocs_template_loader</build_depend>
   <build_depend>vigir_ocs_render_panel_custom</build_depend> 
   <build_depend>vigir_ocs_mouse_event_handler</build_depend> 
+  <build_depend>vigir_ocs_status_window</build_depend>
   <build_depend>flor_interactive_marker_server_custom</build_depend>
   <build_depend>moveit_core</build_depend>
   <build_depend>moveit_ros_planning</build_depend>
@@ -39,6 +40,7 @@
   <run_depend>vigir_ocs_template_loader</run_depend> 
   <run_depend>vigir_ocs_render_panel_custom</run_depend> 
   <run_depend>vigir_ocs_mouse_event_handler</run_depend> 
+  <run_depend>vigir_ocs_status_window</run_depend>
   <run_depend>flor_interactive_marker_server_custom</run_depend> 
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_ros_planning</run_depend>

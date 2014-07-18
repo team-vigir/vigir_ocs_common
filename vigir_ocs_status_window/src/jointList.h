@@ -38,19 +38,25 @@ public:
     int getNumError();
 
     void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    static void getGhostJointStates(sensor_msgs::JointState joint_info, std::vector<int>& jointStates);
 
+    struct Limits
+    {
+        double effortLimit, upPoseLimit, downPoseLimit;
+    };
 
 private:    
     ros::Subscriber joint_states;
     ros::Publisher joint_pub;
-    std::vector<QTreeWidgetItem*> joints;
-    std::vector<double> effortLimits;
-    std::vector<double> upPoseLimit;
-    std::vector<double> downPoseLimit;
+    static std::vector<double> effortLimits;
+    static std::vector<double> upPoseLimit;
+    static std::vector<double> downPoseLimit;
+    static float warnMin;
+    static float errorMin;
+    static std::vector<QTreeWidgetItem*> joints;
     QTreeWidget* jointTable;
-    void processRobotInfo(std::string robotInfo);
-    float warnMin;
-    float errorMin;
+    static void processRobotInfo(std::string robotInfo);
+
     int warn;
     int err;
     bool jointsOkay;
@@ -60,6 +66,8 @@ private:
     ros::NodeHandle nh_;
 
     ros::Subscriber key_event_sub_;
+
+    static std::map<std::string, jointList::Limits> jointNameLimits;
 
 protected:
     void timerEvent(QTimerEvent *event);
