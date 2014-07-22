@@ -28,54 +28,46 @@ class FrameManager;
 
 class jointList : public QWidget
 {
-    Q_OBJECT
-    
+   Q_OBJECT
+
 public:
-    explicit jointList(QWidget *parent = 0);
-    ~jointList();
-    void updateList( const sensor_msgs::JointState::ConstPtr& joint_states );
-    int getNumWarn();
-    int getNumError();
+   explicit jointList(QWidget *parent = 0);
+   ~jointList();
+   void updateList( const sensor_msgs::JointState::ConstPtr& joint_states );
+   int getNumWarn();
+   int getNumError();
 
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
-    static void getGhostJointStates(sensor_msgs::JointState joint_info, std::vector<int>& jointStates);
+   void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
-    struct Limits
-    {
-        double effortLimit, upPoseLimit, downPoseLimit;
-    };
 
-private:    
-    ros::Subscriber joint_states;
-    ros::Publisher joint_pub;
-    static std::vector<double> effortLimits;
-    static std::vector<double> upPoseLimit;
-    static std::vector<double> downPoseLimit;
-    static float warnMin;
-    static float errorMin;
-    static std::vector<QTreeWidgetItem*> joints;
-    QTreeWidget* jointTable;
-    static void processRobotInfo(std::string robotInfo);
+private:
+   ros::Subscriber joint_states;
+   ros::Publisher joint_pub;
+   std::vector<QTreeWidgetItem*> joints;
+   std::vector<double> effortLimits;
+   std::vector<double> upPoseLimit;
+   std::vector<double> downPoseLimit;
+   QTreeWidget* jointTable;
+   void processRobotInfo(std::string robotInfo);
+   float warnMin;
+   float errorMin;
+   int warn;
+   int err;
+   bool jointsOkay;
 
-    int warn;
-    int err;
-    bool jointsOkay;
+   std::vector<int> keys_pressed_list_;
 
-    std::vector<int> keys_pressed_list_;
+   ros::NodeHandle nh_;
 
-    ros::NodeHandle nh_;
-
-    ros::Subscriber key_event_sub_;
-
-    static std::map<std::string, jointList::Limits> jointNameLimits;
+   ros::Subscriber key_event_sub_;
 
 protected:
-    void timerEvent(QTimerEvent *event);
+   void timerEvent(QTimerEvent *event);
 private:
-    QBasicTimer timer;
+   QBasicTimer timer;
 
 Q_SIGNALS:
-    void sendJointData(int,QString);
+   void sendJointData(int,QString);
 };
 
 #endif // JOINTLIST_H

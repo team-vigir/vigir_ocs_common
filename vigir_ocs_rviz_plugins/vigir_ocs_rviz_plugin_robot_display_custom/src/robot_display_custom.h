@@ -76,7 +76,7 @@ class RobotDisplayCustom: public Display
 public:
     RobotDisplayCustom();
     virtual ~RobotDisplayCustom();
-
+    RobotCustom* getRobotCustom();
     // Overrides from Display
     virtual void onInitialize();
     virtual void update( float wall_dt, float ros_dt );

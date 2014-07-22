@@ -314,7 +314,7 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
     // create entity for mesh and attach it to the scene node
     Ogre::Entity* lEntity = this->scene_manager_->createEntity(std::string("template ")+convert.str(), path);
     Ogre::SceneNode* lNode = this->scene_node_->createChildSceneNode();
-    lNode->attachObject(lEntity);
+    lNode->attachObject(lEntity);    
     // change position and scale (from mm to m)
     lNode->setPosition(pos);
     lNode->setOrientation(quat);
