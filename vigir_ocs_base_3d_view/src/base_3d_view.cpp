@@ -2656,30 +2656,28 @@ void Base3DView::recursiveMess(Ogre::SceneNode* sceneNode, int queueOffset)
     {
         Ogre::MovableObject* obj =  sceneNode->getAttachedObject(i);
         obj->setRenderQueueGroupAndPriority(Ogre::RENDER_QUEUE_MAIN,100);
-        ROS_ERROR("   Movable Type %s",obj->getMovableType().c_str());
+        //ROS_ERROR("   Movable Type %s",obj->getMovableType().c_str());
         if(obj->getMovableType().compare("Entity") == 0)        {
-            ROS_ERROR("marker is entity");
+            //ROS_ERROR("marker is entity");
             for(int e = 0; e < ((Ogre::Entity*)obj)->getNumSubEntities(); e++)
             {
-                ROS_ERROR("[%d][%d] mess",i,e);
+               // ROS_ERROR("[%d][%d] mess",i,e);
                 for(int t = 0; t < ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getNumTechniques(); t++)
                 {
-                    ROS_ERROR("[%d][%d][%d] mess 2",i,e,t);
+                    //ROS_ERROR("[%d][%d][%d] mess 2",i,e,t);
                     for(int p = 0; p < ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getNumPasses(); p++)
                     {
-                        ROS_ERROR("[%d][%d][%d][%d] mess 3",i,e,t,p);
+                        //ROS_ERROR("[%d][%d][%d][%d] mess 3",i,e,t,p);
                         if(((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getPass(p)->getAmbient().a < 0.95f ||
                                 ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getPass(p)->getDiffuse().a < 0.95f)//Transparent
                         {
-                            if(obj->getMovableType().compare("ManualObject") == 0)
-                                obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + 1);
-                            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + 2);
-                            ROS_ERROR("object Transparent");
+                            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + queueOffset);
+                            //ROS_ERROR("object Transparent");
                         }
                         else//template
                         {
                             obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN);
-                            ROS_ERROR("object opaque");
+                            //ROS_ERROR("object opaque");
                         }
                     }
                 }
@@ -2687,8 +2685,8 @@ void Base3DView::recursiveMess(Ogre::SceneNode* sceneNode, int queueOffset)
         }
         else if(obj->getMovableType().compare("ManualObject") == 0)
         {
-            ROS_ERROR("Manual Object");
-            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + 1);
+            //ROS_ERROR("Manual Object");
+            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + queueOffset);
         }
 
     }
@@ -2709,32 +2707,20 @@ void Base3DView::setRenderOrder()
 
         if(display_name.find("Robot") != std::string::npos)
         {
-            for(int r = 0;r<display->getSceneNode()->numAttachedObjects();r++)
-                 display->getSceneNode()->getAttachedObject(r)->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN+1);
-
-            //recursiveMess(display->getSceneNode(),0);
-            for(int i=0;i<display->getSceneNode()->numChildren();i++)
-            {
-                Ogre::SceneNode* child =(Ogre::SceneNode*) display->getSceneNode()->getChild(i);
-                for(int r = 0;r<child->numAttachedObjects();r++)
-                     child->getAttachedObject(r)->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN+1);
-
-            }
-//
+            recursiveMess(display->getSceneNode(), 1);
 
         }
         else if(display_name.find("marker") != std::string::npos)
         {
             //ROS_ERROR("markerssr");
-            ROS_ERROR("display name: %s", display_name.c_str());
+            //ROS_ERROR("display name: %s", display_name.c_str());
             recursiveMess(display->getSceneNode(), 2);
 
         }
-
-
         else //set everything else to
         {
             //recursiveMess(display->getSceneNode(),2);
+            recursiveMess(display->getSceneNode(), 3);
         }
 
     }
@@ -2751,7 +2737,7 @@ void Base3DView::setRobotOccludedRender()
    for ( ; it != end; ++it )
    {
        rviz::RobotLinkCustom* info = it->second;                     
-       info->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN+1);
+       //info->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN+1);
        M_SubEntityToMaterial materials = info->getMaterials();
        M_SubEntityToMaterial::iterator iter = materials.begin();
        M_SubEntityToMaterial::iterator ender = materials.end();
