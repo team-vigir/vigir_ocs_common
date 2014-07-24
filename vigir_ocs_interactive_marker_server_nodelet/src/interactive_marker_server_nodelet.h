@@ -43,6 +43,7 @@ namespace ocs_interactive_marker_server
         ros::Subscriber interactive_marker_server_update_sub_;
         ros::Subscriber interactive_marker_server_mode_sub_;
 
+
         std::map<std::string,InteractiveMarkerServerCustom*> marker_map_;
 
         boost::mutex interactive_marker_server_change_mutex_;
