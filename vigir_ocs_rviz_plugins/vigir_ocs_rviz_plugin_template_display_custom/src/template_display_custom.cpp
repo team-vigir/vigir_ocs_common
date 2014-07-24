@@ -314,13 +314,25 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
     // create entity for mesh and attach it to the scene node
     Ogre::Entity* lEntity = this->scene_manager_->createEntity(std::string("template ")+convert.str(), path);
     Ogre::SceneNode* lNode = this->scene_node_->createChildSceneNode();
-    lNode->attachObject(lEntity);    
+
+    //Save the the size of the template
+
+
+    //template_size_ = 0.2;
+
+    lNode->attachObject(lEntity);
     // change position and scale (from mm to m)
     lNode->setPosition(pos);
     lNode->setOrientation(quat);
+
+    //Save the the size of the template
+    template_size_ = lEntity->getBoundingBox().getSize().length() + pos.distance(lEntity->getWorldBoundingBox(true).getCenter());
+
     //lNode->scale(0.001f,0.001f,0.001f); - converting templates to use meters in mesh by default
     // The loaded mesh will be white. This is normal.
     template_node_list_.push_back(lNode);
+
+
 }
 
 void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char id, Ogre::Vector3 pos)
@@ -374,7 +386,8 @@ void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char i
     marker_server_template.name  = std::string("Template ")+boost::to_string((unsigned int)id)+std::string("\n")+template_name;
     marker_server_template.topic = template_pose_string;
     marker_server_template.frame = fixed_frame_.toUtf8().constData();
-    marker_server_template.scale = 0.2;
+    //marker_server_template.scale = 0.2;
+    marker_server_template.scale = template_size_;
     marker_server_template.point = point;
     interactive_marker_add_pub_.publish(marker_server_template);
 

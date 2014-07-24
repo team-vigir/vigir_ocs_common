@@ -359,6 +359,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
 void MainViewWidget::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
 {
+    if(msg->manipulationMode != 0 || msg->manipulationMode != 1 || msg->manipulationMode != 2)
+        return;
     controlModes = *msg;
     //update comboBox
     ui->modeBox->setCurrentIndex(controlModes.manipulationMode);

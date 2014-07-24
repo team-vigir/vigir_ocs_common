@@ -13,9 +13,7 @@ void InteractiveMarkerServerNodelet::onInit()
 
 void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr &msg)
 {
-    ROS_ERROR("Adding marker %s",msg->name.c_str());
-
-    // name, topic, frame, scale, point
+    // name, topic, frame, scale, pointOCSInteractiveMarkerAdd
     if (marker_map_.find(msg->topic) == marker_map_.end())
     {
         //ROS_INFO("Adding marker %s", msg->topic.c_str());
@@ -60,7 +58,9 @@ void InteractiveMarkerServerNodelet::setMode(const flor_ocs_msgs::OCSControlMode
     std::map<std::string,InteractiveMarkerServerCustom*>::iterator iter;
     for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
         iter->second->setMode(msg->manipulationMode);
+
 }
+
 }
 
 PLUGINLIB_DECLARE_CLASS (vigir_ocs_interactive_marker_server_nodelet, InteractiveMarkerServerNodelet, ocs_interactive_marker_server::InteractiveMarkerServerNodelet, nodelet::Nodelet);

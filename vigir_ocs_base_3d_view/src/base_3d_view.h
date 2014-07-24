@@ -57,6 +57,7 @@
 #include <flor_ocs_msgs/OCSHotkeyRelay.h>
 #include <flor_ocs_msgs/OCSObjectSelection.h>
 #include "flor_ocs_msgs/OCSCameraTransform.h"
+#include "flor_ocs_msgs/OCSControlMode.h"
 #include <flor_perception_msgs/RaycastRequest.h>
 #include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
@@ -70,7 +71,7 @@
 #include <boost/bind.hpp>
 #include <vector>
 #include <map>
-
+#define IM_MODE_OFFSET 3
 #include <stdlib.h>
 
 
@@ -240,6 +241,9 @@ Q_SIGNALS:
 
 
 protected:
+    bool shift_pressed_;
+    int interactive_marker_mode_;
+
     void updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose,double effortPercent, double boundPercent);
     int findObjectContext(std::string obj_type);
     void selectLeftArm();
@@ -270,6 +274,8 @@ protected:
 
     void selectTemplate(int id);
     void selectContextMenu();
+
+    void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
 
     void updateHandColors();
 
@@ -384,6 +390,8 @@ protected:
     ros::Publisher interactive_marker_update_pub_;
     ros::Subscriber interactive_marker_feedback_sub_;
     ros::Publisher interactive_marker_remove_pub_;
+    ros::Publisher interactive_marker_server_mode_pub_;
+    ros::Subscriber interactive_marker_server_mode_sub_;
 
     ros::Subscriber ghost_hand_left_sub_;
     ros::Subscriber ghost_hand_right_sub_;

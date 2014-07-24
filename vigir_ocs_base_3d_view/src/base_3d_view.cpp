@@ -49,6 +49,7 @@
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
 #include "flor_ocs_msgs/OCSTemplateRemove.h"
 #include "flor_ocs_msgs/OCSWaypointAdd.h"
+#include "flor_ocs_msgs/OCSControlMode.h"
 #include "flor_perception_msgs/EnvironmentRegionRequest.h"
 #include "flor_planning_msgs/TargetConfigIkRequest.h"
 #include "flor_planning_msgs/CartesianMotionRequest.h"
@@ -426,6 +427,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );;
         interactive_marker_remove_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
 
+        //Publisher/Subscriber to the IM mode
+        interactive_marker_server_mode_pub_ = nh_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1,false);
+        interactive_marker_server_mode_sub_ = nh_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1, &Base3DView::modeCB, this);
+
         // subscribe to the moveit pose topics
         end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
         end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
@@ -736,7 +741,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     //build context menu
     addBase3DContextElements();
 
-
+    //Initialize shift_pressed_ to false and set interactive_marker_mode_ to default
+    shift_pressed_ = false;
+    interactive_marker_mode_ = 0;
 
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
@@ -3271,11 +3278,41 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         stop_button_->setVisible(true);
         stop_button_->setGeometry(this->geometry().bottomRight().x()/2 - 200,this->geometry().bottomRight().y()/2 - 150,400,300);
     }
+    else if(shift_is_pressed && !shift_pressed_)
+    {
+        //Lock translation during rotation
+        flor_ocs_msgs::OCSControlMode msgMode;
+        if(interactive_marker_mode_ < IM_MODE_OFFSET)
+            msgMode.manipulationMode = interactive_marker_mode_ + IM_MODE_OFFSET;
+        else
+            msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
+        interactive_marker_server_mode_pub_.publish(msgMode);
+        shift_pressed_ = true;
+    }
     else
     {
         stop_button_->setVisible(false);
+
+        //Unclock translation during rotation
+        if(shift_pressed_)
+        {
+            flor_ocs_msgs::OCSControlMode msgMode;
+            if(interactive_marker_mode_ < IM_MODE_OFFSET)//Check if mode is 0, 1 or 2
+                msgMode.manipulationMode = interactive_marker_mode_;
+            else//means that shift is pressed
+                msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
+            interactive_marker_server_mode_pub_.publish(msgMode);
+            shift_pressed_ = false;
+        }
+
     }
 
+}
+
+void Base3DView::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
+{
+    //Update the im to current
+    interactive_marker_mode_ = msg->manipulationMode;
 }
 
 void Base3DView::processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr &msg)
