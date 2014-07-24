@@ -125,7 +125,7 @@ public:
     virtual ~Base3DView();
 
     static contextMenuItem * makeContextParent(QString name,std::vector<contextMenuItem * > &contextMenuElements);
-    static contextMenuItem * makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent,std::vector<contextMenuItem * > &contextMenuElements);
+    static contextMenuItem * makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent,std::vector<contextMenuItem * > &contextMenuElements);   
 
     void setTemplateTree(QTreeWidget * root);
     void addToContextVector(contextMenuItem* item);
@@ -221,6 +221,7 @@ public Q_SLOTS:
     void selectOnDoubleClick(int,int);
 
     virtual bool eventFilter( QObject * o, QEvent * e );
+    void setRenderOrder();
 
 Q_SIGNALS:
     void setRenderPanel( rviz::RenderPanel* );
@@ -538,9 +539,8 @@ protected:
 
     typedef std::map< std::string, rviz::RobotLinkCustom* > M_NameToLink;
     typedef std::map<Ogre::SubEntity*, Ogre::MaterialPtr> M_SubEntityToMaterial;
-    void setRobotOccludedRender();
-    void setRenderOrder();
-    void recursiveMess(Ogre::SceneNode* sceneNode, int queueOffset);
+    void setRobotOccludedRender();    
+    void setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset);
 
     MoveItOcsModel* robot_state_;
     MoveItOcsModel* ghost_robot_state_;

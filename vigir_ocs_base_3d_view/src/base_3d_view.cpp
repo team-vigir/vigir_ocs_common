@@ -56,6 +56,9 @@
 
 #include <flor_moveit_ocs_model/moveit_ocs_model.h>
 
+#include <OgreHighLevelGpuProgramManager.h>
+#include <GL/gl.h>
+
 namespace vigir_ocs
 {
 
@@ -153,7 +156,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         manager_->initialize();
         manager_->startUpdate();
 
-        // First remove all existin tools
+        // First remove all existing tools
         manager_->getToolManager()->removeAll();
         // Add support for interactive markers
         interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/InteractionToolCustom" );
@@ -636,6 +639,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         setRobotOccludedRender();
 
+        //update render order whenever objects are added/ display changed
+       // connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
+        //initialize Render Order correctly
+        setRenderOrder();
     }
 
     // Connect the 3D selection tool to
@@ -769,11 +776,9 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     // no need to spin as rviz is already doing that for us.
     //ros::spinOnce();
+    if(is_primary_view_)   
+        setRenderOrder();   
 
-
-
-    if(is_primary_view_)
-        setRenderOrder();
 }
 
 void Base3DView::processCameraTransform(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
@@ -2650,56 +2655,62 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
         snap_ghost_to_robot_ = false;
     }
 }
-void Base3DView::recursiveMess(Ogre::SceneNode* sceneNode, int queueOffset)
+
+//goes through all scene nodes and sets position in render queue based on object type
+void Base3DView::setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset)
 {
     for(int i =0;i<sceneNode->numAttachedObjects();i++)
     {
         Ogre::MovableObject* obj =  sceneNode->getAttachedObject(i);
-        obj->setRenderQueueGroupAndPriority(Ogre::RENDER_QUEUE_MAIN,100);
-        //ROS_ERROR("   Movable Type %s",obj->getMovableType().c_str());
-        if(obj->getMovableType().compare("Entity") == 0)        {
-            //ROS_ERROR("marker is entity");
+        obj->setRenderQueueGroupAndPriority(Ogre::RENDER_QUEUE_MAIN,100);        
+        if(obj->getMovableType().compare("Entity") == 0)
+        {
+            //only subentities have materials...
             for(int e = 0; e < ((Ogre::Entity*)obj)->getNumSubEntities(); e++)
-            {
-               // ROS_ERROR("[%d][%d] mess",i,e);
+            {               
+                //usually only 1 technique
                 for(int t = 0; t < ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getNumTechniques(); t++)
-                {
-                    //ROS_ERROR("[%d][%d][%d] mess 2",i,e,t);
+                {                    
                     for(int p = 0; p < ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getNumPasses(); p++)
                     {
-                        //ROS_ERROR("[%d][%d][%d][%d] mess 3",i,e,t,p);
+                        //transparent object?
                         if(((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getPass(p)->getAmbient().a < 0.95f ||
                                 ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getPass(p)->getDiffuse().a < 0.95f)//Transparent
                         {
-                            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + queueOffset);
-                            //ROS_ERROR("object Transparent");
+                            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + queueOffset);                            
                         }
-                        else//template
+                        else // opaque object
                         {
-                            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN);
-                            //ROS_ERROR("object opaque");
+                            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN);                            
                         }
                     }
                 }
             }
         }
+        //interactive markers/ other manual objects
         else if(obj->getMovableType().compare("ManualObject") == 0)
-        {
-            //ROS_ERROR("Manual Object");
+        {            
             obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + queueOffset);
         }
 
     }
     for(int i=0;i<sceneNode->numChildren();i++)
     {
-        recursiveMess(((Ogre::SceneNode*)sceneNode->getChild(i)),queueOffset);
+        //recurse for all children Scene nodes in this level
+        setSceneNodeRenderGroup(((Ogre::SceneNode*)sceneNode->getChild(i)),queueOffset);
     }
 }
 
 void Base3DView::setRenderOrder()
 {
-    int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();
-    //ROS_ERROR("  num displays: %d", num_displays);
+    /*
+      Render Queue Main |  PointClouds, opaque objects
+                    +1  |  Robot
+                    +2  |  Interactive Markers
+                    +3  |  Transparent Objects
+    **/
+    //ROS_ERROR("setting Render order");
+    int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();    
     for(int i = 0; i < num_displays; i++)
     {
         rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
@@ -2707,24 +2718,17 @@ void Base3DView::setRenderOrder()
 
         if(display_name.find("Robot") != std::string::npos)
         {
-            recursiveMess(display->getSceneNode(), 1);
-
+            setSceneNodeRenderGroup(display->getSceneNode(), 1);
         }
-        else if(display_name.find("marker") != std::string::npos)
-        {
-            //ROS_ERROR("markerssr");
-            //ROS_ERROR("display name: %s", display_name.c_str());
-            recursiveMess(display->getSceneNode(), 2);
-
-        }
+//        else if(display_name.find("marker") != std::string::npos)
+//        {
+//            setSceneNodeRenderGroup(display->getSceneNode(), 2);
+//        }
         else //set everything else to
-        {
-            //recursiveMess(display->getSceneNode(),2);
-            recursiveMess(display->getSceneNode(), 3);
+        {            
+            setSceneNodeRenderGroup(display->getSceneNode(), 3);
         }
-
     }
-
 }
 
 void Base3DView::setRobotOccludedRender()
@@ -2732,55 +2736,123 @@ void Base3DView::setRobotOccludedRender()
     M_NameToLink links = ((rviz::RobotDisplayCustom*)robot_model_)->getRobotCustom()->getLinks();
     M_NameToLink::iterator it = links.begin();
     M_NameToLink::iterator end = links.end();
-
    //iterate over all links in robot
    for ( ; it != end; ++it )
    {
-       rviz::RobotLinkCustom* info = it->second;                     
-       //info->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN+1);
+
+       //scales down model uniformly using normals
+       const char *vertex_solid_code =
+                  "void main()\n"
+                  "{\n"
+                    "vec4 tPos   = vec4(gl_Vertex + gl_Normal *-0.008, 1.0);\n"
+                    "gl_Position = gl_ModelViewProjectionMatrix * tPos;\n"
+                  "}\n";
+
+       //need to scale down robot then outline robot, must ensure that outline does not exceed scale of 1 on robot
+       const char *vertex_outline_code =                        
+               "void main(void){\n"
+                  "vec4 tPos   = vec4(gl_Vertex + gl_Normal *0, 1.0);\n"
+                  "gl_Position = gl_ModelViewProjectionMatrix * tPos;\n"
+               "}\n";
+
+       //dark gray
+       const char *fragment_outline_code =
+           "void main()\n"
+           "{\n"
+           "    gl_FragColor = vec4(0,0,0,1);\n"
+           "}\n";
+        //reddish
+       const char *fragment_solid_code =
+               "uniform float time;\n"
+        "float length2(vec2 p) { return dot(p, p); }\n"
+
+        "float noise(vec2 p){return fract(sin(fract(sin(p.x) * (4313.13311)) + p.y) * 3131.0011);}\n"
+
+        "float worley(vec2 p) {\n"
+            "float d = 1e30;\n"
+            "for (int xo = -1; xo <= 1; ++xo)\n"
+            "for (int yo = -1; yo <= 1; ++yo) {\n"
+                "vec2 tp = floor(p) + vec2(xo, yo);\n"
+                "d = min(d, length2(p - tp - vec2(noise(tp))));}\n"
+            "return 3.*exp(-4.*abs(2.*d - 1.));}\n"
+
+        "float fworley(vec2 p) {\n"
+            "return sqrt(sqrt(sqrt(\n"
+                "worley(p*32. + 4.3 + time*.125) *\n"
+                "sqrt(worley(p * 64. + 5.3 + .25 * -.0625)) *\n"
+                "sqrt(sqrt(worley(p * -128. + 7.3))))));}\n"
+
+               "void main() {\n"
+               "vec2 resolution = vec2(1920,1080);\n"
+            "vec2 uv = gl_FragCoord.xy /resolution.xy;\n"
+            "float t = fworley(uv * resolution.xy / 1800.);\n"
+            "t *= exp(-length2(abs(2.*uv - 1.)));\n"
+            "gl_FragColor = vec4(t * vec3(.1 + pow(t, 1.-t), 1.8*t, 1.8), 1.);}\n";
+
+
+
+//               "void main()\n"
+//               "{\n"
+//               "    gl_FragColor = vec4(0,0,0,1);\n"
+//               "}\n";
+
+       //create shader programs
+       Ogre::HighLevelGpuProgramPtr vp = Ogre::HighLevelGpuProgramManager::getSingleton()
+                   .createProgram("SolidVertex", "General", "glsl", Ogre::GPT_VERTEX_PROGRAM);
+       vp->setSource(vertex_solid_code);
+       vp->load();
+
+       Ogre::HighLevelGpuProgramPtr fp = Ogre::HighLevelGpuProgramManager::getSingleton()
+                   .createProgram("SolidFragment", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);      
+       fp->setSource(fragment_solid_code);
+       fp->load();
+
+       Ogre::HighLevelGpuProgramPtr vpOutline = Ogre::HighLevelGpuProgramManager::getSingleton()
+                   .createProgram("OutlineVertex", "General", "glsl", Ogre::GPT_VERTEX_PROGRAM);
+       vpOutline->setSource(vertex_outline_code);
+       vpOutline->load();
+
+       Ogre::HighLevelGpuProgramPtr fpOutline = Ogre::HighLevelGpuProgramManager::getSingleton()
+                   .createProgram("OutlineFragment", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);
+       fpOutline->setSource(fragment_outline_code);
+       fpOutline->load();      
+
+       rviz::RobotLinkCustom* info = it->second;
        M_SubEntityToMaterial materials = info->getMaterials();
        M_SubEntityToMaterial::iterator iter = materials.begin();
        M_SubEntityToMaterial::iterator ender = materials.end();
        //for all materials in this link?       
        for(;iter != ender; ++iter)
        {
-
            Ogre::MaterialPtr material =  iter->second;
+           //create outline pass
+           Ogre::Pass * outlinePass = material->getTechnique(0)->createPass();
+            //will be written all the time, but will only show up when other object/passes aren't written due to depth checking
+           //outlinePass->setPolygonMode(Ogre::PM_WIREFRAME);
+           outlinePass->setDepthCheckEnabled(false);
+           outlinePass->setDepthWriteEnabled(false);
+           outlinePass->setVertexProgram("OutlineVertex");
+           outlinePass->setFragmentProgram("OutlineFragment");           
+           material->getTechnique(0)->movePass(outlinePass->getIndex(),0);
 
-           //only one technique
-           Ogre::Pass * pass = material->getTechnique(0)->createPass();
-           double r = (double)rand() / RAND_MAX;
-           0 + r * (1 - 0);
-           double g = (double)rand() / RAND_MAX;
-           0 + g * (1 - 0);
-           double b = (double)rand() / RAND_MAX;
-           0 + b * (1 - 0);
-           pass->setAmbient(.05, .05, .05);
-           //pass->setDiffuse(0, 0, 0, 0);
-           pass->setDepthCheckEnabled(false);
-           pass->setDepthWriteEnabled(false);
+           //create pass for occluded robot
+           Ogre::Pass * occludedPass = material->getTechnique(0)->createPass();          
+           occludedPass->setDepthCheckEnabled(false);
+           occludedPass->setDepthWriteEnabled(false);
+           occludedPass->setVertexProgram("SolidVertex");
+           occludedPass->setFragmentProgram("SolidFragment");
+           material->getTechnique(0)->movePass(occludedPass->getIndex(),1);
 
-           material->getTechnique(0)->movePass(pass->getIndex(),0);
-
+//           double r = (double)rand() / RAND_MAX;
+//           0 + r * (1 - 0);
+//           double g = (double)rand() / RAND_MAX;
+//           0 + g * (1 - 0);
+//           double b = (double)rand() / RAND_MAX;
+//           0 + b * (1 - 0);
            //candy bot mode on
 //           pass->setShininess(127);
 //           pass->setLightingEnabled(true);
 //           pass->setSelfIllumination(r,g,b);
-
-
-
-//           if(material->getTechnique(0)->getNumPasses()>1)
-//           {
-//               Ogre::Pass * pass2 = material->getTechnique(0)->getPass(1);
-//               pass2->setAmbient(0, 0, 1);
-////               pass2->setShininess(127);
-////               pass2->setLightingEnabled(true);
-////               pass2->setSelfIllumination(r,g,b);
-//           }
-//           ROS_ERROR("Num Passes: %d",material->getTechnique(0)->getNumPasses());
-//           Ogre::Pass* pass2 = material->getTechnique(0)->getPass(material->getTechnique(0)->getNumPasses()-2);
-//           Ogre::Pass* pass3 = material->getTechnique(0)->createPass();
-//           pass3 = pass2;        
        }       
    }
 
@@ -2838,7 +2910,6 @@ void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr
                     it->second->setEnabled(false);
             }
         }
-
         updateJointIcons(std::string("ghost/")+states->name[i], pose, 0.0, boundPercent);
     }
 }
