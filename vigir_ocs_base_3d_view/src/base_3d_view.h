@@ -28,6 +28,7 @@
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
 #include <OGRE/OgreSceneManager.h>
+#include <OgreSubEntity.h>
 
 #include <ros/ros.h>
 
@@ -63,12 +64,16 @@
 #include <flor_control_msgs/FlorControlMode.h>
 #include <flor_ocs_msgs/OCSJoints.h>
 
+#include "robot_custom.h"
+#include "robot_link_custom.h"
 
 #include <string>
 #include <boost/bind.hpp>
 #include <vector>
 #include <map>
 #define IM_MODE_OFFSET 3
+#include <stdlib.h>
+
 
 struct contextMenuItem
 {
@@ -130,10 +135,12 @@ public:
     void processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc );
     void processLeftArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
     void processRightArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    void processPelvisEndEffector( const geometry_msgs::PoseStamped::ConstPtr &pose );
     void processLeftGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     void processRightGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     void processGhostControlState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
     void processJointStates( const sensor_msgs::JointState::ConstPtr& states );
+    void processGhostJointStates(const sensor_msgs::JointState::ConstPtr& states);
     void processPelvisResetRequest( const std_msgs::Bool::ConstPtr& msg );
     void processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg );
     void processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr& msg );
@@ -236,7 +243,7 @@ protected:
     bool shift_pressed_;
     int interactive_marker_mode_;
 
-    void updateJointIcons(const flor_ocs_msgs::OCSJoints::ConstPtr& msg);
+    void updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose,double effortPercent, double boundPercent);
     int findObjectContext(std::string obj_type);
     void selectLeftArm();
     void selectRightArm();
@@ -271,12 +278,15 @@ protected:
 
     void updateHandColors();
 
+    void updateGhostJointsCb(const std::string& name, const geometry_msgs::Pose& pose);
+
     Ogre::Camera* getCamera();
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
 
     rviz::Display* robot_model_;
+    rviz::Display* robot_model_occluded_;
     std::vector<rviz::Display*> im_ghost_robot_;
     //std::vector<InteractiveMarkerServerCustom*> im_ghost_robot_server_;
     rviz::Display* interactive_marker_template_;
@@ -497,6 +507,7 @@ protected:
     ros::Subscriber send_cartesian_sub_;
     ros::Subscriber send_ghost_pelvis_pose_sub_;
     ros::Subscriber ghost_joint_state_sub_;
+    geometry_msgs::Pose ghost_root_pose_;
 
     void insertTemplateContextMenu();
     void removeTemplateContextMenu();
@@ -531,7 +542,13 @@ protected:
     std::map<std::string,rviz::Display*> jointDisplayMap;
 
     std::vector<int> ghostJointStates;
-    void updateGhostJointsCb(const sensor_msgs::JointState::ConstPtr& msg);
+
+
+    typedef std::map< std::string, rviz::RobotLinkCustom* > M_NameToLink;
+    typedef std::map<Ogre::SubEntity*, Ogre::MaterialPtr> M_SubEntityToMaterial;
+    void setRobotOccludedRender();
+    void setRenderOrder();
+    void recursiveMess(Ogre::SceneNode* sceneNode, int queueOffset);
 
     MoveItOcsModel* robot_state_;
     MoveItOcsModel* ghost_robot_state_;

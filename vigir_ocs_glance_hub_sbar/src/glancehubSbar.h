@@ -30,7 +30,7 @@ private:
     Ui::glancehubSbar *ui;
     glancehub* ghub;
     ros::NodeHandle nh;
-    ros::Publisher mode_pub;    
+    ros::Publisher mode_pub;
     void updateBoxSelection(QString mode);
     void timerEvent(QTimerEvent *event);
     QString previousSelection;

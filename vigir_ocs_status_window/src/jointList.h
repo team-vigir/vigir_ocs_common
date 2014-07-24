@@ -28,46 +28,46 @@ class FrameManager;
 
 class jointList : public QWidget
 {
-    Q_OBJECT
-    
+   Q_OBJECT
+
 public:
-    explicit jointList(QWidget *parent = 0);
-    ~jointList();
-    void updateList( const sensor_msgs::JointState::ConstPtr& joint_states );
-    int getNumWarn();
-    int getNumError();
+   explicit jointList(QWidget *parent = 0);
+   ~jointList();
+   void updateList( const sensor_msgs::JointState::ConstPtr& joint_states );
+   int getNumWarn();
+   int getNumError();
 
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+   void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
 
-private:    
-    ros::Subscriber joint_states;
-    ros::Publisher joint_pub;
-    std::vector<QTreeWidgetItem*> joints;
-    std::vector<double> effortLimits;
-    std::vector<double> upPoseLimit;
-    std::vector<double> downPoseLimit;
-    QTreeWidget* jointTable;
-    void processRobotInfo(std::string robotInfo);
-    float warnMin;
-    float errorMin;
-    int warn;
-    int err;
-    bool jointsOkay;
+private:
+   ros::Subscriber joint_states;
+   ros::Publisher joint_pub;
+   std::vector<QTreeWidgetItem*> joints;
+   std::vector<double> effortLimits;
+   std::vector<double> upPoseLimit;
+   std::vector<double> downPoseLimit;
+   QTreeWidget* jointTable;
+   void processRobotInfo(std::string robotInfo);
+   float warnMin;
+   float errorMin;
+   int warn;
+   int err;
+   bool jointsOkay;
 
-    std::vector<int> keys_pressed_list_;
+   std::vector<int> keys_pressed_list_;
 
-    ros::NodeHandle nh_;
+   ros::NodeHandle nh_;
 
-    ros::Subscriber key_event_sub_;
+   ros::Subscriber key_event_sub_;
 
 protected:
-    void timerEvent(QTimerEvent *event);
+   void timerEvent(QTimerEvent *event);
 private:
-    QBasicTimer timer;
+   QBasicTimer timer;
 
 Q_SIGNALS:
-    void sendJointData(int,QString);
+   void sendJointData(int,QString);
 };
 
 #endif // JOINTLIST_H

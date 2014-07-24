@@ -124,6 +124,11 @@ public:
 
     bool getOnlyRenderDepth() { return only_render_depth_; }
 
+    typedef std::map<Ogre::SubEntity*, Ogre::MaterialPtr> M_SubEntityToMaterial;
+    M_SubEntityToMaterial getMaterials() const { return materials_; }
+    void setRenderQueueGroup( Ogre::uint8 group );
+    void setRenderQueueGroupAndPriority( Ogre::uint8 group,Ogre::ushort priority);
+
 public Q_SLOTS:
     /** @brief Update the visibility of the link elements: visual mesh, collision mesh, trail, and axes.
    *
@@ -136,8 +141,7 @@ private Q_SLOTS:
     void updateTrail();
     void updateAxes();
 
-private:
-    void setRenderQueueGroup( Ogre::uint8 group );
+private:    
     bool getEnabled() const;
     void createEntityForGeometryElement( const urdf::LinkConstPtr& link, const urdf::Geometry& geom, const urdf::Pose& origin, Ogre::SceneNode* scene_node, Ogre::Entity*& entity );
 
@@ -154,8 +158,10 @@ private:
 
     bool enabled_; ///< True if this link should be shown, false if not.
 
-    typedef std::map<Ogre::SubEntity*, Ogre::MaterialPtr> M_SubEntityToMaterial;
+
     M_SubEntityToMaterial materials_;
+
+
     Ogre::MaterialPtr default_material_;
     std::string default_material_name_;
 

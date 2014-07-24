@@ -96,6 +96,11 @@ RobotDisplayCustom::~RobotDisplayCustom()
     delete robot_;
 }
 
+RobotCustom* RobotDisplayCustom::getRobotCustom()
+{
+    return robot_;
+}
+
 void RobotDisplayCustom::onInitialize()
 {
     robot_ = new RobotCustom( scene_node_, context_, "Robot: " + getName().toStdString(), this );

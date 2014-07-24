@@ -14,7 +14,7 @@ glancehub::glancehub(QWidget *parent) :
 {
     ui->setupUi(this);
     ros::NodeHandle nh;
-    controlMode_sub = nh.subscribe<flor_control_msgs::FlorControlModeCommand>("/flor/controller/mode_command",5,&glancehub::controlModeMsgRcv, this);
+    controlMode_sub = nh.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode",5,&glancehub::controlModeMsgRcv, this);
     robotStatusMoveit_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/planning/upper_body/status",2,&glancehub::robotStatusMoveit,this);
     robotStatusFootstep_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/footstep_planner/status",2,&glancehub::robotStatusFootstep,this);
     timer.start(33, this);
@@ -238,7 +238,7 @@ void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPt
 
 }
 
-void glancehub::controlModeMsgRcv(const flor_control_msgs::FlorControlModeCommand::ConstPtr& msg)
+void glancehub::controlModeMsgRcv(const flor_control_msgs::FlorControlMode::ConstPtr& msg)
 {
     QString newText;
     switch(msg->behavior)
