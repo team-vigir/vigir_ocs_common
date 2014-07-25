@@ -266,10 +266,20 @@ void TemplateDisplayCustom::reset()
 void TemplateDisplayCustom::enableTemplateMarker( int i, bool enable )
 {
     ROS_ERROR("Enabling template marker %d", i);
-    if(i >= 0 && i < display_template_marker_list_.size())
+
+    for(int x = 0; x < template_id_list_.size(); x++)
     {
-        display_template_marker_list_[i]->setEnabled( enable );
+        if(template_id_list_[x] == i)
+        {
+            display_template_marker_list_[x]->setEnabled( enable );
+
+        }
     }
+
+//    if(i >= 0 && i < display_template_marker_list_.size())
+//    {
+//        display_template_marker_list_[i]->setEnabled( enable );
+//    }
 }
 
 void TemplateDisplayCustom::enableTemplateMarkers( bool enable )
@@ -449,7 +459,6 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
             template_node_list_[i]->setPosition(pos);
             template_node_list_[i]->setOrientation(quat);
             //template_marker_list_[i]->setPose(pose);
-
             flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
             cmd.topic = template_pose_pub_list_[i].getTopic();
             cmd.pose = pose;

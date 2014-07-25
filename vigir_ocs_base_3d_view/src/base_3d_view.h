@@ -350,6 +350,11 @@ protected:
     bool shift_pressed_;
     int interactive_marker_mode_;
 
+    /**
+      * Helper Function: deselects all objects in the current view
+      **/
+    void deselectAll();
+
     void updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose,double effortPercent, double boundPercent);
     int findObjectContext(std::string obj_type);
     void selectLeftArm();
@@ -392,8 +397,7 @@ protected:
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
 
-    rviz::Display* robot_model_;
-    rviz::Display* robot_model_occluded_;
+    rviz::Display* robot_model_;    
     std::vector<rviz::Display*> im_ghost_robot_;
     //std::vector<InteractiveMarkerServerCustom*> im_ghost_robot_server_;
     rviz::Display* interactive_marker_template_;
