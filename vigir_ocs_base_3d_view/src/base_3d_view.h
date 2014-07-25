@@ -102,18 +102,6 @@ class FrameManager;
 
 class MoveItOcsModel;
 
-class QLineEditSmall : public QLineEdit
-{
-    Q_OBJECT
-public:
-    QLineEditSmall( const QString & contents, QWidget* parent = 0 ) : QLineEdit(contents,parent) { size_ = QSize(-1,-1); }
-    virtual ~QLineEditSmall() {}
-    void setSizeHint(const QSize& size) { size_ = size; }
-    QSize sizeHint() const { return size_; }
-private:
-    QSize size_;
-};
-
 namespace vigir_ocs
 {
 
@@ -122,37 +110,144 @@ class Base3DView: public QWidget
 {
     Q_OBJECT
 public:
+
+    /**
+      * @param copy_from Another instance of Base3DView containing the main rviz instance
+      * @param base_frame Defines the frame in which this window will be rendered
+      * @param widget_name The name of this window
+      * @param parent Parent widget of this window
+      * Class "Main3DView" implements the RobotModel class with joint manipulation that can be added to any QT application.
+      */
     Base3DView( Base3DView* copy_from = NULL, std::string base_frame = "/pelvis", std::string widget_name = "", QWidget *parent = 0 );
     virtual ~Base3DView();
 
+    /**
+      *Helper function for the context menu: creates a sub menu
+      */
     static contextMenuItem * makeContextParent(QString name,std::vector<contextMenuItem * > &contextMenuElements);
+    /**
+      * Helper function for the context menu: creates a selectable item
+      */
     static contextMenuItem * makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent,std::vector<contextMenuItem * > &contextMenuElements);   
 
+    /**
+      * Helper function for context menu: stores template context menu structure
+      */
     void setTemplateTree(QTreeWidget * root);
+
+    /**
+      * Helper function for context menu: adds an item to context menu
+      */
     void addToContextVector(contextMenuItem* item);
+
+    /**
+      * ROS Callback: Receives occupancy map from onboard based on the slice of octomap
+      */
     void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
+
+    /**
+      * ROS Callback: Processes a new selection pose from the ui (done with ctrl click)
+      */
     void processNewSelection( const geometry_msgs::Point::ConstPtr& pose );
+
+    /**
+      * ROS Callback: Sets selection pose based on point cloud received from onboard
+      */
     void processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc );
+
+
+
+    /**
+      * ROS Callback: receives left arm end effector position from moveit
+      */
     void processLeftArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    /**
+      * ROS Callback: receives right armend effector position from moveit
+      */
     void processRightArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    /**
+      * ROS Callback: receives pelvis end effector position from moveit
+      */
     void processPelvisEndEffector( const geometry_msgs::PoseStamped::ConstPtr &pose );
+
+    /**
+      * ROS Callback: receives left hand position to show grasps
+      */
     void processLeftGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    /**
+      * ROS Callback: receives right hand position to show grasps
+      */
     void processRightGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
+
+    /**
+      * ROS Callback: receives configuration message for ghost robot
+      */
     void processGhostControlState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
+
+    /**
+      * ROS Callback: receives joint states from the robot
+      * calculates joint effort and position limits proceeds to call updateJointIcons()
+      * TODO Create helper function for calculating joint efforts
+      */
     void processJointStates( const sensor_msgs::JointState::ConstPtr& states );
+
+    /**
+      * ROS Callback: receives joint states from the ghost robot
+      * calculates joint effort and position limits proceeds to call updateJointIcons()
+      * TODO Create helper function for calculating joint efforts
+      */
     void processGhostJointStates(const sensor_msgs::JointState::ConstPtr& states);
+
+    /**
+      * ROS Callback: receives request to reset ghost robot pose to robot pose
+      */
     void processPelvisResetRequest( const std_msgs::Bool::ConstPtr& msg );
+
+    /**
+      * ROS Callback: trigger to send footstep planner request based on ghost
+      */
     void processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg );
+
+    /**
+      * ROS Callback: receives the current control mode from onboard
+      */
     void processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr& msg );
+
+    /**
+      * ROS Callback: receives configuration message for ghost robot
+      */
     void processSendCartesian( const std_msgs::Bool::ConstPtr& msg );
+
+    /**
+      * ROS Callback: receives a new pose for the ghost robot
+      */
     void processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg);
+
+    /**
+      * ROS Callback: receives a new selected object and enables interactive marker if possible
+      */
     void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg);
+    /**
+      * ROS Callback: receives current camera pose
+      */
     void processCameraTransform(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg);
 
+    /**
+      * ROS Callback: receives hotkey from secondary OCS
+      */
     virtual void processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr& msg);
+    /**
+      * ROS Callback: receives new goal pose for footstep planner
+      */
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
+    /**
+      * ROS Callback: receives new key event from global hotkey process
+      */
     virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event);
 
+    /**
+      * ROS Callback: receives interactive marker pose updates
+      */
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
     // functions needed for shared contexts
@@ -160,15 +255,22 @@ public:
     rviz::Display* getSelection3DDisplay() { return selection_3d_display_; }
     MouseEventHandler* getMouseEventHander() { return mouse_event_handler_; }
 
+    /**
+      * Changes the OGRE render mask for this window which determines which object will be rendered
+      */
     void updateRenderMask( bool );
 
     // returns name of the class that was instanced
     std::string getWidgetName() { return widget_name_; }
 
+    /**
+      * Utility method for comparing two poses with position and orientation thresholds
+      */
     static bool checkPoseMatch(const geometry_msgs::Pose& p1, const geometry_msgs::Pose& p2, float scalar_error_threshold = 0.0f, float angle_error_threshold = 0.0f);
 
 public Q_SLOTS:
     // displays
+    // Enables/disables visibility of rviz displays
     void robotModelToggled( bool );
     void graspModelToggled( bool );
     void templatesToggled( bool );
@@ -182,6 +284,7 @@ public Q_SLOTS:
     void footstepPlanningToggled( bool );
     void simulationRobotToggled( bool );
     // tools
+    // enables/disables use of rviz tools
     void cameraToggled( bool );
     void selectToggled( bool );
     void select3DToggled( bool );
@@ -190,8 +293,11 @@ public Q_SLOTS:
     virtual void defineWalkPosePressed();
     virtual void defineStepPosePressed();
 
+    // Sets position of new selection marker
     void newSelection( Ogre::Vector3 );
+    //adds new template with name
     void insertTemplate( QString );
+    //
     void templatePathChanged( QString );
     void insertWaypoint();
 

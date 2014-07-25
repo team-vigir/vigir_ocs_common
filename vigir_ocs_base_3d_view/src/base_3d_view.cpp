@@ -678,15 +678,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         sp->setMouseTracking( true );
     }
 
-//    position_widget_ = new QWidget(this);
-//    position_widget_->setStyleSheet("background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
-//    position_widget_->setMaximumHeight(18);
-//    position_label_ = new QLineEditSmall("",position_widget_);
-//    position_label_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-//    position_label_->setReadOnly(true);
-//    position_label_->setStyleSheet("background-color: rgb(0, 0, 0);font: 8pt \"MS Shell Dlg 2\";color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
-//    position_label_->setFrame(false);
-
     reset_view_button_ = new QPushButton("Center On Robot", this);
     reset_view_button_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
     reset_view_button_->setMaximumSize(100,20);
@@ -701,12 +692,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     QObject::connect(stop_button_, SIGNAL(clicked()), this, SIGNAL(emergencyStop()));
     stop_button_->setVisible(false);
 
-//    QHBoxLayout* position_layout = new QHBoxLayout();
-//    position_layout->setSpacing(0);
-//    position_layout->setMargin(0);
-//    position_layout->addWidget(reset_view_button_);
-   // position_layout->addWidget(position_label_);
-   // position_widget_->setLayout(position_layout);
     main_layout->setMargin(0);
     main_layout->setSpacing(0);
   //  main_layout->addWidget(position_widget_);
