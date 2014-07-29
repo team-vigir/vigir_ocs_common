@@ -9,7 +9,6 @@ void TemplateNodelet::onInit()
 
     // also create a publisher to set parameters of cropped image
     template_list_pub_         = nh_out.advertise<flor_ocs_msgs::OCSTemplateList>( "list", 1, false );
-    template_selected_pub_     = nh_out.advertise<flor_grasp_msgs::TemplateSelection>( "template_selected", 1, false );
     grasp_selected_pub_        = nh_out.advertise<flor_grasp_msgs::GraspSelection>( "grasp_selected", 1, false );
     grasp_selected_state_pub_  = nh_out.advertise<flor_grasp_msgs::GraspState>( "grasp_selected_state", 1, false );
 
@@ -17,7 +16,6 @@ void TemplateNodelet::onInit()
     template_add_sub_            = nh_out.subscribe<flor_ocs_msgs::OCSTemplateAdd>( "add", 1, &TemplateNodelet::addTemplateCb, this );
     template_remove_sub_         = nh_out.subscribe<flor_ocs_msgs::OCSTemplateRemove>( "remove", 1, &TemplateNodelet::removeTemplateCb, this );
     template_update_sub_         = nh_out.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( "update", 1, &TemplateNodelet::updateTemplateCb, this );
-    template_match_request_sub_  = nh_out.subscribe<flor_grasp_msgs::TemplateSelection>( "template_match_request", 1, &TemplateNodelet::templateMatchRequestCb, this );
     template_match_feedback_sub_ = nh_out.subscribe<flor_grasp_msgs::TemplateSelection>( "template_match_feedback", 1, &TemplateNodelet::templateMatchFeedbackCb, this );
     grasp_request_sub_           = nh_out.subscribe<flor_grasp_msgs::GraspSelection>( "grasp_request", 1, &TemplateNodelet::graspRequestCb, this );
     grasp_state_feedback_sub_    = nh_out.subscribe<flor_grasp_msgs::GraspState>( "grasp_state_feedback", 1, &TemplateNodelet::graspStateFeedbackCb, this );
@@ -127,26 +125,6 @@ void TemplateNodelet::graspStateFeedbackCb(const flor_grasp_msgs::GraspState::Co
     std::cout << "Grasp feedback" << std::endl;
     std::cout << "Grasp control mode" << ((msg->grasp_state.data & 0xf0) >> 4) << std::endl;
     std::cout << "Grasp control state" << (msg->grasp_state.data & 0x0f) << std::endl;
-}
-
-void TemplateNodelet::templateMatchRequestCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg)
-{
-    std::cout << "Template match request (id: " << (unsigned int)msg->template_id.data << ")" << std::endl;
-    flor_grasp_msgs::TemplateSelection cmd;
-
-    cmd.template_id.data = msg->template_id.data;
-    cmd.template_type.data = msg->template_type.data;
-    int index = 0;
-    for(; index < template_id_list_.size(); index++)
-        if(template_id_list_[index] == msg->template_id.data)
-            break;
-    cmd.com               = msg->com;
-    cmd.mass.data         = msg->mass.data;
-    cmd.confidence.data   = msg->confidence.data;
-    cmd.pose              = pose_list_[index];
-    cmd.pose.header.stamp = ros::Time::now();
-
-    template_selected_pub_.publish(cmd);
 }
 
 void TemplateNodelet::templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg)
