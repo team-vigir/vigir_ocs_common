@@ -37,8 +37,6 @@ public Q_SLOTS:
     void requestPointCloud();
     void toggleMapConfig();
     void toggleRegionConfig();
-    void hideRegionConfig();
-    void hideMapConfig();
     
 private:
     Ui::MapViewWidget *ui;
@@ -53,21 +51,17 @@ private:
     QSignalMapper* stop_mapper_;
     void closeEvent(QCloseEvent *event);
     void resizeEvent(QResizeEvent * event);
-    void moveEvent(QMoveEvent * event);
-    void timerEvent(QTimerEvent *event);
+    void moveEvent(QMoveEvent * event);    
 
     MapRegionConfigure * mapRegionConfig;
     Region3DConfigure * region3dConfig;
 
-    QPropertyAnimation* mapConfigFadeIn;
-    QPropertyAnimation* mapConfigFadeOut;
-
-    QPropertyAnimation* region3dConfigFadeIn;
-    QPropertyAnimation* region3dConfigFadeOut;
-
-    void loadButtonIcon(QPushButton* btn, QString image_name);
+    void loadButtonIconAndStyle(QPushButton* btn, QString image_name);
     void setupToolbar();
     QString icon_path_;
+
+    QMenu regionMenu;
+    QMenu mapMenu;
 
 
 };

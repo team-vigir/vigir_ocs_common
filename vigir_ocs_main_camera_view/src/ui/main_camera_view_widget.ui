@@ -237,9 +237,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-534</y>
         <width>207</width>
-        <height>1615</height>
+        <height>1663</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -763,7 +763,7 @@
           <item>
            <widget class="QCheckBox" name="simulation_robot">
             <property name="text">
-             <string>Simulation Robot</string>
+             <string>Ghost Robot</string>
             </property>
             <property name="checked">
              <bool>false</bool>
@@ -958,6 +958,26 @@ color: rgb(255, 26, 26);</string>
            <widget class="QCheckBox" name="octomap_2">
             <property name="text">
              <string>Octomap</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="robot_joint_markers">
+            <property name="text">
+             <string>Robot Joint Markers</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="robot_occlusion_rendering">
+            <property name="text">
+             <string>Robot Occlusion Rendering</string>
             </property>
             <property name="checked">
              <bool>true</bool>

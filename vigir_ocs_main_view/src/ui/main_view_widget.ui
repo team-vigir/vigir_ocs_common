@@ -977,9 +977,9 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>0</y>
+           <y>-355</y>
            <width>212</width>
-           <height>1468</height>
+           <height>1516</height>
           </rect>
          </property>
          <property name="maximumSize">
@@ -1499,6 +1499,26 @@ color: rgb(255, 26, 26);</string>
                  </widget>
                 </item>
                </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="robot_joint_markers">
+               <property name="text">
+                <string>Robot Joint Markers</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="robot_occlusion_rendering">
+               <property name="text">
+                <string>Robot Occlusion Rendering</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
             </layout>

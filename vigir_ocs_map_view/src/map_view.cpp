@@ -212,7 +212,6 @@ bool MapView::hasValidSelection()
     max_x = std::max(selected_area_[0],selected_area_[2]);
     max_y = std::max(selected_area_[1],selected_area_[3]);
 
-    ROS_ERROR("selection area %d", ((max_x-min_x)*(max_y-min_y)));
     if(((max_x-min_x)*(max_y-min_y)) < 9) // if area of selection is too small to actually be a selection (less than 9 pixels), return false
         return false;
 

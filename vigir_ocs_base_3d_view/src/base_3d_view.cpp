@@ -648,6 +648,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
        // connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
         //initialize Render Order correctly
         setRenderOrder();
+
+        disableJointMarkers = false;
     }
 
     // Connect the 3D selection tool to
@@ -939,6 +941,30 @@ void Base3DView::simulationRobotToggled( bool selected )
     {
         if(it->second->subProp("Name")->getValue().toString().contains("ghost"))
            it->second->setEnabled(selected);
+    }
+}
+
+void Base3DView::robotOcclusionToggled(bool selected)
+{
+    if (!selected && is_primary_view_)
+    {
+        disableRobotOccludedRender();
+    }
+    else if (is_primary_view_)
+    {
+        setRobotOccludedRender();
+    }
+}
+
+void Base3DView::robotJointMarkerToggled(bool selected)
+{
+    if(!selected && is_primary_view_)
+    {
+        disableJointMarkers = true;
+    }
+    else if (is_primary_view_)
+    {
+        disableJointMarkers = false;
     }
 }
 
@@ -2525,6 +2551,13 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
 
 void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose, double effortPercent, double boundPercent)
 {
+    //want to disable a marker that has already been created
+    if(disableJointMarkers && jointDisplayMap.find(name) != jointDisplayMap.end())
+    {
+        jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.0f );
+        return;
+    }
+
     //calculate error based on boundPercent- joint location relative to max or min
     int errorCode = 0;
     if(effortPercent >=.9 ) //effort error
@@ -2716,14 +2749,7 @@ void Base3DView::setRenderOrder()
     {
         rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
         std::string display_name = display->getNameStd();
-//        if(display_name.find("Robot model") != std::string::npos)
-//        {
-//            //setSceneNodeRenderGroup(display->getSceneNode(), 1);
-//        }
-        //else //set everything else
-
         setSceneNodeRenderGroup(display->getSceneNode(), 1);
-
     }
 }
 
@@ -2867,6 +2893,47 @@ void Base3DView::setRobotOccludedRender()
        }       
    }
 
+}
+
+void Base3DView::disableRobotOccludedRender()
+{
+    M_NameToLink links = ((rviz::RobotDisplayCustom*)robot_model_)->getRobotCustom()->getLinks();
+    M_NameToLink::iterator it = links.begin();
+    M_NameToLink::iterator end = links.end();
+   //iterate over all links in robot
+   for ( ; it != end; ++it )
+   {
+       rviz::RobotLinkCustom* info = it->second;
+       M_SubEntityToMaterial materials = info->getMaterials();
+       M_SubEntityToMaterial::iterator iter = materials.begin();
+       M_SubEntityToMaterial::iterator ender = materials.end();
+
+       //for all materials in this link?
+       for(;iter != ender; ++iter)
+       {
+           Ogre::MaterialPtr material =  iter->second;
+           //delete occlusion passes
+           for(int i=0;i<material->getNumTechniques();i++)
+           {
+               for(int j=0;j<material->getTechnique(i)->getNumPasses();j++)
+               {
+                   if(material->getTechnique(i)->getPass(j)->getName() == "OutlinePass")
+                   {
+                       material->getTechnique(i)->removePass(j);
+                       break;
+                   }
+               }
+               for(int j=0;j<material->getTechnique(i)->getNumPasses();j++)
+               {
+                   if( material->getTechnique(i)->getPass(j)->getName() == "OccludedPass")
+                   {
+                       material->getTechnique(i)->removePass(j);
+                       break;
+                   }
+               }
+           }
+       }
+   }
 }
 
 void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr& states)

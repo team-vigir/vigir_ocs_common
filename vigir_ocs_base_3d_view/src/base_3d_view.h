@@ -290,8 +290,11 @@ public Q_SLOTS:
     void select3DToggled( bool );
     void markerRobotToggled( bool );
     void markerTemplateToggled( bool );
+    void robotJointMarkerToggled(bool selected);
+    void robotOcclusionToggled(bool selected);
     virtual void defineWalkPosePressed();
     virtual void defineStepPosePressed();
+
 
     // Sets position of new selection marker
     void newSelection( Ogre::Vector3 );
@@ -391,6 +394,7 @@ protected:
     void updateHandColors();
 
     void updateGhostJointsCb(const std::string& name, const geometry_msgs::Pose& pose);
+
 
     Ogre::Camera* getCamera();
 
@@ -658,8 +662,10 @@ protected:
     typedef std::map< std::string, rviz::RobotLinkCustom* > M_NameToLink;
     typedef std::map<Ogre::SubEntity*, Ogre::MaterialPtr> M_SubEntityToMaterial;
     void setRobotOccludedRender();    
+    void disableRobotOccludedRender();
     void setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset);
 
+    bool disableJointMarkers;
     MoveItOcsModel* robot_state_;
     MoveItOcsModel* ghost_robot_state_;
 

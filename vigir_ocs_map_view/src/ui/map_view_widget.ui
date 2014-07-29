@@ -93,6 +93,12 @@
          </item>
          <item>
           <widget class="QWidget" name="widget_11" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
              <width>125</width>
@@ -128,7 +134,7 @@
               </property>
               <property name="maximumSize">
                <size>
-                <width>35</width>
+                <width>40</width>
                 <height>26</height>
                </size>
               </property>
@@ -154,6 +160,12 @@
             </item>
             <item>
              <widget class="QPushButton" name="request_map">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
@@ -245,7 +257,7 @@
               </property>
               <property name="maximumSize">
                <size>
-                <width>35</width>
+                <width>40</width>
                 <height>26</height>
                </size>
               </property>
@@ -293,9 +305,15 @@
             </item>
             <item>
              <widget class="QComboBox" name="point_cloud_type">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="maximumSize">
                <size>
-                <width>16777215</width>
+                <width>210</width>
                 <height>26</height>
                </size>
               </property>
@@ -537,9 +555,9 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>0</y>
+           <y>-404</y>
            <width>207</width>
-           <height>1495</height>
+           <height>1543</height>
           </rect>
          </property>
          <property name="maximumSize">
@@ -965,6 +983,26 @@ color: rgb(255, 26, 26);</string>
               <widget class="QCheckBox" name="octomap_2">
                <property name="text">
                 <string>Octomap</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="robot_joint_markers">
+               <property name="text">
+                <string>Robot Joint Markers</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="robot_occlusion_rendering">
+               <property name="text">
+                <string>Robot Occlusion Rendering</string>
                </property>
                <property name="checked">
                 <bool>true</bool>
