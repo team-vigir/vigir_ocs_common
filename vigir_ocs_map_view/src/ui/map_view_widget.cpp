@@ -262,22 +262,19 @@ void MapViewWidget::hideJoystick()
 }
 
 void MapViewWidget::requestMap()
-{ 
-    ROS_ERROR( " map valid %d",ui->map_view_->hasValidSelection());
+{   
     if(ui->map_view_->hasValidSelection())
         ui->map_view_->requestMap(mapRegionConfig->getMinHeight(),mapRegionConfig->getMaxHeight(),mapRegionConfig->getResolution());
 }
 
 void MapViewWidget::requestOctomap()
-{ 
-    ROS_ERROR( " octo valid %d",ui->map_view_->hasValidSelection());
+{    
     if(ui->map_view_->hasValidSelection())
         ui->map_view_->requestOctomap(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution());
 }
 
 void MapViewWidget::requestPointCloud()
-{  
-    ROS_ERROR( " point valid %d",ui->map_view_->hasValidSelection());
+{      
     if(ui->map_view_->hasValidSelection())
         ui->map_view_->requestPointCloud(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution(),ui->point_cloud_type->currentIndex(),region3dConfig->getAggregSize());
 }
