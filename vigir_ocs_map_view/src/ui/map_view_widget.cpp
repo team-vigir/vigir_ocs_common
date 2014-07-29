@@ -1,14 +1,16 @@
 #include "map_view_widget.h"
 #include "ui_map_view_widget.h"
 #include "ui/template_loader_widget.h"
-
 #include <rviz/displays_panel.h>
 
 MapViewWidget::MapViewWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MapViewWidget)
 {
-    ui->setupUi(this);
+    ui->setupUi(this);    
+
+    std::string ip = ros::package::getPath("vigir_ocs_map_view")+"/icons/";
+    icon_path_ = QString(ip.c_str());
 
     ui->insert_waypoint->hide();
 
@@ -77,6 +79,13 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
     this->restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
     // create docks, toolbars, etc...
     //this->restoreState(settings.value("mainWindowState").toByteArray());
+
+    //setup toolbar and necessary components
+    setupToolbar();
+
+    timer.start(100, this);
+
+
 }
 
 MapViewWidget::~MapViewWidget()
@@ -84,27 +93,162 @@ MapViewWidget::~MapViewWidget()
     delete ui;
 }
 
+void MapViewWidget::timerEvent(QTimerEvent *event)
+{
+    //set config widget positions
+    mapRegionConfig->setGeometry(ui->map_view_->mapToGlobal(ui->map_view_->geometry().topLeft()).x(),
+                                 ui->map_view_->mapToGlobal(ui->map_view_->geometry().topLeft()).y() ,
+                                 mapRegionConfig->geometry().width(),mapRegionConfig->geometry().height());
+
+    region3dConfig->setGeometry(ui->map_view_->mapToGlobal(ui->map_view_->geometry().topLeft()).x() + mapRegionConfig->geometry().width() + 10,
+                                 ui->map_view_->mapToGlobal(ui->map_view_->geometry().topLeft()).y(),
+                                 region3dConfig->geometry().width(),region3dConfig->geometry().height());
+
+}
+
+void MapViewWidget::setupToolbar()
+{
+    //connect buttons to bringup config widgets
+    connect(ui->mapConfig,SIGNAL(pressed()),this,SLOT(toggleMapConfig()));
+    connect(ui->regionConfig,SIGNAL(pressed()),this,SLOT(toggleRegionConfig()));
+
+    mapRegionConfig = new MapRegionConfigure(this);
+    region3dConfig = new Region3DConfigure(this);
+
+    //make frameless dialog widgets
+    Qt::WindowFlags flags = mapRegionConfig->windowFlags();
+    //flags |= Qt::WindowStaysOnTopHint;
+    flags |= Qt::FramelessWindowHint;
+    flags |= Qt::Dialog;
+    mapRegionConfig->setWindowFlags(flags);
+    region3dConfig->setWindowFlags(flags);
+    mapRegionConfig->hide();
+    region3dConfig->hide();
+
+    //setup animations for config widgets
+    mapConfigFadeIn = new QPropertyAnimation(mapRegionConfig, "windowOpacity");
+    mapConfigFadeIn->setEasingCurve(QEasingCurve::InOutQuad);
+    mapConfigFadeIn->setDuration(500);
+    mapConfigFadeIn->setStartValue(0.0);
+    mapConfigFadeIn->setEndValue(.95);
+
+    mapConfigFadeOut = new QPropertyAnimation(mapRegionConfig, "windowOpacity");
+    mapConfigFadeOut->setEasingCurve(QEasingCurve::InOutQuad);
+    mapConfigFadeOut->setDuration(300);
+    mapConfigFadeOut->setStartValue(0.95);
+    mapConfigFadeOut->setEndValue(0.0);
+
+    //closes when animation finishes
+    connect(mapConfigFadeOut,SIGNAL(finished()),this,SLOT(hideMapConfig()));
+
+    region3dConfigFadeIn = new QPropertyAnimation(region3dConfig, "windowOpacity");
+    region3dConfigFadeIn->setEasingCurve(QEasingCurve::InOutQuad);
+    region3dConfigFadeIn->setDuration(500);
+    region3dConfigFadeIn->setStartValue(0.0);
+    region3dConfigFadeIn->setEndValue(0.95);
+
+    region3dConfigFadeOut = new QPropertyAnimation(region3dConfig, "windowOpacity");
+    region3dConfigFadeOut->setEasingCurve(QEasingCurve::InOutQuad);
+    region3dConfigFadeOut->setDuration(300);
+    region3dConfigFadeOut->setStartValue(.95);
+    region3dConfigFadeOut->setEndValue(0.0);
+
+    connect(region3dConfigFadeOut,SIGNAL(finished()),this,SLOT(hideRegionConfig()));
+
+    //load button icons
+    loadButtonIcon(ui->regionConfig,"configIcon.png");
+    loadButtonIcon(ui->mapConfig,"configIcon.png");
+
+    //set button style
+    QString btnStyle = QString("QPushButton  { ") +
+                               " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                               " border-style: solid;" +
+                               " border-width: 1px;" +
+                               " border-radius: 1px;" +
+                               " border-color: gray;" +
+                               " padding: 0px;" +
+                               " image-position: top left"
+                               "}" +
+                               "QPushButton:checked  {" +
+                               " padding-top:1px; padding-left:1px;" +
+                               " background-color: rgb(180,180,180);" +
+                               " border-style: inset;" +
+                               "}";
+    ui->regionConfig->setStyleSheet(btnStyle);
+    ui->mapConfig->setStyleSheet(btnStyle);
+    ui->request_point_cloud->setStyleSheet(btnStyle);
+    ui->request_octomap->setStyleSheet(btnStyle);
+    ui->request_map->setStyleSheet(btnStyle);
+
+    //place arrow on combo box
+    QString comboStyle = ui->point_cloud_type->styleSheet() + "\n" +
+            "QComboBox::down-arrow {\n" +
+            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
+            "}";
+    ui->point_cloud_type->setStyleSheet(comboStyle);
+}
+
+void MapViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
+{
+    QPixmap pixmap( icon_path_+ image_name );
+    QIcon icon(pixmap);
+    btn->setIcon(icon);
+    QSize size(btn->size());
+    btn->setIconSize(size);
+}
+
+void MapViewWidget::hideMapConfig()
+{
+    mapRegionConfig->hide();
+}
+
+void MapViewWidget::hideRegionConfig()
+{
+    region3dConfig->hide();
+}
+
+void MapViewWidget::toggleMapConfig()
+{
+    if(mapRegionConfig->isVisible())
+    {
+        mapConfigFadeOut->start();
+    }
+    else
+    {
+        mapRegionConfig->show();
+        mapConfigFadeIn->start();
+    }
+}
+
+void MapViewWidget::toggleRegionConfig()
+{
+    if(region3dConfig->isVisible())
+    {
+        region3dConfigFadeOut->start();
+    }
+    else
+    {
+        region3dConfig->show();
+        region3dConfigFadeIn->start();
+    }
+}
+
 void MapViewWidget::closeEvent(QCloseEvent *event)
 {
         QSettings settings("OCS", "map_view");
-        settings.setValue("mainWindowGeometry", this->saveGeometry());
-        //settings.setValue("mainWindowState", this->saveState());
-
+        settings.setValue("mainWindowGeometry", this->saveGeometry());        
 }
 
 void MapViewWidget::resizeEvent(QResizeEvent * event)
 {
     QSettings settings("OCS", "map_view");
-    settings.setValue("mainWindowGeometry", this->saveGeometry());
-    //settings.setValue("mainWindowState", this->saveState());
-
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
 }
 
 void MapViewWidget::moveEvent(QMoveEvent * event)
 {
     QSettings settings("OCS", "map_view");
-    settings.setValue("mainWindowGeometry", this->saveGeometry());
-    //settings.setValue("mainWindowState", this->saveState());
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
 }
 
 void MapViewWidget::hideWaypointButton()
@@ -118,18 +262,24 @@ void MapViewWidget::hideJoystick()
 }
 
 void MapViewWidget::requestMap()
-{
-    ui->map_view_->requestMap(ui->map_min_z->value(),ui->map_max_z->value(),ui->map_res->value());
+{ 
+    ROS_ERROR( " map valid %d",ui->map_view_->hasValidSelection());
+    if(ui->map_view_->hasValidSelection())
+        ui->map_view_->requestMap(mapRegionConfig->getMinHeight(),mapRegionConfig->getMaxHeight(),mapRegionConfig->getResolution());
 }
 
 void MapViewWidget::requestOctomap()
-{
-    ui->map_view_->requestOctomap(ui->oct_min_z->value(),ui->oct_max_z->value(),0.05);
+{ 
+    ROS_ERROR( " octo valid %d",ui->map_view_->hasValidSelection());
+    if(ui->map_view_->hasValidSelection())
+        ui->map_view_->requestOctomap(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution());
 }
 
 void MapViewWidget::requestPointCloud()
-{
-  ui->map_view_->requestPointCloud(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->vox_res->value(),ui->point_cloud_type->currentIndex(),ui->agg_size->value());
+{  
+    ROS_ERROR( " point valid %d",ui->map_view_->hasValidSelection());
+    if(ui->map_view_->hasValidSelection())
+        ui->map_view_->requestPointCloud(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution(),ui->point_cloud_type->currentIndex(),region3dConfig->getAggregSize());
 }
 
 bool MapViewWidget::eventFilter( QObject * o, QEvent * e )
@@ -164,15 +314,15 @@ void MapViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPt
     //    requestMap();
     if(key_event->key == 11 && key_event->state && ctrl_is_pressed) // '2' - unfiltered
     {
-        if(ui->map_view_->hasValidSelection())
-            ui->map_view_->requestPointCloud(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->vox_res->value(),1,ui->agg_size->value());
+        if(ui->map_view_->hasValidSelection())                   
+            ui->map_view_->requestPointCloud(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution(),1,region3dConfig->getAggregSize());        
         else
             ui->map_view_->requestPointCloud(1);
     }
     else if(key_event->key == 12 && key_event->state && ctrl_is_pressed) // '3' - stereo
     {
-        if(ui->map_view_->hasValidSelection())
-            ui->map_view_->requestPointCloud(ui->oct_min_z->value(),ui->oct_max_z->value(),ui->vox_res->value(),2,ui->agg_size->value());
+        if(ui->map_view_->hasValidSelection())                   
+            ui->map_view_->requestPointCloud(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution(),2,region3dConfig->getAggregSize());        
         else
             ui->map_view_->requestPointCloud(2);
     }

@@ -371,26 +371,19 @@ void MainViewWidget::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
 void MainViewWidget::closeEvent(QCloseEvent *event)
 {
     QSettings settings("OCS", "main_view");
-    settings.setValue("mainWindowGeometry", this->saveGeometry());
-    //settings.setValue("mainWindowState", this->saveState());
-
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
 }
 
 void MainViewWidget::resizeEvent(QResizeEvent * event)
-{
-    ROS_ERROR("Resize Event");
+{    
     QSettings settings("OCS", "main_view");
-    settings.setValue("mainWindowGeometry", this->saveGeometry());
-    //settings.setValue("mainWindowState", this->saveState());
-
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
 }
 
 void MainViewWidget::moveEvent(QMoveEvent * event)
-{
-    ROS_ERROR("Move Event");
+{    
     QSettings settings("OCS", "main_view");
-    settings.setValue("mainWindowGeometry", this->saveGeometry());
-    //settings.setValue("mainWindowState", this->saveState());
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
 }
 
 
@@ -698,9 +691,11 @@ MainViewWidget::~MainViewWidget()
 void MainViewWidget::timerEvent(QTimerEvent *event)
 {
     grasp_toggle_button_->setGeometry(ui->view_stack_->geometry().bottomRight().x()-68,ui->view_stack_->geometry().bottom()+ 22,68,30);    
-    //ROS_ERROR("grasp button pos x:%d y:%d ",ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x()/2 - 68,ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).y()+22 );
+
     //must be global, as it is treated as dialog window
-    graspContainer->setGeometry(ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x() - graspContainer->geometry().width()/2 - ui->view_stack_->geometry().width()/2,ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).y() - graspContainer->geometry().height(), graspContainer->geometry().width(),graspContainer->geometry().height());
+    graspContainer->setGeometry(ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x() - graspContainer->geometry().width()/2 - ui->view_stack_->geometry().width()/2,
+                                ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).y() - graspContainer->geometry().height(),
+                                graspContainer->geometry().width(),graspContainer->geometry().height());
 
 }
 

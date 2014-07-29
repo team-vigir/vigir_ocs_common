@@ -260,6 +260,9 @@
          </item>
          <item>
           <widget class="Line" name="line">
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(200, 200, 200);</string>
+           </property>
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -442,6 +445,9 @@
          </item>
          <item>
           <widget class="Line" name="line_3">
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(200, 200, 200);</string>
+           </property>
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -580,6 +586,9 @@
          </item>
          <item>
           <widget class="Line" name="line_6">
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(200, 200, 200);</string>
+           </property>
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -666,6 +675,9 @@
          </item>
          <item>
           <widget class="Line" name="line_2">
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(200, 200, 200);</string>
+           </property>
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -964,7 +976,7 @@
         <widget class="QWidget" name="scrollAreaWidgetContents">
          <property name="geometry">
           <rect>
-           <x>-5</x>
+           <x>0</x>
            <y>0</y>
            <width>212</width>
            <height>1468</height>

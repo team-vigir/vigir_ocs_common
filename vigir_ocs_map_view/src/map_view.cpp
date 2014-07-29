@@ -30,7 +30,7 @@ namespace vigir_ocs
 MapView::MapView( QWidget* parent )
     : OrthoView( NULL, "/world", "MapView", parent ),
       selection_tool_enabled_( true )
-{
+{    
     // block sending left/right mouse events to rviz by default
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
@@ -212,6 +212,7 @@ bool MapView::hasValidSelection()
     max_x = std::max(selected_area_[0],selected_area_[2]);
     max_y = std::max(selected_area_[1],selected_area_[3]);
 
+    ROS_ERROR("selection area %d", ((max_x-min_x)*(max_y-min_y)));
     if(((max_x-min_x)*(max_y-min_y)) < 9) // if area of selection is too small to actually be a selection (less than 9 pixels), return false
         return false;
 

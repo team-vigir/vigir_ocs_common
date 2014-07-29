@@ -29,11 +29,15 @@ qt4_wrap_cpp(MOC_FILES_WIDGET
 qt4_wrap_cpp(MOC_FILES
   src/map_view.h
   src/ui/map_view_widget.h
+  src/ui/map_region_configure_widget.h
+  src/ui/region_3d_configure_widget.h
 )
 
 ## Here we add QtCreator ui files
 qt4_wrap_ui(UIC_FILES
   src/ui/map_view_widget.ui
+  src/ui/map_region_configure_widget.ui
+  src/ui/region_3d_configure_widget.ui
 )
 
 ## Here we specify the list of source files, including the output of
@@ -46,6 +50,8 @@ set(SOURCE_FILES_WIDGET
 
 set(SOURCE_FILES
   src/map_view.cpp
+  src/ui/region_3d_configure_widget.cpp
+  src/ui/map_region_configure_widget.cpp
   src/ui/map_view_widget.cpp
   src/main.cpp
   ${MOC_FILES}
@@ -58,10 +64,10 @@ target_link_libraries(map_view ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_dependencies(map_view ${catkin_EXPORTED_TARGETS})
 
-add_executable(map_view_widget ${SOURCE_FILES_WIDGET})
-target_link_libraries(map_view_widget ${catkin_LIBRARIES} ${QT_LIBRARIES})
+#add_executable(map_view_widget ${SOURCE_FILES_WIDGET})
+#target_link_libraries(map_view_widget ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
-add_dependencies(map_view_widget ${catkin_EXPORTED_TARGETS})
+#add_dependencies(map_view_widget ${catkin_EXPORTED_TARGETS})
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})

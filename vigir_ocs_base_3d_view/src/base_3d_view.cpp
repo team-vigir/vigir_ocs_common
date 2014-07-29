@@ -2744,9 +2744,8 @@ void Base3DView::setRobotOccludedRender()
                   "vec4 tPos   = vec4(gl_Vertex + gl_Normal *0, 1.0);\n"
                   "gl_Position = gl_ModelViewProjectionMatrix * tPos;\n"
                "}\n";
-
-       //dark gray
-       const char *fragment_outline_code =
+       //black
+       const char *fragment_outline_code =            
            "void main()\n"
            "{\n"
            "    gl_FragColor = vec4(0,0,0,1);\n"
@@ -2760,40 +2759,43 @@ void Base3DView::setRobotOccludedRender()
                     "gl_Position = gl_ModelViewProjectionMatrix * tPos;\n"
                   "}\n";
 
-        //fun shader
-       const char *fragment_solid_code =
-               "uniform float time;\n"
-        "float length2(vec2 p) { return dot(p, p); }\n"
-
-        "float noise(vec2 p){return fract(sin(fract(sin(p.x) * (4313.13311)) + p.y) * 3131.0011);}\n"
-
-        "float worley(vec2 p) {\n"
-            "float d = 1e30;\n"
-            "for (int xo = -1; xo <= 1; ++xo)\n"
-            "for (int yo = -1; yo <= 1; ++yo) {\n"
-                "vec2 tp = floor(p) + vec2(xo, yo);\n"
-                "d = min(d, length2(p - tp - vec2(noise(tp))));}\n"
-            "return 3.*exp(-4.*abs(2.*d - 1.));}\n"
-
-        "float fworley(vec2 p) {\n"
-            "return sqrt(sqrt(sqrt(\n"
-                "worley(p*32. + 4.3 + time*.125) *\n"
-                "sqrt(worley(p * 64. + 5.3 + .25 * -.0625)) *\n"
-                "sqrt(sqrt(worley(p * -128. + 7.3))))));}\n"
-
-               "void main() {\n"
-               "vec2 resolution = vec2(1920,1080);\n"
-            "vec2 uv = gl_FragCoord.xy /resolution.xy;\n"
-            "float t = fworley(uv * resolution.xy / 1800.);\n"
-            "t *= exp(-length2(abs(2.*uv - 1.)));\n"
-            "gl_FragColor = vec4(t * vec3(.1 + pow(t, 1.-t), 1.8*t, 1.8), 1.);}\n";
+       // gray
+       const char *fragment_solid_code =               
+              "void main()\n"
+              "{\n"
+              "    gl_FragColor = vec4(0.35,0.35,0.35,1);\n"
+              "}\n";
 
 
-// black
-//               "void main()\n"
-//               "{\n"
-//               "    gl_FragColor = vec4(0,0,0,1);\n"
-//               "}\n";
+       //fun testing shader
+//               "uniform float time;\n"
+//        "float length2(vec2 p) { return dot(p, p); }\n"
+
+//        "float noise(vec2 p){return fract(sin(fract(sin(p.x) * (4313.13311)) + p.y) * 3131.0011);}\n"
+
+//        "float worley(vec2 p) {\n"
+//            "float d = 1e30;\n"
+//            "for (int xo = -1; xo <= 1; ++xo)\n"
+//            "for (int yo = -1; yo <= 1; ++yo) {\n"
+//                "vec2 tp = floor(p) + vec2(xo, yo);\n"
+//                "d = min(d, length2(p - tp - vec2(noise(tp))));}\n"
+//            "return 3.*exp(-4.*abs(2.*d - 1.));}\n"
+
+//        "float fworley(vec2 p) {\n"
+//            "return sqrt(sqrt(sqrt(\n"
+//                "worley(p*32. + 4.3 + time*.125) *\n"
+//                "sqrt(worley(p * 64. + 5.3 + .25 * -.0625)) *\n"
+//                "sqrt(sqrt(worley(p * -128. + 7.3))))));}\n"
+
+//               "void main() {\n"
+//               "vec2 resolution = vec2(1920,1080);\n"
+//            "vec2 uv = gl_FragCoord.xy /resolution.xy;\n"
+//            "float t = fworley(uv * resolution.xy / 1800.);\n"
+//            "t *= exp(-length2(abs(2.*uv - 1.)));\n"
+//            "gl_FragColor = vec4(t * vec3(.1 + pow(t, 1.-t), 1.8*t, 1.8), 1.);}\n";
+
+
+
 
        //create shader programs
        Ogre::HighLevelGpuProgramPtr vp = Ogre::HighLevelGpuProgramManager::getSingleton()
@@ -2828,7 +2830,7 @@ void Base3DView::setRobotOccludedRender()
            //create outline pass
            for(int i=0;i<material->getNumTechniques();i++)
            {
-               //materials can be shared between different objects, not necessary to recreate passes
+               //materials can be shared between different objects, not necessary to recreate passes if already created
                if(material->getTechnique(i)->getPass(0)->getName() == "OutlinePass")
                    continue;
 
