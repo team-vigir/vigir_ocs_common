@@ -36,6 +36,7 @@
 #include "rviz/view_manager.h"
 #include "rviz/default_plugin/view_controllers/fixed_orientation_ortho_view_controller.h"
 #include "rviz/default_plugin/view_controllers/orbit_view_controller.h"
+#include "rviz/default_plugin/view_controllers/fps_view_controller.h"
 #include "rviz/properties/parse_color.h"
 #include "rviz/properties/vector_property.h"
 #include "rviz/properties/quaternion_property.h"
@@ -627,11 +628,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // finally the key events
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
-        hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );
-
-        // create camera subscriber so we can control the camera from outside
-        camera_transform_sub_ = nh_.subscribe<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/set_camera_transform", 5, &Base3DView::processCameraTransform, this );
-
+        hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );        
         // moveit robotstates store link/joint positions in /world
         robot_state_ = new MoveItOcsModel();
         ghost_robot_state_ = new MoveItOcsModel();
@@ -768,26 +765,12 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     // no need to spin as rviz is already doing that for us.
     //ros::spinOnce();
+
+    //Means that currently doing
+
     if(is_primary_view_)   
         setRenderOrder();   
 
-}
-
-void Base3DView::processCameraTransform(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
-{
-    Ogre::Camera* camera = this->render_panel_->getCamera();
-    Ogre::Vector3 pos;
-    pos.x = msg->pose.position.x;
-    pos.y = msg->pose.position.y;
-    pos.z = msg->pose.position.z;
-    camera->setPosition(pos);
-    Ogre::Quaternion orientation;
-    orientation.x = msg->pose.orientation.x;
-    orientation.y = msg->pose.orientation.y;
-    orientation.z = msg->pose.orientation.z;
-    orientation.w = msg->pose.orientation.w;
-    camera->setOrientation(orientation);
-    publishCameraTransform();
 }
 
 void Base3DView::publishCameraTransform()
@@ -948,7 +931,7 @@ void Base3DView::cameraToggled( bool selected )
     {
         manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
 
-        // enable robot IK markers
+        // enable robot IK widget_name_.compare("MainView") == 0markers
         for( int i = 0; i < im_ghost_robot_.size(); i++ )
         {
             im_ghost_robot_[i]->setEnabled( false );

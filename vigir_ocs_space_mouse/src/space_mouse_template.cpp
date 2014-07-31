@@ -1,4 +1,4 @@
-#include "space_mouse.h"
+#include "space_mouse_template.h"
 
 #define _USE_MATH_DEFINES
 using namespace std;
@@ -7,20 +7,20 @@ namespace vigir_ocs
 {
 
 
-SpaceMouse::SpaceMouse()//QObject* parent = 0)
+SpaceMouseTemplate::SpaceMouseTemplate()//QObject* parent = 0)
     //: QObject(parent)
 {
 
     // create publishers for visualization
 
     // get list of all templates and their poses
-    //template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>("/template/list", 5, &SpaceMouse::processTemplateList, this);
+    //template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>("/template/list", 5, &SpaceMouseTemplate::processTemplateList, this);
 
     // get object that is selected
-    //select_object_sub_ = nh_.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &SpaceMouse::processObjectSelection, this );
+    //select_object_sub_ = nh_.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &SpaceMouseTemplate::processObjectSelection, this );
 
     //Initialize the the subscriber for the joy topic
-    joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("/spacenav/joy", 10, &SpaceMouse::joyCallback, this);
+    joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("/spacenav/joy", 10, &SpaceMouseTemplate::joyCallback, this);
 
     // update template position
     template_update_pub_  = nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "/template/update", 1, false );
@@ -29,19 +29,19 @@ SpaceMouse::SpaceMouse()//QObject* parent = 0)
     recieved_pose = true;
     //cout << "SpaceMouse created";
 
-    //camera_sub_ = nh_.subscribe<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform",5,&SpaceMouse::cameraCb,this);
+    //camera_sub_ = nh_.subscribe<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform",5,&SpaceMouseTemplate::cameraCb,this);
 
     camera_pub_ = nh_.advertise<geometry_msgs::Pose>("/flor/ocs/set_camera_transform", 1, false);
     //ROS_ERROR("PRINT TEST");
 
 }
 
-SpaceMouse::~SpaceMouse()
+SpaceMouseTemplate::~SpaceMouseTemplate()
 {
 }
 
 //copy camera information and store
-void SpaceMouse::cameraCb(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
+void SpaceMouseTemplate::cameraCb(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
 {
     //ROS_ERROR("In camera cb");
     if(msg->widget_name == "MainView" && msg->view_id == 0)
@@ -63,7 +63,7 @@ void SpaceMouse::cameraCb(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg
     }
 }
 
-void SpaceMouse::processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr &list)
+void SpaceMouseTemplate::processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr &list)
 {
     //template_id_list = list->template_id_list;
 
@@ -81,7 +81,7 @@ void SpaceMouse::processTemplateList(const flor_ocs_msgs::OCSTemplateList::Const
     }
 }
 
-void SpaceMouse::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &obj)
+void SpaceMouseTemplate::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &obj)
 {
     //Get id of object that is selected
 
@@ -91,7 +91,7 @@ void SpaceMouse::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
 
 }
 
-void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
+void SpaceMouseTemplate::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
     if(recieved_pose)//Check if a template is selected
     {
@@ -131,8 +131,8 @@ void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
             relative_pose.position.y = joy->axes[2]*scale;
             relative_pose.position.z = -joy->axes[0]*scale;
 
-            relative_pose.orientation.x = joy->axes[4] * rotation_scale;
-            relative_pose.orientation.z = joy->axes[5] * rotation_scale;
+            relative_pose.orientation.x = -joy->axes[4] * rotation_scale;
+            relative_pose.orientation.z = -joy->axes[5] * rotation_scale;
             camera_pub_.publish(relative_pose);
 
 //            cout << "template updated and published" << "\n";
@@ -142,7 +142,7 @@ void SpaceMouse::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 }
 
 //This function does the transformation from current camera position to what is recieved from the spacemouse node
-geometry_msgs::PoseStamped SpaceMouse::updatePose(geometry_msgs::PoseStamped p, const sensor_msgs::Joy::ConstPtr& joy)
+geometry_msgs::PoseStamped SpaceMouseTemplate::updatePose(geometry_msgs::PoseStamped p, const sensor_msgs::Joy::ConstPtr& joy)
 {
 
     //Calculate scale
@@ -230,4 +230,67 @@ geometry_msgs::PoseStamped SpaceMouse::updatePose(geometry_msgs::PoseStamped p, 
     return p;
 }
 
+/*QQuaternion SpaceMouse::convertToQuaternion(double heading, double attitude, double bank)
+{
+    // Assuming the angles are in radians.
+    double c1 = cos(heading/2);
+    double s1 = sin(heading/2);
+    double c2 = cos(attitude/2);
+    double s2 = sin(attitude/2);
+    double c3 = cos(bank/2);
+    double s3 = sin(bank/2);
+    double c1c2 = c1*c2;
+    double s1s2 = s1*s2;
+
+    double w =c1c2*c3 - s1s2*s3;
+    double x =c1c2*s3 + s1s2*c3;
+    double y =s1*c2*c3 + c1*s2*s3;
+    double z =c1*s2*c3 - s1*c2*s3;
+
+    QQuaternion q = QQuaternion(w, x, y , z);
+
+    return q;
 }
+
+
+SpaceMouse::Vector SpaceMouse::convertToEuler(QQuaternion q1)
+{
+    double heading, attitude, bank;
+
+    double test = q1.x()*q1.y() + q1.z()*q1.scalar();
+        if (test > 0.499) { // singularity at north pole
+            heading = 2 * atan2(q1.x(),q1.scalar());
+            attitude = M_PI/2;
+            bank = 0;
+            Vector v;
+            v.x = heading;
+            v.y = attitude;
+            v.z = bank;
+            return v;
+        }
+        else if (test < -0.499) { // singularity at south pole
+            heading = -2 * atan2(q1.x(),q1.scalar());
+            attitude = - M_PI/2;
+            bank = 0;
+            Vector v;
+            v.x = heading;
+            v.y = attitude;
+            v.z = bank;
+            return v;
+        }
+        double sqx = q1.x()*q1.x()    ;
+        double sqy = q1.y()*q1.y();
+        double sqz = q1.z()*q1.z();
+        heading = atan2(2*q1.y()*q1.scalar()-2*q1.x()*q1.z() , 1 - 2*sqy - 2*sqz);
+        attitude = asin(2*test);
+        bank = atan2(2*q1.x()*q1.scalar()-2*q1.y()*q1.z() , 1 - 2*sqx - 2*sqz);
+
+        Vector v;
+        v.x = heading;
+        v.y = attitude;
+        v.z = bank;
+    return v;
+}*/
+
+}
+

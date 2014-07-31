@@ -98,6 +98,8 @@ class RenderPanelCustom;
 class VisualizationManager;
 class ViewController;
 class FrameManager;
+class OrbitViewController;
+class FPSViewController;
 }
 
 class MoveItOcsModel;
@@ -227,10 +229,6 @@ public:
       * ROS Callback: receives a new selected object and enables interactive marker if possible
       */
     void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg);
-    /**
-      * ROS Callback: receives current camera pose
-      */
-    void processCameraTransform(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg);
 
     /**
       * ROS Callback: receives hotkey from secondary OCS
@@ -396,6 +394,10 @@ protected:
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
+
+    //fps and orbit view controllers
+    rviz::OrbitViewController* orbit_view_controller_;
+    rviz::FPSViewController* fps_view_controller_;
 
     rviz::Display* robot_model_;    
     std::vector<rviz::Display*> im_ghost_robot_;

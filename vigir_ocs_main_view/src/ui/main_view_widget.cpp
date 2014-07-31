@@ -160,8 +160,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     displays_panel->setMaximumWidth(225);
     displays_panel->initialize( ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
 
-    //rviz::ViewsPanel* views_panel = new rviz::ViewsPanel(this);
-    //views_panel->setViewManager(((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()->getViewManager());
+//    rviz::ViewsPanel* views_panel = new rviz::ViewsPanel(this);
+//    views_panel->setViewManager(((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()->getViewManager());
 
     QVBoxLayout* displays_layout = new QVBoxLayout();
     displays_layout->setMargin(0);
@@ -378,7 +378,6 @@ void MainViewWidget::closeEvent(QCloseEvent *event)
 
 void MainViewWidget::resizeEvent(QResizeEvent * event)
 {
-    ROS_ERROR("Resize Event");
     QSettings settings("OCS", "main_view");
     settings.setValue("mainWindowGeometry", this->saveGeometry());
     //settings.setValue("mainWindowState", this->saveState());
@@ -387,7 +386,6 @@ void MainViewWidget::resizeEvent(QResizeEvent * event)
 
 void MainViewWidget::moveEvent(QMoveEvent * event)
 {
-    ROS_ERROR("Move Event");
     QSettings settings("OCS", "main_view");
     settings.setValue("mainWindowGeometry", this->saveGeometry());
     //settings.setValue("mainWindowState", this->saveState());
