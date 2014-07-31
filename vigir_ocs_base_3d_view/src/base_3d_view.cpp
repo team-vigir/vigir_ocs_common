@@ -28,7 +28,7 @@
 
 #include "rviz/visualization_manager.h"
 #include "rviz/visualization_frame.h"
-//#include "rviz/render_panel.h"
+
 #include <render_panel_custom.h>
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
@@ -55,11 +55,6 @@
 #include "flor_planning_msgs/TargetConfigIkRequest.h"
 #include "flor_planning_msgs/CartesianMotionRequest.h"
 #include "flor_planning_msgs/CircularMotionRequest.h"
-
-#include <flor_moveit_ocs_model/moveit_ocs_model.h>
-
-#include <OgreHighLevelGpuProgramManager.h>
-#include <GL/gl.h>
 
 namespace vigir_ocs
 {
@@ -630,8 +625,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
         hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );        
         // moveit robotstates store link/joint positions in /world
-        robot_state_ = new MoveItOcsModel();
-        ghost_robot_state_ = new MoveItOcsModel();
+//        robot_state_ = new MoveItOcsModel();
+//        ghost_robot_state_ = new MoveItOcsModel();
+
 
         //subscribe to joint states to update joint markers
         //robot_joint_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSJoints>("/flor/ocs/joint_states",5,&Base3DView::updateJointIcons, this );
@@ -645,6 +641,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
        // connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
         //initialize Render Order correctly
         setRenderOrder();
+
+        disableJointMarkers = false;
     }
 
     // Connect the 3D selection tool to
@@ -922,6 +920,33 @@ void Base3DView::simulationRobotToggled( bool selected )
     {
         if(it->second->subProp("Name")->getValue().toString().contains("ghost"))
            it->second->setEnabled(selected);
+    }
+}
+
+void Base3DView::robotOcclusionToggled(bool selected)
+{
+    if (!selected && is_primary_view_)
+    {
+        disableRobotOccludedRender();
+        //ghost state is only checked when ghost is manipulated, needs an additional call to refresh joint states
+        if(ghost_robot_model_->isEnabled())
+            processGhostJointStates(latest_ghost_joint_state_);
+    }
+    else if (is_primary_view_)
+    {
+        setRobotOccludedRender();
+    }
+}
+
+void Base3DView::robotJointMarkerToggled(bool selected)
+{
+    if(!selected && is_primary_view_)
+    {
+        disableJointMarkers = true;
+    }
+    else if (is_primary_view_)
+    {
+        disableJointMarkers = false;
     }
 }
 
@@ -1602,6 +1627,7 @@ void Base3DView::setTemplateGraspLock(int arm)
 
 void Base3DView::deselectAll()
 {
+    ROS_ERROR("disabling all markers");
     // disable all template markers
     Q_EMIT enableTemplateMarkers( false );
 
@@ -2508,6 +2534,13 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
 
 void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose, double effortPercent, double boundPercent)
 {
+    //want to disable a marker that has already been created
+    if(disableJointMarkers && jointDisplayMap.find(name) != jointDisplayMap.end())
+    {
+        jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.0f );
+        return;
+    }
+
     //calculate error based on boundPercent- joint location relative to max or min
     int errorCode = 0;
     if(effortPercent >=.9 ) //effort error
@@ -2600,14 +2633,16 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
     root_pose.header.frame_id = "/world";
     root_pose.header.stamp = ros::Time::now();
 
+    MoveItOcsModel* robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
+
     // set robotstate joint states
-    robot_state_->setJointStates(*states);
+    robot_state->setJointStates(*states);
     // and root transform
-    robot_state_->setRootTransform(root_pose);
+    robot_state->setRootTransform(root_pose);
 
     for(int i = 0; i < states->name.size(); i++)
     {
-        const moveit::core::JointModel* joint =  robot_state_->getJointModel(states->name[i]);
+        const moveit::core::JointModel* joint =  robot_state->getJointModel(states->name[i]);
         //ignore unnecessary joints
         if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
           continue;
@@ -2617,13 +2652,13 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
         //calculate joint position percentage relative to max/min limit
         const moveit::core::JointModel::Bounds& bounds = joint->getVariableBounds();
         double distance = bounds[0].max_position_ - bounds[0].min_position_;
-        double boundPercent = robot_state_->getMinDistanceToPositionBounds(joint) / distance;
+        double boundPercent = robot_state->getMinDistanceToPositionBounds(joint) / distance;
 
-        double jointEffortPercent = std::abs(states->effort[i]) / robot_state_->getJointEffortLimit(states->name[i]);
+        double jointEffortPercent = std::abs(states->effort[i]) / robot_state->getJointEffortLimit(states->name[i]);
 
         geometry_msgs::Pose pose;
         std::string link_name = ((rviz::RobotDisplayCustom*)robot_model_)->getChildLinkName(states->name[i]);
-        robot_state_->getLinkPose(link_name,pose);
+        robot_state->getLinkPose(link_name,pose);
 
         updateJointIcons(states->name[i], pose, jointEffortPercent,boundPercent);
     }
@@ -2699,14 +2734,7 @@ void Base3DView::setRenderOrder()
     {
         rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
         std::string display_name = display->getNameStd();
-//        if(display_name.find("Robot model") != std::string::npos)
-//        {
-//            //setSceneNodeRenderGroup(display->getSceneNode(), 1);
-//        }
-        //else //set everything else
-
         setSceneNodeRenderGroup(display->getSceneNode(), 1);
-
     }
 }
 
@@ -2727,9 +2755,8 @@ void Base3DView::setRobotOccludedRender()
                   "vec4 tPos   = vec4(gl_Vertex + gl_Normal *0, 1.0);\n"
                   "gl_Position = gl_ModelViewProjectionMatrix * tPos;\n"
                "}\n";
-
-       //dark gray
-       const char *fragment_outline_code =
+       //black
+       const char *fragment_outline_code =            
            "void main()\n"
            "{\n"
            "    gl_FragColor = vec4(0,0,0,1);\n"
@@ -2743,40 +2770,43 @@ void Base3DView::setRobotOccludedRender()
                     "gl_Position = gl_ModelViewProjectionMatrix * tPos;\n"
                   "}\n";
 
-        //fun shader
-       const char *fragment_solid_code =
-               "uniform float time;\n"
-        "float length2(vec2 p) { return dot(p, p); }\n"
-
-        "float noise(vec2 p){return fract(sin(fract(sin(p.x) * (4313.13311)) + p.y) * 3131.0011);}\n"
-
-        "float worley(vec2 p) {\n"
-            "float d = 1e30;\n"
-            "for (int xo = -1; xo <= 1; ++xo)\n"
-            "for (int yo = -1; yo <= 1; ++yo) {\n"
-                "vec2 tp = floor(p) + vec2(xo, yo);\n"
-                "d = min(d, length2(p - tp - vec2(noise(tp))));}\n"
-            "return 3.*exp(-4.*abs(2.*d - 1.));}\n"
-
-        "float fworley(vec2 p) {\n"
-            "return sqrt(sqrt(sqrt(\n"
-                "worley(p*32. + 4.3 + time*.125) *\n"
-                "sqrt(worley(p * 64. + 5.3 + .25 * -.0625)) *\n"
-                "sqrt(sqrt(worley(p * -128. + 7.3))))));}\n"
-
-               "void main() {\n"
-               "vec2 resolution = vec2(1920,1080);\n"
-            "vec2 uv = gl_FragCoord.xy /resolution.xy;\n"
-            "float t = fworley(uv * resolution.xy / 1800.);\n"
-            "t *= exp(-length2(abs(2.*uv - 1.)));\n"
-            "gl_FragColor = vec4(t * vec3(.1 + pow(t, 1.-t), 1.8*t, 1.8), 1.);}\n";
+       // gray
+       const char *fragment_solid_code =               
+              "void main()\n"
+              "{\n"
+              "    gl_FragColor = vec4(0.65,0.65,0.65,1);\n"
+              "}\n";
 
 
-// black
-//               "void main()\n"
-//               "{\n"
-//               "    gl_FragColor = vec4(0,0,0,1);\n"
-//               "}\n";
+       //fun testing shader
+//               "uniform float time;\n"
+//        "float length2(vec2 p) { return dot(p, p); }\n"
+
+//        "float noise(vec2 p){return fract(sin(fract(sin(p.x) * (4313.13311)) + p.y) * 3131.0011);}\n"
+
+//        "float worley(vec2 p) {\n"
+//            "float d = 1e30;\n"
+//            "for (int xo = -1; xo <= 1; ++xo)\n"
+//            "for (int yo = -1; yo <= 1; ++yo) {\n"
+//                "vec2 tp = floor(p) + vec2(xo, yo);\n"
+//                "d = min(d, length2(p - tp - vec2(noise(tp))));}\n"
+//            "return 3.*exp(-4.*abs(2.*d - 1.));}\n"
+
+//        "float fworley(vec2 p) {\n"
+//            "return sqrt(sqrt(sqrt(\n"
+//                "worley(p*32. + 4.3 + time*.125) *\n"
+//                "sqrt(worley(p * 64. + 5.3 + .25 * -.0625)) *\n"
+//                "sqrt(sqrt(worley(p * -128. + 7.3))))));}\n"
+
+//               "void main() {\n"
+//               "vec2 resolution = vec2(1920,1080);\n"
+//            "vec2 uv = gl_FragCoord.xy /resolution.xy;\n"
+//            "float t = fworley(uv * resolution.xy / 1800.);\n"
+//            "t *= exp(-length2(abs(2.*uv - 1.)));\n"
+//            "gl_FragColor = vec4(t * vec3(.1 + pow(t, 1.-t), 1.8*t, 1.8), 1.);}\n";
+
+
+
 
        //create shader programs
        Ogre::HighLevelGpuProgramPtr vp = Ogre::HighLevelGpuProgramManager::getSingleton()
@@ -2811,7 +2841,7 @@ void Base3DView::setRobotOccludedRender()
            //create outline pass
            for(int i=0;i<material->getNumTechniques();i++)
            {
-               //materials can be shared between different objects, not necessary to recreate passes
+               //materials can be shared between different objects, not necessary to recreate passes if already created
                if(material->getTechnique(i)->getPass(0)->getName() == "OutlinePass")
                    continue;
 
@@ -2823,6 +2853,7 @@ void Base3DView::setRobotOccludedRender()
                outlinePass->setVertexProgram("OutlineVertex");
                outlinePass->setFragmentProgram("OutlineFragment");
                outlinePass->setName("OutlinePass");
+               //outlinePass->setFog(true,Ogre::FOG_LINEAR);
                material->getTechnique(i)->movePass(outlinePass->getIndex(),0);
 
                //create pass for occluded robot
@@ -2850,17 +2881,63 @@ void Base3DView::setRobotOccludedRender()
 
 }
 
+void Base3DView::disableRobotOccludedRender()
+{
+    M_NameToLink links = ((rviz::RobotDisplayCustom*)robot_model_)->getRobotCustom()->getLinks();
+    M_NameToLink::iterator it = links.begin();
+    M_NameToLink::iterator end = links.end();
+   //iterate over all links in robot
+   for ( ; it != end; ++it )
+   {
+       rviz::RobotLinkCustom* info = it->second;
+       M_SubEntityToMaterial materials = info->getMaterials();
+       M_SubEntityToMaterial::iterator iter = materials.begin();
+       M_SubEntityToMaterial::iterator ender = materials.end();
+
+       //for all materials in this link?
+       for(;iter != ender; ++iter)
+       {
+           Ogre::MaterialPtr material =  iter->second;
+           //delete occlusion passes
+           for(int i=0;i<material->getNumTechniques();i++)
+           {
+               for(int j=0;j<material->getTechnique(i)->getNumPasses();j++)
+               {
+                   if(material->getTechnique(i)->getPass(j)->getName() == "OutlinePass")
+                   {
+                       material->getTechnique(i)->removePass(j);
+                       break;
+                   }
+               }
+               for(int j=0;j<material->getTechnique(i)->getNumPasses();j++)
+               {
+                   if( material->getTechnique(i)->getPass(j)->getName() == "OccludedPass")
+                   {
+                       material->getTechnique(i)->removePass(j);
+                       break;
+                   }
+               }
+           }
+       }
+   }
+}
+
 void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr& states)
 {
-    ghost_robot_state_->setJointStates(*states);
+    //store latest state for toggle updates
+    latest_ghost_joint_state_ = states;
+
+    MoveItOcsModel* ghost_robot_state = RobotStateManager::Instance()->getGhostRobotStateSingleton();
+
+    ghost_robot_state->setJointStates(*states);
 
     for(int i = 0; i < states->name.size(); i++)
     {
         //ignore finger joints on atlas ghost
-        if(states->name[i].find("f") != std::string::npos && ghost_robot_state_->getRobotName().find("atlas") != std::string::npos )
+        if(states->name[i].find("f") != std::string::npos && ghost_robot_state->getRobotName().find("atlas") != std::string::npos )
             continue;
 
-        const moveit::core::JointModel* joint =  ghost_robot_state_->getJointModel(states->name[i]);
+        const moveit::core::JointModel* joint =  ghost_robot_state->getJointModel(states->name[i]);
         //ignore unnecessary joints
         if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
           continue;
@@ -2871,12 +2948,12 @@ void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr
         //calculate joint position percentage relative to max/min limit
         const moveit::core::JointModel::Bounds& bounds = joint->getVariableBounds();
         double distance = bounds[0].max_position_ - bounds[0].min_position_;
-        double boundPercent = ghost_robot_state_->getMinDistanceToPositionBounds(joint) / distance;
+        double boundPercent = ghost_robot_state->getMinDistanceToPositionBounds(joint) / distance;
 
         geometry_msgs::Pose pose;
         std::string link_name = ((rviz::RobotDisplayCustom*)robot_model_)->getChildLinkName(states->name[i]);
 
-        ghost_robot_state_->getLinkPose(link_name,pose);
+        ghost_robot_state->getLinkPose(link_name,pose);
 
         // accumulate all the transforms for root pose
         Ogre::Vector3 rootPosition(ghost_root_pose_.position.x,ghost_root_pose_.position.y,ghost_root_pose_.position.z);

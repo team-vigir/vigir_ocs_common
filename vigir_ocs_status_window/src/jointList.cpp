@@ -231,6 +231,40 @@ int jointList::getNumWarn()
    return warn;
 }
 
+//void jointList::updateList(const sensor_msgs::JointState::ConstPtr& states )
+//{
+//    //joint states are updated in base3dview only
+//    MoveItOcsModel* robotState = RobotStateManager::Instance()->getRobotStateSingleton();
+
+//    // clear joint status messages and send Okay state
+//    Q_EMIT sendJointData(0,"");
+
+//    for(int i = 0; i < states->name.size(); i++)
+//    {
+//        const moveit::core::JointModel* joint =  robotState->getJointModel(states->name[i]);
+//        //ignore unnecessary joints
+//        if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
+//          continue;
+//        if (joint->getType() == moveit::core::JointModel::REVOLUTE)
+//          if (static_cast<const moveit::core::RevoluteJointModel*>(joint)->isContinuous())
+//            continue;
+//        //calculate joint position percentage relative to max/min limit
+//        const moveit::core::JointModel::Bounds& bounds = joint->getVariableBounds();
+//        double distance = bounds[0].max_position_ - bounds[0].min_position_;
+//        double boundPercent = robotState->getMinDistanceToPositionBounds(joint) / distance;
+
+//        double jointEffortPercent = std::abs(states->effort[i]) / robotState->getJointEffortLimit(states->name[i]);
+//        if(jointEffortPercent >=.9 ) //effort error
+//            Q_EMIT sendJointData(2,joint->getName());
+//        else if(jointEffortPercent >=.75) //effort warn
+//            Q_EMIT sendJointData(1,joint->getName());
+//        if(boundPercent <=.03) //position error
+//            Q_EMIT sendJointData(2,joint->getName());
+//        else if(boundPercent <=.1) //position warn
+//            Q_EMIT sendJointData(1,joint->getName());
+//    }
+//}
+
 void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_states )
 {
    // clear joint status messages and send Okay state
