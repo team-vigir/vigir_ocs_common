@@ -28,7 +28,7 @@
 
 #include "rviz/visualization_manager.h"
 #include "rviz/visualization_frame.h"
-//#include "rviz/render_panel.h"
+
 #include <render_panel_custom.h>
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
@@ -54,11 +54,6 @@
 #include "flor_planning_msgs/TargetConfigIkRequest.h"
 #include "flor_planning_msgs/CartesianMotionRequest.h"
 #include "flor_planning_msgs/CircularMotionRequest.h"
-
-#include <flor_moveit_ocs_model/moveit_ocs_model.h>
-
-#include <OgreHighLevelGpuProgramManager.h>
-#include <GL/gl.h>
 
 namespace vigir_ocs
 {
@@ -633,8 +628,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         camera_transform_sub_ = nh_.subscribe<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/set_camera_transform", 5, &Base3DView::processCameraTransform, this );
 
         // moveit robotstates store link/joint positions in /world
-        robot_state_ = new MoveItOcsModel();
-        ghost_robot_state_ = new MoveItOcsModel();
+//        robot_state_ = new MoveItOcsModel();
+//        ghost_robot_state_ = new MoveItOcsModel();
+
 
         //subscribe to joint states to update joint markers
         //robot_joint_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSJoints>("/flor/ocs/joint_states",5,&Base3DView::updateJointIcons, this );
@@ -949,6 +945,9 @@ void Base3DView::robotOcclusionToggled(bool selected)
     if (!selected && is_primary_view_)
     {
         disableRobotOccludedRender();
+        //ghost state is only checked when ghost is manipulated, needs an additional call to refresh joint states
+        if(ghost_robot_model_->isEnabled())
+            processGhostJointStates(latest_ghost_joint_state_);
     }
     else if (is_primary_view_)
     {
@@ -1645,6 +1644,7 @@ void Base3DView::setTemplateGraspLock(int arm)
 
 void Base3DView::deselectAll()
 {
+    ROS_ERROR("disabling all markers");
     // disable all template markers
     Q_EMIT enableTemplateMarkers( false );
 
@@ -2650,14 +2650,16 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
     root_pose.header.frame_id = "/world";
     root_pose.header.stamp = ros::Time::now();
 
+    MoveItOcsModel* robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
+
     // set robotstate joint states
-    robot_state_->setJointStates(*states);
+    robot_state->setJointStates(*states);
     // and root transform
-    robot_state_->setRootTransform(root_pose);
+    robot_state->setRootTransform(root_pose);
 
     for(int i = 0; i < states->name.size(); i++)
     {
-        const moveit::core::JointModel* joint =  robot_state_->getJointModel(states->name[i]);
+        const moveit::core::JointModel* joint =  robot_state->getJointModel(states->name[i]);
         //ignore unnecessary joints
         if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
           continue;
@@ -2667,13 +2669,13 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
         //calculate joint position percentage relative to max/min limit
         const moveit::core::JointModel::Bounds& bounds = joint->getVariableBounds();
         double distance = bounds[0].max_position_ - bounds[0].min_position_;
-        double boundPercent = robot_state_->getMinDistanceToPositionBounds(joint) / distance;
+        double boundPercent = robot_state->getMinDistanceToPositionBounds(joint) / distance;
 
-        double jointEffortPercent = std::abs(states->effort[i]) / robot_state_->getJointEffortLimit(states->name[i]);
+        double jointEffortPercent = std::abs(states->effort[i]) / robot_state->getJointEffortLimit(states->name[i]);
 
         geometry_msgs::Pose pose;
         std::string link_name = ((rviz::RobotDisplayCustom*)robot_model_)->getChildLinkName(states->name[i]);
-        robot_state_->getLinkPose(link_name,pose);
+        robot_state->getLinkPose(link_name,pose);
 
         updateJointIcons(states->name[i], pose, jointEffortPercent,boundPercent);
     }
@@ -2789,7 +2791,7 @@ void Base3DView::setRobotOccludedRender()
        const char *fragment_solid_code =               
               "void main()\n"
               "{\n"
-              "    gl_FragColor = vec4(0.35,0.35,0.35,1);\n"
+              "    gl_FragColor = vec4(0.65,0.65,0.65,1);\n"
               "}\n";
 
 
@@ -2868,6 +2870,7 @@ void Base3DView::setRobotOccludedRender()
                outlinePass->setVertexProgram("OutlineVertex");
                outlinePass->setFragmentProgram("OutlineFragment");
                outlinePass->setName("OutlinePass");
+               //outlinePass->setFog(true,Ogre::FOG_LINEAR);
                material->getTechnique(i)->movePass(outlinePass->getIndex(),0);
 
                //create pass for occluded robot
@@ -2938,15 +2941,20 @@ void Base3DView::disableRobotOccludedRender()
 
 void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr& states)
 {
-    ghost_robot_state_->setJointStates(*states);
+    //store latest state for toggle updates
+    latest_ghost_joint_state_ = states;
+
+    MoveItOcsModel* ghost_robot_state = RobotStateManager::Instance()->getGhostRobotStateSingleton();
+
+    ghost_robot_state->setJointStates(*states);
 
     for(int i = 0; i < states->name.size(); i++)
     {
         //ignore finger joints on atlas ghost
-        if(states->name[i].find("f") != std::string::npos && ghost_robot_state_->getRobotName().find("atlas") != std::string::npos )
+        if(states->name[i].find("f") != std::string::npos && ghost_robot_state->getRobotName().find("atlas") != std::string::npos )
             continue;
 
-        const moveit::core::JointModel* joint =  ghost_robot_state_->getJointModel(states->name[i]);
+        const moveit::core::JointModel* joint =  ghost_robot_state->getJointModel(states->name[i]);
         //ignore unnecessary joints
         if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
           continue;
@@ -2957,12 +2965,12 @@ void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr
         //calculate joint position percentage relative to max/min limit
         const moveit::core::JointModel::Bounds& bounds = joint->getVariableBounds();
         double distance = bounds[0].max_position_ - bounds[0].min_position_;
-        double boundPercent = ghost_robot_state_->getMinDistanceToPositionBounds(joint) / distance;
+        double boundPercent = ghost_robot_state->getMinDistanceToPositionBounds(joint) / distance;
 
         geometry_msgs::Pose pose;
         std::string link_name = ((rviz::RobotDisplayCustom*)robot_model_)->getChildLinkName(states->name[i]);
 
-        ghost_robot_state_->getLinkPose(link_name,pose);
+        ghost_robot_state->getLinkPose(link_name,pose);
 
         // accumulate all the transforms for root pose
         Ogre::Vector3 rootPosition(ghost_root_pose_.position.x,ghost_root_pose_.position.y,ghost_root_pose_.position.z);

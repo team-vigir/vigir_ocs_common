@@ -29,6 +29,7 @@
 #include <OGRE/OgreRay.h>
 #include <OGRE/OgreSceneManager.h>
 #include <OgreSubEntity.h>
+#include <OgreHighLevelGpuProgramManager.h>
 
 #include <ros/ros.h>
 
@@ -44,10 +45,10 @@
 
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/DisplayRobotState.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/robot_state/conversions.h>
+//#include <moveit/robot_model_loader/robot_model_loader.h>
+//#include <moveit/robot_model/robot_model.h>
+//#include <moveit/robot_state/robot_state.h>
+//#include <moveit/robot_state/conversions.h>
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
 #include <flor_ocs_msgs/OCSGhostControl.h>
@@ -74,6 +75,7 @@
 #define IM_MODE_OFFSET 3
 #include <stdlib.h>
 
+#include "robot_state_manager.h"
 
 struct contextMenuItem
 {
@@ -100,7 +102,7 @@ class ViewController;
 class FrameManager;
 }
 
-class MoveItOcsModel;
+//class MoveItOcsModel;
 
 namespace vigir_ocs
 {
@@ -666,8 +668,7 @@ protected:
     void setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset);
 
     bool disableJointMarkers;
-    MoveItOcsModel* robot_state_;
-    MoveItOcsModel* ghost_robot_state_;
+    sensor_msgs::JointState::ConstPtr latest_ghost_joint_state_;
 
 };
 }
