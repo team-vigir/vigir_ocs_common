@@ -9,6 +9,7 @@ joint_limit::joint_limit(QWidget *parent) :
     ui(new Ui::joint_limit)
 {
     ui->setupUi(this);
+
     constraints_pub_ = nh_.advertise<flor_planning_msgs::PlannerConfiguration>( "/flor/planning/upper_body/configuration",1,false);
     lbzMinVal = -0.610865;
     lbzMaxVal = 0.610865;
@@ -21,13 +22,49 @@ joint_limit::joint_limit(QWidget *parent) :
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &joint_limit::processNewKeyEvent, this );
 
     window_control_sub = nh_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &joint_limit::processWindowControl, this );
+    window_control_pub = nh_.advertise<std_msgs::Int8>("/flor/ocs/window_control", 1, false);
 
     timer.start(33, this);
+
+    //Restore State
+    //this->show();
+    QSettings settings("OCS", "joint_limit");
+    this->restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+    this->geometry_ = this->geometry();
+    // create docks, toolbars, etc...
+    //this->restoreState(settings.value("mainWindowState").toByteArray());
 }
 
 joint_limit::~joint_limit()
 {
     delete ui;
+}
+
+void joint_limit::closeEvent(QCloseEvent * event)
+{
+    QSettings settings("OCS", "joint_limit");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+    std_msgs::Int8 msg;
+    msg.data = -WINDOW_PLANNER_CONFIG;
+    window_control_pub.publish(msg);
+    event->ignore();
+}
+
+void joint_limit::resizeEvent(QResizeEvent * event)
+{
+    QSettings settings("OCS", "joint_limit");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
+}
+
+void joint_limit::moveEvent(QMoveEvent * event)
+{
+    QSettings settings("OCS", "joint_limit");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
 }
 void joint_limit::on_lbzMin_sliderReleased()
 {

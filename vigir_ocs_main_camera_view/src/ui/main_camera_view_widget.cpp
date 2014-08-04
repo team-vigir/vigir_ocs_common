@@ -96,6 +96,8 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
             QObject::connect(ui->template_widget, SIGNAL(templatePathChanged(QString)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(templatePathChanged(QString)));
             QObject::connect(ui->templates, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(templatesToggled(bool)));
             QObject::connect(ui->widget_tool, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(markerRobotToggled(bool)));
+            QObject::connect(ui->robot_joint_markers,SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(robotJointMarkerToggled(bool)));
+            QObject::connect(ui->robot_occlusion_rendering,SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(robotOcclusionToggled(bool)));
         }
         else
         {
@@ -196,11 +198,41 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     //connect all buttons for mouse presses
     connect(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),SIGNAL(emergencyStop()),stop_mapper_,SLOT(map()));
+
+    //Restore State
+    QSettings settings("OCS", "camera_view");
+    this->restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+    // create docks, toolbars, etc...
+    //this->restoreState(settings.value("mainWindowState").toByteArray());
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()
 {
     delete ui;
+}
+
+void MainCameraViewWidget::closeEvent(QCloseEvent *event)
+{
+        QSettings settings("OCS", "camera_view");
+        settings.setValue("mainWindowGeometry", this->saveGeometry());
+        //settings.setValue("mainWindowState", this->saveState());
+
+}
+
+void MainCameraViewWidget::resizeEvent(QResizeEvent * event)
+{
+    QSettings settings("OCS", "camera_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
+}
+
+void MainCameraViewWidget::moveEvent(QMoveEvent * event)
+{
+    QSettings settings("OCS", "camera_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
 }
 
 void MainCameraViewWidget::addContextMenu()

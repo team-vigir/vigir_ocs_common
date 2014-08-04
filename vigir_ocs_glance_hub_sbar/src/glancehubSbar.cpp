@@ -39,7 +39,7 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     ui->modeBox->view()->setFixedWidth(130);
 
     //setup publisher to change modes
-    mode_pub = nh.advertise<flor_control_msgs::FlorControlModeCommand>("/flor/controller/mode_command", 5, false);
+    mode_pub = nh.advertise<flor_control_msgs::FlorControlModeCommand>("/flor/controller/mode_command", 5, false);   
 
     ui->plannerLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
     ui->footstepLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
@@ -212,8 +212,7 @@ void glancehubSbar::receiveFootstepStatus(int status)
 }
 
 void glancehubSbar::receiveFlorStatus(int status)
-{
-    ROS_ERROR("RECEIVEING MODES");
+{    
     QString newText;
     switch(status)
     {

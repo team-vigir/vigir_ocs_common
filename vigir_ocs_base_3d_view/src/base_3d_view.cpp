@@ -28,7 +28,7 @@
 
 #include "rviz/visualization_manager.h"
 #include "rviz/visualization_frame.h"
-//#include "rviz/render_panel.h"
+
 #include <render_panel_custom.h>
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
@@ -36,9 +36,13 @@
 #include "rviz/view_manager.h"
 #include "rviz/default_plugin/view_controllers/fixed_orientation_ortho_view_controller.h"
 #include "rviz/default_plugin/view_controllers/orbit_view_controller.h"
+#include "rviz/default_plugin/view_controllers/fps_view_controller.h"
 #include "rviz/properties/parse_color.h"
 #include "rviz/properties/vector_property.h"
+#include "rviz/properties/quaternion_property.h"
+#include "rviz/display_group.h"
 #include <template_display_custom.h>
+#include "robot_display_custom.h"
 #include "selection_3d_display_custom.h"
 #include "map_display_custom.h"
 #include "base_3d_view.h"
@@ -46,6 +50,7 @@
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
 #include "flor_ocs_msgs/OCSTemplateRemove.h"
 #include "flor_ocs_msgs/OCSWaypointAdd.h"
+#include "flor_ocs_msgs/OCSControlMode.h"
 #include "flor_perception_msgs/EnvironmentRegionRequest.h"
 #include "flor_planning_msgs/TargetConfigIkRequest.h"
 #include "flor_planning_msgs/CartesianMotionRequest.h"
@@ -148,7 +153,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         manager_->initialize();
         manager_->startUpdate();
 
-        // First remove all existin tools
+        // First remove all existing tools
         manager_->getToolManager()->removeAll();
         // Add support for interactive markers
         interactive_markers_tool_ = manager_->getToolManager()->addTool( "rviz/InteractionToolCustom" );
@@ -418,9 +423,14 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );;
         interactive_marker_remove_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
 
+        //Publisher/Subscriber to the IM mode
+        interactive_marker_server_mode_pub_ = nh_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1,false);
+        interactive_marker_server_mode_sub_ = nh_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1, &Base3DView::modeCB, this);
+
         // subscribe to the moveit pose topics
         end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
         end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
+        end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/robot", 5, &Base3DView::processPelvisEndEffector, this ));
 
         end_effector_pub_ = nh_.advertise<flor_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 5, false );
 
@@ -459,6 +469,12 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
         robot_model_->subProp( "Color" )->setValue( QColor( 200, 200, 200 ) );
         robot_model_->subProp( "Alpha" )->setValue( 1.0f );
+
+        // Create an occluded RobotModel display.
+//        robot_model_occluded_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot occluded model", true );
+//        robot_model_occluded_->subProp( "Color" )->setValue( QColor( 200, 200, 200 ) );
+//        robot_model_occluded_->subProp( "Alpha" )->setValue( 1.0f );
+
 
         // ground map middle man
         //ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
@@ -499,15 +515,15 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // add bounding boxes for the left/right/pelvis markers
         rviz::Display* left_hand_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for left hand", true );
-        left_hand_bounding_box_->subProp( "Name" )->setValue( "LeftArm" );
+        left_hand_bounding_box_->subProp( "Name" )->setValue( "LeftArm" );        
         left_hand_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/l_arm_marker_pose" );
         left_hand_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
         rviz::Display* right_hand_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for right hand", true );
-        right_hand_bounding_box_->subProp( "Name" )->setValue( "RightArm" );
+        right_hand_bounding_box_->subProp( "Name" )->setValue( "RightArm" );        
         right_hand_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/r_arm_marker_pose" );
         right_hand_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
         rviz::Display* pelvis_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for pelvis", true );
-        pelvis_bounding_box_->subProp( "Name" )->setValue( "Pelvis" );
+        pelvis_bounding_box_->subProp( "Name" )->setValue( "Pelvis" );        
         pelvis_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/pelvis_marker_pose" );
         pelvis_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
         ((rviz::VectorProperty*)pelvis_bounding_box_->subProp( "Scale" ))->setVector( Ogre::Vector3(0.005f,0.005f,0.005f) );
@@ -607,12 +623,26 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // finally the key events
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
-        hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );
+        hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );        
+        // moveit robotstates store link/joint positions in /world
+//        robot_state_ = new MoveItOcsModel();
+//        ghost_robot_state_ = new MoveItOcsModel();
 
-        // create camera subscriber so we can control the camera from outside
-        camera_transform_sub_ = nh_.subscribe<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/set_camera_transform", 5, &Base3DView::processCameraTransform, this );
 
+        //subscribe to joint states to update joint markers
+        //robot_joint_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSJoints>("/flor/ocs/joint_states",5,&Base3DView::updateJointIcons, this );
 
+        //sub to ghost joint states
+        ghost_joint_state_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/flor/ghost/get_joint_states", 5, &Base3DView::processGhostJointStates, this );
+
+        setRobotOccludedRender();
+
+        //update render order whenever objects are added/ display changed
+       // connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
+        //initialize Render Order correctly
+        setRenderOrder();
+
+        disableJointMarkers = false;
     }
 
     // Connect the 3D selection tool to
@@ -643,15 +673,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         sp->setMouseTracking( true );
     }
 
-//    position_widget_ = new QWidget(this);
-//    position_widget_->setStyleSheet("background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
-//    position_widget_->setMaximumHeight(18);
-//    position_label_ = new QLineEditSmall("",position_widget_);
-//    position_label_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-//    position_label_->setReadOnly(true);
-//    position_label_->setStyleSheet("background-color: rgb(0, 0, 0);font: 8pt \"MS Shell Dlg 2\";color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
-//    position_label_->setFrame(false);
-
     reset_view_button_ = new QPushButton("Center On Robot", this);
     reset_view_button_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
     reset_view_button_->setMaximumSize(100,20);
@@ -666,12 +687,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     QObject::connect(stop_button_, SIGNAL(clicked()), this, SIGNAL(emergencyStop()));
     stop_button_->setVisible(false);
 
-//    QHBoxLayout* position_layout = new QHBoxLayout();
-//    position_layout->setSpacing(0);
-//    position_layout->setMargin(0);
-//    position_layout->addWidget(reset_view_button_);
-   // position_layout->addWidget(position_label_);
-   // position_widget_->setLayout(position_layout);
     main_layout->setMargin(0);
     main_layout->setSpacing(0);
   //  main_layout->addWidget(position_widget_);
@@ -705,6 +720,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
     //build context menu
     addBase3DContextElements();
+
+    //Initialize shift_pressed_ to false and set interactive_marker_mode_ to default
+    shift_pressed_ = false;
+    interactive_marker_mode_ = 0;
 
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
@@ -744,23 +763,12 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     // no need to spin as rviz is already doing that for us.
     //ros::spinOnce();
-}
 
-void Base3DView::processCameraTransform(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
-{
-    Ogre::Camera* camera = this->render_panel_->getCamera();
-    Ogre::Vector3 pos;
-    pos.x = msg->pose.position.x;
-    pos.y = msg->pose.position.y;
-    pos.z = msg->pose.position.z;
-    camera->setPosition(pos);
-    Ogre::Quaternion orientation;
-    orientation.x = msg->pose.orientation.x;
-    orientation.y = msg->pose.orientation.y;
-    orientation.z = msg->pose.orientation.z;
-    orientation.w = msg->pose.orientation.w;
-    camera->setOrientation(orientation);
-    publishCameraTransform();
+    //Means that currently doing
+
+    if(is_primary_view_)   
+        setRenderOrder();   
+
 }
 
 void Base3DView::publishCameraTransform()
@@ -801,6 +809,7 @@ void Base3DView::publishCameraTransform()
     cmd.pose.orientation.y = orientation.y;
     cmd.pose.orientation.z = orientation.z;
     cmd.pose.orientation.w = orientation.w;
+    cmd.vfov = camera->getFOVy().valueDegrees();
     camera_transform_pub_.publish(cmd);
 }
 
@@ -812,6 +821,7 @@ void Base3DView::updateRenderMask( bool mask )
 void Base3DView::robotModelToggled( bool selected )
 {
     robot_model_->setEnabled( selected );
+    //robot_model_occluded_->setEnabled( selected );
 }
 
 void Base3DView::graspModelToggled( bool selected )
@@ -905,6 +915,40 @@ void Base3DView::simulationRobotToggled( bool selected )
     }
 
     ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
+
+    //hide/show ghost joint Warning icons on ghost robot toggle
+    for (std::map<std::string,rviz::Display*>::iterator it=jointDisplayMap.begin(); it!=jointDisplayMap.end(); ++it)
+    {
+        if(it->second->subProp("Name")->getValue().toString().contains("ghost"))
+           it->second->setEnabled(selected);
+    }
+}
+
+void Base3DView::robotOcclusionToggled(bool selected)
+{
+    if (!selected && is_primary_view_)
+    {
+        disableRobotOccludedRender();
+        //ghost state is only checked when ghost is manipulated, needs an additional call to refresh joint states
+        if(ghost_robot_model_->isEnabled())
+            processGhostJointStates(latest_ghost_joint_state_);
+    }
+    else if (is_primary_view_)
+    {
+        setRobotOccludedRender();
+    }
+}
+
+void Base3DView::robotJointMarkerToggled(bool selected)
+{
+    if(!selected && is_primary_view_)
+    {
+        disableJointMarkers = true;
+    }
+    else if (is_primary_view_)
+    {
+        disableJointMarkers = false;
+    }
 }
 
 void Base3DView::cameraToggled( bool selected )
@@ -913,7 +957,7 @@ void Base3DView::cameraToggled( bool selected )
     {
         manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
 
-        // enable robot IK markers
+        // enable robot IK widget_name_.compare("MainView") == 0markers
         for( int i = 0; i < im_ghost_robot_.size(); i++ )
         {
             im_ghost_robot_[i]->setEnabled( false );
@@ -1188,6 +1232,9 @@ void Base3DView::setTemplateTree(QTreeWidget * root)
 
 void Base3DView::addBase3DContextElements()
 {
+    //creates all menu items for context menu in a base view, visibility is set on create
+
+    //seperator item can be added to vector to create a seperator in context menu
     contextMenuItem * separator = new contextMenuItem();
     separator->name = "Separator";
 
@@ -1298,6 +1345,9 @@ void Base3DView::selectOnDoubleClick(int x, int y)
         selectRightArm();
     else if(active_context_name_.find("template") != std::string::npos)
         selectContextMenu();
+    else //deselect if no valid object is over mouse
+        deselectAll();
+
 }
 
 
@@ -1324,6 +1374,8 @@ void Base3DView::createContextMenu(bool, int x, int y)
     //context_menu_.addAction("Insert Template");
 
     ROS_ERROR("CONTEXT: %s",active_context_name_.c_str());
+
+    //toggle visibility of context items for a base view
 
     //arms selection
     if(active_context_name_.find("LeftArm") != std::string::npos)
@@ -1574,14 +1626,20 @@ void Base3DView::setTemplateGraspLock(int arm)
 
 }
 
-void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
+void Base3DView::deselectAll()
 {
+    ROS_ERROR("disabling all markers");
     // disable all template markers
     Q_EMIT enableTemplateMarkers( false );
 
     // disable all robot IK markers
     for( int i = 0; i < im_ghost_robot_.size(); i++ )
         im_ghost_robot_[i]->setEnabled( false );
+}
+
+void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
+{
+    deselectAll();
 
     // enable loopback for both arms
     left_marker_moveit_loopback_ = true;
@@ -1906,6 +1964,11 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
     updateHandColors();
 }
 
+void Base3DView::processPelvisEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
+{
+    ghost_root_pose_ = pose->pose;
+}
+
 int staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform hand_T_palm)
 {
     tf::Transform o_T_hand;    //describes hand in object's frame
@@ -2200,7 +2263,7 @@ bool Base3DView::checkPoseMatch(const geometry_msgs::Pose& p1, const geometry_ms
     if(diff_position > scalar_error_threshold)
         return false;
 
-    // then we check the angle difference
+    // then we check the angle differeboundPercentnce
     Ogre::Quaternion p1_o(p1.orientation.w,p1.orientation.x,p1.orientation.y,p1.orientation.z);
     Ogre::Quaternion p2_o(p2.orientation.w,p2.orientation.x,p2.orientation.y,p2.orientation.z);
 
@@ -2470,39 +2533,455 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
     position_only_ik_ = msg->position_only_ik;
 }
 
+void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose, double effortPercent, double boundPercent)
+{
+    //want to disable a marker that has already been created
+    if(disableJointMarkers && jointDisplayMap.find(name) != jointDisplayMap.end())
+    {
+        jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.0f );
+        return;
+    }
+
+    //calculate error based on boundPercent- joint location relative to max or min
+    int errorCode = 0;
+    if(effortPercent >=.9 ) //effort error
+        errorCode = 1;
+    else if(effortPercent >=.75) //effort warn
+        errorCode = 2;
+    else if(boundPercent <=.03) //position error
+        errorCode = 3;
+    else if(boundPercent <=.1) //position warn
+        errorCode = 4;
+
+    if(errorCode != 0)
+    {
+        //only create joints bounding boxes if they haven't been created and on error
+        if(jointDisplayMap.find(name) == jointDisplayMap.end())
+        {
+            //align bounding boxes to correct axis based on joint name
+            float x = 0.0023;
+            float y = 0.0023;
+            float z = 0.0023;
+            QString str(name.c_str());
+            str = str.mid(str.length() - 1, 1); //last char
+            if(str == "x")
+                x = 0.0003f;
+            else if(str == "y")
+                y = 0.0003f;
+            else
+                z = 0.0003f;
+            //create bounding box
+            jointDisplayMap[name] = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", (name + "_WarningIcon").c_str(), true );
+            jointDisplayMap[name]->subProp( "Name" )->setValue( name.c_str() );
+            jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.5f );
+            jointDisplayMap[name]->subProp( "Color" )->setValue( QColor( 0, 255, 0 ) );
+            ((rviz::VectorProperty*)jointDisplayMap[name]->subProp( "Scale" ))->setVector( Ogre::Vector3(x, y, z) );
+        }
+
+        Ogre::Vector3 jointPosition(pose.position.x,pose.position.y,pose.position.z);
+        Ogre::Quaternion jointRotation(pose.orientation.w,pose.orientation.x,pose.orientation.y,pose.orientation.z);
+        ((rviz::VectorProperty*)jointDisplayMap[name]->subProp("Position"))->setVector(jointPosition);
+        ((rviz::QuaternionProperty*)jointDisplayMap[name]->subProp("Rotation"))->setQuaternion(jointRotation);
+
+        if(errorCode == 1)
+        {
+            //red
+            jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.5f );
+            jointDisplayMap[name]->subProp("Color")->setValue( QColor( 255, 0, 0 ) );
+        }
+        else if(errorCode == 2)
+        {
+            //orange
+            jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.5f );
+            jointDisplayMap[name]->subProp("Color")->setValue( QColor( 255, 127, 0 ) );
+        }
+        else if(errorCode == 3)
+        {
+            //yellow
+            jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.5f );
+            jointDisplayMap[name]->subProp("Color")->setValue( QColor( 255, 255, 0 ) );
+        }
+        else if(errorCode == 4)
+        {
+            //yellowish
+            jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.5f );
+            jointDisplayMap[name]->subProp("Color")->setValue( QColor( 127, 255, 0 ) );
+        }
+    }
+    else if (jointDisplayMap.find(name) != jointDisplayMap.end())
+    {
+        //make invisible
+        jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.0f );
+    }
+
+}
+
 void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &states)
 {
+    // get pelvis pose
+    Ogre::Vector3 position(0,0,0);
+    Ogre::Quaternion orientation(1,0,0,0);
+    transform(position, orientation, "/pelvis", "/world");
+
+    geometry_msgs::PoseStamped root_pose;
+    root_pose.pose.position.x = position.x;
+    root_pose.pose.position.y = position.y;
+    root_pose.pose.position.z = position.z;
+    root_pose.pose.orientation.x = orientation.x;
+    root_pose.pose.orientation.y = orientation.y;
+    root_pose.pose.orientation.z = orientation.z;
+    root_pose.pose.orientation.w = orientation.w;
+    root_pose.header.frame_id = "/world";
+    root_pose.header.stamp = ros::Time::now();
+
+    MoveItOcsModel* robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
+
+    // set robotstate joint states
+    robot_state->setJointStates(*states);
+    // and root transform
+    robot_state->setRootTransform(root_pose);
+
+    for(int i = 0; i < states->name.size(); i++)
+    {
+        const moveit::core::JointModel* joint =  robot_state->getJointModel(states->name[i]);
+        //ignore unnecessary joints
+        if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
+          continue;
+        if (joint->getType() == moveit::core::JointModel::REVOLUTE)
+          if (static_cast<const moveit::core::RevoluteJointModel*>(joint)->isContinuous())
+            continue;
+        //calculate joint position percentage relative to max/min limit
+        const moveit::core::JointModel::Bounds& bounds = joint->getVariableBounds();
+        double distance = bounds[0].max_position_ - bounds[0].min_position_;
+        double boundPercent = robot_state->getMinDistanceToPositionBounds(joint) / distance;
+
+        double jointEffortPercent = std::abs(states->effort[i]) / robot_state->getJointEffortLimit(states->name[i]);
+
+        geometry_msgs::Pose pose;
+        std::string link_name = ((rviz::RobotDisplayCustom*)robot_model_)->getChildLinkName(states->name[i]);
+        robot_state->getLinkPose(link_name,pose);
+
+        updateJointIcons(states->name[i], pose, jointEffortPercent,boundPercent);
+    }
+
     if(snap_ghost_to_robot_)
     {
         ghost_joint_state_pub_.publish(states);
-
-        Ogre::Vector3 position(0,0,0);
-        Ogre::Quaternion orientation(1,0,0,0);
-        transform(position, orientation, "/pelvis", "/world");
-
-        geometry_msgs::PoseStamped pose;
-        pose.pose.position.x = position.x;
-        pose.pose.position.y = position.y;
-        pose.pose.position.z = position.z;
-        pose.pose.orientation.x = orientation.x;
-        pose.pose.orientation.y = orientation.y;
-        pose.pose.orientation.z = orientation.z;
-        pose.pose.orientation.w = orientation.w;
-        pose.header.frame_id = "/world";
-        pose.header.stamp = ros::Time::now();
-
-        ghost_root_pose_pub_.publish(pose);
+        ghost_root_pose_pub_.publish(root_pose);
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/pelvis_pose_marker";
-        cmd.pose = pose;
+        cmd.pose = root_pose;
         interactive_marker_update_pub_.publish(cmd);
 
-        pelvis_marker_pose_pub_.publish(pose);
+        pelvis_marker_pose_pub_.publish(root_pose);
 
         snap_ghost_to_robot_ = false;
     }
+}
 
+//goes through all scene nodes and sets position in render queue based on object type
+void Base3DView::setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset)
+{
+    for(int i =0;i<sceneNode->numAttachedObjects();i++)
+    {        
+        Ogre::MovableObject* obj =  sceneNode->getAttachedObject(i);
+        obj->setRenderQueueGroupAndPriority(Ogre::RENDER_QUEUE_MAIN,100);        
+        if(obj->getMovableType().compare("Entity") == 0)
+        {
+            //only subentities have materials...
+            for(int e = 0; e < ((Ogre::Entity*)obj)->getNumSubEntities(); e++)
+            {                               
+                //usually only 1 technique
+                for(int t = 0; t < ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getNumTechniques(); t++)
+                {                    
+                    for(int p = 0; p < ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getNumPasses(); p++)
+                    {                        
+                        //transparent object?
+                        if(((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getPass(p)->getAmbient().a < 0.95f ||
+                           ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getPass(p)->getDiffuse().a < 0.95f)//Transparent
+                        {                            
+                            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + queueOffset);
+                        }
+                        else // opaque object
+                        {                         
+                            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN);
+                        }
+                    }
+                }
+            }
+        }
+        //interactive markers/ other manual objects
+        else if(obj->getMovableType().compare("ManualObject") == 0)
+        {
+            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + queueOffset);
+        }
+    }
+    for(int i=0;i<sceneNode->numChildren();i++)
+    {
+        //recurse for all children Scene nodes in this level
+        setSceneNodeRenderGroup(((Ogre::SceneNode*)sceneNode->getChild(i)),queueOffset);
+    }
+}
+
+void Base3DView::setRenderOrder()
+{
+    /*
+      Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
+                    +1  |  Transparent Objects
+    **/    
+    int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();    
+    for(int i = 0; i < num_displays; i++)
+    {
+        rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
+        std::string display_name = display->getNameStd();
+        setSceneNodeRenderGroup(display->getSceneNode(), 1);
+    }
+}
+
+void Base3DView::setRobotOccludedRender()
+{
+    //configures robot to be seen behind objects by setting 2 render passes on all objects that draw regardless of depth in world
+    //1 pass is outline, 2nd is shaded robot
+
+    M_NameToLink links = ((rviz::RobotDisplayCustom*)robot_model_)->getRobotCustom()->getLinks();
+    M_NameToLink::iterator it = links.begin();
+    M_NameToLink::iterator end = links.end();
+   //iterate over all links in robot
+   for ( ; it != end; ++it )
+   {
+       //need to scale down robot then outline robot, must ensure that outline does not exceed scale of 1 on robot
+       const char *vertex_outline_code =                        
+               "void main(void){\n"
+                  "vec4 tPos   = vec4(gl_Vertex + gl_Normal *0, 1.0);\n"
+                  "gl_Position = gl_ModelViewProjectionMatrix * tPos;\n"
+               "}\n";
+       //black
+       const char *fragment_outline_code =            
+           "void main()\n"
+           "{\n"
+           "    gl_FragColor = vec4(0,0,0,1);\n"
+           "}\n";
+
+       //scales down model uniformly using normals
+       const char *vertex_solid_code =
+                  "void main()\n"
+                  "{\n"
+                    "vec4 tPos   = vec4(gl_Vertex + gl_Normal *-0.008, 1.0);\n"
+                    "gl_Position = gl_ModelViewProjectionMatrix * tPos;\n"
+                  "}\n";
+
+       // gray
+       const char *fragment_solid_code =               
+              "void main()\n"
+              "{\n"
+              "    gl_FragColor = vec4(0.65,0.65,0.65,1);\n"
+              "}\n";
+
+
+       //fun testing shader
+//               "uniform float time;\n"
+//        "float length2(vec2 p) { return dot(p, p); }\n"
+
+//        "float noise(vec2 p){return fract(sin(fract(sin(p.x) * (4313.13311)) + p.y) * 3131.0011);}\n"
+
+//        "float worley(vec2 p) {\n"
+//            "float d = 1e30;\n"
+//            "for (int xo = -1; xo <= 1; ++xo)\n"
+//            "for (int yo = -1; yo <= 1; ++yo) {\n"
+//                "vec2 tp = floor(p) + vec2(xo, yo);\n"
+//                "d = min(d, length2(p - tp - vec2(noise(tp))));}\n"
+//            "return 3.*exp(-4.*abs(2.*d - 1.));}\n"
+
+//        "float fworley(vec2 p) {\n"
+//            "return sqrt(sqrt(sqrt(\n"
+//                "worley(p*32. + 4.3 + time*.125) *\n"
+//                "sqrt(worley(p * 64. + 5.3 + .25 * -.0625)) *\n"
+//                "sqrt(sqrt(worley(p * -128. + 7.3))))));}\n"
+
+//               "void main() {\n"
+//               "vec2 resolution = vec2(1920,1080);\n"
+//            "vec2 uv = gl_FragCoord.xy /resolution.xy;\n"
+//            "float t = fworley(uv * resolution.xy / 1800.);\n"
+//            "t *= exp(-length2(abs(2.*uv - 1.)));\n"
+//            "gl_FragColor = vec4(t * vec3(.1 + pow(t, 1.-t), 1.8*t, 1.8), 1.);}\n";
+
+
+
+
+       //create shader programs
+       Ogre::HighLevelGpuProgramPtr vp = Ogre::HighLevelGpuProgramManager::getSingleton()
+                   .createProgram("SolidVertex", "General", "glsl", Ogre::GPT_VERTEX_PROGRAM);
+       vp->setSource(vertex_solid_code);
+       vp->load();
+
+       Ogre::HighLevelGpuProgramPtr fp = Ogre::HighLevelGpuProgramManager::getSingleton()
+                   .createProgram("SolidFragment", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);      
+       fp->setSource(fragment_solid_code);
+       fp->load();
+
+       Ogre::HighLevelGpuProgramPtr vpOutline = Ogre::HighLevelGpuProgramManager::getSingleton()
+                   .createProgram("OutlineVertex", "General", "glsl", Ogre::GPT_VERTEX_PROGRAM);
+       vpOutline->setSource(vertex_outline_code);
+       vpOutline->load();
+
+       Ogre::HighLevelGpuProgramPtr fpOutline = Ogre::HighLevelGpuProgramManager::getSingleton()
+                   .createProgram("OutlineFragment", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);
+       fpOutline->setSource(fragment_outline_code);
+       fpOutline->load();      
+
+       rviz::RobotLinkCustom* info = it->second;       
+       M_SubEntityToMaterial materials = info->getMaterials();
+       M_SubEntityToMaterial::iterator iter = materials.begin();
+       M_SubEntityToMaterial::iterator ender = materials.end();
+
+       //for all materials in this link?              
+       for(;iter != ender; ++iter)
+       {
+           Ogre::MaterialPtr material =  iter->second;
+           //create outline pass
+           for(int i=0;i<material->getNumTechniques();i++)
+           {
+               //materials can be shared between different objects, not necessary to recreate passes if already created
+               if(material->getTechnique(i)->getPass(0)->getName() == "OutlinePass")
+                   continue;
+
+               Ogre::Pass * outlinePass = material->getTechnique(i)->createPass();
+                //will be written all the time, but will only show up when other object/passes aren't written due to depth checking
+               //outlinePass->setPolygonMode(Ogre::PM_WIREFRAME);
+               outlinePass->setDepthCheckEnabled(false);
+               outlinePass->setDepthWriteEnabled(false);
+               outlinePass->setVertexProgram("OutlineVertex");
+               outlinePass->setFragmentProgram("OutlineFragment");
+               outlinePass->setName("OutlinePass");
+               //outlinePass->setFog(true,Ogre::FOG_LINEAR);
+               material->getTechnique(i)->movePass(outlinePass->getIndex(),0);
+
+               //create pass for occluded robot
+               Ogre::Pass * occludedPass = material->getTechnique(i)->createPass();
+               occludedPass->setDepthCheckEnabled(false);
+               occludedPass->setDepthWriteEnabled(false);
+               occludedPass->setVertexProgram("SolidVertex");
+               occludedPass->setFragmentProgram("SolidFragment");
+               occludedPass->setName("OccludedPass");
+               material->getTechnique(i )->movePass(occludedPass->getIndex(),1);
+
+    //           double r = (double)rand() / RAND_MAX;
+    //           0 + r * (1 - 0);
+    //           double g = (double)rand() / RAND_MAX;
+    //           0 + g * (1 - 0);
+    //           double b = (double)rand() / RAND_MAX;
+    //           0 + b * (1 - 0);
+               //candy bot mode on
+    //           pass->setShininess(127);
+    //           pass->setLightingEnabled(true);
+    //           pass->setSelfIllumination(r,g,b);
+           }
+       }       
+   }
+
+}
+
+void Base3DView::disableRobotOccludedRender()
+{
+    M_NameToLink links = ((rviz::RobotDisplayCustom*)robot_model_)->getRobotCustom()->getLinks();
+    M_NameToLink::iterator it = links.begin();
+    M_NameToLink::iterator end = links.end();
+   //iterate over all links in robot
+   for ( ; it != end; ++it )
+   {
+       rviz::RobotLinkCustom* info = it->second;
+       M_SubEntityToMaterial materials = info->getMaterials();
+       M_SubEntityToMaterial::iterator iter = materials.begin();
+       M_SubEntityToMaterial::iterator ender = materials.end();
+
+       //for all materials in this link?
+       for(;iter != ender; ++iter)
+       {
+           Ogre::MaterialPtr material =  iter->second;
+           //delete occlusion passes
+           for(int i=0;i<material->getNumTechniques();i++)
+           {
+               for(int j=0;j<material->getTechnique(i)->getNumPasses();j++)
+               {
+                   if(material->getTechnique(i)->getPass(j)->getName() == "OutlinePass")
+                   {
+                       material->getTechnique(i)->removePass(j);
+                       break;
+                   }
+               }
+               for(int j=0;j<material->getTechnique(i)->getNumPasses();j++)
+               {
+                   if( material->getTechnique(i)->getPass(j)->getName() == "OccludedPass")
+                   {
+                       material->getTechnique(i)->removePass(j);
+                       break;
+                   }
+               }
+           }
+       }
+   }
+}
+
+void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr& states)
+{
+    //store latest state for toggle updates
+    latest_ghost_joint_state_ = states;
+
+    MoveItOcsModel* ghost_robot_state = RobotStateManager::Instance()->getGhostRobotStateSingleton();
+
+    ghost_robot_state->setJointStates(*states);
+
+    for(int i = 0; i < states->name.size(); i++)
+    {
+        //ignore finger joints on atlas ghost
+        if(states->name[i].find("f") != std::string::npos && ghost_robot_state->getRobotName().find("atlas") != std::string::npos )
+            continue;
+
+        const moveit::core::JointModel* joint =  ghost_robot_state->getJointModel(states->name[i]);
+        //ignore unnecessary joints
+        if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
+          continue;
+        if (joint->getType() == moveit::core::JointModel::REVOLUTE)
+          if (static_cast<const moveit::core::RevoluteJointModel*>(joint)->isContinuous())
+            continue;
+
+        //calculate joint position percentage relative to max/min limit
+        const moveit::core::JointModel::Bounds& bounds = joint->getVariableBounds();
+        double distance = bounds[0].max_position_ - bounds[0].min_position_;
+        double boundPercent = ghost_robot_state->getMinDistanceToPositionBounds(joint) / distance;
+
+        geometry_msgs::Pose pose;
+        std::string link_name = ((rviz::RobotDisplayCustom*)robot_model_)->getChildLinkName(states->name[i]);
+
+        ghost_robot_state->getLinkPose(link_name,pose);
+
+        // accumulate all the transforms for root pose
+        Ogre::Vector3 rootPosition(ghost_root_pose_.position.x,ghost_root_pose_.position.y,ghost_root_pose_.position.z);
+        Ogre::Quaternion rootRotation(ghost_root_pose_.orientation.w,ghost_root_pose_.orientation.x,ghost_root_pose_.orientation.y,ghost_root_pose_.orientation.z);
+        Ogre::Vector3 linkPosition(pose.position.x,pose.position.y,pose.position.z);
+        Ogre::Quaternion linkRotation(pose.orientation.w,pose.orientation.x,pose.orientation.y,pose.orientation.z);
+        linkPosition = rootPosition + rootRotation * linkPosition;
+        linkRotation = rootRotation * linkRotation;
+        pose.position.x = linkPosition.x;
+        pose.position.y = linkPosition.y;
+        pose.position.z = linkPosition.z;
+        pose.orientation.x = linkRotation.x;
+        pose.orientation.y = linkRotation.y;
+        pose.orientation.z = linkRotation.z;
+        pose.orientation.w = linkRotation.w;
+
+        if(!ghost_robot_model_->isEnabled())
+        {
+            //hide all icons if ghost robot is not enabled
+            for (std::map<std::string,rviz::Display*>::iterator it=jointDisplayMap.begin(); it!=jointDisplayMap.end(); ++it)
+            {
+                if(it->second->subProp("Name")->getValue().toString().contains("ghost"))
+                    it->second->setEnabled(false);
+            }
+        }
+        updateJointIcons(std::string("ghost/")+states->name[i], pose, 0.0, boundPercent);
+    }
 }
 
 void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg )
@@ -2858,15 +3337,45 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
     }
     else if(ctrl_is_pressed && alt_is_pressed) //emergency stop
-    {
+    {        
         stop_button_->setVisible(true);
         stop_button_->setGeometry(this->geometry().bottomRight().x()/2 - 200,this->geometry().bottomRight().y()/2 - 150,400,300);
+    }
+    else if(shift_is_pressed && !shift_pressed_)
+    {
+        //Lock translation during rotation
+        flor_ocs_msgs::OCSControlMode msgMode;
+        if(interactive_marker_mode_ < IM_MODE_OFFSET)
+            msgMode.manipulationMode = interactive_marker_mode_ + IM_MODE_OFFSET;
+        else
+            msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
+        interactive_marker_server_mode_pub_.publish(msgMode);
+        shift_pressed_ = true;
     }
     else
     {
         stop_button_->setVisible(false);
+
+        //Unclock translation during rotation
+        if(shift_pressed_)
+        {
+            flor_ocs_msgs::OCSControlMode msgMode;
+            if(interactive_marker_mode_ < IM_MODE_OFFSET)//Check if mode is 0, 1 or 2
+                msgMode.manipulationMode = interactive_marker_mode_;
+            else//means that shift is pressed
+                msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
+            interactive_marker_server_mode_pub_.publish(msgMode);
+            shift_pressed_ = false;
+        }
+
     }
 
+}
+
+void Base3DView::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
+{
+    //Update the im to current
+    interactive_marker_mode_ = msg->manipulationMode;
 }
 
 void Base3DView::processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr &msg)

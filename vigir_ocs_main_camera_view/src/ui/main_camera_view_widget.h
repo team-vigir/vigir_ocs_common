@@ -48,6 +48,11 @@ private:
     std::map<std::string,QWidget*> views_list_;
     int views_initialized_;
 
+    void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent * event);
+    void moveEvent(QMoveEvent * event);
+
+
     QWidget* position_widget_;
     QPushButton* four_view_button_;
     QPushButton* one_view_button_;

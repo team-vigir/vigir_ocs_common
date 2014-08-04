@@ -92,6 +92,15 @@ JoystickWidget::JoystickWidget(QWidget *parent) :
     ui->RightRButton->setIconSize(rightArrow.rect().size()/2);
 
     window_control_sub = nh.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &JoystickWidget::processWindowControl, this );
+    window_control_pub = nh.advertise<std_msgs::Int8>("/flor/ocs/window_control", 1, false);
+
+    //Restore State
+    //this->show();
+    QSettings settings("OCS", "template_joystick");
+    this->restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+    this->geometry_ = this->geometry();
+    // create docks, toolbars, etc...
+    this->restoreState(settings.value("mainWindowState").toByteArray());
 }
 
 JoystickWidget::~JoystickWidget()
@@ -99,6 +108,33 @@ JoystickWidget::~JoystickWidget()
     delete(controller);
     delete(mapper);
     delete ui;
+}
+
+void JoystickWidget::closeEvent(QCloseEvent * event)
+{
+    QSettings settings("OCS", "template_joystick");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    settings.setValue("mainWindowState", this->saveState());
+    std_msgs::Int8 msg;
+    msg.data = -WINDOW_JOYSTICK;
+    window_control_pub.publish(msg);
+    event->ignore();
+}
+
+void JoystickWidget::resizeEvent(QResizeEvent * event)
+{
+    QSettings settings("OCS", "template_joystick");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    settings.setValue("mainWindowState", this->saveState());
+
+}
+
+void JoystickWidget::moveEvent(QMoveEvent * event)
+{
+    QSettings settings("OCS", "template_joystick");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    settings.setValue("mainWindowState", this->saveState());
+
 }
 
 void JoystickWidget::updateModeBoxes(int manipulationMode,int objectMode)

@@ -30,7 +30,7 @@ namespace vigir_ocs
 MapView::MapView( QWidget* parent )
     : OrthoView( NULL, "/world", "MapView", parent ),
       selection_tool_enabled_( true )
-{
+{    
     // block sending left/right mouse events to rviz by default
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
@@ -70,6 +70,7 @@ MapView::MapView( QWidget* parent )
 
     //set default tool
     manager_->getToolManager()->setCurrentTool( interactive_markers_tool_);
+
 }
 
 // Destructor.

@@ -39,6 +39,8 @@
 
 #include <map>
 
+#include <urdf/model.h>
+
 namespace Ogre
 {
 class Entity;
@@ -74,7 +76,7 @@ class RobotDisplayCustom: public Display
 public:
     RobotDisplayCustom();
     virtual ~RobotDisplayCustom();
-
+    RobotCustom* getRobotCustom();
     // Overrides from Display
     virtual void onInitialize();
     virtual void update( float wall_dt, float ros_dt );
@@ -86,6 +88,8 @@ public:
     void setModelPrefix(std::string prefix, urdf::ModelInterface &descr);
 
     void processLinkColorChange(const flor_ocs_msgs::OCSLinkColor::ConstPtr& color);
+
+    std::string getChildLinkName(std::string joint);
 
 private Q_SLOTS:
     void updateVisualVisible();
@@ -123,6 +127,8 @@ protected:
 
     ros::NodeHandle nh_;
     ros::Subscriber link_color_sub_;
+
+    urdf::Model descr;
 };
 
 } // namespace rviz

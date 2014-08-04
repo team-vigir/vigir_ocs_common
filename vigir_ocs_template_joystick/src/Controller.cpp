@@ -107,6 +107,8 @@ namespace vigir_ocs
 
     void Controller::modeCb(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
     {
+        if(msg->manipulationMode != 0 || msg->manipulationMode != 1 || msg->manipulationMode != 2)
+            return;
         joyModes = *msg;
         //set current modes based on subscribed data
         setObjectMode(joyModes.objectMode);

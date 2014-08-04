@@ -13,270 +13,615 @@
   <property name="windowTitle">
    <string>MapViewWidget</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout_4">
    <property name="spacing">
     <number>0</number>
    </property>
-   <property name="leftMargin">
-    <number>0</number>
-   </property>
-   <property name="topMargin">
-    <number>20</number>
-   </property>
-   <property name="rightMargin">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
+   <property name="margin">
     <number>0</number>
    </property>
    <item>
-    <widget class="QWidget" name="viewContainer" native="true">
-     <layout class="QVBoxLayout" name="verticalLayout_11">
+    <widget class="QWidget" name="toolBar" native="true">
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>43</height>
+      </size>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
-       <number>0</number>
+       <number>2</number>
       </property>
       <property name="margin">
-       <number>0</number>
+       <number>2</number>
       </property>
       <item>
-       <widget class="vigir_ocs::MapView" name="map_view_" native="true">
+       <widget class="QWidget" name="widget_10" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QWidget" name="sbarContainer" native="true">
         <property name="minimumSize">
          <size>
-          <width>0</width>
-          <height>20</height>
+          <width>120</width>
+          <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>16777215</width>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_10">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_9">
+           <property name="font">
+            <font>
+             <pointsize>-1</pointsize>
+             <weight>75</weight>
+             <italic>false</italic>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">
+     font: bold &quot;Ubuntu&quot;;
+     font-size: 10px;</string>
+           </property>
+           <property name="text">
+            <string>Map Region Request</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_11" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>125</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>155</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_13">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="margin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="mapConfig">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>40</width>
+                <height>26</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Map Region Options&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="request_map">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>26</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>9</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>Request Area Map</string>
+              </property>
+              <property name="text">
+               <string>Request Area Map</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line">
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(200, 200, 200);</string>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="widget_8" native="true">
+        <property name="maximumSize">
+         <size>
+          <width>400</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_12">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_8">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>3D Region Request</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_9" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="margin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="regionConfig">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>40</width>
+                <height>26</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;3D Region Options&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="request_octomap">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>26</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>9</pointsize>
+                <weight>50</weight>
+                <italic>false</italic>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>Request Octomap</string>
+              </property>
+              <property name="text">
+               <string>Request Octomap</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="Line" name="line_2">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(200, 200, 200);</string>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="point_cloud_type">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>210</width>
+                <height>26</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>-1</pointsize>
+                <weight>50</weight>
+                <italic>false</italic>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set Point Cloud Type&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"> QComboBox {
+     border: 1px solid gray;
+     border-radius: 1px;
+     padding: 3px 18px 3px 0px;
+     font: &quot;Ubuntu&quot;;
+     font-size: 12px;
+ }
+
+ QComboBox:editable {
+     background: white;
+ }
+
+ QComboBox:!editable, QComboBox::drop-down:editable {
+      background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));
+ }
+
+ /* QComboBox gets the &quot;on&quot; state when the popup is open */
+ QComboBox:!editable:on, QComboBox::drop-down:editable:on {
+     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                 stop: 0 #D3D3D3, stop: 0.4 #D8D8D8,
+                                 stop: 0.5 #DDDDDD, stop: 1.0 #E1E1E1);
+ }
+
+ QComboBox:on { /* shift the text when the popup opens */
+     padding-top: 3px;
+     padding-left: 4px;
+ }
+
+ QComboBox::drop-down {
+     subcontrol-origin: padding;
+     subcontrol-position: top right;
+     width: 15px;
+
+     border-left-width: 1px;
+     border-left-color: darkgray;
+     border-left-style: solid; /* just a single line */
+     border-top-right-radius: 3px; /* same radius as the QComboBox */
+     border-bottom-right-radius: 3px;
+     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                  stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
+                                  stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
+ }
+
+ QComboBox::down-arrow:on { /* shift the arrow when popup is open */
+     top: 1px;
+     left: 1px;
+ }
+
+ QComboBox QAbstractItemView {
+     border: 2px solid darkgray;
+     selection-background-color: lightgray;
+ }</string>
+              </property>
+              <property name="currentIndex">
+               <number>1</number>
+              </property>
+              <item>
+               <property name="text">
+                <string>LIDAR filtered</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>LIDAR unfiltered</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Stereo</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Stereo Sandia</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="request_point_cloud">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>26</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Ubuntu</family>
+                <pointsize>9</pointsize>
+                <weight>50</weight>
+                <italic>false</italic>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Request Point Cloud&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Request Point Cloud</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line_3">
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(200, 200, 200);</string>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
           <height>20</height>
          </size>
         </property>
-        <property name="styleSheet">
-         <string notr="true">background-color: rgb(209, 209, 209);</string>
-        </property>
-        <layout class="QHBoxLayout" name="sbarLayout">
-         <property name="spacing">
-          <number>2</number>
-         </property>
-         <property name="margin">
-          <number>2</number>
-         </property>
-        </layout>
-       </widget>
+       </spacer>
       </item>
      </layout>
     </widget>
    </item>
    <item>
-    <widget class="QScrollArea" name="scrollArea">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>225</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>230</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="lineWidth">
-      <number>0</number>
-     </property>
-     <property name="horizontalScrollBarPolicy">
-      <enum>Qt::ScrollBarAlwaysOff</enum>
-     </property>
-     <property name="widgetResizable">
-      <bool>true</bool>
-     </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents_2">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>207</width>
-        <height>1876</height>
-       </rect>
+    <widget class="QWidget" name="mainWidget" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
+      <property name="spacing">
+       <number>6</number>
       </property>
-      <property name="maximumSize">
-       <size>
-        <width>207</width>
-        <height>16777215</height>
-       </size>
+      <property name="margin">
+       <number>0</number>
       </property>
-      <property name="styleSheet">
-       <string notr="true">font: 8pt &quot;Ubuntu&quot;;</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <property name="margin">
-        <number>7</number>
-       </property>
-       <item>
-        <widget class="QGroupBox" name="Tools">
-         <property name="title">
-          <string>Tools</string>
+      <item>
+       <widget class="QWidget" name="viewContainer" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_11">
+         <property name="spacing">
+          <number>0</number>
          </property>
-         <property name="checkable">
-          <bool>false</bool>
+         <property name="margin">
+          <number>0</number>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_8">
-          <property name="spacing">
-           <number>3</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QRadioButton" name="camera_tool_3">
-            <property name="text">
-             <string>Map Selection</string>
+         <item>
+          <widget class="vigir_ocs::MapView" name="map_view_" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="sbarContainer" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(209, 209, 209);</string>
+           </property>
+           <layout class="QHBoxLayout" name="sbarLayout">
+            <property name="spacing">
+             <number>2</number>
             </property>
-            <property name="checked">
-             <bool>true</bool>
+            <property name="margin">
+             <number>2</number>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="widget_tool_3">
-            <property name="text">
-             <string>Joint Manipulation</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="template_tool_3">
-            <property name="text">
-             <string>Template Manipulation</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="request_point_cloud_">
-            <property name="text">
-             <string>Request Point Cloud</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>Map Region Request</string>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QScrollArea" name="scrollArea">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>225</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>230</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="lineWidth">
+         <number>0</number>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="scrollAreaWidgetContents_2">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>-404</y>
+           <width>207</width>
+           <height>1543</height>
+          </rect>
          </property>
-         <property name="checkable">
-          <bool>false</bool>
+         <property name="maximumSize">
+          <size>
+           <width>207</width>
+           <height>16777215</height>
+          </size>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <property name="spacing">
-           <number>3</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
+         <property name="styleSheet">
+          <string notr="true">font: 8pt &quot;Ubuntu&quot;;</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <property name="margin">
+           <number>7</number>
           </property>
           <item>
-           <widget class="QWidget" name="widget_3" native="true">
-            <layout class="QGridLayout" name="gridLayout_2">
-             <property name="margin">
+           <widget class="QGroupBox" name="Tools">
+            <property name="title">
+             <string>Tools</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_8">
+             <property name="spacing">
+              <number>3</number>
+             </property>
+             <property name="leftMargin">
               <number>0</number>
              </property>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_5">
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QRadioButton" name="camera_tool_3">
                <property name="text">
-                <string>Min Height</string>
+                <string>Map Selection</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_4">
+             <item>
+              <widget class="QRadioButton" name="widget_tool_3">
                <property name="text">
-                <string>Max Height</string>
+                <string>Joint Manipulation</string>
                </property>
               </widget>
              </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_6">
+             <item>
+              <widget class="QRadioButton" name="template_tool_3">
                <property name="text">
-                <string>Resolution</string>
+                <string>Template Manipulation</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="1">
-              <widget class="QDoubleSpinBox" name="map_min_z">
-               <property name="minimum">
-                <double>-100.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>100.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.100000000000000</double>
-               </property>
-               <property name="value">
-                <double>0.100000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QDoubleSpinBox" name="map_max_z">
-               <property name="minimum">
-                <double>-100.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>100.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.010000000000000</double>
-               </property>
-               <property name="value">
-                <double>2.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QDoubleSpinBox" name="map_res">
-               <property name="minimum">
-                <double>0.050000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>10.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.010000000000000</double>
-               </property>
-               <property name="value">
-                <double>0.050000000000000</double>
+             <item>
+              <widget class="QPushButton" name="request_point_cloud_">
+               <property name="text">
+                <string>Request Point Cloud</string>
                </property>
               </widget>
              </item>
@@ -284,125 +629,67 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="request_map">
-            <property name="text">
-             <string>Request Area Map</string>
+           <widget class="QGroupBox" name="Navigation">
+            <property name="title">
+             <string>Navigation Options</string>
             </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_6">
-         <property name="title">
-          <string>3D Region Request</string>
-         </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_7">
-          <property name="spacing">
-           <number>3</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QWidget" name="widget_2" native="true">
-            <layout class="QGridLayout" name="gridLayout">
-             <property name="margin">
+            <property name="checkable">
+             <bool>false</bool>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <property name="spacing">
+              <number>3</number>
+             </property>
+             <property name="leftMargin">
               <number>0</number>
              </property>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_2">
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QRadioButton" name="waypoint">
                <property name="text">
-                <string>Max Height</string>
+                <string>Waypoint</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label">
+             <item>
+              <widget class="QPushButton" name="insert_waypoint">
                <property name="text">
-                <string>Min Height</string>
+                <string>Insert Waypoint</string>
                </property>
               </widget>
              </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_3">
+             <item>
+              <widget class="QRadioButton" name="joystick_steering">
                <property name="text">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;VoxelGrid (PC)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Manual Controls</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
-             <item row="0" column="1">
-              <widget class="QDoubleSpinBox" name="oct_min_z">
-               <property name="minimum">
-                <double>-100.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>100.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.100000000000000</double>
-               </property>
-               <property name="value">
-                <double>0.100000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QDoubleSpinBox" name="oct_max_z">
-               <property name="minimum">
-                <double>-100.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>100.000000000000000</double>
-               </property>
-               <property name="value">
-                <double>2.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QDoubleSpinBox" name="vox_res">
-               <property name="minimum">
-                <double>0.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>10.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.010000000000000</double>
-               </property>
-               <property name="value">
-                <double>0.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_7">
+             <item>
+              <widget class="QPushButton" name="footstep_pose_walk">
                <property name="text">
-                <string>Aggreg. Size (PC)</string>
+                <string>Define Target Pose - Walk</string>
+               </property>
+               <property name="shortcut">
+                <string>G</string>
                </property>
               </widget>
              </item>
-             <item row="3" column="1">
-              <widget class="QSpinBox" name="agg_size">
-               <property name="minimum">
-                <number>0</number>
+             <item>
+              <widget class="QPushButton" name="footstep_pose_step">
+               <property name="text">
+                <string>Define Target Pose - Step</string>
                </property>
-               <property name="maximum">
-                <number>100000</number>
-               </property>
-               <property name="value">
-                <number>500</number>
+               <property name="shortcut">
+                <string>H</string>
                </property>
               </widget>
              </item>
@@ -410,438 +697,349 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="request_octomap">
-            <property name="text">
-             <string>Request Octomap</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="point_cloud_type">
-            <property name="currentIndex">
-             <number>1</number>
-            </property>
-            <item>
-             <property name="text">
-              <string>LIDAR filtered</string>
+           <widget class="QWidget" name="widget" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <property name="leftMargin">
+              <number>0</number>
              </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>LIDAR unfiltered</string>
+             <property name="topMargin">
+              <number>0</number>
              </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Stereo</string>
+             <property name="rightMargin">
+              <number>0</number>
              </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Stereo Sandia</string>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="Template">
+            <property name="title">
+             <string>Template</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_9">
+             <property name="spacing">
+              <number>0</number>
              </property>
-            </item>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>9</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="TemplateLoaderWidget" name="template_widget_3" native="true">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>205</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="request_point_cloud">
-            <property name="text">
-             <string>Request Point Cloud</string>
+           <widget class="QGroupBox" name="groupBox_5">
+            <property name="title">
+             <string>Visibility</string>
+            </property>
+            <property name="flat">
+             <bool>false</bool>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_6">
+             <property name="spacing">
+              <number>3</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QCheckBox" name="robot_model_2">
+               <property name="text">
+                <string>Robot</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="simulation_robot">
+               <property name="text">
+                <string>Simulation Robot</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_4" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout">
+                <property name="margin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QCheckBox" name="grid_map">
+                  <property name="text">
+                   <string>Map</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="reset_map">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>18</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
+color: rgb(255, 26, 26);</string>
+                  </property>
+                  <property name="text">
+                   <string>reset</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="footstep_planning">
+               <property name="text">
+                <string>Footstep Planning</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="templates">
+               <property name="text">
+                <string>Templates</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="grasp_model">
+               <property name="text">
+                <string>Grasp</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_5" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <property name="margin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QCheckBox" name="point_cloud_request">
+                  <property name="text">
+                   <string>Raycast Point Cloud</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="reset_point_cloud">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>18</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
+color: rgb(255, 26, 26);</string>
+                  </property>
+                  <property name="text">
+                   <string>reset</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_6" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_4">
+                <property name="margin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QCheckBox" name="lidar_point_cloud_2">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="text">
+                   <string>Region Point Cloud</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="reset_point_cloud_lidar">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>18</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
+color: rgb(255, 26, 26);</string>
+                  </property>
+                  <property name="text">
+                   <string>reset</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_7" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <property name="margin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QCheckBox" name="stereo_point_cloud_2">
+                  <property name="text">
+                   <string>Stereo Point Cloud</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="reset_point_cloud_stereo">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>18</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
+color: rgb(255, 26, 26);</string>
+                  </property>
+                  <property name="text">
+                   <string>reset</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="laser_scan_2">
+               <property name="text">
+                <string>Laser Scan</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="octomap_2">
+               <property name="text">
+                <string>Octomap</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="robot_joint_markers">
+               <property name="text">
+                <string>Robot Joint Markers</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="robot_occlusion_rendering">
+               <property name="text">
+                <string>Robot Occlusion Rendering</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_7">
+            <property name="title">
+             <string>RViz Display Options</string>
             </property>
            </widget>
           </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="Navigation">
-         <property name="title">
-          <string>Navigation Options</string>
-         </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <property name="spacing">
-           <number>3</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
           <item>
-           <widget class="QRadioButton" name="waypoint">
-            <property name="text">
-             <string>Waypoint</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="insert_waypoint">
-            <property name="text">
-             <string>Insert Waypoint</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="joystick_steering">
-            <property name="text">
-             <string>Manual Controls</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="footstep_pose_walk">
-            <property name="text">
-             <string>Define Target Pose - Walk</string>
-            </property>
-            <property name="shortcut">
-             <string>G</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="footstep_pose_step">
-            <property name="text">
-             <string>Define Target Pose - Step</string>
-            </property>
-            <property name="shortcut">
-             <string>H</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QWidget" name="widget" native="true">
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="Template">
-         <property name="title">
-          <string>Template</string>
-         </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_9">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>9</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="TemplateLoaderWidget" name="template_widget_3" native="true">
+           <widget class="QWidget" name="rviz_options" native="true">
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>205</height>
+              <height>600</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>190</width>
+              <height>16777215</height>
              </size>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_5">
-         <property name="title">
-          <string>Visibility</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
-          <property name="spacing">
-           <number>3</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QCheckBox" name="robot_model_2">
-            <property name="text">
-             <string>Robot</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="simulation_robot">
-            <property name="text">
-             <string>Simulation Robot</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QWidget" name="widget_4" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout">
-             <property name="margin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QCheckBox" name="grid_map">
-               <property name="text">
-                <string>Map</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="reset_map">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>18</height>
-                </size>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
-color: rgb(255, 26, 26);</string>
-               </property>
-               <property name="text">
-                <string>reset</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="footstep_planning">
-            <property name="text">
-             <string>Footstep Planning</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="templates">
-            <property name="text">
-             <string>Templates</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="grasp_model">
-            <property name="text">
-             <string>Grasp</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QWidget" name="widget_5" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <property name="margin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QCheckBox" name="point_cloud_request">
-               <property name="text">
-                <string>Raycast Point Cloud</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="reset_point_cloud">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>18</height>
-                </size>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
-color: rgb(255, 26, 26);</string>
-               </property>
-               <property name="text">
-                <string>reset</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QWidget" name="widget_6" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_4">
-             <property name="margin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QCheckBox" name="lidar_point_cloud_2">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="text">
-                <string>Region Point Cloud</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="reset_point_cloud_lidar">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>18</height>
-                </size>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
-color: rgb(255, 26, 26);</string>
-               </property>
-               <property name="text">
-                <string>reset</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QWidget" name="widget_7" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_5">
-             <property name="margin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QCheckBox" name="stereo_point_cloud_2">
-               <property name="text">
-                <string>Stereo Point Cloud</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="reset_point_cloud_stereo">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>18</height>
-                </size>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
-color: rgb(255, 26, 26);</string>
-               </property>
-               <property name="text">
-                <string>reset</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="laser_scan_2">
-            <property name="text">
-             <string>Laser Scan</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="octomap_2">
-            <property name="text">
-             <string>Octomap</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_7">
-         <property name="title">
-          <string>RViz Display Options</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QWidget" name="rviz_options" native="true">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>600</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>190</width>
-           <height>16777215</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>

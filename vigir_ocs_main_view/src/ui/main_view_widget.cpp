@@ -4,7 +4,7 @@
 MainViewWidget::MainViewWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainViewWidget)
-{
+{   
     ui->setupUi(this);
     //will not call destructor immediately without setting attribute
     this->setAttribute(Qt::WA_DeleteOnClose);
@@ -102,6 +102,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             QObject::connect(ui->template_widget, SIGNAL(templatePathChanged(QString)), iter->second, SLOT(templatePathChanged(QString)));
             QObject::connect(ui->templates, SIGNAL(toggled(bool)), iter->second, SLOT(templatesToggled(bool)));
             QObject::connect(ui->widget_tool, SIGNAL(toggled(bool)), iter->second, SLOT(markerRobotToggled(bool)));
+            QObject::connect(ui->robot_joint_markers,SIGNAL(toggled(bool)), iter->second, SLOT(robotJointMarkerToggled(bool)));
+            QObject::connect(ui->robot_occlusion_rendering,SIGNAL(toggled(bool)), iter->second, SLOT(robotOcclusionToggled(bool)));
         }
         else
         {
@@ -160,8 +162,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     displays_panel->setMaximumWidth(225);
     displays_panel->initialize( ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
 
-    //rviz::ViewsPanel* views_panel = new rviz::ViewsPanel(this);
-    //views_panel->setViewManager(((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()->getViewManager());
+//    rviz::ViewsPanel* views_panel = new rviz::ViewsPanel(this);
+//    views_panel->setViewManager(((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()->getViewManager());
 
     QVBoxLayout* displays_layout = new QVBoxLayout();
     displays_layout->setMargin(0);
@@ -348,16 +350,44 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     //connect all buttons for mouse presses
     connect(((vigir_ocs::Base3DView*) views_list["Top Left"]),SIGNAL(emergencyStop()),stop_mapper_,SLOT(map()));
+
+    //Restore State
+    QSettings settings("OCS", "main_view");
+    this->restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+    // create docks, toolbars, etc...
+    //this->restoreState(settings.value("mainWindowState").toByteArray());
+
 }
 
 void MainViewWidget::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
 {
+    if(msg->manipulationMode != 0 || msg->manipulationMode != 1 || msg->manipulationMode != 2)
+        return;
     controlModes = *msg;
     //update comboBox
     ui->modeBox->setCurrentIndex(controlModes.manipulationMode);
     //need to change object mode as well?
 
 }
+
+void MainViewWidget::closeEvent(QCloseEvent *event)
+{
+    QSettings settings("OCS", "main_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
+}
+
+void MainViewWidget::resizeEvent(QResizeEvent * event)
+{    
+    QSettings settings("OCS", "main_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
+}
+
+void MainViewWidget::moveEvent(QMoveEvent * event)
+{    
+    QSettings settings("OCS", "main_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
+}
+
 
 void MainViewWidget::updateContextMenu()
 {
@@ -472,26 +502,20 @@ void MainViewWidget::addContextMenu()
 
     joystickContext =  vigir_ocs::Base3DView::makeContextChild("Joystick",boost::bind(&MainViewWidget::contextToggleWindow,this, WINDOW_JOYSTICK), windowVisibility, contextMenuElements);
 
-    contextMenuItem * jointControlMenu = vigir_ocs::Base3DView::makeContextParent("Joint Windows", contextMenuElements);
-    jointControlMenu->parent = windowVisibility;
-
-    //elements from joint control toolbar
-    jointControlContext = vigir_ocs::Base3DView::makeContextChild("Joint Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_JOINT_CONTROL), jointControlMenu, contextMenuElements);
-    pelvisContext = vigir_ocs::Base3DView::makeContextChild("Pelvis Pose",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_BDI_PELVIS_POSE), jointControlMenu, contextMenuElements);
-    ghostContext = vigir_ocs::Base3DView::makeContextChild("Ghost Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_GHOST_CONFIG), jointControlMenu, contextMenuElements);
-    plannerContext = vigir_ocs::Base3DView::makeContextChild("Planner Configuration",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_PLANNER_CONFIG), jointControlMenu, contextMenuElements);
-
-    contextMenuItem * footstepControl = vigir_ocs::Base3DView::makeContextParent("Footstep Control", contextMenuElements);
-    footstepControl->parent = windowVisibility;
-
-    //elements from footstep control toolbar
-    footBasicContext = vigir_ocs::Base3DView::makeContextChild("Basic Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_BASIC), footstepControl, contextMenuElements);
-    footAdvancedContext = vigir_ocs::Base3DView::makeContextChild("Advanced Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_ADVANCED), footstepControl, contextMenuElements);
-    footParameterContext = vigir_ocs::Base3DView::makeContextChild("Footstep Parameter Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_PARAMETER), footstepControl, contextMenuElements);
-
     graspContext = vigir_ocs::Base3DView::makeContextChild("Grasp",boost::bind(&MainViewWidget::graspWidgetToggle,this), windowVisibility , contextMenuElements);
 
     positionContext = vigir_ocs::Base3DView::makeContextChild("Position Mode",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_POSITION_MODE), windowVisibility, contextMenuElements);
+
+    //elements from joint control toolbar
+    jointControlContext = vigir_ocs::Base3DView::makeContextChild("Joint Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_JOINT_CONTROL), windowVisibility, contextMenuElements);
+    pelvisContext = vigir_ocs::Base3DView::makeContextChild("Pelvis Pose",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_BDI_PELVIS_POSE), windowVisibility, contextMenuElements);
+    ghostContext = vigir_ocs::Base3DView::makeContextChild("Ghost Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_GHOST_CONFIG), windowVisibility, contextMenuElements);
+    plannerContext = vigir_ocs::Base3DView::makeContextChild("Planner Configuration",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_PLANNER_CONFIG), windowVisibility, contextMenuElements);
+
+    //elements from footstep control toolbar
+    footBasicContext = vigir_ocs::Base3DView::makeContextChild("Basic Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_BASIC), windowVisibility, contextMenuElements);
+    footAdvancedContext = vigir_ocs::Base3DView::makeContextChild("Advanced Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_ADVANCED), windowVisibility, contextMenuElements);
+    footParameterContext = vigir_ocs::Base3DView::makeContextChild("Footstep Parameter Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_PARAMETER), windowVisibility, contextMenuElements);
 
     //------------------------
     contextMenuElements.push_back(separator);
@@ -669,9 +693,11 @@ MainViewWidget::~MainViewWidget()
 void MainViewWidget::timerEvent(QTimerEvent *event)
 {
     grasp_toggle_button_->setGeometry(ui->view_stack_->geometry().bottomRight().x()-68,ui->view_stack_->geometry().bottom()+ 22,68,30);    
-    //ROS_ERROR("grasp button pos x:%d y:%d ",ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x()/2 - 68,ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).y()+22 );
+
     //must be global, as it is treated as dialog window
-    graspContainer->setGeometry(ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x() - graspContainer->geometry().width()/2 - ui->view_stack_->geometry().width()/2,ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).y() - graspContainer->geometry().height(), graspContainer->geometry().width(),graspContainer->geometry().height());
+    graspContainer->setGeometry(ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x() - graspContainer->geometry().width()/2 - ui->view_stack_->geometry().width()/2,
+                                ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).y() - graspContainer->geometry().height(),
+                                graspContainer->geometry().width(),graspContainer->geometry().height());
 
 }
 

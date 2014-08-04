@@ -120,6 +120,9 @@ CameraViewWidget::CameraViewWidget(QWidget *parent, vigir_ocs::Base3DView* copy_
 //    QPixmap pixmap1(icon_path_+"get_image_step.png");
 //    QIcon icon1(pixmap1);
 //    ui->get_camera_image->setIcon(icon1);
+
+    loadButtonIconAndStyle(ui->get_camera_image,"get_image_step.png");
+
     ui->get_camera_image->setStyleSheet(QString("QPushButton  { ") +
                                       " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
                                       " border-style: solid;" +
@@ -138,78 +141,27 @@ CameraViewWidget::CameraViewWidget(QWidget *parent, vigir_ocs::Base3DView* copy_
 //    QPixmap pixmap2(icon_path_+"get_image_play.png");
 //    QIcon icon2(pixmap2);
 //    ui->get_camera_feed->setIcon(icon2);
-    ui->get_camera_feed->setStyleSheet(QString("QPushButton  { ") +
-                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                                      " border-style: solid;" +
-                                      " border-width: 1px;" +
-                                      " border-radius: 1px;" +
-                                      " border-color: gray;" +
-                                      " padding: 0px;" +
-                                      " image: url(" + icon_path_ + "get_image_play.png" + ");" +
-                                      " image-position: top left"
-                                      "}" +
-                                      "QPushButton:pressed  {" +
-                                      " padding-top:1px; padding-left:1px;" +
-                                      " background-color: rgb(180,180,180);" +
-                                      " border-style: inset;" +
-                                      " image: url(" + icon_path_ + "get_image_play.png" + ");" +
-                                      "}");
+
+    loadButtonIconAndStyle(ui->get_camera_feed,"get_image_play.png");
+
 //    QPixmap pixmap3(icon_path_+"mg_step.png");
 //    QIcon icon3(pixmap3);
 //    ui->get_area_image->setIcon(icon3);
-    ui->get_area_image->setStyleSheet(QString("QPushButton  { ") +
-                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                                      " border-style: solid;" +
-                                      " border-width: 1px;" +
-                                      " border-radius: 1px;" +
-                                      " border-color: gray;" +
-                                      " padding: 0px;" +
-                                      " image: url(" + icon_path_ + "mg_step.png" + ");" +
-                                      "}" +
-                                      "QPushButton:pressed  {" +
-                                      " padding-top:1px; padding-left:1px;" +
-                                      " background-color: rgb(180,180,180);" +
-                                      " border-style: inset;" +
-                                      " image: url(" + icon_path_ + "mg_step.png" + ");" +
-                                      "}");
+
+    loadButtonIconAndStyle(ui->get_area_image,"mg_step.png");
+
+
 //    QPixmap pixmap4(icon_path_+"mg_play.png");
 //    QIcon icon4(pixmap4);
 //    ui->get_area_feed->setIcon(icon4);
-    ui->get_area_feed->setStyleSheet(QString("QPushButton  { ") +
-                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                                      " border-style: solid;" +
-                                      " border-width: 1px;" +
-                                      " border-radius: 1px;" +
-                                      " border-color: gray;" +
-                                      " padding: 0px;" +
-                                      " image: url(" + icon_path_ + "mg_play.png" + ");" +
-                                      " image-position: top left"
-                                      "}" +
-                                      "QPushButton:pressed  {" +
-                                      " padding-top:1px; padding-left:1px;" +
-                                      " background-color: rgb(180,180,180);" +
-                                      " border-style: inset;" +
-                                      " image: url(" + icon_path_ + "mg_play.png" + ");" +
-                                      "}");
+
+    loadButtonIconAndStyle(ui->get_area_feed,"mg_play.png");
+
 //    QPixmap pixmap5(icon_path_+"image_transparency.png");
 //    QIcon icon5(pixmap5);
 //    ui->image_transparency->setIcon(icon5);
-    ui->image_transparency->setStyleSheet(QString("QPushButton  { ") +
-                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                                      " border-style: solid;" +
-                                      " border-width: 1px;" +
-                                      " border-radius: 1px;" +
-                                      " border-color: gray;" +
-                                      " padding: 0px;" +
-                                      " image: url(" + icon_path_ + "image_transparency.png" + ");" +
-                                      " image-position: top left"
-                                      "}" +
-                                      "QPushButton:pressed  {" +
-                                      " padding-top:1px; padding-left:1px;" +
-                                      " background-color: rgb(180,180,180);" +
-                                      " border-style: inset;" +
-                                      " image: url(" + icon_path_ + "image_transparency.png" + ");" +
-                                      "}");
+
+    loadButtonIconAndStyle(ui->image_transparency,"image_transparency.png");
 
     // workaround to be able to use images from stylesheet without knowing the path in advance
     QString stylesheet = ui->camera->styleSheet() + "\n" +
@@ -226,6 +178,27 @@ CameraViewWidget::CameraViewWidget(QWidget *parent, vigir_ocs::Base3DView* copy_
 CameraViewWidget::~CameraViewWidget()
 {
     delete ui;
+}
+
+void CameraViewWidget::loadButtonIconAndStyle(QPushButton* btn, QString image_name)
+{
+    //used for all buttons that need to be oriented to top left
+    btn->setStyleSheet(QString("QPushButton  { ") +
+                                      " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                      " border-style: solid;" +
+                                      " border-width: 1px;" +
+                                      " border-radius: 1px;" +
+                                      " border-color: gray;" +
+                                      " padding: 0px;" +
+                                      " image: url(" + icon_path_ + image_name + ");" +
+                                      " image-position: top left"
+                                      "}" +
+                                      "QPushButton:pressed  {" +
+                                      " padding-top:1px; padding-left:1px;" +
+                                      " background-color: rgb(180,180,180);" +
+                                      " border-style: inset;" +
+                                      " image: url(" + icon_path_ + image_name + ");" +
+                                      "}");
 }
 
 /**
@@ -403,6 +376,7 @@ bool CameraViewWidget::eventFilter( QObject * o, QEvent * e )
         e->ignore();
         return true;
     }
+    //move menus to respective buttons
     if ( e->type() == QEvent::Show && qobject_cast<QMenu*>( o ))
     {
         QPoint p;

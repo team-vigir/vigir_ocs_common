@@ -1,4 +1,4 @@
-/* 
+/*
  * RobotModel class definition.
  * 
  * Author: Felipe Bacim.
@@ -13,6 +13,7 @@
 #define PERSPECTIVE_VIEW_H
 
 #include <QWidget>
+#include <QElapsedTimer>
 
 #include "base_3d_view.h"
 
@@ -21,6 +22,10 @@ namespace rviz
 class RenderPanelCustom;
 class ViewController;
 class VisualizationManager;
+class FPSViewController;
+class OrbitViewController;
+class VectorProperty;
+class ViewsPanel;
 }
 
 namespace vigir_ocs
@@ -37,11 +42,16 @@ public:
 protected:
     virtual void timerEvent(QTimerEvent *event);
     virtual rviz::ViewController* getCurrentViewController();
+    ros::Subscriber camera_transform_sub_;
+    /**
+      * ROS Callback: receives current camera pose
+      */
+    void processCameraTransform(const geometry_msgs::Pose::ConstPtr& msg);
 
 private:
     void init();
-
-    rviz::ViewController* orbit_view_controller_;
+    rviz::ViewsPanel* views_panel_;
+    QElapsedTimer view_change_timer_;
 };
 }
 #endif // PERSPECTIVE_VIEW_H
