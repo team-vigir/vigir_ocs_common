@@ -8,6 +8,8 @@
 jointList::jointList(QWidget *parent) :
    QWidget(parent)
 {
+   groups = findValidGroups(RobotStateManager::Instance()->getRobotStateSingleton()->getGroups());
+
    this->setWindowTitle("Joint_Lists");
    this->setMinimumSize(425,120);
    jointTable = new QTreeWidget();
@@ -26,197 +28,108 @@ jointList::jointList(QWidget *parent) :
 
    jointTable->setHeaderLabels(columns);
    jointTable->setColumnWidth(0,150);
-   QTreeWidgetItem *torso = new QTreeWidgetItem(jointTable);
-   torso->setText(0,"Torso");
-   QTreeWidgetItem *left_leg = new QTreeWidgetItem(jointTable);
-   left_leg->setText(0,"Left Leg");
-   QTreeWidgetItem *right_leg = new QTreeWidgetItem(jointTable);
-   right_leg->setText(0,"Right Leg");
-   QTreeWidgetItem *left_arm = new QTreeWidgetItem(jointTable);
-   left_arm->setText(0,tr("Left Arm"));
-   QTreeWidgetItem *right_arm = new QTreeWidgetItem(jointTable);
-   right_arm->setText(0,tr("Right Arm"));
 
-   //Torso Joints
-   QTreeWidgetItem *joint = new QTreeWidgetItem(torso);
-   joint->setText(0,"back_bkz");
-   joints.push_back(joint);
-   joint= new QTreeWidgetItem(torso);
-   joint->setText(0,"back_bky");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(torso);
-   joint->setText(0,"back_bkx");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(torso);
-   joint->setText(0,"neck_ry");
-   joints.push_back(joint);
-
-   //Left Leg Joints
-   joint = new QTreeWidgetItem(left_leg);
-   joint->setText(0,"l_leg_hpz");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(left_leg);
-   joint->setText(0,"l_leg_hpx");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(left_leg);
-   joint->setText(0,"l_leg_hpy");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(left_leg);
-   joint->setText(0,"l_leg_kny");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(left_leg);
-   joint->setText(0,"l_leg_aky");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(left_leg);
-   joint->setText(0,"l_leg_akx");
-   joints.push_back(joint);
-
-   //Right Leg Joints
-   joint= new QTreeWidgetItem(right_leg);
-   joint->setText(0,"r_leg_hpz");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(right_leg);
-   joint->setText(0,"r_leg_hpx");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(right_leg);
-   joint->setText(0,"r_leg_hpy");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(right_leg);
-   joint->setText(0,"r_leg_kny");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(right_leg);
-   joint->setText(0,"r_leg_aky");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(right_leg);
-   joint->setText(0,"r_leg_akx");
-   joints.push_back(joint);
-
-   //Left Arm Joints
-   joint = new QTreeWidgetItem(left_arm);
-   joint->setText(0,"l_arm_shy");
-   joints.push_back(joint);
-   joint= new QTreeWidgetItem(left_arm);
-   joint->setText(0,"l_arm_shx");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(left_arm);
-   joint->setText(0,"l_arm_ely");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(left_arm);
-   joint->setText(0,"l_arm_elx");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(left_arm);
-   joint->setText(0,"l_arm_wry");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(left_arm);
-   joint->setText(0,"l_arm_wrx");
-   joints.push_back(joint);
-   //Right Arm Joints
-   joint= new QTreeWidgetItem(right_arm);
-   joint->setText(0,"r_arm_shy");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(right_arm);
-   joint->setText(0,"r_arm_shx");
-   joints.push_back(joint);
-   joint= new QTreeWidgetItem(right_arm);
-   joint->setText(0,"r_arm_ely");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(right_arm);
-   joint->setText(0,"r_arm_elx");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(right_arm);
-   joint->setText(0,"r_arm_wry");
-   joints.push_back(joint);
-   joint = new QTreeWidgetItem(right_arm);
-   joint->setText(0,"r_arm_wrx");
-   joints.push_back(joint);
-
-   warnMin=.75;
-   errorMin=.90;
-
-   std::cout << "JointList Widget setup now starting subscribing to Ros topic." << std::endl;
-   std::string robotInfo;
-
-   ros::NodeHandle nh;
-   nh.getParam("/robot_description",robotInfo);
-   processRobotInfo(robotInfo);
+   setUpTable();
 
    joint_states = nh_.subscribe<sensor_msgs::JointState>( "/atlas/joint_states", 2, &jointList::updateList, this );
 
-   key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &jointList::processNewKeyEvent, this );
+   key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &jointList::processNewKeyEvent, this );   
 
-   joint_pub = nh_.advertise<flor_ocs_msgs::OCSJoints>("/flor/ocs/joint_states",5,false);
-   //ros::spinOnce();
-
-   timer.start(33, this);
 }
-
-void jointList::timerEvent(QTimerEvent *event)
+void jointList::setUpTable()
 {
-   // check if ros is still running; if not, just kill the application
-   if(!ros::ok())
-       qApp->quit();
+    for(int i = 0; i < groups.size(); i++)
+    {
+        QTreeWidgetItem* tree = new QTreeWidgetItem(jointTable);
+        tree->setText(0, groups[i].name_.c_str());
 
-   //Spin at beginning of Qt timer callback, so current ROS time is retrieved
-   ros::spinOnce();
+        for(int m = 0; m < groups[i].joints_.size(); m++)
+        {
+            QTreeWidgetItem *joint = new QTreeWidgetItem(tree);
+            joint->setText(0, groups[i].joints_[m].c_str());
+            joints_.push_back(joint);
+        }
+    }
 }
 
-void jointList::processRobotInfo(std::string robotInfo)
+//The groups recieved by the srdf have overlapping groups.  This function picks out the necessary groups.
+std::vector<srdf::Model::Group> jointList::findValidGroups(std::vector<srdf::Model::Group> groups)
 {
-   std::cout << "Setting up limits from ros param..." << std::endl;
+    std::map<int, int> badIndexes;
+    for(int i = 0; i < groups.size(); i++)
+    {
+        if(badIndexes.count(i) == 1)//Check if this is a bad group        
+            continue;        
+        for(int j = i + 1; j < groups.size(); j++)//Compare every group with every other group
+        {
+            //Note: compilers can be confused by continues and breaks nearby?
+            if(badIndexes.count(j) == 1)//Check if this is a bad group
+                continue;
 
+            if(badIndexes.count(i) == 1)//this group could be marked bad inside
+                break;
 
+            int larger;
+            int smaller;
+            if(groups[i].joints_.size() > groups[j].joints_.size())//Pick a smaller or larger vector
+            {
+                larger = i;
+                smaller = j;
+            }
+            else
+            {                
+                larger = j;
+                smaller = i;
+            }
 
-   QRegExp effort("<limit effort=\\\"[0-9]*.[0-9]*\\\"");
-   QRegExp lowLimit("soft_lower_limit=\\\"(-)*[0-9]*.[0-9]*\\\"");
-   QRegExp upLimit("soft_upper_limit=\\\"(-)*[0-9]*.[0-9]*\\\"");
-   QRegExp names("name=\\\"[a-z_]*\\\"");
-   QString robotString = QString::fromStdString(robotInfo);
+            //Compare the two subsets
+            bool isSubset = true;
+            for(int m = 0; m < groups[smaller].joints_.size(); m++)
+            {
+                bool hasM = false;
+                for(int n = 0; n < groups[larger].joints_.size(); n++)
+                {
+                    if(groups[smaller].joints_[m].compare(groups[larger].joints_[n]) == 0)
+                    {
+                        hasM = true;
+                        break;
+                    }
+                }
+                if(!hasM)
+                {
+                    isSubset = false;
+                    break;
+                }
+            }
+            if(groups[smaller].joints_.empty())//Check if either list is empty
+            {
+                badIndexes[smaller] = smaller;
+            }
+            else if(groups[larger].joints_.empty())
+            {
+                badIndexes[larger] = larger;
+            }
+            else if(isSubset)
+            {
+                badIndexes[larger] = larger;
+                //break;
+            }
+        }
+    }
 
-   for(int i = 0;i < joints.size(); i++)
-   {
-       int pos = 0;
-       while((pos = names.indexIn(robotString,pos)) != -1)
-       {
-           if(names.cap(0).remove(0,6).toStdString() == joints[i]->text(0).toStdString().append("\""))
-           {
-               int tempPos = pos;
-               QString tempString;
-               tempPos = effort.indexIn(robotString,tempPos);
-               if(tempPos != -1)
-               {
-                   tempString = effort.cap(0).remove(0,15);
-                   tempString.resize(tempString.size()-1);
-                   effortLimits.push_back(tempString.toDouble());
-               }
-               tempPos = pos;
-               tempPos = lowLimit.indexIn(robotString,tempPos);
-               if(tempPos != -1)
-               {
-                   tempString = lowLimit.cap(0).remove(0,18);
-                   tempString.resize(tempString.size()-1);
-                   downPoseLimit.push_back(tempString.toDouble());
-               }
-               tempPos = pos;
-               pos = robotInfo.size()-100;
-               tempPos = upLimit.indexIn(robotString,tempPos);
-               if(tempPos != -1)
-               {
-                   tempString = upLimit.cap(0).remove(0,18);
-                   tempString.resize(tempString.size()-1);
-                   upPoseLimit.push_back(tempString.toDouble());
-               }
-           }
-           pos += names.matchedLength();
-       }
+    //Create the new group vector with the badIndexes excluded
+    std::vector<srdf::Model::Group> updatedGroups;
+    for(int i = 0; i < groups.size(); i++)
+    {
+        if(badIndexes.count(i) == 0)
+        {
+            updatedGroups.push_back(groups[i]);
+        }
+    }
 
-
-   }
-   for(int i=0;i<joints.size();i++)
-   {
-       std::cout << " Joint["<< i <<"]  limits pos(" << downPoseLimit[i] << ", " << upPoseLimit[i] << ") effort=" << effortLimits[i] << std::endl;
-   }
-   std::cout << "Finished setting up limits. Now subscribing to joint information...." << std::endl;
+    return updatedGroups;
 }
+
 
 jointList::~jointList()
 {
@@ -224,205 +137,81 @@ jointList::~jointList()
 }
 int jointList::getNumError()
 {
-   return err;
+   return errorCount;
 }
 int jointList::getNumWarn()
 {
-   return warn;
+   return warnCount;
 }
 
-//void jointList::updateList(const sensor_msgs::JointState::ConstPtr& states )
-//{
-//    //joint states are updated in base3dview only
-//    MoveItOcsModel* robotState = RobotStateManager::Instance()->getRobotStateSingleton();
-
-//    // clear joint status messages and send Okay state
-//    Q_EMIT sendJointData(0,"");
-
-//    for(int i = 0; i < states->name.size(); i++)
-//    {
-//        const moveit::core::JointModel* joint =  robotState->getJointModel(states->name[i]);
-//        //ignore unnecessary joints
-//        if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
-//          continue;
-//        if (joint->getType() == moveit::core::JointModel::REVOLUTE)
-//          if (static_cast<const moveit::core::RevoluteJointModel*>(joint)->isContinuous())
-//            continue;
-//        //calculate joint position percentage relative to max/min limit
-//        const moveit::core::JointModel::Bounds& bounds = joint->getVariableBounds();
-//        double distance = bounds[0].max_position_ - bounds[0].min_position_;
-//        double boundPercent = robotState->getMinDistanceToPositionBounds(joint) / distance;
-
-//        double jointEffortPercent = std::abs(states->effort[i]) / robotState->getJointEffortLimit(states->name[i]);
-//        if(jointEffortPercent >=.9 ) //effort error
-//            Q_EMIT sendJointData(2,joint->getName());
-//        else if(jointEffortPercent >=.75) //effort warn
-//            Q_EMIT sendJointData(1,joint->getName());
-//        if(boundPercent <=.03) //position error
-//            Q_EMIT sendJointData(2,joint->getName());
-//        else if(boundPercent <=.1) //position warn
-//            Q_EMIT sendJointData(1,joint->getName());
-//    }
-//}
-
-void jointList::updateList( const sensor_msgs::JointState::ConstPtr& joint_states )
+void jointList::updateList(const sensor_msgs::JointState::ConstPtr& states )
 {
-   // clear joint status messages and send Okay state
-   Q_EMIT sendJointData(0,"");
+    //joint states are updated in base3dview only
+    MoveItOcsModel* robotState = RobotStateManager::Instance()->getRobotStateSingleton();
 
-   flor_ocs_msgs::OCSJoints jointStatesUpdate;
-   std::vector<unsigned char> jointUpdater(joint_states->name.size());
-   std::vector<std::string> jointNames(joint_states->name.size());
+    // clear joint status messages and send Okay state
+    Q_EMIT sendJointData(0,"");
 
-   warn = 0;
-   err = 0;
-   for(int i=0;i<joint_states->name.size(); i++)
-       joints[i]->parent()->setBackground(0,Qt::white);
-   for(int i=0;i<joint_states->name.size(); i++)
-   {
+    for(int i = 0; i < states->name.size(); i++)
+    {
+        //Update the table
+        joints_[i]->setText(1,QString::number(states->position[i]));
+        joints_[i]->setText(2,QString::number(states->velocity[i]));
+        joints_[i]->setText(3,QString::number(states->effort[i]));
+        joints_[i]->setBackgroundColor(0,Qt::white);
+        joints_[i]->setBackgroundColor(1,Qt::white);
+        joints_[i]->setBackgroundColor(3,Qt::white);
 
-       jointUpdater[i] = 0;
-       jointNames[i] = joint_states->name[i].c_str();
-       bool errorUpdate = false;
+        const moveit::core::JointModel* joint =  robotState->getJointModel(states->name[i]);
+        //ignore unnecessary joints
+        if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
+          continue;
+        if (joint->getType() == moveit::core::JointModel::REVOLUTE)
+          if (static_cast<const moveit::core::RevoluteJointModel*>(joint)->isContinuous())
+            continue;
+        //calculate joint position percentage relative to max/min limit
+        const moveit::core::JointModel::Bounds& bounds = joint->getVariableBounds();
+        double distance = bounds[0].max_position_ - bounds[0].min_position_;
+        double boundPercent = robotState->getMinDistanceToPositionBounds(joint) / distance;
 
-       joints[i]->setText(1,QString::number(joint_states->position[i]));
-       joints[i]->setText(2,QString::number(joint_states->velocity[i]));
-       joints[i]->setText(3,QString::number(joint_states->effort[i]));
-       joints[i]->setBackgroundColor(0,Qt::white);
-       joints[i]->setBackgroundColor(1,Qt::white);
-       joints[i]->setBackgroundColor(3,Qt::white);
-
-       //std::cout << "p=" << joint_states->position[i] << " v=" << joint_states->velocity[i];
-       //std::cout << " e=" << joint_states->effort[i] << " dpl=" << downPoseLimit[i];
-       //std::cout << " upl=" << upPoseLimit[i] << " el=" << effortLimits[i] << std::endl;
-       if(joint_states->position[i] <= warnMin*downPoseLimit[i])
-       {
-           warn++;
-           joints[i]->setBackgroundColor(0,Qt::yellow);
-           joints[i]->setBackgroundColor(1,Qt::yellow);
-           if(joints[i]->parent()->background(0) != Qt::red)
-           {
-               joints[i]->parent()->setBackgroundColor(0,Qt::yellow);
-           }
-
-           //notify popup miniJoint widget
-           Q_EMIT sendJointData(1,joints[i]->text(0));
-
-           jointUpdater[i] = 1;
-       }
-       if(joint_states->position[i] <= errorMin*downPoseLimit[i])
-       {
-           warn--;
-           err++;
-           joints[i]->setBackgroundColor(0,Qt::red);
-           joints[i]->setBackgroundColor(1,Qt::red);
-           joints[i]->parent()->setBackgroundColor(0,Qt::red);
-
-           Q_EMIT sendJointData(2,joints[i]->text(0));
-
-           //update joint msg
-           errorUpdate = true;
-           jointUpdater[i] = 2;
-
-       }
-
-       if(joint_states->position[i] >= warnMin*upPoseLimit[i])
-       {
-           warn++;
-           joints[i]->setBackgroundColor(0,Qt::yellow);
-           joints[i]->setBackgroundColor(1,Qt::yellow);
-           if(joints[i]->parent()->background(0) != Qt::red)
-           {
-               joints[i]->parent()->setBackgroundColor(0,Qt::yellow);
-           }
-
-           if(!errorUpdate)
-           {
-               Q_EMIT sendJointData(1,joints[i]->text(0));
-               jointUpdater[i] = 1;
-           }
-
-       }
-       if(joint_states->position[i] >= errorMin*upPoseLimit[i])
-       {
-           warn--;
-           err++;
-           joints[i]->setBackgroundColor(0,Qt::red);
-           joints[i]->setBackgroundColor(1,Qt::red);
-           joints[i]->parent()->setBackgroundColor(0,Qt::red);
-
-           Q_EMIT sendJointData(2,joints[i]->text(0));
-
-           errorUpdate = true;
-           jointUpdater[i] = 2;
-       }
-
-       if(joint_states->effort[i] >= warnMin*effortLimits[i])
-       {
-           warn++;
-           joints[i]->setBackgroundColor(0,Qt::yellow);
-           joints[i]->setBackgroundColor(3,Qt::yellow);
-           if(joints[i]->parent()->background(0) != Qt::red)
-           {
-               joints[i]->parent()->setBackgroundColor(0,Qt::yellow);
-           }
-
-           if(!errorUpdate)
-           {
-               Q_EMIT sendJointData(1,joints[i]->text(0));
-               jointUpdater[i] = 1;
-           }
-       }
-       if(joint_states->effort[i] >= errorMin*effortLimits[i])
-       {
-           warn--;
-           err++;
-           joints[i]->setBackgroundColor(0,Qt::red);
-           joints[i]->setBackgroundColor(3,Qt::red);
-           joints[i]->parent()->setBackgroundColor(0,Qt::red);
-
-           Q_EMIT sendJointData(2,joints[i]->text(0));
-
-           errorUpdate = true;
-           jointUpdater[i] = 2;
-       }
-
-       if(joint_states->effort[i] <= -(warnMin*effortLimits[i]))
-       {
-           warn++;
-           joints[i]->setBackgroundColor(0,Qt::yellow);
-           joints[i]->setBackgroundColor(3,Qt::yellow);
-           if(joints[i]->parent()->background(0) != Qt::red)
-           {
-               joints[i]->parent()->setBackgroundColor(0,Qt::yellow);
-           }
-
-           if(!errorUpdate)
-           {
-               Q_EMIT sendJointData(1,joints[i]->text(0));
-               jointUpdater[i] = 1;
-           }
-       }
-       if(joint_states->effort[i] <= -(errorMin*effortLimits[i]))
-       {
-           warn--;
-           err++;
-           joints[i]->setBackgroundColor(0,Qt::red);
-           joints[i]->setBackgroundColor(3,Qt::red);
-           joints[i]->parent()->setBackgroundColor(0,Qt::red);
-
-           Q_EMIT sendJointData(2,joints[i]->text(0));
-
-           //errorUpdate = true;
-           jointUpdater[i] = 2;
-       }
-
-   }
-   jointStatesUpdate.joints = jointUpdater;
-   jointStatesUpdate.jointNames = jointNames;
-   joint_pub.publish(jointStatesUpdate);
+        double jointEffortPercent = std::abs(states->effort[i]) / robotState->getJointEffortLimit(states->name[i]);
+        if(jointEffortPercent >=.9 ) //effort error
+        {
+            Q_EMIT sendJointData(2,QString(joint->getName().c_str()));
+            joints_[i]->setBackgroundColor(0,Qt::darkRed);
+            joints_[i]->setBackgroundColor(1,Qt::darkRed);
+            joints_[i]->parent()->setBackgroundColor(0,Qt::darkRed);
+            errorCount++;
+        }
+        else if(jointEffortPercent >=.75) //effort warn
+        {
+            Q_EMIT sendJointData(1,QString(joint->getName().c_str()));
+            joints_[i]->setBackgroundColor(0,Qt::darkYellow);
+            joints_[i]->setBackgroundColor(1,Qt::darkYellow);
+            joints_[i]->parent()->setBackgroundColor(0,Qt::darkYellow);
+            warnCount++;
+        }
+        else if(boundPercent <=.03) //position error
+        {
+            Q_EMIT sendJointData(2,QString(joint->getName().c_str()));
+            joints_[i]->setBackgroundColor(0,Qt::red);
+            joints_[i]->setBackgroundColor(1,Qt::red);
+            joints_[i]->parent()->setBackgroundColor(0,Qt::red);
+            errorCount++;
+        }
+        else if(boundPercent <=.1) //position warn
+        {
+            Q_EMIT sendJointData(1,QString(joint->getName().c_str()));
+            joints_[i]->setBackgroundColor(0,Qt::yellow);
+            joints_[i]->setBackgroundColor(1,Qt::yellow);
+            joints_[i]->parent()->setBackgroundColor(0,Qt::yellow);
+            warnCount++;
+        }
+    }
 }
 
+
+//?
 void jointList::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 {
    // store key state
