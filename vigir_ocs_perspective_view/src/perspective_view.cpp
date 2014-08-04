@@ -65,11 +65,9 @@ void PerspectiveView::processCameraTransform(const geometry_msgs::Pose::ConstPtr
     if(view_change_timer_.elapsed() > 100 && msg->orientation.x == 0 && msg->orientation.y == 0 && msg->orientation.z == 0
             && msg->position.x == 0 && msg->position.y == 0 && msg->position.z == 0)
     {
-        ROS_ERROR("processCameraTransform");
         if(manager_->getViewManager()->getCurrent()->getClassId() == "rviz/FPS")
         {
             view_change_timer_.start();
-            ROS_ERROR(" Setting orbit view controller");
 
             manager_->getViewManager()->setCurrentViewControllerType("rviz/Orbit");
         }
@@ -80,7 +78,6 @@ void PerspectiveView::processCameraTransform(const geometry_msgs::Pose::ConstPtr
         if(manager_->getViewManager()->getCurrent()->getClassId() == "rviz/Orbit")
         {
             view_change_timer_.start();
-            ROS_ERROR(" Setting fps controller");
 
             manager_->getViewManager()->setCurrentViewControllerType("rviz/FPS");
         }
