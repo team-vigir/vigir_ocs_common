@@ -817,6 +817,7 @@ void Base3DView::publishCameraTransform()
     cmd.pose.orientation.y = orientation.y;
     cmd.pose.orientation.z = orientation.z;
     cmd.pose.orientation.w = orientation.w;
+    cmd.vfov = camera->getFOVy().valueDegrees();
     camera_transform_pub_.publish(cmd);
 }
 
