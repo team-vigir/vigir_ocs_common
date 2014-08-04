@@ -165,6 +165,7 @@ private:
 
     rviz::VisualizationManager* vis_manager_;
 
+    float template_size_;
 };
 
 } // namespace rviz

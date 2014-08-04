@@ -96,7 +96,7 @@ JoystickWidget::JoystickWidget(QWidget *parent) :
 
     //Restore State
     //this->show();
-    QSettings settings("OCS", "joint_limit");
+    QSettings settings("OCS", "template_joystick");
     this->restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
     this->geometry_ = this->geometry();
     // create docks, toolbars, etc...
@@ -116,7 +116,7 @@ void JoystickWidget::closeEvent(QCloseEvent * event)
     settings.setValue("mainWindowGeometry", this->saveGeometry());
     settings.setValue("mainWindowState", this->saveState());
     std_msgs::Int8 msg;
-    msg.data = -WINDOW_PLANNER_CONFIG;
+    msg.data = -WINDOW_JOYSTICK;
     window_control_pub.publish(msg);
     event->ignore();
 }

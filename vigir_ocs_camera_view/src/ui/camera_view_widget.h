@@ -67,6 +67,7 @@ public Q_SLOTS:
     void transparencyButtonClicked();
 
 private:
+    void loadButtonIconAndStyle(QPushButton* btn, QString image_name);
     Ui::CameraViewWidget*ui;
 
     std::vector<int> keys_pressed_list_;
@@ -87,6 +88,7 @@ private:
     QSlider *transparency_slider;
 
     QString icon_path_;
+
 
 };
 

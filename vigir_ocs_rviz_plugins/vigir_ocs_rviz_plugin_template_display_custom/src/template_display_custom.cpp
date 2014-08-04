@@ -266,10 +266,20 @@ void TemplateDisplayCustom::reset()
 void TemplateDisplayCustom::enableTemplateMarker( int i, bool enable )
 {
     ROS_ERROR("Enabling template marker %d", i);
-    if(i >= 0 && i < display_template_marker_list_.size())
+
+    for(int x = 0; x < template_id_list_.size(); x++)
     {
-        display_template_marker_list_[i]->setEnabled( enable );
+        if(template_id_list_[x] == i)
+        {
+            display_template_marker_list_[x]->setEnabled( enable );
+
+        }
     }
+
+//    if(i >= 0 && i < display_template_marker_list_.size())
+//    {
+//        display_template_marker_list_[i]->setEnabled( enable );
+//    }
 }
 
 void TemplateDisplayCustom::enableTemplateMarkers( bool enable )
@@ -314,13 +324,25 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
     // create entity for mesh and attach it to the scene node
     Ogre::Entity* lEntity = this->scene_manager_->createEntity(std::string("template ")+convert.str(), path);
     Ogre::SceneNode* lNode = this->scene_node_->createChildSceneNode();
+
+    //Save the the size of the template
+
+
+    //template_size_ = 0.2;
+
     lNode->attachObject(lEntity);
     // change position and scale (from mm to m)
     lNode->setPosition(pos);
     lNode->setOrientation(quat);
+
+    //Save the the size of the template
+    template_size_ = lEntity->getBoundingBox().getSize().length() + pos.distance(lEntity->getWorldBoundingBox(true).getCenter());
+
     //lNode->scale(0.001f,0.001f,0.001f); - converting templates to use meters in mesh by default
     // The loaded mesh will be white. This is normal.
     template_node_list_.push_back(lNode);
+
+
 }
 
 void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char id, Ogre::Vector3 pos)
@@ -374,7 +396,8 @@ void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char i
     marker_server_template.name  = std::string("Template ")+boost::to_string((unsigned int)id)+std::string("\n")+template_name;
     marker_server_template.topic = template_pose_string;
     marker_server_template.frame = fixed_frame_.toUtf8().constData();
-    marker_server_template.scale = 0.2;
+    //marker_server_template.scale = 0.2;
+    marker_server_template.scale = template_size_;
     marker_server_template.point = point;
     interactive_marker_add_pub_.publish(marker_server_template);
 
@@ -436,7 +459,6 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
             template_node_list_[i]->setPosition(pos);
             template_node_list_[i]->setOrientation(quat);
             //template_marker_list_[i]->setPose(pose);
-
             flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
             cmd.topic = template_pose_pub_list_[i].getTopic();
             cmd.pose = pose;

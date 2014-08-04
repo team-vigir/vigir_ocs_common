@@ -287,6 +287,24 @@ void RobotLinkCustom::setOnlyRenderDepth(bool onlyRenderDepth)
     updateAlpha();
 }
 
+void RobotLinkCustom::setRenderQueueGroupAndPriority( Ogre::uint8 group,Ogre::ushort priority)
+{
+    Ogre::SceneNode::ChildNodeIterator child_it = visual_node_->getChildIterator();
+    while( child_it.hasMoreElements() )
+    {
+        Ogre::SceneNode* child = dynamic_cast<Ogre::SceneNode*>( child_it.getNext() );
+        if( child )
+        {
+            Ogre::SceneNode::ObjectIterator object_it = child->getAttachedObjectIterator();
+            while( object_it.hasMoreElements() )
+            {
+                Ogre::MovableObject* obj = object_it.getNext();
+                obj->setRenderQueueGroupAndPriority(group,priority);
+            }
+        }
+    }
+}
+
 void RobotLinkCustom::updateAlpha()
 {
     float link_alpha = alpha_property_->getFloat();

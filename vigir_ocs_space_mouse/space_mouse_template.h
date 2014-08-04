@@ -1,6 +1,6 @@
 
-#ifndef SPACE_MOUSE_H
-#define SPACE_MOUSE_H
+#ifndef SPACE_MOUSE_TEMPLATE_H
+#define SPACE_MOUSE_TEMPLATE_H
 
 #include <QApplication>
 #include <QVector3D>
@@ -27,13 +27,13 @@
 namespace vigir_ocs
 {
 
-    class SpaceMouse// : public QObject
+    class SpaceMouseTemplate// : public QObject
     {
         //Q_OBJECT
       public:
 
-        SpaceMouse();
-        ~SpaceMouse();
+        SpaceMouseTemplate();
+        ~SpaceMouseTemplate();
 
         struct Quaternion
         {

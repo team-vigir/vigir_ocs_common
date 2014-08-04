@@ -3,7 +3,7 @@ project(vigir_ocs_main_camera_view)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_status_bar vigir_ocs_camera_view flor_ocs_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_status_bar vigir_ocs_camera_view flor_ocs_msgs )
 
 ## Declare things to be passed to other projects
 catkin_package(	
