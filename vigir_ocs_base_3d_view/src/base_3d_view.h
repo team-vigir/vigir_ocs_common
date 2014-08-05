@@ -514,37 +514,13 @@ protected:
       */
     void removeTemplate(int id);
 
-    /**
-      * published the pose of the IM of the ghost robot
-      */
-    void publishGhostPoses();
-
     virtual rviz::ViewController* getCurrentViewController();
 
-    /**
-      * Sets end effector pose
-      */
-    void publishHandPose(std::string hand, const geometry_msgs::PoseStamped& end_effector_transform);
-    /**
-      * published hand/finger joint states
-      */
-    void publishHandJointStates(std::string hand);
     /**
       * publish current camera transform
       */
     void publishCameraTransform();
-    /**
-      * Transforms end effector position to wrist position
-      */
-    int calcWristTarget(const geometry_msgs::PoseStamped& end_effector_pose, tf::Transform hand_T_palm, geometry_msgs::PoseStamped& final_pose);
-    /**
-      * Publishes the cartesial target
-      */
-    void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints);
-    /**
-      * Publishes the circular target pose
-      */
-    void sendCircularTarget(bool right_hand);
+
     /**
       * Select a template
       */
@@ -554,33 +530,12 @@ protected:
       */
     void selectContextMenu();
 
-    /**
-      * Callback for setting im mode
-      */
-    void processInteractiveMarkerMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
-
-    /**
-      * Updates color of the hands based on moveit
-      */
-    void updateHandColors();
-
-    /**
-      * Processes ghost joint states. Used for updating joint icons
-      */
-    void processGhostJoints(const std::string& name, const geometry_msgs::Pose& pose);
-
-
     Ogre::Camera* getCamera();
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
 
-    //fps and orbit view controllers
-    rviz::OrbitViewController* orbit_view_controller_;
-    rviz::FPSViewController* fps_view_controller_;
-
     rviz::Display* robot_model_;
-    std::vector<rviz::Display*> im_ghost_robot_;
     //std::vector<InteractiveMarkerServerCustom*> im_ghost_robot_server_;
     rviz::Display* interactive_marker_template_;
     rviz::Display* octomap_;
@@ -607,32 +562,6 @@ protected:
 
     rviz::Display* left_ft_sensor_;
     rviz::Display* right_ft_sensor_;
-
-    rviz::Display* left_grasp_hand_model_;
-    rviz::Display* right_grasp_hand_model_;
-
-    rviz::Display* left_hand_model_;
-    robot_model_loader::RobotModelLoaderPtr left_hand_model_loader_;
-    robot_model::RobotModelPtr left_hand_robot_model_;
-    robot_state::RobotStatePtr left_hand_robot_state_;
-    moveit_msgs::DisplayRobotState left_display_state_msg_;
-    ros::Publisher left_hand_robot_state_vis_pub_;
-    // Used to make setting virtual joint positions (-> hand pose) easier
-    sensor_msgs::JointState left_hand_virtual_link_joint_states_;
-
-    rviz::Display* right_hand_model_;
-    robot_model_loader::RobotModelLoaderPtr right_hand_model_loader_;
-    robot_model::RobotModelPtr right_hand_robot_model_;
-    robot_state::RobotStatePtr right_hand_robot_state_;
-    moveit_msgs::DisplayRobotState right_display_state_msg_;
-    ros::Publisher right_hand_robot_state_vis_pub_;
-    // Used to make setting virtual joint positions (-> hand pose) easier
-    sensor_msgs::JointState right_hand_virtual_link_joint_states_;
-
-    // for simulation
-    rviz::Display* ghost_robot_model_;
-
-    std::map<std::string,rviz::Display*> display_list_;
 
     rviz::Tool* interactive_markers_tool_;
     //rviz::Tool* selection_tool_;
@@ -661,17 +590,6 @@ protected:
 
     ros::Publisher pointcloud_request_world_pub_;
 
-    std::vector<ros::Subscriber> end_effector_sub_;
-    ros::Publisher end_effector_pub_;
-    ros::Publisher ghost_root_pose_pub_;
-    std::map<std::string,geometry_msgs::PoseStamped> end_effector_pose_list_;
-
-    ros::Subscriber ghost_control_state_sub_;
-
-    ros::Publisher ghost_joint_state_pub_;
-    ros::Subscriber joint_states_sub_;
-    ros::Subscriber reset_pelvis_sub_;
-    ros::Subscriber send_pelvis_sub_;
     ros::Publisher send_footstep_goal_step_pub_;
     ros::Publisher send_footstep_goal_walk_pub_;
 
@@ -685,9 +603,6 @@ protected:
     ros::Publisher interactive_marker_server_mode_pub_;
     ros::Subscriber interactive_marker_server_mode_sub_;
 
-    ros::Subscriber ghost_hand_left_sub_;
-    ros::Subscriber ghost_hand_right_sub_;
-
     ros::Publisher flor_mode_command_pub_;
     ros::Subscriber flor_mode_sub_;
     ros::Subscriber robot_joint_state_sub_;
@@ -697,19 +612,6 @@ protected:
 
     ros::Publisher camera_transform_pub_;
     ros::Subscriber camera_transform_sub_;
-
-    std::vector<unsigned char> ghost_planning_group_;
-    std::vector<unsigned char> ghost_pose_source_;
-    std::vector<unsigned char> ghost_world_lock_;
-    unsigned char moveit_collision_avoidance_;
-    unsigned char ghost_lock_pelvis_;
-    bool update_markers_;
-    bool snap_ghost_to_robot_;
-    bool snap_left_hand_to_ghost_;
-    bool snap_right_hand_to_ghost_;
-    bool left_marker_moveit_loopback_;
-    bool right_marker_moveit_loopback_;
-    bool position_only_ik_;
 
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
@@ -725,12 +627,7 @@ protected:
 
     Ogre::Ray last_selection_ray_;
 
-    int marker_published_;
     int stored_maps_;// THIS VALUE DETERMINES HOW MANY WE STORE
-
-    bool moving_pelvis_;
-    bool moving_l_arm_;
-    bool moving_r_arm_;
 
     bool visualize_grid_map_;
     QWidget* position_widget_;
@@ -738,12 +635,6 @@ protected:
 
     QPushButton* reset_view_button_;
     QPushButton* stop_button_;
-
-    tf::Transform l_hand_T_palm_;
-    tf::Transform r_hand_T_palm_;
-
-    tf::Transform l_hand_T_marker_;
-    tf::Transform r_hand_T_marker_;
 
     QBasicTimer timer;
 
@@ -768,17 +659,6 @@ protected:
 
     bool is_primary_view_;
 
-    geometry_msgs::Pose last_l_arm_moveit_pose_;
-    geometry_msgs::Pose last_r_arm_moveit_pose_;
-    geometry_msgs::Pose last_l_arm_marker_pose_;
-    geometry_msgs::Pose last_r_arm_marker_pose_;
-    bool update_l_arm_color_;
-    bool update_r_arm_color_;
-
-    ros::Publisher l_arm_marker_pose_pub_;
-    ros::Publisher r_arm_marker_pose_pub_;
-    ros::Publisher pelvis_marker_pose_pub_;
-
     std::vector<rviz::Display*> cartesian_marker_list_;
     rviz::Display* circular_marker_;
 
@@ -798,9 +678,6 @@ protected:
     QDoubleSpinBox* circular_angle_;
 
     ros::Subscriber send_cartesian_sub_;
-    ros::Subscriber send_ghost_pelvis_pose_sub_;
-    ros::Subscriber ghost_joint_state_sub_;
-    geometry_msgs::Pose ghost_root_pose_;
 
     /**
       * Context menu action for inserting a template
@@ -814,22 +691,6 @@ protected:
       * Context menu action for executing a footstep plan
       */
     void executeFootstepPlanContextMenu();
-    /**
-      * Context menu action for creating a cartesian target point
-      */
-    void createCartesianContextMenu();
-    /**
-      * Context menu action for removing a cartesian target point
-      */
-    void removeCartesianContextMenu();
-    /**
-      * Context menu action for creating a circular target point
-      */
-    void createCircularContextMenu();
-    /**
-      * Context menu action for removing a circular target point
-      */
-    void removeCircularContextMenu();
 
     contextMenuItem * insertTemplateMenu;
     contextMenuItem * removeTemplateMenu;
@@ -851,14 +712,9 @@ protected:
 
     QTreeWidget * templateRoot;
 
-    flor_ocs_msgs::OCSJoints jointStates;
-
     std::map<std::string,rviz::Display*> jointDisplayMap;
 
-    std::vector<int> ghostJointStates;
-
-
-    typedef std::map< std::string, rviz::RobotLinkCustom* > M_NameToLink;
+    typedef std::map<std::string, rviz::RobotLinkCustom*> M_NameToLink;
     typedef std::map<Ogre::SubEntity*, Ogre::MaterialPtr> M_SubEntityToMaterial;
     /**
       * Enables reordering of renderque
@@ -874,8 +730,157 @@ protected:
     void setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset);
 
     bool disableJointMarkers;
+
+
+
+
+
+
+    ////////////////////
+    // Cartesian/circular moveit
+    /**
+      * Context menu action for creating a cartesian target point
+      */
+    void createCartesianContextMenu();
+    /**
+      * Context menu action for removing a cartesian target point
+      */
+    void removeCartesianContextMenu();
+    /**
+      * Context menu action for creating a circular target point
+      */
+    void createCircularContextMenu();
+    /**
+      * Context menu action for removing a circular target point
+      */
+    void removeCircularContextMenu();
+    /**
+      * Publishes the cartesial target
+      */
+    void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints);
+    /**
+      * Publishes the circular target pose
+      */
+    void sendCircularTarget(bool right_hand);
+
+
+
+    ////////////////////
+    // ghost
+
+    rviz::Display* ghost_robot_model_;
+
     sensor_msgs::JointState::ConstPtr latest_ghost_joint_state_;
 
+    geometry_msgs::Pose last_l_arm_moveit_pose_;
+    geometry_msgs::Pose last_r_arm_moveit_pose_;
+    geometry_msgs::Pose last_l_arm_marker_pose_;
+    geometry_msgs::Pose last_r_arm_marker_pose_;
+    bool update_l_arm_color_;
+    bool update_r_arm_color_;
+
+    ros::Subscriber send_ghost_pelvis_pose_sub_;
+    ros::Subscriber ghost_joint_state_sub_;
+    geometry_msgs::Pose ghost_root_pose_;
+
+    ros::Publisher l_arm_marker_pose_pub_;
+    ros::Publisher r_arm_marker_pose_pub_;
+    ros::Publisher pelvis_marker_pose_pub_;
+
+    int marker_published_;
+
+    bool moving_pelvis_;
+    bool moving_l_arm_;
+    bool moving_r_arm_;
+
+    std::vector<unsigned char> ghost_planning_group_;
+    std::vector<unsigned char> ghost_pose_source_;
+    std::vector<unsigned char> ghost_world_lock_;
+    unsigned char moveit_collision_avoidance_;
+    unsigned char ghost_lock_pelvis_;
+    bool update_markers_;
+    bool snap_ghost_to_robot_;
+    bool snap_left_hand_to_ghost_;
+    bool snap_right_hand_to_ghost_;
+    bool left_marker_moveit_loopback_;
+    bool right_marker_moveit_loopback_;
+    bool position_only_ik_;
+
+    std::vector<ros::Subscriber> end_effector_sub_;
+    ros::Publisher end_effector_pub_;
+    ros::Publisher ghost_root_pose_pub_;
+    std::map<std::string,geometry_msgs::PoseStamped> end_effector_pose_list_;
+
+    ros::Subscriber ghost_control_state_sub_;
+
+    ros::Publisher ghost_joint_state_pub_;
+    ros::Subscriber joint_states_sub_;
+    ros::Subscriber reset_pelvis_sub_;
+    ros::Subscriber send_pelvis_sub_;
+
+    ros::Subscriber ghost_hand_left_sub_;
+    ros::Subscriber ghost_hand_right_sub_;
+
+    tf::Transform l_hand_T_palm_;
+    tf::Transform r_hand_T_palm_;
+
+    tf::Transform l_hand_T_marker_;
+    tf::Transform r_hand_T_marker_;
+
+    /**
+      * Callback for setting im mode
+      */
+    void processInteractiveMarkerMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
+
+    /**
+      * Updates color of the hands based on moveit
+      */
+    void updateHandColors();
+
+    /**
+      * Processes ghost joint states. Used for updating joint icons
+      */
+    void processGhostJoints(const std::string& name, const geometry_msgs::Pose& pose);
+    std::vector<rviz::Display*> im_ghost_robot_;
+
+    rviz::Display* left_grasp_hand_model_;
+    rviz::Display* right_grasp_hand_model_;
+
+    rviz::Display* left_hand_model_;
+    robot_model_loader::RobotModelLoaderPtr left_hand_model_loader_;
+    robot_model::RobotModelPtr left_hand_robot_model_;
+    robot_state::RobotStatePtr left_hand_robot_state_;
+    moveit_msgs::DisplayRobotState left_display_state_msg_;
+    ros::Publisher left_hand_robot_state_vis_pub_;
+    // Used to make setting virtual joint positions (-> hand pose) easier
+    sensor_msgs::JointState left_hand_virtual_link_joint_states_;
+
+    rviz::Display* right_hand_model_;
+    robot_model_loader::RobotModelLoaderPtr right_hand_model_loader_;
+    robot_model::RobotModelPtr right_hand_robot_model_;
+    robot_state::RobotStatePtr right_hand_robot_state_;
+    moveit_msgs::DisplayRobotState right_display_state_msg_;
+    ros::Publisher right_hand_robot_state_vis_pub_;
+    // Used to make setting virtual joint positions (-> hand pose) easier
+    sensor_msgs::JointState right_hand_virtual_link_joint_states_;
+
+    /**
+      * published the pose of the IM of the ghost robot
+      */
+    void publishGhostPoses();
+
+    /**
+      * Sets end effector pose
+      */
+    void publishHandPose(std::string hand, const geometry_msgs::PoseStamped& end_effector_transform);
+    /**
+      * published hand/finger joint states
+      */
+    void publishHandJointStates(std::string hand);
+    /**
+      * Transforms end effector position to wrist position
+      */
+    int calcWristTarget(const geometry_msgs::PoseStamped& end_effector_pose, tf::Transform hand_T_palm, geometry_msgs::PoseStamped& final_pose);
 };
 }
 #endif // BASE_3D_VIEW_H
