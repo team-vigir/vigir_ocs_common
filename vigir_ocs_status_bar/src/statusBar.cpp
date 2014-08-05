@@ -24,6 +24,11 @@ void StatusBar::receivePositionText(QString s)
     ui->positionLabel->setText(s);
 }
 
+void StatusBar::receiveFPS(int fps)
+{
+    ui->fpsLabel->setText(QString::number(fps));
+}
+
 StatusBar::~StatusBar()
 {
     delete ui;

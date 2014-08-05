@@ -643,6 +643,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         setRenderOrder();
 
         disableJointMarkers = false;
+        occludedRobotVisible = true;
     }
 
     // Connect the 3D selection tool to
@@ -758,15 +759,21 @@ void Base3DView::timerEvent(QTimerEvent *event)
     //render_panel_->getRenderWindow()->update(true);
 
     //float lastFPS, avgFPS, bestFPS, worstFPS;
-    //Ogre::RenderTarget::FrameStats stats = render_panel_->getRenderWindow()->getStatistics();
+    Ogre::RenderTarget::FrameStats stats = render_panel_->getRenderWindow()->getStatistics();
     //std::cout << "View (" << view_id_ << "): " << stats.lastFPS << ", " << stats.avgFPS << ", " << stats.bestFrameTime << ", " << stats.worstFrameTime << ", " << stats.triangleCount << std::endl;
+
+    int fps = int(stats.lastFPS + 0.5); //rounded
+    // fps can be 0 for hidden views or invalid decimal values
+    if(fps > 1)
+        Q_EMIT sendFPS(fps);
+    //ROS_ERROR("View: %d LastFps: %f  avgFps: %f ",view_id_,stats.lastFPS,stats.avgFPS);
 
     // no need to spin as rviz is already doing that for us.
     //ros::spinOnce();
 
     //Means that currently doing
 
-    if(is_primary_view_)   
+    if(is_primary_view_ && occludedRobotVisible)
         setRenderOrder();   
 
 }
@@ -928,6 +935,7 @@ void Base3DView::robotOcclusionToggled(bool selected)
 {
     if (!selected && is_primary_view_)
     {
+        occludedRobotVisible = false;
         disableRobotOccludedRender();
         //ghost state is only checked when ghost is manipulated, needs an additional call to refresh joint states
         if(ghost_robot_model_->isEnabled())
@@ -935,6 +943,7 @@ void Base3DView::robotOcclusionToggled(bool selected)
     }
     else if (is_primary_view_)
     {
+        occludedRobotVisible = true;
         setRobotOccludedRender();
     }
 }
@@ -1272,7 +1281,6 @@ void Base3DView::addBase3DContextElements()
 
     addToContextVector(separator);
 
-
     footstepPlanMenuWalk = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
     footstepPlanMenuWalkManipulation = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate",boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
 
@@ -1347,7 +1355,6 @@ void Base3DView::selectOnDoubleClick(int x, int y)
         selectContextMenu();
     else //deselect if no valid object is over mouse
         deselectAll();
-
 }
 
 
@@ -2729,7 +2736,7 @@ void Base3DView::setRenderOrder()
     /*
       Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
                     +1  |  Transparent Objects
-    **/    
+    **/
     int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();    
     for(int i = 0; i < num_displays; i++)
     {
@@ -2883,7 +2890,7 @@ void Base3DView::setRobotOccludedRender()
 }
 
 void Base3DView::disableRobotOccludedRender()
-{
+{    
     M_NameToLink links = ((rviz::RobotDisplayCustom*)robot_model_)->getRobotCustom()->getLinks();
     M_NameToLink::iterator it = links.begin();
     M_NameToLink::iterator end = links.end();

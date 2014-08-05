@@ -60,6 +60,8 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
 
     statusBar = new StatusBar();
     //need to connect position text
+    connect(((vigir_ocs::Base3DView*)ui->map_view_),SIGNAL(sendPositionText(QString)),statusBar,SLOT(receivePositionText(QString)));
+    connect(((vigir_ocs::Base3DView*)ui->map_view_),SIGNAL(sendFPS(int)),statusBar,SLOT(receiveFPS(int)));
 
     ui->sbarLayout->addWidget(statusBar);
 
@@ -83,11 +85,39 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
 
     //setup toolbar and necessary components
     setupToolbar();
+
+    //setup sidebar toggle button
+    sidebar_toggle_ = new QPushButton(this);
+    sidebar_toggle_->setStyleSheet("font: 9pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
+    sidebar_toggle_->setMaximumSize(25,25);
+
+    QPixmap pix(icon_path_+"drawer.png");
+    QIcon Btn(pix);
+    sidebar_toggle_->setIcon(Btn);
+    sidebar_toggle_->setIconSize(pix.rect().size() / 8);
+
+    connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));
+
+
+    timer.start(100, this);
 }
 
 MapViewWidget::~MapViewWidget()
 {
     delete ui;
+}
+
+void MapViewWidget::timerEvent(QTimerEvent *event)
+{
+    sidebar_toggle_->setGeometry(ui->viewContainer->geometry().topRight().x() - 25 ,ui->viewContainer->geometry().top() + 43,25,25);
+}
+
+void MapViewWidget::toggleSidebarVisibility()
+{
+    if(ui->scrollArea->isVisible())
+        ui->scrollArea->hide();
+    else
+        ui->scrollArea->show();
 }
 
 void MapViewWidget::setupToolbar()
@@ -166,7 +196,7 @@ void MapViewWidget::closeEvent(QCloseEvent *event)
 }
 
 void MapViewWidget::resizeEvent(QResizeEvent * event)
-{
+{    
     QSettings settings("OCS", "map_view");
     settings.setValue("mainWindowGeometry", this->saveGeometry());    
 }
@@ -206,7 +236,7 @@ void MapViewWidget::requestPointCloud()
 }
 
 bool MapViewWidget::eventFilter( QObject * o, QEvent * e )
-{
+{    
     if ( e->type() == QEvent::Wheel &&
          (qobject_cast<QAbstractSpinBox*>( o ) || qobject_cast<QAbstractSlider*>( o ) || qobject_cast<QComboBox*>( o )))
     {

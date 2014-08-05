@@ -28,6 +28,7 @@ private:
    
 public Q_SLOTS:
     void receivePositionText(QString s);
+    void receiveFPS(int fps);
 
 };
 
