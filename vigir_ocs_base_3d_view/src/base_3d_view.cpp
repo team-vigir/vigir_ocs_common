@@ -623,7 +623,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // finally the key events
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
-        hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );
+        hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );        
         // moveit robotstates store link/joint positions in /world
 //        robot_state_ = new MoveItOcsModel();
 //        ghost_robot_state_ = new MoveItOcsModel();
@@ -643,6 +643,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         setRenderOrder();
 
         disableJointMarkers = false;
+        occludedRobotVisible = true;
     }
 
     // Connect the 3D selection tool to
@@ -758,16 +759,22 @@ void Base3DView::timerEvent(QTimerEvent *event)
     //render_panel_->getRenderWindow()->update(true);
 
     //float lastFPS, avgFPS, bestFPS, worstFPS;
-    //Ogre::RenderTarget::FrameStats stats = render_panel_->getRenderWindow()->getStatistics();
+    Ogre::RenderTarget::FrameStats stats = render_panel_->getRenderWindow()->getStatistics();
     //std::cout << "View (" << view_id_ << "): " << stats.lastFPS << ", " << stats.avgFPS << ", " << stats.bestFrameTime << ", " << stats.worstFrameTime << ", " << stats.triangleCount << std::endl;
+
+    int fps = int(stats.lastFPS + 0.5); //rounded
+    // fps can be 0 for hidden views or invalid decimal values
+    if(fps > 1)
+        Q_EMIT sendFPS(fps);
+    //ROS_ERROR("View: %d LastFps: %f  avgFps: %f ",view_id_,stats.lastFPS,stats.avgFPS);
 
     // no need to spin as rviz is already doing that for us.
     //ros::spinOnce();
 
     //Means that currently doing
 
-    if(is_primary_view_)
-        setRenderOrder();
+    if(is_primary_view_ && occludedRobotVisible)
+        setRenderOrder();   
 
 }
 
@@ -928,6 +935,7 @@ void Base3DView::robotOcclusionToggled(bool selected)
 {
     if (!selected && is_primary_view_)
     {
+        occludedRobotVisible = false;
         disableRobotOccludedRender();
         //ghost state is only checked when ghost is manipulated, needs an additional call to refresh joint states
         if(ghost_robot_model_->isEnabled())
@@ -935,6 +943,7 @@ void Base3DView::robotOcclusionToggled(bool selected)
     }
     else if (is_primary_view_)
     {
+        occludedRobotVisible = true;
         setRobotOccludedRender();
     }
 }
@@ -1338,7 +1347,7 @@ contextMenuItem * Base3DView::makeContextChild(QString name,boost::function<void
 
 void Base3DView::selectOnDoubleClick(int x, int y)
 {
-    Q_EMIT queryContext(x,y);
+    Q_EMIT queryContext(x,y);    
     if(active_context_name_.find("LeftArm") != std::string::npos)
         selectLeftArm();
     else if(active_context_name_.find("RightArm") != std::string::npos)
@@ -1434,7 +1443,7 @@ void Base3DView::createContextMenu(bool, int x, int y)
         removeCartesianMarkerMenu->action->setEnabled(true);
 
     if(circular_marker_ != NULL)
-    {
+    {        
         createCircularMarkerMenu->action->setEnabled(false);
         removeCircularMarkerMenu->action->setEnabled(true);
     }
@@ -2684,27 +2693,27 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
 void Base3DView::setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset)
 {
     for(int i =0;i<sceneNode->numAttachedObjects();i++)
-    {
+    {        
         Ogre::MovableObject* obj =  sceneNode->getAttachedObject(i);
-        obj->setRenderQueueGroupAndPriority(Ogre::RENDER_QUEUE_MAIN,100);
+        obj->setRenderQueueGroupAndPriority(Ogre::RENDER_QUEUE_MAIN,100);        
         if(obj->getMovableType().compare("Entity") == 0)
         {
             //only subentities have materials...
             for(int e = 0; e < ((Ogre::Entity*)obj)->getNumSubEntities(); e++)
-            {
+            {                               
                 //usually only 1 technique
                 for(int t = 0; t < ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getNumTechniques(); t++)
-                {
+                {                    
                     for(int p = 0; p < ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getNumPasses(); p++)
-                    {
+                    {                        
                         //transparent object?
                         if(((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getPass(p)->getAmbient().a < 0.95f ||
                            ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getPass(p)->getDiffuse().a < 0.95f)//Transparent
-                        {
+                        {                            
                             obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + queueOffset);
                         }
                         else // opaque object
-                        {
+                        {                         
                             obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN);
                         }
                     }
@@ -2729,8 +2738,8 @@ void Base3DView::setRenderOrder()
     /*
       Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
                     +1  |  Transparent Objects
-    **/
-    int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();
+    **/    
+    int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();    
     for(int i = 0; i < num_displays; i++)
     {
         rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
@@ -2751,13 +2760,13 @@ void Base3DView::setRobotOccludedRender()
    for ( ; it != end; ++it )
    {
        //need to scale down robot then outline robot, must ensure that outline does not exceed scale of 1 on robot
-       const char *vertex_outline_code =
+       const char *vertex_outline_code =                        
                "void main(void){\n"
                   "vec4 tPos   = vec4(gl_Vertex + gl_Normal *0, 1.0);\n"
                   "gl_Position = gl_ModelViewProjectionMatrix * tPos;\n"
                "}\n";
        //black
-       const char *fragment_outline_code =
+       const char *fragment_outline_code =            
            "void main()\n"
            "{\n"
            "    gl_FragColor = vec4(0,0,0,1);\n"
@@ -2772,7 +2781,7 @@ void Base3DView::setRobotOccludedRender()
                   "}\n";
 
        // gray
-       const char *fragment_solid_code =
+       const char *fragment_solid_code =               
               "void main()\n"
               "{\n"
               "    gl_FragColor = vec4(0.65,0.65,0.65,1);\n"
@@ -2816,7 +2825,7 @@ void Base3DView::setRobotOccludedRender()
        vp->load();
 
        Ogre::HighLevelGpuProgramPtr fp = Ogre::HighLevelGpuProgramManager::getSingleton()
-                   .createProgram("SolidFragment", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);
+                   .createProgram("SolidFragment", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);      
        fp->setSource(fragment_solid_code);
        fp->load();
 
@@ -2828,14 +2837,14 @@ void Base3DView::setRobotOccludedRender()
        Ogre::HighLevelGpuProgramPtr fpOutline = Ogre::HighLevelGpuProgramManager::getSingleton()
                    .createProgram("OutlineFragment", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);
        fpOutline->setSource(fragment_outline_code);
-       fpOutline->load();
+       fpOutline->load();      
 
-       rviz::RobotLinkCustom* info = it->second;
+       rviz::RobotLinkCustom* info = it->second;       
        M_SubEntityToMaterial materials = info->getMaterials();
        M_SubEntityToMaterial::iterator iter = materials.begin();
        M_SubEntityToMaterial::iterator ender = materials.end();
 
-       //for all materials in this link?
+       //for all materials in this link?              
        for(;iter != ender; ++iter)
        {
            Ogre::MaterialPtr material =  iter->second;
@@ -2877,7 +2886,7 @@ void Base3DView::setRobotOccludedRender()
     //           pass->setLightingEnabled(true);
     //           pass->setSelfIllumination(r,g,b);
            }
-       }
+       }       
    }
 
 }
@@ -3337,7 +3346,7 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
     }
     else if(ctrl_is_pressed && alt_is_pressed) //emergency stop
-    {
+    {        
         stop_button_->setVisible(true);
         stop_button_->setGeometry(this->geometry().bottomRight().x()/2 - 200,this->geometry().bottomRight().y()/2 - 150,400,300);
     }

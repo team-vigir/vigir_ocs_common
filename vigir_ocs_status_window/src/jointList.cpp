@@ -52,10 +52,16 @@ void jointList::setUpTable()
     }
 }
 
-//The groups recieved by the srdf have overlapping groups.  This function picks out the necessary groups.
+//The groups recieved by the srdf (atleast in atlas) have overlapping groups.  This function picks out the necessary exclusive groups.
+//Joint categories in the table are based on groups. ex l_arm_group contains all joints for left arm.
 std::vector<srdf::Model::Group> jointList::findValidGroups(std::vector<srdf::Model::Group> groups)
 {
+    //ex.  group 1 contains joints[A B C]   group 2 contains joints [D E]  group 3 contains joints [A B C D E]
+    // only want to return group 1 and group 2 to build jointlist table.
+
+    //stores "bad" groups which contain the joints of multiple groups
     std::map<int, int> badIndexes;
+
     for(int i = 0; i < groups.size(); i++)
     {
         if(badIndexes.count(i) == 1)//Check if this is a bad group        
@@ -94,14 +100,15 @@ std::vector<srdf::Model::Group> jointList::findValidGroups(std::vector<srdf::Mod
                         hasM = true;
                         break;
                     }
-                }
+                }                
                 if(!hasM)
                 {
                     isSubset = false;
                     break;
                 }
             }
-            if(groups[smaller].joints_.empty())//Check if either list is empty
+            //Check if either list is empty
+            if(groups[smaller].joints_.empty())
             {
                 badIndexes[smaller] = smaller;
             }
@@ -111,8 +118,7 @@ std::vector<srdf::Model::Group> jointList::findValidGroups(std::vector<srdf::Mod
             }
             else if(isSubset)
             {
-                badIndexes[larger] = larger;
-                //break;
+                badIndexes[larger] = larger;                
             }
         }
     }

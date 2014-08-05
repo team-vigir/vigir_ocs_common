@@ -37,6 +37,9 @@ public Q_SLOTS:
     void requestPointCloud();
     void toggleMapConfig();
     void toggleRegionConfig();
+
+private Q_SLOTS:
+    void toggleSidebarVisibility();
     
 private:
     Ui::MapViewWidget *ui;
@@ -53,6 +56,8 @@ private:
     void resizeEvent(QResizeEvent * event);
     void moveEvent(QMoveEvent * event);    
 
+    virtual void timerEvent(QTimerEvent *event);
+
     MapRegionConfigure * mapRegionConfig;
     Region3DConfigure * region3dConfig;
 
@@ -62,6 +67,8 @@ private:
 
     QMenu regionMenu;
     QMenu mapMenu;
+
+    QPushButton* sidebar_toggle_;
 
 
 };

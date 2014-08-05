@@ -38,6 +38,9 @@ public Q_SLOTS:
     void sendPitch();
     void cameraInitialized();
 
+private Q_SLOTS:
+    void toggleSidebarVisibility();
+
 private:
     Ui::MainCameraViewWidget *ui;
 
@@ -52,6 +55,8 @@ private:
     void resizeEvent(QResizeEvent * event);
     void moveEvent(QMoveEvent * event);
 
+    QBasicTimer timer;
+    virtual void timerEvent(QTimerEvent *event);
 
     QWidget* position_widget_;
     QPushButton* four_view_button_;
@@ -73,6 +78,8 @@ private:
 
     StatusBar * statusBar;
     QSignalMapper* stop_mapper_;
+
+    QPushButton* sidebar_toggle_;
 };
 
 #endif // MAIN_CAMERA_VIEW_WIDGET_H
