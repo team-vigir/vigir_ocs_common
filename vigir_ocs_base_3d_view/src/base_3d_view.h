@@ -132,7 +132,7 @@ public:
     /**
       * Helper function for the context menu: creates a selectable item
       */
-    static contextMenuItem * makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent,std::vector<contextMenuItem * > &contextMenuElements);   
+    static contextMenuItem * makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent,std::vector<contextMenuItem * > &contextMenuElements);
 
     /**
       * Helper function for context menu: stores template context menu structure
@@ -296,56 +296,152 @@ public Q_SLOTS:
     virtual void defineStepPosePressed();
 
 
-    // Sets position of new selection marker
+    /**
+      * Sets position of new selection marker
+      */
     void newSelection( Ogre::Vector3 );
-    //adds new template with name
+    /**
+      * adds new template with name
+      */
     void insertTemplate( QString );
-    //
+
+    /**
+      * Change the system path where templates are located
+      */
     void templatePathChanged( QString );
+    /**
+      * Insert navigation waypoint (not used anymore)
+      */
     void insertWaypoint();
 
+    /**
+      * Create the right click context menu based on the context
+      */
     virtual void createContextMenu( bool, int, int );
+    /**
+      * process selection of the context menu item
+      */
     virtual void processContextMenu( int x, int y );
-    // sends back the context
+    /**
+      * sends back the context
+      */
     void setContext( int, std::string );
 
-    // get the last selection ray
+    /**
+      * get the last selection ray
+      */
     void setSelectionRay( Ogre::Ray );
-
+    /**
+      * Requests a point cloud based on the selection point (ctrl click)
+      */
     void publishPointCloudWorldRequest();
 
+    /**
+      * Creates Interactive markers for end effectors
+      */
     void publishMarkers();
 
+    /**
+      * Centers view on the robot pelvis
+      */
     void resetView();
 
+    /**
+      * Resets the point cloud display for ctrl click point cloud request
+      */
     void clearPointCloudRaycastRequests();
+    /**
+      * Resets point cloud display for stereo point cloud regions
+      */
     void clearPointCloudStereoRequests();
+    /**
+      *  Resets point cloud display for lidar point cloud regions
+      */
     void clearPointCloudRegionRequests();
+    /**
+      * Resets area maps
+      */
     void clearMapRequests();
 
+    /**
+      * send pose to moveit and requests cartesian plan for left arm
+      */
     void sendCartesianLeft();
+    /**
+      * send pose to moveit and requests cartesian plan for right arm
+      */
     void sendCartesianRight();
+    /**
+      * send pose and radius to moveit and requests circular plan for left arm
+      */
     void sendCircularLeft();
+    /**
+      * send pose and radius to moveit and requests circular plan for right arm
+      */
     void sendCircularRight();
 
+    /**
+      * Select object on double click
+      */
     void selectOnDoubleClick(int,int);
 
     virtual bool eventFilter( QObject * o, QEvent * e );
+
+    /**
+      * Changes render order of objects in rviz
+      * Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
+      *               +1  |  Transparent Objects
+      */
     void setRenderOrder();
 
 Q_SIGNALS:
+    /**
+      * Sets the render panel
+      */
     void setRenderPanel( rviz::RenderPanel* );
+    /**
+      * resets the selection
+      */
     void resetSelection();
+    /**
+      * Sets the ctr-click marker scale
+      */
     void setMarkerScale( float );
-    // send position of the mouse when clicked to create context menu
+    /**
+      * send position of the mouse when clicked to create context menu
+      */
     void queryContext( int, int );
+    /**
+      * Sets the ctr-click marker position
+      */
     void setMarkerPosition( float, float, float );
+    /**
+      * enables/disables a template marker using the template id
+      */
     void enableTemplateMarker( int, bool );
+    /**
+      * Enables/disables all template markers
+      */
     void enableTemplateMarkers( bool );
+    /**
+      * Sets the frustum properties of the camera view
+      */
     void setFrustum( const float &, const float &, const float&, const float& );
+    /**
+      * emit signal to indicate that the context menu has been processed
+      */
     void finishedContextMenuSetup( int x, int y );
+    /**
+      * Sends the current ctr-click position as text
+      */
     void sendPositionText(QString s);
+    /**
+      * updates the context menu items
+      */
     void updateMainViewItems();
+    /**
+      * Handler for the large red stop button
+      */
     void emergencyStop();
 
 
@@ -358,42 +454,120 @@ protected:
       **/
     void deselectAll();
 
+    /**
+      * Adds joint disks that visualize the current state of the joints
+      */
     void updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose,double effortPercent, double boundPercent);
+    /**
+      * Gives object context on right click
+      */
     int findObjectContext(std::string obj_type);
+    /**
+      * select left arm end effector
+      */
     void selectLeftArm();
+    /**
+      * select right arm end effector
+      */
     void selectRightArm();
+    /**
+      * Lock arm to template using arm id
+      */
     void setTemplateGraspLock(int arm);
+    /**
+      * add all existing templates to the insert template context menu
+      */
     void addTemplatesToContext();
+    /**
+      * insert individual menu to context menu
+      */
     void contextInsertTemplate(QString name);
+    /**
+      * Adds all context menu elements
+      */
     void addBase3DContextElements();
+    /**
+      * Helper function for adding context menu from vector
+      */
     void processContextMenuVector();
+    /**
+      * Helper function for adding context menu from vector
+      */
     void addToContextMenuFromVector();
+    /**
+      * Snaps hand to current ghost position
+      */
     void snapHandGhost();
     std::vector<contextMenuItem*> contextMenuItems;
     virtual void timerEvent(QTimerEvent *event);
+    /**
+      * transform pose to the target frame
+      */
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
+    /**
+      * transform to the target frame
+      */
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
+    /**
+      * removes template using id
+      */
     void removeTemplate(int id);
 
+    /**
+      * published the pose of the IM of the ghost robot
+      */
     void publishGhostPoses();
+
     virtual rviz::ViewController* getCurrentViewController();
 
+    /**
+      * Sets end effector pose
+      */
     void publishHandPose(std::string hand, const geometry_msgs::PoseStamped& end_effector_transform);
+    /**
+      * published hand/finger joint states
+      */
     void publishHandJointStates(std::string hand);
+    /**
+      * publish current camera transform
+      */
     void publishCameraTransform();
+    /**
+      * Transforms end effector position to wrist position
+      */
     int calcWristTarget(const geometry_msgs::PoseStamped& end_effector_pose, tf::Transform hand_T_palm, geometry_msgs::PoseStamped& final_pose);
+    /**
+      * Publishes the cartesial target
+      */
     void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints);
+    /**
+      * Publishes the circular target pose
+      */
     void sendCircularTarget(bool right_hand);
-
+    /**
+      * Select a template
+      */
     void selectTemplate(int id);
+    /**
+      * Select template or hands using the context menu
+      */
     void selectContextMenu();
 
-    void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
+    /**
+      * Callback for setting im mode
+      */
+    void processInteractiveMarkerMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
 
+    /**
+      * Updates color of the hands based on moveit
+      */
     void updateHandColors();
 
-    void updateGhostJointsCb(const std::string& name, const geometry_msgs::Pose& pose);
+    /**
+      * Processes ghost joint states. Used for updating joint icons
+      */
+    void processGhostJoints(const std::string& name, const geometry_msgs::Pose& pose);
 
 
     Ogre::Camera* getCamera();
@@ -405,7 +579,7 @@ protected:
     rviz::OrbitViewController* orbit_view_controller_;
     rviz::FPSViewController* fps_view_controller_;
 
-    rviz::Display* robot_model_;    
+    rviz::Display* robot_model_;
     std::vector<rviz::Display*> im_ghost_robot_;
     //std::vector<InteractiveMarkerServerCustom*> im_ghost_robot_server_;
     rviz::Display* interactive_marker_template_;
@@ -628,12 +802,33 @@ protected:
     ros::Subscriber ghost_joint_state_sub_;
     geometry_msgs::Pose ghost_root_pose_;
 
+    /**
+      * Context menu action for inserting a template
+      */
     void insertTemplateContextMenu();
+    /**
+      * Context menu action for removing a template
+      */
     void removeTemplateContextMenu();
+    /**
+      * Context menu action for executing a footstep plan
+      */
     void executeFootstepPlanContextMenu();
+    /**
+      * Context menu action for creating a cartesian target point
+      */
     void createCartesianContextMenu();
+    /**
+      * Context menu action for removing a cartesian target point
+      */
     void removeCartesianContextMenu();
+    /**
+      * Context menu action for creating a circular target point
+      */
     void createCircularContextMenu();
+    /**
+      * Context menu action for removing a circular target point
+      */
     void removeCircularContextMenu();
 
     contextMenuItem * insertTemplateMenu;
@@ -656,7 +851,7 @@ protected:
 
     QTreeWidget * templateRoot;
 
-    flor_ocs_msgs::OCSJoints jointStates;   
+    flor_ocs_msgs::OCSJoints jointStates;
 
     std::map<std::string,rviz::Display*> jointDisplayMap;
 
@@ -665,8 +860,17 @@ protected:
 
     typedef std::map< std::string, rviz::RobotLinkCustom* > M_NameToLink;
     typedef std::map<Ogre::SubEntity*, Ogre::MaterialPtr> M_SubEntityToMaterial;
-    void setRobotOccludedRender();    
+    /**
+      * Enables reordering of renderque
+      */
+    void setRobotOccludedRender();
+    /**
+      * Disables rendering of robot occluded
+      */
     void disableRobotOccludedRender();
+    /**
+      * Helper function for reordering the render queue
+      */
     void setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset);
 
     bool disableJointMarkers;
