@@ -45,10 +45,6 @@
 
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/DisplayRobotState.h>
-//#include <moveit/robot_model_loader/robot_model_loader.h>
-//#include <moveit/robot_model/robot_model.h>
-//#include <moveit/robot_state/robot_state.h>
-//#include <moveit/robot_state/conversions.h>
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
 #include <flor_ocs_msgs/OCSGhostControl.h>
@@ -443,6 +439,7 @@ Q_SIGNALS:
       * Handler for the large red stop button
       */
     void emergencyStop();
+    void sendFPS(int);
 
 
 protected:
@@ -730,6 +727,8 @@ protected:
     void setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset);
 
     bool disableJointMarkers;
+    //flag to disable extra calls to setting render order in timer function
+    bool occludedRobotVisible;
 
 
 

@@ -62,12 +62,14 @@ public Q_SLOTS:
     void ft_sensorToggled(bool);
     void zero_leftPressed();
     void zero_rightPressed();
-    void toggleWindow(int);
-    void graspWidgetToggle();
-    void setManipulationMode(int);    
-    void hideGraspWidgets();
+    void toggleWindow(int);    
+    void setManipulationMode(int);        
     void updateContextMenu();
 
+private Q_SLOTS:
+    void toggleSidebarVisibility();
+    void graspWidgetToggle();
+    void hideGraspWidgets();
 
 protected:
     void addContextMenu();
@@ -150,6 +152,8 @@ protected:
     contextMenuItem * cameraContext;
 
     QSignalMapper* stop_mapper_;
+
+    QPushButton* sidebar_toggle_;
 
 };
 

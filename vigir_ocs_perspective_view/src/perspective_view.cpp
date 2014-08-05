@@ -57,26 +57,32 @@ void PerspectiveView::init()
 
 void PerspectiveView::processCameraTransform(const geometry_msgs::Pose::ConstPtr& msg)
 {
-    if(view_change_timer_.elapsed() > 100 && msg->orientation.x == 0 && msg->orientation.y == 0 && msg->orientation.z == 0
+    if(render_panel_->getCamera()->getPosition().x != 0 && render_panel_->getCamera()->getPosition().y != 0 && render_panel_->getCamera()->getPosition().z != 0
+            && render_panel_->getCamera()->getOrientation().x != 0 && render_panel_->getCamera()->getOrientation().y != 0 && render_panel_->getCamera()->getOrientation().z != 0 && render_panel_->getCamera()->getOrientation() != 1
+            && msg->orientation.x == 0 && msg->orientation.y == 0 && msg->orientation.z == 0
             && msg->position.x == 0 && msg->position.y == 0 && msg->position.z == 0)
     {
         if(manager_->getViewManager()->getCurrent()->getClassId() == "rviz/FPS")
         {
-            view_change_timer_.start();
+//            view_change_timer_.start();
 
             manager_->getViewManager()->setCurrentViewControllerType("rviz/Orbit");
         }
     }
-    else if(view_change_timer_.elapsed() > 100)
+    else
     {
         //set the fps controller visible
-        if(manager_->getViewManager()->getCurrent()->getClassId() == "rviz/Orbit")
+        if( render_panel_->getCamera()->getPosition().x != 0 && render_panel_->getCamera()->getPosition().y != 0 && render_panel_->getCamera()->getPosition().z != 0
+                && render_panel_->getCamera()->getOrientation().x != 0 && render_panel_->getCamera()->getOrientation().y != 0 && render_panel_->getCamera()->getOrientation().z != 0 && render_panel_->getCamera()->getOrientation() != 1
+                && manager_->getViewManager()->getCurrent()->getClassId() == "rviz/Orbit")
         {
-            view_change_timer_.start();
+//            view_change_timer_.start();
 
             manager_->getViewManager()->setCurrentViewControllerType("rviz/FPS");
+            rviz::FPSViewController* fps_view_controller_ = (rviz::FPSViewController*)(manager_->getViewManager()->getCurrent());
+//            ROS_ERROR(" position %f %f %f orientation %f %f %f %f", render_panel_->getCamera()->getPosition().x, render_panel_->getCamera()->getPosition().y, render_panel_->getCamera()->getPosition().z, render_panel_->getCamera()->getOrientation().x, render_panel_->getCamera()->getOrientation().y, render_panel_->getCamera()->getOrientation().z, render_panel_->getCamera()->getOrientation().w);
         }
-        else
+        else if (manager_->getViewManager()->getCurrent()->getClassId() == "rviz/FPS")
         {
             rviz::FPSViewController* fps_view_controller_ = (rviz::FPSViewController*)(manager_->getViewManager()->getCurrent());
             fps_view_controller_->move(msg->position.x, msg->position.y, msg->position.z);
