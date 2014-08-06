@@ -439,6 +439,9 @@ Q_SIGNALS:
       * Handler for the large red stop button
       */
     void emergencyStop();
+    /**
+      * Sends fps rate to be displayed on status bars
+      */
     void sendFPS(int);
 
 

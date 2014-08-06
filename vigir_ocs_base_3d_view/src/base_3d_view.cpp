@@ -1636,18 +1636,19 @@ void Base3DView::setTemplateGraspLock(int arm)
 }
 
 void Base3DView::deselectAll()
-{
-    ROS_ERROR("disabling all markers");
+{    
     // disable all template markers
     Q_EMIT enableTemplateMarkers( false );
 
     // disable all robot IK markers
     for( int i = 0; i < im_ghost_robot_.size(); i++ )
+    {
         im_ghost_robot_[i]->setEnabled( false );
+    }
 }
 
 void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
-{
+{    
     deselectAll();
 
     // enable loopback for both arms
