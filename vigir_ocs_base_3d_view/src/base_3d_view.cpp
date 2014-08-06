@@ -2744,9 +2744,9 @@ void Base3DView::setRenderOrder()
     for(int i = 0; i < num_displays; i++)
     {
         rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
-        std::string display_name = display->getNameStd();        
+        std::string display_name = display->getNameStd();
         //camera should be unaffected by render order
-        if(display_name.find("camera") != std::string::npos)
+        if(display_name.find("Camera") == std::string::npos)
             setSceneNodeRenderGroup(display->getSceneNode(), 1);
     }
 }
