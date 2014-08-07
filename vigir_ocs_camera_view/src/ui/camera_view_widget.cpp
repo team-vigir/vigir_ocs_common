@@ -173,6 +173,7 @@ CameraViewWidget::CameraViewWidget(QWidget *parent, vigir_ocs::Base3DView* copy_
     ui->selected_resolution->setStyleSheet(stylesheet);
 
     key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &CameraViewWidget::processNewKeyEvent, this );
+
 }
 
 CameraViewWidget::~CameraViewWidget()

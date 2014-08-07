@@ -186,7 +186,9 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     //add status bar
     statusBar = new StatusBar(this);
+    //connect for position text and fps
     connect(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),SIGNAL(sendPositionText(QString)),statusBar,SLOT(receivePositionText(QString)));
+    connect(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),SIGNAL(sendFPS(int)),statusBar,SLOT(receiveFPS(int)));
     ui->statusLayout->addWidget(statusBar);
 
     // connect emergency stop button to glancehub
@@ -204,6 +206,19 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     this->restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
     // create docks, toolbars, etc...
     //this->restoreState(settings.value("mainWindowState").toByteArray());
+
+    sidebar_toggle_ = new QPushButton(this);
+    sidebar_toggle_->setStyleSheet("font: 9pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
+    sidebar_toggle_->setMaximumSize(25,25);
+
+    QPixmap pix(icon_path_+"drawer.png");
+    QIcon Btn(pix);
+    sidebar_toggle_->setIcon(Btn);
+    sidebar_toggle_->setIconSize(pix.rect().size() / 8);
+
+    connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));
+
+    timer.start(100, this);
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()
@@ -211,28 +226,35 @@ MainCameraViewWidget::~MainCameraViewWidget()
     delete ui;
 }
 
+void MainCameraViewWidget::timerEvent(QTimerEvent *event)
+{
+    sidebar_toggle_->setGeometry(ui->view_stack_->geometry().topRight().x() - 25 ,ui->view_stack_->geometry().top() + 40,25,25);
+}
+
+void MainCameraViewWidget::toggleSidebarVisibility()
+{
+    if(ui->scrollArea->isVisible())
+        ui->scrollArea->hide();
+    else
+        ui->scrollArea->show();
+}
+
 void MainCameraViewWidget::closeEvent(QCloseEvent *event)
 {
-        QSettings settings("OCS", "camera_view");
-        settings.setValue("mainWindowGeometry", this->saveGeometry());
-        //settings.setValue("mainWindowState", this->saveState());
-
+    QSettings settings("OCS", "camera_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
 }
 
 void MainCameraViewWidget::resizeEvent(QResizeEvent * event)
-{
+{    
     QSettings settings("OCS", "camera_view");
-    settings.setValue("mainWindowGeometry", this->saveGeometry());
-    //settings.setValue("mainWindowState", this->saveState());
-
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
 }
 
 void MainCameraViewWidget::moveEvent(QMoveEvent * event)
-{
+{    
     QSettings settings("OCS", "camera_view");
-    settings.setValue("mainWindowGeometry", this->saveGeometry());
-    //settings.setValue("mainWindowState", this->saveState());
-
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
 }
 
 void MainCameraViewWidget::addContextMenu()
@@ -312,7 +334,7 @@ void MainCameraViewWidget::updatePitch( const std_msgs::Float32::ConstPtr &pitch
 }
 
 bool MainCameraViewWidget::eventFilter( QObject * o, QEvent * e )
-{
+{    
     if ( e->type() == QEvent::Wheel &&
          (qobject_cast<QAbstractSpinBox*>( o ) || qobject_cast<QAbstractSlider*>( o ) || qobject_cast<QComboBox*>( o )))
     {

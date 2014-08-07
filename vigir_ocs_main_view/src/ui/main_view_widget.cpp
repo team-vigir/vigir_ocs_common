@@ -212,20 +212,21 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     statusBar = new StatusBar(this);
 
-    //connect view to update position data
+    //connect view to update position data and fps
     connect(views_list["Top Left"],SIGNAL(sendPositionText(QString)),statusBar,SLOT(receivePositionText(QString)));
+    connect(views_list["Top Left"],SIGNAL(sendFPS(int)),statusBar,SLOT(receiveFPS(int)));
 
     ui->statusLayout->addWidget(statusBar);
-    grasp_toggle_button_ = new QPushButton("Grasp",this);
+    grasp_toggle_button_ = new QPushButton(this);
 
     grasp_toggle_button_->setStyleSheet("font: 9pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
-    grasp_toggle_button_->setMaximumSize(68,22);
+    grasp_toggle_button_->setMaximumSize(60,30);
     grasp_toggle_button_->adjustSize();
 
-    QPixmap pixmap(icon_path_+"up_arrow_white.png");
+    QPixmap pixmap(icon_path_+"graspUp.png");
     QIcon ButtonIcon(pixmap);
     grasp_toggle_button_->setIcon(ButtonIcon);
-    grasp_toggle_button_->setIconSize(pixmap.rect().size()/10);
+    grasp_toggle_button_->setIconSize(pixmap.rect().size()/5);
 
     connect(grasp_toggle_button_, SIGNAL(clicked()), this, SLOT(graspWidgetToggle()));
 
@@ -332,6 +333,18 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     addContextMenu();
 
+    sidebar_toggle_ = new QPushButton(this);
+    sidebar_toggle_->setStyleSheet("font: 9pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
+    sidebar_toggle_->setMaximumSize(25,25);
+
+    QPixmap pix(icon_path_+"drawer.png");
+    QIcon Btn(pix);
+    sidebar_toggle_->setIcon(Btn);
+    sidebar_toggle_->setIconSize(pix.rect().size() / 8);
+
+    connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));
+
+
     connect(((vigir_ocs::Base3DView*) views_list["Top Left"]),SIGNAL(updateMainViewItems()),this,SLOT(updateContextMenu()));
 
     timer.start(100, this);
@@ -357,6 +370,14 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     // create docks, toolbars, etc...
     //this->restoreState(settings.value("mainWindowState").toByteArray());
 
+}
+
+void MainViewWidget::toggleSidebarVisibility()
+{
+    if(ui->scrollArea->isVisible())
+        ui->scrollArea->hide();
+    else
+        ui->scrollArea->show();
 }
 
 void MainViewWidget::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
@@ -668,20 +689,20 @@ void MainViewWidget::graspWidgetToggle()
         graspFadeIn->start();        
 
         //reset graphic on toggle button
-        QPixmap pixmap(icon_path_+"down_arrow_white.png");
+        QPixmap pixmap(icon_path_+"graspDown.png");
         QIcon ButtonIcon(pixmap);
         grasp_toggle_button_->setIcon(ButtonIcon);
-        grasp_toggle_button_->setIconSize(pixmap.rect().size()/10);
+        grasp_toggle_button_->setIconSize(pixmap.rect().size()/5);
     }
     else // visible
     {
         graspFadeOut->start();
 
         //reset graphic on button
-        QPixmap pixmap(icon_path_+"up_arrow_white.png");
+        QPixmap pixmap(icon_path_+"graspUp.png");
         QIcon ButtonIcon(pixmap);
         grasp_toggle_button_->setIcon(ButtonIcon);
-        grasp_toggle_button_->setIconSize(pixmap.rect().size()/10);
+        grasp_toggle_button_->setIconSize(pixmap.rect().size()/5);
     }
 }
 
@@ -692,7 +713,8 @@ MainViewWidget::~MainViewWidget()
 
 void MainViewWidget::timerEvent(QTimerEvent *event)
 {
-    grasp_toggle_button_->setGeometry(ui->view_stack_->geometry().bottomRight().x()-68,ui->view_stack_->geometry().bottom()+ 22,68,30);    
+    grasp_toggle_button_->setGeometry(ui->view_stack_->geometry().bottomRight().x() - 60,ui->view_stack_->geometry().bottom() + 22,60,22);
+    sidebar_toggle_->setGeometry(ui->view_stack_->geometry().topRight().x() - 25 ,ui->view_stack_->geometry().top() + 43,25,25);
 
     //must be global, as it is treated as dialog window
     graspContainer->setGeometry(ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x() - graspContainer->geometry().width()/2 - ui->view_stack_->geometry().width()/2,
