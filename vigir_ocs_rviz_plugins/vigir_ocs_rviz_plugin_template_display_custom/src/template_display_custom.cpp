@@ -354,10 +354,7 @@ void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char i
     // Add template marker
     rviz::Display* interactive_marker_template = vis_manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker template ")+boost::to_string((unsigned int)id)).c_str(), true );
     interactive_marker_template->subProp( "Update Topic" )->setValue( (template_pose_string+std::string("/pose_marker/update")).c_str() );
-    if(!display_template_marker_list_.size())
-        interactive_marker_template->setEnabled( true );
-    else
-        interactive_marker_template->setEnabled( false );
+    interactive_marker_template->setEnabled( false );
     display_template_marker_list_.push_back(interactive_marker_template);
 
     // initialize template interactive marker server if it doesn't exist yet
@@ -451,7 +448,7 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
             std::string path = msg->template_list[i];
             addTemplate(msg->template_id_list[i],path,pos,quat);
             template_list_.push_back(path);
-            template_id_list_.push_back(msg->template_id_list[i]);
+            template_id_list_.push_back(msg->template_id_list[i]);            
             addTemplateMarker(path,msg->template_id_list[i],pos);
         }
         else // just update position

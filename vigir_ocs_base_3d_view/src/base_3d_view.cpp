@@ -470,12 +470,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         robot_model_->subProp( "Color" )->setValue( QColor( 200, 200, 200 ) );
         robot_model_->subProp( "Alpha" )->setValue( 1.0f );
 
-        // Create an occluded RobotModel display.
-//        robot_model_occluded_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot occluded model", true );
-//        robot_model_occluded_->subProp( "Color" )->setValue( QColor( 200, 200, 200 ) );
-//        robot_model_occluded_->subProp( "Alpha" )->setValue( 1.0f );
-
-
         // ground map middle man
         //ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
         ground_map_sub_ = nh_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/ocs/gridmap_result", 5, &Base3DView::processNewMap, this );
@@ -623,14 +617,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // finally the key events
         key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
-        hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );        
-        // moveit robotstates store link/joint positions in /world
-//        robot_state_ = new MoveItOcsModel();
-//        ghost_robot_state_ = new MoveItOcsModel();
-
-
-        //subscribe to joint states to update joint markers
-        //robot_joint_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSJoints>("/flor/ocs/joint_states",5,&Base3DView::updateJointIcons, this );
+        hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );
 
         //sub to ghost joint states
         ghost_joint_state_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/flor/ghost/get_joint_states", 5, &Base3DView::processGhostJointStates, this );
@@ -827,8 +814,7 @@ void Base3DView::updateRenderMask( bool mask )
 
 void Base3DView::robotModelToggled( bool selected )
 {
-    robot_model_->setEnabled( selected );
-    //robot_model_occluded_->setEnabled( selected );
+    robot_model_->setEnabled( selected );    
 }
 
 void Base3DView::graspModelToggled( bool selected )
@@ -937,9 +923,6 @@ void Base3DView::robotOcclusionToggled(bool selected)
     {
         occludedRobotVisible = false;
         disableRobotOccludedRender();
-        //ghost state is only checked when ghost is manipulated, needs an additional call to refresh joint states
-        if(ghost_robot_model_->isEnabled())
-            processGhostJointStates(latest_ghost_joint_state_);
     }
     else if (is_primary_view_)
     {
@@ -952,11 +935,18 @@ void Base3DView::robotJointMarkerToggled(bool selected)
 {
     if(!selected && is_primary_view_)
     {
-        disableJointMarkers = true;
+        disableJointMarkers = true;        
+        //ghost state is only checked when ghost is manipulated, needs an additional call to refresh joint states
+        if(ghost_robot_model_->isEnabled())
+            processGhostJointStates(latest_ghost_joint_state_);
+
     }
     else if (is_primary_view_)
     {
         disableJointMarkers = false;
+        if(ghost_robot_model_->isEnabled())
+            processGhostJointStates(latest_ghost_joint_state_);
+
     }
 }
 
@@ -2670,6 +2660,25 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
         std::string link_name = ((rviz::RobotDisplayCustom*)robot_model_)->getChildLinkName(states->name[i]);
         robot_state->getLinkPose(link_name,pose);
 
+        if(!robot_model_->isEnabled())
+        {
+            //hide all icons if robot is not enabled
+            for (std::map<std::string,rviz::Display*>::iterator it=jointDisplayMap.begin(); it!=jointDisplayMap.end(); ++it)
+            {
+                if(!it->second->subProp("Name")->getValue().toString().contains("ghost"))
+                    it->second->setEnabled(false);
+            }
+        }
+        else
+        {
+            //show all icons
+            for (std::map<std::string,rviz::Display*>::iterator it=jointDisplayMap.begin(); it!=jointDisplayMap.end(); ++it)
+            {
+                if(!it->second->subProp("Name")->getValue().toString().contains("ghost"))
+                    it->second->setEnabled(true);
+            }
+        }
+
         updateJointIcons(states->name[i], pose, jointEffortPercent,boundPercent);
     }
 
@@ -2991,6 +3000,7 @@ void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr
                     it->second->setEnabled(false);
             }
         }
+
         updateJointIcons(std::string("ghost/")+states->name[i], pose, 0.0, boundPercent);
     }
 }

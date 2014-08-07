@@ -16,7 +16,6 @@
 #include <sensor_msgs/JointState.h>
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
-#include <flor_ocs_msgs/OCSJoints.h>
 
 #include "robot_state_manager.h"
 
