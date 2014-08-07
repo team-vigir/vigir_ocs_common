@@ -128,7 +128,7 @@ public:
     /**
       * Helper function for the context menu: creates a selectable item
       */
-    static contextMenuItem * makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent,std::vector<contextMenuItem * > &contextMenuElements);   
+    static contextMenuItem * makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent,std::vector<contextMenuItem * > &contextMenuElements);
 
     /**
       * Helper function for context menu: stores template context menu structure
@@ -292,118 +292,195 @@ public Q_SLOTS:
     virtual void defineStepPosePressed();
 
 
-    // Sets position of new selection marker
+    /**
+      * Sets position of new selection marker
+      */
     void newSelection( Ogre::Vector3 );
-    //adds new template with name
+    /**
+      * adds new template with name
+      */
     void insertTemplate( QString );
-    //
+
+    /**
+      * Change the system path where templates are located
+      */
     void templatePathChanged( QString );
+    /**
+      * Insert navigation waypoint (not used anymore)
+      */
     void insertWaypoint();
 
+    /**
+      * Create the right click context menu based on the context
+      */
     virtual void createContextMenu( bool, int, int );
+    /**
+      * process selection of the context menu item
+      */
     virtual void processContextMenu( int x, int y );
-    // sends back the context
+    /**
+      * sends back the context
+      */
     void setContext( int, std::string );
 
-    // get the last selection ray
+    /**
+      * get the last selection ray
+      */
     void setSelectionRay( Ogre::Ray );
-
+    /**
+      * Requests a point cloud based on the selection point (ctrl click)
+      */
     void publishPointCloudWorldRequest();
 
+    /**
+      * Creates Interactive markers for end effectors
+      */
     void publishMarkers();
 
+    /**
+      * Centers view on the robot pelvis
+      */
     void resetView();
 
+    /**
+      * Resets the point cloud display for ctrl click point cloud request
+      */
     void clearPointCloudRaycastRequests();
+    /**
+      * Resets point cloud display for stereo point cloud regions
+      */
     void clearPointCloudStereoRequests();
+    /**
+      *  Resets point cloud display for lidar point cloud regions
+      */
     void clearPointCloudRegionRequests();
+    /**
+      * Resets area maps
+      */
     void clearMapRequests();
 
+    /**
+      * send pose to moveit and requests cartesian plan for left arm
+      */
     void sendCartesianLeft();
+    /**
+      * send pose to moveit and requests cartesian plan for right arm
+      */
     void sendCartesianRight();
+    /**
+      * send pose and radius to moveit and requests circular plan for left arm
+      */
     void sendCircularLeft();
+    /**
+      * send pose and radius to moveit and requests circular plan for right arm
+      */
     void sendCircularRight();
 
+    /**
+      * Select object on double click
+      */
     void selectOnDoubleClick(int,int);
 
     virtual bool eventFilter( QObject * o, QEvent * e );
+
+    /**
+      * Changes render order of objects in rviz
+      * Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
+      *               +1  |  Transparent Objects
+      */
     void setRenderOrder();
 
 Q_SIGNALS:
+    /**
+      * Sets the render panel
+      */
     void setRenderPanel( rviz::RenderPanel* );
+    /**
+      * resets the selection
+      */
     void resetSelection();
+    /**
+      * Sets the ctr-click marker scale
+      */
     void setMarkerScale( float );
-    // send position of the mouse when clicked to create context menu
+    /**
+      * send position of the mouse when clicked to create context menu
+      */
     void queryContext( int, int );
+    /**
+      * Sets the ctr-click marker position
+      */
     void setMarkerPosition( float, float, float );
+    /**
+      * enables/disables a template marker using the template id
+      */
     void enableTemplateMarker( int, bool );
+    /**
+      * Enables/disables all template markers
+      */
     void enableTemplateMarkers( bool );
+    /**
+      * Sets the frustum properties of the camera view
+      */
     void setFrustum( const float &, const float &, const float&, const float& );
+    /**
+      * emit signal to indicate that the context menu has been processed
+      */
     void finishedContextMenuSetup( int x, int y );
+    /**
+      * Sends the current ctr-click position as text
+      */
     void sendPositionText(QString s);
+    /**
+      * updates the context menu items
+      */
     void updateMainViewItems();
+    /**
+      * Handler for the large red stop button
+      */
     void emergencyStop();
+    /**
+      * send fps value to be displayed on screen
+      */
     void sendFPS(int);
 
 
 protected:
-    bool shift_pressed_;
-    int interactive_marker_mode_;
+    virtual void timerEvent(QTimerEvent *event);
 
     /**
-      * Helper Function: deselects all objects in the current view
-      **/
-    void deselectAll();
-
+      * Adds joint disks that visualize the current state of the joints
+      */
     void updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose,double effortPercent, double boundPercent);
-    int findObjectContext(std::string obj_type);
-    void selectLeftArm();
-    void selectRightArm();
+    /**
+      * Lock arm to template using arm id
+      */
     void setTemplateGraspLock(int arm);
-    void addTemplatesToContext();
-    void contextInsertTemplate(QString name);
-    void addBase3DContextElements();
-    void processContextMenuVector();
-    void addToContextMenuFromVector();
-    void snapHandGhost();
-    std::vector<contextMenuItem*> contextMenuItems;
-    virtual void timerEvent(QTimerEvent *event);
+    /**
+      * transform pose to the target frame
+      */
     void transform(const std::string& target_frame, geometry_msgs::PoseStamped& pose);
+    /**
+      * transform to the target frame
+      */
     void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
-    void removeTemplate(int id);
-
-    void publishGhostPoses();
     virtual rviz::ViewController* getCurrentViewController();
 
-    void publishHandPose(std::string hand, const geometry_msgs::PoseStamped& end_effector_transform);
-    void publishHandJointStates(std::string hand);
+    /**
+      * publish current camera transform
+      */
     void publishCameraTransform();
-    int calcWristTarget(const geometry_msgs::PoseStamped& end_effector_pose, tf::Transform hand_T_palm, geometry_msgs::PoseStamped& final_pose);
-    void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints);
-    void sendCircularTarget(bool right_hand);
 
-    void selectTemplate(int id);
-    void selectContextMenu();
-
-    void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
-
-    void updateHandColors();
-
-    void updateGhostJointsCb(const std::string& name, const geometry_msgs::Pose& pose);
-
+    bool shift_pressed_;
+    int interactive_marker_mode_;
 
     Ogre::Camera* getCamera();
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
 
-    //fps and orbit view controllers
-    rviz::OrbitViewController* orbit_view_controller_;
-    rviz::FPSViewController* fps_view_controller_;
-
-    rviz::Display* robot_model_;    
-    std::vector<rviz::Display*> im_ghost_robot_;
+    rviz::Display* robot_model_;
     //std::vector<InteractiveMarkerServerCustom*> im_ghost_robot_server_;
     rviz::Display* interactive_marker_template_;
     rviz::Display* octomap_;
@@ -431,6 +508,339 @@ protected:
     rviz::Display* left_ft_sensor_;
     rviz::Display* right_ft_sensor_;
 
+    rviz::Tool* interactive_markers_tool_;
+    //rviz::Tool* selection_tool_;
+    rviz::Tool* move_camera_tool_;
+    rviz::Tool* set_walk_goal_tool_;
+    rviz::Tool* set_step_goal_tool_;
+
+    Ogre::Vector3 selection_position_;
+
+    ros::NodeHandle nh_;
+
+    ros::Publisher template_add_pub_;
+    ros::Publisher waypoint_add_pub_;
+
+    ros::Publisher octomap_roi_pub_;
+
+    ros::Publisher global_selection_pos_pub_;
+    ros::Subscriber global_selection_pos_sub_;
+
+    ros::Subscriber ground_map_sub_;
+    ros::Subscriber point_cloud_result_sub_;
+
+    ros::Publisher pointcloud_request_world_pub_;
+
+    ros::Publisher send_footstep_goal_step_pub_;
+    ros::Publisher send_footstep_goal_walk_pub_;
+
+    ros::Subscriber set_walk_goal_sub_;
+    ros::Subscriber set_step_goal_sub_;
+
+    ros::Publisher interactive_marker_add_pub_;
+    ros::Publisher interactive_marker_update_pub_;
+    ros::Subscriber interactive_marker_feedback_sub_;
+    ros::Publisher interactive_marker_remove_pub_;
+    ros::Publisher interactive_marker_server_mode_pub_;
+    ros::Subscriber interactive_marker_server_mode_sub_;
+
+    ros::Publisher flor_mode_command_pub_;
+    ros::Subscriber flor_mode_sub_;
+    ros::Subscriber robot_joint_state_sub_;
+
+    ros::Publisher select_object_pub_;
+    ros::Subscriber select_object_sub_;
+
+    ros::Publisher camera_transform_pub_;
+    ros::Subscriber camera_transform_sub_;
+
+    vigir_ocs::MouseEventHandler* mouse_event_handler_;
+
+    std::string base_frame_;
+    std::string widget_name_;
+
+    bool selected_;
+    QString selected_template_path_;
+
+    int active_context_;
+
+    int last_footstep_plan_type_;
+
+    Ogre::Ray last_selection_ray_;
+
+    int stored_maps_;// THIS VALUE DETERMINES HOW MANY WE STORE
+
+    bool visualize_grid_map_;
+    QWidget* position_widget_;
+    QLineEdit* position_label_;
+
+    QPushButton* reset_view_button_;
+    QPushButton* stop_button_;
+
+    QBasicTimer timer;
+
+    int view_id_;
+
+    ros::Publisher template_remove_pub_;
+
+    int flor_atlas_current_mode_;
+
+    std::vector<int> keys_pressed_list_;
+
+    ros::Subscriber key_event_sub_;
+    ros::Subscriber hotkey_relay_sub_;
+
+    bool is_primary_view_;
+
+
+
+
+    ////////////////////
+    // occluded robot
+
+    std::map<std::string,rviz::Display*> jointDisplayMap;
+
+    typedef std::map<std::string, rviz::RobotLinkCustom*> M_NameToLink;
+    typedef std::map<Ogre::SubEntity*, Ogre::MaterialPtr> M_SubEntityToMaterial;
+    /**
+      * Enables reordering of renderque
+      */
+    void setRobotOccludedRender();
+    /**
+      * Disables rendering of robot occluded
+      */
+    void disableRobotOccludedRender();
+    /**
+      * Helper function for reordering the render queue
+      */
+    void setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset);
+
+    bool disableJointMarkers;
+    //flag to disable extra calls to setting render order in timer function
+    bool occludedRobotVisible;
+
+
+
+
+
+    ////////////////////
+    // selection
+
+    /**
+      * Helper Function: deselects all objects in the current view
+      **/
+    void deselectAll();
+    /**
+      * Select a template
+      */
+    void selectTemplate(int id);
+    /**
+      * select left arm end effector
+      */
+    void selectLeftArm();
+    /**
+      * select right arm end effector
+      */
+    void selectRightArm();
+
+
+
+
+    ////////////////////
+    // context menu
+
+
+    /**
+      * Context menu action for inserting a template
+      */
+    void insertTemplateContextMenu();
+    /**
+      * Context menu action for removing a template
+      */
+    void removeTemplateContextMenu();
+    /**
+      * Context menu action for executing a footstep plan
+      */
+    void executeFootstepPlanContextMenu();
+
+    contextMenuItem * insertTemplateMenu;
+    contextMenuItem * removeTemplateMenu;
+    contextMenuItem * selectMenu;
+    contextMenuItem * footstepPlanMenuWalk;
+    contextMenuItem * footstepPlanMenuWalkManipulation;
+    contextMenuItem * cartesianMotionMenu;
+    contextMenuItem * createCartesianMarkerMenu;
+    contextMenuItem * removeCartesianMarkerMenu;
+    contextMenuItem * circularMotionMenu;
+    contextMenuItem * createCircularMarkerMenu;
+    contextMenuItem * removeCircularMarkerMenu;
+    contextMenuItem * lockLeftMenu;
+    contextMenuItem * lockRightMenu;
+    contextMenuItem * unlockArmsMenu;
+    contextMenuItem * snapHandMenu;
+    contextMenuItem * leftArmMenu;
+    contextMenuItem * rightArmMenu;
+
+    std::vector<contextMenuItem*> contextMenuItems;
+
+    QTreeWidget * templateRoot;
+
+    QMenu context_menu_;
+    QAction* context_menu_selected_item_;
+
+    int initializing_context_menu_;
+    std::string active_context_name_;
+
+    /**
+      * add all existing templates to the insert template context menu
+      */
+    void addTemplatesToContext();
+    /**
+      * insert individual menu to context menu
+      */
+    void contextInsertTemplate(QString name);
+    /**
+      * Adds all context menu elements
+      */
+    void addBase3DContextElements();
+    /**
+      * Helper function for adding context menu from vector
+      */
+    void processContextMenuVector();
+    /**
+      * Helper function for adding context menu from vector
+      */
+    void addToContextMenuFromVector();
+    /**
+      * Select template or hands using the context menu
+      */
+    void selectContextMenu();
+    /**
+      * removes template using id
+      */
+    void removeTemplate(int id);
+    /**
+      * Gives object context on right click
+      */
+    int findObjectContext(std::string obj_type);
+
+
+
+
+    ////////////////////
+    // Cartesian/circular moveit
+    /**
+      * Context menu action for creating a cartesian target point
+      */
+    void createCartesianContextMenu();
+    /**
+      * Context menu action for removing a cartesian target point
+      */
+    void removeCartesianContextMenu();
+    /**
+      * Context menu action for creating a circular target point
+      */
+    void createCircularContextMenu();
+    /**
+      * Context menu action for removing a circular target point
+      */
+    void removeCircularContextMenu();
+    /**
+      * Publishes the cartesial target
+      */
+    void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints);
+    /**
+      * Publishes the circular target pose
+      */
+    void sendCircularTarget(bool right_hand);
+
+    std::vector<rviz::Display*> cartesian_marker_list_;
+    rviz::Display* circular_marker_;
+
+    std::vector<geometry_msgs::Pose> cartesian_waypoint_list_;
+    geometry_msgs::Pose circular_center_;
+
+    ros::Publisher cartesian_plan_request_pub_;
+    ros::Publisher circular_plan_request_pub_;
+
+    QWidget* cartesian_config_widget_;
+    QCheckBox* cartesian_use_collision_;
+    QCheckBox* cartesian_keep_orientation_;
+
+    QWidget* circular_config_widget_;
+    QCheckBox* circular_use_collision_;
+    QCheckBox* circular_keep_orientation_;
+    QDoubleSpinBox* circular_angle_;
+
+    ros::Subscriber send_cartesian_sub_;
+
+
+
+    ////////////////////
+    // ghost
+
+    rviz::Display* ghost_robot_model_;
+
+    sensor_msgs::JointState::ConstPtr latest_ghost_joint_state_;
+
+    geometry_msgs::Pose last_l_arm_moveit_pose_;
+    geometry_msgs::Pose last_r_arm_moveit_pose_;
+    geometry_msgs::Pose last_l_arm_marker_pose_;
+    geometry_msgs::Pose last_r_arm_marker_pose_;
+    bool update_l_arm_color_;
+    bool update_r_arm_color_;
+
+    ros::Subscriber send_ghost_pelvis_pose_sub_;
+    ros::Subscriber ghost_joint_state_sub_;
+    geometry_msgs::Pose ghost_root_pose_;
+
+    ros::Publisher l_arm_marker_pose_pub_;
+    ros::Publisher r_arm_marker_pose_pub_;
+    ros::Publisher pelvis_marker_pose_pub_;
+
+    int marker_published_;
+
+    bool moving_pelvis_;
+    bool moving_l_arm_;
+    bool moving_r_arm_;
+
+    std::vector<unsigned char> ghost_planning_group_;
+    std::vector<unsigned char> ghost_pose_source_;
+    std::vector<unsigned char> ghost_world_lock_;
+    unsigned char moveit_collision_avoidance_;
+    unsigned char ghost_lock_pelvis_;
+    bool update_markers_;
+    bool snap_ghost_to_robot_;
+    bool snap_left_hand_to_ghost_;
+    bool snap_right_hand_to_ghost_;
+    bool left_marker_moveit_loopback_;
+    bool right_marker_moveit_loopback_;
+    bool position_only_ik_;
+
+    std::vector<ros::Subscriber> end_effector_sub_;
+    ros::Publisher end_effector_pub_;
+    ros::Publisher ghost_root_pose_pub_;
+    std::map<std::string,geometry_msgs::PoseStamped> end_effector_pose_list_;
+
+    ros::Subscriber ghost_control_state_sub_;
+
+    ros::Publisher ghost_joint_state_pub_;
+    ros::Subscriber joint_states_sub_;
+    ros::Subscriber reset_pelvis_sub_;
+    ros::Subscriber send_pelvis_sub_;
+
+    ros::Subscriber ghost_hand_left_sub_;
+    ros::Subscriber ghost_hand_right_sub_;
+
+    tf::Transform l_hand_T_palm_;
+    tf::Transform r_hand_T_palm_;
+
+    tf::Transform l_hand_T_marker_;
+    tf::Transform r_hand_T_marker_;
+
+    std::string l_hand_type, r_hand_type;
+    std::vector<rviz::Display*> im_ghost_robot_;
+
     rviz::Display* left_grasp_hand_model_;
     rviz::Display* right_grasp_hand_model_;
 
@@ -452,226 +862,46 @@ protected:
     // Used to make setting virtual joint positions (-> hand pose) easier
     sensor_msgs::JointState right_hand_virtual_link_joint_states_;
 
-    // for simulation
-    rviz::Display* ghost_robot_model_;
-
-    std::map<std::string,rviz::Display*> display_list_;
-
-    rviz::Tool* interactive_markers_tool_;
-    //rviz::Tool* selection_tool_;
-    rviz::Tool* move_camera_tool_;
-    rviz::Tool* set_walk_goal_tool_;
-    rviz::Tool* set_step_goal_tool_;
-
     rviz::Display* left_hand_bounding_box_;
     rviz::Display* right_hand_bounding_box_;
     rviz::Display* pelvis_hand_bounding_box_;
 
-    Ogre::Vector3 selection_position_;
+    /**
+      * Callback for setting im mode
+      */
+    void processInteractiveMarkerMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
 
-    ros::NodeHandle nh_;
+    /**
+      * Updates color of the hands based on moveit
+      */
+    void updateHandColors();
 
-    ros::Publisher template_add_pub_;
-    ros::Publisher waypoint_add_pub_;
+    /**
+      * Processes ghost joint states. Used for updating joint icons
+      */
+    void processGhostJoints(const std::string& name, const geometry_msgs::Pose& pose);
 
-    ros::Publisher octomap_roi_pub_;
+    /**
+      * published the pose of the IM of the ghost robot
+      */
+    void publishGhostPoses();
 
-    ros::Publisher global_selection_pos_pub_;
-    ros::Subscriber global_selection_pos_sub_;
-
-    ros::Subscriber ground_map_sub_;
-    ros::Subscriber point_cloud_result_sub_;
-
-    ros::Publisher pointcloud_request_world_pub_;
-
-    std::vector<ros::Subscriber> end_effector_sub_;
-    ros::Publisher end_effector_pub_;
-    ros::Publisher ghost_root_pose_pub_;
-    std::map<std::string,geometry_msgs::PoseStamped> end_effector_pose_list_;
-
-    ros::Subscriber ghost_control_state_sub_;
-
-    ros::Publisher ghost_joint_state_pub_;
-    ros::Subscriber joint_states_sub_;
-    ros::Subscriber reset_pelvis_sub_;
-    ros::Subscriber send_pelvis_sub_;
-    ros::Publisher send_footstep_goal_step_pub_;
-    ros::Publisher send_footstep_goal_walk_pub_;
-
-    ros::Subscriber set_walk_goal_sub_;
-    ros::Subscriber set_step_goal_sub_;
-
-    ros::Publisher interactive_marker_add_pub_;
-    ros::Publisher interactive_marker_update_pub_;
-    ros::Subscriber interactive_marker_feedback_sub_;
-    ros::Publisher interactive_marker_remove_pub_;
-    ros::Publisher interactive_marker_server_mode_pub_;
-    ros::Subscriber interactive_marker_server_mode_sub_;
-
-    ros::Subscriber ghost_hand_left_sub_;
-    ros::Subscriber ghost_hand_right_sub_;
-
-    ros::Publisher flor_mode_command_pub_;
-    ros::Subscriber flor_mode_sub_;
-    ros::Subscriber robot_joint_state_sub_;
-
-    ros::Publisher select_object_pub_;
-    ros::Subscriber select_object_sub_;
-
-    ros::Publisher camera_transform_pub_;
-    ros::Subscriber camera_transform_sub_;
-
-    std::vector<unsigned char> ghost_planning_group_;
-    std::vector<unsigned char> ghost_pose_source_;
-    std::vector<unsigned char> ghost_world_lock_;
-    unsigned char moveit_collision_avoidance_;
-    unsigned char ghost_lock_pelvis_;
-    bool update_markers_;
-    bool snap_ghost_to_robot_;
-    bool snap_left_hand_to_ghost_;
-    bool snap_right_hand_to_ghost_;
-    bool left_marker_moveit_loopback_;
-    bool right_marker_moveit_loopback_;
-    bool position_only_ik_;
-
-    vigir_ocs::MouseEventHandler* mouse_event_handler_;
-
-    std::string base_frame_;
-    std::string widget_name_;
-
-    bool selected_;
-    QString selected_template_path_;
-
-    int active_context_;
-
-    int last_footstep_plan_type_;
-
-    Ogre::Ray last_selection_ray_;
-
-    int marker_published_;
-    int stored_maps_;// THIS VALUE DETERMINES HOW MANY WE STORE
-
-    bool moving_pelvis_;
-    bool moving_l_arm_;
-    bool moving_r_arm_;
-
-    bool visualize_grid_map_;
-    QWidget* position_widget_;
-    QLineEdit* position_label_;
-
-    QPushButton* reset_view_button_;
-    QPushButton* stop_button_;
-
-    tf::Transform l_hand_T_palm_;
-    tf::Transform r_hand_T_palm_;
-
-    tf::Transform l_hand_T_marker_;
-    tf::Transform r_hand_T_marker_;
-
-    QBasicTimer timer;
-
-    int view_id_;
-
-    std::string l_hand_type, r_hand_type;
-
-    QMenu context_menu_;
-    QAction* context_menu_selected_item_;
-
-    int initializing_context_menu_;
-    std::string active_context_name_;
-
-    ros::Publisher template_remove_pub_;
-
-    int flor_atlas_current_mode_;
-
-    std::vector<int> keys_pressed_list_;
-
-    ros::Subscriber key_event_sub_;
-    ros::Subscriber hotkey_relay_sub_;
-
-    bool is_primary_view_;
-
-    geometry_msgs::Pose last_l_arm_moveit_pose_;
-    geometry_msgs::Pose last_r_arm_moveit_pose_;
-    geometry_msgs::Pose last_l_arm_marker_pose_;
-    geometry_msgs::Pose last_r_arm_marker_pose_;
-    bool update_l_arm_color_;
-    bool update_r_arm_color_;
-
-    ros::Publisher l_arm_marker_pose_pub_;
-    ros::Publisher r_arm_marker_pose_pub_;
-    ros::Publisher pelvis_marker_pose_pub_;
-
-    std::vector<rviz::Display*> cartesian_marker_list_;
-    rviz::Display* circular_marker_;
-
-    std::vector<geometry_msgs::Pose> cartesian_waypoint_list_;
-    geometry_msgs::Pose circular_center_;
-
-    ros::Publisher cartesian_plan_request_pub_;
-    ros::Publisher circular_plan_request_pub_;
-
-    QWidget* cartesian_config_widget_;
-    QCheckBox* cartesian_use_collision_;
-    QCheckBox* cartesian_keep_orientation_;
-
-    QWidget* circular_config_widget_;
-    QCheckBox* circular_use_collision_;
-    QCheckBox* circular_keep_orientation_;
-    QDoubleSpinBox* circular_angle_;
-
-    ros::Subscriber send_cartesian_sub_;
-    ros::Subscriber send_ghost_pelvis_pose_sub_;
-    ros::Subscriber ghost_joint_state_sub_;
-    geometry_msgs::Pose ghost_root_pose_;
-
-    void insertTemplateContextMenu();
-    void removeTemplateContextMenu();
-    void executeFootstepPlanContextMenu();
-    void createCartesianContextMenu();
-    void removeCartesianContextMenu();
-    void createCircularContextMenu();
-    void removeCircularContextMenu();
-
-    contextMenuItem * insertTemplateMenu;
-    contextMenuItem * removeTemplateMenu;
-    contextMenuItem * selectMenu;
-    contextMenuItem * footstepPlanMenuWalk;
-    contextMenuItem * footstepPlanMenuWalkManipulation;
-    contextMenuItem * cartesianMotionMenu;
-    contextMenuItem * createCartesianMarkerMenu;
-    contextMenuItem * removeCartesianMarkerMenu;
-    contextMenuItem * circularMotionMenu;
-    contextMenuItem * createCircularMarkerMenu;
-    contextMenuItem * removeCircularMarkerMenu;
-    contextMenuItem * lockLeftMenu;
-    contextMenuItem * lockRightMenu;
-    contextMenuItem * unlockArmsMenu;
-    contextMenuItem * snapHandMenu;
-    contextMenuItem * leftArmMenu;
-    contextMenuItem * rightArmMenu;
-
-    QTreeWidget * templateRoot;
-
-    flor_ocs_msgs::OCSJoints jointStates;   
-
-    std::map<std::string,rviz::Display*> jointDisplayMap;
-
-    std::vector<int> ghostJointStates;
-
-
-    typedef std::map< std::string, rviz::RobotLinkCustom* > M_NameToLink;
-    typedef std::map<Ogre::SubEntity*, Ogre::MaterialPtr> M_SubEntityToMaterial;
-    void setRobotOccludedRender();    
-    void disableRobotOccludedRender();
-    void setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset);
-
-    bool disableJointMarkers;
-    sensor_msgs::JointState::ConstPtr latest_ghost_joint_state_;
-
-    //flag to disable extra calls to setting render order in timer function
-    bool occludedRobotVisible;
-
+    /**
+      * Sets end effector pose
+      */
+    void publishHandPose(std::string hand, const geometry_msgs::PoseStamped& end_effector_transform);
+    /**
+      * published hand/finger joint states
+      */
+    void publishHandJointStates(std::string hand);
+    /**
+      * Transforms end effector position to wrist position
+      */
+    int calcWristTarget(const geometry_msgs::PoseStamped& end_effector_pose, tf::Transform hand_T_palm, geometry_msgs::PoseStamped& final_pose);
+    /**
+      * Snaps hand to current ghost position
+      */
+    void snapHandGhost();
 };
 }
 #endif // BASE_3D_VIEW_H

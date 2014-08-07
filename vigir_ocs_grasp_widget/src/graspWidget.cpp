@@ -70,7 +70,6 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
     grasp_selection_pub_        = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/grasp_selection",        1, false);
     grasp_release_pub_          = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/release_grasp" ,         1, false);
     grasp_mode_command_pub_     = nh_.advertise<flor_grasp_msgs::GraspState>(        grasp_control_prefix+"/mode_command",     1, false);
-    template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/template_match_request", 1, false );
 
     // create subscribers for grasp status
     std::stringstream finger_joint_name;
@@ -80,6 +79,9 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
     if(hand_ == "left")
     {
         this->setWindowTitle(QString::fromStdString("Left Hand Grasp Widget"));
+
+        //Publisher for template match rewuest for LEFT
+        template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/l_hand_template_match_request", 1, false );
 
         robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/l_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
         ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_left_hand_pose",             1, false);
@@ -130,6 +132,9 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
     else
     {
         this->setWindowTitle(QString::fromStdString("Right Hand Grasp Widget"));
+
+        //Publisher for template match rewuest for RIGHT
+        template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/r_hand_template_match_request", 1, false );
 
         robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/r_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
         ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_right_hand_pose",            1, false);
@@ -787,6 +792,9 @@ void graspWidget::on_templateButton_clicked()
     }
     msg.template_id.data = ui->templateBox->currentIndex();
     msg.pose.pose = last_template_list_.pose[ui->templateBox->currentIndex()].pose;
+    msg.pose.header.frame_id = "/world";
+    msg.pose.header.stamp = ros::Time::now();
+    msg.pose.header.seq++;
     template_match_request_pub_.publish(msg);
 }
 

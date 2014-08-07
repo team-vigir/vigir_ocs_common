@@ -52,11 +52,6 @@ void PerspectiveView::init()
     //subscribe to process camera transform
     camera_transform_sub_ = nh_.subscribe<geometry_msgs::Pose>( "/flor/ocs/set_camera_transform", 5, &PerspectiveView::processCameraTransform, this );
 
-//    // set the camera to be topdownortho
-//    orbit_view_controller_ = (rviz::OrbitViewController*)manager_->getViewManager()->create("rviz/Orbit");//new rviz::OrbitViewController();//view_man_->create( "rviz/OrthoViewControllerCustom" );
-//    orbit_view_controller_->initialize(manager_);
-//    manager_->getViewManager()->setCurrentFrom(orbit_view_controller_);
-
     view_change_timer_.start();
 }
 
@@ -69,8 +64,6 @@ void PerspectiveView::processCameraTransform(const geometry_msgs::Pose::ConstPtr
     {
         if(manager_->getViewManager()->getCurrent()->getClassId() == "rviz/FPS")
         {
-//            view_change_timer_.start();
-
             manager_->getViewManager()->setCurrentViewControllerType("rviz/Orbit");
         }
     }
@@ -81,11 +74,9 @@ void PerspectiveView::processCameraTransform(const geometry_msgs::Pose::ConstPtr
                 && render_panel_->getCamera()->getOrientation().x != 0 && render_panel_->getCamera()->getOrientation().y != 0 && render_panel_->getCamera()->getOrientation().z != 0 && render_panel_->getCamera()->getOrientation() != 1
                 && manager_->getViewManager()->getCurrent()->getClassId() == "rviz/Orbit")
         {
-//            view_change_timer_.start();
-
             manager_->getViewManager()->setCurrentViewControllerType("rviz/FPS");
             rviz::FPSViewController* fps_view_controller_ = (rviz::FPSViewController*)(manager_->getViewManager()->getCurrent());
-//            ROS_ERROR(" position %f %f %f orientation %f %f %f %f", render_panel_->getCamera()->getPosition().x, render_panel_->getCamera()->getPosition().y, render_panel_->getCamera()->getPosition().z, render_panel_->getCamera()->getOrientation().x, render_panel_->getCamera()->getOrientation().y, render_panel_->getCamera()->getOrientation().z, render_panel_->getCamera()->getOrientation().w);
+            //ROS_ERROR(" position %f %f %f orientation %f %f %f %f", render_panel_->getCamera()->getPosition().x, render_panel_->getCamera()->getPosition().y, render_panel_->getCamera()->getPosition().z, render_panel_->getCamera()->getOrientation().x, render_panel_->getCamera()->getOrientation().y, render_panel_->getCamera()->getOrientation().z, render_panel_->getCamera()->getOrientation().w);
         }
         else if (manager_->getViewManager()->getCurrent()->getClassId() == "rviz/FPS")
         {
@@ -101,17 +92,6 @@ void PerspectiveView::timerEvent(QTimerEvent *event)
 {
     // call the base3dview version of the timerevent
     Base3DView::timerEvent(event);
-
-    //manager_->getViewManager()->getCurrent()->update(0,0);
-    //((rviz::ViewController*)orbit_view_controller_)->update(0,0);
-    //fps_view_controller_->update(0,0);
-//    float lastFPS, avgFPS, bestFPS, worstFPS;
-
-//    render_panel_->getRenderWindow()->getStatistics( lastFPS, avgFPS, bestFPS, worstFPS );
-//    std::cout << "Camera (" << /*ortho_view_controller_->subProp( "View Plane" )->getValue(). <<*/ "): " << lastFPS << ", " << avgFPS << ", " << bestFPS << ", " << worstFPS << std::endl;
-
-    //std::cout << "camera position: " << render_panel_->getCamera()->getPosition().x << ", " << render_panel_->getCamera()->getPosition().z << ", " << render_panel_->getCamera()->getPosition().z << std::endl;
-    //std::cout << "camera direction: " << render_panel_->getCamera()->getDirection().x << ", " << render_panel_->getCamera()->getDirection().z << ", " << render_panel_->getCamera()->getDirection().z << std::endl;
 }
 
 rviz::ViewController* PerspectiveView::getCurrentViewController()

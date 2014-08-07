@@ -425,7 +425,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         //Publisher/Subscriber to the IM mode
         interactive_marker_server_mode_pub_ = nh_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1,false);
-        interactive_marker_server_mode_sub_ = nh_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1, &Base3DView::modeCB, this);
+        interactive_marker_server_mode_sub_ = nh_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1, &Base3DView::processInteractiveMarkerMode, this);
 
         // subscribe to the moveit pose topics
         end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
@@ -515,15 +515,15 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // add bounding boxes for the left/right/pelvis markers
         rviz::Display* left_hand_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for left hand", true );
-        left_hand_bounding_box_->subProp( "Name" )->setValue( "LeftArm" );        
+        left_hand_bounding_box_->subProp( "Name" )->setValue( "LeftArm" );
         left_hand_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/l_arm_marker_pose" );
         left_hand_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
         rviz::Display* right_hand_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for right hand", true );
-        right_hand_bounding_box_->subProp( "Name" )->setValue( "RightArm" );        
+        right_hand_bounding_box_->subProp( "Name" )->setValue( "RightArm" );
         right_hand_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/r_arm_marker_pose" );
         right_hand_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
         rviz::Display* pelvis_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for pelvis", true );
-        pelvis_bounding_box_->subProp( "Name" )->setValue( "Pelvis" );        
+        pelvis_bounding_box_->subProp( "Name" )->setValue( "Pelvis" );
         pelvis_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/pelvis_marker_pose" );
         pelvis_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
         ((rviz::VectorProperty*)pelvis_bounding_box_->subProp( "Scale" ))->setVector( Ogre::Vector3(0.005f,0.005f,0.005f) );
@@ -1280,6 +1280,7 @@ void Base3DView::addBase3DContextElements()
 
     addToContextVector(separator);
 
+
     footstepPlanMenuWalk = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
     footstepPlanMenuWalkManipulation = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate",boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
 
@@ -1354,6 +1355,7 @@ void Base3DView::selectOnDoubleClick(int x, int y)
         selectContextMenu();
     else //deselect if no valid object is over mouse
         deselectAll();
+
 }
 
 
@@ -1639,11 +1641,13 @@ void Base3DView::deselectAll()
 
     // disable all robot IK markers
     for( int i = 0; i < im_ghost_robot_.size(); i++ )
+    {
         im_ghost_robot_[i]->setEnabled( false );
+    }
 }
 
 void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
-{
+{    
     deselectAll();
 
     // enable loopback for both arms
@@ -2734,13 +2738,15 @@ void Base3DView::setRenderOrder()
     /*
       Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
                     +1  |  Transparent Objects
-    **/
+    **/    
     int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();    
     for(int i = 0; i < num_displays; i++)
     {
         rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
         std::string display_name = display->getNameStd();
-        setSceneNodeRenderGroup(display->getSceneNode(), 1);
+        //camera should be unaffected by render order
+        if(display_name.find("Camera") == std::string::npos)
+            setSceneNodeRenderGroup(display->getSceneNode(), 1);
     }
 }
 
@@ -2888,7 +2894,7 @@ void Base3DView::setRobotOccludedRender()
 }
 
 void Base3DView::disableRobotOccludedRender()
-{    
+{
     M_NameToLink links = ((rviz::RobotDisplayCustom*)robot_model_)->getRobotCustom()->getLinks();
     M_NameToLink::iterator it = links.begin();
     M_NameToLink::iterator end = links.end();
@@ -3377,7 +3383,7 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
 
 }
 
-void Base3DView::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
+void Base3DView::processInteractiveMarkerMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
 {
     //Update the im to current
     interactive_marker_mode_ = msg->manipulationMode;
