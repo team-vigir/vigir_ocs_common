@@ -1139,8 +1139,7 @@ void Base3DView::transform(const std::string& target_frame, geometry_msgs::PoseS
 
 void Base3DView::insertTemplate( QString path )
 {
-    //std::cout << "adding template" << std::endl;
-
+    //std::cout << "adding template" << std::endl;    
     if(!selected_)
     {
         flor_ocs_msgs::OCSTemplateAdd cmd;
@@ -1161,7 +1160,7 @@ void Base3DView::insertTemplate( QString path )
         cmd.pose = pose;
 
         // publish complete list of templates and poses
-        template_add_pub_.publish( cmd );
+        template_add_pub_.publish( cmd );        
     }
     else
     {
@@ -1626,8 +1625,7 @@ void Base3DView::setTemplateGraspLock(int arm)
 }
 
 void Base3DView::deselectAll()
-{
-    ROS_ERROR("disabling all markers");
+{    
     // disable all template markers
     Q_EMIT enableTemplateMarkers( false );
 
