@@ -2941,6 +2941,14 @@ void Base3DView::disableRobotOccludedRender()
            }
        }
    }
+
+   //place everything in the same position in render queue
+   int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();
+   for(int i = 0; i < num_displays; i++)
+   {
+       rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
+       setSceneNodeRenderGroup(display->getSceneNode(), 0);
+   }
 }
 
 void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr& states)
