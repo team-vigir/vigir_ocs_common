@@ -68,26 +68,25 @@ namespace vigir_ocs
 
         ros::Publisher template_update_pub_;
 
-        std::vector<unsigned char> template_id_list;
+        std::vector<unsigned char> template_id_list_;
 
-        geometry_msgs::PoseStamped pose;
+        geometry_msgs::PoseStamped template_pose_;
 
-        geometry_msgs::PoseStamped camera_pose;
+        geometry_msgs::PoseStamped camera_pose_;
 
-        ros::Subscriber camera_sub;
-        ros::Publisher camera_pub;
+        ros::Subscriber camera_sub_;
+        ros::Publisher camera_pub_;
 
-        bool received_pose;
+        bool received_pose_;
 
-        int id;
+        int template_selected_id_;
 
-        QVector3D cameraPosition;
-        QQuaternion cameraOrientation;
-        flor_ocs_msgs::OCSCameraTransform cameraUpdate;
-        flor_ocs_msgs::OCSCameraTransform update;
+        QVector3D camera_position_;
+        QQuaternion camera_orientation_;
+        flor_ocs_msgs::OCSCameraTransform camera_update_;
 
-        QVector3D oldMovePosition;
-        QQuaternion oldMoveOrientation;
+        QVector3D old_move_position_;
+        QQuaternion old_move_orientation_;
     };
 }
 #endif
