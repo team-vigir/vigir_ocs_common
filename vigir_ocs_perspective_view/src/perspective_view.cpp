@@ -58,7 +58,7 @@ void PerspectiveView::init()
 void PerspectiveView::processCameraTransform(const geometry_msgs::Pose::ConstPtr& msg)
 {
     if(render_panel_->getCamera()->getPosition().x != 0 && render_panel_->getCamera()->getPosition().y != 0 && render_panel_->getCamera()->getPosition().z != 0
-            && render_panel_->getCamera()->getOrientation().x != 0 && render_panel_->getCamera()->getOrientation().y != 0 && render_panel_->getCamera()->getOrientation().z != 0 && render_panel_->getCamera()->getOrientation() != 1
+            && render_panel_->getCamera()->getOrientation().x != 0 && render_panel_->getCamera()->getOrientation().y != 0 && render_panel_->getCamera()->getOrientation().z != 0 && render_panel_->getCamera()->getOrientation().w != 1
             && msg->orientation.x == 0 && msg->orientation.y == 0 && msg->orientation.z == 0
             && msg->position.x == 0 && msg->position.y == 0 && msg->position.z == 0)
     {
@@ -71,7 +71,7 @@ void PerspectiveView::processCameraTransform(const geometry_msgs::Pose::ConstPtr
     {
         //set the fps controller visible
         if( render_panel_->getCamera()->getPosition().x != 0 && render_panel_->getCamera()->getPosition().y != 0 && render_panel_->getCamera()->getPosition().z != 0
-                && render_panel_->getCamera()->getOrientation().x != 0 && render_panel_->getCamera()->getOrientation().y != 0 && render_panel_->getCamera()->getOrientation().z != 0 && render_panel_->getCamera()->getOrientation() != 1
+                && render_panel_->getCamera()->getOrientation().x != 0 && render_panel_->getCamera()->getOrientation().y != 0 && render_panel_->getCamera()->getOrientation().z != 0 && render_panel_->getCamera()->getOrientation().w != 1
                 && manager_->getViewManager()->getCurrent()->getClassId() == "rviz/Orbit")
         {
             manager_->getViewManager()->setCurrentViewControllerType("rviz/FPS");
