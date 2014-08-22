@@ -181,7 +181,7 @@ void robotStatus::receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
         text->setBackgroundColor(Qt::red);
         time->setBackgroundColor(Qt::red);
         msgType->setBackgroundColor(Qt::red);
-        numError++;
+        numError++;        
     }
 
     if(code >= errors.size() && errors.size() != 0)
@@ -241,6 +241,9 @@ void robotStatus::receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr&
     else if(messages[0]->priority->text() == "Error" && showError->isChecked())
     {
         msgTable->showRow(0);
+        //notify status bar of new error
+        Q_EMIT sendErrorData(timeFromMsg(msg->stamp),text->text());
+
     }
     else
         msgTable->hideRow(0);

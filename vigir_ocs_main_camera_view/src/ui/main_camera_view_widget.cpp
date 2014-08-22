@@ -96,6 +96,8 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
             QObject::connect(ui->template_widget, SIGNAL(templatePathChanged(QString)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(templatePathChanged(QString)));
             QObject::connect(ui->templates, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(templatesToggled(bool)));
             QObject::connect(ui->widget_tool, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(markerRobotToggled(bool)));
+            QObject::connect(ui->robot_joint_markers,SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(robotJointMarkerToggled(bool)));
+            QObject::connect(ui->robot_occlusion_rendering,SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(robotOcclusionToggled(bool)));
         }
         else
         {
@@ -156,7 +158,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     displays_layout->setMargin(0);
     displays_layout->addWidget(displays_panel);
     ui->rviz_options->setLayout(displays_layout);
-    
+
     connect(ui->pitch, SIGNAL(sliderPressed()), this, SLOT(lockPitchUpdates()));
     connect(ui->pitch, SIGNAL(sliderReleased()), this, SLOT(sendPitch()));
 
@@ -165,12 +167,135 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     fourViewToggle();
 
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
-	neck_pos_sub_ = nh_.subscribe<std_msgs::Float32> ( "/flor/neck_controller/current_position" , 2, &MainCameraViewWidget::updatePitch, this );
+    neck_pos_sub_ = nh_.subscribe<std_msgs::Float32> ( "/flor/neck_controller/current_position" , 2, &MainCameraViewWidget::updatePitch, this );
+
+    //send template list to views for context menu
+    ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((CameraViewWidget*)views_list_["Top Right"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((CameraViewWidget*)views_list_["Bottom Left"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((CameraViewWidget*)views_list_["Bottom Right"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
+
+    sys_command_pub_ = nh_.advertise<std_msgs::String>("/syscommand",1,false);
+
+    addContextMenu();
+
+    //hide sidebar elements that are no longer necessary
+    ui->Tools->hide();
+    ui->Template->hide();
+    ui->Navigation->hide();
+
+    //add status bar
+    statusBar = new StatusBar(this);
+    //connect for position text and fps
+    connect(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),SIGNAL(sendPositionText(QString)),statusBar,SLOT(receivePositionText(QString)));
+    connect(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),SIGNAL(sendFPS(int)),statusBar,SLOT(receiveFPS(int)));
+    ui->statusLayout->addWidget(statusBar);
+
+    // connect emergency stop button to glancehub
+    stop_mapper_ = new QSignalMapper(this);
+    connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
+
+    //map all toggles button to their identifiers
+    stop_mapper_->setMapping(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),flor_control_msgs::FlorControlModeCommand::FLOR_STOP);
+
+    //connect all buttons for mouse presses
+    connect(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),SIGNAL(emergencyStop()),stop_mapper_,SLOT(map()));
+
+    //Restore State
+    QSettings settings("OCS", "camera_view");
+    this->restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+    // create docks, toolbars, etc...
+    //this->restoreState(settings.value("mainWindowState").toByteArray());
+
+    sidebar_toggle_ = new QPushButton(this);
+    sidebar_toggle_->setStyleSheet("font: 9pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
+    sidebar_toggle_->setMaximumSize(25,25);
+
+    QPixmap pix(icon_path_+"drawer.png");
+    QIcon Btn(pix);
+    sidebar_toggle_->setIcon(Btn);
+    sidebar_toggle_->setIconSize(pix.rect().size() / 8);
+
+    connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));
+
+    timer.start(100, this);
 }
 
 MainCameraViewWidget::~MainCameraViewWidget()
 {
     delete ui;
+}
+
+void MainCameraViewWidget::timerEvent(QTimerEvent *event)
+{
+    sidebar_toggle_->setGeometry(ui->view_stack_->geometry().topRight().x() - 25 ,ui->view_stack_->geometry().top() + 40,25,25);
+}
+
+void MainCameraViewWidget::toggleSidebarVisibility()
+{
+    if(ui->scrollArea->isVisible())
+        ui->scrollArea->hide();
+    else
+        ui->scrollArea->show();
+}
+
+void MainCameraViewWidget::closeEvent(QCloseEvent *event)
+{
+    QSettings settings("OCS", "camera_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+}
+
+void MainCameraViewWidget::resizeEvent(QResizeEvent * event)
+{    
+    QSettings settings("OCS", "camera_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
+}
+
+void MainCameraViewWidget::moveEvent(QMoveEvent * event)
+{    
+    QSettings settings("OCS", "camera_view");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
+}
+
+void MainCameraViewWidget::addContextMenu()
+{
+    //can tell context menu to add a separator when this item is added
+    contextMenuItem * separator = new contextMenuItem();
+    separator->name = "Separator";
+
+    vigir_ocs::Base3DView::makeContextChild("Define Target Pose-Walk",boost::bind(&vigir_ocs::Base3DView::defineWalkPosePressed,((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())), NULL, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Define Target Pose-Step",boost::bind(&vigir_ocs::Base3DView::defineStepPosePressed,((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())), NULL, contextMenuElements);
+
+    contextMenuElements.push_back(separator);
+
+    vigir_ocs::Base3DView::makeContextChild("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())), NULL, contextMenuElements);
+
+    contextMenuElements.push_back(separator);
+
+    contextMenuItem * systemCommands = vigir_ocs::Base3DView::makeContextParent("System Commands", contextMenuElements);
+
+    vigir_ocs::Base3DView::makeContextChild("Reset World Model",boost::bind(&MainCameraViewWidget::systemCommandContext,this, "reset"), systemCommands, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Save Octomap",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_octomap"), systemCommands, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Save Pointcloud",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_pointcloud"), systemCommands, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Save Image Head",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_left_eye"), systemCommands, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Save Left Hand Image",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_left_hand"), systemCommands, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Save Right Hand Image",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_right_hand"), systemCommands, contextMenuElements);
+
+    //add all context menu items to each view
+    for(int i=0;i<contextMenuElements.size();i++)
+    {
+        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())->addToContextVector(contextMenuElements[i]);
+        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Right"])->getCameraView())->addToContextVector(contextMenuElements[i]);
+        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Bottom Left"])->getCameraView())->addToContextVector(contextMenuElements[i]);
+        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Bottom Right"])->getCameraView())->addToContextVector(contextMenuElements[i]);
+    }
+}
+
+//callback function for context menu
+void MainCameraViewWidget::systemCommandContext(std::string command)
+{
+    sysCmdMsg.data = command;
+    sys_command_pub_.publish(sysCmdMsg);
 }
 
 void MainCameraViewWidget::lockPitchUpdates()
@@ -196,20 +321,20 @@ void MainCameraViewWidget::sendPitch()
 
         ((CameraViewWidget*)views_list_["Top Left"])->updatePitch(value);
     }
-	
+
 }
 
 void MainCameraViewWidget::updatePitch( const std_msgs::Float32::ConstPtr &pitch)
 {
     if(!lock_pitch_slider_)
     {
-    	((CameraViewWidget*)views_list_["Top Left"])->updateCurrentPitch((int)(pitch->data/0.0174532925));
-    	ui->pitch->setValue((int)(pitch->data/0.0174532925));
+        ((CameraViewWidget*)views_list_["Top Left"])->updateCurrentPitch((int)(pitch->data/0.0174532925));
+        ui->pitch->setValue((int)(pitch->data/0.0174532925));
     }
 }
 
 bool MainCameraViewWidget::eventFilter( QObject * o, QEvent * e )
-{
+{    
     if ( e->type() == QEvent::Wheel &&
          (qobject_cast<QAbstractSpinBox*>( o ) || qobject_cast<QAbstractSlider*>( o ) || qobject_cast<QComboBox*>( o )))
     {

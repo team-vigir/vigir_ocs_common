@@ -37,6 +37,7 @@
 #include <flor_ocs_msgs/RobotStatusCodes.h>
 #include <flor_ocs_msgs/OCSLinkColor.h>
 #include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <flor_ocs_msgs/OCSObjectSelection.h>
 #include <flor_grasp_msgs/GraspState.h>
 #include <flor_grasp_msgs/GraspSelection.h>
 #include <flor_grasp_msgs/TemplateSelection.h>
@@ -52,11 +53,14 @@ class graspWidget : public QWidget
     Q_OBJECT
     
 public:
-    explicit graspWidget(QWidget *parent = 0);
+    explicit graspWidget(QWidget *parent = 0, std::string hand = "left", std::string hand_type = "irobot");
     ~graspWidget();
 
+    void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg);
     void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
+    Ui::graspWidget * getUi();
+    QLayout * getMainLayout();
 public Q_SLOTS:
     void on_userSlider_sliderReleased();
     void on_templateBox_activated(const QString &arg1);
@@ -189,10 +193,6 @@ private:
     bool show_grasp_;
     bool stitch_template_;
 
-    std::vector<int> keys_pressed_list_;
-
-    ros::Subscriber key_event_sub_;
-
     robot_model_loader::RobotModelLoaderPtr hand_model_loader_;
     robot_model::RobotModelPtr hand_robot_model_;
     robot_state::RobotStatePtr hand_robot_state_;
@@ -202,6 +202,13 @@ private:
 
     // Used to make setting virtual joint positions (-> hand pose) easier
     sensor_msgs::JointState virtual_link_joint_states_;
+
+    ros::Publisher select_object_pub_;
+    ros::Subscriber select_object_sub_;
+
+    std::vector<int> keys_pressed_list_;
+
+    ros::Subscriber key_event_sub_;
 
 protected:
     void timerEvent(QTimerEvent *event);

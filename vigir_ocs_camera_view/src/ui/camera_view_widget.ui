@@ -217,6 +217,9 @@
       </item>
       <item>
        <widget class="Line" name="line">
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(200, 200, 200);</string>
+        </property>
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
@@ -487,6 +490,9 @@
           <height>0</height>
          </size>
         </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(200, 200, 200);</string>
+        </property>
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
@@ -710,6 +716,9 @@
       </item>
       <item>
        <widget class="Line" name="line_3">
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(200, 200, 200);</string>
+        </property>
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>

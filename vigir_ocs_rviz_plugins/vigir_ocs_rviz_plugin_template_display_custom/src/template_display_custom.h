@@ -105,6 +105,7 @@ public:
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
 public Q_SLOTS:
+    void enableTemplateMarker( int i, bool enable );
     void enableTemplateMarkers( bool );
 
 private Q_SLOTS:
@@ -164,6 +165,7 @@ private:
 
     rviz::VisualizationManager* vis_manager_;
 
+    float template_size_;
 };
 
 } // namespace rviz

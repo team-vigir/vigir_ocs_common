@@ -21,6 +21,7 @@
 #include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Int8.h>
 #include <ros/ros.h>
 #include <tf/tf.h>
 
@@ -42,6 +43,8 @@ public:
     explicit GhostControlWidget(QWidget *parent = 0);
     ~GhostControlWidget();
 
+    void processWindowControl(const std_msgs::Int8::ConstPtr& msg);
+
     void processState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
     void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list);
     void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
@@ -59,6 +62,9 @@ public:
 
 protected:
     void timerEvent(QTimerEvent *event);
+    void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent * event);
+    void moveEvent(QMoveEvent * event);
 
 private Q_SLOTS:
     void applyClicked();
@@ -84,19 +90,19 @@ private Q_SLOTS:
     void on_send_right_torso_pose_button__clicked();
     void on_send_left_ghost_hand_button__clicked();
     void on_send_right_ghost_hand_button__clicked();
-    void on_left_no_lock_toggled(bool checked);
-    void on_left_marker_lock_toggled(bool checked);
-    void on_left_template_lock_toggled(bool checked);
-    void on_right_no_lock_toggled(bool checked);
-    void on_right_marker_lock_toggled(bool checked);
-    void on_right_template_lock_toggled(bool checked);
+    //void on_left_no_lock_toggled(bool checked);
+    //void on_left_marker_lock_toggled(bool checked);
+    //void on_left_template_lock_toggled(bool checked);
+    //void on_right_no_lock_toggled(bool checked);
+    //void on_right_marker_lock_toggled(bool checked);
+    //void on_right_template_lock_toggled(bool checked);
     void on_send_left_configuration_button__clicked();
     void on_send_left_torso_configuration_button__clicked();
     void on_send_right_configuration_button__clicked();
     void on_send_right_torso_configuration_button__clicked();
     void on_send_upper_body_button__clicked();
-    void on_left_moveit_marker_lock_clicked();
-    void on_right_moveit_marker_lock_clicked();
+    //void on_left_moveit_marker_lock_clicked();
+    //void on_right_moveit_marker_lock_clicked();
     void on_pushButton_clicked();
     void on_pushButton_2_clicked();
     void on_send_ghost_to_template_button_clicked();
@@ -107,6 +113,9 @@ private Q_SLOTS:
     void on_send_right_cartesian_button__clicked();
 
 private:
+    ros::Subscriber window_control_sub;
+    ros::Publisher window_control_pub;
+    QRect geometry_;
 
     std::string getGroupNameForSettings(const std::vector<unsigned char>& settings);
     std::vector< std::vector<QString> > readTextDBFile(QString path);

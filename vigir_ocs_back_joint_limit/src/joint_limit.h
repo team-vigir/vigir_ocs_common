@@ -2,13 +2,18 @@
 #define joint_limit_H
 
 #include <QWidget>
+#include <QApplication>
 #include <QBasicTimer>
+#include <QSettings>
+#include <QCloseEvent>
 
 #include <vector>
 #include <algorithm>
 
 #include <ros/ros.h>
 #include <ros/publisher.h>
+
+#include <std_msgs/Int8.h>
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 
@@ -24,9 +29,15 @@ public:
     explicit joint_limit(QWidget *parent = 0);
     ~joint_limit();
 
+    void processWindowControl(const std_msgs::Int8::ConstPtr& msg);
+
     void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
 private:
+    ros::Subscriber window_control_sub;
+    ros::Publisher window_control_pub;
+    QRect geometry_;
+
     Ui::joint_limit *ui;
     ros::NodeHandle nh_;
     ros::Publisher constraints_pub_;
@@ -55,8 +66,11 @@ public Q_SLOTS:
     void on_lock_yaw__toggled(bool checked);
     void on_lock_pitch__toggled(bool checked);
     void on_lock_roll__toggled(bool checked);
-protected:
+protected Q_SLOTS:
     void timerEvent(QTimerEvent *event);
+    void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent * event);
+    void moveEvent(QMoveEvent * event);
 };
 
 #endif // joint_limit_H

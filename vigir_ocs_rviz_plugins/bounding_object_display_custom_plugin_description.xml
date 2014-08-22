@@ -1,0 +1,9 @@
+<library path="libvigir_ocs_rviz_plugin_bounding_object_display_custom">
+  <class name="rviz/BoundingObjectDisplayCustom"
+         type="rviz::BoundingObjectDisplayCustom"
+         base_class_type="rviz::Display">
+    <description>
+      Customized display plugin for bouding objects. Provide an update topic and an offset to update it's position relative to the object, and select a shape, size and color for the object.
+    </description>
+  </class>
+</library>

@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>graspWidget</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_5">
+  <layout class="QVBoxLayout" name="mainLayout">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
@@ -616,7 +616,7 @@
    <item>
     <widget class="QPushButton" name="pushButton">
      <property name="text">
-      <string>PushButton</string>
+      <string>Grasp Offset</string>
      </property>
     </widget>
    </item>

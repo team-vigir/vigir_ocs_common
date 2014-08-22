@@ -5,10 +5,12 @@
 
 #include <vector>
 #include <algorithm>
-
+#include "statusBar.h"
 #include <ros/ros.h>
-
+#include "map_region_configure_widget.h"
+#include "region_3d_configure_widget.h"
 #include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <QPropertyAnimation>
 
 namespace Ui
 {
@@ -33,15 +35,41 @@ public Q_SLOTS:
     void requestMap();
     void requestOctomap();
     void requestPointCloud();
+    void toggleMapConfig();
+    void toggleRegionConfig();
+
+private Q_SLOTS:
+    void toggleSidebarVisibility();
     
 private:
     Ui::MapViewWidget *ui;
-
+    StatusBar * statusBar;
     std::vector<int> keys_pressed_list_;
 
+    QBasicTimer timer;
     ros::NodeHandle n_;
 
     ros::Subscriber key_event_sub_;
+
+    QSignalMapper* stop_mapper_;
+    void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent * event);
+    void moveEvent(QMoveEvent * event);    
+
+    virtual void timerEvent(QTimerEvent *event);
+
+    MapRegionConfigure * mapRegionConfig;
+    Region3DConfigure * region3dConfig;
+
+    void loadButtonIconAndStyle(QPushButton* btn, QString image_name);
+    void setupToolbar();
+    QString icon_path_;
+
+    QMenu regionMenu;
+    QMenu mapMenu;
+
+    QPushButton* sidebar_toggle_;
+
 
 };
 

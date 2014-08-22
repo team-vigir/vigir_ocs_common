@@ -16,6 +16,8 @@
 #include <geometry_msgs/PoseStamped.h>
 
 #include "ortho_view.h"
+#include "interaction_tool_custom.h"
+
 
 namespace rviz
 {
@@ -42,12 +44,14 @@ public:
 Q_SIGNALS:
     void queryPosition( int, int, Ogre::Vector3& );
     void unHighlight();
+    void UIrequestAreaMap();
+    void UIrequestOctomap();
 
 public Q_SLOTS:
     void enableSelectionTool(bool, int, int);
     void selectionToolToggle(bool);
-    virtual void createContextMenu( bool, int, int );
-    virtual void processContextMenu( int x, int y );
+    //virtual void createContextMenu( bool, int, int );
+    //virtual void processContextMenu( int x, int y );
 
 private:
     rviz::Tool* selection_tool_;
@@ -62,6 +66,16 @@ private:
     int selected_area_[4];
 
     flor_perception_msgs::PointCloudTypeRegionRequest last_request_;
+
+    void addContextMenu();
+    std::vector<contextMenuItem *> contextMenuElements;
+    contextMenuItem * blockRegion;
+    contextMenuItem * clearRegion;
+    contextMenuItem * pointCloudMenu;
+    void blockRegionContext(int boxType);
+    void clearRegionContext(int boxType);
+    void requestAreaMapContext();
+    void requestOctomapContext();    
 };
 }
 #endif // map_view_H

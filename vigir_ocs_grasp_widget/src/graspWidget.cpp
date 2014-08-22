@@ -1,19 +1,22 @@
 #include "graspWidget.h"
 #include "ui_graspWidget.h"
 #include <ros/package.h>
+#include <algorithm>
 #include <QColor>
 #include <QProgressBar>
 #include <QSlider>
 
 //grasp_testing grasp_testing_simple.launch
 
-graspWidget::graspWidget(QWidget *parent)
+graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_type)
     : QWidget(parent)
     , ui(new Ui::graspWidget)
     , selected_template_id_(-1)
     , selected_grasp_id_(-1)
     , show_grasp_(false)
     , stitch_template_(false)
+    , hand_(hand)
+    , hand_type_(hand_type)
 {
     // setup UI
     ui->setupUi(this);
@@ -21,12 +24,11 @@ graspWidget::graspWidget(QWidget *parent)
     ui->graspBox->setDisabled(true);
     ui->performButton->setDisabled(true);
     ui->stitch_template->setDisabled(true);
-    //ui->templateButton->setDisabled(true);
-    //ui->releaseButton->setDisabled(true);
-    // initialize arguments from parameter server
-    ros::NodeHandle nhp("~");
-    nhp.param<std::string>("hand",hand_,"left"); // private parameter
-    nhp.param<std::string>("hand_type",hand_type_,"irobot"); // global parameter
+
+    // these are not parameters anymore, but arguments in the constructor
+    //ros::NodeHandle nhp("~");
+    //nhp.param<std::string>("hand",hand_,"left"); // private parameter
+    //nhp.param<std::string>("hand_type",hand_type_,"irobot"); // global parameter
     //ROS_ERROR("  Grasp widget using %s hand (%s)",hand_.c_str(), hand_type_.c_str());
 
     // initialize path variables for template/grasp databases
@@ -36,6 +38,9 @@ graspWidget::graspWidget(QWidget *parent)
     template_id_db_path_ = template_dir_path_+QString("grasp_templates.txt");
     if(hand_type_ == "irobot"){
         grasp_db_path_ = template_dir_path_+QString("grasp_library_irobot.grasp");
+    }
+    else if(hand_type_ == "robotiq"){
+        grasp_db_path_ = template_dir_path_+QString("grasp_library_robotiq.grasp");
     }
     else{
         grasp_db_path_ = template_dir_path_+QString("grasp_library.grasp");
@@ -56,15 +61,15 @@ graspWidget::graspWidget(QWidget *parent)
     initTemplateIdMap();
     initGraspDB();
 
+    std::string grasp_control_prefix = (hand_ == "left") ? "/grasp_control/l_hand" : "/grasp_control/r_hand";
     // initialize template subscribers and publishers
     template_list_sub_           = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",                    5, &graspWidget::processTemplateList, this );
-    template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>("/template/template_match_feedback", 1, &graspWidget::templateMatchFeedback, this );
-    grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(       "/template/active_state",            1, &graspWidget::graspStateReceived,  this );
+    template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>("/grasp_control/template_selection", 1, &graspWidget::templateMatchFeedback, this );
+    grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(       grasp_control_prefix+"/active_state",            1, &graspWidget::graspStateReceived,  this );
 
-    grasp_selection_pub_        = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/template/grasp_selection",        1, false);
-    grasp_release_pub_          = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/template/release_grasp" ,         1, false);
-    grasp_mode_command_pub_     = nh_.advertise<flor_grasp_msgs::GraspState>(        "/template/grasp_mode_command",     1, false);
-    template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/template_match_request", 1, false );
+    grasp_selection_pub_        = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/grasp_selection",        1, false);
+    grasp_release_pub_          = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/release_grasp" ,         1, false);
+    grasp_mode_command_pub_     = nh_.advertise<flor_grasp_msgs::GraspState>(        grasp_control_prefix+"/mode_command",     1, false);
 
     // create subscribers for grasp status
     std::stringstream finger_joint_name;
@@ -74,6 +79,9 @@ graspWidget::graspWidget(QWidget *parent)
     if(hand_ == "left")
     {
         this->setWindowTitle(QString::fromStdString("Left Hand Grasp Widget"));
+
+        //Publisher for template match rewuest for LEFT
+        template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/l_hand_template_match_request", 1, false );
 
         robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/l_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
         ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_left_hand_pose",             1, false);
@@ -124,6 +132,9 @@ graspWidget::graspWidget(QWidget *parent)
     else
     {
         this->setWindowTitle(QString::fromStdString("Right Hand Grasp Widget"));
+
+        //Publisher for template match rewuest for RIGHT
+        template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/r_hand_template_match_request", 1, false );
 
         robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/r_hand/grasp_status",1, &graspWidget::robotStatusCB,  this );
         ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_right_hand_pose",            1, false);
@@ -202,6 +213,12 @@ graspWidget::graspWidget(QWidget *parent)
         tmp.color.b = color_b;
         display_state_msg_.highlight_links.push_back(tmp);
     }
+
+    // create publisher and subscriber for object selection
+    // PUBLISHER WILL BE USED BY THE RIGHT/DOUBLE CLICK TO INFORM WHICH TEMPLATE/HAND/OBJECT HAS BEEN selected
+    // SUBSCRIBER WILL BE USED TO CHANGE VISIBILITY OF THE OBJECT THAT IS BEING USED (E.G., TALK TO TEMPLATE DISPLAY AND SET VISIBILITY OF MARKERS)
+    select_object_pub_ = nh_.advertise<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 1, false );
+    select_object_sub_ = nh_.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &graspWidget::processObjectSelection, this );
 
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &graspWidget::processNewKeyEvent, this );
     timer.start(33, this);
@@ -324,9 +341,9 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
     last_template_list_ = *list;
 
     // enable boxes and buttons
-    if(list->template_list.size() > 0)
+    if(list->template_list.size() > 0 && selected_template_id_ != -1)
     {
-        ui->templateBox->setDisabled(false);
+        //ui->templateBox->setDisabled(false);
         ui->graspBox->setDisabled(false);
         ui->performButton->setDisabled(false);
     }
@@ -390,7 +407,7 @@ void graspWidget::initTemplateMode()
 {
     if(last_template_list_.template_id_list.size() > 0)
     {
-        ui->templateBox->setDisabled(false);
+        //ui->templateBox->setDisabled(false);
         ui->graspBox->setDisabled(false);
     }
 }
@@ -531,6 +548,68 @@ void graspWidget::initGraspDB()
             grasp.pre_grasp_pose.orientation.x = db[i][23].toFloat(&ok);
             grasp.pre_grasp_pose.orientation.y = db[i][24].toFloat(&ok);
             grasp.pre_grasp_pose.orientation.z = db[i][25].toFloat(&ok);
+            //std::cout << "final pose: " << grasp.pre_grasp_pose.position.x << ", " << grasp.pre_grasp_pose.position.y << ", " << grasp.pre_grasp_pose.position.z << ", " <<
+            //             grasp.pre_grasp_pose.orientation.x << ", " << grasp.pre_grasp_pose.orientation.y << ", " << grasp.pre_grasp_pose.orientation.y << ", " << grasp.pre_grasp_pose.orientation.w << std::endl;
+
+            grasp_db_.push_back(grasp);
+        }
+    }
+    else if(hand_type_ == "robotiq")
+    {
+        std::vector< std::vector<QString> > db = readTextDBFile(grasp_db_path_);
+        for(int i = 0; i < db.size(); i++)
+        {
+            bool ok;
+            // [0] grasp id, [1] template type, [2] hand, [3] initial grasp type, [4] DISCARD, [5-9] finger joints (5), [10] DISCARD, [11-17] final grasp pose relative to template (x,y,z,qx,qy,qz,qw), [18] DISCARD, [19-25] pre-grasp pose relative to template (x,y,z,qx,qy,qz,qw)
+            GraspDBItem grasp;
+            //std::cout << "-> Adding grasp to grasp DB" << std::endl;
+            grasp.grasp_id = db[i][0].toUInt(&ok, 10) & 0x0000ffff;
+            std::cout << "id: " << (unsigned int)grasp.grasp_id << std::endl;
+
+            grasp.template_type = db[i][1].toUInt(&ok, 10) & 0x000000ff;
+            std::cout << "template type: " << (unsigned int)grasp.template_type << std::endl;
+
+            grasp.template_name = template_id_map_.find(grasp.template_type)->second;
+            std::cout << "template name: " << grasp.template_name << std::endl;
+
+            grasp.hand = db[i][2].toUtf8().constData();
+            std::cout << "hand: " << grasp.hand << std::endl;
+
+            grasp.initial_grasp_type = db[i][3].toUtf8().constData();
+            std::cout << "initial grasp type: " << grasp.initial_grasp_type << std::endl;
+
+            //std::cout << "finger joints: ";
+            for(int j = 0; j < 4; j++)
+            {
+                grasp.finger_joints[j] = db[i][j+5].toFloat(&ok);
+            }
+            // need to set distal joints as 0
+            grasp.finger_joints[4]  = -grasp.finger_joints[3];
+            grasp.finger_joints[5]  = 0;
+            grasp.finger_joints[6]  = 0;
+            grasp.finger_joints[7]  = 0;
+            grasp.finger_joints[8]  = 0;
+            grasp.finger_joints[9]  = 0;
+            grasp.finger_joints[10] = 0;
+            //std::cout << std::endl;
+
+            grasp.final_pose.position.x = db[i][10].toFloat(&ok);
+            grasp.final_pose.position.y = db[i][11].toFloat(&ok);
+            grasp.final_pose.position.z = db[i][12].toFloat(&ok);
+            grasp.final_pose.orientation.w = db[i][13].toFloat(&ok);
+            grasp.final_pose.orientation.x = db[i][14].toFloat(&ok);
+            grasp.final_pose.orientation.y = db[i][15].toFloat(&ok);
+            grasp.final_pose.orientation.z = db[i][16].toFloat(&ok);
+            //std::cout << "final pose: " << grasp.final_pose.position.x << ", " << grasp.final_pose.position.y << ", " << grasp.final_pose.position.z << ", " <<
+            //             grasp.final_pose.orientation.x << ", " << grasp.final_pose.orientation.y << ", " << grasp.final_pose.orientation.y << ", " << grasp.final_pose.orientation.w << std::endl;
+
+            grasp.pre_grasp_pose.position.x = db[i][18].toFloat(&ok);
+            grasp.pre_grasp_pose.position.y = db[i][19].toFloat(&ok);
+            grasp.pre_grasp_pose.position.z = db[i][20].toFloat(&ok);
+            grasp.pre_grasp_pose.orientation.w = db[i][21].toFloat(&ok);
+            grasp.pre_grasp_pose.orientation.x = db[i][22].toFloat(&ok);
+            grasp.pre_grasp_pose.orientation.y = db[i][23].toFloat(&ok);
+            grasp.pre_grasp_pose.orientation.z = db[i][24].toFloat(&ok);
             //std::cout << "final pose: " << grasp.pre_grasp_pose.position.x << ", " << grasp.pre_grasp_pose.position.y << ", " << grasp.pre_grasp_pose.position.z << ", " <<
             //             grasp.pre_grasp_pose.orientation.x << ", " << grasp.pre_grasp_pose.orientation.y << ", " << grasp.pre_grasp_pose.orientation.y << ", " << grasp.pre_grasp_pose.orientation.w << std::endl;
 
@@ -713,6 +792,9 @@ void graspWidget::on_templateButton_clicked()
     }
     msg.template_id.data = ui->templateBox->currentIndex();
     msg.pose.pose = last_template_list_.pose[ui->templateBox->currentIndex()].pose;
+    msg.pose.header.frame_id = "/world";
+    msg.pose.header.stamp = ros::Time::now();
+    msg.pose.header.seq++;
     template_match_request_pub_.publish(msg);
 }
 
@@ -960,6 +1042,26 @@ void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_
             publishLinkColor(link_name,color_intensity,255-color_intensity,0);
         }
     }
+    else if(hand_type_ == "robotiq")
+    {
+        double min_feedback = 0, max_feedback = 1.0;
+        for(int i = 0; i < joint_states->name.size(); i++)
+        {
+            // get the joint name to figure out the color of the links
+            std::string joint_name = joint_states->name[i].c_str();
+
+            // velocity represents tactile feedback
+            double feedback = joint_states->velocity[i];
+
+            // NOTE: this is SPECIFIC to the irobot hands and how they are setup in the urdf and grasp controllers, IT IS NOT GENERAL
+            std::string link_name = joint_name;
+
+            //ROS_ERROR("Applying color to %s",link_name.c_str());
+            // calculate color intensity based on min/max feedback
+            unsigned char color_intensity = (unsigned char)((feedback - min_feedback)/(max_feedback-min_feedback) * 255.0);
+            publishLinkColor(link_name,color_intensity,255-color_intensity,0);
+        }
+    }
     else
     {
         //Index 	Name            Link
@@ -1101,6 +1203,24 @@ void graspWidget::publishHandJointStates(unsigned int grasp_index)
         joint_states.name.push_back(hand_+"_f1_j2"); // 0 for now
         joint_states.name.push_back(hand_+"_f2_j2"); // 0 for now
         
+    }
+    else if(hand_type_ == "robotiq")
+    {
+
+        // must match the order used in the .grasp file
+
+        joint_states.name.push_back(hand_+"_f0_j1");
+        joint_states.name.push_back(hand_+"_f1_j1");
+        joint_states.name.push_back(hand_+"_f2_j1");
+        joint_states.name.push_back(hand_+"_f1_j0"); // .grasp finger position [4] -> IGNORE [3], use [4] for both
+        joint_states.name.push_back(hand_+"_f2_j0"); // .grasp finger position [4]
+        joint_states.name.push_back(hand_+"_f0_j2"); // 0 for now
+        joint_states.name.push_back(hand_+"_f1_j2"); // 0 for now
+        joint_states.name.push_back(hand_+"_f2_j2"); // 0 for now
+        joint_states.name.push_back(hand_+"_f0_j3"); // 0 for now
+        joint_states.name.push_back(hand_+"_f1_j3"); // 0 for now
+        joint_states.name.push_back(hand_+"_f2_j3"); // 0 for now
+
     }
     else
     {
@@ -1279,6 +1399,50 @@ void graspWidget::on_stitch_template_toggled(bool checked)
     template_stitch_request_pub_.publish(msg);
 }
 
+void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
+{
+    switch(msg->type)
+    {
+        case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
+            {
+            // enable template marker
+            //ui->templateBox->setDisabled(false);
+            ui->graspBox->setDisabled(false);
+            ui->performButton->setDisabled(false);
+            ui->stitch_template->setDisabled(false);
+            std::vector<unsigned char>::iterator it;
+            it = std::find(last_template_list_.template_id_list.begin(), last_template_list_.template_id_list.end(), msg->id);
+            if(it != last_template_list_.template_id_list.end())
+            {
+                int tmp = std::distance(last_template_list_.template_id_list.begin(),it);
+                ui->templateBox->setCurrentIndex(tmp);
+                on_templateBox_activated(ui->templateBox->itemText(tmp));
+                on_templateRadio_clicked();
+                selected_template_id_ = tmp;
+
+                if(selected_grasp_id_ != -1 && show_grasp_)
+                    publishHandPose(selected_grasp_id_);
+            }
+            }
+            break;
+        // not a template
+        case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
+        case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
+        default:
+            {
+            selected_template_id_ = -1;
+            ui->templateBox->setCurrentIndex(-1);
+            ui->graspBox->setCurrentIndex(-1);
+            on_templateRadio_clicked();
+            //ui->templateBox->setDisabled(true);
+            ui->graspBox->setDisabled(true);
+            ui->performButton->setDisabled(true);
+            ui->stitch_template->setDisabled(true);
+            }
+            break;
+    }
+}
+
 void graspWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 {
     // store key state
@@ -1330,4 +1494,13 @@ void graspWidget::on_pushButton_clicked()
     ui2 = new handOffsetWidget;
 
     ui2->show();
+}
+
+Ui::graspWidget * graspWidget::getUi()
+{
+    return ui;
+}
+QLayout* graspWidget::getMainLayout()
+{
+    return ui->mainLayout;
 }

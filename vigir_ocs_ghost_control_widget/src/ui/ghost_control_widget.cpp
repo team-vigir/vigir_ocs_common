@@ -8,9 +8,11 @@
 #include <QtGui>
 #include <QSignalMapper>
 
-#include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
 #include <boost/exception/to_string.hpp>
+
+#include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
 #include <flor_ocs_msgs/OCSInverseReachability.h>
+#include <flor_ocs_msgs/WindowCodes.h>
 
 std::vector<unsigned char> GhostControlWidget::saved_state_planning_group_;
 std::vector<unsigned char> GhostControlWidget::saved_state_pose_source_;
@@ -63,11 +65,49 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     initPoseDB();
 
     //ui->position_only_ik_->hide();
+
+    window_control_sub = nh_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &GhostControlWidget::processWindowControl, this );
+    window_control_pub = nh_.advertise<std_msgs::Int8>("/flor/ocs/window_control", 1, false);
+
+    //Restore State
+    //this->show();
+    QSettings settings("OCS", "joint_limit");
+    this->restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+    this->geometry_ = this->geometry();
+    // create docks, toolbars, etc...
+    //this->restoreState(settings.value("mainWindowState").toByteArray());
 }
 
 GhostControlWidget::~GhostControlWidget()
 {
     delete ui;
+}
+
+void GhostControlWidget::closeEvent(QCloseEvent * event)
+{
+    QSettings settings("OCS", "joint_limit");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+    std_msgs::Int8 msg;
+    msg.data = -WINDOW_GHOST_CONFIG;
+    window_control_pub.publish(msg);
+    event->ignore();
+}
+
+void GhostControlWidget::resizeEvent(QResizeEvent * event)
+{
+    QSettings settings("OCS", "joint_limit");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
+}
+
+void GhostControlWidget::moveEvent(QMoveEvent * event)
+{
+    QSettings settings("OCS", "joint_limit");
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
+    //settings.setValue("mainWindowState", this->saveState());
+
 }
 
 void GhostControlWidget::timerEvent(QTimerEvent *event)
@@ -198,8 +238,6 @@ void GhostControlWidget::publishState( bool snap )
     //cmd.collision_avoidance = saved_state_collision_avoidance_;
     cmd.lock_pelvis = saved_state_lock_pelvis_;
     cmd.snap = snap;
-    cmd.left_moveit_marker_loopback = ui->left_moveit_marker_lock->isChecked();
-    cmd.right_moveit_marker_loopback = ui->right_moveit_marker_lock->isChecked();
     cmd.position_only_ik = saved_state_position_only_ik_;
 
     state_pub_.publish(cmd);
@@ -215,26 +253,26 @@ void GhostControlWidget::saveState()
     saved_state_planning_group_.push_back(false);
     saved_state_planning_group_.push_back(ui->planning_torso_->isChecked());
 
-    if(ui->left_template_lock->isChecked())
-    {
-        saved_state_pose_source_.push_back(1);
-        saved_state_world_lock_.push_back(1);
-    }
-    else
+    //if(ui->left_template_lock->isChecked())
+    //{
+    //    saved_state_pose_source_.push_back(1);
+    //    saved_state_world_lock_.push_back(1);
+    //}
+    //else
     {
         saved_state_pose_source_.push_back(0);
-        saved_state_world_lock_.push_back(ui->left_marker_lock->isChecked());
+        //saved_state_world_lock_.push_back(ui->left_marker_lock->isChecked());
     }
 
-    if(ui->right_template_lock->isChecked())
-    {
-        saved_state_pose_source_.push_back(1);
-        saved_state_world_lock_.push_back(1);
-    }
-    else
+//    if(ui->right_template_lock->isChecked())
+//    {
+//        saved_state_pose_source_.push_back(1);
+//        saved_state_world_lock_.push_back(1);
+//    }
+//    else
     {
         saved_state_pose_source_.push_back(0);
-        saved_state_world_lock_.push_back(ui->right_marker_lock->isChecked());
+        //saved_state_world_lock_.push_back(ui->right_marker_lock->isChecked());
     }
 
     saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();
@@ -414,41 +452,41 @@ void GhostControlWidget::on_send_right_torso_pose_button__clicked()
     set_to_target_pose_pub_.publish(cmd);
 }
 
-void GhostControlWidget::on_left_no_lock_toggled(bool checked)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_left_no_lock_toggled(bool checked)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_left_marker_lock_toggled(bool checked)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_left_marker_lock_toggled(bool checked)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_left_template_lock_toggled(bool checked)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_left_template_lock_toggled(bool checked)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_right_no_lock_toggled(bool checked)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_right_no_lock_toggled(bool checked)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_right_marker_lock_toggled(bool checked)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_right_marker_lock_toggled(bool checked)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_right_template_lock_toggled(bool checked)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_right_template_lock_toggled(bool checked)
+//{
+//    saveState();
+//    publishState();
+//}
 
 void GhostControlWidget::on_send_left_configuration_button__clicked()
 {
@@ -561,16 +599,6 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
         snapClicked();
 
     std::cout << "key code:" << key_event->key << std::endl;
-}
-
-void GhostControlWidget::on_left_moveit_marker_lock_clicked()
-{
-    publishState();
-}
-
-void GhostControlWidget::on_right_moveit_marker_lock_clicked()
-{
-    publishState();
 }
 
 void GhostControlWidget::on_send_left_cartesian_button__clicked()
@@ -797,4 +825,18 @@ int GhostControlWidget::calcTargetPose(const geometry_msgs::Pose& pose_1, const 
     pose_result.position.y = pose_result_vector.getY();
     pose_result.position.z = pose_result_vector.getZ();
     return 0;
+}
+
+void GhostControlWidget::processWindowControl(const std_msgs::Int8::ConstPtr& msg)
+{
+    if(!isVisible() && msg->data == WINDOW_GHOST_CONFIG)
+    {
+        this->show();
+        this->setGeometry(geometry_);
+    }
+    else if(isVisible() && (!msg->data || msg->data == -WINDOW_GHOST_CONFIG))
+    {
+        geometry_ = this->geometry();
+        this->hide();
+    }
 }
