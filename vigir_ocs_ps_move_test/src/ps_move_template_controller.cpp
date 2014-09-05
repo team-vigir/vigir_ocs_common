@@ -20,7 +20,6 @@ PSMoveTemplateController::PSMoveTemplateController()
     template_update_pub_  = nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "/template/update", 1, false );
 
     received_pose_ = false;
-    ROS_ERROR("PSMoveTemplateController created");
 
     camera_sub_ = nh_.subscribe<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform",5,&PSMoveTemplateController::cameraCb,this);
 
@@ -66,12 +65,28 @@ void PSMoveTemplateController::processTemplateList(const flor_ocs_msgs::OCSTempl
     }
 }
 
-void PSMoveTemplateController::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &obj)
+void PSMoveTemplateController::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &msg)
 {
     //Get id of object that is selected
-    if(obj->id != template_selected_id_)
-        received_pose_ = false;
-    template_selected_id_ = obj->id;
+    switch(msg->type)
+    {
+        case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
+            {
+            if(msg->id != template_selected_id_)
+                received_pose_ = false;
+            template_selected_id_ = msg->id;
+            }
+            break;
+        // not a template
+        case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
+            {
+
+            }
+            break;
+        case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
+        default:
+            break;
+    }
 }
 
 geometry_msgs::PoseStamped PSMoveTemplateController::updatePose(geometry_msgs::PoseStamped template_pose, MoveServerPacket *move_server_packet, float normalized_scale)

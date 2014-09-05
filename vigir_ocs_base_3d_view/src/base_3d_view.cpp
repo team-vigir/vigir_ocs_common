@@ -45,7 +45,6 @@
 #include "robot_display_custom.h"
 #include "selection_3d_display_custom.h"
 #include "map_display_custom.h"
-#include "base_3d_view.h"
 
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
 #include "flor_ocs_msgs/OCSTemplateRemove.h"
@@ -55,6 +54,12 @@
 #include "flor_planning_msgs/TargetConfigIkRequest.h"
 #include "flor_planning_msgs/CartesianMotionRequest.h"
 #include "flor_planning_msgs/CircularMotionRequest.h"
+
+// local includes
+#include "base_3d_view.h"
+
+// define used to determine interactive marker mode
+#define IM_MODE_OFFSET 3
 
 namespace vigir_ocs
 {
@@ -247,28 +252,13 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // Make the move camera tool the currently selected one
         manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
 
-        // Footstep array
-        footsteps_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps array", true );
-        footsteps_array_->subProp( "Marker Topic" )->setValue( "/flor/walk_monitor/footsteps_array" );
+        // footstep visualization manager initialization
+        footstep_vis_manager_ = new FootstepVisManager(manager_);
 
-        footsteps_path_body_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps Path Body", true );
-        footsteps_path_body_array_->subProp( "Marker Topic" )->setValue( "/flor/walk_monitor/footsteps_path_body_array" );
+        // ADD: list of arrows for CoM estimate
+        // ADD: cost map
 
-        goal_pose_walk_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
-        goal_pose_walk_->subProp( "Topic" )->setValue( "/goal_pose_walk" );
-        goal_pose_walk_->subProp( "Shape" )->setValue( "Axes" );
-
-        goal_pose_step_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
-        goal_pose_step_->subProp( "Topic" )->setValue( "/goal_pose_step" );
-        goal_pose_step_->subProp( "Shape" )->setValue( "Axes" );
-
-        planner_start_ = manager_->createDisplay( "rviz/Pose", "Start pose", true );
-        planner_start_->subProp( "Topic" )->setValue( "/ros_footstep_planner/start" );
-        planner_start_->subProp( "Shape" )->setValue( "Axes" );
-
-        planned_path_ = manager_->createDisplay( "rviz/Path", "Planned path", true );
-        planned_path_->subProp( "Topic" )->setValue( "/flor/walk_monitor/path" );
-
+        // F/T sensor displays
         left_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Left F/T sensor", false);
         left_ft_sensor_->subProp("Topic")->setValue("/flor/l_hand/force_torque_sensor");
         left_ft_sensor_->subProp("Alpha")->setValue(0.5);
@@ -890,11 +880,7 @@ void Base3DView::gridMapToggled( bool selected )
 
 void Base3DView::footstepPlanningToggled( bool selected )
 {
-    goal_pose_walk_->setEnabled( selected );
-    goal_pose_step_->setEnabled( selected );
-    planner_start_->setEnabled( selected );
-    planned_path_->setEnabled( selected );
-    footsteps_array_->setEnabled( selected );
+    footstep_vis_manager_->setEnabled(selected);
 }
 
 void Base3DView::simulationRobotToggled( bool selected )
@@ -1236,10 +1222,16 @@ void Base3DView::addBase3DContextElements()
     contextMenuItem * separator = new contextMenuItem();
     separator->name = "Separator";
 
-    selectMenu = makeContextChild("Select Template",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    // selection items
+    selectTemplateMenu = makeContextChild("Select Template",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
 
     leftArmMenu = makeContextChild("Select Left Arm",boost::bind(&Base3DView::selectLeftArm,this),NULL,contextMenuItems);
     rightArmMenu = makeContextChild("Select Right Arm",boost::bind(&Base3DView::selectRightArm,this),NULL,contextMenuItems);
+
+    selectFootstepMenu = makeContextChild("Select Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    lockFootstepMenu = makeContextChild("Lock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
@@ -1343,6 +1335,9 @@ void Base3DView::selectOnDoubleClick(int x, int y)
         selectRightArm();
     else if(active_context_name_.find("template") != std::string::npos)
         selectContextMenu();
+    // need to select foot
+    else if(active_context_name_.find("footstep") != std::string::npos)
+        selectContextMenu();
     else //deselect if no valid object is over mouse
         deselectAll();
 
@@ -1390,12 +1385,22 @@ void Base3DView::createContextMenu(bool, int x, int y)
         context_menu_.removeAction(leftArmMenu->action);
     }
 
+    //remove footstep-related items if context is not footstep
+    if(active_context_name_.find("footstep") == std::string::npos)
+    {
+        //remove context items as not needed
+        context_menu_.removeAction(selectFootstepMenu->action);
+        context_menu_.removeAction(lockFootstepMenu->action);
+        context_menu_.removeAction(unlockFootstepMenu->action);
+        context_menu_.removeAction(removeFootstepMenu->action);
+    }
+
     //lock/unlock arms context items
     if(active_context_name_.find("template") == std::string::npos)
     {
         //remove context items as not needed
         context_menu_.removeAction(removeTemplateMenu->action);
-        context_menu_.removeAction(selectMenu->action);
+        context_menu_.removeAction(selectTemplateMenu->action);
         context_menu_.removeAction(lockLeftMenu->action);
         context_menu_.removeAction(lockRightMenu->action);
     }
@@ -1550,28 +1555,39 @@ void Base3DView::selectContextMenu()
     int id;
     if((id = findObjectContext("template")) != -1)
         selectTemplate(id);
+    else if((id = findObjectContext("footstep")) != -1)
+        selectFootstep(id); //NEED TO CREATE SELECT FOOTSTEP FUNCTION
 }
 
 int Base3DView::findObjectContext(std::string obj_type)
 {
     if(active_context_name_.find(obj_type) != std::string::npos)
     {
+        // all selectable objects use the convention "object_type n",
+        // so we look for the starting and ending indexes for n
         int start = active_context_name_.find(" ")+1;
-        int end = active_context_name_.find(".");
-        QString template_number(active_context_name_.substr(start, end-start).c_str());
-        ROS_INFO("%d %d %s",start,end,template_number.toStdString().c_str());
+        int end = active_context_name_.size();
+        QString number(active_context_name_.substr(start, end-start).c_str());
+        ROS_INFO("%d %d %s",start,end,number.toStdString().c_str());
         bool ok;
-        int t = template_number.toInt(&ok);
+        int t = number.toInt(&ok);
         if(ok) return t;
-        return -1;
-
     }
+    return -1;
 }
 
 void Base3DView::selectTemplate(int id)
 {
     flor_ocs_msgs::OCSObjectSelection cmd;
     cmd.type = flor_ocs_msgs::OCSObjectSelection::TEMPLATE;
+    cmd.id = id;
+    select_object_pub_.publish(cmd);
+}
+
+void Base3DView::selectFootstep(int id)
+{
+    flor_ocs_msgs::OCSObjectSelection cmd;
+    cmd.type = flor_ocs_msgs::OCSObjectSelection::FOOTSTEP;
     cmd.id = id;
     select_object_pub_.publish(cmd);
 }
@@ -1834,6 +1850,7 @@ void Base3DView::setContext(int context, std::string name)
 {
     active_context_ = context;
     active_context_name_ = name;
+    ROS_ERROR("Active context: %d - %s",active_context_, active_context_name_.c_str());
     //std::cout << "Active context: " << active_context_ << std::endl;
 }
 

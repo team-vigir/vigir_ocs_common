@@ -60,7 +60,6 @@
 #include <flor_control_msgs/FlorControlModeCommand.h>
 #include <flor_control_msgs/FlorControlMode.h>
 
-
 #include "robot_custom.h"
 #include "robot_link_custom.h"
 
@@ -68,10 +67,12 @@
 #include <boost/bind.hpp>
 #include <vector>
 #include <map>
-#define IM_MODE_OFFSET 3
 #include <stdlib.h>
 
 #include "robot_state_manager.h"
+
+// local includes
+#include "footstep_vis_manager.h"
 
 struct contextMenuItem
 {
@@ -482,7 +483,6 @@ protected:
 
     rviz::Display* robot_model_;
     //std::vector<InteractiveMarkerServerCustom*> im_ghost_robot_server_;
-    rviz::Display* interactive_marker_template_;
     rviz::Display* octomap_;
     rviz::Display* grid_;
     rviz::Display* laser_scan_;
@@ -496,14 +496,8 @@ protected:
     rviz::Display* raycast_point_cloud_viewer_;
     std::map<std::string,rviz::Display*> frustum_viewer_list_;
 
-    // new displays for walking
-    rviz::Display* footsteps_array_;
+    // list of gridmaps to be displayed
     std::vector<rviz::Display*> ground_map_;
-    rviz::Display* goal_pose_walk_;
-    rviz::Display* goal_pose_step_;
-    rviz::Display* planner_start_;
-    rviz::Display* planned_path_;
-    rviz::Display* footsteps_path_body_array_;
 
     rviz::Display* left_ft_sensor_;
     rviz::Display* right_ft_sensor_;
@@ -635,6 +629,10 @@ protected:
       */
     void selectTemplate(int id);
     /**
+      * Select a template
+      */
+    void selectFootstep(int id);
+    /**
       * select left arm end effector
       */
     void selectLeftArm();
@@ -665,7 +663,11 @@ protected:
 
     contextMenuItem * insertTemplateMenu;
     contextMenuItem * removeTemplateMenu;
-    contextMenuItem * selectMenu;
+    contextMenuItem * selectTemplateMenu;
+    contextMenuItem * removeFootstepMenu;
+    contextMenuItem * selectFootstepMenu;
+    contextMenuItem * lockFootstepMenu;
+    contextMenuItem * unlockFootstepMenu;
     contextMenuItem * footstepPlanMenuWalk;
     contextMenuItem * footstepPlanMenuWalkManipulation;
     contextMenuItem * cartesianMotionMenu;
@@ -902,6 +904,12 @@ protected:
       * Snaps hand to current ghost position
       */
     void snapHandGhost();
+
+
+
+    ///////////////////
+    // new managers
+    FootstepVisManager* footstep_vis_manager_;
 };
 }
 #endif // BASE_3D_VIEW_H

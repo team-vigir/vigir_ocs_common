@@ -4,11 +4,11 @@ namespace ocs_interactive_marker_server
 {
 void InteractiveMarkerServerNodelet::onInit()
 {
-    interactive_marker_server_feedback_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback",5, false );
-    interactive_marker_server_add_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, &InteractiveMarkerServerNodelet::addInteractiveMarker, this );
-    interactive_marker_server_remove_sub_ = nh_.subscribe<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, &InteractiveMarkerServerNodelet::removeInteractiveMarker, this );
-    interactive_marker_server_update_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 5, &InteractiveMarkerServerNodelet::updatePose, this );
-    interactive_marker_server_mode_sub_ = nh_.subscribe<flor_ocs_msgs::OCSControlMode>( "/flor/ocs/controlModes", 5, &InteractiveMarkerServerNodelet::setMode, this );
+    interactive_marker_server_feedback_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback",100, false );
+    interactive_marker_server_add_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 100, &InteractiveMarkerServerNodelet::addInteractiveMarker, this );
+    interactive_marker_server_remove_sub_ = nh_.subscribe<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 100, &InteractiveMarkerServerNodelet::removeInteractiveMarker, this );
+    interactive_marker_server_update_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 100, &InteractiveMarkerServerNodelet::updatePose, this );
+    interactive_marker_server_mode_sub_ = nh_.subscribe<flor_ocs_msgs::OCSControlMode>( "/flor/ocs/controlModes", 100, &InteractiveMarkerServerNodelet::setMode, this );
 }
 
 void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr &msg)
