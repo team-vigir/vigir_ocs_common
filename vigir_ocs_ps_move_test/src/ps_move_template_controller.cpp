@@ -22,7 +22,6 @@ PSMoveTemplateController::PSMoveTemplateController()
     received_pose_ = false;
 
     camera_sub_ = nh_.subscribe<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform",5,&PSMoveTemplateController::cameraCb,this);
-
     camera_pub_ = nh_.advertise<flor_ocs_msgs::OCSCameraTransform>("/flor/ocs/set_camera_transform", 1, false);
 }
 
@@ -123,20 +122,19 @@ geometry_msgs::PoseStamped PSMoveTemplateController::updatePose(geometry_msgs::P
 
     QQuaternion difference;
     //camera absolute rotation
-    QQuaternion* rot = new QQuaternion(move_server_packet->state[0].quat[3],move_server_packet->state[0].quat[0],move_server_packet->state[0].quat[1],move_server_packet->state[0].quat[2]);
+    QQuaternion rot(move_server_packet->state[0].quat[3],move_server_packet->state[0].quat[0],move_server_packet->state[0].quat[1],move_server_packet->state[0].quat[2]);
     //calculate the angle offset for relative rotation
-    *rot = old_move_orientation_.conjugate() * (*rot);
+    rot = old_move_orientation_.conjugate() * rot;
 
     //calculate difference between camera orientation and original rotation of object
     //difference of q1 and q2 is  q` = q1^-1 * q2
-    difference = camera_orientation_.conjugate() * (pre);
+    //difference = camera_orientation_.conjugate() * pre;
     //set object orientation to camera
-    pre = camera_orientation_;
+    //pre = camera_orientation_;
     //apply desired rotation
-    pre *= *rot;
+    pre *= rot;
     //revert back change of camera rotation to leave object in newly rotated state
-    pre *= difference;
-    delete(rot);
+    //pre *= difference;
 
     template_pose.pose.orientation.w = pre.scalar();
     template_pose.pose.orientation.x = pre.x();
