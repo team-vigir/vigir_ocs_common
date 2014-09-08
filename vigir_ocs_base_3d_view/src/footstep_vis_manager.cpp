@@ -1,8 +1,10 @@
-#include "footstep_vis_manager.h"
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <render_panel_custom.h>
 #include "rviz/visualization_manager.h"
 #include "rviz/display.h"
+
+#include "footstep_vis_manager.h"
 
 namespace vigir_ocs
 {
@@ -33,8 +35,8 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     planned_path_->subProp( "Topic" )->setValue( "/flor/ocs/footstep/path" );
 
     // creates publishers and subscribers for the interaction loop
-    footstep_update_sub_ = nh_.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, false );
-    footstep_list_pub_   = nh_.subscribe<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, &FootstepVisManager::processFootstepList, this );
+    footstep_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, false );
+    footstep_list_sub_   = nh_.subscribe<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, &FootstepVisManager::processFootstepList, this );
 
     // publishers and subscribers for the interactive markers
     interactive_marker_add_pub_      = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, false );
@@ -54,6 +56,19 @@ void FootstepVisManager::setEnabled(bool enabled)
     planner_start_->setEnabled( enabled );
     planned_path_->setEnabled( enabled );
     footsteps_array_->setEnabled( enabled );
+}
+
+void FootstepVisManager::enableMarker(int footstep_id, bool enabled)
+{
+    if(footstep_id < 0 || footstep_id >= display_footstep_marker_list_.size())
+        return;
+    display_footstep_marker_list_[footstep_id]->setEnabled( enabled );
+}
+
+void FootstepVisManager::enableMarkers(bool enabled)
+{
+    for(int i = 0; i < display_footstep_marker_list_.size(); i++)
+        display_footstep_marker_list_[i]->setEnabled( enabled );
 }
 
 void FootstepVisManager::processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg)
@@ -83,7 +98,7 @@ void FootstepVisManager::updateInteractiveMarkers()
             marker.point.z = footstep_list_.pose[i].pose.position.z;
             interactive_marker_add_pub_.publish(marker);
 
-            rviz::Display* im = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker - Footstep ")+boost::lexical_cast<std::string>(i)).c_str(), true );
+            rviz::Display* im = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker - Footstep ")+boost::lexical_cast<std::string>(i)).c_str(), false );
             im->subProp( "Update Topic" )->setValue( (pose_string+"/pose_marker/update").c_str() );
             im->subProp( "Show Axes" )->setValue( true );
             im->subProp( "Show Visual Aids" )->setValue( true );
@@ -102,6 +117,23 @@ void FootstepVisManager::updateInteractiveMarkers()
 
 void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg)
 {
+    if(boost::starts_with(msg.topic,"/footstep_"))
+    {
+        try
+        {
+            flor_ocs_msgs::OCSFootstepUpdate cmd;
+            int start_idx = msg.topic.find("/footstep_") + strlen("/footstep_");
+            int end_idx = msg.topic.substr(start_idx, msg.topic.size()-start_idx).find("_marker");
+            //ROS_ERROR("%s from %d to %d: %s",msg.topic.c_str(),start_idx,end_idx,msg.topic.substr(start_idx,end_idx).c_str());
+            cmd.footstep_id = boost::lexical_cast<int>(msg.topic.substr(start_idx,end_idx).c_str());
+            cmd.pose = msg.pose;
+            footstep_update_pub_.publish(cmd);
+        }
+        catch( boost::bad_lexical_cast const& )
+        {
+            ROS_ERROR("Error: input string was not valid");
+        }
 
+    }
 }
 }

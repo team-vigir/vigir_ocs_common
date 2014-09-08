@@ -71,6 +71,16 @@ public Q_SLOTS:
       */
     void setEnabled(bool enabled);
 
+    /**
+      * Set visibility of individual footstep interactive marker
+      */
+    void enableMarker(int footstep_id, bool enabled);
+
+    /**
+      * Set visibility of all footstep interactive markers
+      */
+    void enableMarkers(bool enabled);
+
 Q_SIGNALS:
     // add qsignals here
 
@@ -79,8 +89,8 @@ private:
 
     ros::NodeHandle nh_;
 
-    ros::Publisher footstep_update_sub_;
-    ros::Subscriber footstep_list_pub_;
+    ros::Publisher footstep_update_pub_;
+    ros::Subscriber footstep_list_sub_;
 
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;

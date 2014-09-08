@@ -170,7 +170,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                 // type 1 -> POINT CLOUD
                 // type 2 -> WAYPOINT
                 // type 3 -> TEMPLATE
-                // type 4 ->
+                // type 4 -> FOOTSTEP
                 object_type = 0;
                 if(query_result[qr_idx].movable->getMovableType().compare("PointCloudCustom") == 0)
                 {
@@ -259,7 +259,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                 // type 1 -> POINT CLOUD
                 // type 2 -> WAYPOINT
                 // type 3 -> TEMPLATE
-                // type 4 ->
+                // type 4 -> FOOTSTEP
                 object_type = 0;
                 if(query_result[qr_idx].movable->getMovableType().compare("PointCloudCustom") == 0)
                 {

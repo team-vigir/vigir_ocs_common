@@ -31,8 +31,8 @@ void FootstepManager::onInit()
     footstep_update_sub_        = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, &FootstepManager::processFootstepPoseUpdate, this );
 
     // creates publishers for visualization messages
-    footstep_array_pub_         = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/foostep/footsteps_array", 1, false );
-    footstep_body_bb_array_pub_ = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/foostep/footsteps_path_body_array", 1, false );
+    footstep_array_pub_         = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_array", 1, false );
+    footstep_body_bb_array_pub_ = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_path_body_array", 1, false );
     footstep_path_pub_          = nh.advertise<nav_msgs::Path>( "/flor/ocs/footstep/path", 1, false );
 
     //////// placeholders, waiting for alex to provide real message
@@ -135,11 +135,16 @@ void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstep
     {
         if(msg->footstep_id == footstep_plan_.step_plan[i].step_index)
         {
-            footstep_array_.markers[i*2].pose = msg->pose.pose;
+            footstep_array_.markers[i*2].pose = msg->pose.pose;   // step marker
+            footstep_array_.markers[i*2+1].pose = msg->pose.pose; // text id
+            footstep_path_.poses[i] = msg->pose;                  // path
             break;
         }
     }
+
     // need to send update request to footstep planner?
+    footstep_array_pub_.publish(footstep_array_);
+    footstep_path_pub_.publish(footstep_path_);
 }
 
 void FootstepManager::publishFootstepList()
@@ -184,10 +189,10 @@ void FootstepManager::stepPlanToFootMarkerArray(vigir_footstep_planning_msgs::St
         stepToMarker(input.step_plan[i], marker);
 
         marker.id = foot_array_msg.markers.size();
-        marker.color.r = input.step_plan[i].foot.foot == vigir_footstep_planning_msgs::Foot::LEFT ? 1.0 : 0.0;
-        marker.color.g = input.step_plan[i].foot.foot == vigir_footstep_planning_msgs::Foot::LEFT ? 0.0 : 1.0;
+        marker.color.r = input.step_plan[i].foot.foot == vigir_footstep_planning_msgs::Foot::LEFT ? 0.6 : 0.0;
+        marker.color.g = input.step_plan[i].foot.foot == vigir_footstep_planning_msgs::Foot::LEFT ? 0.0 : 0.6;
         marker.color.b = 0.0;
-        marker.color.a = 0.6;
+        marker.color.a = 0.5;
         marker.ns = std::string("footstep");
         foot_array_msg.markers.push_back(marker);
 
@@ -200,7 +205,7 @@ void FootstepManager::stepPlanToFootMarkerArray(vigir_footstep_planning_msgs::St
         marker.color.r = 1.0;
         marker.color.g = 1.0;
         marker.color.b = 1.0;
-        marker.color.a = 0.7;
+        marker.color.a = 1.0;
         foot_array_msg.markers.push_back(marker);
     }
 }

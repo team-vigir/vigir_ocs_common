@@ -1328,7 +1328,7 @@ contextMenuItem * Base3DView::makeContextChild(QString name,boost::function<void
 
 void Base3DView::selectOnDoubleClick(int x, int y)
 {
-    Q_EMIT queryContext(x,y);    
+    Q_EMIT queryContext(x,y);
     if(active_context_name_.find("LeftArm") != std::string::npos)
         selectLeftArm();
     else if(active_context_name_.find("RightArm") != std::string::npos)
@@ -1340,9 +1340,7 @@ void Base3DView::selectOnDoubleClick(int x, int y)
         selectContextMenu();
     else //deselect if no valid object is over mouse
         deselectAll();
-
 }
-
 
 void Base3DView::createContextMenu(bool, int x, int y)
 {
@@ -1645,6 +1643,9 @@ void Base3DView::deselectAll()
     // disable all template markers
     Q_EMIT enableTemplateMarkers( false );
 
+    // disable all footstep markers
+    footstep_vis_manager_->enableMarkers( false );
+
     // disable all robot IK markers
     for( int i = 0; i < im_ghost_robot_.size(); i++ )
     {
@@ -1663,7 +1664,8 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
     switch(msg->type)
     {
         case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
-            // enable template marker
+            // enable end effector marker
+            ROS_ERROR("ASDASDASD");
             if(msg->id == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
                 left_marker_moveit_loopback_ = false;
             else if(msg->id == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
@@ -1675,6 +1677,9 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
             Q_EMIT enableTemplateMarker( msg->id, true );
             break;
         case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
+            // id takes into account text marker as well, so we do this to find the real marker id
+            footstep_vis_manager_->enableMarker( msg->id/2, true );
+            break;
         default:
             break;
     }
