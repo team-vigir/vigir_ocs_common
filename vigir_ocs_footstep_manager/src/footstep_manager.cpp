@@ -78,7 +78,7 @@ void FootstepManager::processFootstepArray(const visualization_msgs::MarkerArray
             vigir_footstep_planning_msgs::Step step;
             step.foot = foot;
             step.step_index = (int)i/2;
-            input.step_plan.push_back(step);
+            input.steps.push_back(step);
         }
     }
 
@@ -128,12 +128,12 @@ void FootstepManager::publishFootstepVis()
 
 void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg)
 {
-    if(msg->footstep_id >= footstep_plan_.step_plan.size())
+    if(msg->footstep_id >= footstep_plan_.steps.size())
         return;
 
-    for(int i = 0; i < footstep_plan_.step_plan.size(); i++)
+    for(int i = 0; i < footstep_plan_.steps.size(); i++)
     {
-        if(msg->footstep_id == footstep_plan_.step_plan[i].step_index)
+        if(msg->footstep_id == footstep_plan_.steps[i].step_index)
         {
             footstep_array_.markers[i*2].pose = msg->pose.pose;   // step marker
             footstep_array_.markers[i*2+1].pose = msg->pose.pose; // text id
@@ -151,13 +151,13 @@ void FootstepManager::publishFootstepList()
 {
     flor_ocs_msgs::OCSFootstepList list;
     // if using step plan
-    //for(int i = 0; i < footstep_plan_.step_plan.size(); i++)
+    //for(int i = 0; i < footstep_plan_.steps.size(); i++)
     // else
     for(int i = 0; i < footstep_array_.markers.size(); i++)
     {
         //ROS_ERROR("publish %d",i);
         // if using step plan
-        //list.footstep_id_list.push_back(footstep_plan_.step_plan[i].step_index);
+        //list.footstep_id_list.push_back(footstep_plan_.steps[i].step_index);
         // else
         if(i % 2 == 0)
         {
@@ -179,18 +179,18 @@ void FootstepManager::publishFootstepList()
 
 void FootstepManager::stepPlanToFootMarkerArray(vigir_footstep_planning_msgs::StepPlan& input, visualization_msgs::MarkerArray& foot_array_msg)
 {
-    if(!input.step_plan.size())
+    if(!input.steps.size())
         return;
 
     foot_array_msg.markers.clear();
-    for(int i = 0; input.step_plan.size(); i++)
+    for(int i = 0; input.steps.size(); i++)
     {
         visualization_msgs::Marker marker;
-        stepToMarker(input.step_plan[i], marker);
+        stepToMarker(input.steps[i], marker);
 
         marker.id = foot_array_msg.markers.size();
-        marker.color.r = input.step_plan[i].foot.foot == vigir_footstep_planning_msgs::Foot::LEFT ? 0.6 : 0.0;
-        marker.color.g = input.step_plan[i].foot.foot == vigir_footstep_planning_msgs::Foot::LEFT ? 0.0 : 0.6;
+        marker.color.r = input.steps[i].foot.foot == vigir_footstep_planning_msgs::Foot::LEFT ? 0.6 : 0.0;
+        marker.color.g = input.steps[i].foot.foot == vigir_footstep_planning_msgs::Foot::LEFT ? 0.0 : 0.6;
         marker.color.b = 0.0;
         marker.color.a = 0.5;
         marker.ns = std::string("footstep");
@@ -200,7 +200,7 @@ void FootstepManager::stepPlanToFootMarkerArray(vigir_footstep_planning_msgs::St
         marker.id++;
         marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
         marker.action = visualization_msgs::Marker::ADD;
-        marker.text = boost::lexical_cast<std::string>(input.step_plan[i].step_index);
+        marker.text = boost::lexical_cast<std::string>(input.steps[i].step_index);
         marker.scale.z *= 3;
         marker.color.r = 1.0;
         marker.color.g = 1.0;
@@ -212,24 +212,24 @@ void FootstepManager::stepPlanToFootMarkerArray(vigir_footstep_planning_msgs::St
 
 void FootstepManager::stepPlanToBodyMarkerArray(vigir_footstep_planning_msgs::StepPlan& input, visualization_msgs::MarkerArray& body_array_msg)
 {
-    if(!input.step_plan.size())
+    if(!input.steps.size())
         return;
 
     visualization_msgs::Marker marker;
-    marker.header = input.step_plan[0].foot.header;
+    marker.header = input.steps[0].foot.header;
     marker.header.stamp = ros::Time::now();
     marker.lifetime = ros::Duration();
     marker.type = visualization_msgs::Marker::CUBE;
     marker.action = visualization_msgs::Marker::ADD;
 
     body_array_msg.markers.clear();
-    for(int i = 1; i < input.step_plan.size(); i++)
+    for(int i = 1; i < input.steps.size(); i++)
     {
         // approximate upper body dimensions
-        float x = input.step_plan[i].foot.position.x + 0.5 * (input.step_plan[i-1].foot.position.x - input.step_plan[i].foot.position.x);
-        float y = input.step_plan[i].foot.position.y + 0.5 * (input.step_plan[i-1].foot.position.y - input.step_plan[i].foot.position.y);
-        float z = input.step_plan[i].foot.position.z + 0.5 * (input.step_plan[i-1].foot.position.z - input.step_plan[i].foot.position.z);
-        float theta = input.step_plan[i].foot.yaw + 0.5 * (input.step_plan[i-1].foot.yaw - input.step_plan[i].foot.yaw);
+        float x = input.steps[i].foot.position.x + 0.5 * (input.steps[i-1].foot.position.x - input.steps[i].foot.position.x);
+        float y = input.steps[i].foot.position.y + 0.5 * (input.steps[i-1].foot.position.y - input.steps[i].foot.position.y);
+        float z = input.steps[i].foot.position.z + 0.5 * (input.steps[i-1].foot.position.z - input.steps[i].foot.position.z);
+        float theta = input.steps[i].foot.yaw + 0.5 * (input.steps[i-1].foot.yaw - input.steps[i].foot.yaw);
 
         // compute center position of body
         marker.pose.position.x = x;
@@ -265,20 +265,20 @@ void FootstepManager::stepPlanToBodyMarkerArray(vigir_footstep_planning_msgs::St
 
 void FootstepManager::stepPlanToFootPath(vigir_footstep_planning_msgs::StepPlan& input, nav_msgs::Path& foot_path_msg)
 {
-    if(!input.step_plan.size())
+    if(!input.steps.size())
         return;
 
     foot_path_msg.header = input.header;
     foot_path_msg.header.stamp = ros::Time::now();
 
-    for (size_t i = 0; i < input.step_plan.size(); i++)
+    for (size_t i = 0; i < input.steps.size(); i++)
     {
         geometry_msgs::PoseStamped pose;
-        pose.header = input.step_plan[i].foot.header;
+        pose.header = input.steps[i].foot.header;
         pose.header.stamp = ros::Time::now();
-        pose.pose.position.x = input.step_plan[i].foot.position.x;
-        pose.pose.position.y = input.step_plan[i].foot.position.y;
-        pose.pose.position.z = input.step_plan[i].foot.position.z;
+        pose.pose.position.x = input.steps[i].foot.position.x;
+        pose.pose.position.y = input.steps[i].foot.position.y;
+        pose.pose.position.z = input.steps[i].foot.position.z;
 
         foot_path_msg.poses.push_back(pose);
     }

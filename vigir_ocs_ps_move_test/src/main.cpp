@@ -100,24 +100,24 @@ void workerFunc()
 
 int updateSuccess(MoveServerPacket *move_server_packet)
 {
-    ROS_ERROR("update success");
+    //ROS_ERROR("update success");
     return move_controller->updateSuccess(move_server_packet);
 }
 
 int updateFailure(int error)
 {
-    ROS_ERROR("update error: %d", error);
+    //ROS_ERROR("update error: %d", error);
     return move_controller->updateFailure(error);
 }
 
 int updateCameraSuccess(MoveServerCameraFrameSlicePacket *move_server_camera_frame_slice_packet)
 {
-    ROS_ERROR("camera success");
+    //ROS_ERROR("camera success");
     return move_controller->updateCameraSuccess(move_server_camera_frame_slice_packet);
 }
 
 int updateCameraFailure(int error)
 {
-    ROS_ERROR("camera failure: %d", error);
+    //ROS_ERROR("camera failure: %d", error);
     return move_controller->updateCameraFailure(error);
 }

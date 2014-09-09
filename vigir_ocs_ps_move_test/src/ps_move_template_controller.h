@@ -75,7 +75,6 @@ namespace vigir_ocs
         geometry_msgs::PoseStamped camera_pose_;
 
         ros::Subscriber camera_sub_;
-        ros::Publisher camera_pub_;
 
         bool received_pose_;
 
