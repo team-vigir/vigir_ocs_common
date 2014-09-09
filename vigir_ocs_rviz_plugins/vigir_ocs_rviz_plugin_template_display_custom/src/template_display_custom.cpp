@@ -320,14 +320,13 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
     //std::cout << "Adding Ogre object for template" << std::endl;
     static int counter = 0;
     std::ostringstream convert;
-    convert << counter++ << "." << index;
+    convert << counter++;
     // create entity for mesh and attach it to the scene node
     Ogre::Entity* lEntity = this->scene_manager_->createEntity(std::string("template ")+convert.str(), path);
+    lEntity->setUserAny(Ogre::Any(std::string("template ")+convert.str()));
     Ogre::SceneNode* lNode = this->scene_node_->createChildSceneNode();
 
     //Save the the size of the template
-
-
     //template_size_ = 0.2;
 
     lNode->attachObject(lEntity);

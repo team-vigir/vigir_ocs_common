@@ -198,6 +198,7 @@ void PathDisplayCustom::draw(nav_msgs::Path path)
         std::ostringstream convert;
         convert << counter++ << "." << index;
         Ogre::Entity* lEntity = this->scene_manager_->createEntity(std::string("waypoint marker ")+convert.str(), Ogre::SceneManager::PT_CUBE);
+        lEntity->setUserAny(Ogre::Any(std::string("waypoint marker ")+convert.str()));
         waypoint_markers_.push_back(this->scene_node_->createChildSceneNode());
         waypoint_markers_[index]->attachObject(lEntity);
         waypoint_markers_[index]->setPosition(xpos.x, xpos.y, xpos.z-z_offset/2.0f);

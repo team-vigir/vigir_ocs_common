@@ -5,14 +5,14 @@ project(vigir_ocs_base_3d_view)
 ## this package depends at build time
 find_package(PCL REQUIRED QUIET COMPONENTS common)
 
-find_package(catkin REQUIRED COMPONENTS pcl_ros roscpp rospy std_msgs geometry_msgs sensor_msgs rviz vigir_ocs_rviz_plugins vigir_ocs_template_loader vigir_ocs_render_panel_custom vigir_ocs_mouse_event_handler flor_interactive_marker_server_custom moveit_core moveit_ros_planning flor_control_msgs vigir_ocs_robot_state_manager)
+find_package(catkin REQUIRED COMPONENTS pcl_ros roscpp rospy std_msgs geometry_msgs sensor_msgs rviz vigir_ocs_rviz_plugins vigir_ocs_template_loader vigir_ocs_render_panel_custom vigir_ocs_mouse_event_handler flor_interactive_marker_server_custom moveit_core moveit_ros_planning flor_control_msgs vigir_ocs_robot_state_manager vigir_footstep_planning_msgs)
 
 
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-    CATKIN_DEPENDS pcl_ros roscpp rospy std_msgs geometry_msgs sensor_msgs rviz vigir_ocs_rviz_plugins vigir_ocs_template_loader vigir_ocs_render_panel_custom vigir_ocs_mouse_event_handler flor_interactive_marker_server_custom moveit_core moveit_ros_planning flor_control_msgs vigir_ocs_robot_state_manager
+        CATKIN_DEPENDS pcl_ros roscpp rospy std_msgs geometry_msgs sensor_msgs rviz vigir_ocs_rviz_plugins vigir_ocs_template_loader vigir_ocs_render_panel_custom vigir_ocs_mouse_event_handler flor_interactive_marker_server_custom moveit_core moveit_ros_planning flor_control_msgs vigir_ocs_robot_state_manager vigir_footstep_planning_msgs
 
 )
 
@@ -25,12 +25,14 @@ include(${QT_USE_FILE})
 add_definitions(-DQT_NO_KEYWORDS)
 
 qt4_wrap_cpp(MOC_FILES
+  src/footstep_vis_manager.h
   src/base_3d_view.h
 )
 
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.
 set(SOURCE_FILES
+  src/footstep_vis_manager.cpp
   src/base_3d_view.cpp
   ${MOC_FILES}
 )

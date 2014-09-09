@@ -1,0 +1,8 @@
+<!-- OpenNI driver nodelet publisher -->
+<library path="libvigir_ocs_footstep_manager">
+  <class name="vigir_ocs_footstep_manager/FootstepManager" type="ocs_footstep::FootstepManager" base_class_type="nodelet::Nodelet">
+    <description>
+      Footstep manager
+    </description>
+  </class>
+</library>

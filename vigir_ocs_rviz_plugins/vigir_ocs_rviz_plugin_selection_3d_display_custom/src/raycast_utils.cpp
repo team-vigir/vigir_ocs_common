@@ -12,6 +12,7 @@
 #include <OGRE/OgreTextureManager.h>
 #include <OGRE/OgreViewport.h>
 #include <OGRE/OgrePrerequisites.h>
+#include <OGRE/OgreAny.h>
 #include <boost/algorithm/string/predicate.hpp>
 
 RayCastUtils::RayCastUtils(Ogre::SceneManager* sm)
@@ -169,15 +170,35 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                 // type 1 -> POINT CLOUD
                 // type 2 -> WAYPOINT
                 // type 3 -> TEMPLATE
+                // type 4 -> FOOTSTEP
+                object_type = 0;
                 if(query_result[qr_idx].movable->getMovableType().compare("PointCloudCustom") == 0)
+                {
                     object_type = 1;
-                else if(query_result[qr_idx].movable->getMovableType().compare("Entity") == 0 && boost::algorithm::starts_with(query_result[qr_idx].movable->getName(),"waypoint"))
-                    object_type = 2;
-                else if(query_result[qr_idx].movable->getMovableType().compare("Entity") == 0 && boost::algorithm::starts_with(query_result[qr_idx].movable->getName(),"template"))
-                    object_type = 3;
-                else
-                    object_type = 0;
-                object_name = query_result[qr_idx].movable->getName();
+                    object_name = query_result[qr_idx].movable->getName();
+                }
+                else if(query_result[qr_idx].movable->getMovableType().compare("Entity") == 0)
+                {
+                    std::string user_data = "";
+                    try
+                    {
+                        Ogre::Any any = pentity->getUserAny();
+                        user_data = Ogre::any_cast<std::string>(any);
+                    }
+                    catch(...)
+                    {
+                        std::cout << "no user data" << std::endl;
+                    }
+
+                    std::cout << "any data: " << user_data << std::endl;
+                    if(boost::algorithm::starts_with(user_data,"waypoint"))
+                        object_type = 2;
+                    else if(boost::algorithm::starts_with(user_data,"template"))
+                        object_type = 3;
+                    else if(boost::algorithm::starts_with(user_data,"footstep"))
+                        object_type = 4;
+                    object_name = user_data;
+                }
             }
         }
         else if ((query_result[qr_idx].movable != NULL) &&
@@ -238,14 +259,34 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                 // type 1 -> POINT CLOUD
                 // type 2 -> WAYPOINT
                 // type 3 -> TEMPLATE
+                // type 4 -> FOOTSTEP
+                object_type = 0;
                 if(query_result[qr_idx].movable->getMovableType().compare("PointCloudCustom") == 0)
+                {
                     object_type = 1;
-                else if(query_result[qr_idx].movable->getMovableType().compare("Entity") == 0 && boost::algorithm::starts_with(query_result[qr_idx].movable->getName(),"waypoint"))
-                    object_type = 2;
-                else if(query_result[qr_idx].movable->getMovableType().compare("Entity") == 0 && boost::algorithm::starts_with(query_result[qr_idx].movable->getName(),"template"))
-                    object_type = 3;
-                else
-                    object_type = 0;
+                }
+                else if(query_result[qr_idx].movable->getMovableType().compare("Entity") == 0)
+                {
+                    std::string user_data = "";
+                    try
+                    {
+                        Ogre::Any any = pentity->getUserAny();
+                        user_data = Ogre::any_cast<std::string>(any);
+                    }
+                    catch(...)
+                    {
+                        std::cout << "no user data" << std::endl;
+                    }
+
+                    std::cout << "any data: " << user_data << std::endl;
+                    if(boost::algorithm::starts_with(user_data,"waypoint"))
+                        object_type = 2;
+                    else if(boost::algorithm::starts_with(user_data,"template"))
+                        object_type = 3;
+                    else if(boost::algorithm::starts_with(user_data,"footstep"))
+                        object_type = 4;
+                }
+
                 object_name = query_result[qr_idx].movable->getName();
             }
         }

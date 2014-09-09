@@ -247,6 +247,7 @@ void BoundingObjectDisplayCustom::load()
     }
 
     Ogre::Entity* lEntity = this->scene_manager_->createEntity(ss.str()+name_property_->getStdString(), Ogre::SceneManager::PT_SPHERE);
+    lEntity->setUserAny(Ogre::Any(ss.str()+name_property_->getStdString()));
     bounding_object_ = this->scene_node_->createChildSceneNode();
     bounding_object_->attachObject(lEntity);
 
