@@ -32,7 +32,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
     //ROS_ERROR("  Grasp widget using %s hand (%s)",hand_.c_str(), hand_type_.c_str());
 
     // initialize path variables for template/grasp databases
-    std::string templatePath = (ros::package::getPath("templates"))+"/";
+    std::string templatePath = (ros::package::getPath("vigir_template_library"))+"/";
     std::cout << "--------------<" << templatePath << ">\n" << std::endl;
     template_dir_path_ = QString(templatePath.c_str());
     template_id_db_path_ = template_dir_path_+QString("grasp_templates.txt");

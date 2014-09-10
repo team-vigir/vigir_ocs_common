@@ -54,7 +54,7 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &GhostControlWidget::processNewKeyEvent, this );
 
     timer.start(33, this);
-    std::string templatePath = (ros::package::getPath("templates"))+"/";
+    std::string templatePath = (ros::package::getPath("vigir_template_library"))+"/";
     std::cout << "--------------<" << templatePath << ">\n" << std::endl;
     template_dir_path_ = QString(templatePath.c_str());
     template_id_db_path_ = template_dir_path_+QString("grasp_templates.txt");
