@@ -12,7 +12,7 @@ TemplateLoaderWidget::TemplateLoaderWidget(QWidget *parent) :
     ui(new Ui::TemplateLoaderWidget)
 {
     // Use "templates" package.  @TODO make this a parameter
-    std::string template_path = ros::package::getPath("templates")+"/";//vigir_grasp_control") + "/../templates/";
+    std::string template_path = ros::package::getPath("vigir_template_library")+"/";//vigir_grasp_control") + "/../templates/";
     //std::cout << "--------------- <" << template_path << ">\n";
     templateDirPath = QString(template_path.c_str());
 

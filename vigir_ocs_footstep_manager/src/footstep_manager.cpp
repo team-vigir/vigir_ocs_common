@@ -81,11 +81,8 @@ void FootstepManager::processFootstepArray(const visualization_msgs::MarkerArray
         if(i % 2 == 0)
         {
             vigir_footstep_planning_msgs::Foot foot;
-            foot.foot = ((footstep_array_.markers[i].color.r == 1.0) ? 0 : 1);
-            foot.normal.z = 1.0;
-            foot.position.x = footstep_array_.markers[i].pose.position.x;
-            foot.position.y = footstep_array_.markers[i].pose.position.y;
-            foot.position.z = footstep_array_.markers[i].pose.position.z;
+            foot.foot_index = ((footstep_array_.markers[i].color.r == 1.0) ? vigir_footstep_planning_msgs::Foot::LEFT : vigir_footstep_planning_msgs::Foot::RIGHT);
+            foot.pose = footstep_array_.markers[i].pose;
             vigir_footstep_planning_msgs::Step step;
             step.foot = foot;
             step.step_index = (int)i/2;
@@ -200,8 +197,8 @@ void FootstepManager::stepPlanToFootMarkerArray(vigir_footstep_planning_msgs::St
         stepToMarker(input.steps[i], marker);
 
         marker.id = foot_array_msg.markers.size();
-        marker.color.r = input.steps[i].foot.foot == vigir_footstep_planning_msgs::Foot::LEFT ? 0.6 : 0.0;
-        marker.color.g = input.steps[i].foot.foot == vigir_footstep_planning_msgs::Foot::LEFT ? 0.0 : 0.6;
+        marker.color.r = input.steps[i].foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? 0.6 : 0.0;
+        marker.color.g = input.steps[i].foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? 0.0 : 0.6;
         marker.color.b = 0.0;
         marker.color.a = 0.5;
         marker.ns = std::string("footstep");
@@ -237,10 +234,12 @@ void FootstepManager::stepPlanToBodyMarkerArray(vigir_footstep_planning_msgs::St
     for(int i = 1; i < input.steps.size(); i++)
     {
         // approximate upper body dimensions
-        float x = input.steps[i].foot.position.x + 0.5 * (input.steps[i-1].foot.position.x - input.steps[i].foot.position.x);
-        float y = input.steps[i].foot.position.y + 0.5 * (input.steps[i-1].foot.position.y - input.steps[i].foot.position.y);
-        float z = input.steps[i].foot.position.z + 0.5 * (input.steps[i-1].foot.position.z - input.steps[i].foot.position.z);
-        float theta = input.steps[i].foot.yaw + 0.5 * (input.steps[i-1].foot.yaw - input.steps[i].foot.yaw);
+        float x = input.steps[i].foot.pose.position.x + 0.5 * (input.steps[i-1].foot.pose.position.x - input.steps[i].foot.pose.position.x);
+        float y = input.steps[i].foot.pose.position.y + 0.5 * (input.steps[i-1].foot.pose.position.y - input.steps[i].foot.pose.position.y);
+        float z = input.steps[i].foot.pose.position.z + 0.5 * (input.steps[i-1].foot.pose.position.z - input.steps[i].foot.pose.position.z);
+        float yaw1 = tf::getYaw(input.steps[i-1].foot.pose.orientation);
+        float yaw2 = tf::getYaw(input.steps[i].foot.pose.orientation);
+        float theta = yaw2 + 0.5 * (yaw1 - yaw2);
 
         // compute center position of body
         marker.pose.position.x = x;
@@ -287,9 +286,7 @@ void FootstepManager::stepPlanToFootPath(vigir_footstep_planning_msgs::StepPlan&
         geometry_msgs::PoseStamped pose;
         pose.header = input.steps[i].foot.header;
         pose.header.stamp = ros::Time::now();
-        pose.pose.position.x = input.steps[i].foot.position.x;
-        pose.pose.position.y = input.steps[i].foot.position.y;
-        pose.pose.position.z = input.steps[i].foot.position.z;
+        pose.pose.position = input.steps[i].foot.pose.position;
 
         foot_path_msg.poses.push_back(pose);
     }
@@ -298,27 +295,24 @@ void FootstepManager::stepPlanToFootPath(vigir_footstep_planning_msgs::StepPlan&
 void FootstepManager::stepToMarker(const vigir_footstep_planning_msgs::Step &step, visualization_msgs::Marker &marker)
 {
     vigir_footstep_planning_msgs::Step step_transformed = step;
-    step_transformed.foot.position.z += foot_size.z/2; // marker should touch ground
+    step_transformed.foot.pose.position.z += foot_size.z/2; // marker should touch ground
 
     // shift to foot center (remove shift to foot frame)
     geometry_msgs::Vector3 shift_foot = foot_origin_shift;
-    if (step.foot.foot == vigir_footstep_planning_msgs::Foot::LEFT)
+    if (step.foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT)
       shift_foot.y = -shift_foot.y;
 
-    double roll = 0.0;
-    double pitch = 0.0;
-    double yaw = step.foot.yaw;
-    flor_footstep_planner_msgs::normalToRP(yaw, step.foot.normal, roll, pitch);
+    tf::Quaternion q;
+    tf::quaternionMsgToTF(step.foot.pose.orientation, q);
+    tf::Matrix3x3 rot(q);
 
     tf::Vector3 shift_world;
     tf::vector3MsgToTF(shift_foot, shift_world);
-    tf::Matrix3x3 rot;
-    rot.setRPY(roll, pitch, yaw);
     shift_world = rot * shift_world;
 
-    step_transformed.foot.position.x -= shift_world.getX();
-    step_transformed.foot.position.y -= shift_world.getY();
-    step_transformed.foot.position.z -= shift_world.getZ();
+    step_transformed.foot.pose.position.x -= shift_world.getX();
+    step_transformed.foot.pose.position.y -= shift_world.getY();
+    step_transformed.foot.pose.position.z -= shift_world.getZ();
     // end shift
 
     marker.header = step_transformed.foot.header;
@@ -328,8 +322,7 @@ void FootstepManager::stepToMarker(const vigir_footstep_planning_msgs::Step &ste
     marker.action = visualization_msgs::Marker::ADD;
 
     // compute absolut position of foot
-    flor_footstep_planner_msgs::copyPosition(step_transformed.foot.position, marker.pose.position);
-    flor_footstep_planner_msgs::normalToQuaternion(step_transformed.foot.yaw, step_transformed.foot.normal, marker.pose.orientation);
+    marker.pose = step_transformed.foot.pose;
 
     // rescale marker based on foot size
     marker.scale = foot_size;
