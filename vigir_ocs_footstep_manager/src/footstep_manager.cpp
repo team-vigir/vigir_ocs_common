@@ -70,7 +70,7 @@ void FootstepManager::processFootstepArray(const visualization_msgs::MarkerArray
         if(i % 2 == 0)
         {
             vigir_footstep_planning_msgs::Foot foot;
-            foot.foot = ((footstep_array_.markers[i].color.r == 1.0) ? vigir_footstep_planning_msgs::Foot::LEFT : vigir_footstep_planning_msgs::Foot::RIGHT);
+            foot.foot_index = ((footstep_array_.markers[i].color.r == 1.0) ? vigir_footstep_planning_msgs::Foot::LEFT : vigir_footstep_planning_msgs::Foot::RIGHT);
             foot.pose = footstep_array_.markers[i].pose;
             vigir_footstep_planning_msgs::Step step;
             step.foot = foot;
@@ -186,8 +186,8 @@ void FootstepManager::stepPlanToFootMarkerArray(vigir_footstep_planning_msgs::St
         stepToMarker(input.steps[i], marker);
 
         marker.id = foot_array_msg.markers.size();
-        marker.color.r = input.steps[i].foot.foot == vigir_footstep_planning_msgs::Foot::LEFT ? 0.6 : 0.0;
-        marker.color.g = input.steps[i].foot.foot == vigir_footstep_planning_msgs::Foot::LEFT ? 0.0 : 0.6;
+        marker.color.r = input.steps[i].foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? 0.6 : 0.0;
+        marker.color.g = input.steps[i].foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? 0.0 : 0.6;
         marker.color.b = 0.0;
         marker.color.a = 0.5;
         marker.ns = std::string("footstep");
@@ -288,7 +288,7 @@ void FootstepManager::stepToMarker(const vigir_footstep_planning_msgs::Step &ste
 
     // shift to foot center (remove shift to foot frame)
     geometry_msgs::Vector3 shift_foot = foot_origin_shift;
-    if (step.foot.foot == vigir_footstep_planning_msgs::Foot::LEFT)
+    if (step.foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT)
       shift_foot.y = -shift_foot.y;
 
     tf::Quaternion q;
