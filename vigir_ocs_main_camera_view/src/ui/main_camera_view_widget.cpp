@@ -263,8 +263,7 @@ void MainCameraViewWidget::addContextMenu()
     contextMenuItem * separator = new contextMenuItem();
     separator->name = "Separator";
 
-    vigir_ocs::Base3DView::makeContextChild("Define Target Pose-Walk",boost::bind(&vigir_ocs::Base3DView::defineWalkPosePressed,((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())), NULL, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Define Target Pose-Step",boost::bind(&vigir_ocs::Base3DView::defineStepPosePressed,((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())), NULL, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Define Target Pose",boost::bind(&vigir_ocs::Base3DView::definePosePressed,((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())), NULL, contextMenuElements);
 
     contextMenuElements.push_back(separator);
 

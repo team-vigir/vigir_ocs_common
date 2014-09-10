@@ -42,8 +42,7 @@ Q_SIGNALS:
     void queryPosition( int, int, Ogre::Vector3& );
 
 public Q_SLOTS:
-    virtual void defineWalkPosePressed();
-    virtual void defineStepPosePressed();
+    virtual void definePosePressed();
     void keyPressEvent( QKeyEvent* event );
 
 protected:

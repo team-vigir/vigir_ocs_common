@@ -16,19 +16,31 @@
 #include <vigir_footstep_planning_msgs/StepPlan.h>
 #include <flor_ocs_msgs/OCSFootstepList.h>
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
+#include <flor_state_msgs/LowerBodyState.h>
+
+#include <vigir_footstep_planning_msgs/StepPlanRequestAction.h>
+#include <actionlib/client/simple_action_client.h>
 
 namespace ocs_footstep
 {
+    typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::StepPlanRequestAction> StepPlanRequestClient;
+
     class FootstepManager : public nodelet::Nodelet
     {
     public:
         virtual void onInit();
 
+        // placeholders for ros action to request plan
         void processFootstepArray(const visualization_msgs::MarkerArray::ConstPtr& msg);
         void processFootstepBodyBBArray(const visualization_msgs::MarkerArray::ConstPtr& msg);
         void processFootstepPathArray(const nav_msgs::Path::ConstPtr& msg);
 
+        // feedback look for interaction, should update stepplan and use actions to edit/update
         void processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg);
+
+        // get the current and goal poses to be used when requesting a footstep plan
+        void processLowerBodyState(const flor_state_msgs::LowerBodyStateConstPtr &lower_body_state);
+        void processFootstepGoalPose(const geometry_msgs::PoseStampedConstPtr &goal_pose); // triggers footstep plan
 
         void timerCallback(const ros::TimerEvent& event);
 
@@ -36,6 +48,9 @@ namespace ocs_footstep
         void publishFootstepVis();
         void publishFootstepList();
 
+        void requestStepPlan();
+
+        // auxiliary functions that create visualizations based on step plans
         void stepPlanToFootMarkerArray(vigir_footstep_planning_msgs::StepPlan& input, visualization_msgs::MarkerArray& foot_array_msg);
         void stepPlanToBodyMarkerArray(vigir_footstep_planning_msgs::StepPlan& input, visualization_msgs::MarkerArray& body_array_msg);
         void stepPlanToFootPath(vigir_footstep_planning_msgs::StepPlan& input, nav_msgs::Path& foot_path_msg);
@@ -53,6 +68,12 @@ namespace ocs_footstep
         ros::Publisher footstep_list_pub_;
         ros::Subscriber footstep_update_sub_;
 
+        ros::Subscriber footstep_plan_request_sub_;
+        ros::Subscriber lower_body_state_sub_;
+
+        // footstep plan request
+        ros::Subscriber set_goal_sub_;
+
         vigir_footstep_planning_msgs::StepPlan footstep_plan_;
         visualization_msgs::MarkerArray footstep_array_;
         visualization_msgs::MarkerArray footstep_body_array_;
@@ -65,5 +86,11 @@ namespace ocs_footstep
 
         geometry_msgs::Vector3 upper_body_size;
         geometry_msgs::Vector3 upper_body_origin_shift;
+
+        // used to calculate feet poses for start/end of footstep plan
+        flor_state_msgs::LowerBodyState lower_body_state_;
+        geometry_msgs::PoseStamped goal_pose_;
+
+        StepPlanRequestClient* step_plan_request_client_;
     };
 }

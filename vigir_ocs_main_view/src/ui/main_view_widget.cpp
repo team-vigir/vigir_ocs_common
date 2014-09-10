@@ -509,8 +509,7 @@ void MainViewWidget::addContextMenu()
     //the order in which they are created matters
     //must do parent objects before children
     //and in the order you want them to show up in the context menu
-    vigir_ocs::Base3DView::makeContextChild("Define Target Pose-Walk",boost::bind(&vigir_ocs::Base3DView::defineWalkPosePressed,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Define Target Pose-Step",boost::bind(&vigir_ocs::Base3DView::defineStepPosePressed,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
+    vigir_ocs::Base3DView::makeContextChild("Define Target Pose",boost::bind(&vigir_ocs::Base3DView::definePosePressed,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
 
     contextMenuElements.push_back(separator);
 

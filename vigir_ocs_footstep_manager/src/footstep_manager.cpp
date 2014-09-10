@@ -1,5 +1,6 @@
 #include "footstep_manager.h"
 
+#include <vigir_footstep_planning_msgs/StepPlanRequest.h>
 #include <vigir_footstep_planning_msgs/Step.h>
 #include <vigir_footstep_planning_msgs/Foot.h>
 
@@ -35,12 +36,22 @@ void FootstepManager::onInit()
     footstep_body_bb_array_pub_ = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_path_body_array", 1, false );
     footstep_path_pub_          = nh.advertise<nav_msgs::Path>( "/flor/ocs/footstep/path", 1, false );
 
+    // use this to track current feet pose
+    lower_body_state_sub_       = nh.subscribe("lower_body_state", 1, &FootstepManager::processLowerBodyState, this);
+
+    // footstep request coming from the OCS
+    footstep_plan_request_sub_  = nh.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 1, &FootstepManager::processFootstepGoalPose, this );
+
     //////// placeholders, waiting for alex to provide real message
     // for now, creates subscribers for the messages coming from the footstep planner
     // this will become a single action for the footstep result coming from the planner
     footstep_array_sub_         = nh.subscribe<visualization_msgs::MarkerArray>( "/flor/walk_monitor/footsteps_array", 1, &FootstepManager::processFootstepArray, this );
     footstep_body_bb_array_sub_ = nh.subscribe<visualization_msgs::MarkerArray>( "/flor/walk_monitor/footsteps_path_body_array", 1, &FootstepManager::processFootstepBodyBBArray, this );
     footstep_path_sub_          = nh.subscribe<nav_msgs::Path>( "/flor/walk_monitor/path", 1, &FootstepManager::processFootstepPathArray, this );
+
+    // initialize all ros action clients
+    step_plan_request_client_ = new StepPlanRequestClient("/vigir/global_footstep_planner/step_plan_request", false); // true -> don't need ros::spin()
+    step_plan_request_client_.waitForServer();
 
     timer = nh.createTimer(ros::Duration(0.066), &FootstepManager::timerCallback, this);
 }
@@ -323,6 +334,72 @@ void FootstepManager::stepToMarker(const vigir_footstep_planning_msgs::Step &ste
     // rescale marker based on foot size
     marker.scale = foot_size;
 }
+
+void FootstepManager::processLowerBodyState(const flor_state_msgs::LowerBodyStateConstPtr &lower_body_state)
+{
+    lower_body_state_ = *lower_body_state;
+}
+
+void FootstepManager::processFootstepGoalPose(const geometry_msgs::PoseStampedConstPtr &goal_pose)
+{
+    goal_pose_ = *goal_pose;
+
+    requestStepPlan();
+}
+
+void FootstepManager::requestStepPlan()
+{
+    vigir_footstep_planning_msgs::StepPlanRequest request;
+
+    // first we calculate start and end feet poses
+    //start left
+    flor_footstep_planner_msgs::copyPosition(lower_body_state_.left_foot_pose.position, request.start.left.position);
+    request.start.left.yaw = tf::getYaw(lower_body_state_.left_foot_pose.orientation);
+    flor_footstep_planner_msgs::quaternionToNormal(lower_body_state_.left_foot_pose.orientation, request.start.left.normal);
+    request.start.left.foot = vigir_footstep_planning_msgs::Foot::LEFT;
+    //start right
+    flor_footstep_planner_msgs::copyPosition(lower_body_state_.right_foot_pose.position, request.start.right.position);
+    request.start.right.yaw = tf::getYaw(lower_body_state_.right_foot_pose.orientation);
+    flor_footstep_planner_msgs::quaternionToNormal(lower_body_state_.right_foot_pose.orientation, request.start.right.normal);
+    request.start.right.foot = vigir_footstep_planning_msgs::Foot::RIGHT;
+
+    //end estimates for foot distance
+    double end_yaw = tf::getYaw(goal_pose_.pose.orientation);
+    double shift_x = -sin(end_yaw) * (0.5 * foot_separation);
+    double shift_y =  cos(end_yaw) * (0.5 * foot_separation);
+
+    request.goal.left.position.x = goal_pose_.pose.position.x + shift_x;
+    request.goal.left.position.y = goal_pose_.pose.position.y + shift_y;
+    request.goal.left.position.z = goal_pose_.pose.position.z;
+    request.goal.left.yaw = end_yaw;
+
+    request.goal.right.position.x = goal_pose_.pose.position.x - shift_x;
+    request.goal.right.position.y = goal_pose_.pose.position.y - shift_y;
+    request.goal.right.position.z = goal_pose_.pose.position.z;
+    request.goal.right.yaw = end_yaw;
+
+    // default planning mode is 2D, but will get that from the OCS
+    request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_2D;
+
+    // need to get the following from the OCS as well
+    //float32 max_planning_time         # maximum planning time given in second
+    //float32 max_number_steps          # maximum number of steps, set 0 for unlimited
+    //float32 max_path_length_ratio     # maximum path length ratio computed as (current path length)/(beeline start<->goal), must be larger 1 otherwise it will be ignored
+
+    vigir_footstep_planning_msgs::StepPlanRequestGoal goal;
+    goal.plan_request = request;
+    // Fill in goal here
+    step_plan_request_client_->sendGoal(goal);
+    step_plan_request_client_->waitForResult(ros::Duration(120.0));
+    if(step_plan_request_client_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    {
+        vigir_footstep_planning_msgs::StepPlanRequestResultConstPtr result = step_plan_request_client_->getResult();
+        ROS_ERROR("Got action response: [%s]", result->status.error_msg.c_str());
+
+    }
+    ROS_ERROR("Current State: %s\n", step_plan_request_client_.getState().toString().c_str());
+}
+
 }
 
 PLUGINLIB_DECLARE_CLASS (vigir_ocs_footstep_manager, FootstepManager, ocs_footstep::FootstepManager, nodelet::Nodelet);
