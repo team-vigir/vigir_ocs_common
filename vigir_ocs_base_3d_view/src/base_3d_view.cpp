@@ -168,7 +168,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
         // Add support for goal specification/vector navigation
         set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
-        set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/flor/ocs/footstep/goal_pose" );
+        set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
 
         grid_ = manager_->createDisplay( "rviz/Grid", "Grid", true );
         ROS_ASSERT( grid_ != NULL );
@@ -446,10 +446,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
         reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
         send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
-        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 1, false );
+        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_step", 1, false );
 
         // subscribe to goal pose
-        set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, boost::bind(&Base3DView::processGoalPose, this, _1, 2) );
+        set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_step", 5, boost::bind(&Base3DView::processGoalPose, this, _1, 2) );
 
         // Create a RobotModel display.
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );

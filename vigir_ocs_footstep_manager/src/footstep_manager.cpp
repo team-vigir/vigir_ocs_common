@@ -40,7 +40,7 @@ void FootstepManager::onInit()
     lower_body_state_sub_       = nh.subscribe("/flor/state/lower_body_world", 1, &FootstepManager::processLowerBodyState, this);
 
     // footstep request coming from the OCS
-    footstep_plan_request_sub_  = nh.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 1, &FootstepManager::processFootstepGoalPose, this );
+    footstep_plan_request_sub_  = nh.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_step", 1, &FootstepManager::processFootstepGoalPose, this );
 
     //////// placeholders, waiting for alex to provide real message
     // for now, creates subscribers for the messages coming from the footstep planner

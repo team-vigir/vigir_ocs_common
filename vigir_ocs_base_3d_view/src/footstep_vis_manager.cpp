@@ -20,7 +20,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     footsteps_path_body_array_->subProp( "Marker Topic" )->setValue( "/flor/ocs/footstep/footsteps_path_body_array" );
 
     goal_pose_walk_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
-    goal_pose_walk_->subProp( "Topic" )->setValue( "/flor/ocs/footstep/goal_pose" );
+    goal_pose_walk_->subProp( "Topic" )->setValue( "/goal_pose_step" );
     goal_pose_walk_->subProp( "Shape" )->setValue( "Axes" );
 
     planner_start_ = manager_->createDisplay( "rviz/Pose", "Start pose", true );
