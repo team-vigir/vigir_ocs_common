@@ -52,10 +52,10 @@ void FootstepManager::onInit()
     // initialize all ros action clients
     //plan request
     step_plan_request_client_ = new StepPlanRequestClient("/vigir/global_footstep_planner/step_plan_request", true);
-    step_plan_request_client_->waitForServer();
+    //step_plan_request_client_->waitForServer();
     //edit step
     edit_step_client_ = new EditStepClient("/vigir/global_footstep_planner/edit_step", true);
-    edit_step_client_->waitForServer();
+    //edit_step_client_->waitForServer();
 
     timer = nh.createTimer(ros::Duration(0.066), &FootstepManager::timerCallback, this);
 }
@@ -79,20 +79,21 @@ void FootstepManager::processFootstepArray(const visualization_msgs::MarkerArray
 
     // I'm going to receive a StepPlan message
     ///// placeholder that creates fake stepplan message based on marker array
-    //vigir_footstep_planning_msgs::StepPlan input;
-    //for(int i = 0; i < footstep_array_.markers.size(); i++)
-    //{
-    //    if(i % 2 == 0)
-    //    {
-    //        vigir_footstep_planning_msgs::Foot foot;
-    //        foot.foot_index = ((footstep_array_.markers[i].color.r == 1.0) ? vigir_footstep_planning_msgs::Foot::LEFT : vigir_footstep_planning_msgs::Foot::RIGHT);
-    //        foot.pose = footstep_array_.markers[i].pose;
-    //        vigir_footstep_planning_msgs::Step step;
-    //        step.foot = foot;
-    //        step.step_index = (int)i/2;
-    //        input.steps.push_back(step);
-    //    }
-    //}
+    addNewPlanList();
+    vigir_footstep_planning_msgs::StepPlan input;
+    for(int i = 0; i < footstep_array_.markers.size(); i++)
+    {
+        if(i % 2 == 0)
+        {
+            vigir_footstep_planning_msgs::Foot foot;
+            foot.foot_index = ((footstep_array_.markers[i].color.r == 1.0) ? vigir_footstep_planning_msgs::Foot::LEFT : vigir_footstep_planning_msgs::Foot::RIGHT);
+            foot.pose = footstep_array_.markers[i].pose;
+            vigir_footstep_planning_msgs::Step step;
+            step.foot = foot;
+            step.step_index = (int)i/2;
+            input.steps.push_back(step);
+        }
+    }
 
     // which has a list of steps
     // each step has step index, foot, and bool locked
@@ -113,22 +114,22 @@ void FootstepManager::processFootstepArray(const visualization_msgs::MarkerArray
     //footstep_path_ = path_msg;
 
     // save last plan
-    //footstep_plans_stack_.top().back() = input;
+    getStepPlanList().push_back(input);
 
-    //publishFootstepVis();
-    //publishFootstepList();
+    publishFootstepVis();
+    publishFootstepList();
 }
 
 void FootstepManager::processFootstepBodyBBArray(const visualization_msgs::MarkerArray::ConstPtr& msg)
 {
-    //footstep_body_array_ = *msg;
-    //publishFootstepVis();
+    footstep_body_array_ = *msg;
+    publishFootstepVis();
 }
 
 void FootstepManager::processFootstepPathArray(const nav_msgs::Path::ConstPtr& msg)
 {
-    //footstep_path_ = *msg;
-    //publishFootstepVis();
+    footstep_path_ = *msg;
+    publishFootstepVis();
 }
 
 void FootstepManager::publishFootstepVis()
@@ -357,7 +358,7 @@ void FootstepManager::processFootstepGoalPose(const geometry_msgs::PoseStampedCo
 {
     goal_pose_ = *goal_pose;
 
-    requestStepPlan();
+    //requestStepPlan();
 }
 
 void FootstepManager::requestStepPlan()
