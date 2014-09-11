@@ -506,8 +506,7 @@ color: rgb(255, 26, 26);</string>
     <slot>requestedPointCloudToggled(bool)</slot>
     <slot>clearMapRequests()</slot>
     <slot>clearPointCloudRequests()</slot>
-    <slot>defineWalkPosePressed()</slot>
-    <slot>defineStepPosePressed()</slot>
+    <slot>definePosePressed()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -741,7 +740,7 @@ color: rgb(255, 26, 26);</string>
    <sender>footstep_pose_walk</sender>
    <signal>pressed()</signal>
    <receiver>main_3d_view_</receiver>
-   <slot>defineWalkPosePressed()</slot>
+   <slot>definePosePressed()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>649</x>
@@ -853,7 +852,7 @@ color: rgb(255, 26, 26);</string>
    <sender>footstep_pose_step</sender>
    <signal>pressed()</signal>
    <receiver>main_3d_view_</receiver>
-   <slot>defineStepPosePressed()</slot>
+   <slot>definePosePressed()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>656</x>

@@ -89,7 +89,7 @@
         <x>0</x>
         <y>0</y>
         <width>264</width>
-        <height>1083</height>
+        <height>1113</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -1424,8 +1424,7 @@ color: rgb(255, 26, 26);</string>
     <slot>requestedPointCloudToggled(bool)</slot>
     <slot>clearPointCloudRequests()</slot>
     <slot>clearMapRequests()</slot>
-    <slot>defineWalkPosePressed()</slot>
-    <slot>defineStepPosePressed()</slot>
+    <slot>definePosePressed()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -1771,7 +1770,7 @@ color: rgb(255, 26, 26);</string>
    <sender>footstep_pose_walk</sender>
    <signal>pressed()</signal>
    <receiver>camera_view_</receiver>
-   <slot>defineWalkPosePressed()</slot>
+   <slot>definePosePressed()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>563</x>
@@ -1860,22 +1859,6 @@ color: rgb(255, 26, 26);</string>
     <hint type="destinationlabel">
      <x>223</x>
      <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>footstep_pose_step</sender>
-   <signal>pressed()</signal>
-   <receiver>widget</receiver>
-   <slot>defineStepPosePressed()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>705</x>
-     <y>588</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>284</x>
-     <y>350</y>
     </hint>
    </hints>
   </connection>

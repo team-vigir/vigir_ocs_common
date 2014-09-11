@@ -51,7 +51,7 @@ void FootstepManager::onInit()
 
     // initialize all ros action clients
     step_plan_request_client_ = new StepPlanRequestClient("/vigir/global_footstep_planner/step_plan_request", false); // true -> don't need ros::spin()
-    step_plan_request_client_.waitForServer();
+    step_plan_request_client_->waitForServer();
 
     timer = nh.createTimer(ros::Duration(0.066), &FootstepManager::timerCallback, this);
 }
@@ -75,20 +75,20 @@ void FootstepManager::processFootstepArray(const visualization_msgs::MarkerArray
 
     // I'm going to receive a StepPlan message
     ///// placeholder that creates fake stepplan message based on marker array
-    vigir_footstep_planning_msgs::StepPlan input;
-    for(int i = 0; i < footstep_array_.markers.size(); i++)
-    {
-        if(i % 2 == 0)
-        {
-            vigir_footstep_planning_msgs::Foot foot;
-            foot.foot_index = ((footstep_array_.markers[i].color.r == 1.0) ? vigir_footstep_planning_msgs::Foot::LEFT : vigir_footstep_planning_msgs::Foot::RIGHT);
-            foot.pose = footstep_array_.markers[i].pose;
-            vigir_footstep_planning_msgs::Step step;
-            step.foot = foot;
-            step.step_index = (int)i/2;
-            input.steps.push_back(step);
-        }
-    }
+    //vigir_footstep_planning_msgs::StepPlan input;
+    //for(int i = 0; i < footstep_array_.markers.size(); i++)
+    //{
+    //    if(i % 2 == 0)
+    //    {
+    //        vigir_footstep_planning_msgs::Foot foot;
+    //        foot.foot_index = ((footstep_array_.markers[i].color.r == 1.0) ? vigir_footstep_planning_msgs::Foot::LEFT : vigir_footstep_planning_msgs::Foot::RIGHT);
+    //        foot.pose = footstep_array_.markers[i].pose;
+    //        vigir_footstep_planning_msgs::Step step;
+    //        step.foot = foot;
+    //        step.step_index = (int)i/2;
+    //        input.steps.push_back(step);
+    //    }
+    //}
 
     // which has a list of steps
     // each step has step index, foot, and bool locked
@@ -109,22 +109,22 @@ void FootstepManager::processFootstepArray(const visualization_msgs::MarkerArray
     //footstep_path_ = path_msg;
 
     // save last plan
-    footstep_plan_ = input;
+    //footstep_plan_ = input;
 
-    publishFootstepVis();
-    publishFootstepList();
+    //publishFootstepVis();
+    //publishFootstepList();
 }
 
 void FootstepManager::processFootstepBodyBBArray(const visualization_msgs::MarkerArray::ConstPtr& msg)
 {
-    footstep_body_array_ = *msg;
-    publishFootstepVis();
+    //footstep_body_array_ = *msg;
+    //publishFootstepVis();
 }
 
 void FootstepManager::processFootstepPathArray(const nav_msgs::Path::ConstPtr& msg)
 {
-    footstep_path_ = *msg;
-    publishFootstepVis();
+    //footstep_path_ = *msg;
+    //publishFootstepVis();
 }
 
 void FootstepManager::publishFootstepVis()
@@ -172,13 +172,7 @@ void FootstepManager::publishFootstepList()
             list.footstep_id_list.push_back(i/2);
             // use the already calculated pose for the marker array
             geometry_msgs::PoseStamped pose;
-            pose.pose.position.x = footstep_array_.markers[i].pose.position.x;
-            pose.pose.position.y = footstep_array_.markers[i].pose.position.y;
-            pose.pose.position.z = footstep_array_.markers[i].pose.position.z;
-            pose.pose.orientation.x = footstep_array_.markers[i].pose.orientation.x;
-            pose.pose.orientation.y = footstep_array_.markers[i].pose.orientation.y;
-            pose.pose.orientation.z = footstep_array_.markers[i].pose.orientation.z;
-            pose.pose.orientation.w = footstep_array_.markers[i].pose.orientation.w;
+            pose.pose = footstep_array_.markers[i].pose;
             list.pose.push_back(pose);
         }
     }
@@ -342,34 +336,37 @@ void FootstepManager::processFootstepGoalPose(const geometry_msgs::PoseStampedCo
 
 void FootstepManager::requestStepPlan()
 {
+    ROS_ERROR("REQUESTING A NEW FOOTSTEP PLAN");
     vigir_footstep_planning_msgs::StepPlanRequest request;
 
     // first we calculate start and end feet poses
     //start left
-    flor_footstep_planner_msgs::copyPosition(lower_body_state_.left_foot_pose.position, request.start.left.position);
-    request.start.left.yaw = tf::getYaw(lower_body_state_.left_foot_pose.orientation);
-    flor_footstep_planner_msgs::quaternionToNormal(lower_body_state_.left_foot_pose.orientation, request.start.left.normal);
-    request.start.left.foot = vigir_footstep_planning_msgs::Foot::LEFT;
+    //flor_footstep_planner_msgs::copyPosition(lower_body_state_.left_foot_pose.position, request.start.left.position);
+    //request.start.left.yaw = tf::getYaw(lower_body_state_.left_foot_pose.orientation);
+    //flor_footstep_planner_msgs::quaternionToNormal(lower_body_state_.left_foot_pose.orientation, request.start.left.normal);
+    request.start.left.foot_index = vigir_footstep_planning_msgs::Foot::LEFT;
+    request.start.left.pose = lower_body_state_.left_foot_pose;
     //start right
-    flor_footstep_planner_msgs::copyPosition(lower_body_state_.right_foot_pose.position, request.start.right.position);
-    request.start.right.yaw = tf::getYaw(lower_body_state_.right_foot_pose.orientation);
-    flor_footstep_planner_msgs::quaternionToNormal(lower_body_state_.right_foot_pose.orientation, request.start.right.normal);
-    request.start.right.foot = vigir_footstep_planning_msgs::Foot::RIGHT;
+    //flor_footstep_planner_msgs::copyPosition(lower_body_state_.right_foot_pose.position, request.start.right.position);
+    //request.start.right.yaw = tf::getYaw(lower_body_state_.right_foot_pose.orientation);
+    //flor_footstep_planner_msgs::quaternionToNormal(lower_body_state_.right_foot_pose.orientation, request.start.right.normal);
+    request.start.right.foot_index = vigir_footstep_planning_msgs::Foot::RIGHT;
+    request.start.right.pose = lower_body_state_.right_foot_pose;
 
     //end estimates for foot distance
     double end_yaw = tf::getYaw(goal_pose_.pose.orientation);
     double shift_x = -sin(end_yaw) * (0.5 * foot_separation);
     double shift_y =  cos(end_yaw) * (0.5 * foot_separation);
 
-    request.goal.left.position.x = goal_pose_.pose.position.x + shift_x;
-    request.goal.left.position.y = goal_pose_.pose.position.y + shift_y;
-    request.goal.left.position.z = goal_pose_.pose.position.z;
-    request.goal.left.yaw = end_yaw;
+    request.goal.left.pose.position.x = goal_pose_.pose.position.x + shift_x;
+    request.goal.left.pose.position.y = goal_pose_.pose.position.y + shift_y;
+    request.goal.left.pose.position.z = goal_pose_.pose.position.z;
+    request.goal.left.pose.orientation = goal_pose_.pose.orientation;
 
-    request.goal.right.position.x = goal_pose_.pose.position.x - shift_x;
-    request.goal.right.position.y = goal_pose_.pose.position.y - shift_y;
-    request.goal.right.position.z = goal_pose_.pose.position.z;
-    request.goal.right.yaw = end_yaw;
+    request.goal.right.pose.position.x = goal_pose_.pose.position.x - shift_x;
+    request.goal.right.pose.position.y = goal_pose_.pose.position.y - shift_y;
+    request.goal.right.pose.position.z = goal_pose_.pose.position.z;
+    request.goal.right.pose.orientation = goal_pose_.pose.orientation;
 
     // default planning mode is 2D, but will get that from the OCS
     request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_2D;
@@ -383,14 +380,37 @@ void FootstepManager::requestStepPlan()
     goal.plan_request = request;
     // Fill in goal here
     step_plan_request_client_->sendGoal(goal);
-    step_plan_request_client_->waitForResult(ros::Duration(120.0));
-    if(step_plan_request_client_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    step_plan_request_client_->waitForResult(ros::Duration(5.0));
+    if(step_plan_request_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
         vigir_footstep_planning_msgs::StepPlanRequestResultConstPtr result = step_plan_request_client_->getResult();
         ROS_ERROR("Got action response: [%s]", result->status.error_msg.c_str());
 
+        if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
+        {
+            footstep_plan_ = result->step_plan;
+
+            // for each step, will need to create a set of two footstep markers
+            // a TEXT_VIEW_FACING and CUBE
+            visualization_msgs::MarkerArray foot_array_msg;
+            stepPlanToFootMarkerArray(footstep_plan_, foot_array_msg);
+            footstep_array_ = foot_array_msg;
+
+            // and body marker array
+            visualization_msgs::MarkerArray body_array_msg;
+            stepPlanToBodyMarkerArray(footstep_plan_, body_array_msg);
+            footstep_body_array_ = foot_array_msg;
+
+            // also need to create path
+            nav_msgs::Path path_msg;
+            stepPlanToFootPath(footstep_plan_, path_msg);
+            footstep_path_ = path_msg;
+
+            publishFootstepVis();
+            publishFootstepList();
+        }
     }
-    ROS_ERROR("Current State: %s\n", step_plan_request_client_.getState().toString().c_str());
+    ROS_ERROR("Current State: %s\n", step_plan_request_client_->getState().toString().c_str());
 }
 
 }
