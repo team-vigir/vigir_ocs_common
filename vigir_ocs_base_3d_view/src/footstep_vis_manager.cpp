@@ -100,14 +100,12 @@ void FootstepVisManager::updateInteractiveMarkers()
             im->subProp( "Show Visual Aids" )->setValue( true );
             display_footstep_marker_list_.push_back(im);
         }
-        else
-        {
-            // update interactive marker pose
-            flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-            cmd.topic = pose_string;
-            cmd.pose = footstep_list_.pose[i];
-            interactive_marker_update_pub_.publish(cmd);
-        }
+
+        // update interactive marker pose
+        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.topic = pose_string;
+        cmd.pose = footstep_list_.pose[i];
+        interactive_marker_update_pub_.publish(cmd);
     }
 }
 
@@ -120,7 +118,6 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
             flor_ocs_msgs::OCSFootstepUpdate cmd;
             int start_idx = msg.topic.find("/footstep_") + strlen("/footstep_");
             int end_idx = msg.topic.substr(start_idx, msg.topic.size()-start_idx).find("_marker");
-            //ROS_ERROR("%s from %d to %d: %s",msg.topic.c_str(),start_idx,end_idx,msg.topic.substr(start_idx,end_idx).c_str());
             cmd.footstep_id = boost::lexical_cast<int>(msg.topic.substr(start_idx,end_idx).c_str());
             cmd.pose = msg.pose;
             footstep_update_pub_.publish(cmd);

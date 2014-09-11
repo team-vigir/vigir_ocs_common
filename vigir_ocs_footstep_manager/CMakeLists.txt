@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vigir_ocs_footstep_manager)
 
+set(ROS_BUILD_TYPE Debug)
+#set(ROS_BUILD_TYPE RelWithDebInfo)
+
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
 find_package(catkin REQUIRED COMPONENTS roscpp rospy tf pluginlib std_msgs geometry_msgs visualization_msgs nav_msgs flor_ocs_msgs vigir_footstep_planning_msgs flor_footstep_planner_msgs nodelet actionlib_msgs actionlib)

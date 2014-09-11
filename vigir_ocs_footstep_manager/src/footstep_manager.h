@@ -5,6 +5,7 @@
 #include <boost/thread.hpp>
 
 #include <vector>
+#include <stack>
 #include <string>
 
 #include <geometry_msgs/PoseStamped.h>
@@ -19,11 +20,13 @@
 #include <flor_state_msgs/LowerBodyState.h>
 
 #include <vigir_footstep_planning_msgs/StepPlanRequestAction.h>
+#include <vigir_footstep_planning_msgs/EditStepAction.h>
 #include <actionlib/client/simple_action_client.h>
 
 namespace ocs_footstep
 {
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::StepPlanRequestAction> StepPlanRequestClient;
+    typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::EditStepAction> EditStepClient;
 
     class FootstepManager : public nodelet::Nodelet
     {
@@ -48,13 +51,26 @@ namespace ocs_footstep
         void publishFootstepVis();
         void publishFootstepList();
 
+        // plan requests
         void requestStepPlan();
+        void requestStepPlanFromStep(vigir_footstep_planning_msgs::Step &step);
+        void requestStepPlan(vigir_footstep_planning_msgs::Feet &start, vigir_footstep_planning_msgs::Feet &goal);
+        void updateVisualizationMsgs();
 
         // auxiliary functions that create visualizations based on step plans
         void stepPlanToFootMarkerArray(vigir_footstep_planning_msgs::StepPlan& input, visualization_msgs::MarkerArray& foot_array_msg);
         void stepPlanToBodyMarkerArray(vigir_footstep_planning_msgs::StepPlan& input, visualization_msgs::MarkerArray& body_array_msg);
         void stepPlanToFootPath(vigir_footstep_planning_msgs::StepPlan& input, nav_msgs::Path& foot_path_msg);
         void stepToMarker(const vigir_footstep_planning_msgs::Step &step, visualization_msgs::Marker &marker);
+
+        // functions that control the undo/redo stacks
+        void addNewPlanList();
+        void undo();
+        void redo();
+
+        // helper functions that return current step plan list and step plan, to reduce clutter
+        inline std::vector<vigir_footstep_planning_msgs::StepPlan>& getStepPlanList() { return footstep_plans_undo_stack_.top(); }
+        inline vigir_footstep_planning_msgs::StepPlan& getStepPlan() { return getStepPlanList().back(); }
 
         ros::Timer timer;
 
@@ -74,7 +90,8 @@ namespace ocs_footstep
         // footstep plan request
         ros::Subscriber set_goal_sub_;
 
-        vigir_footstep_planning_msgs::StepPlan footstep_plan_;
+        std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> > footstep_plans_undo_stack_;
+        std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> > footstep_plans_redo_stack_;
         visualization_msgs::MarkerArray footstep_array_;
         visualization_msgs::MarkerArray footstep_body_array_;
         nav_msgs::Path footstep_path_;
@@ -92,5 +109,6 @@ namespace ocs_footstep
         geometry_msgs::PoseStamped goal_pose_;
 
         StepPlanRequestClient* step_plan_request_client_;
+        EditStepClient* edit_step_client_;
     };
 }
