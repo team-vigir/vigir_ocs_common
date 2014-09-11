@@ -177,22 +177,6 @@ void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstep
             publishFootstepList();
         }
     }
-
-
-//    for(int i = 0; i < footstep_plans_stack_.top().back().steps.size(); i++)
-//    {
-//        if(msg->footstep_id == footstep_plans_stack_.top().back().steps[i].step_index)
-//        {
-//            footstep_array_.markers[i*2].pose = msg->pose.pose;   // step marker
-//            footstep_array_.markers[i*2+1].pose = msg->pose.pose; // text id
-//            footstep_path_.poses[i] = msg->pose;                  // path
-//            break;
-//        }
-//    }
-
-//    // need to send update request to footstep planner?
-//    footstep_array_pub_.publish(footstep_array_);
-//    footstep_path_pub_.publish(footstep_path_);
 }
 
 void FootstepManager::publishFootstepList()
