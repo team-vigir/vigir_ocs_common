@@ -90,7 +90,7 @@ void OrthoView::setViewPlane(const QString& view_plane)
     //render_panel_->getCamera()->setDirection(0,0,-1);
 }
 
-void OrthoView::definePosePressed()
+void OrthoView::defineStepGoal()
 {
     //ROS_ERROR("vector pressed in map");
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
@@ -102,9 +102,9 @@ void OrthoView::definePosePressed()
 }
 
 
-void OrthoView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose, int type)
+void OrthoView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
-    Base3DView::processGoalPose( pose, type );
+    Base3DView::processGoalPose( pose );
     //ROS_ERROR("goal processed in map");
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);

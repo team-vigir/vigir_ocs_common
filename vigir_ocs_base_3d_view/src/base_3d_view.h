@@ -53,8 +53,9 @@
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSHotkeyRelay.h>
 #include <flor_ocs_msgs/OCSObjectSelection.h>
-#include "flor_ocs_msgs/OCSCameraTransform.h"
-#include "flor_ocs_msgs/OCSControlMode.h"
+#include <flor_ocs_msgs/OCSCameraTransform.h>
+#include <flor_ocs_msgs/OCSControlMode.h>
+#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include <flor_perception_msgs/RaycastRequest.h>
 #include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
@@ -236,7 +237,7 @@ public:
     /**
       * ROS Callback: receives new goal pose for footstep planner
       */
-    virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
+    virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     /**
       * ROS Callback: receives new key event from global hotkey process
       */
@@ -289,7 +290,8 @@ public Q_SLOTS:
     void markerTemplateToggled( bool );
     void robotJointMarkerToggled(bool selected);
     void robotOcclusionToggled(bool selected);
-    virtual void definePosePressed();
+    virtual void defineStepGoal();
+    void defineStepGoal(unsigned int request_mode);
 
 
     /**
@@ -668,8 +670,10 @@ protected:
     contextMenuItem * unlockFootstepMenu;
     contextMenuItem * undoFootstepMenu;
     contextMenuItem * redoFootstepMenu;
-    contextMenuItem * footstepPlanMenuWalk;
-    contextMenuItem * footstepPlanMenuWalkManipulation;
+    contextMenuItem * newFootstepMenu;
+    contextMenuItem * continueLastFootstepMenu;
+    contextMenuItem * continueThisFootstepMenu;
+    contextMenuItem * executeFootstepPlanMenu;
     contextMenuItem * cartesianMotionMenu;
     contextMenuItem * createCartesianMarkerMenu;
     contextMenuItem * removeCartesianMarkerMenu;

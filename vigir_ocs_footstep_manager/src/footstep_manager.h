@@ -17,9 +17,11 @@
 #include <vigir_footstep_planning_msgs/StepPlan.h>
 #include <flor_ocs_msgs/OCSFootstepList.h>
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
+#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include <flor_state_msgs/LowerBodyState.h>
 #include <vigir_footstep_planning_msgs/StepPlanRequestAction.h>
 #include <vigir_footstep_planning_msgs/EditStepAction.h>
+#include <vigir_footstep_planning_msgs/ExecuteStepPlanAction.h>
 
 #include <actionlib/client/simple_action_client.h>
 
@@ -27,25 +29,24 @@ namespace ocs_footstep
 {
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::StepPlanRequestAction> StepPlanRequestClient;
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::EditStepAction> EditStepClient;
+    typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::ExecuteStepPlanAction> ExecuteStepPlanClient;
 
     class FootstepManager : public nodelet::Nodelet
     {
     public:
         virtual void onInit();
 
-        // placeholders for ros action to request plan
-        void processFootstepArray(const visualization_msgs::MarkerArray::ConstPtr& msg);
-        void processFootstepBodyBBArray(const visualization_msgs::MarkerArray::ConstPtr& msg);
-        void processFootstepPathArray(const nav_msgs::Path::ConstPtr& msg);
+        // triggers footstep plan calls
+        void processFootstepPlanRequest(const flor_ocs_msgs::OCSFootstepPlanRequest::ConstPtr& plan_request);
 
         // feedback look for interaction, should update stepplan and use actions to edit/update
         void processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg);
         void processUndoRequest(const std_msgs::Bool::ConstPtr& msg);
         void processRedoRequest(const std_msgs::Bool::ConstPtr& msg);
+        void processExecuteFootstepRequest(const std_msgs::Bool::ConstPtr& msg);
 
         // get the current and goal poses to be used when requesting a footstep plan
-        void processLowerBodyState(const flor_state_msgs::LowerBodyStateConstPtr &lower_body_state);
-        void processFootstepGoalPose(const geometry_msgs::PoseStampedConstPtr &goal_pose); // triggers footstep plan
+        void processLowerBodyState(const flor_state_msgs::LowerBodyState::ConstPtr& lower_body_state);
 
         void timerCallback(const ros::TimerEvent& event);
 
@@ -65,11 +66,13 @@ namespace ocs_footstep
         void stepPlanToFootPath(vigir_footstep_planning_msgs::StepPlan& input, nav_msgs::Path& foot_path_msg);
         void stepToMarker(const vigir_footstep_planning_msgs::Step &step, visualization_msgs::Marker &marker);
 
+        // clears footstep visualizations based on the last messages sent
+        void cleanMarkerArray(visualization_msgs::MarkerArray& old_array, visualization_msgs::MarkerArray& new_array);
+
         // functions that control the undo/redo stacks
         void addNewPlanList();
         void addCopyPlanList();
-        void undo();
-        void redo();
+        void cleanStacks();
 
         // helper functions that return current step plan list and step plan, to reduce clutter
         inline std::vector<vigir_footstep_planning_msgs::StepPlan>& getStepPlanList() { return footstep_plans_undo_stack_.top(); }
@@ -88,6 +91,7 @@ namespace ocs_footstep
         ros::Subscriber footstep_update_sub_;
         ros::Subscriber footstep_undo_req_sub_;
         ros::Subscriber footstep_redo_req_sub_;
+        ros::Subscriber footstep_exec_req_sub_;
 
         ros::Subscriber footstep_plan_request_sub_;
         ros::Subscriber lower_body_state_sub_;
@@ -115,5 +119,6 @@ namespace ocs_footstep
 
         StepPlanRequestClient* step_plan_request_client_;
         EditStepClient* edit_step_client_;
+        ExecuteStepPlanClient* execute_step_plan_client_;
     };
 }

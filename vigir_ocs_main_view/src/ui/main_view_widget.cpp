@@ -80,8 +80,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             // connect UI to perspective functions
             QObject::connect(ui->camera_tool, SIGNAL(toggled(bool)), iter->second, SLOT(cameraToggled(bool)));
             QObject::connect(ui->footstep_planning, SIGNAL(toggled(bool)), iter->second, SLOT(footstepPlanningToggled(bool)));
-            QObject::connect(ui->footstep_pose_walk, SIGNAL(pressed()), iter->second, SLOT(definePosePressed()));
-            QObject::connect(ui->footstep_pose_step, SIGNAL(pressed()), iter->second, SLOT(definePosePressed()));
+            QObject::connect(ui->footstep_pose_walk, SIGNAL(pressed()), iter->second, SLOT(defineStepGoal()));
             QObject::connect(ui->grasp_model, SIGNAL(toggled(bool)), iter->second, SLOT(graspModelToggled(bool)));
             QObject::connect(ui->grid_map, SIGNAL(toggled(bool)), iter->second, SLOT(gridMapToggled(bool)));
             QObject::connect(ui->insert_waypoint, SIGNAL(pressed()), iter->second, SLOT(insertWaypoint()));
@@ -509,9 +508,6 @@ void MainViewWidget::addContextMenu()
     //the order in which they are created matters
     //must do parent objects before children
     //and in the order you want them to show up in the context menu
-    vigir_ocs::Base3DView::makeContextChild("Define Target Pose",boost::bind(&vigir_ocs::Base3DView::definePosePressed,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
-
-    contextMenuElements.push_back(separator);
 
     vigir_ocs::Base3DView::makeContextChild("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
 

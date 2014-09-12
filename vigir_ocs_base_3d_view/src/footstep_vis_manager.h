@@ -21,6 +21,7 @@
 #include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepList.h>
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
+#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 
 #include <string>
 #include <boost/bind.hpp>
@@ -52,6 +53,11 @@ public:
     virtual ~FootstepVisManager();
 
     /**
+      * Create a footstep plan request with the given goal
+      */
+    void processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose);
+
+    /**
       * Receives list of footsteps and creates/removes interactive markers
       */
     void processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg);
@@ -75,6 +81,16 @@ public:
       * Sends a redo request to the footstep manager
       */
     void requestFootstepListRedo();
+
+    /**
+      * Sends a footstep plan execute request to the footstep manager
+      */
+    void requestExecuteStepPlan();
+
+    /**
+      * Sets the request mode for new footstep plans
+      */
+    void setRequestMode(unsigned char mode, int start_index = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN);
 
 public Q_SLOTS:
     /**
@@ -104,6 +120,10 @@ private:
     ros::Subscriber footstep_list_sub_;
     ros::Publisher footstep_undo_req_pub_;
     ros::Publisher footstep_redo_req_pub_;
+    ros::Publisher footstep_exec_req_pub_;
+
+    ros::Subscriber footstep_goal_sub_;
+    ros::Publisher footstep_plan_request_pub_;
 
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;
@@ -123,6 +143,9 @@ private:
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
     rviz::Display* footsteps_path_body_array_;
+
+    unsigned char request_mode_;
+    int start_step_index_;
 };
 
 }

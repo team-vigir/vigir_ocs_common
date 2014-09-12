@@ -282,10 +282,6 @@ void MapView::addContextMenu()
 
     contextMenuElements.push_back(separator);
 
-    vigir_ocs::Base3DView::makeContextChild("Define Target Pose - Walk",boost::bind(&MapView::definePosePressed,this), NULL, contextMenuElements);
-
-    contextMenuElements.push_back(separator);
-
     vigir_ocs::Base3DView::makeContextChild("Request Area Map",boost::bind(&MapView::requestAreaMapContext,this), NULL, contextMenuElements);
 
     contextMenuElements.push_back(separator);

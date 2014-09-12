@@ -34,7 +34,7 @@ public:
     OrthoView( Base3DView* copy_from = NULL, std::string base_frame = "/world", std::string widget_name = "OrthoView", QWidget *parent = NULL );
     virtual ~OrthoView();
 
-    void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
+    void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     
     void setViewPlane(const QString& view_plane);
 
@@ -42,7 +42,7 @@ Q_SIGNALS:
     void queryPosition( int, int, Ogre::Vector3& );
 
 public Q_SLOTS:
-    virtual void definePosePressed();
+    virtual void defineStepGoal();
     void keyPressEvent( QKeyEvent* event );
 
 protected:

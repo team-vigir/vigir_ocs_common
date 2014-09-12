@@ -1086,7 +1086,7 @@ color: rgb(255, 26, 26);</string>
     <slot>requestedPointCloudToggled(bool)</slot>
     <slot>clearPointCloudRaycastRequests()</slot>
     <slot>clearMapRequests()</slot>
-    <slot>definePosePressed()</slot>
+    <slot>defineStepGoal()</slot>
     <slot>selectionToolToggle(bool)</slot>
     <slot>clearPointCloudRegionRequests()</slot>
     <slot>clearPointCloudStereoRequests()</slot>
@@ -1179,7 +1179,7 @@ color: rgb(255, 26, 26);</string>
    <sender>footstep_pose_walk</sender>
    <signal>pressed()</signal>
    <receiver>map_view_</receiver>
-   <slot>definePosePressed()</slot>
+   <slot>defineStepGoal()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>641</x>
@@ -1451,7 +1451,7 @@ color: rgb(255, 26, 26);</string>
    <sender>footstep_pose_step</sender>
    <signal>pressed()</signal>
    <receiver>map_view_</receiver>
-   <slot>definePosePressed()</slot>
+   <slot>defineStepGoal()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>679</x>

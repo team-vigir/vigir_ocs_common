@@ -75,7 +75,7 @@ public Q_SLOTS:
     void requestPointCloudROI();
     void updateImageFrame(std::string);
 
-    virtual void definePosePressed();
+    virtual void defineStepGoal();
     void keyPressEvent( QKeyEvent* event );
 
 private Q_SLOTS:

@@ -449,7 +449,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 1, false );
 
         // subscribe to goal pose
-        set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, boost::bind(&Base3DView::processGoalPose, this, _1, 2) );
+        set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &Base3DView::processGoalPose, this );
 
         // Create a RobotModel display.
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
@@ -996,15 +996,20 @@ void Base3DView::markerTemplateToggled( bool selected )
     }
 }
 
-void Base3DView::definePosePressed()
+void Base3DView::defineStepGoal()
 {
-    //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
     manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
 }
 
-void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose, int type)
+void Base3DView::defineStepGoal(unsigned int request_mode)
 {
-    last_footstep_plan_type_ = type;
+    defineStepGoal();
+
+    footstep_vis_manager_->setRequestMode(request_mode);
+}
+
+void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+{
 }
 
 void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc )
@@ -1228,20 +1233,27 @@ void Base3DView::addBase3DContextElements()
 
     insertTemplateMenu = makeContextParent("Insert Template",contextMenuItems);
     removeTemplateMenu = makeContextChild("Remove Template",boost::bind(&Base3DView::removeTemplateContextMenu,this),NULL,contextMenuItems);
-
-    addToContextVector(separator);
-
     lockLeftMenu = makeContextChild("Lock Left Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL,contextMenuItems);
     lockRightMenu = makeContextChild("Lock Right Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL,contextMenuItems);
     unlockArmsMenu = makeContextChild("Unlock Arms",boost::bind(&Base3DView::setTemplateGraspLock,this,-1),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
-    undoFootstepMenu = makeContextChild("Undo Footstep Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL,contextMenuItems);
-    redoFootstepMenu = makeContextChild("Redo Footstep Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL,contextMenuItems);
+    newFootstepMenu = makeContextChild("Define New Step Goal",boost::bind(&vigir_ocs::Base3DView::defineStepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
+    continueLastFootstepMenu = makeContextChild("Define Step Goal from Last Step",boost::bind(&vigir_ocs::Base3DView::defineStepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_CURRENT_PLAN), NULL, contextMenuItems);
+    continueThisFootstepMenu = makeContextChild("Define Step Goal from Step XX",boost::bind(&vigir_ocs::Base3DView::defineStepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP), NULL, contextMenuItems);
     lockFootstepMenu = makeContextChild("Lock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
     unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
     removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+
+    addToContextVector(separator);
+
+    undoFootstepMenu = makeContextChild("Undo Footstep Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL,contextMenuItems);
+    redoFootstepMenu = makeContextChild("Redo Footstep Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL,contextMenuItems);
+
+    addToContextVector(separator);
+
+    executeFootstepPlanMenu = makeContextChild(QString("Execute Footstep Plan"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
@@ -1254,11 +1266,6 @@ void Base3DView::addBase3DContextElements()
 
     createCircularMarkerMenu = makeContextChild("Create Circular Motion Marker",boost::bind(&Base3DView::createCircularContextMenu,this),circularMotionMenu,contextMenuItems);
     removeCircularMarkerMenu = makeContextChild("Remove marker",boost::bind(&Base3DView::removeCircularContextMenu,this),circularMotionMenu,contextMenuItems);
-
-    addToContextVector(separator);
-
-    footstepPlanMenuWalk = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
-    footstepPlanMenuWalkManipulation = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate",boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 }
@@ -1358,7 +1365,7 @@ void Base3DView::createContextMenu(bool, int x, int y)
     //have special case for empty vector item. insert separator when found
     //context_menu_.addAction("Insert Template");
 
-    ROS_ERROR("CONTEXT: %s",active_context_name_.c_str());
+    //ROS_ERROR("CONTEXT: %s",active_context_name_.c_str());
 
     //toggle visibility of context items for a base view
 
@@ -1382,10 +1389,11 @@ void Base3DView::createContextMenu(bool, int x, int y)
     {
         //remove context items as not needed
         context_menu_.removeAction(selectFootstepMenu->action);
+    }
         context_menu_.removeAction(lockFootstepMenu->action);
         context_menu_.removeAction(unlockFootstepMenu->action);
         context_menu_.removeAction(removeFootstepMenu->action);
-    }
+    //}
 
     //lock/unlock arms context items
     if(active_context_name_.find("template") == std::string::npos)
@@ -1409,16 +1417,14 @@ void Base3DView::createContextMenu(bool, int x, int y)
         context_menu_.removeAction(unlockArmsMenu->action);
     }
 
-    if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100)
-    {
-        footstepPlanMenuWalk->action->setEnabled(true);
-        footstepPlanMenuWalkManipulation->action->setEnabled(true);
-    }
-    else
-    {
-        context_menu_.removeAction(footstepPlanMenuWalk->action);
-        context_menu_.removeAction(footstepPlanMenuWalkManipulation->action);
-    }
+//    if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100)
+//    {
+//        executeFootstepPlanMenu->action->setEnabled(true);
+//    }
+//    else
+//    {
+//        context_menu_.removeAction(executeFootstepPlanMenu->action);
+//    }
 
     if(cartesian_marker_list_.size() == 0)
     {
@@ -1681,7 +1687,7 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
 
 void Base3DView::executeFootstepPlanContextMenu()
 {
-    flor_control_msgs::FlorControlModeCommand cmd;
+    /*flor_control_msgs::FlorControlModeCommand cmd;
     if(context_menu_selected_item_->text().contains("Step Manipulate"))
         cmd.behavior = cmd.FLOR_STEP_MANI;
     else if(context_menu_selected_item_->text().contains("Walk Manipulate"))
@@ -1690,7 +1696,8 @@ void Base3DView::executeFootstepPlanContextMenu()
         cmd.behavior = cmd.FLOR_STEP;
     else if(context_menu_selected_item_->text().contains("Walk"))
         cmd.behavior = cmd.FLOR_WALK;
-    flor_mode_command_pub_.publish(cmd);
+    flor_mode_command_pub_.publish(cmd);*/
+    footstep_vis_manager_->requestExecuteStepPlan();
 }
 
 void Base3DView::createCartesianContextMenu()
@@ -1849,8 +1856,8 @@ void Base3DView::setContext(int context, std::string name)
 {
     active_context_ = context;
     active_context_name_ = name;
-    ROS_ERROR("Active context: %d - %s",active_context_, active_context_name_.c_str());
-    //std::cout << "Active context: " << active_context_ << std::endl;
+    //ROS_ERROR("Active context: %d - %s",active_context_, active_context_name_.c_str());
+    std::cout << "Active context: " << active_context_ << std::endl;
 }
 
 void Base3DView::setSelectionRay( Ogre::Ray ray )

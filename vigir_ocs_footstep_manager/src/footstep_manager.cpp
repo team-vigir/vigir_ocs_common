@@ -32,6 +32,10 @@ void FootstepManager::onInit()
     footstep_update_sub_        = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, &FootstepManager::processFootstepPoseUpdate, this );
     footstep_undo_req_sub_      = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, &FootstepManager::processUndoRequest, this );
     footstep_redo_req_sub_      = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, &FootstepManager::processRedoRequest, this );
+    footstep_exec_req_sub_      = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
+
+    // footstep request coming from the OCS
+    footstep_plan_request_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, &FootstepManager::processFootstepPlanRequest, this );
 
     // creates publishers for visualization messages
     footstep_array_pub_         = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_array", 1, false );
@@ -41,16 +45,6 @@ void FootstepManager::onInit()
     // use this to track current feet pose
     lower_body_state_sub_       = nh.subscribe("/flor/state/lower_body_world", 1, &FootstepManager::processLowerBodyState, this);
 
-    // footstep request coming from the OCS
-    footstep_plan_request_sub_  = nh.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 1, &FootstepManager::processFootstepGoalPose, this );
-
-    //////// placeholders, waiting for alex to provide real message
-    // for now, creates subscribers for the messages coming from the footstep planner
-    // this will become a single action for the footstep result coming from the planner
-    footstep_array_sub_         = nh.subscribe<visualization_msgs::MarkerArray>( "/flor/walk_monitor/footsteps_array", 1, &FootstepManager::processFootstepArray, this );
-    footstep_body_bb_array_sub_ = nh.subscribe<visualization_msgs::MarkerArray>( "/flor/walk_monitor/footsteps_path_body_array", 1, &FootstepManager::processFootstepBodyBBArray, this );
-    footstep_path_sub_          = nh.subscribe<nav_msgs::Path>( "/flor/walk_monitor/path", 1, &FootstepManager::processFootstepPathArray, this );
-
     // initialize all ros action clients
     //plan request
     step_plan_request_client_ = new StepPlanRequestClient("/vigir/global_footstep_planner/step_plan_request", true);
@@ -58,6 +52,12 @@ void FootstepManager::onInit()
     //edit step
     edit_step_client_ = new EditStepClient("/vigir/global_footstep_planner/edit_step", true);
     edit_step_client_->waitForServer();
+    //execute step plan
+    execute_step_plan_client_ = new ExecuteStepPlanClient("/vigir/global_footstep_planner/execute_step_plan", true);
+    execute_step_plan_client_->waitForServer();
+
+    // initialize step plan list
+    addNewPlanList();
 
     timer = nh.createTimer(ros::Duration(0.066), &FootstepManager::timerCallback, this);
 }
@@ -65,72 +65,6 @@ void FootstepManager::onInit()
 void FootstepManager::timerCallback(const ros::TimerEvent& event)
 {
     this->publishFootstepList();
-}
-
-void FootstepManager::processFootstepArray(const visualization_msgs::MarkerArray::ConstPtr& msg)
-{
-    // for now, simply forward footstep array message since it has correct orientation and so on
-    footstep_array_ = *msg;
-    // and use namespace to identify foot markers
-    for(int i = 0; i < footstep_array_.markers.size(); i++)
-    {
-        //ROS_ERROR("process %d",i);
-        if(i % 2 == 0)
-            footstep_array_.markers[i].ns = std::string("footstep");
-    }
-
-    // I'm going to receive a StepPlan message
-    ///// placeholder that creates fake stepplan message based on marker array
-    //vigir_footstep_planning_msgs::StepPlan input;
-    //for(int i = 0; i < footstep_array_.markers.size(); i++)
-    //{
-    //    if(i % 2 == 0)
-    //    {
-    //        vigir_footstep_planning_msgs::Foot foot;
-    //        foot.foot_index = ((footstep_array_.markers[i].color.r == 1.0) ? vigir_footstep_planning_msgs::Foot::LEFT : vigir_footstep_planning_msgs::Foot::RIGHT);
-    //        foot.pose = footstep_array_.markers[i].pose;
-    //        vigir_footstep_planning_msgs::Step step;
-    //        step.foot = foot;
-    //        step.step_index = (int)i/2;
-    //        input.steps.push_back(step);
-    //    }
-    //}
-
-    // which has a list of steps
-    // each step has step index, foot, and bool locked
-    // for each step, will need to create a set of two footstep markers
-    // a TEXT_VIEW_FACING and CUBE
-    //visualization_msgs::MarkerArray foot_array_msg;
-    //stepPlanToFootMarkerArray(input, foot_array_msg);
-    //footstep_array_ = foot_array_msg;
-
-    // and body marker array
-    //visualization_msgs::MarkerArray body_array_msg;
-    //stepPlanToBodyMarkerArray(input, body_array_msg);
-    //footstep_body_array_ = foot_array_msg;
-
-    // also need to create path
-    //nav_msgs::Path path_msg;
-    //stepPlanToFootPath(input, path_msg);
-    //footstep_path_ = path_msg;
-
-    // save last plan
-    //footstep_plans_stack_.top().back() = input;
-
-    //publishFootstepVis();
-    //publishFootstepList();
-}
-
-void FootstepManager::processFootstepBodyBBArray(const visualization_msgs::MarkerArray::ConstPtr& msg)
-{
-    //footstep_body_array_ = *msg;
-    //publishFootstepVis();
-}
-
-void FootstepManager::processFootstepPathArray(const nav_msgs::Path::ConstPtr& msg)
-{
-    //footstep_path_ = *msg;
-    //publishFootstepVis();
 }
 
 void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg)
@@ -163,22 +97,76 @@ void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstep
 
         if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
         {
-            // add resulting plan to the top of the stack of plans
+            // remove current plan
+            getStepPlanList().erase(getStepPlanList().end());
+            // add resulting plan(s) to the top of the stack, end of the list of plans
             getStepPlanList().insert(getStepPlanList().end(), result->step_plans.begin(), result->step_plans.end());
 
-            publishFootstepList();
+            publishFootsteps();
         }
     }
 }
 
+void FootstepManager::cleanStacks()
+{
+    footstep_plans_undo_stack_ = std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> >();
+    footstep_plans_redo_stack_ = std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> >();
+
+    addNewPlanList();
+}
+
 void FootstepManager::processUndoRequest(const std_msgs::Bool::ConstPtr& msg)
 {
-    undo();
+    if(footstep_plans_undo_stack_.size() > 0)
+    {
+        // add top to the redo stack
+        footstep_plans_redo_stack_.push(getStepPlanList());
+        // remove from undo stack
+        footstep_plans_undo_stack_.pop();
+
+        // publish everything again
+        publishFootsteps();
+    }
 }
 
 void FootstepManager::processRedoRequest(const std_msgs::Bool::ConstPtr& msg)
 {
-    redo();
+    if(footstep_plans_redo_stack_.size() > 0)
+    {
+        // add top to the undo stack
+        footstep_plans_undo_stack_.push(footstep_plans_redo_stack_.top());
+        // remove from redo stack
+        footstep_plans_redo_stack_.pop();
+
+        // publish everything again
+        publishFootsteps();
+    }
+}
+
+// maybe create an action for this so that I can forward feedback from controller
+void FootstepManager::processExecuteFootstepRequest(const std_msgs::Bool::ConstPtr& msg)
+{
+    // need to make sure we only have one step plan, and that plan has steps
+    if(getStepPlanList().size() != 1 || !getStepPlan().steps.size())
+        return;
+
+    // Fill in goal here
+    vigir_footstep_planning_msgs::ExecuteStepPlanGoal action_goal;
+    action_goal.step_plan = getStepPlan();
+    // and send
+    execute_step_plan_client_->sendGoalAndWait(action_goal, ros::Duration(60.0));
+    if(execute_step_plan_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    {
+        vigir_footstep_planning_msgs::ExecuteStepPlanResultConstPtr result = execute_step_plan_client_->getResult();
+        ROS_ERROR("Got action response: [%d]", result->status.status);
+
+        if(result->status.status == vigir_footstep_planning_msgs::FootstepExecutionStatus::NO_ERROR)
+        {
+            cleanStacks();
+
+            publishFootsteps();
+        }
+    }
 }
 
 void FootstepManager::stepToMarker(const vigir_footstep_planning_msgs::Step &step, visualization_msgs::Marker &marker)
@@ -326,16 +314,29 @@ void FootstepManager::stepPlanToFootPath(vigir_footstep_planning_msgs::StepPlan&
     }
 }
 
-void FootstepManager::processLowerBodyState(const flor_state_msgs::LowerBodyStateConstPtr &lower_body_state)
+void FootstepManager::processLowerBodyState(const flor_state_msgs::LowerBodyState::ConstPtr& lower_body_state)
 {
     lower_body_state_ = *lower_body_state;
 }
 
-void FootstepManager::processFootstepGoalPose(const geometry_msgs::PoseStampedConstPtr &goal_pose)
+void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootstepPlanRequest::ConstPtr& plan_request)
 {
-    goal_pose_ = *goal_pose;
+    goal_pose_ = plan_request->goal_pose;
 
-    requestStepPlan();
+    if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN)
+    {
+        requestStepPlan();
+    }
+    else if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_CURRENT_PLAN)
+    {
+        // get last step
+        //requestStepPlanFromStep(step)
+    }
+    else if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP)
+    {
+        // look for step with step index
+        //requestStepPlanFromStep(step)
+    }
 }
 
 void FootstepManager::requestStepPlan()
@@ -435,25 +436,19 @@ void FootstepManager::addCopyPlanList()
 
 }
 
-void FootstepManager::undo()
+void FootstepManager::cleanMarkerArray(visualization_msgs::MarkerArray& old_array, visualization_msgs::MarkerArray& new_array)
 {
-    if(footstep_plans_undo_stack_.size() > 0)
+    // update visualization message of the new step plan removing unused markers
+    for(int i = 0; i < old_array.markers.size(); i++)
     {
-        // add top to the redo stack
-        footstep_plans_redo_stack_.push(getStepPlanList());
-        // remove from undo stack
-        footstep_plans_undo_stack_.pop();
-    }
-}
-
-void FootstepManager::redo()
-{
-    if(footstep_plans_redo_stack_.size() > 0)
-    {
-        // add top to the undo stack
-        footstep_plans_undo_stack_.push(footstep_plans_redo_stack_.top());
-        // remove from redo stack
-        footstep_plans_redo_stack_.pop();
+        // add delete action to the marker if it doesn't exist in the new plan, ignore if it was already deleted
+        if(old_array.markers[i].action != visualization_msgs::Marker::DELETE && new_array.markers.size() == i)
+        {
+            visualization_msgs::Marker marker;
+            marker = old_array.markers[i];
+            marker.action = visualization_msgs::Marker::DELETE;
+            new_array.markers.push_back(marker);
+        }
     }
 }
 
@@ -462,17 +457,24 @@ void FootstepManager::updateVisualizationMsgs()
     // for each step, will need to create a set of two footstep markers
     // a TEXT_VIEW_FACING and CUBE
     visualization_msgs::MarkerArray foot_array_msg;
-    stepPlanToFootMarkerArray(getStepPlan(), foot_array_msg);
+    if(getStepPlanList().size() > 0)
+        stepPlanToFootMarkerArray(getStepPlan(), foot_array_msg);
+    cleanMarkerArray(footstep_array_,foot_array_msg);
     footstep_array_ = foot_array_msg;
 
     // and body marker array
     visualization_msgs::MarkerArray body_array_msg;
-    stepPlanToBodyMarkerArray(getStepPlan(), body_array_msg);
+    if(getStepPlanList().size() > 0)
+        stepPlanToBodyMarkerArray(getStepPlan(), body_array_msg);
+    cleanMarkerArray(footstep_body_array_,body_array_msg);
     footstep_body_array_ = body_array_msg;
 
     // also need to create path
     nav_msgs::Path path_msg;
-    stepPlanToFootPath(getStepPlan(), path_msg);
+    if(getStepPlanList().size() > 0)
+        stepPlanToFootPath(getStepPlan(), path_msg);
+    else
+        path_msg.header.frame_id = "/world"; // needed for the message to be processed
     footstep_path_ = path_msg;
 }
 
@@ -492,14 +494,17 @@ void FootstepManager::publishFootsteps()
 void FootstepManager::publishFootstepList()
 {
     flor_ocs_msgs::OCSFootstepList list;
-    for(int i = 0; i < getStepPlan().steps.size(); i++)
+    if(getStepPlanList().size() > 0)
     {
-        list.footstep_id_list.push_back(getStepPlan().steps[i].step_index);
-        geometry_msgs::PoseStamped pose;
-        pose.header.frame_id = "/world";
-        pose.header.stamp = ros::Time::now();
-        pose.pose = getStepPlan().steps[i].foot.pose;
-        list.pose.push_back(pose);
+        for(int i = 0; i < getStepPlan().steps.size(); i++)
+        {
+            list.footstep_id_list.push_back(getStepPlan().steps[i].step_index);
+            geometry_msgs::PoseStamped pose;
+            pose.header.frame_id = "/world";
+            pose.header.stamp = ros::Time::now();
+            pose.pose = getStepPlan().steps[i].foot.pose;
+            list.pose.push_back(pose);
+        }
     }
     footstep_list_pub_.publish(list);
 }
