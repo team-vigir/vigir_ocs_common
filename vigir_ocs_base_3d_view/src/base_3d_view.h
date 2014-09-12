@@ -666,6 +666,8 @@ protected:
     contextMenuItem * selectFootstepMenu;
     contextMenuItem * lockFootstepMenu;
     contextMenuItem * unlockFootstepMenu;
+    contextMenuItem * undoFootstepMenu;
+    contextMenuItem * redoFootstepMenu;
     contextMenuItem * footstepPlanMenuWalk;
     contextMenuItem * footstepPlanMenuWalkManipulation;
     contextMenuItem * cartesianMotionMenu;

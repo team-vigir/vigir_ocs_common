@@ -11,6 +11,7 @@
 
 #include <ros/ros.h>
 
+#include <std_msgs/Bool.h>
 #include <std_msgs/String.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -65,6 +66,16 @@ public:
       */
     void selectContextMenu();
 
+    /**
+      * Sends an undo request to the footstep manager, a.k.a. restore previous state
+      */
+    void requestFootstepListUndo();
+
+    /**
+      * Sends a redo request to the footstep manager
+      */
+    void requestFootstepListRedo();
+
 public Q_SLOTS:
     /**
       * Set visibility of all footstep-related displays
@@ -91,6 +102,8 @@ private:
 
     ros::Publisher footstep_update_pub_;
     ros::Subscriber footstep_list_sub_;
+    ros::Publisher footstep_undo_req_pub_;
+    ros::Publisher footstep_redo_req_pub_;
 
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;

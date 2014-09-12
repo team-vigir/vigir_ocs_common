@@ -30,6 +30,8 @@ void FootstepManager::onInit()
     // creates publishers and subscribers for the interaction loop
     footstep_list_pub_          = nh.advertise<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, false );
     footstep_update_sub_        = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, &FootstepManager::processFootstepPoseUpdate, this );
+    footstep_undo_req_sub_      = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, &FootstepManager::processUndoRequest, this );
+    footstep_redo_req_sub_      = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, &FootstepManager::processRedoRequest, this );
 
     // creates publishers for visualization messages
     footstep_array_pub_         = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_array", 1, false );
@@ -131,13 +133,6 @@ void FootstepManager::processFootstepPathArray(const nav_msgs::Path::ConstPtr& m
     //publishFootstepVis();
 }
 
-void FootstepManager::publishFootstepVis()
-{
-    footstep_array_pub_.publish(footstep_array_);
-    footstep_body_bb_array_pub_.publish(footstep_body_array_);
-    footstep_path_pub_.publish(footstep_path_);
-}
-
 void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg)
 {
     if(msg->footstep_id >= getStepPlan().steps.size())
@@ -171,36 +166,19 @@ void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstep
             // add resulting plan to the top of the stack of plans
             getStepPlanList().insert(getStepPlanList().end(), result->step_plans.begin(), result->step_plans.end());
 
-            updateVisualizationMsgs();
-
-            publishFootstepVis();
             publishFootstepList();
         }
     }
 }
 
-void FootstepManager::publishFootstepList()
+void FootstepManager::processUndoRequest(const std_msgs::Bool::ConstPtr& msg)
 {
-    flor_ocs_msgs::OCSFootstepList list;
-    // if using step plan
-    //for(int i = 0; i < footstep_plans_stack_.top().back().steps.size(); i++)
-    // else
-    for(int i = 0; i < footstep_array_.markers.size(); i++)
-    {
-        //ROS_ERROR("publish %d",i);
-        // if using step plan
-        //list.footstep_id_list.push_back(footstep_plans_stack_.top().back().steps[i].step_index);
-        // else
-        if(i % 2 == 0)
-        {
-            list.footstep_id_list.push_back(i/2);
-            // use the already calculated pose for the marker array
-            geometry_msgs::PoseStamped pose;
-            pose.pose = footstep_array_.markers[i].pose;
-            list.pose.push_back(pose);
-        }
-    }
-    footstep_list_pub_.publish(list);
+    undo();
+}
+
+void FootstepManager::processRedoRequest(const std_msgs::Bool::ConstPtr& msg)
+{
+    redo();
 }
 
 void FootstepManager::stepToMarker(const vigir_footstep_planning_msgs::Step &step, visualization_msgs::Marker &marker)
@@ -427,10 +405,7 @@ void FootstepManager::requestStepPlan(vigir_footstep_planning_msgs::Feet& start,
             // add resulting plan to the top of the stack of plans
             getStepPlanList().push_back(result->step_plan);
 
-            updateVisualizationMsgs();
-
-            publishFootstepVis();
-            publishFootstepList();
+            publishFootsteps();
 
         }
     }
@@ -439,8 +414,47 @@ void FootstepManager::requestStepPlan(vigir_footstep_planning_msgs::Feet& start,
 
 void FootstepManager::addNewPlanList()
 {
+    // create new plan list and push it to the top of the stack
     std::vector<vigir_footstep_planning_msgs::StepPlan> plan_list;
     footstep_plans_undo_stack_.push(plan_list);
+    // clear redo stack
+    footstep_plans_redo_stack_ = std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> >();
+}
+
+void FootstepManager::addCopyPlanList()
+{
+    // if there is a previous list, save it
+    std::vector<vigir_footstep_planning_msgs::StepPlan> previous;
+    if(footstep_plans_undo_stack_.size() > 0)
+        previous = footstep_plans_undo_stack_.top();
+    // create new plan list
+    addNewPlanList();
+    // copy plan list from previous
+    if(footstep_plans_undo_stack_.size() > 1)
+        getStepPlanList().insert(getStepPlanList().end(), previous.begin(), previous.end());
+
+}
+
+void FootstepManager::undo()
+{
+    if(footstep_plans_undo_stack_.size() > 0)
+    {
+        // add top to the redo stack
+        footstep_plans_redo_stack_.push(getStepPlanList());
+        // remove from undo stack
+        footstep_plans_undo_stack_.pop();
+    }
+}
+
+void FootstepManager::redo()
+{
+    if(footstep_plans_redo_stack_.size() > 0)
+    {
+        // add top to the undo stack
+        footstep_plans_undo_stack_.push(footstep_plans_redo_stack_.top());
+        // remove from redo stack
+        footstep_plans_redo_stack_.pop();
+    }
 }
 
 void FootstepManager::updateVisualizationMsgs()
@@ -462,20 +476,32 @@ void FootstepManager::updateVisualizationMsgs()
     footstep_path_ = path_msg;
 }
 
-void FootstepManager::undo()
+void FootstepManager::publishFootsteps()
 {
-    // add top to the redo stack
-    footstep_plans_redo_stack_.push(getStepPlanList());
-    // remove from undo stack
-    footstep_plans_undo_stack_.pop();
+    // update visualization msgs so we can publish them
+    updateVisualizationMsgs();
+
+    footstep_array_pub_.publish(footstep_array_);
+    footstep_body_bb_array_pub_.publish(footstep_body_array_);
+    footstep_path_pub_.publish(footstep_path_);
+
+    // and also publish the footstep list
+    publishFootstepList();
 }
 
-void FootstepManager::redo()
+void FootstepManager::publishFootstepList()
 {
-    // add top to the undo stack
-    footstep_plans_undo_stack_.push(footstep_plans_redo_stack_.top());
-    // remove from redo stack
-    footstep_plans_redo_stack_.pop();
+    flor_ocs_msgs::OCSFootstepList list;
+    for(int i = 0; i < getStepPlan().steps.size(); i++)
+    {
+        list.footstep_id_list.push_back(getStepPlan().steps[i].step_index);
+        geometry_msgs::PoseStamped pose;
+        pose.header.frame_id = "/world";
+        pose.header.stamp = ros::Time::now();
+        pose.pose = getStepPlan().steps[i].foot.pose;
+        list.pose.push_back(pose);
+    }
+    footstep_list_pub_.publish(list);
 }
 
 }

@@ -31,8 +31,10 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     planned_path_->subProp( "Topic" )->setValue( "/flor/ocs/footstep/path" );
 
     // creates publishers and subscribers for the interaction loop
-    footstep_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, false );
-    footstep_list_sub_   = nh_.subscribe<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, &FootstepVisManager::processFootstepList, this );
+    footstep_update_pub_     = nh_.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, false );
+    footstep_list_sub_       = nh_.subscribe<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, &FootstepVisManager::processFootstepList, this );
+    footstep_undo_req_pub_   = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, false );
+    footstep_redo_req_pub_   = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, false );
 
     // publishers and subscribers for the interactive markers
     interactive_marker_add_pub_      = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, false );
@@ -65,6 +67,22 @@ void FootstepVisManager::enableMarkers(bool enabled)
 {
     for(int i = 0; i < display_footstep_marker_list_.size(); i++)
         display_footstep_marker_list_[i]->setEnabled( enabled );
+}
+
+void FootstepVisManager::requestFootstepListUndo()
+{
+    // send request to footstep manager
+    std_msgs::Bool cmd;
+    cmd.data = true;
+    footstep_undo_req_pub_.publish(cmd);
+}
+
+void FootstepVisManager::requestFootstepListRedo()
+{
+    // send request to footstep manager
+    std_msgs::Bool cmd;
+    cmd.data = true;
+    footstep_redo_req_pub_.publish(cmd);
 }
 
 void FootstepVisManager::processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg)

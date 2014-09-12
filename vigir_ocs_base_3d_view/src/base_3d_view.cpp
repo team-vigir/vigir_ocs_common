@@ -1219,9 +1219,6 @@ void Base3DView::addBase3DContextElements()
     rightArmMenu = makeContextChild("Select Right Arm",boost::bind(&Base3DView::selectRightArm,this),NULL,contextMenuItems);
 
     selectFootstepMenu = makeContextChild("Select Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
-    lockFootstepMenu = makeContextChild("Lock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
-    unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
-    removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
@@ -1237,6 +1234,14 @@ void Base3DView::addBase3DContextElements()
     lockLeftMenu = makeContextChild("Lock Left Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL,contextMenuItems);
     lockRightMenu = makeContextChild("Lock Right Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL,contextMenuItems);
     unlockArmsMenu = makeContextChild("Unlock Arms",boost::bind(&Base3DView::setTemplateGraspLock,this,-1),NULL,contextMenuItems);
+
+    addToContextVector(separator);
+
+    undoFootstepMenu = makeContextChild("Undo Footstep Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL,contextMenuItems);
+    redoFootstepMenu = makeContextChild("Redo Footstep Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL,contextMenuItems);
+    lockFootstepMenu = makeContextChild("Lock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 

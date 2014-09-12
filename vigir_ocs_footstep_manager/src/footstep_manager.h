@@ -8,8 +8,8 @@
 #include <stack>
 #include <string>
 
+#include <std_msgs/Bool.h>
 #include <geometry_msgs/PoseStamped.h>
-
 #include <geometry_msgs/Vector3.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <nav_msgs/Path.h>
@@ -18,9 +18,9 @@
 #include <flor_ocs_msgs/OCSFootstepList.h>
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
 #include <flor_state_msgs/LowerBodyState.h>
-
 #include <vigir_footstep_planning_msgs/StepPlanRequestAction.h>
 #include <vigir_footstep_planning_msgs/EditStepAction.h>
+
 #include <actionlib/client/simple_action_client.h>
 
 namespace ocs_footstep
@@ -40,6 +40,8 @@ namespace ocs_footstep
 
         // feedback look for interaction, should update stepplan and use actions to edit/update
         void processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg);
+        void processUndoRequest(const std_msgs::Bool::ConstPtr& msg);
+        void processRedoRequest(const std_msgs::Bool::ConstPtr& msg);
 
         // get the current and goal poses to be used when requesting a footstep plan
         void processLowerBodyState(const flor_state_msgs::LowerBodyStateConstPtr &lower_body_state);
@@ -48,7 +50,7 @@ namespace ocs_footstep
         void timerCallback(const ros::TimerEvent& event);
 
     private:
-        void publishFootstepVis();
+        void publishFootsteps();
         void publishFootstepList();
 
         // plan requests
@@ -65,6 +67,7 @@ namespace ocs_footstep
 
         // functions that control the undo/redo stacks
         void addNewPlanList();
+        void addCopyPlanList();
         void undo();
         void redo();
 
@@ -83,6 +86,8 @@ namespace ocs_footstep
 
         ros::Publisher footstep_list_pub_;
         ros::Subscriber footstep_update_sub_;
+        ros::Subscriber footstep_undo_req_sub_;
+        ros::Subscriber footstep_redo_req_sub_;
 
         ros::Subscriber footstep_plan_request_sub_;
         ros::Subscriber lower_body_state_sub_;
