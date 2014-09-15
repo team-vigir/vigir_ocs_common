@@ -503,7 +503,7 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     //float32 max_number_steps          # maximum number of steps, set 0 for unlimited
     //float32 max_path_length_ratio     # maximum path length ratio computed as (current path length)/(beeline start<->goal), must be larger 1 otherwise it will be ignored
 
-    request.param_set_name.data = "drc";
+    request.param_set_name.data = "drc_step";
 
     // Fill in goal here
     vigir_footstep_planning_msgs::StepPlanRequestGoal action_goal;
@@ -663,4 +663,4 @@ bool FootstepManager::findStep(const int& step_index, vigir_footstep_planning_ms
 
 }
 
-PLUGINLIB_DECLARE_CLASS (vigir_ocs_footstep_manager, FootstepManager, ocs_footstep::FootstepManager, nodelet::Nodelet);
+PLUGINLIB_DECLARE_CLASS (vigir_ocs_footstep_manager, FootstepManager, ocs_footstep::FootstepManager, nodelet::Nodelet)
