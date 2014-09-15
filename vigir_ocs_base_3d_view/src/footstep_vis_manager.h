@@ -90,7 +90,7 @@ public:
     /**
       * Sets the request mode for new footstep plans
       */
-    void setRequestMode(unsigned char mode, int start_index = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN);
+    void setRequestMode(unsigned char mode = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN, int start_index = -1);
 
 public Q_SLOTS:
     /**

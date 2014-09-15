@@ -72,21 +72,9 @@ void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstep
     // find step in the plan
     vigir_footstep_planning_msgs::StepPlan step_plan;
     vigir_footstep_planning_msgs::Step step;
-    for(int i = 0; i < getStepPlanList().size(); i++)
-    {
-        for(int j = 0; j < getStepPlanList()[i].steps.size(); j++)
-        {
-            if(msg->footstep_id == getStepPlanList()[i].steps[j].step_index)
-            {
-                step_plan = getStepPlanList()[i];
-                step = getStepPlanList()[i].steps[j];
-                break;
-            }
-        }
-    }
 
     // if it didn't find a step with the requested step_index, return
-    if(msg->footstep_id != step.step_index)
+    if(!findStep(msg->footstep_id, step_plan, step))
         return;
 
     // update pose
@@ -174,112 +162,113 @@ void FootstepManager::stepToMarker(const vigir_footstep_planning_msgs::Step &ste
     marker.scale = foot_size;
 }
 
-void FootstepManager::stepPlanToFootMarkerArray(vigir_footstep_planning_msgs::StepPlan& input, visualization_msgs::MarkerArray& foot_array_msg)
+void FootstepManager::stepPlanToFootMarkerArray(std::vector<vigir_footstep_planning_msgs::StepPlan>& input, visualization_msgs::MarkerArray& foot_array_msg)
 {
-    if(!input.steps.size())
-        return;
-
     foot_array_msg.markers.clear();
-    for(int i = 0; i < input.steps.size(); i++)
+
+    for(int i = 0; i < input.size(); i++)
     {
-        visualization_msgs::Marker marker;
-        stepToMarker(input.steps[i], marker);
+        for(int j = 0; j < input[i].steps.size(); j++)
+        {
+            visualization_msgs::Marker marker;
+            stepToMarker(input[i].steps[j], marker);
 
-        marker.id = foot_array_msg.markers.size();
-        marker.color.r = 0.0;//input.steps[i].foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? 0.6 : 0.0;
-        marker.color.g = 0.6;//input.steps[i].foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? 0.0 : 0.6;
-        marker.color.b = 0.0;
-        marker.color.a = 0.5;
-        marker.ns = std::string("footstep");
-        foot_array_msg.markers.push_back(marker);
+            marker.id = foot_array_msg.markers.size();
+            marker.color.r = 0.0;//input.steps[i].foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? 0.6 : 0.0;
+            marker.color.g = 0.6;//input.steps[i].foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? 0.0 : 0.6;
+            marker.color.b = 0.0;
+            marker.color.a = 0.5;
+            marker.ns = std::string("footstep");
+            foot_array_msg.markers.push_back(marker);
 
-        // add text
-        marker.id++;
-        marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-        marker.action = visualization_msgs::Marker::ADD;
-        marker.text = boost::lexical_cast<std::string>(input.steps[i].step_index);
-        marker.scale.x *= 2.0;
-        marker.scale.y *= 2.0;
-        marker.scale.z *= 2.0;
-        marker.color.r = 1.0;
-        marker.color.g = 1.0;
-        marker.color.b = 1.0;
-        marker.color.a = 1.0;
-        foot_array_msg.markers.push_back(marker);
+            // add text
+            marker.id++;
+            marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+            marker.action = visualization_msgs::Marker::ADD;
+            marker.text = boost::lexical_cast<std::string>(input[i].steps[j].step_index);
+            marker.scale.x *= 2.0;
+            marker.scale.y *= 2.0;
+            marker.scale.z *= 2.0;
+            marker.color.r = 1.0;
+            marker.color.g = 1.0;
+            marker.color.b = 1.0;
+            marker.color.a = 1.0;
+            foot_array_msg.markers.push_back(marker);
+        }
     }
 }
 
-void FootstepManager::stepPlanToBodyMarkerArray(vigir_footstep_planning_msgs::StepPlan& input, visualization_msgs::MarkerArray& body_array_msg)
+void FootstepManager::stepPlanToBodyMarkerArray(std::vector<vigir_footstep_planning_msgs::StepPlan>& input, visualization_msgs::MarkerArray& body_array_msg)
 {
-    if(!input.steps.size())
-        return;
-
     visualization_msgs::Marker marker;
-    marker.header = input.steps[0].foot.header;
+    marker.header = input[0].steps[0].foot.header;
     marker.header.stamp = ros::Time::now();
     marker.lifetime = ros::Duration();
     marker.type = visualization_msgs::Marker::CUBE;
     marker.action = visualization_msgs::Marker::ADD;
 
     body_array_msg.markers.clear();
-    for(int i = 1; i < input.steps.size(); i++)
+    for(int i = 0; i < input.size(); i++)
     {
-        // approximate upper body dimensions
-        float x = input.steps[i].foot.pose.position.x + 0.5 * (input.steps[i-1].foot.pose.position.x - input.steps[i].foot.pose.position.x);
-        float y = input.steps[i].foot.pose.position.y + 0.5 * (input.steps[i-1].foot.pose.position.y - input.steps[i].foot.pose.position.y);
-        float z = input.steps[i].foot.pose.position.z + 0.5 * (input.steps[i-1].foot.pose.position.z - input.steps[i].foot.pose.position.z);
-        float yaw1 = tf::getYaw(input.steps[i-1].foot.pose.orientation);
-        float yaw2 = tf::getYaw(input.steps[i].foot.pose.orientation);
-        float theta = yaw2 + 0.5 * (yaw1 - yaw2);
+        for(int j = 1; j < input[i].steps.size(); j++)
+        {
+            // approximate upper body dimensions
+            float x = input[i].steps[j].foot.pose.position.x + 0.5 * (input[i].steps[j-1].foot.pose.position.x - input[i].steps[j].foot.pose.position.x);
+            float y = input[i].steps[j].foot.pose.position.y + 0.5 * (input[i].steps[j-1].foot.pose.position.y - input[i].steps[j].foot.pose.position.y);
+            float z = input[i].steps[j].foot.pose.position.z + 0.5 * (input[i].steps[j-1].foot.pose.position.z - input[i].steps[j].foot.pose.position.z);
+            float yaw1 = tf::getYaw(input[i].steps[j-1].foot.pose.orientation);
+            float yaw2 = tf::getYaw(input[i].steps[j].foot.pose.orientation);
+            float theta = yaw2 + 0.5 * (yaw1 - yaw2);
 
-        // compute center position of body
-        marker.pose.position.x = x;
-        marker.pose.position.y = y;
-        marker.pose.position.z = z;
-        marker.pose.orientation = tf::createQuaternionMsgFromYaw(theta);
+            // compute center position of body
+            marker.pose.position.x = x;
+            marker.pose.position.y = y;
+            marker.pose.position.z = z;
+            marker.pose.orientation = tf::createQuaternionMsgFromYaw(theta);
 
-        // determine shift of polygon based on orientation
-        tf::Pose transform;
-        tf::poseMsgToTF(marker.pose, transform);
-        tf::Vector3 shift_world;
-        tf::vector3MsgToTF(upper_body_origin_shift, shift_world);
-        shift_world = transform.getBasis() * shift_world;
+            // determine shift of polygon based on orientation
+            tf::Pose transform;
+            tf::poseMsgToTF(marker.pose, transform);
+            tf::Vector3 shift_world;
+            tf::vector3MsgToTF(upper_body_origin_shift, shift_world);
+            shift_world = transform.getBasis() * shift_world;
 
-        marker.pose.position.x += shift_world.getX();
-        marker.pose.position.y += shift_world.getY();
-        marker.pose.position.z += shift_world.getZ();
-        // end shift
+            marker.pose.position.x += shift_world.getX();
+            marker.pose.position.y += shift_world.getY();
+            marker.pose.position.z += shift_world.getZ();
+            // end shift
 
-        // rescale marker based on body size
-        marker.scale.x = upper_body_size.x;
-        marker.scale.y = upper_body_size.y;
-        marker.scale.z = 0.02;
+            // rescale marker based on body size
+            marker.scale.x = upper_body_size.x;
+            marker.scale.y = upper_body_size.y;
+            marker.scale.z = 0.02;
 
-        marker.id = body_array_msg.markers.size();
-        marker.color.r = 0.0;
-        marker.color.g = 0.0;
-        marker.color.b = 0.5;
-        marker.color.a = 0.2;
-        body_array_msg.markers.push_back(marker);
+            marker.id = body_array_msg.markers.size();
+            marker.color.r = 0.0;
+            marker.color.g = 0.0;
+            marker.color.b = 0.5;
+            marker.color.a = 0.2;
+            body_array_msg.markers.push_back(marker);
+        }
     }
 }
 
-void FootstepManager::stepPlanToFootPath(vigir_footstep_planning_msgs::StepPlan& input, nav_msgs::Path& foot_path_msg)
+void FootstepManager::stepPlanToFootPath(std::vector<vigir_footstep_planning_msgs::StepPlan>& input, nav_msgs::Path& foot_path_msg)
 {
-    if(!input.steps.size())
-        return;
-
-    foot_path_msg.header = input.header;
+    foot_path_msg.header = input[0].header;
     foot_path_msg.header.stamp = ros::Time::now();
 
-    for (size_t i = 0; i < input.steps.size(); i++)
+    for (size_t i = 0; i < input.size(); i++)
     {
-        geometry_msgs::PoseStamped pose;
-        pose.header = input.steps[i].foot.header;
-        pose.header.stamp = ros::Time::now();
-        pose.pose.position = input.steps[i].foot.pose.position;
+        for (size_t j = 0; j < input[i].steps.size(); j++)
+        {
+            geometry_msgs::PoseStamped pose;
+            pose.header = input[i].steps[j].foot.header;
+            pose.header.stamp = ros::Time::now();
+            pose.pose.position = input[i].steps[j].foot.pose.position;
 
-        foot_path_msg.poses.push_back(pose);
+            foot_path_msg.poses.push_back(pose);
+        }
     }
 }
 
@@ -294,17 +283,36 @@ void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootste
 
     if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN)
     {
+        // request a completely new plan starting from the robot position
         requestStepPlanFromRobot();
     }
     else if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_CURRENT_PLAN)
     {
         // get last step
-        //requestStepPlanFromStep(step)
+        vigir_footstep_planning_msgs::Step step = getStepPlan().steps.back();
+        // request a footstep plan starting from the last step
+        requestStepPlanFromStep(step);
     }
     else if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP)
     {
-        // look for step with step index
-        //requestStepPlanFromStep(step)
+        vigir_footstep_planning_msgs::StepPlan step_plan;
+        vigir_footstep_planning_msgs::Step step;
+        // unlikely, but if start index is the very first step
+        if(plan_request->start_index == 0)
+        {
+            if(getStepPlan().steps.size() > 1)
+                step = getStepPlan().steps[0];
+            else
+                return;
+        }
+        else
+        {
+            // if it didn't find a step with the requested step_index, return
+            if(!findStep(plan_request->start_index-1, step_plan, step))
+                return;
+        }
+
+        requestStepPlanFromStep(step);
     }
 }
 
@@ -313,9 +321,8 @@ void FootstepManager::requestStepPlanFromRobot()
     // This function will create a completely new plan, so we need to add a new empty list of plans to the stack
     addNewPlanList();
 
-    // first we calculate start and end feet poses
+    // first we calculate start feet poses
     vigir_footstep_planning_msgs::Feet start;
-    vigir_footstep_planning_msgs::Feet goal;
 
     //start left
     start.left.foot_index = vigir_footstep_planning_msgs::Foot::LEFT;
@@ -323,6 +330,9 @@ void FootstepManager::requestStepPlanFromRobot()
     //start right
     start.right.foot_index = vigir_footstep_planning_msgs::Foot::RIGHT;
     start.right.pose = lower_body_state_.right_foot_pose;
+
+    // and then the end feet poses
+    vigir_footstep_planning_msgs::Feet goal;
 
     //end estimates for foot distance
     double end_yaw = tf::getYaw(goal_pose_.pose.orientation);
@@ -344,6 +354,40 @@ void FootstepManager::requestStepPlanFromRobot()
 
 void FootstepManager::requestStepPlanFromStep(vigir_footstep_planning_msgs::Step& step)
 {
+    // this function will add a copy of the current step plan list to the stack, so we can change it
+    addCopyPlanList();
+
+    // then we need to find the next step after the starting one
+    vigir_footstep_planning_msgs::StepPlan step_plan;
+    vigir_footstep_planning_msgs::Step next_step;
+
+    if(!findStep(step.step_index, step_plan, next_step))
+        return;
+
+    // first we get the start feet poses based on the selected step
+    vigir_footstep_planning_msgs::Feet start;
+    start.left  = (step.foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? step.foot : next_step.foot);
+    start.right = (step.foot.foot_index == vigir_footstep_planning_msgs::Foot::RIGHT ? step.foot : next_step.foot);
+
+    // and then the end feet poses
+    vigir_footstep_planning_msgs::Feet goal;
+
+    //end estimates for foot distance
+    double end_yaw = tf::getYaw(goal_pose_.pose.orientation);
+    double shift_x = -sin(end_yaw) * (0.5 * foot_separation);
+    double shift_y =  cos(end_yaw) * (0.5 * foot_separation);
+
+    goal.left.pose.position.x = goal_pose_.pose.position.x + shift_x;
+    goal.left.pose.position.y = goal_pose_.pose.position.y + shift_y;
+    goal.left.pose.position.z = goal_pose_.pose.position.z;
+    goal.left.pose.orientation = goal_pose_.pose.orientation;
+
+    goal.right.pose.position.x = goal_pose_.pose.position.x - shift_x;
+    goal.right.pose.position.y = goal_pose_.pose.position.y - shift_y;
+    goal.right.pose.position.z = goal_pose_.pose.position.z;
+    goal.right.pose.orientation = goal_pose_.pose.orientation;
+
+    sendStepPlanRequestGoal(start, goal);
 }
 
 void FootstepManager::addNewPlanList()
@@ -391,21 +435,21 @@ void FootstepManager::updateVisualizationMsgs()
     // a TEXT_VIEW_FACING and CUBE
     visualization_msgs::MarkerArray foot_array_msg;
     if(getStepPlanList().size() > 0)
-        stepPlanToFootMarkerArray(getStepPlan(), foot_array_msg);
+        stepPlanToFootMarkerArray(getStepPlanList(), foot_array_msg);
     cleanMarkerArray(footstep_array_,foot_array_msg);
     footstep_array_ = foot_array_msg;
 
     // and body marker array
     visualization_msgs::MarkerArray body_array_msg;
     if(getStepPlanList().size() > 0)
-        stepPlanToBodyMarkerArray(getStepPlan(), body_array_msg);
+        stepPlanToBodyMarkerArray(getStepPlanList(), body_array_msg);
     cleanMarkerArray(footstep_body_array_,body_array_msg);
     footstep_body_array_ = body_array_msg;
 
     // also need to create path
     nav_msgs::Path path_msg;
     if(getStepPlanList().size() > 0)
-        stepPlanToFootPath(getStepPlan(), path_msg);
+        stepPlanToFootPath(getStepPlanList(), path_msg);
     else
         path_msg.header.frame_id = "/world"; // needed for the message to be processed
     footstep_path_ = path_msg;
@@ -443,12 +487,13 @@ void FootstepManager::publishFootstepList()
 }
 
 // action goal for StepPlanRequest
-void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal)
+void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_index)
 {
     vigir_footstep_planning_msgs::StepPlanRequest request;
 
     request.start = start;
     request.goal = goal;
+    request.start_index = start_index;
 
     // default planning mode is 2D, but will get that from the OCS
     request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_2D;
@@ -457,6 +502,8 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     //float32 max_planning_time         # maximum planning time given in second
     //float32 max_number_steps          # maximum number of steps, set 0 for unlimited
     //float32 max_path_length_ratio     # maximum path length ratio computed as (current path length)/(beeline start<->goal), must be larger 1 otherwise it will be ignored
+
+    request.param_set_name.data = "drc";
 
     // Fill in goal here
     vigir_footstep_planning_msgs::StepPlanRequestGoal action_goal;
@@ -595,7 +642,24 @@ void FootstepManager::doneExecuteStepPlan(const actionlib::SimpleClientGoalState
     }
 }
 
-
+// utilities
+bool FootstepManager::findStep(const int& step_index, vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step)
+{
+    // look for step with step index
+    for(int i = 0; i < getStepPlanList().size(); i++)
+    {
+        for(int j = 0; j < getStepPlanList()[i].steps.size(); j++)
+        {
+            if(step_index == getStepPlanList()[i].steps[j].step_index)
+            {
+                step_plan = getStepPlanList()[i];
+                step = getStepPlanList()[i].steps[j];
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 }
 

@@ -66,7 +66,7 @@ namespace ocs_footstep
 
     private:
         // send action goals
-        void sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal);
+        void sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_index = 0);
         void sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step);
         void sendExecuteStepPlanGoal();
 
@@ -80,9 +80,9 @@ namespace ocs_footstep
         void updateVisualizationMsgs();
 
         // auxiliary functions that create visualizations based on step plans
-        void stepPlanToFootMarkerArray(vigir_footstep_planning_msgs::StepPlan& input, visualization_msgs::MarkerArray& foot_array_msg);
-        void stepPlanToBodyMarkerArray(vigir_footstep_planning_msgs::StepPlan& input, visualization_msgs::MarkerArray& body_array_msg);
-        void stepPlanToFootPath(vigir_footstep_planning_msgs::StepPlan& input, nav_msgs::Path& foot_path_msg);
+        void stepPlanToFootMarkerArray(std::vector<vigir_footstep_planning_msgs::StepPlan>& input, visualization_msgs::MarkerArray& foot_array_msg);
+        void stepPlanToBodyMarkerArray(std::vector<vigir_footstep_planning_msgs::StepPlan>& input, visualization_msgs::MarkerArray& body_array_msg);
+        void stepPlanToFootPath(std::vector<vigir_footstep_planning_msgs::StepPlan>& input, nav_msgs::Path& foot_path_msg);
         void stepToMarker(const vigir_footstep_planning_msgs::Step &step, visualization_msgs::Marker &marker);
 
         // clears footstep visualizations based on the last messages sent
@@ -96,6 +96,9 @@ namespace ocs_footstep
         // helper functions that return current step plan list and step plan, to reduce clutter
         inline std::vector<vigir_footstep_planning_msgs::StepPlan>& getStepPlanList() { return footstep_plans_undo_stack_.top(); }
         inline vigir_footstep_planning_msgs::StepPlan& getStepPlan() { return getStepPlanList().back(); }
+
+        // helper function for finding step based on step_index
+        bool findStep(const int& step_index, vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step);
 
         ros::Timer timer;
 

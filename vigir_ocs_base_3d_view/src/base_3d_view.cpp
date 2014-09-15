@@ -1005,7 +1005,16 @@ void Base3DView::defineStepGoal(unsigned int request_mode)
 {
     defineStepGoal();
 
-    footstep_vis_manager_->setRequestMode(request_mode);
+    int footstep_index = -1;
+    if(active_context_name_.find("footstep") != std::string::npos)
+    {
+        int start = active_context_name_.find(" ")+1;
+        QString footstep_number(active_context_name_.substr(start, active_context_name_.length()-start).c_str());
+        ROS_INFO("%d %d %s",start,active_context_name_.length(),footstep_number.toStdString().c_str());
+        bool ok;
+        footstep_index = footstep_number.toInt(&ok) / 2; // divide by two since markers come in pairs of cube+text
+    }
+    footstep_vis_manager_->setRequestMode(request_mode, footstep_index);
 }
 
 void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
