@@ -48,16 +48,35 @@ namespace ocs_footstep
         // get the current and goal poses to be used when requesting a footstep plan
         void processLowerBodyState(const flor_state_msgs::LowerBodyState::ConstPtr& lower_body_state);
 
+        // callbacks for actions
+        //stepplanrequest
+        void activeStepPlanRequest();
+        void feedbackStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequestFeedbackConstPtr& feedback);
+        void doneStepPlanRequest(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::StepPlanRequestResultConstPtr& result);
+        //editstep
+        void activeEditStep();
+        void feedbackEditStep(const vigir_footstep_planning_msgs::EditStepFeedbackConstPtr& feedback);
+        void doneEditStep(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::EditStepResultConstPtr& result);
+        //executestep
+        void activeExecuteStepPlan();
+        void feedbackExecuteStepPlan(const vigir_footstep_planning_msgs::ExecuteStepPlanFeedbackConstPtr& feedback);
+        void doneExecuteStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::ExecuteStepPlanResultConstPtr& result);
+
         void timerCallback(const ros::TimerEvent& event);
 
     private:
+        // send action goals
+        void sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal);
+        void sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step);
+        void sendExecuteStepPlanGoal();
+
+        // for visualization
         void publishFootsteps();
         void publishFootstepList();
 
         // plan requests
-        void requestStepPlan();
+        void requestStepPlanFromRobot();
         void requestStepPlanFromStep(vigir_footstep_planning_msgs::Step &step);
-        void requestStepPlan(vigir_footstep_planning_msgs::Feet &start, vigir_footstep_planning_msgs::Feet &goal);
         void updateVisualizationMsgs();
 
         // auxiliary functions that create visualizations based on step plans

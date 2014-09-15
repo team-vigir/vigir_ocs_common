@@ -69,42 +69,31 @@ void FootstepManager::timerCallback(const ros::TimerEvent& event)
 
 void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg)
 {
-    if(msg->footstep_id >= getStepPlan().steps.size())
+    // find step in the plan
+    vigir_footstep_planning_msgs::StepPlan step_plan;
+    vigir_footstep_planning_msgs::Step step;
+    for(int i = 0; i < getStepPlanList().size(); i++)
+    {
+        for(int j = 0; j < getStepPlanList()[i].steps.size(); j++)
+        {
+            if(msg->footstep_id == getStepPlanList()[i].steps[j].step_index)
+            {
+                step_plan = getStepPlanList()[i];
+                step = getStepPlanList()[i].steps[j];
+                break;
+            }
+        }
+    }
+
+    // if it didn't find a step with the requested step_index, return
+    if(msg->footstep_id != step.step_index)
         return;
 
-    vigir_footstep_planning_msgs::EditStepGoal action_goal;
-    action_goal.step_plan = getStepPlan();
-    // find step in the plan
-    int step_index;
-    for(int i = 0; i < getStepPlan().steps.size(); i++)
-    {
-        if(msg->footstep_id == getStepPlan().steps[i].step_index)
-        {
-            step_index = i;
-            break;
-        }
-    }
-    action_goal.edit_step.plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_2D;
-    action_goal.edit_step.step = getStepPlan().steps[step_index];
-    action_goal.edit_step.step.foot.pose = msg->pose.pose;
+    // update pose
+    step.foot.pose = msg->pose.pose;
 
-    // Fill in goal here
-    edit_step_client_->sendGoalAndWait(action_goal, ros::Duration(60.0));
-    if(edit_step_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-    {
-        vigir_footstep_planning_msgs::EditStepResultConstPtr result = edit_step_client_->getResult();
-        ROS_ERROR("Got action response: [%s]", result->status.error_msg.c_str());
-
-        if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
-        {
-            // remove current plan
-            getStepPlanList().erase(getStepPlanList().end());
-            // add resulting plan(s) to the top of the stack, end of the list of plans
-            getStepPlanList().insert(getStepPlanList().end(), result->step_plans.begin(), result->step_plans.end());
-
-            publishFootsteps();
-        }
-    }
+    // send goal
+    sendEditStepGoal(step_plan, step);
 }
 
 void FootstepManager::cleanStacks()
@@ -146,27 +135,7 @@ void FootstepManager::processRedoRequest(const std_msgs::Bool::ConstPtr& msg)
 // maybe create an action for this so that I can forward feedback from controller
 void FootstepManager::processExecuteFootstepRequest(const std_msgs::Bool::ConstPtr& msg)
 {
-    // need to make sure we only have one step plan, and that plan has steps
-    if(getStepPlanList().size() != 1 || !getStepPlan().steps.size())
-        return;
-
-    // Fill in goal here
-    vigir_footstep_planning_msgs::ExecuteStepPlanGoal action_goal;
-    action_goal.step_plan = getStepPlan();
-    // and send
-    execute_step_plan_client_->sendGoalAndWait(action_goal, ros::Duration(60.0));
-    if(execute_step_plan_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-    {
-        vigir_footstep_planning_msgs::ExecuteStepPlanResultConstPtr result = execute_step_plan_client_->getResult();
-        ROS_ERROR("Got action response: [%d]", result->status.status);
-
-        if(result->status.status == vigir_footstep_planning_msgs::FootstepExecutionStatus::NO_ERROR)
-        {
-            cleanStacks();
-
-            publishFootsteps();
-        }
-    }
+    sendExecuteStepPlanGoal();
 }
 
 void FootstepManager::stepToMarker(const vigir_footstep_planning_msgs::Step &step, visualization_msgs::Marker &marker)
@@ -325,7 +294,7 @@ void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootste
 
     if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN)
     {
-        requestStepPlan();
+        requestStepPlanFromRobot();
     }
     else if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_CURRENT_PLAN)
     {
@@ -339,7 +308,7 @@ void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootste
     }
 }
 
-void FootstepManager::requestStepPlan()
+void FootstepManager::requestStepPlanFromRobot()
 {
     // This function will create a completely new plan, so we need to add a new empty list of plans to the stack
     addNewPlanList();
@@ -370,47 +339,11 @@ void FootstepManager::requestStepPlan()
     goal.right.pose.position.z = goal_pose_.pose.position.z;
     goal.right.pose.orientation = goal_pose_.pose.orientation;
 
-    requestStepPlan(start, goal);
+    sendStepPlanRequestGoal(start, goal);
 }
 
 void FootstepManager::requestStepPlanFromStep(vigir_footstep_planning_msgs::Step& step)
 {
-}
-
-void FootstepManager::requestStepPlan(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal)
-{
-    vigir_footstep_planning_msgs::StepPlanRequest request;
-
-    request.start = start;
-    request.goal = goal;
-
-    // default planning mode is 2D, but will get that from the OCS
-    request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_2D;
-
-    // need to get the following from the OCS as well
-    //float32 max_planning_time         # maximum planning time given in second
-    //float32 max_number_steps          # maximum number of steps, set 0 for unlimited
-    //float32 max_path_length_ratio     # maximum path length ratio computed as (current path length)/(beeline start<->goal), must be larger 1 otherwise it will be ignored
-
-    vigir_footstep_planning_msgs::StepPlanRequestGoal action_goal;
-    action_goal.plan_request = request;
-    // Fill in goal here
-    step_plan_request_client_->sendGoalAndWait(action_goal, ros::Duration(60.0));
-    if(step_plan_request_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-    {
-        vigir_footstep_planning_msgs::StepPlanRequestResultConstPtr result = step_plan_request_client_->getResult();
-        ROS_ERROR("Got action response: [%s]", result->status.error_msg.c_str());
-
-        if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
-        {
-            // add resulting plan to the top of the stack of plans
-            getStepPlanList().push_back(result->step_plan);
-
-            publishFootsteps();
-
-        }
-    }
-    ROS_ERROR("Current State: %s\n", step_plan_request_client_->getState().toString().c_str());
 }
 
 void FootstepManager::addNewPlanList()
@@ -508,6 +441,161 @@ void FootstepManager::publishFootstepList()
     }
     footstep_list_pub_.publish(list);
 }
+
+// action goal for StepPlanRequest
+void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal)
+{
+    vigir_footstep_planning_msgs::StepPlanRequest request;
+
+    request.start = start;
+    request.goal = goal;
+
+    // default planning mode is 2D, but will get that from the OCS
+    request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_2D;
+
+    // need to get the following from the OCS as well
+    //float32 max_planning_time         # maximum planning time given in second
+    //float32 max_number_steps          # maximum number of steps, set 0 for unlimited
+    //float32 max_path_length_ratio     # maximum path length ratio computed as (current path length)/(beeline start<->goal), must be larger 1 otherwise it will be ignored
+
+    // Fill in goal here
+    vigir_footstep_planning_msgs::StepPlanRequestGoal action_goal;
+    action_goal.plan_request = request;
+
+    // and send it to the server
+    if(step_plan_request_client_->isServerConnected())
+    {
+        step_plan_request_client_->sendGoal(action_goal,
+                                            boost::bind(&FootstepManager::doneStepPlanRequest, this, _1, _2),
+                                            boost::bind(&FootstepManager::activeStepPlanRequest, this),
+                                            boost::bind(&FootstepManager::feedbackStepPlanRequest, this, _1));
+    }
+    else
+    {
+        ROS_ERROR("StepPlanRequest: Server not connected!");
+    }
+}
+
+// action callbacks
+void FootstepManager::activeStepPlanRequest()
+{
+    ROS_ERROR("StepPlanRequest: Status changed to active.");
+}
+
+void FootstepManager::feedbackStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequestFeedbackConstPtr& feedback)
+{
+    ROS_ERROR("StepPlanRequest: Feedback received.");
+}
+
+void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::StepPlanRequestResultConstPtr& result)
+{
+    ROS_ERROR("StepPlanRequest: Got action response. %s", result->status.error_msg.c_str());
+
+    if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
+    {
+        // add resulting plan to the top of the stack of plans
+        getStepPlanList().push_back(result->step_plan);
+
+        publishFootsteps();
+    }
+}
+
+// action goal for EditStep
+void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step)
+{
+    // Fill in goal here
+    vigir_footstep_planning_msgs::EditStepGoal action_goal;
+    action_goal.step_plan = step_plan;
+    action_goal.edit_step.plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_2D;
+    action_goal.edit_step.step = step;
+
+    // and send it to the server
+    if(edit_step_client_->isServerConnected())
+    {
+        edit_step_client_->sendGoal(action_goal,
+                                    boost::bind(&FootstepManager::doneEditStep, this, _1, _2),
+                                    boost::bind(&FootstepManager::activeEditStep, this),
+                                    boost::bind(&FootstepManager::feedbackEditStep, this, _1));
+    }
+    else
+    {
+        ROS_ERROR("EditStep: Server not connected!");
+    }
+}
+
+void FootstepManager::activeEditStep()
+{
+    ROS_ERROR("EditStep: Status changed to active.");
+}
+
+void FootstepManager::feedbackEditStep(const vigir_footstep_planning_msgs::EditStepFeedbackConstPtr& feedback)
+{
+    ROS_ERROR("EditStep: Feedback received.");
+}
+
+void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::EditStepResultConstPtr& result)
+{
+    ROS_ERROR("EditStep: Got action response. %s", result->status.error_msg.c_str());
+
+    if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
+    {
+        // remove current plan
+        getStepPlanList().erase(getStepPlanList().end());
+        // add resulting plan(s) to the top of the stack, end of the list of plans
+        getStepPlanList().insert(getStepPlanList().end(), result->step_plans.begin(), result->step_plans.end());
+
+        publishFootsteps();
+    }
+}
+
+// action goal for executestep
+void FootstepManager::sendExecuteStepPlanGoal()
+{
+    // need to make sure we only have one step plan, and that plan has steps
+    if(getStepPlanList().size() != 1 || !getStepPlan().steps.size())
+        return;
+
+    // Fill in goal here
+    vigir_footstep_planning_msgs::ExecuteStepPlanGoal action_goal;
+    action_goal.step_plan = getStepPlan();
+    // and send it to the server
+    if(execute_step_plan_client_->isServerConnected())
+    {
+        execute_step_plan_client_->sendGoal(action_goal,
+                                            boost::bind(&FootstepManager::doneExecuteStepPlan, this, _1, _2),
+                                            boost::bind(&FootstepManager::activeExecuteStepPlan, this),
+                                            boost::bind(&FootstepManager::feedbackExecuteStepPlan, this, _1));
+    }
+    else
+    {
+        ROS_ERROR("ExecuteStepPlan: Server not connected!");
+    }
+}
+
+// action callbacks
+void FootstepManager::activeExecuteStepPlan()
+{
+    ROS_ERROR("ExecuteStepPlan: Status changed to active.");
+}
+
+void FootstepManager::feedbackExecuteStepPlan(const vigir_footstep_planning_msgs::ExecuteStepPlanFeedbackConstPtr& feedback)
+{
+    ROS_ERROR("ExecuteStepPlan: Feedback received.");
+}
+
+void FootstepManager::doneExecuteStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::ExecuteStepPlanResultConstPtr& result)
+{
+    ROS_ERROR("ExecuteStepPlan: Got action response. %d", result->status.status);
+
+    if(result->status.status == vigir_footstep_planning_msgs::FootstepExecutionStatus::NO_ERROR)
+    {
+        cleanStacks();
+
+        publishFootsteps();
+    }
+}
+
+
 
 }
 
