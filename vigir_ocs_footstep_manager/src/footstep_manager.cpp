@@ -12,6 +12,7 @@ void FootstepManager::onInit()
 {
     ros::NodeHandle& nh         = getNodeHandle();
 
+    // TODO: Get them from footstep planner
     nh.param("foot/size/x", foot_size.x, 0.26);
     nh.param("foot/size/y", foot_size.y, 0.13);
     nh.param("foot/size/z", foot_size.z, 0.05);
@@ -503,7 +504,7 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     //float32 max_number_steps          # maximum number of steps, set 0 for unlimited
     //float32 max_path_length_ratio     # maximum path length ratio computed as (current path length)/(beeline start<->goal), must be larger 1 otherwise it will be ignored
 
-    request.param_set_name.data = "drc_step";
+    request.parameter_set_name.data = "drc_step";
 
     // Fill in goal here
     vigir_footstep_planning_msgs::StepPlanRequestGoal action_goal;

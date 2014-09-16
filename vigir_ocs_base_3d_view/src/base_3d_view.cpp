@@ -747,7 +747,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
     //Means that currently doing
 
     if(is_primary_view_ && occludedRobotVisible)
-        setRenderOrder();   
+        setRenderOrder();
 
 }
 
@@ -800,7 +800,7 @@ void Base3DView::updateRenderMask( bool mask )
 
 void Base3DView::robotModelToggled( bool selected )
 {
-    robot_model_->setEnabled( selected );    
+    robot_model_->setEnabled( selected );
 }
 
 void Base3DView::graspModelToggled( bool selected )
@@ -917,7 +917,7 @@ void Base3DView::robotJointMarkerToggled(bool selected)
 {
     if(!selected && is_primary_view_)
     {
-        disableJointMarkers = true;        
+        disableJointMarkers = true;
         //ghost state is only checked when ghost is manipulated, needs an additional call to refresh joint states
         if(ghost_robot_model_->isEnabled())
             processGhostJointStates(latest_ghost_joint_state_);
@@ -1010,7 +1010,7 @@ void Base3DView::defineStepGoal(unsigned int request_mode)
     {
         int start = active_context_name_.find(" ")+1;
         QString footstep_number(active_context_name_.substr(start, active_context_name_.length()-start).c_str());
-        ROS_INFO("%d %d %s",start,active_context_name_.length(),footstep_number.toStdString().c_str());
+        ROS_INFO("%d %lu %s",start,active_context_name_.length(),footstep_number.toStdString().c_str());
         bool ok;
         footstep_index = footstep_number.toInt(&ok) / 2; // divide by two since markers come in pairs of cube+text
     }
@@ -1129,7 +1129,7 @@ void Base3DView::transform(const std::string& target_frame, geometry_msgs::PoseS
 
 void Base3DView::insertTemplate( QString path )
 {
-    //std::cout << "adding template" << std::endl;    
+    //std::cout << "adding template" << std::endl;
     if(!selected_)
     {
         flor_ocs_msgs::OCSTemplateAdd cmd;
@@ -1150,7 +1150,7 @@ void Base3DView::insertTemplate( QString path )
         cmd.pose = pose;
 
         // publish complete list of templates and poses
-        template_add_pub_.publish( cmd );        
+        template_add_pub_.publish( cmd );
     }
     else
     {
@@ -1444,7 +1444,7 @@ void Base3DView::createContextMenu(bool, int x, int y)
         removeCartesianMarkerMenu->action->setEnabled(true);
 
     if(circular_marker_ != NULL)
-    {        
+    {
         createCircularMarkerMenu->action->setEnabled(false);
         removeCircularMarkerMenu->action->setEnabled(true);
     }
@@ -1648,7 +1648,7 @@ void Base3DView::setTemplateGraspLock(int arm)
 }
 
 void Base3DView::deselectAll()
-{    
+{
     // disable all template markers
     Q_EMIT enableTemplateMarkers( false );
 
@@ -1663,7 +1663,7 @@ void Base3DView::deselectAll()
 }
 
 void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
-{    
+{
     deselectAll();
 
     // enable loopback for both arms
@@ -2734,27 +2734,27 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
 void Base3DView::setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset)
 {
     for(int i =0;i<sceneNode->numAttachedObjects();i++)
-    {        
+    {
         Ogre::MovableObject* obj =  sceneNode->getAttachedObject(i);
-        obj->setRenderQueueGroupAndPriority(Ogre::RENDER_QUEUE_MAIN,100);        
+        obj->setRenderQueueGroupAndPriority(Ogre::RENDER_QUEUE_MAIN,100);
         if(obj->getMovableType().compare("Entity") == 0)
         {
             //only subentities have materials...
             for(int e = 0; e < ((Ogre::Entity*)obj)->getNumSubEntities(); e++)
-            {                               
+            {
                 //usually only 1 technique
                 for(int t = 0; t < ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getNumTechniques(); t++)
-                {                    
+                {
                     for(int p = 0; p < ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getNumPasses(); p++)
-                    {                        
+                    {
                         //transparent object?
                         if(((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getPass(p)->getAmbient().a < 0.95f ||
                            ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getPass(p)->getDiffuse().a < 0.95f)//Transparent
-                        {                            
+                        {
                             obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + queueOffset);
                         }
                         else // opaque object
-                        {                         
+                        {
                             obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN);
                         }
                     }
@@ -2779,8 +2779,8 @@ void Base3DView::setRenderOrder()
     /*
       Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
                     +1  |  Transparent Objects
-    **/    
-    int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();    
+    **/
+    int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();
     for(int i = 0; i < num_displays; i++)
     {
         rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
@@ -2803,13 +2803,13 @@ void Base3DView::setRobotOccludedRender()
    for ( ; it != end; ++it )
    {
        //need to scale down robot then outline robot, must ensure that outline does not exceed scale of 1 on robot
-       const char *vertex_outline_code =                        
+       const char *vertex_outline_code =
                "void main(void){\n"
                   "vec4 tPos   = vec4(gl_Vertex + gl_Normal *0, 1.0);\n"
                   "gl_Position = gl_ModelViewProjectionMatrix * tPos;\n"
                "}\n";
        //black
-       const char *fragment_outline_code =            
+       const char *fragment_outline_code =
            "void main()\n"
            "{\n"
            "    gl_FragColor = vec4(0,0,0,1);\n"
@@ -2824,7 +2824,7 @@ void Base3DView::setRobotOccludedRender()
                   "}\n";
 
        // gray
-       const char *fragment_solid_code =               
+       const char *fragment_solid_code =
               "void main()\n"
               "{\n"
               "    gl_FragColor = vec4(0.65,0.65,0.65,1);\n"
@@ -2868,7 +2868,7 @@ void Base3DView::setRobotOccludedRender()
        vp->load();
 
        Ogre::HighLevelGpuProgramPtr fp = Ogre::HighLevelGpuProgramManager::getSingleton()
-                   .createProgram("SolidFragment", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);      
+                   .createProgram("SolidFragment", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);
        fp->setSource(fragment_solid_code);
        fp->load();
 
@@ -2880,14 +2880,14 @@ void Base3DView::setRobotOccludedRender()
        Ogre::HighLevelGpuProgramPtr fpOutline = Ogre::HighLevelGpuProgramManager::getSingleton()
                    .createProgram("OutlineFragment", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);
        fpOutline->setSource(fragment_outline_code);
-       fpOutline->load();      
+       fpOutline->load();
 
-       rviz::RobotLinkCustom* info = it->second;       
+       rviz::RobotLinkCustom* info = it->second;
        M_SubEntityToMaterial materials = info->getMaterials();
        M_SubEntityToMaterial::iterator iter = materials.begin();
        M_SubEntityToMaterial::iterator ender = materials.end();
 
-       //for all materials in this link?              
+       //for all materials in this link?
        for(;iter != ender; ++iter)
        {
            Ogre::MaterialPtr material =  iter->second;
@@ -2929,7 +2929,7 @@ void Base3DView::setRobotOccludedRender()
     //           pass->setLightingEnabled(true);
     //           pass->setSelfIllumination(r,g,b);
            }
-       }       
+       }
    }
 
 }
@@ -3395,7 +3395,7 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
     }
     else if(ctrl_is_pressed && alt_is_pressed) //emergency stop
-    {        
+    {
         stop_button_->setVisible(true);
         stop_button_->setGeometry(this->geometry().bottomRight().x()/2 - 200,this->geometry().bottomRight().y()/2 - 150,400,300);
     }
