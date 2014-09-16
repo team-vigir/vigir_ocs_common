@@ -53,6 +53,12 @@ void FootstepManager::onInit()
     //edit step
     edit_step_client_ = new EditStepClient("/vigir/global_footstep_planner/edit_step", true);
     edit_step_client_->waitForServer();
+    //stitch step plan
+    stitch_step_plan_client_ = new StitchStepPlanClient("/vigir/global_footstep_planner/stitch_step_plan", true);
+    stitch_step_plan_client_->waitForServer();
+    //update step plan
+    update_step_plan_client_ = new UpdateStepPlanClient("/vigir/global_footstep_planner/update_step_plan", true);
+    update_step_plan_client_->waitForServer();
     //execute step plan
     execute_step_plan_client_ = new ExecuteStepPlanClient("/vigir/global_footstep_planner/execute_step_plan", true);
     execute_step_plan_client_->waitForServer();
@@ -83,14 +89,6 @@ void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstep
 
     // send goal
     sendEditStepGoal(step_plan, step);
-}
-
-void FootstepManager::cleanStacks()
-{
-    footstep_plans_undo_stack_ = std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> >();
-    footstep_plans_redo_stack_ = std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> >();
-
-    addNewPlanList();
 }
 
 void FootstepManager::processUndoRequest(const std_msgs::Bool::ConstPtr& msg)
@@ -319,9 +317,6 @@ void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootste
 
 void FootstepManager::requestStepPlanFromRobot()
 {
-    // This function will create a completely new plan, so we need to add a new empty list of plans to the stack
-    addNewPlanList();
-
     // first we calculate start feet poses
     vigir_footstep_planning_msgs::Feet start;
 
@@ -355,14 +350,11 @@ void FootstepManager::requestStepPlanFromRobot()
 
 void FootstepManager::requestStepPlanFromStep(vigir_footstep_planning_msgs::Step& step)
 {
-    // this function will add a copy of the current step plan list to the stack, so we can change it
-    addCopyPlanList();
-
     // then we need to find the next step after the starting one
     vigir_footstep_planning_msgs::StepPlan step_plan;
     vigir_footstep_planning_msgs::Step next_step;
 
-    if(!findStep(step.step_index, step_plan, next_step))
+    if(!findStep(step.step_index+1, step_plan, next_step))
         return;
 
     // first we get the start feet poses based on the selected step
@@ -388,30 +380,7 @@ void FootstepManager::requestStepPlanFromStep(vigir_footstep_planning_msgs::Step
     goal.right.pose.position.z = goal_pose_.pose.position.z;
     goal.right.pose.orientation = goal_pose_.pose.orientation;
 
-    sendStepPlanRequestGoal(start, goal);
-}
-
-void FootstepManager::addNewPlanList()
-{
-    // create new plan list and push it to the top of the stack
-    std::vector<vigir_footstep_planning_msgs::StepPlan> plan_list;
-    footstep_plans_undo_stack_.push(plan_list);
-    // clear redo stack
-    footstep_plans_redo_stack_ = std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> >();
-}
-
-void FootstepManager::addCopyPlanList()
-{
-    // if there is a previous list, save it
-    std::vector<vigir_footstep_planning_msgs::StepPlan> previous;
-    if(footstep_plans_undo_stack_.size() > 0)
-        previous = footstep_plans_undo_stack_.top();
-    // create new plan list
-    addNewPlanList();
-    // copy plan list from previous
-    if(footstep_plans_undo_stack_.size() > 1)
-        getStepPlanList().insert(getStepPlanList().end(), previous.begin(), previous.end());
-
+    sendStepPlanRequestGoal(start, goal, next_step.step_index);
 }
 
 void FootstepManager::cleanMarkerArray(visualization_msgs::MarkerArray& old_array, visualization_msgs::MarkerArray& new_array)
@@ -541,10 +510,21 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
-        // add resulting plan to the top of the stack of plans
-        getStepPlanList().push_back(result->step_plan);
+        // we only change the current step lists if we receive a response
+        if(result->step_plan.steps[0].step_index == 0)
+            // This function will create a completely new plan, so we need to add a new empty list of plans to the stack
+            addNewPlanList();
+        else
+            // This function will add a copy of the current step plan list to the stack, so we can change it
+            addCopyPlanList();
+
+        // add resulting plan to the top of the stack of plans, removing any extra steps
+        extendPlanList(result->step_plan);
 
         publishFootsteps();
+
+        // try to stitch all plans in the list together
+        //sendStitchStepPlanGoal(getStepPlanList());
     }
 }
 
@@ -571,6 +551,7 @@ void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& s
     }
 }
 
+// action callbacks
 void FootstepManager::activeEditStep()
 {
     ROS_ERROR("EditStep: Status changed to active.");
@@ -587,13 +568,114 @@ void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
-        // remove current plan
-        getStepPlanList().erase(getStepPlanList().end());
-        // add resulting plan(s) to the top of the stack, end of the list of plans
-        getStepPlanList().insert(getStepPlanList().end(), result->step_plans.begin(), result->step_plans.end());
+        // first need to figure out which step plan contains the step index used in the result
+        vigir_footstep_planning_msgs::StepPlan step_plan;
+        findStepPlan(result->step_plans[0].steps[0].step_index, step_plan);
+
+        // get the iterator pointing to that step plan
+        std::vector<vigir_footstep_planning_msgs::StepPlan>::iterator step_plan_it = getStepPlanList().begin();//std::find(getStepPlanList().begin(), getStepPlanList().end(), step_plan); -> doesn't work
+        while(step_plan_it != getStepPlanList().end())
+            step_plan_it++;
+        // save the index of the step plan
+        int index = step_plan_it - getStepPlanList().begin();
+        // remove the plan
+        getStepPlanList().erase(step_plan_it);
+
+        // and add resulting plan(s) to the list again using the previous index
+        getStepPlanList().insert(getStepPlanList().begin()+index, result->step_plans.begin(), result->step_plans.end());
 
         publishFootsteps();
     }
+}
+
+// action goal for stitchstepplan
+void FootstepManager::sendStitchStepPlanGoal(std::vector<vigir_footstep_planning_msgs::StepPlan>& step_plan_list)
+{
+    if(step_plan_list.size() < 2)
+        return;
+
+    // Fill in goal here
+    vigir_footstep_planning_msgs::StitchStepPlanGoal action_goal;
+    action_goal.step_plans = step_plan_list;
+
+    // and send it to the server
+    if(stitch_step_plan_client_->isServerConnected())
+    {
+        stitch_step_plan_client_->sendGoal(action_goal,
+                                           boost::bind(&FootstepManager::doneStitchStepPlan, this, _1, _2),
+                                           boost::bind(&FootstepManager::activeStitchStepPlan, this),
+                                           boost::bind(&FootstepManager::feedbackStitchStepPlan, this, _1));
+    }
+    else
+    {
+        ROS_ERROR("StitchStepPlan: Server not connected!");
+    }
+}
+
+// action callbacks
+void FootstepManager::activeStitchStepPlan()
+{
+    ROS_ERROR("StitchStepPlan: Status changed to active.");
+}
+
+void FootstepManager::feedbackStitchStepPlan(const vigir_footstep_planning_msgs::StitchStepPlanFeedbackConstPtr& feedback)
+{
+    ROS_ERROR("StitchStepPlan: Feedback received.");
+}
+
+void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::StitchStepPlanResultConstPtr& result)
+{
+    ROS_ERROR("StitchStepPlan: Got action response. %s", result->status.error_msg.c_str());
+
+    if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
+    {
+        // create a new plan list for our stitched step plan
+        addNewPlanList();
+
+        // add new step plan to the list
+        getStepPlanList().push_back(result->step_plan);
+
+        publishFootsteps();
+    }
+}
+
+// action goal for updatestepplan
+void FootstepManager::sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan& step_plan)
+{
+    // Fill in goal here
+    vigir_footstep_planning_msgs::UpdateStepPlanGoal action_goal;
+    action_goal.step_plan = step_plan;
+    action_goal.parameter_set_name.data = "drc_step";
+    action_goal.mode.mode = vigir_footstep_planning_msgs::UpdateMode::UPDATE_MODE_REPLAN;
+
+    // and send it to the server
+    if(update_step_plan_client_->isServerConnected())
+    {
+        update_step_plan_client_->sendGoal(action_goal,
+                                           boost::bind(&FootstepManager::doneUpdateStepPlan, this, _1, _2),
+                                           boost::bind(&FootstepManager::activeUpdateStepPlan, this),
+                                           boost::bind(&FootstepManager::feedbackUpdateStepPlan, this, _1));
+    }
+    else
+    {
+        ROS_ERROR("StitchStepPlan: Server not connected!");
+    }
+}
+
+// action callbacks
+void FootstepManager::activeUpdateStepPlan()
+{
+    ROS_ERROR("UpdateStepPlan: Status changed to active.");
+}
+
+void FootstepManager::feedbackUpdateStepPlan(const vigir_footstep_planning_msgs::UpdateStepPlanFeedbackConstPtr& feedback)
+{
+    ROS_ERROR("UpdateStepPlan: Feedback received.");
+}
+
+void FootstepManager::doneUpdateStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::UpdateStepPlanResultConstPtr& result)
+{
+    ROS_ERROR("UpdateStepPlan: Got action response. %s", result->status.error_msg.c_str());
 }
 
 // action goal for executestep
@@ -644,6 +726,38 @@ void FootstepManager::doneExecuteStepPlan(const actionlib::SimpleClientGoalState
 }
 
 // utilities
+void FootstepManager::addNewPlanList()
+{
+    // create new plan list and push it to the top of the stack
+    std::vector<vigir_footstep_planning_msgs::StepPlan> plan_list;
+    footstep_plans_undo_stack_.push(plan_list);
+    // clear redo stack
+    footstep_plans_redo_stack_ = std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> >();
+}
+
+void FootstepManager::addCopyPlanList()
+{
+    // if there is a previous list, save it
+    std::vector<vigir_footstep_planning_msgs::StepPlan> previous;
+    if(footstep_plans_undo_stack_.size() > 0)
+        previous = footstep_plans_undo_stack_.top();
+    // create new plan list
+    addNewPlanList();
+    // copy plan list from previous
+    if(footstep_plans_undo_stack_.size() > 1)
+        getStepPlanList().insert(getStepPlanList().end(), previous.begin(), previous.end());
+
+}
+
+void FootstepManager::cleanStacks()
+{
+    footstep_plans_undo_stack_ = std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> >();
+    footstep_plans_redo_stack_ = std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> >();
+
+    addNewPlanList();
+}
+
+// returns step and the step plan it's contained in based on a step_index
 bool FootstepManager::findStep(const int& step_index, vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step)
 {
     // look for step with step index
@@ -660,6 +774,40 @@ bool FootstepManager::findStep(const int& step_index, vigir_footstep_planning_ms
         }
     }
     return false;
+}
+
+// returns step plan containing step with step_index
+bool FootstepManager::findStepPlan(const int& step_index, vigir_footstep_planning_msgs::StepPlan& step_plan)
+{
+    // just create a step so we can call findstep to retrieve step
+    vigir_footstep_planning_msgs::Step step;
+    return findStep(step_index, step_plan, step);
+}
+
+void FootstepManager::extendPlanList(const vigir_footstep_planning_msgs::StepPlan& new_step_plan)
+{
+    // first we need to remove any extra steps in the existing step list based on the new step plan step index
+    for(int i = 0; i < getStepPlanList().size(); i++)
+    {
+        for(int j = 0; j < getStepPlanList()[i].steps.size(); j++)
+        {
+            if(new_step_plan.steps[0].step_index <= getStepPlanList()[i].steps[j].step_index)
+            {
+                // delete [j,end] since we already have these in the new plan
+                getStepPlanList()[i].steps.erase(getStepPlanList()[i].steps.begin()+j, getStepPlanList()[i].steps.end());
+                break;
+            }
+        }
+        // if there are no steps for this plan [i], remove it and everything that comes after it since it means we have step_index in new plan
+        if(!getStepPlanList()[i].steps.size())
+        {
+            getStepPlanList().erase(getStepPlanList().begin()+i, getStepPlanList().end());
+            break;
+        }
+    }
+
+    // finally, add resulting plan to the top of the stack of plans
+    getStepPlanList().push_back(new_step_plan);
 }
 
 }

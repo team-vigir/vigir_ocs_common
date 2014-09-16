@@ -21,6 +21,8 @@
 #include <flor_state_msgs/LowerBodyState.h>
 #include <vigir_footstep_planning_msgs/StepPlanRequestAction.h>
 #include <vigir_footstep_planning_msgs/EditStepAction.h>
+#include <vigir_footstep_planning_msgs/StitchStepPlanAction.h>
+#include <vigir_footstep_planning_msgs/UpdateStepPlanAction.h>
 #include <vigir_footstep_planning_msgs/ExecuteStepPlanAction.h>
 
 #include <actionlib/client/simple_action_client.h>
@@ -29,6 +31,8 @@ namespace ocs_footstep
 {
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::StepPlanRequestAction> StepPlanRequestClient;
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::EditStepAction> EditStepClient;
+    typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::StitchStepPlanAction> StitchStepPlanClient;
+    typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::UpdateStepPlanAction> UpdateStepPlanClient;
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::ExecuteStepPlanAction> ExecuteStepPlanClient;
 
     class FootstepManager : public nodelet::Nodelet
@@ -57,6 +61,14 @@ namespace ocs_footstep
         void activeEditStep();
         void feedbackEditStep(const vigir_footstep_planning_msgs::EditStepFeedbackConstPtr& feedback);
         void doneEditStep(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::EditStepResultConstPtr& result);
+        //stitchstepplan
+        void activeStitchStepPlan();
+        void feedbackStitchStepPlan(const vigir_footstep_planning_msgs::StitchStepPlanFeedbackConstPtr& feedback);
+        void doneStitchStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::StitchStepPlanResultConstPtr& result);
+        //updatestepplan
+        void activeUpdateStepPlan();
+        void feedbackUpdateStepPlan(const vigir_footstep_planning_msgs::UpdateStepPlanFeedbackConstPtr& feedback);
+        void doneUpdateStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::UpdateStepPlanResultConstPtr& result);
         //executestep
         void activeExecuteStepPlan();
         void feedbackExecuteStepPlan(const vigir_footstep_planning_msgs::ExecuteStepPlanFeedbackConstPtr& feedback);
@@ -68,6 +80,8 @@ namespace ocs_footstep
         // send action goals
         void sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_index = 0);
         void sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step);
+        void sendStitchStepPlanGoal(std::vector<vigir_footstep_planning_msgs::StepPlan>& step_plan_list);
+        void sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan& step_plan);
         void sendExecuteStepPlanGoal();
 
         // for visualization
@@ -99,6 +113,8 @@ namespace ocs_footstep
 
         // helper function for finding step based on step_index
         bool findStep(const int& step_index, vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step);
+        bool findStepPlan(const int& step_index, vigir_footstep_planning_msgs::StepPlan &step_plan);
+        void extendPlanList(const vigir_footstep_planning_msgs::StepPlan &new_step_plan);
 
         ros::Timer timer;
 
@@ -141,6 +157,8 @@ namespace ocs_footstep
 
         StepPlanRequestClient* step_plan_request_client_;
         EditStepClient* edit_step_client_;
+        StitchStepPlanClient* stitch_step_plan_client_;
+        UpdateStepPlanClient* update_step_plan_client_;
         ExecuteStepPlanClient* execute_step_plan_client_;
     };
 }

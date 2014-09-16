@@ -18,7 +18,6 @@ catkin_package(
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.
 set(SOURCE_FILES
-  src/footstep_manager.cpp
   src/main.cpp
 )
 
