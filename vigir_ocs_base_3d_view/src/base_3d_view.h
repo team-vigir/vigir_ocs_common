@@ -266,6 +266,9 @@ public:
       */
     static bool checkPoseMatch(const geometry_msgs::Pose& p1, const geometry_msgs::Pose& p2, float scalar_error_threshold = 0.0f, float angle_error_threshold = 0.0f);
 
+    // returns the footstep manager
+    FootstepVisManager* getFootstepVisManager() { return footstep_vis_manager_; }
+
 public Q_SLOTS:
     // displays
     // Enables/disables visibility of rviz displays

@@ -38,8 +38,10 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     footstep_exec_req_pub_   = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/execute", 1, false );
 
     // publishers and subscribers for the plan request
-    footstep_goal_sub_         = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &FootstepVisManager::processGoalPose, this );
-    footstep_plan_request_pub_ = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, false );
+    footstep_goal_sub_               = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &FootstepVisManager::processGoalPose, this );
+    footstep_plan_request_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, false );
+    footstep_param_set_list_sub_     = nh_.subscribe<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 5, &FootstepVisManager::processFootstepParamSetList, this );
+    footstep_param_set_selected_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 1, false );
 
     // publishers and subscribers for the interactive markers
     interactive_marker_add_pub_      = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, false );
@@ -80,6 +82,13 @@ void FootstepVisManager::enableMarkers(bool enabled)
         display_footstep_marker_list_[i]->setEnabled( enabled );
 }
 
+void FootstepVisManager::setFootstepParameterSet(QString selected)
+{
+    std_msgs::String cmd;
+    cmd.data = selected.toStdString();
+    footstep_param_set_selected_pub_.publish(cmd);
+}
+
 void FootstepVisManager::requestFootstepListUndo()
 {
     // send request to footstep manager
@@ -118,6 +127,11 @@ void FootstepVisManager::processFootstepList(const flor_ocs_msgs::OCSFootstepLis
     footstep_list_ = *msg;
 
     updateInteractiveMarkers();
+}
+
+void FootstepVisManager::processFootstepParamSetList(const flor_ocs_msgs::OCSFootstepParamSetList::ConstPtr& msg)
+{
+    Q_EMIT populateFootstepParameterSetBox(msg->param_set);
 }
 
 void FootstepVisManager::updateInteractiveMarkers()

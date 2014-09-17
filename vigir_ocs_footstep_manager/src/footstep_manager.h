@@ -9,6 +9,7 @@
 #include <string>
 
 #include <std_msgs/Bool.h>
+#include <std_msgs/String.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Vector3.h>
 #include <visualization_msgs/MarkerArray.h>
@@ -18,12 +19,14 @@
 #include <flor_ocs_msgs/OCSFootstepList.h>
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
+#include <flor_ocs_msgs/OCSFootstepParamSetList.h>
 #include <flor_state_msgs/LowerBodyState.h>
 #include <vigir_footstep_planning_msgs/StepPlanRequestAction.h>
 #include <vigir_footstep_planning_msgs/EditStepAction.h>
 #include <vigir_footstep_planning_msgs/StitchStepPlanAction.h>
 #include <vigir_footstep_planning_msgs/UpdateStepPlanAction.h>
 #include <vigir_footstep_planning_msgs/ExecuteStepPlanAction.h>
+#include <vigir_footstep_planning_msgs/GetAllParameterSetsAction.h>
 
 #include <actionlib/client/simple_action_client.h>
 
@@ -34,6 +37,7 @@ namespace ocs_footstep
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::StitchStepPlanAction> StitchStepPlanClient;
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::UpdateStepPlanAction> UpdateStepPlanClient;
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::ExecuteStepPlanAction> ExecuteStepPlanClient;
+    typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::GetAllParameterSetsAction> GetAllParameterSetsClient;
 
     class FootstepManager : public nodelet::Nodelet
     {
@@ -48,6 +52,7 @@ namespace ocs_footstep
         void processUndoRequest(const std_msgs::Bool::ConstPtr& msg);
         void processRedoRequest(const std_msgs::Bool::ConstPtr& msg);
         void processExecuteFootstepRequest(const std_msgs::Bool::ConstPtr& msg);
+        void processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg);
 
         // get the current and goal poses to be used when requesting a footstep plan
         void processLowerBodyState(const flor_state_msgs::LowerBodyState::ConstPtr& lower_body_state);
@@ -73,20 +78,26 @@ namespace ocs_footstep
         void activeExecuteStepPlan();
         void feedbackExecuteStepPlan(const vigir_footstep_planning_msgs::ExecuteStepPlanFeedbackConstPtr& feedback);
         void doneExecuteStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::ExecuteStepPlanResultConstPtr& result);
+        //getallparametersets
+        void activeGetAllParameterSets();
+        void feedbackGetAllParameterSets(const vigir_footstep_planning_msgs::GetAllParameterSetsFeedbackConstPtr& feedback);
+        void doneGetAllParameterSets(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::GetAllParameterSetsResultConstPtr& result);
 
         void timerCallback(const ros::TimerEvent& event);
 
     private:
         // send action goals
-        void sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_index = 0);
-        void sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step);
+        void sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_index = 0, const unsigned char start_foot = vigir_footstep_planning_msgs::StepPlanRequest::AUTO);
+        void sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step, unsigned int plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_2D);
         void sendStitchStepPlanGoal(std::vector<vigir_footstep_planning_msgs::StepPlan>& step_plan_list);
         void sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan& step_plan);
         void sendExecuteStepPlanGoal();
+        void sendGetAllParameterSetsGoal();
 
         // for visualization
         void publishFootsteps();
         void publishFootstepList();
+        void publishFootstepParameterSetList();
 
         // plan requests
         void requestStepPlanFromRobot();
@@ -112,8 +123,8 @@ namespace ocs_footstep
         inline vigir_footstep_planning_msgs::StepPlan& getStepPlan() { return getStepPlanList().back(); }
 
         // helper function for finding step based on step_index
-        bool findStep(const int& step_index, vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step);
-        bool findStepPlan(const int& step_index, vigir_footstep_planning_msgs::StepPlan &step_plan);
+        bool findStep(const unsigned int& step_index, vigir_footstep_planning_msgs::Step& step, unsigned int& step_plan_index);
+        bool findStepPlan(const unsigned int& step_index, unsigned int& step_plan_index);
         void extendPlanList(const vigir_footstep_planning_msgs::StepPlan &new_step_plan);
 
         ros::Timer timer;
@@ -130,6 +141,8 @@ namespace ocs_footstep
         ros::Subscriber footstep_undo_req_sub_;
         ros::Subscriber footstep_redo_req_sub_;
         ros::Subscriber footstep_exec_req_sub_;
+        ros::Publisher footstep_param_set_list_pub_;
+        ros::Subscriber footstep_param_set_selected_sub_;
 
         ros::Subscriber footstep_plan_request_sub_;
         ros::Subscriber lower_body_state_sub_;
@@ -142,6 +155,10 @@ namespace ocs_footstep
         visualization_msgs::MarkerArray footstep_array_;
         visualization_msgs::MarkerArray footstep_body_array_;
         nav_msgs::Path footstep_path_;
+
+        // Footstep parameter sets
+        std::vector<std::string> footstep_parameter_set_list_;
+        std::string selected_footstep_parameter_set_;
 
         // Parameters
         geometry_msgs::Vector3 foot_size;
@@ -160,5 +177,8 @@ namespace ocs_footstep
         StitchStepPlanClient* stitch_step_plan_client_;
         UpdateStepPlanClient* update_step_plan_client_;
         ExecuteStepPlanClient* execute_step_plan_client_;
+        GetAllParameterSetsClient* get_all_parameter_sets_client_;
+
+        ros::ServiceClient edit_step_service_client_;
     };
 }

@@ -3,6 +3,7 @@
 #include <vigir_footstep_planning_msgs/StepPlanRequest.h>
 #include <vigir_footstep_planning_msgs/Step.h>
 #include <vigir_footstep_planning_msgs/Foot.h>
+#include <vigir_footstep_planning_msgs/EditStepService.h>
 
 #include <flor_footstep_planner_msgs/flor_footstep_planner_msgs.h>
 
@@ -29,11 +30,13 @@ void FootstepManager::onInit()
     nh.param("upper_body/origin_shift/z", upper_body_origin_shift.z, 0.0);
 
     // creates publishers and subscribers for the interaction loop
-    footstep_list_pub_          = nh.advertise<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, false );
-    footstep_update_sub_        = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, &FootstepManager::processFootstepPoseUpdate, this );
-    footstep_undo_req_sub_      = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, &FootstepManager::processUndoRequest, this );
-    footstep_redo_req_sub_      = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, &FootstepManager::processRedoRequest, this );
-    footstep_exec_req_sub_      = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
+    footstep_list_pub_               = nh.advertise<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, false );
+    footstep_update_sub_             = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, &FootstepManager::processFootstepPoseUpdate, this );
+    footstep_undo_req_sub_           = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, &FootstepManager::processUndoRequest, this );
+    footstep_redo_req_sub_           = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, &FootstepManager::processRedoRequest, this );
+    footstep_exec_req_sub_           = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
+    footstep_param_set_list_pub_     = nh.advertise<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 1, false );
+    footstep_param_set_selected_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 5, &FootstepManager::processFootstepParamSetSelected, this );
 
     // footstep request coming from the OCS
     footstep_plan_request_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, &FootstepManager::processFootstepPlanRequest, this );
@@ -48,23 +51,35 @@ void FootstepManager::onInit()
 
     // initialize all ros action clients
     //plan request
-    step_plan_request_client_ = new StepPlanRequestClient("/vigir/global_footstep_planner/step_plan_request", true);
-    step_plan_request_client_->waitForServer();
+    step_plan_request_client_ = new StepPlanRequestClient("step_plan_request", true);
     //edit step
-    edit_step_client_ = new EditStepClient("/vigir/global_footstep_planner/edit_step", true);
-    edit_step_client_->waitForServer();
+    edit_step_client_ = new EditStepClient("edit_step", true);
     //stitch step plan
-    stitch_step_plan_client_ = new StitchStepPlanClient("/vigir/global_footstep_planner/stitch_step_plan", true);
-    stitch_step_plan_client_->waitForServer();
+    stitch_step_plan_client_ = new StitchStepPlanClient("stitch_step_plan", true);
     //update step plan
-    update_step_plan_client_ = new UpdateStepPlanClient("/vigir/global_footstep_planner/update_step_plan", true);
-    update_step_plan_client_->waitForServer();
+    update_step_plan_client_ = new UpdateStepPlanClient("update_step_plan", true);
+    //get all parameter sets
+    get_all_parameter_sets_client_ = new GetAllParameterSetsClient("get_all_parameter_sets", true);
     //execute step plan
-    execute_step_plan_client_ = new ExecuteStepPlanClient("/vigir/global_footstep_planner/execute_step_plan", true);
-    execute_step_plan_client_->waitForServer();
+    execute_step_plan_client_ = new ExecuteStepPlanClient("execute_step_plan", true);
+
+    //wait for servers to come online
+    step_plan_request_client_->waitForServer();
+    edit_step_client_->waitForServer();
+    stitch_step_plan_client_->waitForServer();
+    update_step_plan_client_->waitForServer();
+    get_all_parameter_sets_client_->waitForServer();
+    //execute_step_plan_client_->waitForServer();
+
+    // initialize service for deleting footsteps
+    edit_step_service_client_ = nh.serviceClient<vigir_footstep_planning_msgs::EditStepService>("/vigir/global_footstep_planner/edit_step");
 
     // initialize step plan list
     addNewPlanList();
+
+    // request parameter sets
+    sendGetAllParameterSetsGoal();
+    selected_footstep_parameter_set_ = "";
 
     timer = nh.createTimer(ros::Duration(0.066), &FootstepManager::timerCallback, this);
 }
@@ -72,27 +87,30 @@ void FootstepManager::onInit()
 void FootstepManager::timerCallback(const ros::TimerEvent& event)
 {
     this->publishFootstepList();
+    // REMOVE:create it's own timer with 1s sleep
+    this->publishFootstepParameterSetList();
 }
 
 void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg)
 {
     // find step in the plan
-    vigir_footstep_planning_msgs::StepPlan step_plan;
     vigir_footstep_planning_msgs::Step step;
 
     // if it didn't find a step with the requested step_index, return
-    if(!findStep(msg->footstep_id, step_plan, step))
+    unsigned int step_plan_index;
+    if(!findStep(msg->footstep_id, step, step_plan_index))
         return;
 
     // update pose
     step.foot.pose = msg->pose.pose;
 
     // send goal
-    sendEditStepGoal(step_plan, step);
+    sendEditStepGoal(getStepPlanList()[step_plan_index], step);
 }
 
 void FootstepManager::processUndoRequest(const std_msgs::Bool::ConstPtr& msg)
 {
+
     if(footstep_plans_undo_stack_.size() > 0)
     {
         // add top to the redo stack
@@ -123,6 +141,11 @@ void FootstepManager::processRedoRequest(const std_msgs::Bool::ConstPtr& msg)
 void FootstepManager::processExecuteFootstepRequest(const std_msgs::Bool::ConstPtr& msg)
 {
     sendExecuteStepPlanGoal();
+}
+
+void FootstepManager::processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg)
+{
+    selected_footstep_parameter_set_ = msg->data;
 }
 
 void FootstepManager::stepToMarker(const vigir_footstep_planning_msgs::Step &step, visualization_msgs::Marker &marker)
@@ -307,7 +330,8 @@ void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootste
         else
         {
             // if it didn't find a step with the requested step_index, return
-            if(!findStep(plan_request->start_index-1, step_plan, step))
+            unsigned int step_plan_index;
+            if(!findStep(plan_request->start_index-1, step, step_plan_index))
                 return;
         }
 
@@ -351,10 +375,10 @@ void FootstepManager::requestStepPlanFromRobot()
 void FootstepManager::requestStepPlanFromStep(vigir_footstep_planning_msgs::Step& step)
 {
     // then we need to find the next step after the starting one
-    vigir_footstep_planning_msgs::StepPlan step_plan;
     vigir_footstep_planning_msgs::Step next_step;
+    unsigned int step_plan_index;
 
-    if(!findStep(step.step_index+1, step_plan, next_step))
+    if(!findStep(step.step_index+1, next_step, step_plan_index))
         return;
 
     // first we get the start feet poses based on the selected step
@@ -380,7 +404,13 @@ void FootstepManager::requestStepPlanFromStep(vigir_footstep_planning_msgs::Step
     goal.right.pose.position.z = goal_pose_.pose.position.z;
     goal.right.pose.orientation = goal_pose_.pose.orientation;
 
-    sendStepPlanRequestGoal(start, goal, next_step.step_index);
+    unsigned char start_foot;
+    if(next_step.foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT)
+        start_foot = vigir_footstep_planning_msgs::StepPlanRequest::LEFT;
+    else
+        start_foot = vigir_footstep_planning_msgs::StepPlanRequest::RIGHT;
+
+    sendStepPlanRequestGoal(start, goal, next_step.step_index, start_foot);
 }
 
 void FootstepManager::cleanMarkerArray(visualization_msgs::MarkerArray& old_array, visualization_msgs::MarkerArray& new_array)
@@ -441,29 +471,38 @@ void FootstepManager::publishFootsteps()
 void FootstepManager::publishFootstepList()
 {
     flor_ocs_msgs::OCSFootstepList list;
-    if(getStepPlanList().size() > 0)
+    for(int i = 0; i < getStepPlanList().size(); i++)
     {
-        for(int i = 0; i < getStepPlan().steps.size(); i++)
+        for(int j = 0; j < getStepPlanList()[i].steps.size(); j++)
         {
-            list.footstep_id_list.push_back(getStepPlan().steps[i].step_index);
+            list.footstep_id_list.push_back(getStepPlanList()[i].steps[j].step_index);
             geometry_msgs::PoseStamped pose;
             pose.header.frame_id = "/world";
             pose.header.stamp = ros::Time::now();
-            pose.pose = getStepPlan().steps[i].foot.pose;
+            pose.pose = getStepPlanList()[i].steps[j].foot.pose;
             list.pose.push_back(pose);
         }
     }
     footstep_list_pub_.publish(list);
 }
 
+void FootstepManager::publishFootstepParameterSetList()
+{
+    flor_ocs_msgs::OCSFootstepParamSetList cmd;
+    cmd.param_set = footstep_parameter_set_list_;
+    footstep_param_set_list_pub_.publish(cmd);
+}
+
 // action goal for StepPlanRequest
-void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_index)
+void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_index, const unsigned char start_foot)
 {
     vigir_footstep_planning_msgs::StepPlanRequest request;
 
     request.start = start;
     request.goal = goal;
     request.start_index = start_index;
+
+    request.start_foot_selection = start_foot;
 
     // default planning mode is 2D, but will get that from the OCS
     request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_2D;
@@ -473,7 +512,7 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     //float32 max_number_steps          # maximum number of steps, set 0 for unlimited
     //float32 max_path_length_ratio     # maximum path length ratio computed as (current path length)/(beeline start<->goal), must be larger 1 otherwise it will be ignored
 
-    request.parameter_set_name.data = "drc_step";
+    request.parameter_set_name.data = selected_footstep_parameter_set_;
 
     // Fill in goal here
     vigir_footstep_planning_msgs::StepPlanRequestGoal action_goal;
@@ -510,6 +549,12 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
+        if(result->step_plan.steps.size() == 0)
+        {
+            ROS_ERROR("StepPlanRequest: Received empty step plan.");
+            return;
+        }
+
         // we only change the current step lists if we receive a response
         if(result->step_plan.steps[0].step_index == 0)
             // This function will create a completely new plan, so we need to add a new empty list of plans to the stack
@@ -529,12 +574,12 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
 }
 
 // action goal for EditStep
-void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step)
+void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step, unsigned int plan_mode)
 {
     // Fill in goal here
     vigir_footstep_planning_msgs::EditStepGoal action_goal;
     action_goal.step_plan = step_plan;
-    action_goal.edit_step.plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_2D;
+    action_goal.edit_step.plan_mode = plan_mode;
     action_goal.edit_step.step = step;
 
     // and send it to the server
@@ -569,20 +614,16 @@ void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
         // first need to figure out which step plan contains the step index used in the result
-        vigir_footstep_planning_msgs::StepPlan step_plan;
-        findStepPlan(result->step_plans[0].steps[0].step_index, step_plan);
+        unsigned int step_plan_index;
+        findStepPlan(result->step_plans[0].steps[0].step_index, step_plan_index);
 
-        // get the iterator pointing to that step plan
-        std::vector<vigir_footstep_planning_msgs::StepPlan>::iterator step_plan_it = getStepPlanList().begin();//std::find(getStepPlanList().begin(), getStepPlanList().end(), step_plan); -> doesn't work
-        while(step_plan_it != getStepPlanList().end())
-            step_plan_it++;
         // save the index of the step plan
-        int index = step_plan_it - getStepPlanList().begin();
+        std::vector<vigir_footstep_planning_msgs::StepPlan>::iterator step_plan_it = getStepPlanList().begin()+step_plan_index;
         // remove the plan
         getStepPlanList().erase(step_plan_it);
 
         // and add resulting plan(s) to the list again using the previous index
-        getStepPlanList().insert(getStepPlanList().begin()+index, result->step_plans.begin(), result->step_plans.end());
+        getStepPlanList().insert(getStepPlanList().begin()+step_plan_index, result->step_plans.begin(), result->step_plans.end());
 
         publishFootsteps();
     }
@@ -645,7 +686,7 @@ void FootstepManager::sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepP
     // Fill in goal here
     vigir_footstep_planning_msgs::UpdateStepPlanGoal action_goal;
     action_goal.step_plan = step_plan;
-    action_goal.parameter_set_name.data = "drc_step";
+    action_goal.parameter_set_name.data = selected_footstep_parameter_set_;
     action_goal.mode.mode = vigir_footstep_planning_msgs::UpdateMode::UPDATE_MODE_REPLAN;
 
     // and send it to the server
@@ -725,6 +766,52 @@ void FootstepManager::doneExecuteStepPlan(const actionlib::SimpleClientGoalState
     }
 }
 
+void FootstepManager::sendGetAllParameterSetsGoal()
+{
+    // Fill in goal here
+    vigir_footstep_planning_msgs::GetAllParameterSetsGoal action_goal;
+
+    // and send it to the server
+    if(get_all_parameter_sets_client_->isServerConnected())
+    {
+        get_all_parameter_sets_client_->sendGoal(action_goal,
+                                                 boost::bind(&FootstepManager::doneGetAllParameterSets, this, _1, _2),
+                                                 boost::bind(&FootstepManager::activeGetAllParameterSets, this),
+                                                 boost::bind(&FootstepManager::feedbackGetAllParameterSets, this, _1));
+    }
+    else
+    {
+        ROS_ERROR("GetAllParameterSets: Server not connected!");
+    }
+}
+
+void FootstepManager::activeGetAllParameterSets()
+{
+    ROS_ERROR("GetAllParameterSets: Status changed to active.");
+}
+
+void FootstepManager::feedbackGetAllParameterSets(const vigir_footstep_planning_msgs::GetAllParameterSetsFeedbackConstPtr& feedback)
+{
+    ROS_ERROR("GetAllParameterSets: Feedback received.");
+}
+
+void FootstepManager::doneGetAllParameterSets(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::GetAllParameterSetsResultConstPtr& result)
+{
+    ROS_ERROR("GetAllParameterSets: Got action response. %s", result->status.error_msg.c_str());
+
+    if(result->status.error == vigir_footstep_planning_msgs::FootstepExecutionStatus::NO_ERROR)
+    {
+        footstep_parameter_set_list_.clear();
+        for(int i = 0; i < result->param_sets.size(); i++)
+            footstep_parameter_set_list_.push_back(result->param_sets[i].name.data);
+
+        if(selected_footstep_parameter_set_ == "" && footstep_parameter_set_list_.size() > 0)
+            selected_footstep_parameter_set_ = footstep_parameter_set_list_[0];
+
+        this->publishFootstepParameterSetList();
+    }
+}
+
 // utilities
 void FootstepManager::addNewPlanList()
 {
@@ -758,7 +845,7 @@ void FootstepManager::cleanStacks()
 }
 
 // returns step and the step plan it's contained in based on a step_index
-bool FootstepManager::findStep(const int& step_index, vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step)
+bool FootstepManager::findStep(const unsigned int& step_index, vigir_footstep_planning_msgs::Step &step, unsigned int& step_plan_index)
 {
     // look for step with step index
     for(int i = 0; i < getStepPlanList().size(); i++)
@@ -767,8 +854,8 @@ bool FootstepManager::findStep(const int& step_index, vigir_footstep_planning_ms
         {
             if(step_index == getStepPlanList()[i].steps[j].step_index)
             {
-                step_plan = getStepPlanList()[i];
                 step = getStepPlanList()[i].steps[j];
+                step_plan_index = i;
                 return true;
             }
         }
@@ -777,11 +864,11 @@ bool FootstepManager::findStep(const int& step_index, vigir_footstep_planning_ms
 }
 
 // returns step plan containing step with step_index
-bool FootstepManager::findStepPlan(const int& step_index, vigir_footstep_planning_msgs::StepPlan& step_plan)
+bool FootstepManager::findStepPlan(const unsigned int& step_index, unsigned int& step_plan_index)
 {
     // just create a step so we can call findstep to retrieve step
     vigir_footstep_planning_msgs::Step step;
-    return findStep(step_index, step_plan, step);
+    return findStep(step_index, step, step_plan_index);
 }
 
 void FootstepManager::extendPlanList(const vigir_footstep_planning_msgs::StepPlan& new_step_plan)
@@ -795,6 +882,23 @@ void FootstepManager::extendPlanList(const vigir_footstep_planning_msgs::StepPla
             {
                 // delete [j,end] since we already have these in the new plan
                 getStepPlanList()[i].steps.erase(getStepPlanList()[i].steps.begin()+j, getStepPlanList()[i].steps.end());
+                getStepPlanList()[i].cost.erase(getStepPlanList()[i].cost.begin()+j, getStepPlanList()[i].cost.end());
+                // use service because the contents of the stepplan message may change, and we need synchronous call for this
+                /*for(int d = getStepPlanList()[i].steps.size()-1; d >= j; d--)
+                {
+                    vigir_footstep_planning_msgs::EditStepService srv;
+                    srv.request.step_plan = getStepPlanList()[i];
+                    srv.request.edit_step.plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_REMOVE;
+                    srv.request.edit_step.step = getStepPlanList()[i].steps[j];
+                    if(edit_step_service_client_.call(srv))
+                    {
+                        getStepPlanList()[i] = srv.response.step_plans[0];
+                    }
+                    else
+                    {
+                        ROS_ERROR("Failed to call EditStep service.");
+                    }
+                }*/
                 break;
             }
         }

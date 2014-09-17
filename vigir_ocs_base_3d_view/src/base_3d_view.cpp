@@ -253,9 +253,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // footstep visualization manager initialization
         footstep_vis_manager_ = new FootstepVisManager(manager_);
 
-        // ADD: list of arrows for CoM estimate
-        // ADD: cost map
-
         // F/T sensor displays
         left_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Left F/T sensor", false);
         left_ft_sensor_->subProp("Topic")->setValue("/flor/l_hand/force_torque_sensor");
@@ -268,7 +265,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         right_ft_sensor_->subProp("Alpha")->setValue(0.5);
         right_ft_sensor_->subProp("Arrow Scale")->setValue(0.01);
         right_ft_sensor_->subProp("Arrow Width")->setValue(0.3);
-
 
         // create the grasp hands displays (blue/yellow hands)
         left_grasp_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left grasp hand model", true );

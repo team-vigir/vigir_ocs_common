@@ -22,6 +22,7 @@
 #include <flor_ocs_msgs/OCSFootstepList.h>
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
+#include <flor_ocs_msgs/OCSFootstepParamSetList.h>
 
 #include <string>
 #include <boost/bind.hpp>
@@ -61,6 +62,8 @@ public:
       * Receives list of footsteps and creates/removes interactive markers
       */
     void processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg);
+
+    void processFootstepParamSetList(const flor_ocs_msgs::OCSFootstepParamSetList::ConstPtr& msg);
 
     /**
       * ROS Callback: receives interactive marker pose updates
@@ -108,8 +111,14 @@ public Q_SLOTS:
       */
     void enableMarkers(bool enabled);
 
+    void setFootstepParameterSet(QString selected);
+
 Q_SIGNALS:
-    // add qsignals here
+
+    /**
+      * Set visibility of all footstep interactive markers
+      */
+    void populateFootstepParameterSetBox(std::vector<std::string>);
 
 private:
     void updateInteractiveMarkers();
@@ -124,6 +133,8 @@ private:
 
     ros::Subscriber footstep_goal_sub_;
     ros::Publisher footstep_plan_request_pub_;
+    ros::Subscriber footstep_param_set_list_sub_;
+    ros::Publisher footstep_param_set_selected_pub_;
 
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;

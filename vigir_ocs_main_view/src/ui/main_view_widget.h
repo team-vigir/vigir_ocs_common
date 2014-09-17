@@ -70,6 +70,7 @@ private Q_SLOTS:
     void toggleSidebarVisibility();
     void graspWidgetToggle();
     void hideGraspWidgets();
+    void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
 
 protected:
     void addContextMenu();
