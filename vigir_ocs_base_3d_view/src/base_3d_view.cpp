@@ -617,6 +617,15 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         disableJointMarkers = false;
         occludedRobotVisible = true;
+
+        rviz::Display * overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Overlay for Notifications", true );
+        overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
+
+        //initialize notification system
+        NotificationSystem::Instance();
+        //test
+        NotificationSystem::Instance()->notify("cheese");
+
     }
 
     // Connect the 3D selection tool to

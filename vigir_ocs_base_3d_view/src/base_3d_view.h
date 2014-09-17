@@ -70,6 +70,7 @@
 #include <stdlib.h>
 
 #include "robot_state_manager.h"
+#include "notification_system.h"
 
 // local includes
 #include "footstep_vis_manager.h"
@@ -477,6 +478,8 @@ protected:
 
     Ogre::Camera* getCamera();
 
+    NotificationSystem * notification_system_;
+
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
 
@@ -544,7 +547,7 @@ protected:
     ros::Subscriber select_object_sub_;
 
     ros::Publisher camera_transform_pub_;
-    ros::Subscriber camera_transform_sub_;
+    ros::Subscriber camera_transform_sub_;    
 
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
