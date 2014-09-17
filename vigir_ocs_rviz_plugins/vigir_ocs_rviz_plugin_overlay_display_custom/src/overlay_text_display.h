@@ -43,6 +43,11 @@
 #include <std_msgs/ColorRGBA.h>
 #include <rviz/properties/ros_topic_property.h>
 
+namespace rviz
+{
+    class RenderPanel;
+}
+
 namespace jsk_rviz_plugin
 {
   class OverlayTextDisplay
@@ -66,6 +71,8 @@ namespace jsk_rviz_plugin
     int line_width_;
     std::string text_;
     std::string font_;
+    std::vector<RenderPanel*> render_panel_list_;
+    RenderPanel* render_panel_; // this is the active render panels
     
     
     ros::Subscriber sub_;
@@ -80,6 +87,11 @@ namespace jsk_rviz_plugin
     rviz::RosTopicProperty* update_topic_property_;
   protected Q_SLOTS:
     void updateTopic();
+
+  public Q_SLOTS:
+    void setRenderPanel(rviz::RenderPanel*);
+
+
     
   private:
     void processMessage(const flor_ocs_msgs::OCSOverlayText::ConstPtr& msg);

@@ -24,6 +24,13 @@ NotificationSystem* NotificationSystem::Instance()
    return instance;
 }
 
+/*
+  change to ber horizontally and vertically aligned top center and bottom
+  use update function in place of timer   fade in, uptime, fade out . directly modify alpha in color
+  overlay_text_display needs to get render_panel to be aligned correctly
+
+  */
+
 //publishes
 void NotificationSystem::notify(std::string text)
 {
@@ -54,7 +61,5 @@ void NotificationSystem::hide()
     notification_pub_.publish(msg);
 }
 
-/*
-  overload timerEvent and send hide.. would be nice to fade out and fade in  .. requires qt in singleton (maybe put rviz display in here?)
-  */
+
 

@@ -108,6 +108,35 @@ namespace jsk_rviz_plugin
     updateTopic();
     require_update_texture_ = true;
   }
+
+  void OverlayTextDisplay::setRenderPanel( rviz::RenderPanel* rp )
+  {
+      if(std::find(render_panel_list_.begin(),render_panel_list_.end(),rp) != render_panel_list_.end())
+      {
+          this->render_panel_ = rp;
+          this->render_panel_->getRenderWindow()->addListener( this );
+      }
+      else
+      {
+          this->render_panel_list_.push_back(rp);
+          this->render_panel_ = rp;
+          this->render_panel_->getRenderWindow()->addListener( this );
+      }
+  }
+
+  void OverlayTextDisplay::preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt )
+  {
+      if(overlay_)
+      {
+          int view_id = 0;
+
+          for(int i = 0; i < render_panel_list_.size(); i++)
+              if(render_panel_list_[i]->getRenderWindow() == (Ogre::RenderWindow*)evt.source)
+                  view_id = i;
+            //getViewport  selection 3d display custom for reference
+          //get width and height and setup for alignment
+      }
+  }
   
   void OverlayTextDisplay::update(float wall_dt, float ros_dt)
   {
