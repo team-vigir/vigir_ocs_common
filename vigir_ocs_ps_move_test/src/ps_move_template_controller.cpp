@@ -134,9 +134,9 @@ geometry_msgs::PoseStamped PSMoveTemplateController::updatePose(geometry_msgs::P
 
     //Update x, y, and z values
     // NEED TO RESTORE THESE FOR POSITION CONTROL
-    //template_pose.pose.position.x += offset->x();
-    //template_pose.pose.position.y += offset->y();
-    //template_pose.pose.position.z += offset->z();
+    template_pose.pose.position.x += offset->x();
+    template_pose.pose.position.y += offset->y();
+    template_pose.pose.position.z += offset->z();
 
     //Update the rotation
     QQuaternion pre;
@@ -151,20 +151,22 @@ geometry_msgs::PoseStamped PSMoveTemplateController::updatePose(geometry_msgs::P
     QQuaternion difference;
     QQuaternion identity;
     //camera absolute rotation
-    //QQuaternion rot(move_server_packet->state[0].quat[3],move_server_packet->state[0].quat[0],move_server_packet->state[0].quat[1],move_server_packet->state[0].quat[2]);
+    QQuaternion rot(move_server_packet->state[0].quat[3],move_server_packet->state[0].quat[0],move_server_packet->state[0].quat[1],move_server_packet->state[0].quat[2]);
+    // calculate the difference
+    rot = old_move_orientation_.conjugate() * rot;
     // 1deg/update
-    QQuaternion rot(0.9999619230641713,-0.008726535498373935,0,0);
-    QQuaternion c = QQuaternion::fromAxisAndAngle(0,1,0,90);
-    rot.normalize();
-    camera_orientation_.normalize();
+    //QQuaternion rot(0.9999619230641713,-0.008726535498373935,0,0);
+    //QQuaternion c = QQuaternion::fromAxisAndAngle(0,1,0,90);
+    //rot.normalize();
+    //camera_orientation_.normalize();
 
     // conversions to make it easier to read angles
-    quatToEuler(rot, y, z, x);
-    ROS_ERROR("rot: %.3f, %.3f, %.3f",x,y,z);
-    quatToEuler(c, y, z, x);
-    ROS_ERROR("cam: %.3f, %.3f, %.3f",x,y,z);
-    quatToEuler(c.conjugate(), y, z, x);
-    ROS_ERROR("conjugate: %.3f, %.3f, %.3f",x,y,z);
+    //quatToEuler(rot, y, z, x);
+    //ROS_ERROR("rot: %.3f, %.3f, %.3f",x,y,z);
+    //quatToEuler(c, y, z, x);
+    //ROS_ERROR("cam: %.3f, %.3f, %.3f",x,y,z);
+    //quatToEuler(c.conjugate(), y, z, x);
+    //ROS_ERROR("conjugate: %.3f, %.3f, %.3f",x,y,z);
 
     //QQuaternion rot(0.9999619230641713,0,-0.008726535498373935,0);
     //QQuaternion rot(0.9999619230641713,0,0,-0.008726535498373935);

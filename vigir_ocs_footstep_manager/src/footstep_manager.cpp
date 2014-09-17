@@ -569,7 +569,7 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
         publishFootsteps();
 
         // try to stitch all plans in the list together
-        //sendStitchStepPlanGoal(getStepPlanList());
+        sendStitchStepPlanGoal(getStepPlanList());
     }
 }
 
