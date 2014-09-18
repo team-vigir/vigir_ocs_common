@@ -2682,8 +2682,6 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
         double distance = bounds[0].max_position_ - bounds[0].min_position_;
         double boundPercent = robot_state->getMinDistanceToPositionBounds(joint) / distance;
 
-        double jointEffortPercent = std::abs(states->effort[i]) / robot_state->getJointEffortLimit(states->name[i]);
-
         geometry_msgs::Pose pose;
         std::string link_name = ((rviz::RobotDisplayCustom*)robot_model_)->getChildLinkName(states->name[i]);
         robot_state->getLinkPose(link_name,pose);
@@ -2707,6 +2705,9 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
             }
         }
 
+        double jointEffortPercent = ((robot_state->getJointEffortLimit(states->name[i]) != 0 && states->effort.size() > i) ?
+                                    std::abs(states->effort[i]) / robot_state->getJointEffortLimit(states->name[i]) :
+                                    0.0);
         updateJointIcons(states->name[i], pose, jointEffortPercent,boundPercent);
     }
 

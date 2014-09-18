@@ -153,7 +153,7 @@ int jointList::getNumWarn()
 void jointList::updateList(const sensor_msgs::JointState::ConstPtr& states )
 {
     //joint states are updated in base3dview only
-    MoveItOcsModel* robotState = RobotStateManager::Instance()->getRobotStateSingleton();
+    MoveItOcsModel* robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
 
     // clear joint status messages and send Okay state
     Q_EMIT sendJointData(0,"");
@@ -161,14 +161,14 @@ void jointList::updateList(const sensor_msgs::JointState::ConstPtr& states )
     for(int i = 0; i < states->name.size(); i++)
     {
         //Update the table
-        joints_[i]->setText(1,QString::number(states->position[i]));
-        joints_[i]->setText(2,QString::number(states->velocity[i]));
-        joints_[i]->setText(3,QString::number(states->effort[i]));
+        joints_[i]->setText(1,QString::number(states->position.size() > i ? states->position[i] : 0.0));
+        joints_[i]->setText(2,QString::number(states->velocity.size() > i ? states->velocity[i] : 0.0));
+        joints_[i]->setText(3,QString::number(states->effort.size() > i ? states->effort[i] : 0.0));
         joints_[i]->setBackgroundColor(0,Qt::white);
         joints_[i]->setBackgroundColor(1,Qt::white);
         joints_[i]->setBackgroundColor(3,Qt::white);
 
-        const moveit::core::JointModel* joint =  robotState->getJointModel(states->name[i]);
+        const moveit::core::JointModel* joint =  robot_state->getJointModel(states->name[i]);
         //ignore unnecessary joints
         if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
           continue;
@@ -178,9 +178,11 @@ void jointList::updateList(const sensor_msgs::JointState::ConstPtr& states )
         //calculate joint position percentage relative to max/min limit
         const moveit::core::JointModel::Bounds& bounds = joint->getVariableBounds();
         double distance = bounds[0].max_position_ - bounds[0].min_position_;
-        double boundPercent = robotState->getMinDistanceToPositionBounds(joint) / distance;
+        double boundPercent = robot_state->getMinDistanceToPositionBounds(joint) / distance;
 
-        double jointEffortPercent = std::abs(states->effort[i]) / robotState->getJointEffortLimit(states->name[i]);
+        double jointEffortPercent = ((robot_state->getJointEffortLimit(states->name[i]) != 0 && states->effort.size() > i) ?
+                                    std::abs(states->effort[i]) / robot_state->getJointEffortLimit(states->name[i]) :
+                                    0.0);
         if(jointEffortPercent >=.9 ) //effort error
         {
             Q_EMIT sendJointData(2,QString(joint->getName().c_str()));
