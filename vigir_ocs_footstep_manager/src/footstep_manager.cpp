@@ -361,12 +361,12 @@ void FootstepManager::requestStepPlanFromRobot()
 
     goal.left.pose.position.x = goal_pose_.pose.position.x + shift_x;
     goal.left.pose.position.y = goal_pose_.pose.position.y + shift_y;
-    goal.left.pose.position.z = goal_pose_.pose.position.z;
+    goal.left.pose.position.z = start.left.pose.position.z;//goal_pose_.pose.position.z;
     goal.left.pose.orientation = goal_pose_.pose.orientation;
 
     goal.right.pose.position.x = goal_pose_.pose.position.x - shift_x;
     goal.right.pose.position.y = goal_pose_.pose.position.y - shift_y;
-    goal.right.pose.position.z = goal_pose_.pose.position.z;
+    goal.right.pose.position.z = start.right.pose.position.z;//goal_pose_.pose.position.z;
     goal.right.pose.orientation = goal_pose_.pose.orientation;
 
     sendStepPlanRequestGoal(start, goal);
