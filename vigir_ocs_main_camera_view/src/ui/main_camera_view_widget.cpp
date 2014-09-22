@@ -218,6 +218,12 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));
 
+    //synchronize toggles
+    ocs_sync_sub_ = nh_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &MainCameraViewWidget::synchronizeToggleButtons, this );
+
+    //disable joint markers by default
+    ui->robot_joint_markers->setCheckState(Qt::Unchecked);
+
     timer.start(100, this);
 }
 
@@ -229,6 +235,71 @@ MainCameraViewWidget::~MainCameraViewWidget()
 void MainCameraViewWidget::timerEvent(QTimerEvent *event)
 {
     sidebar_toggle_->setGeometry(ui->view_stack_->geometry().topRight().x() - 25 ,ui->view_stack_->geometry().top() + 40,25,25);
+}
+
+void MainCameraViewWidget::changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state)
+{
+    //set checkbox state without calling callbacks
+    checkBox->blockSignals(true);
+    checkBox->setCheckState(state);
+    checkBox->blockSignals(false);
+}
+
+void MainCameraViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg)
+{
+    for(int i=0;i<msg->properties.size();i++)
+    {
+        if(msg->properties[i].compare("LIDAR Point Cloud") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->lidar_point_cloud_2,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->lidar_point_cloud_2,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Stereo Point Cloud") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->stereo_point_cloud_2,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->stereo_point_cloud_2,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Raycast Point Cloud") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->point_cloud_request,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->point_cloud_request,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Octomap") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->octomap_2,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->octomap_2,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Ground map") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->grid_map,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->grid_map,Qt::Unchecked);
+            }
+        }
+    }
 }
 
 void MainCameraViewWidget::toggleSidebarVisibility()

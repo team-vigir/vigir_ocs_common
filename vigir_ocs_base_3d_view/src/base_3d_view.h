@@ -55,6 +55,7 @@
 #include <flor_ocs_msgs/OCSObjectSelection.h>
 #include "flor_ocs_msgs/OCSCameraTransform.h"
 #include "flor_ocs_msgs/OCSControlMode.h"
+#include "flor_ocs_msgs/OCSSynchronize.h"
 #include <flor_perception_msgs/RaycastRequest.h>
 #include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
@@ -264,6 +265,11 @@ public:
       */
     static bool checkPoseMatch(const geometry_msgs::Pose& p1, const geometry_msgs::Pose& p2, float scalar_error_threshold = 0.0f, float angle_error_threshold = 0.0f);
 
+    /**
+      * ROS Callback:synchronize 3d views on reset requests/toggles
+      */
+    void synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
+
 public Q_SLOTS:
     // displays
     // Enables/disables visibility of rviz displays
@@ -287,7 +293,7 @@ public Q_SLOTS:
     void markerRobotToggled( bool );
     void markerTemplateToggled( bool );
     void robotJointMarkerToggled(bool selected);
-    void robotOcclusionToggled(bool selected);
+    void robotOcclusionToggled(bool selected);    
     virtual void defineWalkPosePressed();
     virtual void defineStepPosePressed();
 
@@ -451,7 +457,7 @@ protected:
     /**
       * Adds joint disks that visualize the current state of the joints
       */
-    void updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose,double effortPercent, double boundPercent);
+    void updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose,double effortPercent, double boundPercent, bool ghost, int arrowDirection);
     /**
       * Lock arm to template using arm id
       */
@@ -494,6 +500,8 @@ protected:
     rviz::Display* achieved_waypoints_display_;
     rviz::Display* octomap_roi_;
     rviz::Display* raycast_point_cloud_viewer_;
+    rviz::Display* joint_arrows_;
+    rviz::Display* ghost_joint_arrows_;
     std::map<std::string,rviz::Display*> frustum_viewer_list_;
 
     // new displays for walking
@@ -553,6 +561,9 @@ protected:
 
     ros::Publisher camera_transform_pub_;
     ros::Subscriber camera_transform_sub_;
+
+    ros::Subscriber ocs_sync_sub_;
+    ros::Publisher ocs_sync_pub_;
 
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
@@ -902,6 +913,16 @@ protected:
       * Snaps hand to current ghost position
       */
     void snapHandGhost();
+
+
+    void blurRender();
+    void setChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility, bool visibility);
+    void restoreChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility);
+
+    Ogre::RenderTexture *renderTexture1;
+    Ogre::RenderTexture *renderTexture2;
+    Ogre::RenderTexture *renderTexture3;
+
 };
 }
 #endif // BASE_3D_VIEW_H

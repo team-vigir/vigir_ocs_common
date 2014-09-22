@@ -87,6 +87,9 @@ private:
     std::vector< std::vector<QString> > readTextDBFile(QString path);
     void initGraspDB();
 
+    QString icon_path_;
+    void setUpButtons();
+
     Ui::graspWidget *ui;
     handOffsetWidget *ui2;
 

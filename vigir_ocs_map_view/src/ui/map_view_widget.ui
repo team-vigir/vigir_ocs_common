@@ -555,9 +555,9 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-404</y>
+           <y>-419</y>
            <width>207</width>
-           <height>1543</height>
+           <height>1549</height>
           </rect>
          </property>
          <property name="maximumSize">
@@ -785,10 +785,80 @@
              <item>
               <widget class="QCheckBox" name="simulation_robot">
                <property name="text">
-                <string>Simulation Robot</string>
+                <string>Ghost Robot</string>
                </property>
                <property name="checked">
                 <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="robot_joint_markers">
+               <property name="text">
+                <string>Robot Joint Markers</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="robot_occlusion_rendering">
+               <property name="text">
+                <string>Robot Occlusion Rendering</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="footstep_planning">
+               <property name="text">
+                <string>Footstep Planning</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="templates">
+               <property name="text">
+                <string>Templates</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="grasp_model">
+               <property name="text">
+                <string>Grasp</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="laser_scan_2">
+               <property name="text">
+                <string>Laser Scan</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="Line" name="line_4">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(200, 200, 200);</string>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -826,36 +896,6 @@ color: rgb(255, 26, 26);</string>
                  </widget>
                 </item>
                </layout>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="footstep_planning">
-               <property name="text">
-                <string>Footstep Planning</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="templates">
-               <property name="text">
-                <string>Templates</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="grasp_model">
-               <property name="text">
-                <string>Grasp</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
               </widget>
              </item>
              <item>
@@ -970,39 +1010,9 @@ color: rgb(255, 26, 26);</string>
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="laser_scan_2">
-               <property name="text">
-                <string>Laser Scan</string>
-               </property>
-               <property name="checked">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QCheckBox" name="octomap_2">
                <property name="text">
                 <string>Octomap</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="robot_joint_markers">
-               <property name="text">
-                <string>Robot Joint Markers</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="robot_occlusion_rendering">
-               <property name="text">
-                <string>Robot Occlusion Rendering</string>
                </property>
                <property name="checked">
                 <bool>true</bool>
@@ -1340,7 +1350,7 @@ color: rgb(255, 26, 26);</string>
    <sender>point_cloud_request</sender>
    <signal>toggled(bool)</signal>
    <receiver>map_view_</receiver>
-   <slot>cameraToggled(bool)</slot>
+   <slot>requestedPointCloudToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>653</x>
