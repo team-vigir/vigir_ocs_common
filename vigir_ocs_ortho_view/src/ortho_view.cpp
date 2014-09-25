@@ -90,32 +90,21 @@ void OrthoView::setViewPlane(const QString& view_plane)
     //render_panel_->getCamera()->setDirection(0,0,-1);
 }
 
-void OrthoView::defineWalkPosePressed()
+void OrthoView::defineStepGoal()
 {
     //ROS_ERROR("vector pressed in map");
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::RightButton);
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
     previous_tool_ = manager_->getToolManager()->getCurrentTool();
-    manager_->getToolManager()->setCurrentTool( set_walk_goal_tool_ );
-    setting_pose_ = true;
-}
-
-void OrthoView::defineStepPosePressed()
-{
-    //ROS_ERROR("vector pressed in map");
-    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);
-    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::RightButton);
-    ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_MOVE_EVENT,false,Qt::NoModifier,Qt::RightButton);
-    previous_tool_ = manager_->getToolManager()->getCurrentTool();
-    manager_->getToolManager()->setCurrentTool( set_step_goal_tool_ );
+    manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
     setting_pose_ = true;
 }
 
 
-void OrthoView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose, int type)
+void OrthoView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
-    Base3DView::processGoalPose( pose, type );
+    Base3DView::processGoalPose( pose );
     //ROS_ERROR("goal processed in map");
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_RELEASE_EVENT,false,Qt::NoModifier,Qt::LeftButton | Qt::RightButton);

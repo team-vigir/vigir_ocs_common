@@ -80,8 +80,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             // connect UI to perspective functions
             QObject::connect(ui->camera_tool, SIGNAL(toggled(bool)), iter->second, SLOT(cameraToggled(bool)));
             QObject::connect(ui->footstep_planning, SIGNAL(toggled(bool)), iter->second, SLOT(footstepPlanningToggled(bool)));
-            QObject::connect(ui->footstep_pose_walk, SIGNAL(pressed()), iter->second, SLOT(defineWalkPosePressed()));
-            QObject::connect(ui->footstep_pose_step, SIGNAL(pressed()), iter->second, SLOT(defineStepPosePressed()));
+            QObject::connect(ui->footstep_pose_walk, SIGNAL(pressed()), iter->second, SLOT(defineStepGoal()));
             QObject::connect(ui->grasp_model, SIGNAL(toggled(bool)), iter->second, SLOT(graspModelToggled(bool)));
             QObject::connect(ui->grid_map, SIGNAL(toggled(bool)), iter->second, SLOT(gridMapToggled(bool)));
             QObject::connect(ui->insert_waypoint, SIGNAL(pressed()), iter->second, SLOT(insertWaypoint()));
@@ -184,28 +183,6 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     // setup all buttons/icons in the toolbar
     setupToolbar();
-
-    //combo box for manipulation modes
-    //connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),joystick,SLOT(setManipulationMode(int)));
-    ui->modeBox->addItem(QString("Object"));
-    ui->modeBox->addItem(QString("World"));
-    ui->modeBox->addItem(QString("Camera"));
-
-    // workaround to be able to use images from stylesheet without knowing the path in advance
-    QString stylesheet = ui->modeBox->styleSheet() + "\n" +
-            "QComboBox::down-arrow {\n" +
-            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
-            "}";
-    ui->modeBox->setStyleSheet(stylesheet);
-
-
-    //allow combo boxes to send messages to joystick
-    connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(setManipulationMode(int)));    
-
-    //publisher for joystick modes
-    mode_pub_ = n_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1,false);
-    //need to subscribe to stay in sync with modes
-    mode_sub_ = n_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1, &MainViewWidget::modeCB,this);
 
     //publisher for the interactive marker mode
     //interactive_marker_mode_pub_ = n_.advertise<std_msgs::Int8>("/flor/ocs/interactive_marker_server/set_mode",1,false);
@@ -509,10 +486,6 @@ void MainViewWidget::addContextMenu()
     //the order in which they are created matters
     //must do parent objects before children
     //and in the order you want them to show up in the context menu
-    vigir_ocs::Base3DView::makeContextChild("Define Target Pose-Walk",boost::bind(&vigir_ocs::Base3DView::defineWalkPosePressed,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Define Target Pose-Step",boost::bind(&vigir_ocs::Base3DView::defineStepPosePressed,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
-
-    contextMenuElements.push_back(separator);
 
     vigir_ocs::Base3DView::makeContextChild("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
 
@@ -797,6 +770,31 @@ void MainViewWidget::setupToolbar()
     connect(ui->ghostControlBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->positionModeBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->plannerConfigBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
+
+    //combo box for manipulation modes
+    //connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),joystick,SLOT(setManipulationMode(int)));
+    ui->modeBox->addItem(QString("Object"));
+    ui->modeBox->addItem(QString("World"));
+    ui->modeBox->addItem(QString("Camera"));
+
+    // workaround to be able to use images from stylesheet without knowing the path in advance
+    QString stylesheet = ui->modeBox->styleSheet() + "\n" +
+            "QComboBox::down-arrow {\n" +
+            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
+            "}";
+    ui->modeBox->setStyleSheet(stylesheet);
+
+
+    //allow combo boxes to send messages to joystick
+    connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(setManipulationMode(int)));
+
+    //publisher for joystick modes
+    mode_pub_ = n_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1,false);
+    //need to subscribe to stay in sync with modes
+    mode_sub_ = n_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1, &MainViewWidget::modeCB,this);
+
+    connect(ui->footstepParamSetBox,SIGNAL(currentIndexChanged(QString)),((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SLOT(setFootstepParameterSet(QString)));
+    connect(((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));
 }
 
 void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
@@ -976,5 +974,29 @@ void MainViewWidget::processWindowControl(const std_msgs::Int8::ConstPtr &visibl
             break;
         default:
             break;
+    }
+}
+
+void MainViewWidget::populateFootstepParameterSetBox(std::vector<std::string> parameter_sets)
+{
+    // first we need to check if they're different than the one we have
+    bool need_clear = false;
+    for(int i = 0; i < parameter_sets.size(); i++)
+    {
+        if(QString(parameter_sets[i].c_str()) != ui->footstepParamSetBox->itemText(i))
+        {
+            need_clear = true;
+            break;
+        }
+    }
+
+    // then we only repopulate the combo box if needed
+    if(need_clear)
+    {
+        ui->footstepParamSetBox->clear();
+        for(int i = 0; i < parameter_sets.size(); i++)
+        {
+            ui->footstepParamSetBox->addItem(QString(parameter_sets[i].c_str()));
+        }
     }
 }

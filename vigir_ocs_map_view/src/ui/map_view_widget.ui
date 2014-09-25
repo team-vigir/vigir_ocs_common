@@ -555,7 +555,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-404</y>
+           <y>0</y>
            <width>207</width>
            <height>1543</height>
           </rect>
@@ -1086,8 +1086,7 @@ color: rgb(255, 26, 26);</string>
     <slot>requestedPointCloudToggled(bool)</slot>
     <slot>clearPointCloudRaycastRequests()</slot>
     <slot>clearMapRequests()</slot>
-    <slot>defineStepPosePressed()</slot>
-    <slot>defineWalkPosePressed()</slot>
+    <slot>defineStepGoal()</slot>
     <slot>selectionToolToggle(bool)</slot>
     <slot>clearPointCloudRegionRequests()</slot>
     <slot>clearPointCloudStereoRequests()</slot>
@@ -1180,7 +1179,7 @@ color: rgb(255, 26, 26);</string>
    <sender>footstep_pose_walk</sender>
    <signal>pressed()</signal>
    <receiver>map_view_</receiver>
-   <slot>defineWalkPosePressed()</slot>
+   <slot>defineStepGoal()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>641</x>
@@ -1452,7 +1451,7 @@ color: rgb(255, 26, 26);</string>
    <sender>footstep_pose_step</sender>
    <signal>pressed()</signal>
    <receiver>map_view_</receiver>
-   <slot>defineStepPosePressed()</slot>
+   <slot>defineStepGoal()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>679</x>

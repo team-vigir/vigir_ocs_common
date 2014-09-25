@@ -134,9 +134,9 @@ geometry_msgs::PoseStamped PSMoveTemplateController::updatePose(geometry_msgs::P
 
     //Update x, y, and z values
     // NEED TO RESTORE THESE FOR POSITION CONTROL
-    //template_pose.pose.position.x += offset->x();
-    //template_pose.pose.position.y += offset->y();
-    //template_pose.pose.position.z += offset->z();
+    template_pose.pose.position.x += offset->x();
+    template_pose.pose.position.y += offset->y();
+    template_pose.pose.position.z += offset->z();
 
     //Update the rotation
     QQuaternion pre;
@@ -151,24 +151,23 @@ geometry_msgs::PoseStamped PSMoveTemplateController::updatePose(geometry_msgs::P
     QQuaternion difference;
     QQuaternion identity;
     //camera absolute rotation
-    //QQuaternion rot(move_server_packet->state[0].quat[3],move_server_packet->state[0].quat[0],move_server_packet->state[0].quat[1],move_server_packet->state[0].quat[2]);
+    QQuaternion rot(move_server_packet->state[0].quat[3],move_server_packet->state[0].quat[0],move_server_packet->state[0].quat[1],move_server_packet->state[0].quat[2]);
+    // calculate the difference
+    rot = old_move_orientation_.conjugate() * rot;
     // 1deg/update
-    QQuaternion rot(0.9999619230641713,-0.008726535498373935,0,0);
-    QQuaternion c = QQuaternion::fromAxisAndAngle(0,1,0,90);
-    rot.normalize();
-    camera_orientation_.normalize();
+    //QQuaternion rot(0.9999619230641713,-0.008726535498373935,0,0);
+    //QQuaternion c = QQuaternion::fromAxisAndAngle(0,1,0,90);
+    //rot.normalize();
+    //camera_orientation_.normalize();
 
     // conversions to make it easier to read angles
-    quatToEuler(rot, y, z, x);
-    ROS_ERROR("rot: %.3f, %.3f, %.3f",x,y,z);
-    quatToEuler(c, y, z, x);
-    ROS_ERROR("cam: %.3f, %.3f, %.3f",x,y,z);
-    quatToEuler(c.conjugate(), y, z, x);
-    ROS_ERROR("conjugate: %.3f, %.3f, %.3f",x,y,z);
+    //quatToEuler(rot, y, z, x);
+    //ROS_ERROR("rot: %.3f, %.3f, %.3f",x,y,z);
+    //quatToEuler(c, y, z, x);
+    //ROS_ERROR("cam: %.3f, %.3f, %.3f",x,y,z);
+    //quatToEuler(c.conjugate(), y, z, x);
+    //ROS_ERROR("conjugate: %.3f, %.3f, %.3f",x,y,z);
 
-    QQuaternion res = c;
-    quatToEuler(res, y, z, x);
-    ROS_ERROR("res: %.3f, %.3f, %.3f",x,y,z);
     //QQuaternion rot(0.9999619230641713,0,-0.008726535498373935,0);
     //QQuaternion rot(0.9999619230641713,0,0,-0.008726535498373935);
     //ROS_ERROR("new: %.3f, %.3f, %.3f, %.3f",rot.x(),rot.y(),rot.z(),rot.scalar());
@@ -181,23 +180,13 @@ geometry_msgs::PoseStamped PSMoveTemplateController::updatePose(geometry_msgs::P
 
     //calculate difference between camera orientation and original rotation of object
     //difference of q1 and q2 is  q` = q1^-1 * q2
-    //difference = camera_orientation_.conjugate() * pre;
+    difference = camera_orientation_.conjugate() * pre;
     //set object orientation to camera
-    //pre = camera_orientation_;
+    pre = camera_orientation_;
     //apply desired rotation
     pre *= rot;
     //revert back change of camera rotation to leave object in newly rotated state
-    //pre *= difference;
-
-    // I have
-    //   pre                    current quaternion of the object
-    //   rot                    rotation to be applied, always rotates correctly, no matter where the starting point is
-    //   camera_orientation_    current quaternion of the camera
-    // I need to apply the rotation considering the camera quaternion
-    // In order to do so, I have to eliminate the current rotation
-    //   pre
-
-    //ROS_ERROR("pos: %.3f, %.3f, %.3f, %.3f",pre.x(),pre.y(),pre.z(),pre.scalar());
+    pre *= difference;
 
     template_pose.pose.orientation.w = pre.scalar();
     template_pose.pose.orientation.x = pre.x();

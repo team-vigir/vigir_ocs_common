@@ -167,10 +167,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // Add support for camera movement
         move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
         // Add support for goal specification/vector navigation
-        set_walk_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
-        set_walk_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
-        set_step_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
-        set_step_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
+        set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
+        set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/flor/ocs/footstep/goal_pose" );
 
         grid_ = manager_->createDisplay( "rviz/Grid", "Grid", true );
         ROS_ASSERT( grid_ != NULL );
@@ -255,9 +253,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // footstep visualization manager initialization
         footstep_vis_manager_ = new FootstepVisManager(manager_);
 
-        // ADD: list of arrows for CoM estimate
-        // ADD: cost map
-
         // F/T sensor displays
         left_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Left F/T sensor", false);
         left_ft_sensor_->subProp("Topic")->setValue("/flor/l_hand/force_torque_sensor");
@@ -270,7 +265,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         right_ft_sensor_->subProp("Alpha")->setValue(0.5);
         right_ft_sensor_->subProp("Arrow Scale")->setValue(0.01);
         right_ft_sensor_->subProp("Arrow Width")->setValue(0.3);
-
 
         // create the grasp hands displays (blue/yellow hands)
         left_grasp_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left grasp hand model", true );
@@ -448,12 +442,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
         reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
         send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
-        send_footstep_goal_walk_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_walk", 1, false );
-        send_footstep_goal_step_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_step", 1, false );
+        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 1, false );
 
         // subscribe to goal pose
-        set_walk_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_walk", 5, boost::bind(&Base3DView::processGoalPose, this, _1, 1) );
-        set_step_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_step", 5, boost::bind(&Base3DView::processGoalPose, this, _1, 2) );
+        set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &Base3DView::processGoalPose, this );
 
         // Create a RobotModel display.
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
@@ -751,7 +743,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
     //Means that currently doing
 
     if(is_primary_view_ && occludedRobotVisible)
-        setRenderOrder();   
+        setRenderOrder();
 
 }
 
@@ -804,7 +796,7 @@ void Base3DView::updateRenderMask( bool mask )
 
 void Base3DView::robotModelToggled( bool selected )
 {
-    robot_model_->setEnabled( selected );    
+    robot_model_->setEnabled( selected );
 }
 
 void Base3DView::graspModelToggled( bool selected )
@@ -921,7 +913,7 @@ void Base3DView::robotJointMarkerToggled(bool selected)
 {
     if(!selected && is_primary_view_)
     {
-        disableJointMarkers = true;        
+        disableJointMarkers = true;
         //ghost state is only checked when ghost is manipulated, needs an additional call to refresh joint states
         if(ghost_robot_model_->isEnabled())
             processGhostJointStates(latest_ghost_joint_state_);
@@ -1000,21 +992,29 @@ void Base3DView::markerTemplateToggled( bool selected )
     }
 }
 
-void Base3DView::defineWalkPosePressed()
+void Base3DView::defineStepGoal()
 {
-    //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
-    manager_->getToolManager()->setCurrentTool( set_walk_goal_tool_ );
+    manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
 }
 
-void Base3DView::defineStepPosePressed()
+void Base3DView::defineStepGoal(unsigned int request_mode)
 {
-    //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
-    manager_->getToolManager()->setCurrentTool( set_step_goal_tool_ );
+    defineStepGoal();
+
+    int footstep_index = -1;
+    if(active_context_name_.find("footstep") != std::string::npos)
+    {
+        int start = active_context_name_.find(" ")+1;
+        QString footstep_number(active_context_name_.substr(start, active_context_name_.length()-start).c_str());
+        ROS_INFO("%d %lu %s",start,active_context_name_.length(),footstep_number.toStdString().c_str());
+        bool ok;
+        footstep_index = footstep_number.toInt(&ok) / 2; // divide by two since markers come in pairs of cube+text
+    }
+    footstep_vis_manager_->setRequestMode(request_mode, footstep_index);
 }
 
-void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose, int type)
+void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
-    last_footstep_plan_type_ = type;
 }
 
 void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc )
@@ -1125,7 +1125,7 @@ void Base3DView::transform(const std::string& target_frame, geometry_msgs::PoseS
 
 void Base3DView::insertTemplate( QString path )
 {
-    //std::cout << "adding template" << std::endl;    
+    //std::cout << "adding template" << std::endl;
     if(!selected_)
     {
         flor_ocs_msgs::OCSTemplateAdd cmd;
@@ -1146,7 +1146,7 @@ void Base3DView::insertTemplate( QString path )
         cmd.pose = pose;
 
         // publish complete list of templates and poses
-        template_add_pub_.publish( cmd );        
+        template_add_pub_.publish( cmd );
     }
     else
     {
@@ -1229,9 +1229,6 @@ void Base3DView::addBase3DContextElements()
     rightArmMenu = makeContextChild("Select Right Arm",boost::bind(&Base3DView::selectRightArm,this),NULL,contextMenuItems);
 
     selectFootstepMenu = makeContextChild("Select Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
-    lockFootstepMenu = makeContextChild("Lock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
-    unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
-    removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
@@ -1241,12 +1238,27 @@ void Base3DView::addBase3DContextElements()
 
     insertTemplateMenu = makeContextParent("Insert Template",contextMenuItems);
     removeTemplateMenu = makeContextChild("Remove Template",boost::bind(&Base3DView::removeTemplateContextMenu,this),NULL,contextMenuItems);
-
-    addToContextVector(separator);
-
     lockLeftMenu = makeContextChild("Lock Left Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL,contextMenuItems);
     lockRightMenu = makeContextChild("Lock Right Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL,contextMenuItems);
     unlockArmsMenu = makeContextChild("Unlock Arms",boost::bind(&Base3DView::setTemplateGraspLock,this,-1),NULL,contextMenuItems);
+
+    addToContextVector(separator);
+
+    newFootstepMenu = makeContextChild("Define New Step Goal",boost::bind(&vigir_ocs::Base3DView::defineStepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
+    continueLastFootstepMenu = makeContextChild("Define Step Goal from Last Step",boost::bind(&vigir_ocs::Base3DView::defineStepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_CURRENT_PLAN), NULL, contextMenuItems);
+    continueThisFootstepMenu = makeContextChild("Define Step Goal from Step XX",boost::bind(&vigir_ocs::Base3DView::defineStepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP), NULL, contextMenuItems);
+    lockFootstepMenu = makeContextChild("Lock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+
+    addToContextVector(separator);
+
+    undoFootstepMenu = makeContextChild("Undo Footstep Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL,contextMenuItems);
+    redoFootstepMenu = makeContextChild("Redo Footstep Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL,contextMenuItems);
+
+    addToContextVector(separator);
+
+    executeFootstepPlanMenu = makeContextChild(QString("Execute Footstep Plan"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
@@ -1259,12 +1271,6 @@ void Base3DView::addBase3DContextElements()
 
     createCircularMarkerMenu = makeContextChild("Create Circular Motion Marker",boost::bind(&Base3DView::createCircularContextMenu,this),circularMotionMenu,contextMenuItems);
     removeCircularMarkerMenu = makeContextChild("Remove marker",boost::bind(&Base3DView::removeCircularContextMenu,this),circularMotionMenu,contextMenuItems);
-
-    addToContextVector(separator);
-
-
-    footstepPlanMenuWalk = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
-    footstepPlanMenuWalkManipulation = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate",boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 }
@@ -1364,7 +1370,7 @@ void Base3DView::createContextMenu(bool, int x, int y)
     //have special case for empty vector item. insert separator when found
     //context_menu_.addAction("Insert Template");
 
-    ROS_ERROR("CONTEXT: %s",active_context_name_.c_str());
+    //ROS_ERROR("CONTEXT: %s",active_context_name_.c_str());
 
     //toggle visibility of context items for a base view
 
@@ -1388,10 +1394,11 @@ void Base3DView::createContextMenu(bool, int x, int y)
     {
         //remove context items as not needed
         context_menu_.removeAction(selectFootstepMenu->action);
+    }
         context_menu_.removeAction(lockFootstepMenu->action);
         context_menu_.removeAction(unlockFootstepMenu->action);
         context_menu_.removeAction(removeFootstepMenu->action);
-    }
+    //}
 
     //lock/unlock arms context items
     if(active_context_name_.find("template") == std::string::npos)
@@ -1415,16 +1422,14 @@ void Base3DView::createContextMenu(bool, int x, int y)
         context_menu_.removeAction(unlockArmsMenu->action);
     }
 
-    if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100)
-    {
-        footstepPlanMenuWalk->action->setEnabled(true);
-        footstepPlanMenuWalkManipulation->action->setEnabled(true);
-    }
-    else
-    {
-        context_menu_.removeAction(footstepPlanMenuWalk->action);
-        context_menu_.removeAction(footstepPlanMenuWalkManipulation->action);
-    }
+//    if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100)
+//    {
+//        executeFootstepPlanMenu->action->setEnabled(true);
+//    }
+//    else
+//    {
+//        context_menu_.removeAction(executeFootstepPlanMenu->action);
+//    }
 
     if(cartesian_marker_list_.size() == 0)
     {
@@ -1435,7 +1440,7 @@ void Base3DView::createContextMenu(bool, int x, int y)
         removeCartesianMarkerMenu->action->setEnabled(true);
 
     if(circular_marker_ != NULL)
-    {        
+    {
         createCircularMarkerMenu->action->setEnabled(false);
         removeCircularMarkerMenu->action->setEnabled(true);
     }
@@ -1639,7 +1644,7 @@ void Base3DView::setTemplateGraspLock(int arm)
 }
 
 void Base3DView::deselectAll()
-{    
+{
     // disable all template markers
     Q_EMIT enableTemplateMarkers( false );
 
@@ -1654,7 +1659,7 @@ void Base3DView::deselectAll()
 }
 
 void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
-{    
+{
     deselectAll();
 
     // enable loopback for both arms
@@ -1687,7 +1692,7 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
 
 void Base3DView::executeFootstepPlanContextMenu()
 {
-    flor_control_msgs::FlorControlModeCommand cmd;
+    /*flor_control_msgs::FlorControlModeCommand cmd;
     if(context_menu_selected_item_->text().contains("Step Manipulate"))
         cmd.behavior = cmd.FLOR_STEP_MANI;
     else if(context_menu_selected_item_->text().contains("Walk Manipulate"))
@@ -1696,7 +1701,8 @@ void Base3DView::executeFootstepPlanContextMenu()
         cmd.behavior = cmd.FLOR_STEP;
     else if(context_menu_selected_item_->text().contains("Walk"))
         cmd.behavior = cmd.FLOR_WALK;
-    flor_mode_command_pub_.publish(cmd);
+    flor_mode_command_pub_.publish(cmd);*/
+    footstep_vis_manager_->requestExecuteStepPlan();
 }
 
 void Base3DView::createCartesianContextMenu()
@@ -1855,8 +1861,8 @@ void Base3DView::setContext(int context, std::string name)
 {
     active_context_ = context;
     active_context_name_ = name;
-    ROS_ERROR("Active context: %d - %s",active_context_, active_context_name_.c_str());
-    //std::cout << "Active context: " << active_context_ << std::endl;
+    //ROS_ERROR("Active context: %d - %s",active_context_, active_context_name_.c_str());
+    std::cout << "Active context: " << active_context_ << std::endl;
 }
 
 void Base3DView::setSelectionRay( Ogre::Ray ray )
@@ -2676,8 +2682,6 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
         double distance = bounds[0].max_position_ - bounds[0].min_position_;
         double boundPercent = robot_state->getMinDistanceToPositionBounds(joint) / distance;
 
-        double jointEffortPercent = std::abs(states->effort[i]) / robot_state->getJointEffortLimit(states->name[i]);
-
         geometry_msgs::Pose pose;
         std::string link_name = ((rviz::RobotDisplayCustom*)robot_model_)->getChildLinkName(states->name[i]);
         robot_state->getLinkPose(link_name,pose);
@@ -2701,6 +2705,9 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
             }
         }
 
+        double jointEffortPercent = ((robot_state->getJointEffortLimit(states->name[i]) != 0 && states->effort.size() > i) ?
+                                    std::abs(states->effort[i]) / robot_state->getJointEffortLimit(states->name[i]) :
+                                    0.0);
         updateJointIcons(states->name[i], pose, jointEffortPercent,boundPercent);
     }
 
@@ -2724,27 +2731,27 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
 void Base3DView::setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset)
 {
     for(int i =0;i<sceneNode->numAttachedObjects();i++)
-    {        
+    {
         Ogre::MovableObject* obj =  sceneNode->getAttachedObject(i);
-        obj->setRenderQueueGroupAndPriority(Ogre::RENDER_QUEUE_MAIN,100);        
+        obj->setRenderQueueGroupAndPriority(Ogre::RENDER_QUEUE_MAIN,100);
         if(obj->getMovableType().compare("Entity") == 0)
         {
             //only subentities have materials...
             for(int e = 0; e < ((Ogre::Entity*)obj)->getNumSubEntities(); e++)
-            {                               
+            {
                 //usually only 1 technique
                 for(int t = 0; t < ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getNumTechniques(); t++)
-                {                    
+                {
                     for(int p = 0; p < ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getNumPasses(); p++)
-                    {                        
+                    {
                         //transparent object?
                         if(((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getPass(p)->getAmbient().a < 0.95f ||
                            ((Ogre::Entity*)obj)->getSubEntity(e)->getMaterial()->getTechnique(t)->getPass(p)->getDiffuse().a < 0.95f)//Transparent
-                        {                            
+                        {
                             obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + queueOffset);
                         }
                         else // opaque object
-                        {                         
+                        {
                             obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN);
                         }
                     }
@@ -2769,8 +2776,8 @@ void Base3DView::setRenderOrder()
     /*
       Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
                     +1  |  Transparent Objects
-    **/    
-    int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();    
+    **/
+    int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();
     for(int i = 0; i < num_displays; i++)
     {
         rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
@@ -2793,13 +2800,13 @@ void Base3DView::setRobotOccludedRender()
    for ( ; it != end; ++it )
    {
        //need to scale down robot then outline robot, must ensure that outline does not exceed scale of 1 on robot
-       const char *vertex_outline_code =                        
+       const char *vertex_outline_code =
                "void main(void){\n"
                   "vec4 tPos   = vec4(gl_Vertex + gl_Normal *0, 1.0);\n"
                   "gl_Position = gl_ModelViewProjectionMatrix * tPos;\n"
                "}\n";
        //black
-       const char *fragment_outline_code =            
+       const char *fragment_outline_code =
            "void main()\n"
            "{\n"
            "    gl_FragColor = vec4(0,0,0,1);\n"
@@ -2814,7 +2821,7 @@ void Base3DView::setRobotOccludedRender()
                   "}\n";
 
        // gray
-       const char *fragment_solid_code =               
+       const char *fragment_solid_code =
               "void main()\n"
               "{\n"
               "    gl_FragColor = vec4(0.65,0.65,0.65,1);\n"
@@ -2858,7 +2865,7 @@ void Base3DView::setRobotOccludedRender()
        vp->load();
 
        Ogre::HighLevelGpuProgramPtr fp = Ogre::HighLevelGpuProgramManager::getSingleton()
-                   .createProgram("SolidFragment", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);      
+                   .createProgram("SolidFragment", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);
        fp->setSource(fragment_solid_code);
        fp->load();
 
@@ -2870,14 +2877,14 @@ void Base3DView::setRobotOccludedRender()
        Ogre::HighLevelGpuProgramPtr fpOutline = Ogre::HighLevelGpuProgramManager::getSingleton()
                    .createProgram("OutlineFragment", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);
        fpOutline->setSource(fragment_outline_code);
-       fpOutline->load();      
+       fpOutline->load();
 
-       rviz::RobotLinkCustom* info = it->second;       
+       rviz::RobotLinkCustom* info = it->second;
        M_SubEntityToMaterial materials = info->getMaterials();
        M_SubEntityToMaterial::iterator iter = materials.begin();
        M_SubEntityToMaterial::iterator ender = materials.end();
 
-       //for all materials in this link?              
+       //for all materials in this link?
        for(;iter != ender; ++iter)
        {
            Ogre::MaterialPtr material =  iter->second;
@@ -2919,7 +2926,7 @@ void Base3DView::setRobotOccludedRender()
     //           pass->setLightingEnabled(true);
     //           pass->setSelfIllumination(r,g,b);
            }
-       }       
+       }
    }
 
 }
@@ -3085,10 +3092,7 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
 
 void Base3DView::processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg )
 {
-    if(!msg->data)
-        send_footstep_goal_step_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
-    else
-        send_footstep_goal_walk_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+    send_footstep_goal_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 }
 
 void Base3DView::publishMarkers()
@@ -3388,7 +3392,7 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
     }
     else if(ctrl_is_pressed && alt_is_pressed) //emergency stop
-    {        
+    {
         stop_button_->setVisible(true);
         stop_button_->setGeometry(this->geometry().bottomRight().x()/2 - 200,this->geometry().bottomRight().y()/2 - 150,400,300);
     }

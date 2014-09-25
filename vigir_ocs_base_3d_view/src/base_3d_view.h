@@ -53,8 +53,9 @@
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSHotkeyRelay.h>
 #include <flor_ocs_msgs/OCSObjectSelection.h>
-#include "flor_ocs_msgs/OCSCameraTransform.h"
-#include "flor_ocs_msgs/OCSControlMode.h"
+#include <flor_ocs_msgs/OCSCameraTransform.h>
+#include <flor_ocs_msgs/OCSControlMode.h>
+#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include <flor_perception_msgs/RaycastRequest.h>
 #include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
@@ -236,7 +237,7 @@ public:
     /**
       * ROS Callback: receives new goal pose for footstep planner
       */
-    virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
+    virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     /**
       * ROS Callback: receives new key event from global hotkey process
       */
@@ -265,6 +266,9 @@ public:
       */
     static bool checkPoseMatch(const geometry_msgs::Pose& p1, const geometry_msgs::Pose& p2, float scalar_error_threshold = 0.0f, float angle_error_threshold = 0.0f);
 
+    // returns the footstep manager
+    FootstepVisManager* getFootstepVisManager() { return footstep_vis_manager_; }
+
 public Q_SLOTS:
     // displays
     // Enables/disables visibility of rviz displays
@@ -289,8 +293,8 @@ public Q_SLOTS:
     void markerTemplateToggled( bool );
     void robotJointMarkerToggled(bool selected);
     void robotOcclusionToggled(bool selected);
-    virtual void defineWalkPosePressed();
-    virtual void defineStepPosePressed();
+    virtual void defineStepGoal();
+    void defineStepGoal(unsigned int request_mode);
 
 
     /**
@@ -505,7 +509,7 @@ protected:
     rviz::Tool* interactive_markers_tool_;
     //rviz::Tool* selection_tool_;
     rviz::Tool* move_camera_tool_;
-    rviz::Tool* set_walk_goal_tool_;
+    rviz::Tool* set_goal_tool_;
     rviz::Tool* set_step_goal_tool_;
 
     Ogre::Vector3 selection_position_;
@@ -525,11 +529,10 @@ protected:
 
     ros::Publisher pointcloud_request_world_pub_;
 
-    ros::Publisher send_footstep_goal_step_pub_;
+    ros::Publisher send_footstep_goal_pub_;
     ros::Publisher send_footstep_goal_walk_pub_;
 
-    ros::Subscriber set_walk_goal_sub_;
-    ros::Subscriber set_step_goal_sub_;
+    ros::Subscriber set_goal_sub_;
 
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;
@@ -668,8 +671,12 @@ protected:
     contextMenuItem * selectFootstepMenu;
     contextMenuItem * lockFootstepMenu;
     contextMenuItem * unlockFootstepMenu;
-    contextMenuItem * footstepPlanMenuWalk;
-    contextMenuItem * footstepPlanMenuWalkManipulation;
+    contextMenuItem * undoFootstepMenu;
+    contextMenuItem * redoFootstepMenu;
+    contextMenuItem * newFootstepMenu;
+    contextMenuItem * continueLastFootstepMenu;
+    contextMenuItem * continueThisFootstepMenu;
+    contextMenuItem * executeFootstepPlanMenu;
     contextMenuItem * cartesianMotionMenu;
     contextMenuItem * createCartesianMarkerMenu;
     contextMenuItem * removeCartesianMarkerMenu;
