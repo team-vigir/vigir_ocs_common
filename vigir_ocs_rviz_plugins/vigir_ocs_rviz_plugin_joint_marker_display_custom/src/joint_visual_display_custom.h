@@ -68,7 +68,7 @@ public:
     void setFramePosition( const std::string joint_name, const Ogre::Vector3& position );
     void setFrameOrientation( const std::string joint_name, const Ogre::Quaternion& orientation );
 
-    void setFrameEnabled( const std::string joint_name, const bool e );
+    //void setFrameEnabled( const std::string joint_name, const bool e );
 
     //set individual colors/alpha based on joint name to target specific joints
     void setJointColor( float r, float g, float b, std::string joint);

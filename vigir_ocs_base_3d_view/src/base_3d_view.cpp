@@ -630,18 +630,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ocs_sync_sub_ = nh_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &Base3DView::synchronizeViews, this );
         ocs_sync_pub_ = nh_.advertise<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
 
-        //create joint position error displays
-        joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
-        joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
-        joint_arrows_->subProp("Width")->setValue("0.015");
-        joint_arrows_->subProp("Scale")->setValue("1.2");
-        joint_arrows_->subProp("Alpha")->setValue("0.9");
 
-        ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", true );
-        ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
-        ghost_joint_arrows_->subProp("Width")->setValue("0.015");
-        ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
-        ghost_joint_arrows_->subProp("Alpha")->setValue("0.9");
 
         disableJointMarkers = false;
         occludedRobotVisible = true;
@@ -653,6 +642,19 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
        // connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
         //initialize Render Order correctly
         setRenderOrder();
+
+        //create joint position error displays
+//        joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
+//        joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
+//        joint_arrows_->subProp("Width")->setValue("0.015");
+//        joint_arrows_->subProp("Scale")->setValue("1.2");
+//        joint_arrows_->subProp("Alpha")->setValue("0.9");
+
+        ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", true );
+        ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
+        ghost_joint_arrows_->subProp("Width")->setValue("0.015");
+        ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
+        ghost_joint_arrows_->subProp("Alpha")->setValue("0.9");
 
 
     }
@@ -2900,6 +2902,12 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
 
 void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose, double effortPercent, double boundPercent, bool ghost, int arrowDirection)
 {
+    std::string jointPositionIconName = name;
+    if(ghost)
+    {
+        //joint icon plugin will not name joints with "ghost/" prefix, need to adjust
+        jointPositionIconName = jointPositionIconName.substr(6,jointPositionIconName.size());
+    }
     //want to disable a marker that has already been created
     if(disableJointMarkers && jointDisplayMap.find(name) != jointDisplayMap.end())
     {
@@ -2980,25 +2988,25 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
         color.setGreenF(green);
         color.setBlueF(0);
         if(ghost)
-        {
-            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setArrowDirection(name,arrowDirection);
-            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointColor(color,name);
-            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(alpha,name);
+        {           
+            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setArrowDirection(jointPositionIconName,arrowDirection);
+            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointColor(color,jointPositionIconName);
+            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(alpha,jointPositionIconName);
         }
-        else
-        {
-            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setArrowDirection(name,arrowDirection);
-            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointColor(color,name);
-            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(alpha,name);
-        }
+//        else
+//        {
+//            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setArrowDirection(name,arrowDirection);
+//            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointColor(color,name);
+//            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(alpha,name);
+//        }
     }
     else
     {
         //no joint arrow should be shown when joint bounds is okay
         if(ghost)
-            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,name);
-        else
-            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(0,name);
+            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+//        else
+//            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(0,name);
     }
 
 }
@@ -3059,7 +3067,7 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
             direction = -1;
         else
             direction = 1;
-        ROS_ERROR("max: %f min: %f  pos: %f  direction:%d",bounds[0].max_position_ ,bounds[0].min_position_,states->position[i],direction );
+        //ROS_ERROR("max: %f min: %f  pos: %f  direction:%d",bounds[0].max_position_ ,bounds[0].min_position_,states->position[i],direction );
 
         double jointEffortPercent = std::abs(states->effort[i]) / robot_state->getJointEffortLimit(states->name[i]);
 

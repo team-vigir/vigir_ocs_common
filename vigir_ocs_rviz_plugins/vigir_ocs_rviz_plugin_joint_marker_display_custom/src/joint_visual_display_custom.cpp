@@ -30,7 +30,7 @@ namespace rviz
         for (std::map<std::string, boost::shared_ptr<urdf::Joint> >::iterator it = urdf_model_->joints_.begin(); it != urdf_model_->joints_.end(); it ++ ) {
             if ( it->second->type == urdf::Joint::REVOLUTE ) {
                     std::string joint_name = it->first;
-                    effort_enabled_[joint_name] = true;
+                    //effort_enabled_[joint_name] = true;
                 }
             }
         //default to green
@@ -59,20 +59,20 @@ namespace rviz
 
     void EffortVisualCustom::getRainbowColor(float value, Ogre::ColourValue& color)
     {
-    value = std::min(value, 1.0f);
-    value = std::max(value, 0.0f);
+//    value = std::min(value, 1.0f);
+//    value = std::max(value, 0.0f);
 
-    float h = value * 5.0f + 1.0f;
-    int i = floor(h);
-    float f = h - i;
-    if ( !(i&1) ) f = 1 - f; // if i is even
-    float n = 1 - f;
+//    float h = value * 5.0f + 1.0f;
+//    int i = floor(h);
+//    float f = h - i;
+//    if ( !(i&1) ) f = 1 - f; // if i is even
+//    float n = 1 - f;
 
-    if      (i <= 1) color[0] = 0, color[1] = n, color[2] = 1;
-    else if (i == 2) color[0] = 0, color[1] = 1, color[2] = n;
-    else if (i == 3) color[0] = n, color[1] = 1, color[2] = 0;
-    else if (i == 4) color[0] = 1, color[1] = n, color[2] = 0;
-    else if (i >= 5) color[0] = n, color[1] = 0, color[2] = 1;
+//    if      (i <= 1) color[0] = 0, color[1] = n, color[2] = 1;
+//    else if (i == 2) color[0] = 0, color[1] = 1, color[2] = n;
+//    else if (i == 3) color[0] = n, color[1] = 1, color[2] = 0;
+//    else if (i == 4) color[0] = 1, color[1] = n, color[2] = 0;
+//    else if (i >= 5) color[0] = n, color[1] = 0, color[2] = 1;
     }
 
     void EffortVisualCustom::setMessage( const sensor_msgs::JointStateConstPtr& msg )
@@ -88,33 +88,36 @@ namespace rviz
         if ( joint_type == urdf::Joint::REVOLUTE )
         {
                 // enable or disable draw
-                if ( effort_circle_.find(joint_name) != effort_circle_.end() &&
-                     !effort_enabled_[joint_name] ) // enable->disable
+                if ( effort_circle_.find(joint_name) != effort_circle_.end())// &&
+                     //!effort_enabled_[joint_name] ) // enable->disable
                     {
                         delete(effort_circle_[joint_name]);
                         delete(effort_arrow_[joint_name]);
                         effort_circle_.erase(joint_name);
                         effort_arrow_.erase(joint_name);
                     }
-                if ( effort_circle_.find(joint_name) == effort_circle_.end() &&
-                     effort_enabled_[joint_name] ) // disable -> enable
+                if ( effort_circle_.find(joint_name) == effort_circle_.end())// &&
+                     //effort_enabled_[joint_name] ) // disable -> enable
                     {
                         effort_circle_[joint_name] = new rviz::BillboardLine( scene_manager_, frame_node_ );
-                       // setRenderOrder(effort_circle_[joint_name]->getSceneNode());
+                        setRenderOrder(effort_circle_[joint_name]->getSceneNode());
                         effort_arrow_[joint_name] = new rviz::Arrow( scene_manager_, frame_node_ );
-                        //setRenderOrder(effort_arrow_[joint_name]->getSceneNode());
+                        setRenderOrder(effort_arrow_[joint_name]->getSceneNode());
                     }
 
-                if ( ! effort_enabled_[joint_name] ) continue;
+               // if ( ! effort_enabled_[joint_name] ) continue;
 
         //tf::Transform offset = poseFromJoint(joint);
         boost::shared_ptr<urdf::JointLimits> limit = joint->limits;
 
                 effort_arrow_[joint_name]->set(0, width_*2, width_*2*1.0, width_*2*2.0);
                 //arrow direction
+                //arrow is placed in different location on ring based on direction
+                int arrowPlaceOffset = -1;
                 if ( arrow_directions_.find(joint_name) != arrow_directions_.end() )
                 {                                                                                       //-1 or 1 for direction
                     effort_arrow_[joint_name]->setDirection(orientation_[joint_name] * Ogre::Vector3(arrow_directions_[joint_name],0,0));
+                    arrowPlaceOffset = arrow_directions_[joint_name];
                 }
                 effort_arrow_[joint_name]->setPosition(orientation_[joint_name] * Ogre::Vector3(0, 0.05+marker_scale_*scale_*0.5, 0) + position_[joint_name]);
 
@@ -126,19 +129,17 @@ namespace rviz
 //                    if ( effort < 0 ) point.x = -point.x;
                     effort_circle_[joint_name]->addPoint(orientation_[joint_name] * point + position_[joint_name]);
                 }
-               // Ogre::ColourValue color;
-                //getRainbowColor(effort_value, color);
-//                if(color_ != NULL)
-//                {
-//                    effort_arrow_[joint_name]->setColor(color_->r, color_->g, color_->b, color_->a);
-//                    effort_circle_[joint_name]->setColor(color_->r, color_->g, color_->b, color_->a);
-//                }
-//                else
-//                {
-//                    effort_arrow_[joint_name]->setColor(0,1, 0, .9f);
-//                    effort_circle_[joint_name]->setColor(0,1, 0, .9f);
-//                }
 
+
+                //rotate joint position values to rotate visualization? //removes the ability to recognize correct joint orientations here, but thats desired
+                //cant as joint data is constantly being updated
+//                Ogre::Quaternion jointRotation =  orientation_[joint_name];
+//                //if(joint_name.find("neck") != std::string::npos)
+//                    ROS_ERROR("BEFOREjoint: %s, %f %f %f %f",joint_name.c_str(),jointRotation.w,jointRotation.x,jointRotation.y,jointRotation.z);
+//                Ogre::Quaternion* rApplied = new Ogre::Quaternion(1.0f,0.5f,0.05f,0.05f);
+//                jointRotation = jointRotation * *rApplied;
+//                orientation_[joint_name] = jointRotation;
+//                ROS_ERROR("AFTERjoint: %s, %f %f %f %f",joint_name.c_str(),jointRotation.w,jointRotation.x,jointRotation.y,jointRotation.z);
 
 //                Ogre::Quaternion rotation = effort_circle_[joint_name]->getOrientation();
 //               // ROS_ERROR("before %f %f %f %f",rotation.w,rotation.x,rotation.y,rotation.z);
@@ -163,19 +164,19 @@ namespace rviz
         {
 
             Ogre::MovableObject* obj =  sceneNode->getAttachedObject(i);
-            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN - 1);
-            //ROS_ERROR("set line");
+            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + 50);
         }
+        //recurse for all potential children
         for(int i =0;i<sceneNode->numChildren();i++)
         {
             setRenderOrder((Ogre::SceneNode*)sceneNode->getChild(i));
         }
     }
 
-    void EffortVisualCustom::setFrameEnabled( const std::string joint_name, const bool e )
-    {
-        effort_enabled_[joint_name] = e;
-    }
+//    void EffortVisualCustom::setFrameEnabled( const std::string joint_name, const bool e )
+//    {
+//        effort_enabled_[joint_name] = e;
+//    }
 
     // Position and orientation are passed through to the SceneNode.
     void EffortVisualCustom::setFramePosition( const Ogre::Vector3& position )
@@ -232,7 +233,7 @@ namespace rviz
         }
         else
         {
-            ROS_ERROR("Tried to change non-existing joint alpha\n");
+            ROS_ERROR("Tried to change non-existing joint alpha : %s\n",joint_name.c_str());
         }
     }
     void EffortVisualCustom::setColor( float r, float g, float b)
@@ -264,7 +265,7 @@ namespace rviz
         }
         else
         {
-            ROS_ERROR("Tried to change non-existing joint color");
+            ROS_ERROR("Tried to change non-existing joint color: %s \n",joint_name.c_str());
         }
     }
 
