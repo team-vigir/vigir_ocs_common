@@ -74,8 +74,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
             // connect UI to perspective functions
             //QObject::connect(ui->camera_tool, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(cameraToggled(bool)));
             QObject::connect(ui->footstep_planning, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(footstepPlanningToggled(bool)));
-            QObject::connect(ui->footstep_pose_walk, SIGNAL(pressed()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(defineStepGoal()));
-            QObject::connect(ui->footstep_pose_step, SIGNAL(pressed()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(defineStepGoal()));
+            QObject::connect(ui->footstep_pose, SIGNAL(pressed()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(defineFootstepGoal()));
             QObject::connect(ui->grasp_model, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(graspModelToggled(bool)));
             QObject::connect(ui->grid_map, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(gridMapToggled(bool)));
             QObject::connect(ui->insert_waypoint, SIGNAL(pressed()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(insertWaypoint()));

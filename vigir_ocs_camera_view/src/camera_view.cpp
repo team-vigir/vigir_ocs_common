@@ -436,7 +436,7 @@ void CameraView::updateImageFrame(std::string frame)
     camera_frame_topic_ = frame;
 }
 
-void CameraView::defineStepGoal()
+void CameraView::defineFootstepGoal()
 {
     //ROS_ERROR("vector pressed in map");
     previous_tool_ = manager_->getToolManager()->getCurrentTool();

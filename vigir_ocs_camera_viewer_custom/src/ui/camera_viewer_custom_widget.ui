@@ -857,7 +857,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QPushButton" name="footstep_pose_walk">
+           <widget class="QPushButton" name="footstep_pose">
             <property name="text">
              <string>Define Target Pose - Walk</string>
             </property>
@@ -1767,7 +1767,7 @@ color: rgb(255, 26, 26);</string>
    </hints>
   </connection>
   <connection>
-   <sender>footstep_pose_walk</sender>
+   <sender>footstep_pose</sender>
    <signal>pressed()</signal>
    <receiver>camera_view_</receiver>
    <slot>definePosePressed()</slot>

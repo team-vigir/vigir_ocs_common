@@ -613,6 +613,14 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         disableJointMarkers = false;
         occludedRobotVisible = true;
+
+        rviz::Display * overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Overlay for Notifications", true );
+        overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
+
+        //initialize notification system        
+        // and test
+        NotificationSystem::Instance()->notify("cheese");
+
     }
 
     // Connect the 3D selection tool to
@@ -992,14 +1000,14 @@ void Base3DView::markerTemplateToggled( bool selected )
     }
 }
 
-void Base3DView::defineStepGoal()
+void Base3DView::defineFootstepGoal()
 {
     manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
 }
 
-void Base3DView::defineStepGoal(unsigned int request_mode)
+void Base3DView::defineFootstepGoal(unsigned int request_mode)
 {
-    defineStepGoal();
+    defineFootstepGoal();
 
     int footstep_index = -1;
     if(active_context_name_.find("footstep") != std::string::npos)
@@ -1229,6 +1237,9 @@ void Base3DView::addBase3DContextElements()
     rightArmMenu = makeContextChild("Select Right Arm",boost::bind(&Base3DView::selectRightArm,this),NULL,contextMenuItems);
 
     selectFootstepMenu = makeContextChild("Select Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    lockFootstepMenu = makeContextChild("Lock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
@@ -1238,15 +1249,18 @@ void Base3DView::addBase3DContextElements()
 
     insertTemplateMenu = makeContextParent("Insert Template",contextMenuItems);
     removeTemplateMenu = makeContextChild("Remove Template",boost::bind(&Base3DView::removeTemplateContextMenu,this),NULL,contextMenuItems);
+
+    addToContextVector(separator);
+
     lockLeftMenu = makeContextChild("Lock Left Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL,contextMenuItems);
     lockRightMenu = makeContextChild("Lock Right Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL,contextMenuItems);
     unlockArmsMenu = makeContextChild("Unlock Arms",boost::bind(&Base3DView::setTemplateGraspLock,this,-1),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
-    newFootstepMenu = makeContextChild("Define New Step Goal",boost::bind(&vigir_ocs::Base3DView::defineStepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
-    continueLastFootstepMenu = makeContextChild("Define Step Goal from Last Step",boost::bind(&vigir_ocs::Base3DView::defineStepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_CURRENT_PLAN), NULL, contextMenuItems);
-    continueThisFootstepMenu = makeContextChild("Define Step Goal from Step XX",boost::bind(&vigir_ocs::Base3DView::defineStepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP), NULL, contextMenuItems);
+    newFootstepMenu = makeContextChild("Define New Step Goal",boost::bind(&vigir_ocs::Base3DView::defineFootstepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
+    continueLastFootstepMenu = makeContextChild("Define Step Goal from Last Step",boost::bind(&vigir_ocs::Base3DView::defineFootstepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_CURRENT_PLAN), NULL, contextMenuItems);
+    continueThisFootstepMenu = makeContextChild("Define Step Goal from Step XX",boost::bind(&vigir_ocs::Base3DView::defineFootstepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP), NULL, contextMenuItems);
     lockFootstepMenu = makeContextChild("Lock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
     unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
     removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
