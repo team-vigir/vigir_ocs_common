@@ -619,7 +619,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         //initialize notification system        
         // and test
-        NotificationSystem::Instance()->notify("cheese");
+        NotificationSystem::Instance()->notify("cheesers");
 
     }
 
