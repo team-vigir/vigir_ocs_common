@@ -266,7 +266,19 @@ void RobotCustom::update(const LinkUpdater& updater)
                                        collision_position, collision_orientation
                                        ))
         {
-            info->setTransforms( visual_position, visual_orientation, collision_position, collision_orientation );
+            if(!visual_position.isNaN() && !visual_orientation.isNaN() && !collision_position.isNaN() && !collision_orientation.isNaN())
+            {
+                info->setTransforms( visual_position, visual_orientation, collision_position, collision_orientation );
+            }
+            else
+            {
+                std::string error;
+                if(visual_position.isNaN()) error += "visual position\t";
+                if(visual_orientation.isNaN()) error += "visual orientation\t";
+                if(collision_position.isNaN()) error += "collision position\t";
+                if(collision_orientation.isNaN()) error += "collision orientation";
+                ROS_ERROR("Link [%s] NaN Transform: %s",info->getName().c_str(),error.c_str());
+            }
         }
         else
         {

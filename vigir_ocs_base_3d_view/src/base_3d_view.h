@@ -289,8 +289,7 @@ public Q_SLOTS:
     void markerTemplateToggled( bool );
     void robotJointMarkerToggled(bool selected);
     void robotOcclusionToggled(bool selected);
-    virtual void defineWalkPosePressed();
-    virtual void defineStepPosePressed();
+    virtual void definePosePressed();
 
 
     /**
@@ -505,7 +504,7 @@ protected:
     rviz::Tool* interactive_markers_tool_;
     //rviz::Tool* selection_tool_;
     rviz::Tool* move_camera_tool_;
-    rviz::Tool* set_walk_goal_tool_;
+    rviz::Tool* set_goal_tool_;
     rviz::Tool* set_step_goal_tool_;
 
     Ogre::Vector3 selection_position_;
@@ -525,11 +524,10 @@ protected:
 
     ros::Publisher pointcloud_request_world_pub_;
 
-    ros::Publisher send_footstep_goal_step_pub_;
+    ros::Publisher send_footstep_goal_pub_;
     ros::Publisher send_footstep_goal_walk_pub_;
 
-    ros::Subscriber set_walk_goal_sub_;
-    ros::Subscriber set_step_goal_sub_;
+    ros::Subscriber set_goal_sub_;
 
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;

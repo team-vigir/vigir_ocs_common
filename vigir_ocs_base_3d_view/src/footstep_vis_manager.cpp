@@ -20,12 +20,8 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     footsteps_path_body_array_->subProp( "Marker Topic" )->setValue( "/flor/ocs/footstep/footsteps_path_body_array" );
 
     goal_pose_walk_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
-    goal_pose_walk_->subProp( "Topic" )->setValue( "/goal_pose_walk" );
+    goal_pose_walk_->subProp( "Topic" )->setValue( "/goal_pose_step" );
     goal_pose_walk_->subProp( "Shape" )->setValue( "Axes" );
-
-    goal_pose_step_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
-    goal_pose_step_->subProp( "Topic" )->setValue( "/goal_pose_step" );
-    goal_pose_step_->subProp( "Shape" )->setValue( "Axes" );
 
     planner_start_ = manager_->createDisplay( "rviz/Pose", "Start pose", true );
     planner_start_->subProp( "Topic" )->setValue( "/ros_footstep_planner/start" );
@@ -104,14 +100,12 @@ void FootstepVisManager::updateInteractiveMarkers()
             im->subProp( "Show Visual Aids" )->setValue( true );
             display_footstep_marker_list_.push_back(im);
         }
-        else
-        {
-            // update interactive marker pose
-            flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-            cmd.topic = pose_string;
-            cmd.pose = footstep_list_.pose[i];
-            interactive_marker_update_pub_.publish(cmd);
-        }
+
+        // update interactive marker pose
+        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.topic = pose_string;
+        cmd.pose = footstep_list_.pose[i];
+        interactive_marker_update_pub_.publish(cmd);
     }
 }
 
@@ -124,7 +118,6 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
             flor_ocs_msgs::OCSFootstepUpdate cmd;
             int start_idx = msg.topic.find("/footstep_") + strlen("/footstep_");
             int end_idx = msg.topic.substr(start_idx, msg.topic.size()-start_idx).find("_marker");
-            //ROS_ERROR("%s from %d to %d: %s",msg.topic.c_str(),start_idx,end_idx,msg.topic.substr(start_idx,end_idx).c_str());
             cmd.footstep_id = boost::lexical_cast<int>(msg.topic.substr(start_idx,end_idx).c_str());
             cmd.pose = msg.pose;
             footstep_update_pub_.publish(cmd);

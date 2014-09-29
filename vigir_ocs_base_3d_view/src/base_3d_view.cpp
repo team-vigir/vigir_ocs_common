@@ -167,10 +167,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // Add support for camera movement
         move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
         // Add support for goal specification/vector navigation
-        set_walk_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
-        set_walk_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
-        set_step_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
-        set_step_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
+        set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
+        set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
 
         grid_ = manager_->createDisplay( "rviz/Grid", "Grid", true );
         ROS_ASSERT( grid_ != NULL );
@@ -448,12 +446,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
         reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
         send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
-        send_footstep_goal_walk_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_walk", 1, false );
-        send_footstep_goal_step_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_step", 1, false );
+        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/goal_pose_step", 1, false );
 
         // subscribe to goal pose
-        set_walk_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_walk", 5, boost::bind(&Base3DView::processGoalPose, this, _1, 1) );
-        set_step_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_step", 5, boost::bind(&Base3DView::processGoalPose, this, _1, 2) );
+        set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/goal_pose_step", 5, boost::bind(&Base3DView::processGoalPose, this, _1, 2) );
 
         // Create a RobotModel display.
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
@@ -1000,16 +996,10 @@ void Base3DView::markerTemplateToggled( bool selected )
     }
 }
 
-void Base3DView::defineWalkPosePressed()
+void Base3DView::definePosePressed()
 {
     //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
-    manager_->getToolManager()->setCurrentTool( set_walk_goal_tool_ );
-}
-
-void Base3DView::defineStepPosePressed()
-{
-    //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_step" );
-    manager_->getToolManager()->setCurrentTool( set_step_goal_tool_ );
+    manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
 }
 
 void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose, int type)
@@ -1261,7 +1251,6 @@ void Base3DView::addBase3DContextElements()
     removeCircularMarkerMenu = makeContextChild("Remove marker",boost::bind(&Base3DView::removeCircularContextMenu,this),circularMotionMenu,contextMenuItems);
 
     addToContextVector(separator);
-
 
     footstepPlanMenuWalk = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
     footstepPlanMenuWalkManipulation = makeContextChild(QString("Execute Footstep Plan - ")+(last_footstep_plan_type_ == 1 ? "Step" : "Walk")+" Manipulate",boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
@@ -3085,10 +3074,7 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
 
 void Base3DView::processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg )
 {
-    if(!msg->data)
-        send_footstep_goal_step_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
-    else
-        send_footstep_goal_walk_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+    send_footstep_goal_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 }
 
 void Base3DView::publishMarkers()

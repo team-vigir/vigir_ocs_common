@@ -85,8 +85,7 @@ public Q_SLOTS:
     void updateImageFrame(std::string);
     void selectionToolToggle(bool);
 
-    virtual void defineWalkPosePressed();
-    virtual void defineStepPosePressed();
+    virtual void definePosePressed();
     void mouseEnterEvent( QEvent* event );
     void mouseMoveEvent( QMouseEvent* event );
     void keyPressEvent( QKeyEvent* event );
