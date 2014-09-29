@@ -111,6 +111,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         view_id_ = manager_->addRenderPanel( render_panel_ );
 
         selection_3d_display_ = copy_from->getSelection3DDisplay();
+        overlay_display_ = copy_from->getOverlayDisplay();
         mouse_event_handler_ = copy_from->getMouseEventHander();
     }
     else
@@ -614,12 +615,11 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         disableJointMarkers = false;
         occludedRobotVisible = true;
 
-        rviz::Display * overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Overlay for Notifications", true );
+        overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Overlay for Notifications", true );
         overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
 
         //initialize notification system        
-        // and test
-        NotificationSystem::Instance()->notify("cheesers");
+        // and test        
 
     }
 
@@ -629,6 +629,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
     // connect the 3d selection tool to its display
     QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
+    //connect notification overlay to display
+    QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), overlay_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
     Q_EMIT setRenderPanel(this->render_panel_);
     QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
     QObject::connect(selection_3d_display_, SIGNAL(setSelectionRay(Ogre::Ray)), this, SLOT(setSelectionRay(Ogre::Ray)));
@@ -1182,6 +1184,8 @@ void Base3DView::insertTemplate( QString path )
 
         Q_EMIT resetSelection();
     }
+
+    NotificationSystem::Instance()->notify("cheesers");
 }
 
 void Base3DView::insertWaypoint()
@@ -2797,7 +2801,7 @@ void Base3DView::setRenderOrder()
         rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
         std::string display_name = display->getNameStd();
         //camera should be unaffected by render order
-        if(display_name.find("Camera") == std::string::npos)
+        if(display_name.find("Camera") == std::string::npos || display_name.find("Overlay") == std::string::npos )
             setSceneNodeRenderGroup(display->getSceneNode(), 1);
     }
 }

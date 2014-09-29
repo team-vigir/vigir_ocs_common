@@ -158,6 +158,7 @@ namespace jsk_rviz_plugin
         Ogre::PF_A8R8G8B8,   // pixel format chosen to match a format Qt can use
         Ogre::TU_DEFAULT     // usage
         );
+
       panel_material_->getTechnique(0)->getPass(0)
         ->createTextureUnitState(texture_name);
         

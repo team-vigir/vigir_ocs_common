@@ -40,6 +40,7 @@
 #include "overlay_utils.h"
 #include <std_msgs/ColorRGBA.h>
 #include <rviz/properties/ros_topic_property.h>
+#include "rviz/display_context.h"
 
 #include <OGRE/OgreColourValue.h>
 #include <OGRE/OgreMaterial.h>
@@ -48,6 +49,8 @@
 #include "OGRE/OgreWindowEventUtilities.h"
 #include <OGRE/OgreRenderTargetListener.h>
 #include <OGRE/OgreRenderQueueListener.h>
+#include <QElapsedTimer>
+
 
 namespace rviz
 {
@@ -73,7 +76,10 @@ protected:
 
     int texture_width_;
     int texture_height_;
-    
+
+    QElapsedTimer timer_;
+    int viewport_width_;
+    int viewport_height_;
     // std_msgs::ColorRGBA bg_color_;
     // std_msgs::ColorRGBA fg_color_;
     QColor bg_color_;
@@ -82,12 +88,20 @@ protected:
     int line_width_;
     std::string text_;
     std::string font_;
+    float up_time_;
+    float fade_in_;
+    float fade_out_;
+    float fade_in_timer_;
+    float up_timer_;
+    float fade_out_timer_;
+    int row_;
+    int column_;
     std::vector<rviz::RenderPanel*> render_panel_list_;
     rviz::RenderPanel* render_panel_; // this is the active render panels
-    
-    
+        
     ros::Subscriber sub_;
-    
+
+    void setPositionFromAlignment();
     virtual void onInitialize();
     virtual void subscribe();
     virtual void unsubscribe();
