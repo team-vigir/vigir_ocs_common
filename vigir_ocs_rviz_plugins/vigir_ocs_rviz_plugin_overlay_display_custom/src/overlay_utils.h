@@ -97,7 +97,7 @@ namespace jsk_rviz_plugin
     Ogre::Overlay* overlay_;
     Ogre::PanelOverlayElement* panel_;
     Ogre::MaterialPtr panel_material_;
-    Ogre::TexturePtr texture_;
+    Ogre::TexturePtr texture_;    
 
   private:
     

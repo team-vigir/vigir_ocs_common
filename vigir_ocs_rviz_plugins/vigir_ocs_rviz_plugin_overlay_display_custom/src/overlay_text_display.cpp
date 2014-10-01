@@ -179,59 +179,63 @@ void OverlayTextDisplay::update(float wall_dt, float ros_dt)
         return;
     }
     overlay_->updateTextureSize(texture_width_, texture_height_);
-
-
-        //set colors based on fade timers
-        if(fade_in_timer_ > 0)
-        {
-            //increase alpha as timer decreases
-            fade_in_timer_ -= wall_dt;
-            float a = 1.0 - (fade_in_timer_ / fade_in_);
-            //set a to 0 if negative
-            a = a>=0 ? a : 0;
-            fg_color_.setAlpha(a  *230.0); // want max at 90%
-            bg_color_.setAlpha(a  *127.0); // want max at 50%
-        }
-        else if(up_timer_ > 0)
-        {
-            up_timer_ -= wall_dt;
-            fg_color_.setAlpha(1.0 * 230.0);
-            bg_color_.setAlpha(1.0* 127.0);
-        }
-        else if(fade_out_timer_ > 0)
-        {
-            fade_out_timer_ -= wall_dt;
-            float a = (fade_out_timer_ / fade_out_);
-            a = a>=0 ? a : 0;
-            fg_color_.setAlpha(a * 230.0);
-            bg_color_.setAlpha(a * 127.0);
-        }
-
-        ScopedPixelBuffer buffer = overlay_->getBuffer();
-        QImage Hud = buffer.getQImage(*overlay_, bg_color_);
-        QPainter painter( &Hud );
-        //painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.setPen(QPen(fg_color_, line_width_||1, Qt::SolidLine));
-        uint16_t w = overlay_->getTextureWidth();
-        uint16_t h = overlay_->getTextureHeight();
-
-        // font
-        if (text_size_ != 0 && text_.length() > 0)
-        {
-            QFont font(font_.length() > 0 ? font_.c_str(): "Arial");
-            font.setPointSize(text_size_);
-            font.setBold(true);
-            painter.setFont(font);
-            //drawn with anti-aliasing by default
-            painter.drawText(0, 0, w, h,
-                            Qt::AlignLeft |Qt::AlignTop| Qt::TextWordWrap,
-                             text_.c_str());
-            //ROS_ERROR("w: %d h: %d, text: %s textsize: %d font: %s Hud: %d",w,h,text_.c_str(),text_size_,qPrintable(font.toString()),Hud.isNull());
-        }
-        painter.end();
-
     overlay_->setDimensions(overlay_->getTextureWidth(), overlay_->getTextureHeight());
-    //require_update_texture_ = false;
+
+    //set colors based on fade timers
+    if(fade_in_timer_ > 0)
+    {
+        //increase alpha as timer decreases
+        fade_in_timer_ -= wall_dt;
+        float a = 1.0 - (fade_in_timer_ / fade_in_);
+        //set a to 0 if negative
+        a = a>=0 ? a : 0;
+        fg_color_.setAlpha(a  *230.0); // want max at 90%
+        bg_color_.setAlpha(a  *127.0); // want max at 50%
+    }
+    else if(up_timer_ > 0)
+    {
+        up_timer_ -= wall_dt;
+        fg_color_.setAlpha(1.0 * 230.0);
+        bg_color_.setAlpha(1.0* 127.0);
+    }
+    else if(fade_out_timer_ > 0)
+    {
+        fade_out_timer_ -= wall_dt;
+        float a = (fade_out_timer_ / fade_out_);
+        a = a>=0 ? a : 0;
+        fg_color_.setAlpha(a * 230.0);
+        bg_color_.setAlpha(a * 127.0);
+    }
+    else
+    {
+        require_update_texture_ = false;
+    }
+
+    ScopedPixelBuffer buffer = overlay_->getBuffer();
+    QImage Hud = buffer.getQImage(*overlay_, bg_color_);
+    QPainter painter( &Hud );
+    painter.setPen(QPen(fg_color_, line_width_||1, Qt::SolidLine));
+    uint16_t w = overlay_->getTextureWidth();
+    uint16_t h = overlay_->getTextureHeight();
+
+    // font
+    if (text_size_ != 0 && text_.length() > 0)
+    {
+        QFont font(font_.length() > 0 ? font_.c_str(): "Arial");
+        font.setPointSize(text_size_);
+        font.setBold(true);
+        painter.setFont(font);
+        //drawn with anti-aliasing by default
+        painter.drawText(0, 0, w, h,
+                        Qt::AlignLeft |Qt::AlignTop| Qt::TextWordWrap,
+                         text_.c_str());
+        //ROS_ERROR("w: %d h: %d, text: %s textsize: %d font: %s Hud: %d",w,h,text_.c_str(),text_size_,qPrintable(font.toString()),Hud.isNull());
+    }
+    painter.end();
+    overlay_->updateTextureSize(texture_width_, texture_height_);
+    overlay_->setDimensions(overlay_->getTextureWidth(), overlay_->getTextureHeight());
+
+
 }
 
 void OverlayTextDisplay::setPositionFromAlignment()
@@ -306,7 +310,7 @@ void OverlayTextDisplay::processMessage(const flor_ocs_msgs::OCSOverlayText::Con
     bg_color_ = QColor(msg->bg_color.r * 255.0,
                        msg->bg_color.g * 255.0,
                        msg->bg_color.b * 255.0,
-                       255.0);
+                       127.0);
 
     text_size_ = msg->text_size;
     line_width_ = msg->line_width;
