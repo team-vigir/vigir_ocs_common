@@ -32,38 +32,28 @@ NotificationSystem* NotificationSystem::Instance()
   */
 
 //publishes a standard message to have a notification appear and fade out in 3d view
-void NotificationSystem::notify(std::string text)//, int row, int column, float r, float g, float b)
+void NotificationSystem::notify(std::string text, int row, int column, float r, float g, float b)
 {
     flor_ocs_msgs::OCSOverlayText msg;
     msg.text = text;
     //messages probably shouldn't be multiple lines?
-    msg.height = 20;
-    msg.width = text.length() * 7;
+    msg.height = 18;
+    msg.width = text.length() * 8;
     msg.font = "DejaVu Sans Mono";
-   // msg.top = 5;
-    //msg.left = 70;
     msg.line_width = 2;
-    msg.text_size = 8;
-    msg.fg_color.r = .8;
-    msg.fg_color.g = .8;
-    msg.fg_color.b = .8;
-   // msg.fg_color.a = .9;
-   // msg.bg_color.a = .5f;
+    msg.text_size = 10;
+    msg.fg_color.r = r;
+    msg.fg_color.g = g;
+    msg.fg_color.b = b;
+    msg.fg_color.a = .9f;
+    msg.bg_color.a = .5f;
     msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
     msg.fadeIn = 1.0f;
     msg.fadeOut = 1.0f;
     msg.upTime = 2.0f;
-    msg.row = flor_ocs_msgs::OCSOverlayText::TOPROW;
-    msg.column = flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
+    msg.row = row;
+    msg.column = column;
     notification_pub_.publish(msg);
-}
-
-void NotificationSystem::hide()
-{
-//    flor_ocs_msgs::OCSOverlayText msg;
-//    // could just fade alpha instead? QPropertAnimation
-//    msg.action = flor_ocs_msgs::OCSOverlayText::DELETE;
-//    notification_pub_.publish(msg);
 }
 
 

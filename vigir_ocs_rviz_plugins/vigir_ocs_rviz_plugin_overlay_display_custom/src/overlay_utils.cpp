@@ -34,6 +34,7 @@
  *********************************************************************/
 
 #include "overlay_utils.h"
+#include "ros/ros.h"
 
 namespace jsk_rviz_plugin
 {
@@ -169,12 +170,11 @@ namespace jsk_rviz_plugin
 
   ScopedPixelBuffer OverlayObject::getBuffer()
   {
-    if (isTextureReady()) {
-      return ScopedPixelBuffer(texture_->getBuffer());
-    }
-    else {
+    if (isTextureReady())
+      return ScopedPixelBuffer(texture_->getBuffer());    
+    else
       return ScopedPixelBuffer(Ogre::HardwarePixelBufferSharedPtr());
-    }
+
   }
 
   void OverlayObject::setPosition(double left, double top)

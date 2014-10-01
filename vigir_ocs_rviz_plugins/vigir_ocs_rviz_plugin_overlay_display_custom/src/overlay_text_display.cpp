@@ -42,15 +42,16 @@
 #include <OgreRenderWindow.h>
 #include <QPainter>
 
+
 namespace jsk_rviz_plugin
 {
 OverlayTextDisplay::OverlayTextDisplay() : Display(),
     texture_width_(0), texture_height_(0),
     text_size_(14),
     line_width_(2),
-    text_(""), font_(""),
-    bg_color_(0, 0, 0, 0),
-    fg_color_(255, 255, 255, 255.0),
+    text_("test"), font_("DejaVu Sans Mono"),
+    bg_color_(127.0, 127.0, 127.0, 127.0),
+    fg_color_(255.0, 255.0, 255.0, 255.0),
     row_(-1),
     column_(-1),
     require_update_texture_(false)
@@ -140,12 +141,10 @@ void OverlayTextDisplay::preRenderTargetUpdate( const Ogre::RenderTargetEvent& e
             if(render_panel_list_[i]->getRenderWindow() == (Ogre::RenderWindow*)evt.source)
                 view_id = i;
         }
-       // ROS_ERROR("num viewports %d",render_panel_list_[view_id]->getRenderWindow()->getNumViewports());
-        //grap viewport of primary view
+        //grap viewport of primary view to get screen size
         Ogre::Viewport * vp = this->render_panel_list_[view_id]->getRenderWindow()->getViewport(0);
         viewport_width_ = vp->getActualWidth();
         viewport_height_ = vp->getActualHeight();
-       // ROS_ERROR("W %d H: %d", viewport_width_,viewport_height_);
 
         //if a msg has ever been received
         if(row_ != -1)
@@ -180,58 +179,57 @@ void OverlayTextDisplay::update(float wall_dt, float ros_dt)
         return;
     }
     overlay_->updateTextureSize(texture_width_, texture_height_);
-    {
+
 
         //set colors based on fade timers
-        if(fade_in_timer_>0)
+        if(fade_in_timer_ > 0)
         {
             //increase alpha as timer decreases
             fade_in_timer_ -= wall_dt;
             float a = 1.0 - (fade_in_timer_ / fade_in_);
             //set a to 0 if negative
             a = a>=0 ? a : 0;
-            //fg_color_.setAlpha(a  *230.0); // want max at 90%
-            //bg_color_.setAlpha(a  *10.0); // want max at 50%
+            fg_color_.setAlpha(a  *230.0); // want max at 90%
+            bg_color_.setAlpha(a  *127.0); // want max at 50%
         }
-        else if(up_timer_ >0)
+        else if(up_timer_ > 0)
         {
             up_timer_ -= wall_dt;
-            //fg_color_.setAlpha(1.0 * 230.0);
-            ///bg_color_.setAlpha(1.0* 10.0);
+            fg_color_.setAlpha(1.0 * 230.0);
+            bg_color_.setAlpha(1.0* 127.0);
         }
         else if(fade_out_timer_ > 0)
         {
             fade_out_timer_ -= wall_dt;
             float a = (fade_out_timer_ / fade_out_);
             a = a>=0 ? a : 0;
-            //fg_color_.setAlpha(a * 230.0);
-            //bg_color_.setAlpha(a * 10.0);
+            fg_color_.setAlpha(a * 230.0);
+            bg_color_.setAlpha(a * 127.0);
         }
 
         ScopedPixelBuffer buffer = overlay_->getBuffer();
         QImage Hud = buffer.getQImage(*overlay_, bg_color_);
         QPainter painter( &Hud );
-        painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.setPen(QPen(fg_color_, line_width_ || 1, Qt::SolidLine));
+        //painter.setRenderHint(QPainter::Antialiasing, true);
+        painter.setPen(QPen(fg_color_, line_width_||1, Qt::SolidLine));
         uint16_t w = overlay_->getTextureWidth();
         uint16_t h = overlay_->getTextureHeight();
 
         // font
-        if (text_size_ != 0) {
-            //QFont font = painter.font();
+        if (text_size_ != 0 && text_.length() > 0)
+        {
             QFont font(font_.length() > 0 ? font_.c_str(): "Arial");
             font.setPointSize(text_size_);
             font.setBold(true);
             painter.setFont(font);
-        }
-        if (text_.length() > 0) {
-            //painter.drawText(0, 0, w, h, Qt::TextWordWrap | Qt::AlignLeft,
+            //drawn with anti-aliasing by default
             painter.drawText(0, 0, w, h,
-                             Qt::TextWordWrap | Qt::AlignLeft | Qt::AlignTop,
+                            Qt::AlignLeft |Qt::AlignTop| Qt::TextWordWrap,
                              text_.c_str());
+            //ROS_ERROR("w: %d h: %d, text: %s textsize: %d font: %s Hud: %d",w,h,text_.c_str(),text_size_,qPrintable(font.toString()),Hud.isNull());
         }
         painter.end();
-    }
+
     overlay_->setDimensions(overlay_->getTextureWidth(), overlay_->getTextureHeight());
     //require_update_texture_ = false;
 }
@@ -240,38 +238,36 @@ void OverlayTextDisplay::setPositionFromAlignment()
 {
     int left;
     int top;
-    switch(row_)
+    switch(column_)
     {
     case flor_ocs_msgs::OCSOverlayText::LEFTCOLUMN:
-        left = 0;
+        left = 5; //minimal space from edge
         break;
     case flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN:
-        left = viewport_width_ /2;
+        left = (viewport_width_ /2) - (texture_width_/2);
         break;
     case flor_ocs_msgs::OCSOverlayText::RIGHTCOLUMN:
-        left = viewport_width_ - texture_width_;
+        left = viewport_width_ - texture_width_ -5;
         break;
     }
 
-    switch(column_)
+    switch(row_)
     {
     case flor_ocs_msgs::OCSOverlayText::TOPROW:
-        top = 0;
+        top = 5;
         break;
     case flor_ocs_msgs::OCSOverlayText::CENTERROW:
-        top = viewport_height_/2;
+        top = (viewport_height_/2) - (texture_height_/2);
         break;
     case flor_ocs_msgs::OCSOverlayText::BOTTOMROW:
-        top = viewport_height_ - texture_height_;
+        top = viewport_height_ - texture_height_ -5;
         break;
     }
-    ROS_ERROR("Left: %d Top: %d based on: %d %d", left,top, viewport_width_,viewport_height_);
     overlay_->setPosition(left, top);
 
 }
 
-void OverlayTextDisplay::processMessage
-(const flor_ocs_msgs::OCSOverlayText::ConstPtr& msg)
+void OverlayTextDisplay::processMessage(const flor_ocs_msgs::OCSOverlayText::ConstPtr& msg)
 {
     if (!isEnabled()) {
         return;
@@ -298,24 +294,20 @@ void OverlayTextDisplay::processMessage
     {
         row_ = msg->row;
         column_ = msg->column;
-
-        //setPositionFromAlignment(msg->row,msg->column);
-        //wanted to set position manually?
-        if(!msg->row && !msg->column)
-            overlay_->setPosition(msg->left, msg->top);
     }
     // store message for update method
     text_ = msg->text;
     font_ = msg->font;
     //alpha handled in update for animating
-    bg_color_ = QColor(msg->bg_color.r * 255.0,
-                       msg->bg_color.g * 255.0,
-                       msg->bg_color.b * 255.0,
-                       .2 * 255.0);
     fg_color_ = QColor(msg->fg_color.r * 255.0,
                        msg->fg_color.g * 255.0,
                        msg->fg_color.b * 255.0,
                        255.0);
+    bg_color_ = QColor(msg->bg_color.r * 255.0,
+                       msg->bg_color.g * 255.0,
+                       msg->bg_color.b * 255.0,
+                       255.0);
+
     text_size_ = msg->text_size;
     line_width_ = msg->line_width;
     require_update_texture_ = true;
@@ -327,6 +319,8 @@ void OverlayTextDisplay::processMessage
     up_timer_ = up_time_;
     fade_out_timer_ = fade_out_;
 
+//    ROS_ERROR("text %s font %s text_size: %d line_width: %d up_time_:%f fadein: %f fadeout: %f fadeinTimer: %f uptimer: %f fadeouttimer: %f",
+//              text_.c_str(),font_.c_str(),text_size_,line_width_,up_time_,fade_in_,fade_out_,fade_in_timer_,up_timer_,fade_out_timer_);
 }
 
 }

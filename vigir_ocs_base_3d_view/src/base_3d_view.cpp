@@ -1185,7 +1185,7 @@ void Base3DView::insertTemplate( QString path )
         Q_EMIT resetSelection();
     }
 
-    NotificationSystem::Instance()->notify("cheesers");
+    NotificationSystem::Instance()->notify("cheesers",flor_ocs_msgs::OCSOverlayText::TOPROW,flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN,.8f,.8f,.8f);
 }
 
 void Base3DView::insertWaypoint()

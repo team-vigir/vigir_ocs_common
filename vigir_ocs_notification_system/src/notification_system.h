@@ -8,8 +8,7 @@
 class NotificationSystem{
    public:
        static NotificationSystem* Instance();
-       void notify(std::string text);
-       void hide();
+       void notify(std::string text, int row, int column, float r, float g, float b);
  
    private:
        NotificationSystem();  // Private so that it can  not be called
