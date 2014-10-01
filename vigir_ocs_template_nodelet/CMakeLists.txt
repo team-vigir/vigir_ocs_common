@@ -37,3 +37,8 @@ add_dependencies(template_nodelet ${catkin_EXPORTED_TARGETS})
 install(FILES
   vigir_template_nodelet.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+install( TARGETS
+    template_nodelet
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

@@ -49,6 +49,10 @@ add_dependencies(vigir_ocs_space_mouse ${catkin_EXPORTED_TARGETS})
 ##target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 
+install( TARGETS
+    vigir_ocs_space_mouse
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 
 

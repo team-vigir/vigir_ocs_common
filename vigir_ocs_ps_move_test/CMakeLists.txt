@@ -48,7 +48,10 @@ add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 ##add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 ##target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
-
+install( TARGETS
+    ${PROJECT_NAME}
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 
 

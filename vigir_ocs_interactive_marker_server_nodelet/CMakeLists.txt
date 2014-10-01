@@ -37,3 +37,8 @@ add_dependencies(interactive_marker_server_nodelet ${catkin_EXPORTED_TARGETS})
 install(FILES
   vigir_interactive_marker_server_nodelet.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+install( TARGETS
+    interactive_marker_server_nodelet
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

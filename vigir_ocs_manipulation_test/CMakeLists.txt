@@ -46,3 +46,8 @@ target_link_libraries(manipulation_test ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+install( TARGETS
+    manipulation_test
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

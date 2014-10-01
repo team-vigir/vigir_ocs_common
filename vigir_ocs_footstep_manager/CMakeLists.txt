@@ -41,3 +41,8 @@ add_dependencies(footstep_manager ${catkin_EXPORTED_TARGETS})
 install(FILES
   vigir_footstep_manager.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+install( TARGETS
+    footstep_manager
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

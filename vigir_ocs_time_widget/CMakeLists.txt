@@ -50,4 +50,9 @@ target_link_libraries(time_widget ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_dependencies(time_widget ${catkin_EXPORTED_TARGETS})
 
+install( TARGETS
+    time_widget
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 

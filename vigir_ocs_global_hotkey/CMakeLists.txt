@@ -26,3 +26,8 @@ target_link_libraries(global_hotkey ${catkin_LIBRARIES} X11)
 
 add_dependencies(global_hotkey ${catkin_EXPORTED_TARGETS})
 
+install( TARGETS
+    global_hotkey
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+

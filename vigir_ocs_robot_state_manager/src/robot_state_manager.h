@@ -2,6 +2,8 @@
 #define ROBOT_STATE_MANAGER_H
 
 #include <flor_moveit_ocs_model/moveit_ocs_model.h>
+//temp fix. need to fix so install will install the h files.?
+//#include<flor_moveit_ocs_model/../../../src/flor_control/flor_moveit_ocs_model/include/flor_moveit_ocs_model/moveit_ocs_model.h>
 
 //Singleton class to store state of robot to be conveniently referenced outside base3dview
 class RobotStateManager{

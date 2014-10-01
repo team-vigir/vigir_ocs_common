@@ -71,3 +71,9 @@ add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+
+install( TARGETS
+    camera_viewer_custom
+    camera_viewer_custom_widget
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

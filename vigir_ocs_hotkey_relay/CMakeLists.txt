@@ -26,3 +26,8 @@ target_link_libraries(hotkey_relay ${catkin_LIBRARIES} X11)
 
 add_dependencies(hotkey_relay ${catkin_EXPORTED_TARGETS})
 
+install( TARGETS
+    hotkey_relay
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+

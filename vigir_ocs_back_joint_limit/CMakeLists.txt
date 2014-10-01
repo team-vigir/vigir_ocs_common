@@ -49,4 +49,9 @@ target_link_libraries(joint_limit ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_dependencies(joint_limit ${catkin_EXPORTED_TARGETS})
 
+install( TARGETS
+    joint_limit
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 

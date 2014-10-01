@@ -87,3 +87,9 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
+install( TARGETS
+    status_window
+    joint_list
+    robot_status_widget
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

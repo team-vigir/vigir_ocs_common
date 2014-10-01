@@ -36,3 +36,8 @@ add_dependencies(image_nodelet ${catkin_EXPORTED_TARGETS})
 install(FILES
   vigir_image_nodelet.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+install( TARGETS
+    image_nodelet
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

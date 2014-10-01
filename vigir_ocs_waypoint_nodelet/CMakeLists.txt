@@ -37,3 +37,8 @@ add_dependencies(waypoint_nodelet ${catkin_EXPORTED_TARGETS})
 install(FILES
   vigir_waypoint_nodelet.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+install( TARGETS
+    waypoint_nodelet
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

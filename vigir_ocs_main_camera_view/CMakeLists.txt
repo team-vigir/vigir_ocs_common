@@ -48,3 +48,8 @@ target_link_libraries(main_camera_view ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
+
+install( TARGETS
+    main_camera_view
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
