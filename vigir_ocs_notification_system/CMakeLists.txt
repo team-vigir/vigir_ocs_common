@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS pcl_ros roscpp rospy)
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-    CATKIN_DEPENDS pcl_ros roscpp rospy
+    CATKIN_DEPENDS pcl_ros roscpp rospy flor_ocs_msgs
 
 )
 
