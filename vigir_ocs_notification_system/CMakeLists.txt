@@ -5,7 +5,7 @@ project(vigir_ocs_notification_system)
 ## this package depends at build time
 find_package(PCL REQUIRED QUIET COMPONENTS common)
 
-find_package(catkin REQUIRED COMPONENTS pcl_ros roscpp rospy)
+find_package(catkin REQUIRED COMPONENTS pcl_ros roscpp rospy flor_ocs_msgs)
 
 
 ## Declare things to be passed to other projects
