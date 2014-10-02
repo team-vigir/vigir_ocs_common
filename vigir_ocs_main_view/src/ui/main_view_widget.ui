@@ -1173,7 +1173,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="footstep_pose_walk">
+                 <widget class="QPushButton" name="footstep_pose">
                   <property name="text">
                    <string>Define Target Pose - Walk</string>
                   </property>

@@ -71,6 +71,7 @@
 #include <stdlib.h>
 
 #include "robot_state_manager.h"
+#include "notification_system.h"
 
 // local includes
 #include "footstep_vis_manager.h"
@@ -251,6 +252,7 @@ public:
     // functions needed for shared contexts
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }
     rviz::Display* getSelection3DDisplay() { return selection_3d_display_; }
+    rviz::Display* getOverlayDisplay() { return overlay_display_; }
     MouseEventHandler* getMouseEventHander() { return mouse_event_handler_; }
 
     /**
@@ -293,8 +295,8 @@ public Q_SLOTS:
     void markerTemplateToggled( bool );
     void robotJointMarkerToggled(bool selected);
     void robotOcclusionToggled(bool selected);
-    virtual void defineStepGoal();
-    void defineStepGoal(unsigned int request_mode);
+    virtual void defineFootstepGoal();
+    void defineFootstepGoal(unsigned int request_mode);
 
 
     /**
@@ -482,6 +484,8 @@ protected:
 
     Ogre::Camera* getCamera();
 
+    NotificationSystem * notification_system_;
+
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
 
@@ -493,6 +497,7 @@ protected:
     rviz::Display* region_point_cloud_viewer_;
     rviz::Display* stereo_point_cloud_viewer_;
     rviz::Display* selection_3d_display_;
+    rviz::Display * overlay_display_;
     rviz::Display* template_display_;
     rviz::Display* waypoints_display_;
     rviz::Display* achieved_waypoints_display_;
@@ -549,7 +554,7 @@ protected:
     ros::Subscriber select_object_sub_;
 
     ros::Publisher camera_transform_pub_;
-    ros::Subscriber camera_transform_sub_;
+    ros::Subscriber camera_transform_sub_;    
 
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 

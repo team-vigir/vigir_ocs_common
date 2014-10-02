@@ -90,7 +90,7 @@ void OrthoView::setViewPlane(const QString& view_plane)
     //render_panel_->getCamera()->setDirection(0,0,-1);
 }
 
-void OrthoView::defineStepGoal()
+void OrthoView::defineFootstepGoal()
 {
     //ROS_ERROR("vector pressed in map");
     ((rviz::RenderPanelCustom*)render_panel_)->setEventFilters(rviz::RenderPanelCustom::MOUSE_PRESS_EVENT,false,Qt::NoModifier,Qt::RightButton);

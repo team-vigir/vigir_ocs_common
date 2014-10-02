@@ -85,7 +85,7 @@ public Q_SLOTS:
     void updateImageFrame(std::string);
     void selectionToolToggle(bool);
 
-    virtual void defineStepGoal();
+    virtual void defineFootstepGoal();
     void mouseEnterEvent( QEvent* event );
     void mouseMoveEvent( QMouseEvent* event );
     void keyPressEvent( QKeyEvent* event );

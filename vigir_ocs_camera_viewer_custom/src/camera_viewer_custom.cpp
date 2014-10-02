@@ -347,7 +347,7 @@ void CameraViewerCustom::updateImageFrame(std::string frame)
     camera_frame_topic_ = frame;
 }
 
-void CameraViewerCustom::defineStepGoal()
+void CameraViewerCustom::defineFootstepGoal()
 {
     //ROS_ERROR("vector pressed in map");
     //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
