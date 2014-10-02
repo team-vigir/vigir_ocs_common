@@ -50,7 +50,7 @@ Widget::Widget(QWidget *parent) :
     avg_pump_rpm=-1;
     avg_pump_return_pressure=-1;
     avg_pump_supply_pressure=-1;
-    filter_rate_ = 0.003;
+    filter_rate_ = 0.5; // little filtering with newer less frequent messages
 
     //How many data points until starts averaging
     averaging_delay = 5;

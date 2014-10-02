@@ -74,8 +74,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
             // connect UI to perspective functions
             //QObject::connect(ui->camera_tool, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(cameraToggled(bool)));
             QObject::connect(ui->footstep_planning, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(footstepPlanningToggled(bool)));
-            QObject::connect(ui->footstep_pose_walk, SIGNAL(pressed()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(definePosePressed()));
-            QObject::connect(ui->footstep_pose_step, SIGNAL(pressed()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(definePosePressed()));
+            QObject::connect(ui->footstep_pose, SIGNAL(pressed()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(defineFootstepGoal()));
             QObject::connect(ui->grasp_model, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(graspModelToggled(bool)));
             QObject::connect(ui->grid_map, SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(gridMapToggled(bool)));
             QObject::connect(ui->insert_waypoint, SIGNAL(pressed()), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(insertWaypoint()));
@@ -262,10 +261,6 @@ void MainCameraViewWidget::addContextMenu()
     //can tell context menu to add a separator when this item is added
     contextMenuItem * separator = new contextMenuItem();
     separator->name = "Separator";
-
-    vigir_ocs::Base3DView::makeContextChild("Define Target Pose",boost::bind(&vigir_ocs::Base3DView::definePosePressed,((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())), NULL, contextMenuElements);
-
-    contextMenuElements.push_back(separator);
 
     vigir_ocs::Base3DView::makeContextChild("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())), NULL, contextMenuElements);
 

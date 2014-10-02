@@ -50,7 +50,7 @@ public:
     void setCameraPitch( int );
     void setCurrentCameraPitch( int );
 
-    virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
+    virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     virtual void processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr& msg);
 
     std::vector<std::string> getCameraNames();
@@ -85,7 +85,7 @@ public Q_SLOTS:
     void updateImageFrame(std::string);
     void selectionToolToggle(bool);
 
-    virtual void definePosePressed();
+    virtual void defineFootstepGoal();
     void mouseEnterEvent( QEvent* event );
     void mouseMoveEvent( QMouseEvent* event );
     void keyPressEvent( QKeyEvent* event );

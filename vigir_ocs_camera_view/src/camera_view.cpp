@@ -436,18 +436,17 @@ void CameraView::updateImageFrame(std::string frame)
     camera_frame_topic_ = frame;
 }
 
-void CameraView::definePosePressed()
+void CameraView::defineFootstepGoal()
 {
     //ROS_ERROR("vector pressed in map");
-    //set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/goal_pose_walk" );
     previous_tool_ = manager_->getToolManager()->getCurrentTool();
     manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
     setting_pose_ = true;
 }
 
-void CameraView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose, int type)
+void CameraView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
-    Base3DView::processGoalPose( pose, type );
+    Base3DView::processGoalPose( pose );
     //ROS_ERROR("goal processed in map");
     manager_->getToolManager()->setCurrentTool( previous_tool_ );
     setting_pose_ = false;

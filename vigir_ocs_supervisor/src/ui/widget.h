@@ -8,7 +8,7 @@
 #include <flor_control_msgs/FlorControlModeCommand.h>
 #include <flor_control_msgs/FlorRobotStateCommand.h>
 #include <flor_control_msgs/FlorRobotFault.h>
-#include <atlas_msgs/AtlasSimInterfaceState.h>
+//#include <atlas_msgs/AtlasSimInterfaceState.h>
 #include <flor_atlas_msgs/AtlasHandPower.h>
 #include<QTableWidget>
 #include<QTableWidgetItem>

@@ -1,0 +1,9 @@
+<library path="libvigir_ocs_rviz_plugin_overlay_display_custom">
+  <class name="jsk_rviz_plugin/OverlayTextDisplay"
+         type="jsk_rviz_plugin::OverlayTextDisplay"
+         base_class_type="rviz::Display">
+    <description>
+      Customized display to display notifications via an overlay image/text
+    </description>
+  </class>
+</library>

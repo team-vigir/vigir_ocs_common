@@ -192,7 +192,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="footstep_pose_walk">
+              <widget class="QPushButton" name="footstep_pose">
                <property name="text">
                 <string>Define Target Pose - Walk</string>
                </property>
@@ -506,7 +506,7 @@ color: rgb(255, 26, 26);</string>
     <slot>requestedPointCloudToggled(bool)</slot>
     <slot>clearMapRequests()</slot>
     <slot>clearPointCloudRequests()</slot>
-    <slot>definePosePressed()</slot>
+    <slot>defineFootstepGoal()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -737,10 +737,10 @@ color: rgb(255, 26, 26);</string>
    </hints>
   </connection>
   <connection>
-   <sender>footstep_pose_walk</sender>
+   <sender>footstep_pose</sender>
    <signal>pressed()</signal>
    <receiver>main_3d_view_</receiver>
-   <slot>definePosePressed()</slot>
+   <slot>defineFootstepGoal()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>649</x>
@@ -852,7 +852,7 @@ color: rgb(255, 26, 26);</string>
    <sender>footstep_pose_step</sender>
    <signal>pressed()</signal>
    <receiver>main_3d_view_</receiver>
-   <slot>definePosePressed()</slot>
+   <slot>defineFootstepGoal()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>656</x>

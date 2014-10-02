@@ -53,8 +53,9 @@
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSHotkeyRelay.h>
 #include <flor_ocs_msgs/OCSObjectSelection.h>
-#include "flor_ocs_msgs/OCSCameraTransform.h"
-#include "flor_ocs_msgs/OCSControlMode.h"
+#include <flor_ocs_msgs/OCSCameraTransform.h>
+#include <flor_ocs_msgs/OCSControlMode.h>
+#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include <flor_perception_msgs/RaycastRequest.h>
 #include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
@@ -70,6 +71,7 @@
 #include <stdlib.h>
 
 #include "robot_state_manager.h"
+#include "notification_system.h"
 
 // local includes
 #include "footstep_vis_manager.h"
@@ -236,7 +238,7 @@ public:
     /**
       * ROS Callback: receives new goal pose for footstep planner
       */
-    virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose, int type );
+    virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     /**
       * ROS Callback: receives new key event from global hotkey process
       */
@@ -250,6 +252,7 @@ public:
     // functions needed for shared contexts
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }
     rviz::Display* getSelection3DDisplay() { return selection_3d_display_; }
+    rviz::Display* getOverlayDisplay() { return overlay_display_; }
     MouseEventHandler* getMouseEventHander() { return mouse_event_handler_; }
 
     /**
@@ -264,6 +267,9 @@ public:
       * Utility method for comparing two poses with position and orientation thresholds
       */
     static bool checkPoseMatch(const geometry_msgs::Pose& p1, const geometry_msgs::Pose& p2, float scalar_error_threshold = 0.0f, float angle_error_threshold = 0.0f);
+
+    // returns the footstep manager
+    FootstepVisManager* getFootstepVisManager() { return footstep_vis_manager_; }
 
 public Q_SLOTS:
     // displays
@@ -289,7 +295,8 @@ public Q_SLOTS:
     void markerTemplateToggled( bool );
     void robotJointMarkerToggled(bool selected);
     void robotOcclusionToggled(bool selected);
-    virtual void definePosePressed();
+    virtual void defineFootstepGoal();
+    void defineFootstepGoal(unsigned int request_mode);
 
 
     /**
@@ -477,6 +484,8 @@ protected:
 
     Ogre::Camera* getCamera();
 
+    NotificationSystem * notification_system_;
+
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
 
@@ -488,6 +497,7 @@ protected:
     rviz::Display* region_point_cloud_viewer_;
     rviz::Display* stereo_point_cloud_viewer_;
     rviz::Display* selection_3d_display_;
+    rviz::Display * overlay_display_;
     rviz::Display* template_display_;
     rviz::Display* waypoints_display_;
     rviz::Display* achieved_waypoints_display_;
@@ -544,7 +554,7 @@ protected:
     ros::Subscriber select_object_sub_;
 
     ros::Publisher camera_transform_pub_;
-    ros::Subscriber camera_transform_sub_;
+    ros::Subscriber camera_transform_sub_;    
 
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
@@ -666,8 +676,12 @@ protected:
     contextMenuItem * selectFootstepMenu;
     contextMenuItem * lockFootstepMenu;
     contextMenuItem * unlockFootstepMenu;
-    contextMenuItem * footstepPlanMenuWalk;
-    contextMenuItem * footstepPlanMenuWalkManipulation;
+    contextMenuItem * undoFootstepMenu;
+    contextMenuItem * redoFootstepMenu;
+    contextMenuItem * newFootstepMenu;
+    contextMenuItem * continueLastFootstepMenu;
+    contextMenuItem * continueThisFootstepMenu;
+    contextMenuItem * executeFootstepPlanMenu;
     contextMenuItem * cartesianMotionMenu;
     contextMenuItem * createCartesianMarkerMenu;
     contextMenuItem * removeCartesianMarkerMenu;

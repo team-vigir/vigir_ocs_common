@@ -131,7 +131,7 @@ void InteractionToolCustom::updateFocus( const ViewportMouseEvent& event )
         rviz::Display* display = context_->getRootDisplayGroup()->getDisplayAt(i);
         std::string display_name = display->getNameStd();
         //ROS_ERROR("    display name: %s", display_name.c_str());
-        if(display_name.find("Robot") != std::string::npos || display_name.find("BoundingObject") != std::string::npos)
+        if(display_name.find("Robot") != std::string::npos || display_name.find("BoundingObject") != std::string::npos || display_name.find("Footsteps Path Body") != std::string::npos)
         {
             // traverse scene graph below scene node
             //display_config[display->getSceneNode()] = std::vector<bool>();
@@ -151,7 +151,7 @@ void InteractionToolCustom::updateFocus( const ViewportMouseEvent& event )
     {
         rviz::Display* display = context_->getRootDisplayGroup()->getDisplayAt(i);
         std::string display_name = display->getNameStd();
-        if(display_name.find("Robot") != std::string::npos || display_name.find("BoundingObject") != std::string::npos)
+        if(display_name.find("Robot") != std::string::npos || display_name.find("BoundingObject") != std::string::npos || display_name.find("Footsteps Path Body") != std::string::npos)
         {
             //display->getSceneNode()->setVisible(true);
             restoreChildrenVisibility(display->getSceneNode(),display_config[display->getSceneNode()]);
