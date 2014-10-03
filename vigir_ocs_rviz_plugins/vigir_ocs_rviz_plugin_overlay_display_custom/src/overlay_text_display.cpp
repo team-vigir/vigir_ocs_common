@@ -232,8 +232,10 @@ void OverlayTextDisplay::update(float wall_dt, float ros_dt)
         //ROS_ERROR("w: %d h: %d, text: %s textsize: %d font: %s Hud: %d",w,h,text_.c_str(),text_size_,qPrintable(font.toString()),Hud.isNull());
     }
     painter.end();
+    overlay_->updateTextureImage(Hud);
     overlay_->updateTextureSize(texture_width_, texture_height_);
     overlay_->setDimensions(overlay_->getTextureWidth(), overlay_->getTextureHeight());
+
 
 
 }

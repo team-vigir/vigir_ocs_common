@@ -92,6 +92,7 @@ namespace jsk_rviz_plugin
     virtual bool isVisible();
     virtual unsigned int getTextureWidth();
     virtual unsigned int getTextureHeight();
+    bool updateTextureImage(QImage qImage);
   protected:
     const std::string name_;
     Ogre::Overlay* overlay_;
