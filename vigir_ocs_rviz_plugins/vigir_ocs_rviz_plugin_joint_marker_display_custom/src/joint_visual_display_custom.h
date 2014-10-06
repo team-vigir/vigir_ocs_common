@@ -38,21 +38,19 @@ namespace rviz
 // sensor_msgs::Effort message.  Currently it just shows an arrow with
 // the direction and magnitude of the acceleration vector, but could
 // easily be expanded to include more of the message data.
-class EffortVisualCustom
+class JointVisualCustom
 {
 public:
     // Constructor.  Creates the visual stuff and puts it into the
     // scene, but in an unconfigured state.
-    EffortVisualCustom( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node, boost::shared_ptr<urdf::Model> urdf_model );
+    JointVisualCustom( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node, boost::shared_ptr<urdf::Model> urdf_model );
 
     // Destructor.  Removes the visual stuff from the scene.
-    virtual ~EffortVisualCustom();
+    virtual ~JointVisualCustom();
 
     //set arrow direction for specific joints
     void setArrowDirection(std::string jointName,int direction);
 
-    // set rainbow color
-    void getRainbowColor(float value, Ogre::ColourValue& color);
     // Configure the visual to show the data in the message.
     void setMessage( const sensor_msgs::JointStateConstPtr& msg );
 
@@ -112,6 +110,8 @@ private:
     float marker_scale_;
 
     float width_, scale_;
+
+    int currentArrowPoint;
 
     // The object for urdf model
     boost::shared_ptr<urdf::Model> urdf_model_;

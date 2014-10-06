@@ -632,6 +632,21 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
 
 
+        //create joint position error displays
+        joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
+        //joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
+        joint_arrows_->subProp("Width")->setValue("0.015");
+        joint_arrows_->subProp("Scale")->setValue("1.2");
+        //only initial alpha, alpha is handled in updateJointIcons
+       // joint_arrows_->subProp("Alpha")->setValue("0.9");
+
+        ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", true );
+       // ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
+        ghost_joint_arrows_->subProp("Width")->setValue("0.015");
+        ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
+        //ghost_joint_arrows_->subProp("Alpha")->setValue("0.9");
+
+
         disableJointMarkers = false;
         occludedRobotVisible = true;
         renderTexture1 = NULL;
@@ -643,18 +658,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         //initialize Render Order correctly
         setRenderOrder();
 
-        //create joint position error displays
-//        joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
-//        joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
-//        joint_arrows_->subProp("Width")->setValue("0.015");
-//        joint_arrows_->subProp("Scale")->setValue("1.2");
-//        joint_arrows_->subProp("Alpha")->setValue("0.9");
-
-        ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", true );
-        ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
-        ghost_joint_arrows_->subProp("Width")->setValue("0.015");
-        ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
-        ghost_joint_arrows_->subProp("Alpha")->setValue("0.9");
 
 
     }
@@ -2907,11 +2910,23 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
     {
         //joint icon plugin will not name joints with "ghost/" prefix, need to adjust
         jointPositionIconName = jointPositionIconName.substr(6,jointPositionIconName.size());
+        //ghost joint marker still sends fingers, need to hide
+        if(name.find("_f")!= std::string::npos && name.find("_j")!= std::string::npos)
+        {
+            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+            return;
+        }
     }
     //want to disable a marker that has already been created
     if(disableJointMarkers && jointDisplayMap.find(name) != jointDisplayMap.end())
     {
         jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.0f );
+
+        if(ghost)
+            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+        else
+            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+
         return;
     }
 
@@ -2988,25 +3003,25 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
         color.setGreenF(green);
         color.setBlueF(0);
         if(ghost)
-        {           
+        {
             ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setArrowDirection(jointPositionIconName,arrowDirection);
             ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointColor(color,jointPositionIconName);
             ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(alpha,jointPositionIconName);
         }
-//        else
-//        {
-//            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setArrowDirection(name,arrowDirection);
-//            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointColor(color,name);
-//            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(alpha,name);
-//        }
+        else
+        {
+            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setArrowDirection(jointPositionIconName,arrowDirection);
+            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointColor(color,jointPositionIconName);
+            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(alpha,jointPositionIconName);
+        }
     }
     else
     {
         //no joint arrow should be shown when joint bounds is okay
-        if(ghost)
+        if(ghost)            
             ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
-//        else
-//            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(0,name);
+        else
+            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(0,jointPositionIconName);
     }
 
 }
@@ -3173,21 +3188,21 @@ void Base3DView::setRenderOrder()
         //camera should be unaffected by render order
         if(display_name.find("Camera") == std::string::npos)
         {
-            if(display_name.find("Joint Position Markers") != std::string::npos)
-            {
+//            if(display_name.find("Joint Position Markers") != std::string::npos)
+//            {
 
-                for(int x=0;x<display->getSceneNode()->numChildren();x++)
-                {
-                    Ogre::SceneNode* sceneNode = (Ogre::SceneNode*)display->getSceneNode()->getChild(x);
-                    for(int j =0;j<sceneNode->numAttachedObjects();j++)
-                    {
-                        //ROS_ERROR("obj %d children %d", sceneNode->numAttachedObjects(), sceneNode->numChildren());
-                        Ogre::MovableObject* obj = sceneNode->getAttachedObject(j);
-                        ROS_ERROR("set  type: %s",obj->getMovableType().c_str());
-                    }
-                }
+//                for(int x=0;x<display->getSceneNode()->numChildren();x++)
+//                {
+//                    Ogre::SceneNode* sceneNode = (Ogre::SceneNode*)display->getSceneNode()->getChild(x);
+//                    for(int j =0;j<sceneNode->numAttachedObjects();j++)
+//                    {
+//                        //ROS_ERROR("obj %d children %d", sceneNode->numAttachedObjects(), sceneNode->numChildren());
+//                        Ogre::MovableObject* obj = sceneNode->getAttachedObject(j);
+//                        ROS_ERROR("set  type: %s",obj->getMovableType().c_str());
+//                    }
+//                }
 
-            }
+//            }
             setSceneNodeRenderGroup(display->getSceneNode(), 1);
         }
 
@@ -3399,8 +3414,10 @@ void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr
     for(int i = 0; i < states->name.size(); i++)
     {
         //ignore finger joints on atlas ghost
-        if(states->name[i].find("f") != std::string::npos && ghost_robot_state->getRobotName().find("atlas") != std::string::npos )
+        if(states->name[i].find("_f") != std::string::npos && states->name[i].find("_j")!= std::string::npos && ghost_robot_state->getRobotName().find("atlas") != std::string::npos )
+        {
             continue;
+        }
 
         const moveit::core::JointModel* joint =  ghost_robot_state->getJointModel(states->name[i]);
         //ignore unnecessary joints

@@ -30,11 +30,6 @@ namespace urdf
 // https://code.ros.org/trac/ros-pkg/ticket/5467
 namespace tf
 {
-#define TF_MESSAGEFILTER_DEBUG(fmt, ...) \
-  ROS_DEBUG_NAMED("message_filter", "MessageFilter [target=%s]: "fmt, getTargetFramesString().c_str(), __VA_ARGS__)
-
-#define TF_MESSAGEFILTER_WARN(fmt, ...) \
-  ROS_WARN_NAMED("message_filter", "MessageFilter [target=%s]: "fmt, getTargetFramesString().c_str(), __VA_ARGS__)
 
     class MessageFilterJointState : public MessageFilter<sensor_msgs::JointState>
     {
@@ -510,15 +505,15 @@ namespace rviz
  * types.  It has a tf::MessageFilter to filter incoming messages, and
  * it handles subscribing and unsubscribing when the display is
  * enabled or disabled.  It also has an Ogre::SceneNode which  */
-class MessageFilterJointStateDisplay: public _RosTopicDisplay
+class MessageFilterJointStateDisplayCustom: public _RosTopicDisplay
 {
 // No Q_OBJECT macro here, moc does not support Q_OBJECT in a templated class.
 public:
   /** @brief Convenience typedef so subclasses don't have to use
    * the long templated class name to refer to their super class. */
-  typedef MessageFilterJointStateDisplay MFDClass;
+  typedef MessageFilterJointStateDisplayCustom MFDClass;
 
-  MessageFilterJointStateDisplay()
+  MessageFilterJointStateDisplayCustom()
     : tf_filter_( NULL )
     , messages_received_( 0 )
     {
@@ -533,11 +528,11 @@ public:
                                                     fixed_frame_.toStdString(), 10, update_nh_ );
 
       tf_filter_->connectInput( sub_ );
-      tf_filter_->registerCallback( boost::bind( &MessageFilterJointStateDisplay::incomingMessage, this, _1 ));
+      tf_filter_->registerCallback( boost::bind( &MessageFilterJointStateDisplayCustom::incomingMessage, this, _1 ));
       context_->getFrameManager()->registerFilterForTransformStatusCheck( tf_filter_, this );
     }
 
-  virtual ~MessageFilterJointStateDisplay()
+  virtual ~MessageFilterJointStateDisplayCustom()
     {
       unsubscribe();
       delete tf_filter_;
@@ -628,38 +623,33 @@ protected:
 
 namespace rviz
 {
-    class JointInfo: public QObject {
-        Q_OBJECT
-        public:
-        JointInfo(const std::string name, rviz::Property* parent_category);
-        ~JointInfo();
+//    class JointInfoCustom: public QObject {
+//        Q_OBJECT
+//        public:
+//        JointInfoCustom(const std::string name, rviz::Property* parent_category);
+//        ~JointInfoCustom();
 
-        void setEffort(double e);
-        double getEffort();
-        void setMaxEffort(double m);
-        double getMaxEffort();
-        bool getEnabled() const;
+//        bool getEnabled() const;
 
-        ros::Time last_update_;
+//        ros::Time last_update_;
 
-    public Q_SLOTS:
-        void updateVisibility();
+//    public Q_SLOTS:
+//        void updateVisibility();
 
-    private:
-        std::string name_;
-        double effort_, max_effort_;
+//    private:
+//        std::string name_;
 
-        rviz::Property* category_;
-        rviz::FloatProperty* effort_property_;
-        rviz::FloatProperty* max_effort_property_;
-    };
 
-    typedef std::set<JointInfo*> S_JointInfo;
+//        rviz::Property* category_;
+
+//    };
+
+//    typedef std::set<JointInfoCustom*> S_JointInfo;
     typedef std::vector<std::string> V_string;
 
-    class EffortVisualCustom;
+    class JointVisualCustom;
 
-    class JointMarkerDisplayCustom: public rviz::MessageFilterJointStateDisplay
+    class JointMarkerDisplayCustom: public rviz::MessageFilterJointStateDisplayCustom
     {
     Q_OBJECT
     public:
@@ -682,8 +672,8 @@ namespace rviz
         void updateHistoryLength();
         void updateRobotDescription();
 
-        JointInfo* getJointInfo( const std::string& joint);
-        JointInfo* createJoint(const std::string &joint);
+//        JointInfoCustom* getJointInfo( const std::string& joint);
+//        JointInfoCustom* createJoint(const std::string &joint);
 
     protected:
         // overrides from Display
@@ -705,10 +695,10 @@ namespace rviz
 
         // Storage for the list of visuals.  It is a circular buffer where
         // data gets popped from the front (oldest) and pushed to the back (newest)
-        boost::circular_buffer<boost::shared_ptr<EffortVisualCustom> > visuals_;
+        boost::circular_buffer<boost::shared_ptr<JointVisualCustom> > visuals_;
 
-        typedef std::map<std::string, JointInfo*> M_JointInfo;
-        M_JointInfo joints_;
+       // typedef std::map<std::string, JointInfoCustom*> M_JointInfo;
+       // M_JointInfo joints_;
 
     // Property objects for user-editable properties.
         rviz::FloatProperty *alpha_property_,* width_property_,* scale_property_;
