@@ -110,7 +110,6 @@ void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstep
 
 void FootstepManager::processUndoRequest(const std_msgs::Bool::ConstPtr& msg)
 {
-
     if(footstep_plans_undo_stack_.size() > 0)
     {
         // add top to the redo stack
@@ -476,6 +475,7 @@ void FootstepManager::publishFootstepList()
         for(int j = 0; j < getStepPlanList()[i].steps.size(); j++)
         {
             list.footstep_id_list.push_back(getStepPlanList()[i].steps[j].step_index);
+            list.step_plan_id_list.push_back(i);
             geometry_msgs::PoseStamped pose;
             pose.header.frame_id = "/world";
             pose.header.stamp = ros::Time::now();
@@ -569,7 +569,7 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
         publishFootsteps();
 
         // try to stitch all plans in the list together
-        sendStitchStepPlanGoal(getStepPlanList());
+        //sendStitchStepPlanGoal(getStepPlanList());
     }
 }
 

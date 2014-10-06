@@ -145,7 +145,10 @@ private:
 
     rviz::VisualizationManager* manager_;
 
+    // marker for individual footsteps
     std::vector<rviz::Display*> display_footstep_marker_list_;
+    // marker for step plans
+    std::vector<rviz::Display*> display_step_plan_marker_list_;
 
     // new displays for walking
     rviz::Display* footsteps_array_;
