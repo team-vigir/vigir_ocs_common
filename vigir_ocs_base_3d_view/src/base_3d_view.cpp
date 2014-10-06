@@ -634,16 +634,16 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         //create joint position error displays
         joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
-        //joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
+        joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
         joint_arrows_->subProp("Width")->setValue("0.015");
         joint_arrows_->subProp("Scale")->setValue("1.2");
         //only initial alpha, alpha is handled in updateJointIcons
-       // joint_arrows_->subProp("Alpha")->setValue("0.9");
+        //joint_arrows_->subProp("Alpha")->setValue("0.9");
 
-        ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", true );
-       // ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
-        ghost_joint_arrows_->subProp("Width")->setValue("0.015");
-        ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
+        //ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", true );
+        //ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
+        //ghost_joint_arrows_->subProp("Width")->setValue("0.015");
+        //ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
         //ghost_joint_arrows_->subProp("Alpha")->setValue("0.9");
 
 
@@ -657,9 +657,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
        // connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
         //initialize Render Order correctly
         setRenderOrder();
-
-
-
     }
 
     // Connect the 3D selection tool to
@@ -2906,25 +2903,26 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
 void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose, double effortPercent, double boundPercent, bool ghost, int arrowDirection)
 {
     std::string jointPositionIconName = name;
-    if(ghost)
-    {
-        //joint icon plugin will not name joints with "ghost/" prefix, need to adjust
-        jointPositionIconName = jointPositionIconName.substr(6,jointPositionIconName.size());
-        //ghost joint marker still sends fingers, need to hide
-        if(name.find("_f")!= std::string::npos && name.find("_j")!= std::string::npos)
-        {
-            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
-            return;
-        }
-    }
+//    if(ghost)
+//    {
+//        //joint icon plugin will not name joints with "ghost/" prefix, need to adjust
+//        jointPositionIconName = jointPositionIconName.substr(6,jointPositionIconName.size());
+//        //ghost joint marker still sends fingers, need to hide
+//        if(name.find("_f")!= std::string::npos && name.find("_j")!= std::string::npos)
+//        {
+//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+//            return;
+//        }
+//    }
     //want to disable a marker that has already been created
     if(disableJointMarkers && jointDisplayMap.find(name) != jointDisplayMap.end())
     {
         jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.0f );
 
-        if(ghost)
-            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
-        else
+//        if(ghost)
+//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+//        else
+        if(!ghost)
             ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(0,jointPositionIconName);
 
         return;
@@ -2994,7 +2992,7 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
     {
         //linearly interpolate color and alpha based on ratio of boundPercentage under .1
         float p = boundPercent / .1;
-        float alpha = 1.3 - p; //want alpha to be atleast .3
+        float alpha = 1.0 - p; //want alpha to be atleast .3
         float green = p;
         //increase alpha as boundPercent decreases
         //yellow  to red as boundPercent decreases
@@ -3002,13 +3000,14 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
         color.setRedF(1);
         color.setGreenF(green);
         color.setBlueF(0);
-        if(ghost)
-        {
-            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setArrowDirection(jointPositionIconName,arrowDirection);
-            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointColor(color,jointPositionIconName);
-            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(alpha,jointPositionIconName);
-        }
-        else
+//        if(ghost)
+//        {
+//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setArrowDirection(jointPositionIconName,arrowDirection);
+//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointColor(color,jointPositionIconName);
+//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(alpha,jointPositionIconName);
+//        }
+//        else
+        if(!ghost)
         {
             ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setArrowDirection(jointPositionIconName,arrowDirection);
             ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointColor(color,jointPositionIconName);
@@ -3018,9 +3017,10 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
     else
     {
         //no joint arrow should be shown when joint bounds is okay
-        if(ghost)            
-            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
-        else
+//        if(ghost)
+//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+//        else
+        if(!ghost)
             ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(0,jointPositionIconName);
     }
 

@@ -72,8 +72,6 @@ public:
     void setJointColor( float r, float g, float b, std::string joint);
     void setJointAlpha(float a, std::string joint);
 
-    void setAlpha(float a);
-    void setColor( float r, float g, float b);
     void setWidth( float w );
     void setScale( float s );
 
@@ -111,7 +109,7 @@ private:
 
     float width_, scale_;
 
-    int currentArrowPoint;
+    std::map<std::string,int> current_arrow_point_;
 
     // The object for urdf model
     boost::shared_ptr<urdf::Model> urdf_model_;
