@@ -102,7 +102,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             QObject::connect(ui->templates, SIGNAL(toggled(bool)), iter->second, SLOT(templatesToggled(bool)));
             QObject::connect(ui->widget_tool, SIGNAL(toggled(bool)), iter->second, SLOT(markerRobotToggled(bool)));
             QObject::connect(ui->robot_joint_markers,SIGNAL(toggled(bool)), iter->second, SLOT(robotJointMarkerToggled(bool)));
-            QObject::connect(ui->robot_occlusion_rendering,SIGNAL(toggled(bool)), iter->second, SLOT(robotOcclusionToggled(bool)));
+            QObject::connect(ui->robot_occlusion_rendering,SIGNAL(toggled(bool)), iter->second, SLOT(robotOcclusionToggled(bool)));            
         }
         else
         {
@@ -210,10 +210,10 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //put two grasp widgets into container to have same focus
     graspContainer = new QWidget(this);
     QHBoxLayout * graspLayout = new QHBoxLayout();
-
-    graspLayout->setSpacing(10);
+    graspLayout->setSpacing(1);
+    graspLayout->setMargin(1);
     graspLayout->setContentsMargins(0,0,0,0);
-    graspContainer->setLayout(graspLayout);
+    graspContainer->setLayout(graspLayout);    
     graspContainer->hide();
 
     // try to load grasp environment variables
@@ -222,7 +222,11 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     {
         QWidget * leftGrasp = new QWidget(graspContainer);
         QVBoxLayout * leftLayout = new QVBoxLayout();
+        leftLayout->setSpacing(0);
+        leftLayout->setMargin(0);
+        leftLayout->setContentsMargins(0,0,0,0);
         QLabel * leftLabel = new QLabel("Left Hand");
+        leftLabel->setStyleSheet("font: 8pt \"Ubuntu\";");
         leftLabel->setAlignment(Qt::AlignCenter);
         leftLayout->addWidget(leftLabel);
 
@@ -257,7 +261,11 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     {
         QWidget * rightGrasp = new QWidget(graspContainer);
         QVBoxLayout * rightLayout = new QVBoxLayout();
+        rightLayout->setSpacing(0);
+        rightLayout->setMargin(0);
+        rightLayout->setContentsMargins(0,0,0,0);
         QLabel * rightLabel = new QLabel("Right Hand");
+        rightLabel->setStyleSheet("font: 8pt \"Ubuntu\";");
         rightLabel->setAlignment(Qt::AlignCenter);
         rightLayout->addWidget(rightLabel);
         if(env_right_hand.find("irobot") != std::string::npos)
@@ -347,6 +355,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     // create docks, toolbars, etc...
     //this->restoreState(settings.value("mainWindowState").toByteArray());
 
+    ocs_sync_sub_ = n_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &MainViewWidget::synchronizeToggleButtons, this );
+
 }
 
 void MainViewWidget::toggleSidebarVisibility()
@@ -355,6 +365,71 @@ void MainViewWidget::toggleSidebarVisibility()
         ui->scrollArea->hide();
     else
         ui->scrollArea->show();
+}
+
+void MainViewWidget::changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state)
+{
+    //set checkbox state without calling callbacks
+    checkBox->blockSignals(true);
+    checkBox->setCheckState(state);
+    checkBox->blockSignals(false);
+}
+
+void MainViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg)
+{
+    for(int i=0;i<msg->properties.size();i++)
+    {
+        if(msg->properties[i].compare("LIDAR Point Cloud") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->lidar_point_cloud_2,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->lidar_point_cloud_2,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Stereo Point Cloud") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->stereo_point_cloud_2,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->stereo_point_cloud_2,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Raycast Point Cloud") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->point_cloud_request,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->point_cloud_request,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Octomap") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->octomap_2,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->octomap_2,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Ground map") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->grid_map,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->grid_map,Qt::Unchecked);
+            }
+        }
+    }
 }
 
 void MainViewWidget::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)

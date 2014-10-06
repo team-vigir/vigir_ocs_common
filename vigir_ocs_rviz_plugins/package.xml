@@ -50,5 +50,6 @@
       <rviz plugin="${prefix}/interaction_tool_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/ortho_view_controller_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/overlay_display_custom_plugin_description.xml"/>
+      <rviz plugin="${prefix}/joint_marker_display_custom_plugin_description.xml"/>
   </export>
 </package>

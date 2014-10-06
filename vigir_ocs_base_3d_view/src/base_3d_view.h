@@ -56,6 +56,7 @@
 #include <flor_ocs_msgs/OCSCameraTransform.h>
 #include <flor_ocs_msgs/OCSControlMode.h>
 #include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
+#include "flor_ocs_msgs/OCSSynchronize.h"
 #include <flor_perception_msgs/RaycastRequest.h>
 #include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
@@ -270,6 +271,10 @@ public:
 
     // returns the footstep manager
     FootstepVisManager* getFootstepVisManager() { return footstep_vis_manager_; }
+    /**
+      * ROS Callback:synchronize 3d views on reset requests/toggles
+      */
+    void synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
 
 public Q_SLOTS:
     // displays
@@ -458,7 +463,7 @@ protected:
     /**
       * Adds joint disks that visualize the current state of the joints
       */
-    void updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose,double effortPercent, double boundPercent);
+    void updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose,double effortPercent, double boundPercent, bool ghost, int arrowDirection);
     /**
       * Lock arm to template using arm id
       */
@@ -491,6 +496,7 @@ protected:
 
     rviz::Display* robot_model_;
     //std::vector<InteractiveMarkerServerCustom*> im_ghost_robot_server_;
+    rviz::Display* interactive_marker_template_;
     rviz::Display* octomap_;
     rviz::Display* grid_;
     rviz::Display* laser_scan_;
@@ -503,6 +509,8 @@ protected:
     rviz::Display* achieved_waypoints_display_;
     rviz::Display* octomap_roi_;
     rviz::Display* raycast_point_cloud_viewer_;
+    rviz::Display* joint_arrows_;
+    rviz::Display* ghost_joint_arrows_;
     std::map<std::string,rviz::Display*> frustum_viewer_list_;
 
     // list of gridmaps to be displayed
@@ -515,7 +523,6 @@ protected:
     //rviz::Tool* selection_tool_;
     rviz::Tool* move_camera_tool_;
     rviz::Tool* set_goal_tool_;
-    rviz::Tool* set_step_goal_tool_;
 
     Ogre::Vector3 selection_position_;
 
@@ -535,7 +542,6 @@ protected:
     ros::Publisher pointcloud_request_world_pub_;
 
     ros::Publisher send_footstep_goal_pub_;
-    ros::Publisher send_footstep_goal_walk_pub_;
 
     ros::Subscriber set_goal_sub_;
 
@@ -554,7 +560,10 @@ protected:
     ros::Subscriber select_object_sub_;
 
     ros::Publisher camera_transform_pub_;
-    ros::Subscriber camera_transform_sub_;    
+    ros::Subscriber camera_transform_sub_;
+
+    ros::Subscriber ocs_sync_sub_;
+    ros::Publisher ocs_sync_pub_;
 
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
@@ -918,7 +927,13 @@ protected:
     void snapHandGhost();
 
 
+    void blurRender();
+    void setChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility, bool visibility);
+    void restoreChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility);
 
+    Ogre::RenderTexture *renderTexture1;
+    Ogre::RenderTexture *renderTexture2;
+    Ogre::RenderTexture *renderTexture3;
     ///////////////////
     // new managers
     FootstepVisManager* footstep_vis_manager_;

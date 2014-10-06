@@ -45,6 +45,7 @@
 #include "robot_display_custom.h"
 #include "selection_3d_display_custom.h"
 #include "map_display_custom.h"
+#include "joint_marker_display_custom.h"
 
 #include "flor_ocs_msgs/OCSTemplateAdd.h"
 #include "flor_ocs_msgs/OCSTemplateRemove.h"
@@ -54,6 +55,9 @@
 #include "flor_planning_msgs/TargetConfigIkRequest.h"
 #include "flor_planning_msgs/CartesianMotionRequest.h"
 #include "flor_planning_msgs/CircularMotionRequest.h"
+
+#include <OgreHardwarePixelBuffer.h>
+#include <OgreMaterialManager.h>
 
 // local includes
 #include "base_3d_view.h"
@@ -605,15 +609,37 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         //sub to ghost joint states
         ghost_joint_state_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/flor/ghost/get_joint_states", 5, &Base3DView::processGhostJointStates, this );
 
+        //synchronize 3d views
+        ocs_sync_sub_ = nh_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &Base3DView::synchronizeViews, this );
+        ocs_sync_pub_ = nh_.advertise<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
+
+
+
+        //create joint position error displays
+        joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
+        joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
+        joint_arrows_->subProp("Width")->setValue("0.015");
+        joint_arrows_->subProp("Scale")->setValue("1.2");
+        //only initial alpha, alpha is handled in updateJointIcons
+        //joint_arrows_->subProp("Alpha")->setValue("0.9");
+
+        //ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", true );
+        //ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
+        //ghost_joint_arrows_->subProp("Width")->setValue("0.015");
+        //ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
+        //ghost_joint_arrows_->subProp("Alpha")->setValue("0.9");
+
+
+        disableJointMarkers = false;
+        occludedRobotVisible = true;
+        renderTexture1 = NULL;
+
         setRobotOccludedRender();
 
         //update render order whenever objects are added/ display changed
        // connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
         //initialize Render Order correctly
         setRenderOrder();
-
-        disableJointMarkers = false;
-        occludedRobotVisible = true;
 
         overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Overlay for Notifications", true );
         overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
@@ -715,6 +741,211 @@ Base3DView::~Base3DView()
     delete manager_;
 }
 
+void Base3DView::blurRender()
+{
+    if(renderTexture1 == NULL)
+    {
+        Ogre::TexturePtr rtt_texture = Ogre::TextureManager::getSingleton().createManual("RttTex1",
+                                       Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, Ogre::TEX_TYPE_2D, render_panel_->getRenderWindow()->getWidth(),
+                                       render_panel_->getRenderWindow()->getHeight(), 0, Ogre::PF_R8G8B8, Ogre::TU_RENDERTARGET);
+
+        renderTexture1 = rtt_texture->getBuffer()->getRenderTarget();
+
+        Ogre::ColourValue transparent(1,0,1,0);
+
+        renderTexture1->addViewport(render_panel_->getCamera());
+        renderTexture1->getViewport(0)->setClearEveryFrame(true);
+        renderTexture1->getViewport(0)->setBackgroundColour(transparent);
+        renderTexture1->getViewport(0)->setOverlaysEnabled(false);
+
+        const char *remove_magenta =
+                   "uniform sampler2D mTexture1;\n"
+                   "void main()\n"
+                   "{\n"
+                        " vec4 color = texture2D(mTexture1, gl_TexCoord[0].st);\n"
+                        "if(color.x == 1.0f && color.y == 0 && color.z == 1.0f)\n"
+                        " {  gl_FragColor = vec4(0,0,0,0);}\n"
+                    "else\n"
+                        "{color.w = 0.5; gl_FragColor = color;}\n"
+                   "}\n";
+
+        const char *horizontal_blur =
+                "uniform sampler2D mTexture1; // the texture with the scene you want to blur\n"
+
+                "const float blurSize = 1.0/800; \n"
+
+                "void main(void)\n"
+                "{\n"
+                    "vec2 vTexCoord = gl_TexCoord[0].st;\n"
+                   "vec4 sum = vec4(0.0);\n"
+
+                   // blur in y (vertical)
+                   // take nine samples, with the distance blurSize between them
+                   "sum += texture2D(mTexture1, vec2(vTexCoord.x - 4.0*blurSize, vTexCoord.y)) * 0.05;\n"
+                   "sum += texture2D(mTexture1, vec2(vTexCoord.x - 3.0*blurSize, vTexCoord.y)) * 0.09;\n"
+                   "sum += texture2D(mTexture1, vec2(vTexCoord.x - 2.0*blurSize, vTexCoord.y)) * 0.12;\n"
+                   "sum += texture2D(mTexture1, vec2(vTexCoord.x - blurSize, vTexCoord.y)) * 0.15;\n"
+                   "sum += texture2D(mTexture1, vec2(vTexCoord.x, vTexCoord.y)) * 0.16;\n"
+                   "sum += texture2D(mTexture1, vec2(vTexCoord.x + blurSize, vTexCoord.y)) * 0.15;\n"
+                   "sum += texture2D(mTexture1, vec2(vTexCoord.x + 2.0*blurSize, vTexCoord.y)) * 0.12;\n"
+                   "sum += texture2D(mTexture1, vec2(vTexCoord.x + 3.0*blurSize, vTexCoord.y)) * 0.09;\n"
+                   "sum += texture2D(mTexture1, vec2(vTexCoord.x + 4.0*blurSize, vTexCoord.y)) * 0.05;\n"
+                    "gl_FragColor = sum;\n"
+                "}\n";
+
+        const char *vertical_blur =
+                "uniform sampler2D mTexture1; // the texture with the scene you want to blur\n"
+
+                "const float blurSize = 1.0/400; \n"
+
+                "void main(void)\n"
+                "{\n"
+                    "vec2 vTexCoord = gl_TexCoord[0].st;\n"
+                   "vec4 sum = vec4(0.0);\n"
+
+                "sum += texture2D(mTexture1, vec2(vTexCoord.x, vTexCoord.y - 4.0*blurSize)) * 0.05;\n"
+                  "sum += texture2D(mTexture1, vec2(vTexCoord.x, vTexCoord.y - 3.0*blurSize)) * 0.09;\n"
+                  "sum += texture2D(mTexture1, vec2(vTexCoord.x, vTexCoord.y - 2.0*blurSize)) * 0.12;\n"
+                  "sum += texture2D(mTexture1, vec2(vTexCoord.x, vTexCoord.y - blurSize)) * 0.15;\n"
+                  "sum += texture2D(mTexture1, vec2(vTexCoord.x, vTexCoord.y)) * 0.16;\n"
+                  "sum += texture2D(mTexture1, vec2(vTexCoord.x, vTexCoord.y + blurSize)) * 0.15;\n"
+                  "sum += texture2D(mTexture1, vec2(vTexCoord.x, vTexCoord.y + 2.0*blurSize)) * 0.12;\n"
+                  "sum += texture2D(mTexture1, vec2(vTexCoord.x, vTexCoord.y + 3.0*blurSize)) * 0.09;\n"
+                  "sum += texture2D(mTexture1, vec2(vTexCoord.x, vTexCoord.y + 4.0*blurSize)) * 0.05;\n"
+                  "gl_FragColor = sum;\n"
+
+                "}\n";
+
+
+
+
+
+
+        Ogre::HighLevelGpuProgramPtr removeMagentaFP = Ogre::HighLevelGpuProgramManager::getSingleton()
+                    .createProgram("removeMagenta", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);
+        removeMagentaFP->setSource(remove_magenta);
+        removeMagentaFP->load();
+        Ogre::HighLevelGpuProgramPtr horizontalBlurFP = Ogre::HighLevelGpuProgramManager::getSingleton()
+                    .createProgram("horizontal", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);
+        horizontalBlurFP->setSource(horizontal_blur);
+        horizontalBlurFP->load();
+        Ogre::HighLevelGpuProgramPtr verticalBlurFP = Ogre::HighLevelGpuProgramManager::getSingleton()
+                    .createProgram("vertical", "General", "glsl", Ogre::GPT_FRAGMENT_PROGRAM);
+        verticalBlurFP->setSource(vertical_blur);
+        verticalBlurFP->load();
+
+        //render entire window
+        Ogre::Rectangle2D* mMiniScreen = new Ogre::Rectangle2D(true);
+        mMiniScreen->setCorners(-1.0f, 1.0f, 1.0f, -1.0f);
+        mMiniScreen->setBoundingBox(Ogre::AxisAlignedBox::BOX_INFINITE);
+
+        Ogre::SceneNode* miniScreenNode = manager_->getSceneManager()->getRootSceneNode()->createChildSceneNode("MiniScreenNode");
+        miniScreenNode->attachObject(mMiniScreen);
+
+        Ogre::MaterialPtr renderMaterial = Ogre::MaterialManager::getSingleton().create("RttMat", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+        renderMaterial->getTechnique(0)->getPass(0)->setLightingEnabled(false);
+        renderMaterial->getTechnique(0)->getPass(0)->createTextureUnitState("RttTex1");
+        renderMaterial->getTechnique(0)->getPass(0)->setFragmentProgram("removeMagenta");
+
+        Ogre::GpuProgramParametersSharedPtr pParams = renderMaterial->getTechnique(0)->getPass(0)->getFragmentProgramParameters();
+        //set texture for shader
+        pParams->setNamedConstant("mTexture1", 0);        
+
+    //    renderMaterial->getTechnique(0)->getPass(0)->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+
+        Ogre::Pass* horizontalPass = renderMaterial->getTechnique(0)->createPass();
+        horizontalPass->createTextureUnitState("RttTex1",0);
+        horizontalPass->setFragmentProgram("horizontal");
+
+        pParams = horizontalPass->getFragmentProgramParameters();
+        pParams->setNamedConstant("mTexture1", 0);
+
+  //      horizontalPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+
+        Ogre::Pass* verticalPass = renderMaterial->getTechnique(0)->createPass();
+        verticalPass->createTextureUnitState("RttTex1",0);
+        verticalPass->setFragmentProgram("vertical");
+
+        pParams = verticalPass->getFragmentProgramParameters();
+        pParams->setNamedConstant("mTexture1", 0);
+
+//        verticalPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+
+        renderMaterial->getTechnique(0)->movePass(horizontalPass->getIndex(),0);
+        renderMaterial->getTechnique(0)->movePass(verticalPass->getIndex(),1);
+        renderMaterial->getTechnique(0)->movePass(renderMaterial->getTechnique(0)->getPass(0)->getIndex(),2);
+
+        mMiniScreen->setMaterial("RttMat");
+    }
+
+    //set visibility of false for everything but robot
+    std::vector<bool> visibilities;
+    int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();
+    for(int i = 0; i < num_displays; i++)
+    {
+        rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
+        std::string display_name = display->getNameStd();
+        //camera should be unaffected by render order
+        if(display_name.find("Robot model") == std::string::npos)
+            setChildrenVisibility(display->getSceneNode(),visibilities, false);
+    }
+
+    renderTexture1->update();
+    //renderTexture2->update();
+    //renderTexture3->update();
+
+    //reset visibility back to normal
+    for(int i = 0; i < num_displays; i++)
+    {
+        rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
+        std::string display_name = display->getNameStd();
+        //camera should be unaffected by render order
+        if(display_name.find("Robot model") == std::string::npos)
+            restoreChildrenVisibility(display->getSceneNode(),visibilities);
+    }
+
+
+
+}
+
+void Base3DView::setChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility, bool visibility)
+{
+    // traverse objects attached to this scene node
+    Ogre::SceneNode::ObjectIterator it_object = node->getAttachedObjectIterator();
+    while (it_object.hasMoreElements())
+    {
+        Ogre::MovableObject * obj = it_object.getNext();
+        last_visibility.push_back(obj->getVisible());
+        obj->setVisible(visibility);
+    }
+
+    // traverse all other child scene nodes
+    Ogre::SceneNode::ChildNodeIterator it_children =  node->getChildIterator();
+    while (it_children.hasMoreElements())
+    {
+        Ogre::SceneNode * child = (Ogre::SceneNode*)it_children.getNext();
+        setChildrenVisibility(child, last_visibility, visibility);
+    }
+
+}
+
+void Base3DView::restoreChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility)
+{
+    Ogre::SceneNode::ObjectIterator it_object = node->getAttachedObjectIterator();
+    while (it_object.hasMoreElements())
+    {
+        Ogre::MovableObject * obj = it_object.getNext();
+        obj->setVisible(*last_visibility.begin());
+        last_visibility.erase(last_visibility.begin());
+    }
+    Ogre::SceneNode::ChildNodeIterator it_children =  node->getChildIterator();
+    while (it_children.hasMoreElements())
+    {
+        Ogre::SceneNode * child = (Ogre::SceneNode*)it_children.getNext();
+        restoreChildrenVisibility(child, last_visibility);
+    }
+}
+
 void Base3DView::timerEvent(QTimerEvent *event)
 {
     // check if ros is still running; if not, just kill the application
@@ -753,7 +984,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
     //Means that currently doing
 
     if(is_primary_view_ && occludedRobotVisible)
-        setRenderOrder();
+        setRenderOrder();   
 
 }
 
@@ -806,7 +1037,7 @@ void Base3DView::updateRenderMask( bool mask )
 
 void Base3DView::robotModelToggled( bool selected )
 {
-    robot_model_->setEnabled( selected );
+    robot_model_->setEnabled( selected );    
 }
 
 void Base3DView::graspModelToggled( bool selected )
@@ -822,20 +1053,29 @@ void Base3DView::templatesToggled( bool selected )
 
 void Base3DView::requestedPointCloudToggled( bool selected )
 {
-    // we can't enable/disable point cloud requests, since the existing ones are lost if we disable them
-    raycast_point_cloud_viewer_->subProp("Alpha")->setValue(selected ? 1.0f : 0.0f);
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("Raycast Point Cloud");
+    msg.reset.push_back(false);
+    msg.visible.push_back(selected);
+    ocs_sync_pub_.publish(msg);
 }
 
 void Base3DView::lidarPointCloudToggled( bool selected )
 {
-    //lidar_point_cloud_viewer_->setEnabled( selected );
-    region_point_cloud_viewer_->subProp("Alpha")->setValue(selected ? 1.0f : 0.0f);
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("LIDAR Point Cloud");
+    msg.reset.push_back(false);
+    msg.visible.push_back(selected);
+    ocs_sync_pub_.publish(msg);
 }
 
 void Base3DView::stereoPointCloudToggled( bool selected )
 {
-    //stereo_point_cloud_viewer_->setEnabled( selected );
-    stereo_point_cloud_viewer_->subProp("Alpha")->setValue(selected ? 1.0f : 0.0f);
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("Stereo Point Cloud");
+    msg.reset.push_back(false);
+    msg.visible.push_back(selected);
+    ocs_sync_pub_.publish(msg);
 }
 
 void Base3DView::laserScanToggled( bool selected )
@@ -851,33 +1091,20 @@ void Base3DView::ft_sensorToggled(bool selected )
 
 void Base3DView::markerArrayToggled( bool selected )
 {
-    // we can't enable/disable octomaps, since the existing ones are lost if we disable them
-    //octomap_->subProp("Alpha")->setValue(selected ? 1.0f : 0.0f);
-    octomap_->setEnabled(selected);
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("Octomap");
+    msg.reset.push_back(false);
+    msg.visible.push_back(selected);
+    ocs_sync_pub_.publish(msg);
 }
 
 void Base3DView::gridMapToggled( bool selected )
 {
-    // we can't enable/disable gridmaps, since the existing ones are lost if we disable them
-    visualize_grid_map_ = selected;
-    if(!selected)
-    {
-        for(int i = 0; i < ground_map_.size(); i++)
-        {
-            ground_map_[i]->subProp("Alpha")->setValue(0.0f);
-        }
-    }
-    else
-    {
-        float alpha = 1.0f, step = (0.95f/stored_maps_);
-        unsigned short priority = stored_maps_-1;
-        for(int i = ground_map_.size()-1; i >= 0; i--,alpha-=step)
-        {
-            //std::cout << i << " " << alpha << std::endl;
-            ground_map_[i]->subProp("Alpha")->setValue(alpha);
-            ((rviz::MapDisplayCustom*)ground_map_[i])->setPriority(priority--);
-        }
-    }
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("Ground map");
+    msg.reset.push_back(false);
+    msg.visible.push_back(selected);
+    ocs_sync_pub_.publish(msg);
 }
 
 void Base3DView::footstepPlanningToggled( bool selected )
@@ -923,7 +1150,7 @@ void Base3DView::robotJointMarkerToggled(bool selected)
 {
     if(!selected && is_primary_view_)
     {
-        disableJointMarkers = true;
+        disableJointMarkers = true;        
         //ghost state is only checked when ghost is manipulated, needs an additional call to refresh joint states
         if(ghost_robot_model_->isEnabled())
             processGhostJointStates(latest_ghost_joint_state_);
@@ -999,6 +1226,147 @@ void Base3DView::markerTemplateToggled( bool selected )
         }
         // enable template markers
         Q_EMIT enableTemplateMarkers( true );
+    }
+}
+
+void Base3DView::clearPointCloudRaycastRequests()
+{
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("Raycast Point Cloud");
+    msg.reset.push_back(true);
+    msg.visible.push_back(false);
+    ocs_sync_pub_.publish(msg);
+}
+
+void Base3DView::clearPointCloudStereoRequests()
+{
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("Stereo Point Cloud");
+    msg.reset.push_back(true);
+    msg.visible.push_back(false);
+    ocs_sync_pub_.publish(msg);
+}
+
+void Base3DView::clearPointCloudRegionRequests()
+{
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("LIDAR Point Cloud");
+    msg.reset.push_back(true);
+    msg.visible.push_back(false);
+    ocs_sync_pub_.publish(msg);
+}
+
+void Base3DView::clearMapRequests()
+{       
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("Ground map");
+    msg.reset.push_back(true);
+    msg.visible.push_back(false);
+    ocs_sync_pub_.publish(msg);
+}
+
+//when reset is pressed, reset all,
+//when toggle is pressed , and sync is enabled, toggle all,
+void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg)
+{
+    //check this msg contents across every rviz display
+    for(int i=0;i<msg->properties.size();i++)
+    {        
+        bool groundMapReset = false;
+        int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();
+        for(int j = 0; j < num_displays; j++)
+        {
+            rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(j);
+            std::string display_name = display->getNameStd();
+
+            if(msg->properties[i].compare(display_name) == 0)
+            {                
+                if(display_name.compare("Stereo Point Cloud") == 0)
+                {
+                    if(msg->reset[i]) //reset case
+                    {
+                        stereo_point_cloud_viewer_->setEnabled(false);
+                        stereo_point_cloud_viewer_->setEnabled(true);
+                    }
+                    else // toggle case
+                    {                        
+                        stereo_point_cloud_viewer_->subProp("Alpha")->setValue(msg->visible[i] ? 1.0f : 0.0f);
+                    }
+                }
+                else if(display_name.compare("Raycast Point Cloud") == 0)
+                {
+                    if(msg->reset[i]) //reset case
+                    {
+                        raycast_point_cloud_viewer_->setEnabled(false);
+                        raycast_point_cloud_viewer_->setEnabled(true);
+                    }
+                    else  // toggle case
+                    {
+                        // we can't enable/disable point cloud requests, since the existing ones are lost if we disable them
+                        raycast_point_cloud_viewer_->subProp("Alpha")->setValue(msg->visible[i] ? 1.0f : 0.0f);
+                    }
+                }
+                else if(display_name.compare("LIDAR Point Cloud") == 0)
+                {
+                    if(msg->reset[i]) //reset case
+                    {
+                        region_point_cloud_viewer_->setEnabled(false);
+                        region_point_cloud_viewer_->setEnabled(true);
+                    }
+                    else  // toggle case
+                    {
+                        //lidar_point_cloud_viewer_->setEnabled( selected );
+                        region_point_cloud_viewer_->subProp("Alpha")->setValue(msg->visible[i] ? 1.0f : 0.0f);
+                    }
+                }
+                else if(display_name.compare("Ground map") == 0)
+                {                                        
+                    if(msg->reset[i]) //reset case
+                    {
+                        groundMapReset = true;
+                    }
+                    else // toggle case
+                    {
+                        // we can't enable/disable gridmaps, since the existing ones are lost if we disable them
+                        visualize_grid_map_ = msg->visible[i];
+                        if(!msg->visible[i])
+                        {
+                            for(int i = 0; i < ground_map_.size(); i++)
+                            {
+                                ground_map_[i]->subProp("Alpha")->setValue(0.0f);
+                            }
+                        }
+                        else
+                        {
+                            float alpha = 1.0f, step = (0.95f/stored_maps_);
+                            unsigned short priority = stored_maps_-1;
+                            for(int i = ground_map_.size()-1; i >= 0; i--,alpha-=step)
+                            {
+                                //std::cout << i << " " << alpha << std::endl;
+                                ground_map_[i]->subProp("Alpha")->setValue(alpha);
+                                ((rviz::MapDisplayCustom*)ground_map_[i])->setPriority(priority--);
+                            }
+                        }
+                    }
+                }
+                else if(display_name.compare("Octomap") == 0)
+                {
+                    //can only toggle octomap
+                    octomap_->setEnabled(msg->visible[i]);
+                }
+            }
+        }
+        if(groundMapReset)
+        {
+            while(ground_map_.size() > 0)
+            {
+                rviz::Display* tmp = ground_map_[0];
+                tmp->setEnabled(false);
+                delete tmp;
+                manager_->notifyConfigChanged();
+                ground_map_.erase(ground_map_.begin());
+            }
+        }
     }
 }
 
@@ -1135,7 +1503,7 @@ void Base3DView::transform(const std::string& target_frame, geometry_msgs::PoseS
 
 void Base3DView::insertTemplate( QString path )
 {
-    //std::cout << "adding template" << std::endl;
+    //std::cout << "adding template" << std::endl;    
     if(!selected_)
     {
         flor_ocs_msgs::OCSTemplateAdd cmd;
@@ -1156,7 +1524,7 @@ void Base3DView::insertTemplate( QString path )
         cmd.pose = pose;
 
         // publish complete list of templates and poses
-        template_add_pub_.publish( cmd );
+        template_add_pub_.publish( cmd );        
     }
     else
     {
@@ -1352,7 +1720,7 @@ contextMenuItem * Base3DView::makeContextChild(QString name,boost::function<void
 
 void Base3DView::selectOnDoubleClick(int x, int y)
 {
-    Q_EMIT queryContext(x,y);
+    Q_EMIT queryContext(x,y);    
     if(active_context_name_.find("LeftArm") != std::string::npos)
         selectLeftArm();
     else if(active_context_name_.find("RightArm") != std::string::npos)
@@ -1557,7 +1925,6 @@ void Base3DView::insertTemplateContextMenu()
     {
         insertTemplate(selected_template_path_);
     }
-
 }
 
 void Base3DView::removeTemplateContextMenu()
@@ -1687,8 +2054,7 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
     switch(msg->type)
     {
         case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
-            // enable end effector marker
-            ROS_ERROR("ASDASDASD");
+            // enable template marker
             if(msg->id == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
                 left_marker_moveit_loopback_ = false;
             else if(msg->id == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
@@ -1879,8 +2245,7 @@ void Base3DView::setContext(int context, std::string name)
 {
     active_context_ = context;
     active_context_name_ = name;
-    //ROS_ERROR("Active context: %d - %s",active_context_, active_context_name_.c_str());
-    std::cout << "Active context: " << active_context_ << std::endl;
+    //std::cout << "Active context: " << active_context_ << std::endl;
 }
 
 void Base3DView::setSelectionRay( Ogre::Ray ray )
@@ -2578,12 +2943,31 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
     position_only_ik_ = msg->position_only_ik;
 }
 
-void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose, double effortPercent, double boundPercent)
+void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose, double effortPercent, double boundPercent, bool ghost, int arrowDirection)
 {
+    std::string jointPositionIconName = name;
+//    if(ghost)
+//    {
+//        //joint icon plugin will not name joints with "ghost/" prefix, need to adjust
+//        jointPositionIconName = jointPositionIconName.substr(6,jointPositionIconName.size());
+//        //ghost joint marker still sends fingers, need to hide
+//        if(name.find("_f")!= std::string::npos && name.find("_j")!= std::string::npos)
+//        {
+//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+//            return;
+//        }
+//    }
     //want to disable a marker that has already been created
     if(disableJointMarkers && jointDisplayMap.find(name) != jointDisplayMap.end())
     {
         jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.0f );
+
+//        if(ghost)
+//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+//        else
+        if(!ghost)
+            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+
         return;
     }
 
@@ -2593,28 +2977,26 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
         errorCode = 1;
     else if(effortPercent >=.75) //effort warn
         errorCode = 2;
-    else if(boundPercent <=.03) //position error
-        errorCode = 3;
-    else if(boundPercent <=.1) //position warn
-        errorCode = 4;
 
-    if(errorCode != 0)
+    //handle effort Discs
+    if(errorCode != 0 && !ghost)
     {
+        //align bounding boxes to correct axis based on joint name
+        float x = 0.0018;
+        float y = 0.0018;
+        float z = 0.0018;
+        QString str(name.c_str());
+        str = str.mid(str.length() - 1, 1); //last char
+        if(str == "x")
+            x = 0.0003f;
+        else if(str == "y")
+            y = 0.0003f;
+        else
+            z = 0.0003f;
+
         //only create joints bounding boxes if they haven't been created and on error
         if(jointDisplayMap.find(name) == jointDisplayMap.end())
         {
-            //align bounding boxes to correct axis based on joint name
-            float x = 0.0023;
-            float y = 0.0023;
-            float z = 0.0023;
-            QString str(name.c_str());
-            str = str.mid(str.length() - 1, 1); //last char
-            if(str == "x")
-                x = 0.0003f;
-            else if(str == "y")
-                y = 0.0003f;
-            else
-                z = 0.0003f;
             //create bounding box
             jointDisplayMap[name] = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", (name + "_WarningIcon").c_str(), true );
             jointDisplayMap[name]->subProp( "Name" )->setValue( name.c_str() );
@@ -2638,25 +3020,51 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
         {
             //orange
             jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.5f );
-            jointDisplayMap[name]->subProp("Color")->setValue( QColor( 255, 127, 0 ) );
-        }
-        else if(errorCode == 3)
-        {
-            //yellow
-            jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.5f );
-            jointDisplayMap[name]->subProp("Color")->setValue( QColor( 255, 255, 0 ) );
-        }
-        else if(errorCode == 4)
-        {
-            //yellowish
-            jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.5f );
-            jointDisplayMap[name]->subProp("Color")->setValue( QColor( 127, 255, 0 ) );
-        }
+            jointDisplayMap[name]->subProp("Color")->setValue( QColor( 255, 127, 0 ) );                      
+        }      
+
     }
     else if (jointDisplayMap.find(name) != jointDisplayMap.end())
     {
         //make invisible
-        jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.0f );
+        jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0 );
+    }
+
+    //handle bounds error joint arrows
+    if(boundPercent <=.1)
+    {
+        //linearly interpolate color and alpha based on ratio of boundPercentage under .1
+        float p = boundPercent / .1;
+        float alpha = 1.0 - p; //want alpha to be atleast .3
+        float green = p;
+        //increase alpha as boundPercent decreases
+        //yellow  to red as boundPercent decreases
+        QColor color;
+        color.setRedF(1);
+        color.setGreenF(green);
+        color.setBlueF(0);
+//        if(ghost)
+//        {
+//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setArrowDirection(jointPositionIconName,arrowDirection);
+//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointColor(color,jointPositionIconName);
+//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(alpha,jointPositionIconName);
+//        }
+//        else
+        if(!ghost)
+        {
+            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setArrowDirection(jointPositionIconName,arrowDirection);
+            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointColor(color,jointPositionIconName);
+            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(alpha,jointPositionIconName);
+        }
+    }
+    else
+    {
+        //no joint arrow should be shown when joint bounds is okay
+//        if(ghost)
+//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+//        else
+        if(!ghost)
+            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(0,jointPositionIconName);
     }
 
 }
@@ -2700,6 +3108,25 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
         double distance = bounds[0].max_position_ - bounds[0].min_position_;
         double boundPercent = robot_state->getMinDistanceToPositionBounds(joint) / distance;
 
+        //calculate which limit joint was closer to
+        int direction;
+        double max = bounds[0].max_position_;
+        double min = bounds[0].min_position_;
+        double position = states->position[i];
+        //need to handle negative mins
+        if(min < 0)
+        {
+            //offset everything by min to normalize difference calculation
+            max += abs(min);
+            position += abs(min);
+            min = 0;
+        }
+        if(max - position <= position - min)
+            direction = -1;
+        else
+            direction = 1;
+        //ROS_ERROR("max: %f min: %f  pos: %f  direction:%d",bounds[0].max_position_ ,bounds[0].min_position_,states->position[i],direction );
+
         geometry_msgs::Pose pose;
         std::string link_name = ((rviz::RobotDisplayCustom*)robot_model_)->getChildLinkName(states->name[i]);
         robot_state->getLinkPose(link_name,pose);
@@ -2726,7 +3153,7 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
         double jointEffortPercent = ((robot_state->getJointEffortLimit(states->name[i]) != 0 && states->effort.size() > i) ?
                                     std::abs(states->effort[i]) / robot_state->getJointEffortLimit(states->name[i]) :
                                     0.0);
-        updateJointIcons(states->name[i], pose, jointEffortPercent,boundPercent);
+        updateJointIcons(states->name[i], pose, jointEffortPercent,boundPercent,false,direction);
     }
 
     if(snap_ghost_to_robot_)
@@ -2748,6 +3175,7 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
 //goes through all scene nodes and sets position in render queue based on object type
 void Base3DView::setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset)
 {
+    // warning: some rviz display may be disjointed and not have attached objects
     for(int i =0;i<sceneNode->numAttachedObjects();i++)
     {
         Ogre::MovableObject* obj =  sceneNode->getAttachedObject(i);
@@ -2801,7 +3229,7 @@ void Base3DView::setRenderOrder()
         rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
         std::string display_name = display->getNameStd();
         //camera should be unaffected by render order
-        if(display_name.find("Camera") == std::string::npos || display_name.find("Overlay") == std::string::npos )
+        if(display_name.find("Camera") == std::string::npos)
             setSceneNodeRenderGroup(display->getSceneNode(), 1);
     }
 }
@@ -3010,8 +3438,10 @@ void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr
     for(int i = 0; i < states->name.size(); i++)
     {
         //ignore finger joints on atlas ghost
-        if(states->name[i].find("f") != std::string::npos && ghost_robot_state->getRobotName().find("atlas") != std::string::npos )
+        if(states->name[i].find("_f") != std::string::npos && states->name[i].find("_j")!= std::string::npos && ghost_robot_state->getRobotName().find("atlas") != std::string::npos )
+        {
             continue;
+        }
 
         const moveit::core::JointModel* joint =  ghost_robot_state->getJointModel(states->name[i]);
         //ignore unnecessary joints
@@ -3025,6 +3455,25 @@ void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr
         const moveit::core::JointModel::Bounds& bounds = joint->getVariableBounds();
         double distance = bounds[0].max_position_ - bounds[0].min_position_;
         double boundPercent = ghost_robot_state->getMinDistanceToPositionBounds(joint) / distance;
+
+        //calculate which limit joint was closer to
+        int direction;
+        double max = bounds[0].max_position_;
+        double min = bounds[0].min_position_;
+        double position = states->position[i];
+        //need to handle negative mins
+        if(min < 0)
+        {
+            //offset everything by min to normalize difference calculation
+            max += abs(min);
+            position += abs(min);
+            min = 0;
+        }
+        if(max - position <= position - min)
+            direction = -1;
+        else
+            direction = 1;
+
 
         geometry_msgs::Pose pose;
         std::string link_name = ((rviz::RobotDisplayCustom*)robot_model_)->getChildLinkName(states->name[i]);
@@ -3056,7 +3505,7 @@ void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr
             }
         }
 
-        updateJointIcons(std::string("ghost/")+states->name[i], pose, 0.0, boundPercent);
+        updateJointIcons(std::string("ghost/")+states->name[i], pose, 0.0, boundPercent,true,direction);
     }
 }
 
@@ -3156,36 +3605,6 @@ void Base3DView::resetView()
     //    ((rviz::OrbitViewController*)manager_->getViewManager()->getCurrent())->lookAt(position);
     //else if(dynamic_cast<rviz::FixedOrientationOrthoViewController*>(manager_->getViewManager()->getCurrent()) == NULL)
     //    ((rviz::FixedOrientationOrthoViewController*)manager_->getViewManager()->getCurrent())->lookAt(position);
-}
-
-void Base3DView::clearPointCloudRaycastRequests()
-{
-    raycast_point_cloud_viewer_->setEnabled(false);
-    raycast_point_cloud_viewer_->setEnabled(true);
-}
-
-void Base3DView::clearPointCloudStereoRequests()
-{
-    stereo_point_cloud_viewer_->setEnabled(false);
-    stereo_point_cloud_viewer_->setEnabled(true);
-}
-
-void Base3DView::clearPointCloudRegionRequests()
-{
-    region_point_cloud_viewer_->setEnabled(false);
-    region_point_cloud_viewer_->setEnabled(true);
-}
-
-void Base3DView::clearMapRequests()
-{
-    while(ground_map_.size() > 0)
-    {
-        rviz::Display* tmp = ground_map_[0];
-        tmp->setEnabled(false);
-        delete tmp;
-        manager_->notifyConfigChanged();
-        ground_map_.erase(ground_map_.begin());
-    }
 }
 
 rviz::ViewController* Base3DView::getCurrentViewController()

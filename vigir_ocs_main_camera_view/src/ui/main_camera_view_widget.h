@@ -72,6 +72,10 @@ private:
     ros::Subscriber neck_pos_sub_;
     ros::Publisher sys_command_pub_;
 
+    ros::Subscriber ocs_sync_sub_;
+    void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
+    void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
+
     std_msgs::String sysCmdMsg;
 
     bool lock_pitch_slider_;

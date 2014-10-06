@@ -16,7 +16,7 @@ class RobotStateManager{
        RobotStateManager& operator=(RobotStateManager const&){};  // assignment operator is private
        static RobotStateManager* instance;
        MoveItOcsModel * robot_state_;
-       MoveItOcsModel * ghost_robot_state_;
+       MoveItOcsModel * ghost_robot_state_;       
 };
 
 #endif

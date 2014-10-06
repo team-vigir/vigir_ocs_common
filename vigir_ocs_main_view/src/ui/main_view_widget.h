@@ -86,6 +86,8 @@ protected:
     void systemCommandContext(std::string command);
     void loadButtonIcon(QPushButton* btn, QString image_name);
     void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
+    void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
+    void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
     void closeEvent(QCloseEvent *event);
     void resizeEvent(QResizeEvent * event);
     void moveEvent(QMoveEvent * event);
@@ -121,6 +123,8 @@ protected:
     ros::Publisher mode_pub_;
     ros::Subscriber mode_sub_;
     ros::Publisher interactive_marker_mode_pub_;
+
+    ros::Subscriber ocs_sync_sub_;
 
     std_msgs::String sysCmdMsg;
 
