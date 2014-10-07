@@ -101,7 +101,7 @@ namespace rviz
                     //at skipped point?  and have a desired direction for an arrow?
                     if(j == current_arrow_point_[joint_name] && arrow_directions_.find(joint_name) != arrow_directions_.end())
                     {
-                        ROS_ERROR("%s: %d", joint_name.c_str(), j);
+                        //ROS_ERROR("%s: %d", joint_name.c_str(), j);
                         //move arrow along circle by setting position at different points
                         effort_arrow_[joint_name]->setPosition(orientation_[joint_name] * point + position_[joint_name]);
                         //calculate next index for arrow direction
@@ -133,7 +133,7 @@ namespace rviz
 
     void JointVisualCustom::setArrowDirection(std::string jointName,int direction)
     {
-        ROS_ERROR("set arrow %s %d",jointName.c_str(),direction);
+        //ROS_ERROR("set arrow %s %d",jointName.c_str(),direction);
         arrow_directions_[jointName] = direction;
     }
 

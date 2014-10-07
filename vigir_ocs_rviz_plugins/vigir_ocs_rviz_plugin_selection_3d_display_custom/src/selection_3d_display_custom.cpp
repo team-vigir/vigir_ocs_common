@@ -48,6 +48,7 @@
 #include "rviz/display_context.h"
 #include "rviz/robot/robot.h"
 #include "rviz/robot/tf_link_updater.h"
+#include "rviz/properties/bool_property.h"
 #include "rviz/properties/float_property.h"
 #include "rviz/properties/property.h"
 #include "rviz/properties/string_property.h"
@@ -68,10 +69,16 @@ Selection3DDisplayCustom::Selection3DDisplayCustom()
     , selection_marker_(NULL)
     //, mCurrentObject(NULL)
     , initialized_(false)
-    , marker_scale_(0.0004f)
     , ray_initialized_(false)
     , raycast_request_mode_(-1)
 {
+    marker_scale_property_ = new FloatProperty( "Scale", 0.0004f,
+                                                "Radius of the selection marker",
+                                                this);
+
+    constant_size_property_ = new BoolProperty( "Constant Visual Size", true,
+                                                "Whether or not to make the selection marker size constant.",
+                                                this);
 }
 
 Selection3DDisplayCustom::~Selection3DDisplayCustom()
@@ -83,19 +90,10 @@ void Selection3DDisplayCustom::onInitialize()
 {
     context_->getSceneManager()->addRenderQueueListener(this);
 
-    updateVisualVisible();
-    updateCollisionVisible();
-    updateAlpha();
-
     raycast_query_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_distance_request_world", 1, false );
     raycast_query_sub_ = nh_.subscribe<std_msgs::Float64>( "/flor/worldmodel/ocs/dist_query_distance_result", 5, &Selection3DDisplayCustom::processDistQuery, this );
     ocs_raycast_query_pub_ = nh_.advertise<flor_ocs_msgs::OCSRaycastRequest>( "/flor/ocs/dist_query_request", 1, false );
     ocs_raycast_query_sub_ = nh_.subscribe<flor_ocs_msgs::OCSRaycastRequest>( "/flor/ocs/dist_query_request", 5, &Selection3DDisplayCustom::processOCSDistQuery, this );
-}
-
-void Selection3DDisplayCustom::updateAlpha()
-{
-    context_->queueRender();
 }
 
 void Selection3DDisplayCustom::updateRobotDescription()
@@ -105,16 +103,6 @@ void Selection3DDisplayCustom::updateRobotDescription()
         load();
         context_->queueRender();
     }
-}
-
-void Selection3DDisplayCustom::updateVisualVisible()
-{
-    context_->queueRender();
-}
-
-void Selection3DDisplayCustom::updateCollisionVisible()
-{
-    context_->queueRender();
 }
 
 void Selection3DDisplayCustom::updateTfPrefix()
@@ -172,57 +160,57 @@ void Selection3DDisplayCustom::load()
     selection_marker_->setVisible( false );
     lEntity->setMaterialName(lMaterialName);
 
-    lEntity = this->scene_manager_->createEntity("ROI selection marker final", Ogre::SceneManager::PT_SPHERE);
-    //lEntity->setMaterialName(lMaterialName);
-    roi_marker_final_ = this->scene_node_->createChildSceneNode();
-    roi_marker_final_->attachObject(lEntity);
-    // Change position and scale
-    roi_marker_final_->setPosition(0.0f, 0.0f, 0.0f);
-    roi_marker_final_->scale(0.001f,0.001f,0.001f);
+//    lEntity = this->scene_manager_->createEntity("ROI selection marker final", Ogre::SceneManager::PT_SPHERE);
+//    //lEntity->setMaterialName(lMaterialName);
+//    roi_marker_final_ = this->scene_node_->createChildSceneNode();
+//    roi_marker_final_->attachObject(lEntity);
+//    // Change position and scale
+//    roi_marker_final_->setPosition(0.0f, 0.0f, 0.0f);
+//    roi_marker_final_->scale(0.001f,0.001f,0.001f);
 
-    roi_marker_final_->setVisible( false );
-    lEntity->setMaterialName(lMaterialName);
+//    roi_marker_final_->setVisible( false );
+//    lEntity->setMaterialName(lMaterialName);
 
-    lMaterialName = lNameOfResourceGroup+"MarkerBoxMaterial";
+//    lMaterialName = lNameOfResourceGroup+"MarkerBoxMaterial";
 
-    if(!lRgMgr.resourceGroupExists(lNameOfResourceGroup))
-    {
-        lRgMgr.createResourceGroup(lNameOfResourceGroup);
+//    if(!lRgMgr.resourceGroupExists(lNameOfResourceGroup))
+//    {
+//        lRgMgr.createResourceGroup(lNameOfResourceGroup);
 
-        Ogre::MaterialPtr lMaterial = lMaterialManager.create(lMaterialName,lNameOfResourceGroup);
-        Ogre::Technique* lFirstTechnique = lMaterial->getTechnique(0);
-        Ogre::Pass* lFirstPass = lFirstTechnique->getPass(0);
+//        Ogre::MaterialPtr lMaterial = lMaterialManager.create(lMaterialName,lNameOfResourceGroup);
+//        Ogre::Technique* lFirstTechnique = lMaterial->getTechnique(0);
+//        Ogre::Pass* lFirstPass = lFirstTechnique->getPass(0);
 
-        float transparency = 0.3f;
-        Ogre::ColourValue lSelfIllumnationColour(0.1f, 0.0f, 0.0f, transparency);
-        lFirstPass->setSelfIllumination(lSelfIllumnationColour);
+//        float transparency = 0.3f;
+//        Ogre::ColourValue lSelfIllumnationColour(0.1f, 0.0f, 0.0f, transparency);
+//        lFirstPass->setSelfIllumination(lSelfIllumnationColour);
 
-        Ogre::ColourValue lDiffuseColour(1.0f, 0.4f, 0.4f, transparency);
-        lFirstPass->setDiffuse(lDiffuseColour);
+//        Ogre::ColourValue lDiffuseColour(1.0f, 0.4f, 0.4f, transparency);
+//        lFirstPass->setDiffuse(lDiffuseColour);
 
-        Ogre::ColourValue lAmbientColour(0.4f, 0.1f, 0.1f, transparency);
-        lFirstPass->setAmbient(lAmbientColour);
+//        Ogre::ColourValue lAmbientColour(0.4f, 0.1f, 0.1f, transparency);
+//        lFirstPass->setAmbient(lAmbientColour);
 
-        Ogre::ColourValue lSpecularColour(1.0f, 1.0f, 1.0f, 1.0f);
-        lFirstPass->setSpecular(lSpecularColour);
+//        Ogre::ColourValue lSpecularColour(1.0f, 1.0f, 1.0f, 1.0f);
+//        lFirstPass->setSpecular(lSpecularColour);
 
-        Ogre::Real lShininess = 64.0f;
-        lFirstPass->setShininess(lShininess);
+//        Ogre::Real lShininess = 64.0f;
+//        lFirstPass->setShininess(lShininess);
 
-        lFirstPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
-        lFirstPass->setDepthWriteEnabled(false);
-    }
+//        lFirstPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+//        lFirstPass->setDepthWriteEnabled(false);
+//    }
 
-    lEntity = this->scene_manager_->createEntity("ROI selection marker box", Ogre::SceneManager::PT_CUBE);
-    lEntity->setMaterialName(lMaterialName);
-    roi_marker_box_ = this->scene_node_->createChildSceneNode();
-    roi_marker_box_->attachObject(lEntity);
-    // Change position and scale
-    roi_marker_box_->setPosition(100000.0f, 100000.0f, 100000.0f);
-    roi_marker_box_->scale(0.001f,0.001f,0.001f);
+//    lEntity = this->scene_manager_->createEntity("ROI selection marker box", Ogre::SceneManager::PT_CUBE);
+//    lEntity->setMaterialName(lMaterialName);
+//    roi_marker_box_ = this->scene_node_->createChildSceneNode();
+//    roi_marker_box_->attachObject(lEntity);
+//    // Change position and scale
+//    roi_marker_box_->setPosition(100000.0f, 100000.0f, 100000.0f);
+//    roi_marker_box_->scale(0.001f,0.001f,0.001f);
 
-    roi_marker_box_->setVisible( false );
-    lEntity->setMaterialName(lMaterialName);
+//    roi_marker_box_->setVisible( false );
+//    lEntity->setMaterialName(lMaterialName);
 
     // Create ground plane to be able to perform raycasting anywhere
     lEntity = this->scene_manager_->createEntity("ground plane", Ogre::SceneManager::PT_CUBE);
@@ -256,95 +244,109 @@ void Selection3DDisplayCustom::preRenderTargetUpdate( const Ogre::RenderTargetEv
 {
     if(initialized_)
     {
-        int view_id = 0;//((rviz::VisualizationManager*)context_)->getActiveViewID();
-
-        for(int i = 0; i < render_panel_list_.size(); i++)
-            if(render_panel_list_[i]->getRenderWindow() == (Ogre::RenderWindow*)evt.source)
-                view_id = i;
-
-        //std::cout << "Update " << view_id << std::endl;
-
-        // get transform from world to fixed frame
-        Ogre::Quaternion selection_orientation(1,0,0,0);
-        Ogre::Vector3 selection_position = selection_position_;
-        transform(selection_position,selection_orientation,"/world",fixed_frame_.toUtf8().constData());
-        //std::cout << "selection: " << selection_position.x << "," << selection_position.y << "," << selection_position.z << std::endl;
-
-        //Ogre::Vector3 selection_position_roi = selection_position_roi_;
-        //selection_position_roi = (ot * selection_position_roi) * pt;
-        Ogre::Quaternion selection_orientation_roi(1,0,0,0);
-        Ogre::Vector3 selection_position_roi = selection_position_roi_;
-        transform(selection_position_roi,selection_orientation_roi,"/world",fixed_frame_.toUtf8().constData());
-        //std::cout << selection_position_roi.x << "," << selection_position_roi.y << "," << selection_position_roi.z << std::endl;
-
-        // get camera position to calculate selection marker
-        //std::cout << "selection " << render_panel_->getCamera() << std::endl;
-        Ogre::Vector3 camera_position = this->render_panel_list_[view_id]->getCamera()->getPosition();
-        //std::cout << this->context_->getSceneManager()->getCameras().size() << std::endl;
-        //Ogre::SceneManager::CameraList camera_list = this->context_->getSceneManager()->getCameras();
-        //Ogre::SceneManager::CameraIterator camera_list_iterator = this->context_->getSceneManager()->getCameraIterator();
-        //while(camera_list_iterator.hasMoreElements())
-        //{
-        //    Ogre::Camera* temp_cam = camera_list_iterator.getNext();
-        //    Ogre::Vector3 temp_pos = temp_cam->getDerivedPosition();
-        //    std::cout << "it " << temp_pos.x << "," << temp_pos.y << "," << temp_pos.z << std::endl;
-        //}
-
-        //Ogre::Vector3 camera_position2 = this->context_->getSceneManager()->getCamera();
-       // std::cout << "Camera: " << camera_position.x << "," << camera_position.y << "," << camera_position.z << std::endl;
-
-        if(this->render_panel_list_[view_id]->getCamera()->getProjectionType() == Ogre::PT_ORTHOGRAPHIC) // if it's ortho, we need to calculate z again
+        if(constant_size_property_->getBool())
         {
-            Ogre::Matrix4 m = this->render_panel_list_[view_id]->getCamera()->getProjectionMatrix();
-            float near   =  (1+m[2][3])/m[2][2];
-            float far    = -(1-m[2][3])/m[2][2];
-            float bottom =  (1-m[1][3])/m[1][1];
-            float top    = -(1+m[1][3])/m[1][1];
-            float left   = -(1+m[0][3])/m[0][0];
-            float right  =  (1-m[0][3])/m[0][0];
-            //std::cout << "ortho:\n\t" << left << "\n\t" << right << "\n\t" << bottom << "\n\t" << top << "\n\t" << near << "\n\t" << far << std::endl;
-            if(this->render_panel_list_[view_id]->getCamera()->getPosition().z == 500)
-                camera_position.z = fabs(bottom)+fabs(top);
-            else if(this->render_panel_list_[view_id]->getCamera()->getPosition().y == -500)
-                camera_position.y = fabs(bottom)+fabs(top);
-            else if(this->render_panel_list_[view_id]->getCamera()->getPosition().x == 500)
-                camera_position.x = fabs(bottom)+fabs(top);
-        }
+            int view_id = 0;//((rviz::VisualizationManager*)context_)->getActiveViewID();
 
-        //std::cout << "camera: " << camera_position.x << "," << camera_position.y << "," << camera_position.z << std::endl;
+            for(int i = 0; i < render_panel_list_.size(); i++)
+                if(render_panel_list_[i]->getRenderWindow() == (Ogre::RenderWindow*)evt.source)
+                    view_id = i;
 
-        // get the current fov
-        float size = marker_scale_;
+            //std::cout << "Update " << view_id << std::endl;
 
-        // calculate distance from markers
-        if(validateFloats(selection_position))
-        {
-            float distance_selection = camera_position.distance(selection_position);
-            //std::cout << distance_selection << std::endl;
-            if(distance_selection != std::numeric_limits<float>::infinity() && !(distance_selection != distance_selection)) // check for inf and nan
+            // get transform from world to fixed frame
+            Ogre::Quaternion selection_orientation(1,0,0,0);
+            Ogre::Vector3 selection_position = selection_position_;
+            transform(selection_position,selection_orientation,"/world",fixed_frame_.toUtf8().constData());
+            //std::cout << "selection: " << selection_position.x << "," << selection_position.y << "," << selection_position.z << std::endl;
+
+    //        Ogre::Quaternion selection_orientation_roi(1,0,0,0);
+    //        Ogre::Vector3 selection_position_roi = selection_position_roi_;
+    //        transform(selection_position_roi,selection_orientation_roi,"/world",fixed_frame_.toUtf8().constData());
+            //std::cout << selection_position_roi.x << "," << selection_position_roi.y << "," << selection_position_roi.z << std::endl;
+
+            // get camera position to calculate selection marker
+            //std::cout << "selection " << render_panel_->getCamera() << std::endl;
+            Ogre::Vector3 camera_position = this->render_panel_list_[view_id]->getCamera()->getPosition();
+            //std::cout << this->context_->getSceneManager()->getCameras().size() << std::endl;
+            //Ogre::SceneManager::CameraList camera_list = this->context_->getSceneManager()->getCameras();
+            //Ogre::SceneManager::CameraIterator camera_list_iterator = this->context_->getSceneManager()->getCameraIterator();
+            //while(camera_list_iterator.hasMoreElements())
+            //{
+            //    Ogre::Camera* temp_cam = camera_list_iterator.getNext();
+            //    Ogre::Vector3 temp_pos = temp_cam->getDerivedPosition();
+            //    std::cout << "it " << temp_pos.x << "," << temp_pos.y << "," << temp_pos.z << std::endl;
+            //}
+
+            //Ogre::Vector3 camera_position2 = this->context_->getSceneManager()->getCamera();
+           // std::cout << "Camera: " << camera_position.x << "," << camera_position.y << "," << camera_position.z << std::endl;
+
+            if(this->render_panel_list_[view_id]->getCamera()->getProjectionType() == Ogre::PT_ORTHOGRAPHIC) // if it's ortho, we need to calculate z again
             {
-                if(!selection_position.isNaN()) selection_marker_->setPosition(selection_position);
-                float scale_selection = 2.0f * distance_selection * tan(this->render_panel_list_[view_id]->getCamera()->getFOVy().valueRadians() / 2.0f);//distance_selection*tan(radians)*0.002f;
-                //std::cout << scale_selection << std::endl;
-                if(scale_selection > 0.0f) selection_marker_->setScale(scale_selection*size,scale_selection*size,scale_selection*size);
+                Ogre::Matrix4 m = this->render_panel_list_[view_id]->getCamera()->getProjectionMatrix();
+                float near   =  (1+m[2][3])/m[2][2];
+                float far    = -(1-m[2][3])/m[2][2];
+                float bottom =  (1-m[1][3])/m[1][1];
+                float top    = -(1+m[1][3])/m[1][1];
+                float left   = -(1+m[0][3])/m[0][0];
+                float right  =  (1-m[0][3])/m[0][0];
+                //std::cout << "ortho:\n\t" << left << "\n\t" << right << "\n\t" << bottom << "\n\t" << top << "\n\t" << near << "\n\t" << far << std::endl;
+                if(this->render_panel_list_[view_id]->getCamera()->getPosition().z == 500)
+                    camera_position.z = fabs(bottom)+fabs(top);
+                else if(this->render_panel_list_[view_id]->getCamera()->getPosition().y == -500)
+                    camera_position.y = fabs(bottom)+fabs(top);
+                else if(this->render_panel_list_[view_id]->getCamera()->getPosition().x == 500)
+                    camera_position.x = fabs(bottom)+fabs(top);
+            }
 
-                if(validateFloats(selection_position_roi))
+            //std::cout << "camera: " << camera_position.x << "," << camera_position.y << "," << camera_position.z << std::endl;
+
+            // get the current fov
+            float size = marker_scale_property_->getFloat();
+
+            // calculate distance from markers
+            if(validateFloats(selection_position))
+            {
+                float distance_selection = camera_position.distance(selection_position);
+                //std::cout << distance_selection << std::endl;
+                if(distance_selection != std::numeric_limits<float>::infinity() && !(distance_selection != distance_selection)) // check for inf and nan
                 {
-                    float distance_selection_roi = camera_position.distance(selection_position_roi);
-                    //std::cout << distance_selection_roi << std::endl; // <<< inf
-                    if(distance_selection_roi != std::numeric_limits<float>::infinity() && !(distance_selection_roi != distance_selection_roi))
-                    {
-                        if(!selection_position_roi.isNaN()) roi_marker_final_->setPosition(selection_position_roi);
-                        float scale_selection_roi = 2.0f * distance_selection_roi * tan(this->render_panel_list_[view_id]->getCamera()->getFOVy().valueRadians() / 2.0f);// = distance_selection_roi*tan(radians)*0.002f;
-                        //std::cout << scale_selection_roi << std::endl;
-                        if(scale_selection_roi > 0.0f) roi_marker_final_->setScale(scale_selection_roi*size,scale_selection_roi*size,scale_selection_roi*size);
+                    if(!selection_position.isNaN()) selection_marker_->setPosition(selection_position);
+                    float scale_selection = 2.0f * distance_selection * tan(this->render_panel_list_[view_id]->getCamera()->getFOVy().valueRadians() / 2.0f);//distance_selection*tan(radians)*0.002f;
+                    //std::cout << scale_selection << std::endl;
+                    if(scale_selection > 0.0f) selection_marker_->setScale(scale_selection*size,scale_selection*size,scale_selection*size);
 
-                        Ogre::Vector3 box_position = (selection_position+selection_position_roi)/2.0f;
+    //                if(validateFloats(selection_position_roi))
+    //                {
+    //                    float distance_selection_roi = camera_position.distance(selection_position_roi);
+    //                    //std::cout << distance_selection_roi << std::endl; // <<< inf
+    //                    if(distance_selection_roi != std::numeric_limits<float>::infinity() && !(distance_selection_roi != distance_selection_roi))
+    //                    {
+    //                        if(!selection_position_roi.isNaN()) roi_marker_final_->setPosition(selection_position_roi);
+    //                        float scale_selection_roi = 2.0f * distance_selection_roi * tan(this->render_panel_list_[view_id]->getCamera()->getFOVy().valueRadians() / 2.0f);// = distance_selection_roi*tan(radians)*0.002f;
+    //                        //std::cout << scale_selection_roi << std::endl;
+    //                        if(scale_selection_roi > 0.0f) roi_marker_final_->setScale(scale_selection_roi*size,scale_selection_roi*size,scale_selection_roi*size);
 
-                        if(!box_position.isNaN()) roi_marker_box_->setPosition(box_position);
-                        if(!selection_orientation.isNaN()) roi_marker_box_->setOrientation(selection_orientation);
-                    }
+    //                        Ogre::Vector3 box_position = (selection_position+selection_position_roi)/2.0f;
+
+    //                        if(!box_position.isNaN()) roi_marker_box_->setPosition(box_position);
+    //                        if(!selection_orientation.isNaN()) roi_marker_box_->setOrientation(selection_orientation);
+    //                    }
+    //                }
                 }
+            }
+        }
+        else
+        {
+            Ogre::Vector3 selection_position = selection_position_;
+            Ogre::Quaternion selection_orientation(1,0,0,0);
+            transform(selection_position,selection_orientation,"/world",fixed_frame_.toUtf8().constData());
+
+            // only set position if values are valid
+            if(validateFloats(selection_position) && marker_scale_property_->getFloat() > 0.0f)
+            {
+                selection_marker_->setPosition(selection_position);
+                selection_marker_->setScale(marker_scale_property_->getFloat(),marker_scale_property_->getFloat(),marker_scale_property_->getFloat());
             }
         }
     }
@@ -461,63 +463,63 @@ void Selection3DDisplayCustom::createMarker(bool, int x, int y)
         initialized_ = false;
         selection_marker_->setVisible(false);
     }
-    roi_marker_final_->setVisible(false);
-    roi_marker_box_->setVisible(false);
-    roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
+//    roi_marker_final_->setVisible(false);
+//    roi_marker_box_->setVisible(false);
+//    roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
 }
 
-void Selection3DDisplayCustom::createROISelection(bool, int x, int y)
-{
-    if(!initialized_)
-        return;
+//void Selection3DDisplayCustom::createROISelection(bool, int x, int y)
+//{
+//    if(!initialized_)
+//        return;
 
-    float win_width = render_panel_->width();
-    float win_height = render_panel_->height();
+//    float win_width = render_panel_->width();
+//    float win_height = render_panel_->height();
 
-    bool failed = false;
+//    bool failed = false;
 
-    //then send a raycast straight out from the camera at the mouse's position
-    Ogre::Ray mouseRayFinal = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
+//    //then send a raycast straight out from the camera at the mouse's position
+//    Ogre::Ray mouseRayFinal = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
 
-    Ogre::Vector3 positionFinal;
+//    Ogre::Vector3 positionFinal;
 
-    Ogre::Vector3 pt(0,0,0);
-    Ogre::Quaternion ot(1,0,0,0);
-    transform(pt,ot,"/world",fixed_frame_.toUtf8().constData());
-    int type;
-    std::string name;
-    if(raycast_utils_->RayCastFromPoint(mouseRayFinal,pt,ot,positionFinal,type,name))
-    {
-        selection_marker_->setVisible(true);
-        roi_marker_final_->setPosition(positionFinal);
-        roi_marker_final_->setVisible(true);
+//    Ogre::Vector3 pt(0,0,0);
+//    Ogre::Quaternion ot(1,0,0,0);
+//    transform(pt,ot,"/world",fixed_frame_.toUtf8().constData());
+//    int type;
+//    std::string name;
+//    if(raycast_utils_->RayCastFromPoint(mouseRayFinal,pt,ot,positionFinal,type,name))
+//    {
+//        selection_marker_->setVisible(true);
+//        roi_marker_final_->setPosition(positionFinal);
+//        roi_marker_final_->setVisible(true);
 
-        Ogre::Vector3 initial_position = selection_marker_->getPosition();
-        Ogre::Vector3 box_position = (initial_position+positionFinal)/2.0f;
-        roi_marker_box_->setPosition(box_position);
-        Ogre::Vector3 box_scale;
-        box_scale.x = fabs(positionFinal.x-initial_position.x)/100.0f;
-        box_scale.y = fabs(positionFinal.y-initial_position.y)/100.0f;
-        box_scale.z = fabs(positionFinal.z-initial_position.z)/100.0f;
-        roi_marker_box_->setScale(box_scale);
-        std::cout << "box_position: " << box_position.x << ", " << box_position.y << ", " << box_position.z << std::endl;
-        std::cout << "box_scale: " << box_scale.x << ", " << box_scale.y << ", " << box_scale.z << std::endl;
-        roi_marker_box_->setVisible(true);
+//        Ogre::Vector3 initial_position = selection_marker_->getPosition();
+//        Ogre::Vector3 box_position = (initial_position+positionFinal)/2.0f;
+//        roi_marker_box_->setPosition(box_position);
+//        Ogre::Vector3 box_scale;
+//        box_scale.x = fabs(positionFinal.x-initial_position.x)/100.0f;
+//        box_scale.y = fabs(positionFinal.y-initial_position.y)/100.0f;
+//        box_scale.z = fabs(positionFinal.z-initial_position.z)/100.0f;
+//        roi_marker_box_->setScale(box_scale);
+//        std::cout << "box_position: " << box_position.x << ", " << box_position.y << ", " << box_position.z << std::endl;
+//        std::cout << "box_scale: " << box_scale.x << ", " << box_scale.y << ", " << box_scale.z << std::endl;
+//        roi_marker_box_->setVisible(true);
 
-        Ogre::Quaternion orientation(1,0,0,0);
-        transform(positionFinal,orientation,fixed_frame_.toUtf8().constData(),"/world");
-        selection_position_roi_ = positionFinal;
+//        Ogre::Quaternion orientation(1,0,0,0);
+//        transform(positionFinal,orientation,fixed_frame_.toUtf8().constData(),"/world");
+//        selection_position_roi_ = positionFinal;
 
-        // emit signal here?
-    }
-    else
-    {
-        selection_marker_->setVisible(false);
-        roi_marker_final_->setVisible(false);
-        roi_marker_box_->setVisible(false);
-        roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
-    }
-}
+//        // emit signal here?
+//    }
+//    else
+//    {
+//        selection_marker_->setVisible(false);
+//        roi_marker_final_->setVisible(false);
+//        roi_marker_box_->setVisible(false);
+//        roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
+//    }
+//}
 
 void Selection3DDisplayCustom::setRenderPanel( rviz::RenderPanel* rp )
 {
@@ -539,15 +541,10 @@ void Selection3DDisplayCustom::resetSelection()
 
     selection_marker_->setVisible(false);
     selection_marker_->setScale(0.0000001f,0.0000001f,0.0000001f);
-    roi_marker_final_->setVisible(false);
-    roi_marker_final_->setScale(0.0000001f,0.0000001f,0.0000001f);
-    roi_marker_box_->setVisible(false);
-    roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
-}
-
-void Selection3DDisplayCustom::setMarkerScale(float scale)
-{
-    marker_scale_ = scale;
+//    roi_marker_final_->setVisible(false);
+//    roi_marker_final_->setScale(0.0000001f,0.0000001f,0.0000001f);
+//    roi_marker_box_->setVisible(false);
+//    roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
 }
 
 void Selection3DDisplayCustom::queryPosition( int x, int y, Ogre::Vector3& world_position )
@@ -617,9 +614,9 @@ void Selection3DDisplayCustom::setMarkerPosition(float x, float y, float z)
     selection_position_ = position;
     Q_EMIT newSelection(selection_position_);
 
-    roi_marker_final_->setVisible(false);
-    roi_marker_box_->setVisible(false);
-    roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
+//    roi_marker_final_->setVisible(false);
+//    roi_marker_box_->setVisible(false);
+//    roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
 }
 
 Ogre::Vector3 Selection3DDisplayCustom::calculateRaycastPosition(double distance)
@@ -663,44 +660,44 @@ void Selection3DDisplayCustom::processDistQuery( const std_msgs::Float64::ConstP
 
         raycast_request_mode_ = -1;
     }
-    else if(raycast_request_mode_ == RAYCAST_SELECTION_ROI)
-    {
-        if(!initialized_)
-            return;
+//    else if(raycast_request_mode_ == RAYCAST_SELECTION_ROI)
+//    {
+//        if(!initialized_)
+//            return;
 
-        /*if(distance->data < 0)
-        {
-            //selection_marker_->setVisible(false);
-            roi_marker_final_->setVisible(false);
-            roi_marker_box_->setVisible(false);
-            roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
-            return;
-        }*/
+//        /*if(distance->data < 0)
+//        {
+//            //selection_marker_->setVisible(false);
+//            roi_marker_final_->setVisible(false);
+//            roi_marker_box_->setVisible(false);
+//            roi_marker_box_->setScale(0.0000001f,0.0000001f,0.0000001f);
+//            return;
+//        }*/
 
-        Ogre::Vector3 positionFinal = calculateRaycastPosition(distance->data);
+//        Ogre::Vector3 positionFinal = calculateRaycastPosition(distance->data);
 
-        selection_marker_->setVisible(true);
-        roi_marker_final_->setPosition(positionFinal);
-        roi_marker_final_->setVisible(true);
+//        selection_marker_->setVisible(true);
+//        roi_marker_final_->setPosition(positionFinal);
+//        roi_marker_final_->setVisible(true);
 
-        Ogre::Vector3 initial_position = selection_marker_->getPosition();
-        Ogre::Vector3 box_position = (initial_position+positionFinal)/2.0f;
-        roi_marker_box_->setPosition(box_position);
-        Ogre::Vector3 box_scale;
-        box_scale.x = fabs(positionFinal.x-initial_position.x)/100.0f;
-        box_scale.y = fabs(positionFinal.y-initial_position.y)/100.0f;
-        box_scale.z = fabs(positionFinal.z-initial_position.z)/100.0f;
-        roi_marker_box_->setScale(box_scale);
-        std::cout << "box_position: " << box_position.x << ", " << box_position.y << ", " << box_position.z << std::endl;
-        std::cout << "box_scale: " << box_scale.x << ", " << box_scale.y << ", " << box_scale.z << std::endl;
-        roi_marker_box_->setVisible(true);
+//        Ogre::Vector3 initial_position = selection_marker_->getPosition();
+//        Ogre::Vector3 box_position = (initial_position+positionFinal)/2.0f;
+//        roi_marker_box_->setPosition(box_position);
+//        Ogre::Vector3 box_scale;
+//        box_scale.x = fabs(positionFinal.x-initial_position.x)/100.0f;
+//        box_scale.y = fabs(positionFinal.y-initial_position.y)/100.0f;
+//        box_scale.z = fabs(positionFinal.z-initial_position.z)/100.0f;
+//        roi_marker_box_->setScale(box_scale);
+//        std::cout << "box_position: " << box_position.x << ", " << box_position.y << ", " << box_position.z << std::endl;
+//        std::cout << "box_scale: " << box_scale.x << ", " << box_scale.y << ", " << box_scale.z << std::endl;
+//        roi_marker_box_->setVisible(true);
 
-        Ogre::Quaternion orientation(1,0,0,0);
-        transform(positionFinal,orientation,fixed_frame_.toUtf8().constData(),"/world");
-        selection_position_roi_ = positionFinal;
+//        Ogre::Quaternion orientation(1,0,0,0);
+//        transform(positionFinal,orientation,fixed_frame_.toUtf8().constData(),"/world");
+//        selection_position_roi_ = positionFinal;
 
-        raycast_request_mode_ = -1;
-    }
+//        raycast_request_mode_ = -1;
+//    }
 }
 
 void Selection3DDisplayCustom::publishRayRequest(Ogre::Vector3 origin, Ogre::Vector3 direction)
@@ -750,20 +747,20 @@ void Selection3DDisplayCustom::raycastRequest(bool, int x, int y)
     publishRayRequest(mouseRay.getOrigin(), mouseRay.getDirection());
 }
 
-void Selection3DDisplayCustom::raycastRequestROI(bool, int x, int y)
-{
-    float win_width = render_panel_->width();
-    float win_height = render_panel_->height();
+//void Selection3DDisplayCustom::raycastRequestROI(bool, int x, int y)
+//{
+//    float win_width = render_panel_->width();
+//    float win_height = render_panel_->height();
 
-    //then send a raycast straight out from the camera at the mouse's position
-    Ogre::Ray mouseRay = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
+//    //then send a raycast straight out from the camera at the mouse's position
+//    Ogre::Ray mouseRay = this->render_panel_->getCamera()->getCameraToViewportRay((float)x/win_width, (float)y/win_height);
 
-    // send ray data to other instances of OCS
-    publishOCSRayRequest(RAYCAST_SELECTION_ROI, mouseRay.getOrigin(), mouseRay.getDirection());
+//    // send ray data to other instances of OCS
+//    publishOCSRayRequest(RAYCAST_SELECTION_ROI, mouseRay.getOrigin(), mouseRay.getDirection());
 
-    // send ray data to onboard
-    publishRayRequest(mouseRay.getOrigin(), mouseRay.getDirection());
+//    // send ray data to onboard
+//    publishRayRequest(mouseRay.getOrigin(), mouseRay.getDirection());
 
-}
+//}
 
 } // namespace rviz

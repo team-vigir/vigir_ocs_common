@@ -412,10 +412,6 @@ Q_SIGNALS:
       */
     void resetSelection();
     /**
-      * Sets the ctr-click marker scale
-      */
-    void setMarkerScale( float );
-    /**
       * send position of the mouse when clicked to create context menu
       */
     void queryContext( int, int );
