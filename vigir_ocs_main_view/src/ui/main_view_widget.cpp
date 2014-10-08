@@ -181,6 +181,12 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     window_control_sub_ = n_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &MainViewWidget::processWindowControl, this );
     window_control_pub_ = n_.advertise<std_msgs::Int8>( "/flor/ocs/window_control", 1, false);
 
+    //initialize footstep configuration widget
+    footstep_configure_widget_ = new FootstepConfigure();
+    //connect to update footstep paramaters from ui
+    connect(footstep_configure_widget_,SIGNAL(sendFootstepParamaters(double,int,double,int,int,bool)),
+            ((vigir_ocs::Base3DView*) views_list["Top Left"])->getFootstepVisManager(),SLOT(updateFootstepParamaters(double,int,double,int,int,bool)));
+
     // setup all buttons/icons in the toolbar
     setupToolbar();
 
@@ -339,6 +345,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui->Navigation->hide();
     ui->Template->hide();
 
+
+
     // connect emergency stop button to glancehub
     stop_mapper_ = new QSignalMapper(this);
     connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
@@ -356,6 +364,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //this->restoreState(settings.value("mainWindowState").toByteArray());
 
     ocs_sync_sub_ = n_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &MainViewWidget::synchronizeToggleButtons, this );
+
+
 
 }
 
@@ -784,7 +794,18 @@ bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
 }
 
 void MainViewWidget::setupToolbar()
-{
+{        
+    //set menu to popup a config widget for footstep Params
+    QWidgetAction *wa = new QWidgetAction(0);
+    wa->setDefaultWidget(footstep_configure_widget_);
+    footstep_menu_.addAction(wa);
+    //associate button with menu
+    ui->footstepConfigBtn->setMenu(&footstep_menu_);
+    //need to install event filter for widget positioning
+    footstep_menu_.installEventFilter(this);
+
+    connect(ui->footstepConfigBtn,SIGNAL(clicked()),this,SLOT(toggleFootstepConfig()));
+
     //place graphic on joystick toggle
     loadButtonIcon(ui->joystickBtn, "controllerIcon.png");
     loadButtonIcon(ui->jointControlBtn, "jointIcon.png");
@@ -794,6 +815,7 @@ void MainViewWidget::setupToolbar()
     loadButtonIcon(ui->basicStepBtn, "footBasicIcon.png");
     loadButtonIcon(ui->stepBtn, "footAdvancedIcon.png");
     loadButtonIcon(ui->footstepParamBtn, "footParamIcon.png");
+    loadButtonIcon(ui->footstepConfigBtn,"configIcon.png");
 
     //set button style
     QString btnStyle = QString("QPushButton  { ") +
@@ -819,6 +841,7 @@ void MainViewWidget::setupToolbar()
     ui->ghostControlBtn->setStyleSheet(btnStyle);
     ui->positionModeBtn->setStyleSheet(btnStyle);
     ui->plannerConfigBtn->setStyleSheet(btnStyle);
+    ui->footstepConfigBtn->setStyleSheet(btnStyle);
 
     //use signalmapper to avoid having one function for each one of the toggle buttons
     toggle_mapper_ = new QSignalMapper(this);
@@ -871,6 +894,12 @@ void MainViewWidget::setupToolbar()
     connect(ui->footstepParamSetBox,SIGNAL(currentIndexChanged(QString)),((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SLOT(setFootstepParameterSet(QString)));
     connect(((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));
 }
+
+void MainViewWidget::toggleFootstepConfig()
+{
+    ui->footstepConfigBtn->showMenu();
+}
+
 
 void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
 {

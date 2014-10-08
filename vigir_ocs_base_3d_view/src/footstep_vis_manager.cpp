@@ -221,4 +221,17 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
 
     }
 }
+
+void FootstepVisManager::updateFootstepParamaters(double maxTime,int maxSteps,double pathLengthRatio,int interactionMode,int planningParamater,bool patternGeneration)
+{
+    //update all paramaters from ui
+    max_time_ = maxTime;
+    max_steps_ = maxSteps;
+    path_length_ratio_ = pathLengthRatio;
+    interaction_mode_ = interactionMode;
+    planning_paramater_ = planningParamater;
+    pattern_generation_enabled_ = patternGeneration;
+}
+
+
 }

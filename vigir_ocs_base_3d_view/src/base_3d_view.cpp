@@ -619,22 +619,20 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
         joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
         joint_arrows_->subProp("Width")->setValue("0.015");
-        joint_arrows_->subProp("Scale")->setValue("1.2");
-        //only initial alpha, alpha is handled in updateJointIcons
-        //joint_arrows_->subProp("Alpha")->setValue("0.9");
+        joint_arrows_->subProp("Scale")->setValue("1.2");        
 
-        //ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", true );
-        //ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
-        //ghost_joint_arrows_->subProp("Width")->setValue("0.015");
-        //ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
-        //ghost_joint_arrows_->subProp("Alpha")->setValue("0.9");
+        ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", true );
+        ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
+        ghost_joint_arrows_->subProp("Width")->setValue("0.015");
+        ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
 
 
-        disableJointMarkers = false;
-        occludedRobotVisible = true;
-        renderTexture1 = NULL;
 
-        setRobotOccludedRender();
+        disable_joint_markers_ = false;
+        occluded_robot_visible_ = false;
+        //renderTexture1 = NULL;
+
+        //setRobotOccludedRender();
 
         //update render order whenever objects are added/ display changed
        // connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
@@ -740,6 +738,8 @@ Base3DView::~Base3DView()
     delete manager_;
 }
 
+
+//NOTE: DOES NOT CURRENTLY WORK, TODO: figure a way to pass a rendered texture from shader program to shader program to accumulate effects
 void Base3DView::blurRender()
 {
     if(renderTexture1 == NULL)
@@ -982,7 +982,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     //Means that currently doing
 
-    if(is_primary_view_ && occludedRobotVisible)
+    if(is_primary_view_ && occluded_robot_visible_)
         setRenderOrder();   
 
 }
@@ -1135,12 +1135,12 @@ void Base3DView::robotOcclusionToggled(bool selected)
 {
     if (!selected && is_primary_view_)
     {
-        occludedRobotVisible = false;
+        occluded_robot_visible_ = false;
         disableRobotOccludedRender();
     }
     else if (is_primary_view_)
     {
-        occludedRobotVisible = true;
+        occluded_robot_visible_ = true;
         setRobotOccludedRender();
     }
 }
@@ -1149,7 +1149,7 @@ void Base3DView::robotJointMarkerToggled(bool selected)
 {
     if(!selected && is_primary_view_)
     {
-        disableJointMarkers = true;        
+        disable_joint_markers_ = true;
         //ghost state is only checked when ghost is manipulated, needs an additional call to refresh joint states
         if(ghost_robot_model_->isEnabled())
             processGhostJointStates(latest_ghost_joint_state_);
@@ -1157,7 +1157,7 @@ void Base3DView::robotJointMarkerToggled(bool selected)
     }
     else if (is_primary_view_)
     {
-        disableJointMarkers = false;
+        disable_joint_markers_ = false;
         if(ghost_robot_model_->isEnabled())
             processGhostJointStates(latest_ghost_joint_state_);
 
@@ -2945,26 +2945,27 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
 void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose, double effortPercent, double boundPercent, bool ghost, int arrowDirection)
 {
     std::string jointPositionIconName = name;
-//    if(ghost)
-//    {
-//        //joint icon plugin will not name joints with "ghost/" prefix, need to adjust
-//        jointPositionIconName = jointPositionIconName.substr(6,jointPositionIconName.size());
-//        //ghost joint marker still sends fingers, need to hide
-//        if(name.find("_f")!= std::string::npos && name.find("_j")!= std::string::npos)
-//        {
-//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
-//            return;
-//        }
-//    }
-    //want to disable a marker that has already been created
-    if(disableJointMarkers && jointDisplayMap.find(name) != jointDisplayMap.end())
-    {
-        jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.0f );
 
-//        if(ghost)
-//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
-//        else
-        if(!ghost)
+    if(ghost)
+    {
+        //joint icon plugin will not name joints with "ghost/" prefix, need to adjust
+        jointPositionIconName = jointPositionIconName.substr(6,jointPositionIconName.size());
+        //ghost joint marker still sends fingers, need to hide
+        if(name.find("_f")!= std::string::npos && name.find("_j")!= std::string::npos)
+        {
+            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+            return;
+        }
+    }
+    //want to disable a marker that has already been created
+    if(disable_joint_markers_ )
+    {
+        if(jointDisplayMap.find(name) != jointDisplayMap.end())
+            jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.0f );
+
+        if(ghost)
+            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+        else
             ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(0,jointPositionIconName);
 
         return;
@@ -3042,14 +3043,13 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
         color.setRedF(1);
         color.setGreenF(green);
         color.setBlueF(0);
-//        if(ghost)
-//        {
-//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setArrowDirection(jointPositionIconName,arrowDirection);
-//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointColor(color,jointPositionIconName);
-//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(alpha,jointPositionIconName);
-//        }
-//        else
-        if(!ghost)
+        if(ghost)
+        {
+            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setArrowDirection(jointPositionIconName,arrowDirection);
+            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointColor(color,jointPositionIconName);
+            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(alpha,jointPositionIconName);
+        }
+        else
         {
             ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setArrowDirection(jointPositionIconName,arrowDirection);
             ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointColor(color,jointPositionIconName);
@@ -3059,10 +3059,9 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
     else
     {
         //no joint arrow should be shown when joint bounds is okay
-//        if(ghost)
-//            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
-//        else
-        if(!ghost)
+        if(ghost)
+            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+        else
             ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(0,jointPositionIconName);
     }
 

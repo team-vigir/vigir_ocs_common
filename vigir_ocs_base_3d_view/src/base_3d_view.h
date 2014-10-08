@@ -622,9 +622,9 @@ protected:
       */
     void setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset);
 
-    bool disableJointMarkers;
+    bool disable_joint_markers_;
     //flag to disable extra calls to setting render order in timer function
-    bool occludedRobotVisible;
+    bool occluded_robot_visible_;
 
 
 

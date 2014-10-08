@@ -28,11 +28,13 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 qt4_wrap_cpp(MOC_FILES
   src/ui/main_view_widget.h
+  src/ui/footstep_config.h
 )
 
 ## Here we add QtCreator ui files
 qt4_wrap_ui(UIC_FILES
   src/ui/main_view_widget.ui
+  src/ui/footstep_config.ui
 )
 
 ## Here we specify the list of source files, including the output of
@@ -40,6 +42,7 @@ qt4_wrap_ui(UIC_FILES
 
 set(SOURCE_FILES
   src/ui/main_view_widget.cpp
+  src/ui/footstep_config.cpp
   src/main.cpp
   ${MOC_FILES}
 )

@@ -30,7 +30,7 @@
 #include <rviz/views_panel.h>
 #include <QPropertyAnimation>
 #include <flor_ocs_msgs/WindowCodes.h>
-
+#include "footstep_config.h"
 
 
 
@@ -71,6 +71,7 @@ private Q_SLOTS:
     void graspWidgetToggle();
     void hideGraspWidgets();
     void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
+    void toggleFootstepConfig();
 
 protected:
     void addContextMenu();
@@ -160,6 +161,8 @@ protected:
 
     QPushButton* sidebar_toggle_;
 
+    FootstepConfigure* footstep_configure_widget_;
+    QMenu footstep_menu_;
 };
 
 #endif // MAIN_VIEW_WIDGET_H

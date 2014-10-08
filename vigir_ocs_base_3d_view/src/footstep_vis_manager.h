@@ -112,6 +112,10 @@ public Q_SLOTS:
     void enableMarkers(bool enabled);
 
     void setFootstepParameterSet(QString selected);
+    /**
+      * Update all Footstep parameters from ui
+      */
+    void updateFootstepParamaters(double,int,double,int,int,bool);
 
 Q_SIGNALS:
 
@@ -160,6 +164,15 @@ private:
 
     unsigned char request_mode_;
     int start_step_index_;
+
+    // footstep parameters set from ui
+    float max_time_;
+    int max_steps_;
+    float path_length_ratio_;
+    int interaction_mode_;
+    int planning_paramater_;
+    bool pattern_generation_enabled_;
+
 };
 
 }

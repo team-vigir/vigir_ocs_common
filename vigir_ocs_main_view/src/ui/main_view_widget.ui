@@ -498,7 +498,7 @@
               </property>
               <property name="maximumSize">
                <size>
-                <width>150</width>
+                <width>300</width>
                 <height>16777215</height>
                </size>
               </property>
@@ -586,12 +586,6 @@
                </item>
                <item>
                 <widget class="QComboBox" name="footstepParamSetBox">
-                 <property name="minimumSize">
-                  <size>
-                   <width>120</width>
-                   <height>0</height>
-                  </size>
-                 </property>
                  <property name="styleSheet">
                   <string notr="true"> QComboBox {
      border: 1px solid gray;
@@ -645,6 +639,19 @@
      border: 2px solid darkgray;
      selection-background-color: lightgray;
  }</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="footstepConfigBtn">
+                 <property name="maximumSize">
+                  <size>
+                   <width>26</width>
+                   <height>26</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string/>
                  </property>
                 </widget>
                </item>
@@ -1047,7 +1054,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>0</y>
+           <y>-196</y>
            <width>212</width>
            <height>1522</height>
           </rect>
@@ -1307,7 +1314,7 @@
                 <string>Robot Occlusion Rendering</string>
                </property>
                <property name="checked">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
