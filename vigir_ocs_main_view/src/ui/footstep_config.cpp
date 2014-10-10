@@ -12,23 +12,20 @@ FootstepConfigure::FootstepConfigure(QWidget *parent) :
     connect(ui->maxSteps,SIGNAL(valueChanged(double)),this,SLOT(updateFootstepParamaters(double)));
     connect(ui->pathLengthRatio,SIGNAL(valueChanged(double)),this,SLOT(updateFootstepParamaters(double)));
     connect(ui->footstepInteractionModeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(updateFootstepParamaters(int)));
-    connect(ui->footstepPlanningParameterBox,SIGNAL(currentIndexChanged(int)),this,SLOT(updateFootstepParamaters(int)));
     connect(ui->patternGenerationEnabled,SIGNAL(clicked()),this,SLOT(updateFootstepParamaters()));
 
     std::string ip = ros::package::getPath("vigir_ocs_main_view")+"/icons/";
     icon_path_ = QString(ip.c_str());
 
-    //set down arrow for param box
-    QString stylesheet = ui->footstepPlanningParameterBox->styleSheet() + "\n" +
-            "QComboBox::down-arrow {\n" +
-            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
-            "}";
-    ui->footstepPlanningParameterBox->setStyleSheet(stylesheet);
-    stylesheet = ui->footstepInteractionModeBox->styleSheet() + "\n" +
+    //set down arrow for interaction box
+    QString stylesheet = ui->footstepInteractionModeBox->styleSheet() + "\n" +
             "QComboBox::down-arrow {\n" +
             " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
             "}";
     ui->footstepInteractionModeBox->setStyleSheet(stylesheet);
+
+//    Q_EMIT sendFootstepParamaters(getMaxTime(),getMaxSteps(),getPlanLengthRatio(),getFootstepInteraction(),patternGenerationEnabled());
+//    ROS_ERROR("SEND time: %f steps: %d ratio:%f intmode: %d pattern %d",getMaxTime(),getMaxSteps(),getPlanLengthRatio(),getFootstepInteraction(),patternGenerationEnabled());
 }
 
 double FootstepConfigure::getMaxTime()
@@ -51,11 +48,6 @@ int FootstepConfigure::getFootstepInteraction()
     return ui->footstepInteractionModeBox->currentIndex();
 }
 
-int FootstepConfigure::getFootstepPlanningParameter()
-{
-    return ui->footstepPlanningParameterBox->currentIndex();
-}
-
 bool FootstepConfigure::patternGenerationEnabled()
 {
     return ui->patternGenerationEnabled->isChecked();
@@ -64,15 +56,15 @@ bool FootstepConfigure::patternGenerationEnabled()
 //need slots to comply with qt signals...
 void FootstepConfigure::updateFootstepParamaters(double ignore)
 {
-    Q_EMIT sendFootstepParamters(getMaxTime(),getMaxSteps(),getPlanLengthRatio(),getFootstepInteraction(),getFootstepPlanningParameter(),patternGenerationEnabled());
+    Q_EMIT sendFootstepParamaters(getMaxTime(),getMaxSteps(),getPlanLengthRatio(),getFootstepInteraction(),patternGenerationEnabled());
 }
 void FootstepConfigure::updateFootstepParamaters(int ignore)
 {
-    Q_EMIT sendFootstepParamters(getMaxTime(),getMaxSteps(),getPlanLengthRatio(),getFootstepInteraction(),getFootstepPlanningParameter(),patternGenerationEnabled());
+    Q_EMIT sendFootstepParamaters(getMaxTime(),getMaxSteps(),getPlanLengthRatio(),getFootstepInteraction(),patternGenerationEnabled());
 }
 void FootstepConfigure::updateFootstepParamaters()
 {
-    Q_EMIT sendFootstepParamters(getMaxTime(),getMaxSteps(),getPlanLengthRatio(),getFootstepInteraction(),getFootstepPlanningParameter(),patternGenerationEnabled());
+    Q_EMIT sendFootstepParamaters(getMaxTime(),getMaxSteps(),getPlanLengthRatio(),getFootstepInteraction(),patternGenerationEnabled());
 }
 
 FootstepConfigure::~FootstepConfigure()

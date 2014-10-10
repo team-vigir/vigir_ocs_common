@@ -23,7 +23,6 @@ public:
     int getMaxSteps();
     double getPlanLengthRatio();
     int getFootstepInteraction();
-    int getFootstepPlanningParameter();
     bool patternGenerationEnabled();
 
 public Q_SLOTS:
@@ -32,7 +31,7 @@ public Q_SLOTS:
     void updateFootstepParamaters(double ignore);
 
 Q_SIGNALS:
-    void sendFootstepParamters(double,int,double,int,int,bool);
+    void sendFootstepParamaters(double,int,double,int,bool);
 
 private:
     Ui::FootstepConfigure *ui;

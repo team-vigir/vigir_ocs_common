@@ -184,8 +184,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //initialize footstep configuration widget
     footstep_configure_widget_ = new FootstepConfigure();
     //connect to update footstep paramaters from ui
-    connect(footstep_configure_widget_,SIGNAL(sendFootstepParamaters(double,int,double,int,int,bool)),
-            ((vigir_ocs::Base3DView*) views_list["Top Left"])->getFootstepVisManager(),SLOT(updateFootstepParamaters(double,int,double,int,int,bool)));
+    connect(footstep_configure_widget_,SIGNAL(sendFootstepParamaters(double,int,double,int,bool)),
+            ((vigir_ocs::Base3DView*) views_list["Top Left"])->getFootstepVisManager(),SLOT(updateFootstepParamaters(double,int,double,int,bool)));
 
     // setup all buttons/icons in the toolbar
     setupToolbar();

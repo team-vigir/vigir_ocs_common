@@ -48,6 +48,14 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     interactive_marker_update_pub_   = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 100, false );
     interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 5, &FootstepVisManager::onMarkerFeedback, this );
     interactive_marker_remove_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
+
+    //initialize to default values in case requesting a plan before updating any values
+    // NOTE: tried to emit signal from footstep_config on init, but was unable to be received as something else was not initialized in time
+    max_time_ = 5;
+    max_steps_ = 10;
+    path_length_ratio_ = 2;
+    interaction_mode_ = 0;
+    pattern_generation_enabled_ = 0;
 }
 
 FootstepVisManager::~FootstepVisManager()
@@ -124,8 +132,8 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
     cmd.max_steps = max_steps_;
     cmd.path_length_ratio = path_length_ratio_;
     cmd.interaction_mode = interaction_mode_;
-    cmd.planning_paramater = planning_paramater_;
     cmd.pattern_generation_enabled = pattern_generation_enabled_;
+    ROS_ERROR("PLAN time: %f steps: %d ratio:%f intmode: %d pattern %d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
 
     footstep_plan_request_pub_.publish(cmd);
 }
@@ -230,15 +238,15 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
     }
 }
 
-void FootstepVisManager::updateFootstepParamaters(double maxTime,int maxSteps,double pathLengthRatio,int interactionMode,int planningParamater,bool patternGeneration)
+void FootstepVisManager::updateFootstepParamaters(double maxTime,int maxSteps,double pathLengthRatio,int interactionMode,bool patternGeneration)
 {
     //update all paramaters from ui
     max_time_ = maxTime;
     max_steps_ = maxSteps;
     path_length_ratio_ = pathLengthRatio;
     interaction_mode_ = interactionMode;
-    planning_paramater_ = planningParamater;
     pattern_generation_enabled_ = patternGeneration;
+    ROS_ERROR("UPDATE time: %f steps: %d ratio:%f intmode: %d pattern %d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
 }
 
 

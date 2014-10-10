@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>192</width>
-    <height>164</height>
+    <height>137</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -44,7 +44,7 @@
       <property name="margin">
        <number>0</number>
       </property>
-      <item row="4" column="0">
+      <item row="3" column="0">
        <widget class="QLabel" name="label">
         <property name="maximumSize">
          <size>
@@ -65,32 +65,22 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QDoubleSpinBox" name="pathLengthRatio">
-        <property name="maximumSize">
-         <size>
-          <width>90</width>
-          <height>16777215</height>
-         </size>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+          <weight>50</weight>
+          <italic>false</italic>
+          <bold>false</bold>
+         </font>
         </property>
-        <property name="decimals">
-         <number>0</number>
-        </property>
-        <property name="minimum">
-         <double>0.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1000.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>2.000000000000000</double>
+        <property name="text">
+         <string>Path Length Ratio </string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="3" column="1">
        <widget class="QComboBox" name="footstepInteractionModeBox">
         <property name="maximumSize">
          <size>
@@ -169,35 +159,7 @@
         </item>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="maxTime">
-        <property name="maximumSize">
-         <size>
-          <width>90</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="layoutDirection">
-         <enum>Qt::LeftToRight</enum>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-        <property name="minimum">
-         <double>0.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>100.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>5.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0" colspan="2">
+      <item row="4" column="0" colspan="2">
        <widget class="QCheckBox" name="patternGenerationEnabled">
         <property name="font">
          <font>
@@ -210,97 +172,6 @@
         <property name="text">
          <string>Use Pattern Generation</string>
         </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="font">
-         <font>
-          <pointsize>8</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Planning Paramater</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QComboBox" name="footstepPlanningParameterBox">
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true"> QComboBox {
-     border: 1px solid gray;
-     border-radius: 1px;
-     padding: 3px 18px 3px 0px;
-     font: &quot;Ubuntu&quot;;
-     font-size: 12px;
- }
-
- QComboBox:editable {
-     background: white;
- }
-
- QComboBox:!editable, QComboBox::drop-down:editable {
-      background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));
- }
-
- /* QComboBox gets the &quot;on&quot; state when the popup is open */
- QComboBox:!editable:on, QComboBox::drop-down:editable:on {
-     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                 stop: 0 #D3D3D3, stop: 0.4 #D8D8D8,
-                                 stop: 0.5 #DDDDDD, stop: 1.0 #E1E1E1);
- }
-
- QComboBox:on { /* shift the text when the popup opens */
-     padding-top: 3px;
-     padding-left: 4px;
- }
-
- QComboBox::drop-down {
-     subcontrol-origin: padding;
-     subcontrol-position: top right;
-     width: 15px;
-
-     border-left-width: 1px;
-     border-left-color: darkgray;
-     border-left-style: solid; /* just a single line */
-     border-top-right-radius: 3px; /* same radius as the QComboBox */
-     border-bottom-right-radius: 3px;
-     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                  stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
-                                  stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
- }
-
- QComboBox::down-arrow:on { /* shift the arrow when popup is open */
-     top: 1px;
-     left: 1px;
- }
-
- QComboBox QAbstractItemView {
-     border: 2px solid darkgray;
-     selection-background-color: lightgray;
- }</string>
-        </property>
-        <item>
-         <property name="text">
-          <string>Step2D</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Step3D</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Manual</string>
-         </property>
-        </item>
        </widget>
       </item>
       <item row="1" column="1">
@@ -328,18 +199,28 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="font">
-         <font>
-          <pointsize>8</pointsize>
-          <weight>50</weight>
-          <italic>false</italic>
-          <bold>false</bold>
-         </font>
+      <item row="2" column="1">
+       <widget class="QDoubleSpinBox" name="pathLengthRatio">
+        <property name="maximumSize">
+         <size>
+          <width>90</width>
+          <height>16777215</height>
+         </size>
         </property>
-        <property name="text">
-         <string>Path Length Ratio </string>
+        <property name="decimals">
+         <number>0</number>
+        </property>
+        <property name="minimum">
+         <double>0.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>2.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -352,6 +233,34 @@
         </property>
         <property name="text">
          <string>Max Time</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="maxTime">
+        <property name="maximumSize">
+         <size>
+          <width>90</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+        <property name="minimum">
+         <double>0.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>100.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>5.000000000000000</double>
         </property>
        </widget>
       </item>

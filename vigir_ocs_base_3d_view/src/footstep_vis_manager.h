@@ -115,7 +115,7 @@ public Q_SLOTS:
     /**
       * Update all Footstep parameters from ui
       */
-    void updateFootstepParamaters(double,int,double,int,int,bool);
+    void updateFootstepParamaters(double,int,double,int,bool);
 
 Q_SIGNALS:
 
@@ -170,7 +170,6 @@ private:
     int max_steps_;
     float path_length_ratio_;
     int interaction_mode_;
-    int planning_paramater_;
     bool pattern_generation_enabled_;
 
 };
