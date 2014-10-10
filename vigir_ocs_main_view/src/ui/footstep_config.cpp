@@ -46,7 +46,7 @@ bool FootstepConfigure::patternGenerationEnabled()
     return ui->patternGenerationEnabled->isChecked();
 }
 
-//need slots to comply with qt signals... meh
+//need slots to comply with qt signals...
 void FootstepConfigure::updateFootstepParamaters(double ignore)
 {
     Q_EMIT sendFootstepParamters(getMaxTime(),getMaxSteps(),getPlanLengthRatio(),getFootstepInteraction(),getFootstepPlanningParameter(),patternGenerationEnabled());

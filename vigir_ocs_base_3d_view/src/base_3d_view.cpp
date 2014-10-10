@@ -1125,7 +1125,7 @@ void Base3DView::simulationRobotToggled( bool selected )
 
     //hide/show ghost joint Warning icons on ghost robot toggle
     for (std::map<std::string,rviz::Display*>::iterator it=jointDisplayMap.begin(); it!=jointDisplayMap.end(); ++it)
-    {
+    {        
         if(it->second->subProp("Name")->getValue().toString().contains("ghost"))
            it->second->setEnabled(selected);
     }
@@ -2960,14 +2960,11 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
     //want to disable a marker that has already been created
     if(disable_joint_markers_ )
     {
+        //disable every marker
         if(jointDisplayMap.find(name) != jointDisplayMap.end())
             jointDisplayMap[name]->subProp( "Alpha" )->setValue( 0.0f );
-
-        if(ghost)
-            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
-        else
-            ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(0,jointPositionIconName);
-
+        ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+        ((rviz::JointMarkerDisplayCustom*)joint_arrows_)->setJointAlpha(0,jointPositionIconName);
         return;
     }
 
