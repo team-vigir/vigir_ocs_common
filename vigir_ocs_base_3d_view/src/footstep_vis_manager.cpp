@@ -119,6 +119,14 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
     cmd.goal_pose = *pose;
     cmd.mode = request_mode_;
     cmd.start_index = start_step_index_;
+    //set footstep paramaters from ui
+    cmd.max_time = max_time_;
+    cmd.max_steps = max_steps_;
+    cmd.path_length_ratio = path_length_ratio_;
+    cmd.interaction_mode = interaction_mode_;
+    cmd.planning_paramater = planning_paramater_;
+    cmd.pattern_generation_enabled = pattern_generation_enabled_;
+
     footstep_plan_request_pub_.publish(cmd);
 }
 

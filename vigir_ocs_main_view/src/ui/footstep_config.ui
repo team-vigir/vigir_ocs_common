@@ -190,10 +190,10 @@
          <double>100.000000000000000</double>
         </property>
         <property name="singleStep">
-         <double>0.100000000000000</double>
+         <double>1.000000000000000</double>
         </property>
         <property name="value">
-         <double>3.000000000000000</double>
+         <double>5.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -298,12 +298,7 @@
         </item>
         <item>
          <property name="text">
-          <string>Step No Collision</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Walk</string>
+          <string>Manual</string>
          </property>
         </item>
        </widget>

@@ -882,6 +882,13 @@ void MainViewWidget::setupToolbar()
             "}";
     ui->modeBox->setStyleSheet(stylesheet);
 
+    //set for footstep param box
+    stylesheet = ui->footstepParamSetBox->styleSheet() + "\n" +
+            "QComboBox::down-arrow {\n" +
+            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
+            "}";
+    ui->footstepParamSetBox->setStyleSheet(stylesheet);
+
 
     //allow combo boxes to send messages to joystick
     connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(setManipulationMode(int)));
@@ -892,7 +899,8 @@ void MainViewWidget::setupToolbar()
     mode_sub_ = n_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1, &MainViewWidget::modeCB,this);
 
     connect(ui->footstepParamSetBox,SIGNAL(currentIndexChanged(QString)),((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SLOT(setFootstepParameterSet(QString)));
-    connect(((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));
+    connect(((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));    
+
 }
 
 void MainViewWidget::toggleFootstepConfig()

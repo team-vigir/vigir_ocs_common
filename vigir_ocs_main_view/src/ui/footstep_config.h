@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <ros/ros.h>
+#include <ros/package.h>
 
 
 namespace Ui
@@ -35,6 +36,7 @@ Q_SIGNALS:
 
 private:
     Ui::FootstepConfigure *ui;
+    QString icon_path_;
 
 
 };
