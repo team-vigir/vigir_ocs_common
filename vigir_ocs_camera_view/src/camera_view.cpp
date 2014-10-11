@@ -140,7 +140,9 @@ CameraView::CameraView( QWidget* parent, Base3DView* copy_from )
                                       "}");
     QObject::connect((selection_tool_), SIGNAL(mouseHasMoved(int,int)), this, SLOT(mouseMoved(int,int)));
 
-    Q_EMIT setMarkerScale(0.001f);
+    // set scale of the selection marker
+    selection_3d_display_->subProp("Scale")->setValue(0.001f);
+    selection_3d_display_->subProp("Constant Visual Size")->setValue(false);
 
     // advertise pointcloud request
     pointcloud_request_frame_pub_ = nh_.advertise<geometry_msgs::PointStamped>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_frame", 1, false );

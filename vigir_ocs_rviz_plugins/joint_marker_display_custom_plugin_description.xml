@@ -1,0 +1,9 @@
+<library path="libvigir_ocs_rviz_plugin_joint_marker_display_custom">
+  <class name="rviz/JointMarkerDisplayCustom"
+         type="rviz::JointMarkerDisplayCustom"
+         base_class_type="rviz::Display">
+    <description>
+      Customized display plugin for joint markers based on rviz effort display
+    </description>
+  </class>
+</library>

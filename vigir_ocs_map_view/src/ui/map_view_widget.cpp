@@ -98,6 +98,8 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
 
     connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));
 
+    ocs_sync_sub_ = n_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &MapViewWidget::synchronizeToggleButtons, this );
+    ocs_sync_pub_ = n_.advertise<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
 
     timer.start(100, this);
 }
@@ -110,6 +112,71 @@ MapViewWidget::~MapViewWidget()
 void MapViewWidget::timerEvent(QTimerEvent *event)
 {
     sidebar_toggle_->setGeometry(ui->viewContainer->geometry().topRight().x() - 25 ,ui->viewContainer->geometry().top() + 43,25,25);
+}
+
+void MapViewWidget::changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state)
+{
+    //set checkbox state without calling callbacks
+    checkBox->blockSignals(true);
+    checkBox->setCheckState(state);
+    checkBox->blockSignals(false);
+}
+
+void MapViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg)
+{
+    for(int i=0;i<msg->properties.size();i++)
+    {
+        if(msg->properties[i].compare("LIDAR Point Cloud") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->lidar_point_cloud_2,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->lidar_point_cloud_2,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Stereo Point Cloud") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->stereo_point_cloud_2,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->stereo_point_cloud_2,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Raycast Point Cloud") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->point_cloud_request,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->point_cloud_request,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Octomap") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->octomap_2,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->octomap_2,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Ground map") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->grid_map,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->grid_map,Qt::Unchecked);
+            }
+        }
+    }
 }
 
 void MapViewWidget::toggleSidebarVisibility()
@@ -220,19 +287,62 @@ void MapViewWidget::hideJoystick()
 void MapViewWidget::requestMap()
 {   
     if(ui->map_view_->hasValidSelection())
-        ui->map_view_->requestMap(mapRegionConfig->getMinHeight(),mapRegionConfig->getMaxHeight(),mapRegionConfig->getResolution());
+    {
+        if(ui->grid_map->checkState() == Qt::Unchecked)
+        {            
+            //set sidebar checkbox to be enabled and sync(handled through callback in views)
+            flor_ocs_msgs::OCSSynchronize msg;
+            msg.properties.push_back("Ground map");
+            msg.reset.push_back(false);
+            msg.visible.push_back(true);
+            ocs_sync_pub_.publish(msg);
+        }        
+        //generate map
+        ui->map_view_->requestMap(mapRegionConfig->getMinHeight(),mapRegionConfig->getMaxHeight(),mapRegionConfig->getResolution());       
+    }
 }
 
 void MapViewWidget::requestOctomap()
 {    
     if(ui->map_view_->hasValidSelection())
+    {
+        if(ui->octomap_2->checkState() == Qt::Unchecked)
+        {
+            flor_ocs_msgs::OCSSynchronize msg;
+            msg.properties.push_back("Octomap");
+            msg.reset.push_back(false);
+            msg.visible.push_back(true);
+            ocs_sync_pub_.publish(msg);
+        }
+
         ui->map_view_->requestOctomap(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution());
+    }
+
 }
 
 void MapViewWidget::requestPointCloud()
 {      
     if(ui->map_view_->hasValidSelection())
+    {
+        //still need to sync checkbox, but based on pointcloud type
+        if(ui->point_cloud_type->currentIndex() <= 1 && ui->lidar_point_cloud_2->checkState() == Qt::Unchecked) //lidar
+        {
+            flor_ocs_msgs::OCSSynchronize msg;
+            msg.properties.push_back("LIDAR Point Cloud");
+            msg.reset.push_back(false);
+            msg.visible.push_back(true);
+            ocs_sync_pub_.publish(msg);
+        }
+        else if (ui->point_cloud_type->currentIndex() > 1 && ui->stereo_point_cloud_2->checkState() == Qt::Unchecked) // stereo cases
+        {
+            flor_ocs_msgs::OCSSynchronize msg;
+            msg.properties.push_back("Stereo Point Cloud");
+            msg.reset.push_back(false);
+            msg.visible.push_back(true);
+            ocs_sync_pub_.publish(msg);
+        }
         ui->map_view_->requestPointCloud(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution(),ui->point_cloud_type->currentIndex(),region3dConfig->getAggregSize());
+    }
 }
 
 bool MapViewWidget::eventFilter( QObject * o, QEvent * e )

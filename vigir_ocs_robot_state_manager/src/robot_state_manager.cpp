@@ -9,7 +9,7 @@ RobotStateManager* RobotStateManager::instance = 0;
 RobotStateManager::RobotStateManager()
 {
     robot_state_= new MoveItOcsModel();
-    ghost_robot_state_= new MoveItOcsModel();
+    ghost_robot_state_= new MoveItOcsModel();    
 }
 
 /** This function is called to create an instance of the class.

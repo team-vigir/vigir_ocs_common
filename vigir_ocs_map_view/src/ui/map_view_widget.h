@@ -11,6 +11,7 @@
 #include "region_3d_configure_widget.h"
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <QPropertyAnimation>
+#include "flor_ocs_msgs/OCSSynchronize.h"
 
 namespace Ui
 {
@@ -50,6 +51,11 @@ private:
     ros::NodeHandle n_;
 
     ros::Subscriber key_event_sub_;
+
+    void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
+    void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
+    ros::Subscriber ocs_sync_sub_;
+    ros::Publisher  ocs_sync_pub_;
 
     QSignalMapper* stop_mapper_;
     void closeEvent(QCloseEvent *event);

@@ -18,12 +18,17 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
     , hand_(hand)
     , hand_type_(hand_type)
 {
+
+    std::string ip = ros::package::getPath("vigir_ocs_grasp_widget")+"/icons/";
+    icon_path_ = QString(ip.c_str());
+
     // setup UI
     ui->setupUi(this);
     ui->templateBox->setDisabled(true);
     ui->graspBox->setDisabled(true);
     ui->performButton->setDisabled(true);
     ui->stitch_template->setDisabled(true);
+    setUpButtons();
 
     // these are not parameters anymore, but arguments in the constructor
     //ros::NodeHandle nhp("~");
@@ -244,6 +249,41 @@ void graspWidget::timerEvent(QTimerEvent *event)
 
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
+}
+
+void graspWidget::setUpButtons()
+{
+    //set button style
+    QString btnStyle = QString("QPushButton  { ") +
+                               " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                               " border-style: solid;" +
+                               " border-width: 1px;" +
+                               " border-radius: 1px;" +
+                               " border-color: gray;" +
+                               " padding: 2px;" +
+                               " image-position: top left"
+                               "}" +
+
+                               "QPushButton:checked  {" +
+                               " padding-top:1px; padding-left:1px;" +
+                               " background-color: rgb(180,180,180);" +
+                               " border-style: inset;" +
+                               "}";
+    ui->releaseButton->setStyleSheet(btnStyle);
+    ui->releaseButton->setFont(QFont ("Ubuntu", 10));
+    ui->performButton->setStyleSheet(btnStyle);
+    ui->performButton->setFont(QFont ("Ubuntu", 10));
+    ui->templateButton->setStyleSheet(btnStyle);
+    ui->templateButton->setFont(QFont ("Ubuntu", 10));
+    ui->graspOffsetButton->setStyleSheet(btnStyle);
+    ui->graspOffsetButton->setFont(QFont ("Ubuntu", 10));
+    //put arrows on comboboxes
+    QString styleSheet = ui->templateBox->styleSheet() + "\n" +
+            "QComboBox::down-arrow {\n" +
+            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
+            "}";
+    ui->templateBox->setStyleSheet(styleSheet);
+    ui->graspBox->setStyleSheet(styleSheet);
 }
 
 void graspWidget::templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr& feedback)

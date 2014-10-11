@@ -48,6 +48,14 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     interactive_marker_update_pub_   = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 100, false );
     interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 5, &FootstepVisManager::onMarkerFeedback, this );
     interactive_marker_remove_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
+
+    //initialize to default values in case requesting a plan before updating any values
+    // NOTE: tried to emit signal from footstep_config on init, but was unable to be received as something else was not initialized in time
+    max_time_ = 5;
+    max_steps_ = 10;
+    path_length_ratio_ = 2;
+    interaction_mode_ = 0;
+    pattern_generation_enabled_ = 0;
 }
 
 FootstepVisManager::~FootstepVisManager()
@@ -119,6 +127,14 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
     cmd.goal_pose = *pose;
     cmd.mode = request_mode_;
     cmd.start_index = start_step_index_;
+    //set footstep paramaters from ui
+    cmd.max_time = max_time_;
+    cmd.max_steps = max_steps_;
+    cmd.path_length_ratio = path_length_ratio_;
+    cmd.interaction_mode = interaction_mode_;
+    cmd.pattern_generation_enabled = pattern_generation_enabled_;
+    ROS_ERROR("PLAN time: %f steps: %d ratio:%f intmode: %d pattern %d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
+
     footstep_plan_request_pub_.publish(cmd);
 }
 
@@ -167,6 +183,38 @@ void FootstepVisManager::updateInteractiveMarkers()
         cmd.pose = footstep_list_.pose[i];
         interactive_marker_update_pub_.publish(cmd);
     }
+
+//    for(int i = 0; i < footstep_list_.step_plan_id_list.size(); i++)
+//    {
+//        std::string pose_string = "/step_plan_"+boost::lexical_cast<std::string>(footstep_list_.step_plan_id_list[i])+"_marker";
+
+//        // if needed, we create a marker
+//        if(footstep_list_.step_plan_id_list[i] >= display_step_plan_marker_list_.size())
+//        {
+//            // create a marker server for this footstep
+//            flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+//            marker.name  = std::string("Footstep ")+boost::lexical_cast<std::string>(i);
+//            marker.topic = pose_string;
+//            marker.frame = manager_->getFixedFrame().toStdString();
+//            marker.scale = 0.2;
+//            marker.point.x = footstep_list_.pose[i].pose.position.x;
+//            marker.point.y = footstep_list_.pose[i].pose.position.y;
+//            marker.point.z = footstep_list_.pose[i].pose.position.z;
+//            interactive_marker_add_pub_.publish(marker);
+
+//            rviz::Display* im = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker - Footstep ")+boost::lexical_cast<std::string>(i)).c_str(), false );
+//            im->subProp( "Update Topic" )->setValue( (pose_string+"/pose_marker/update").c_str() );
+//            im->subProp( "Show Axes" )->setValue( true );
+//            im->subProp( "Show Visual Aids" )->setValue( true );
+//            display_footstep_marker_list_.push_back(im);
+//        }
+
+//        // update interactive marker pose
+//        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+//        cmd.topic = pose_string;
+//        cmd.pose = footstep_list_.pose[i];
+//        interactive_marker_update_pub_.publish(cmd);
+//    }
 }
 
 void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg)
@@ -189,4 +237,17 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
 
     }
 }
+
+void FootstepVisManager::updateFootstepParamaters(double maxTime,int maxSteps,double pathLengthRatio,int interactionMode,bool patternGeneration)
+{
+    //update all paramaters from ui
+    max_time_ = maxTime;
+    max_steps_ = maxSteps;
+    path_length_ratio_ = pathLengthRatio;
+    interaction_mode_ = interactionMode;
+    pattern_generation_enabled_ = patternGeneration;
+    ROS_ERROR("UPDATE time: %f steps: %d ratio:%f intmode: %d pattern %d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
+}
+
+
 }

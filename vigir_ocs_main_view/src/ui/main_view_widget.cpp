@@ -102,7 +102,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             QObject::connect(ui->templates, SIGNAL(toggled(bool)), iter->second, SLOT(templatesToggled(bool)));
             QObject::connect(ui->widget_tool, SIGNAL(toggled(bool)), iter->second, SLOT(markerRobotToggled(bool)));
             QObject::connect(ui->robot_joint_markers,SIGNAL(toggled(bool)), iter->second, SLOT(robotJointMarkerToggled(bool)));
-            QObject::connect(ui->robot_occlusion_rendering,SIGNAL(toggled(bool)), iter->second, SLOT(robotOcclusionToggled(bool)));
+            QObject::connect(ui->robot_occlusion_rendering,SIGNAL(toggled(bool)), iter->second, SLOT(robotOcclusionToggled(bool)));            
         }
         else
         {
@@ -181,6 +181,12 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     window_control_sub_ = n_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &MainViewWidget::processWindowControl, this );
     window_control_pub_ = n_.advertise<std_msgs::Int8>( "/flor/ocs/window_control", 1, false);
 
+    //initialize footstep configuration widget
+    footstep_configure_widget_ = new FootstepConfigure();
+    //connect to update footstep paramaters from ui
+    connect(footstep_configure_widget_,SIGNAL(sendFootstepParamaters(double,int,double,int,bool)),
+            ((vigir_ocs::Base3DView*) views_list["Top Left"])->getFootstepVisManager(),SLOT(updateFootstepParamaters(double,int,double,int,bool)));
+
     // setup all buttons/icons in the toolbar
     setupToolbar();
 
@@ -210,10 +216,10 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //put two grasp widgets into container to have same focus
     graspContainer = new QWidget(this);
     QHBoxLayout * graspLayout = new QHBoxLayout();
-
-    graspLayout->setSpacing(10);
+    graspLayout->setSpacing(1);
+    graspLayout->setMargin(1);
     graspLayout->setContentsMargins(0,0,0,0);
-    graspContainer->setLayout(graspLayout);
+    graspContainer->setLayout(graspLayout);    
     graspContainer->hide();
 
     // try to load grasp environment variables
@@ -222,7 +228,11 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     {
         QWidget * leftGrasp = new QWidget(graspContainer);
         QVBoxLayout * leftLayout = new QVBoxLayout();
+        leftLayout->setSpacing(0);
+        leftLayout->setMargin(0);
+        leftLayout->setContentsMargins(0,0,0,0);
         QLabel * leftLabel = new QLabel("Left Hand");
+        leftLabel->setStyleSheet("font: 8pt \"Ubuntu\";");
         leftLabel->setAlignment(Qt::AlignCenter);
         leftLayout->addWidget(leftLabel);
 
@@ -257,7 +267,11 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     {
         QWidget * rightGrasp = new QWidget(graspContainer);
         QVBoxLayout * rightLayout = new QVBoxLayout();
+        rightLayout->setSpacing(0);
+        rightLayout->setMargin(0);
+        rightLayout->setContentsMargins(0,0,0,0);
         QLabel * rightLabel = new QLabel("Right Hand");
+        rightLabel->setStyleSheet("font: 8pt \"Ubuntu\";");
         rightLabel->setAlignment(Qt::AlignCenter);
         rightLayout->addWidget(rightLabel);
         if(env_right_hand.find("irobot") != std::string::npos)
@@ -331,6 +345,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui->Navigation->hide();
     ui->Template->hide();
 
+
+
     // connect emergency stop button to glancehub
     stop_mapper_ = new QSignalMapper(this);
     connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
@@ -347,6 +363,10 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     // create docks, toolbars, etc...
     //this->restoreState(settings.value("mainWindowState").toByteArray());
 
+    ocs_sync_sub_ = n_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &MainViewWidget::synchronizeToggleButtons, this );
+
+
+
 }
 
 void MainViewWidget::toggleSidebarVisibility()
@@ -355,6 +375,71 @@ void MainViewWidget::toggleSidebarVisibility()
         ui->scrollArea->hide();
     else
         ui->scrollArea->show();
+}
+
+void MainViewWidget::changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state)
+{
+    //set checkbox state without calling callbacks
+    checkBox->blockSignals(true);
+    checkBox->setCheckState(state);
+    checkBox->blockSignals(false);
+}
+
+void MainViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg)
+{
+    for(int i=0;i<msg->properties.size();i++)
+    {
+        if(msg->properties[i].compare("LIDAR Point Cloud") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->lidar_point_cloud_2,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->lidar_point_cloud_2,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Stereo Point Cloud") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->stereo_point_cloud_2,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->stereo_point_cloud_2,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Raycast Point Cloud") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->point_cloud_request,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->point_cloud_request,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Octomap") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->octomap_2,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->octomap_2,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Ground map") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->grid_map,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->grid_map,Qt::Unchecked);
+            }
+        }
+    }
 }
 
 void MainViewWidget::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
@@ -709,7 +794,18 @@ bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
 }
 
 void MainViewWidget::setupToolbar()
-{
+{        
+    //set menu to popup a config widget for footstep Params
+    QWidgetAction *wa = new QWidgetAction(0);
+    wa->setDefaultWidget(footstep_configure_widget_);
+    footstep_menu_.addAction(wa);
+    //associate button with menu
+    ui->footstepConfigBtn->setMenu(&footstep_menu_);
+    //need to install event filter for widget positioning
+    footstep_menu_.installEventFilter(this);
+
+    connect(ui->footstepConfigBtn,SIGNAL(clicked()),this,SLOT(toggleFootstepConfig()));
+
     //place graphic on joystick toggle
     loadButtonIcon(ui->joystickBtn, "controllerIcon.png");
     loadButtonIcon(ui->jointControlBtn, "jointIcon.png");
@@ -719,6 +815,7 @@ void MainViewWidget::setupToolbar()
     loadButtonIcon(ui->basicStepBtn, "footBasicIcon.png");
     loadButtonIcon(ui->stepBtn, "footAdvancedIcon.png");
     loadButtonIcon(ui->footstepParamBtn, "footParamIcon.png");
+    loadButtonIcon(ui->footstepConfigBtn,"configIcon.png");
 
     //set button style
     QString btnStyle = QString("QPushButton  { ") +
@@ -744,6 +841,7 @@ void MainViewWidget::setupToolbar()
     ui->ghostControlBtn->setStyleSheet(btnStyle);
     ui->positionModeBtn->setStyleSheet(btnStyle);
     ui->plannerConfigBtn->setStyleSheet(btnStyle);
+    ui->footstepConfigBtn->setStyleSheet(btnStyle);
 
     //use signalmapper to avoid having one function for each one of the toggle buttons
     toggle_mapper_ = new QSignalMapper(this);
@@ -784,6 +882,13 @@ void MainViewWidget::setupToolbar()
             "}";
     ui->modeBox->setStyleSheet(stylesheet);
 
+    //set for footstep param box
+    stylesheet = ui->footstepParamSetBox->styleSheet() + "\n" +
+            "QComboBox::down-arrow {\n" +
+            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
+            "}";
+    ui->footstepParamSetBox->setStyleSheet(stylesheet);
+
 
     //allow combo boxes to send messages to joystick
     connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(setManipulationMode(int)));
@@ -794,8 +899,15 @@ void MainViewWidget::setupToolbar()
     mode_sub_ = n_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1, &MainViewWidget::modeCB,this);
 
     connect(ui->footstepParamSetBox,SIGNAL(currentIndexChanged(QString)),((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SLOT(setFootstepParameterSet(QString)));
-    connect(((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));
+    connect(((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));    
+
 }
+
+void MainViewWidget::toggleFootstepConfig()
+{
+    ui->footstepConfigBtn->showMenu();
+}
+
 
 void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
 {

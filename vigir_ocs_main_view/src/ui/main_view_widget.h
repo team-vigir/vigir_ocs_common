@@ -30,7 +30,7 @@
 #include <rviz/views_panel.h>
 #include <QPropertyAnimation>
 #include <flor_ocs_msgs/WindowCodes.h>
-
+#include "footstep_config.h"
 
 
 
@@ -71,6 +71,7 @@ private Q_SLOTS:
     void graspWidgetToggle();
     void hideGraspWidgets();
     void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
+    void toggleFootstepConfig();
 
 protected:
     void addContextMenu();
@@ -86,6 +87,8 @@ protected:
     void systemCommandContext(std::string command);
     void loadButtonIcon(QPushButton* btn, QString image_name);
     void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
+    void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
+    void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
     void closeEvent(QCloseEvent *event);
     void resizeEvent(QResizeEvent * event);
     void moveEvent(QMoveEvent * event);
@@ -122,6 +125,8 @@ protected:
     ros::Subscriber mode_sub_;
     ros::Publisher interactive_marker_mode_pub_;
 
+    ros::Subscriber ocs_sync_sub_;
+
     std_msgs::String sysCmdMsg;
 
     StatusBar * statusBar;
@@ -156,6 +161,8 @@ protected:
 
     QPushButton* sidebar_toggle_;
 
+    FootstepConfigure* footstep_configure_widget_;
+    QMenu footstep_menu_;
 };
 
 #endif // MAIN_VIEW_WIDGET_H

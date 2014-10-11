@@ -167,6 +167,44 @@ namespace jsk_rviz_plugin
         ->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
     }
   }
+  bool OverlayObject::updateTextureImage(QImage qImage)
+  {
+      if(isTextureReady())
+      {
+          // Convert to 32-bit RGB
+          if (qImage.format() != QImage::Format_RGB32)
+              qImage = qImage.convertToFormat(QImage::Format_RGB32);
+          // Create an Ogre::Image from the QImage
+          Ogre::Image image;
+          image.loadDynamicImage(
+                      qImage.bits(),
+                      qImage.width(),
+                      qImage.height(),
+                      Ogre::PF_X8R8G8B8);
+
+//          const std::string texture_name = name_ + "Texture";
+//          // Create Texture
+//          Ogre::TextureManager* manager = Ogre::TextureManager::getSingletonPtr();
+//          // Create a texture from the image
+//          manager->remove(texture_name);
+//          Ogre::TexturePtr texture = manager->loadImage(texture_name, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,image);
+//          Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().getByName(texture_name, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+//          ROS_ERROR("5");
+//          mat.getPointer()->getTechnique(0)->getPass(0)->getTextureUnitState(0)->setTextureName(texture_name);
+//          ROS_ERROR("6");
+//          mat.getPointer()->getTechnique(0)->setCullingMode( Ogre::CULL_NONE );
+//          ROS_ERROR("7");
+
+//          texture_.freeMethod();
+//          ROS_ERROR("8");
+//          texture_ = texture;
+//          ROS_ERROR("9");
+
+          texture_.getPointer()->loadImage(image);
+      }
+      else
+          ROS_ERROR("Tried to load image to null texture");
+  }
 
   ScopedPixelBuffer OverlayObject::getBuffer()
   {
