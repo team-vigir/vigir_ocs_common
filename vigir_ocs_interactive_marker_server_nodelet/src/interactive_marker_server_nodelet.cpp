@@ -18,7 +18,7 @@ void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::O
     {
         //ROS_INFO("Adding marker %s", msg->topic.c_str());
 
-        marker_map_[msg->topic] = new InteractiveMarkerServerCustom(msg->name, msg->topic, msg->frame, msg->scale, msg->point);
+        marker_map_[msg->topic] = new InteractiveMarkerServerCustom(msg->name, msg->topic, msg->mode, msg->frame, msg->scale, msg->point);
         marker_map_[msg->topic]->onFeedback = boost::bind(&InteractiveMarkerServerNodelet::onMarkerFeedback, this, _1, _2);
     }
 }

@@ -168,6 +168,7 @@ void FootstepVisManager::updateInteractiveMarkers()
             marker.point.x = footstep_list_.pose[i].pose.position.x;
             marker.point.y = footstep_list_.pose[i].pose.position.y;
             marker.point.z = footstep_list_.pose[i].pose.position.z;
+            marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::OBJECT_6DOF;
             interactive_marker_add_pub_.publish(marker);
 
             rviz::Display* im = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker - Footstep ")+boost::lexical_cast<std::string>(i)).c_str(), false );
@@ -182,39 +183,53 @@ void FootstepVisManager::updateInteractiveMarkers()
         cmd.topic = pose_string;
         cmd.pose = footstep_list_.pose[i];
         interactive_marker_update_pub_.publish(cmd);
+
+        // also check step plan ID so that we always have markers for the end points of step plans
+        if((i+1 < footstep_list_.footstep_id_list.size() && footstep_list_.step_plan_id_list[i] != footstep_list_.step_plan_id_list[i+1]) || i == footstep_list_.footstep_id_list.size()-1)
+        {
+            // only do something if it's a new step plan
+            std::string step_pose_string = "/step_plan_"+boost::lexical_cast<std::string>(i)+"_marker";
+
+            // if needed, we create a marker
+            if(footstep_list_.step_plan_id_list[i] >= display_step_plan_marker_list_.size())
+            {
+                // create a marker server for this footstep
+                flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+                marker.name  = std::string("Step Plan ")+boost::lexical_cast<std::string>(i);
+                marker.topic = step_pose_string;
+                marker.frame = manager_->getFixedFrame().toStdString();
+                marker.scale = 0.5;
+                marker.point.x = (footstep_list_.pose[i].pose.position.x+footstep_list_.pose[i-1].pose.position.x)/2.0;
+                marker.point.y = (footstep_list_.pose[i].pose.position.y+footstep_list_.pose[i-1].pose.position.y)/2.0;
+                marker.point.z = (footstep_list_.pose[i].pose.position.z+footstep_list_.pose[i-1].pose.position.z)/2.0;
+                marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF;
+                interactive_marker_add_pub_.publish(marker);
+
+                rviz::Display* im = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker - Step Plan ")+boost::lexical_cast<std::string>(i)).c_str(), true );
+                im->subProp( "Update Topic" )->setValue( (step_pose_string+"/pose_marker/update").c_str() );
+                im->subProp( "Show Axes" )->setValue( true );
+                im->subProp( "Show Visual Aids" )->setValue( true );
+                display_step_plan_marker_list_.push_back(im);
+            }
+
+            // update interactive marker pose
+            flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+            cmd.topic = step_pose_string;
+
+            cmd.pose.pose.position.x = (footstep_list_.pose[i].pose.position.x+footstep_list_.pose[i-1].pose.position.x)/2.0;
+            cmd.pose.pose.position.y = (footstep_list_.pose[i].pose.position.y+footstep_list_.pose[i-1].pose.position.y)/2.0;
+            cmd.pose.pose.position.z = (footstep_list_.pose[i].pose.position.z+footstep_list_.pose[i-1].pose.position.z)/2.0;
+            Ogre::Quaternion q1(footstep_list_.pose[i-1].pose.orientation.w,footstep_list_.pose[i-1].pose.orientation.x,footstep_list_.pose[i-1].pose.orientation.y,footstep_list_.pose[i-1].pose.orientation.z);
+            Ogre::Quaternion q2(footstep_list_.pose[i].pose.orientation.w,footstep_list_.pose[i].pose.orientation.x,footstep_list_.pose[i].pose.orientation.y,footstep_list_.pose[i].pose.orientation.z);
+            Ogre::Quaternion qr = Ogre::Quaternion::Slerp(0.5,q1,q2);
+            cmd.pose.pose.orientation.w = qr.w;
+            cmd.pose.pose.orientation.x = qr.x;
+            cmd.pose.pose.orientation.y = qr.y;
+            cmd.pose.pose.orientation.z = qr.z;
+            interactive_marker_update_pub_.publish(cmd);
+        }
     }
 
-//    for(int i = 0; i < footstep_list_.step_plan_id_list.size(); i++)
-//    {
-//        std::string pose_string = "/step_plan_"+boost::lexical_cast<std::string>(footstep_list_.step_plan_id_list[i])+"_marker";
-
-//        // if needed, we create a marker
-//        if(footstep_list_.step_plan_id_list[i] >= display_step_plan_marker_list_.size())
-//        {
-//            // create a marker server for this footstep
-//            flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
-//            marker.name  = std::string("Footstep ")+boost::lexical_cast<std::string>(i);
-//            marker.topic = pose_string;
-//            marker.frame = manager_->getFixedFrame().toStdString();
-//            marker.scale = 0.2;
-//            marker.point.x = footstep_list_.pose[i].pose.position.x;
-//            marker.point.y = footstep_list_.pose[i].pose.position.y;
-//            marker.point.z = footstep_list_.pose[i].pose.position.z;
-//            interactive_marker_add_pub_.publish(marker);
-
-//            rviz::Display* im = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker - Footstep ")+boost::lexical_cast<std::string>(i)).c_str(), false );
-//            im->subProp( "Update Topic" )->setValue( (pose_string+"/pose_marker/update").c_str() );
-//            im->subProp( "Show Axes" )->setValue( true );
-//            im->subProp( "Show Visual Aids" )->setValue( true );
-//            display_footstep_marker_list_.push_back(im);
-//        }
-
-//        // update interactive marker pose
-//        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-//        cmd.topic = pose_string;
-//        cmd.pose = footstep_list_.pose[i];
-//        interactive_marker_update_pub_.publish(cmd);
-//    }
 }
 
 void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg)
