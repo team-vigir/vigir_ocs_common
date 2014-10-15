@@ -51,9 +51,9 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
 
     //initialize to default values in case requesting a plan before updating any values
     // NOTE: tried to emit signal from footstep_config on init, but was unable to be received as something else was not initialized in time
-    max_time_ = 5;
-    max_steps_ = 10;
-    path_length_ratio_ = 2;
+    max_time_ = 0;
+    max_steps_ = 0;
+    path_length_ratio_ = 0;
     interaction_mode_ = 0;
     pattern_generation_enabled_ = 0;
 }
@@ -188,7 +188,7 @@ void FootstepVisManager::updateInteractiveMarkers()
         if((i+1 < footstep_list_.footstep_id_list.size() && footstep_list_.step_plan_id_list[i] != footstep_list_.step_plan_id_list[i+1]) || i == footstep_list_.footstep_id_list.size()-1)
         {
             // only do something if it's a new step plan
-            std::string step_pose_string = "/step_plan_"+boost::lexical_cast<std::string>(i)+"_marker";
+            std::string step_pose_string = "/step_plan_"+boost::lexical_cast<std::string>(display_step_plan_marker_list_.size())+"_marker";
 
             // if needed, we create a marker
             if(footstep_list_.step_plan_id_list[i] >= display_step_plan_marker_list_.size())

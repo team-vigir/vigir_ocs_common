@@ -1,254 +1,91 @@
-// -*- mode: c++ -*-
-/*********************************************************************
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2014, JSK Lab
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/o2r other materials provided
- *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *********************************************************************/
-
 #include "overlay_utils.h"
-#include "ros/ros.h"
+#include <boost/lexical_cast.hpp>
+#include <OGRE/OgreMaterialManager.h>
+#include <OGRE/OgreVector3.h>
+#include "OGRE/OgreRoot.h"
+#include "OGRE/OgreRenderSystem.h"
+#include "OGRE/OgreRenderWindow.h"
+#include "OGRE/OgreWindowEventUtilities.h"
+#include "OGRE/OgreManualObject.h"
+#include "OGRE/OgreEntity.h"
+#include <OGRE/OgreSceneNode.h>
 
-namespace jsk_rviz_plugin
+int OgreText::init=0;
+
+OgreText::OgreText()
 {
-  ScopedPixelBuffer::ScopedPixelBuffer(Ogre::HardwarePixelBufferSharedPtr pixel_buffer):
-    pixel_buffer_(pixel_buffer)
-  {
-    pixel_buffer_->lock( Ogre::HardwareBuffer::HBL_NORMAL );
-  }
+    text_id = this->init++;
 
-  ScopedPixelBuffer::~ScopedPixelBuffer()
-  {
-    pixel_buffer_->unlock();
-  }
+    std::stringstream ss;
+    ss << "NotificationRect" << text_id;
 
-  Ogre::HardwarePixelBufferSharedPtr ScopedPixelBuffer::getPixelBuffer()
-  {
-    return pixel_buffer_;
-  }
+    const static uint32_t texture_data[1] = { 0x00000070 };
+    Ogre::DataStreamPtr pixel_stream;
+    pixel_stream.bind(new Ogre::MemoryDataStream( (void*)&texture_data[0], 4 ));
 
-  QImage ScopedPixelBuffer::getQImage(unsigned int width, unsigned int height)
-  {
-    const Ogre::PixelBox& pixelBox = pixel_buffer_->getCurrentLock();
-    Ogre::uint8* pDest = static_cast<Ogre::uint8*> (pixelBox.data);
-    memset(pDest, 0, width * height);
-    return QImage(pDest, width, height, QImage::Format_ARGB32 );
-  }
+    Ogre::TexturePtr tex = Ogre::TextureManager::getSingleton().loadRawData(ss.str() + "Texture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, pixel_stream, 1, 1, Ogre::PF_R8G8B8A8, Ogre::TEX_TYPE_2D, 0);
 
-  QImage ScopedPixelBuffer::getQImage(
-    unsigned int width, unsigned int height, QColor& bg_color)
-  {
-    QImage Hud = getQImage(width, height);
-    for (unsigned int i = 0; i < width; i++) {
-      for (unsigned int j = 0; j < height; j++) {
-        Hud.setPixel(i, j, bg_color.rgba());
-      }
-    }
-    return Hud;
-  }
+    Ogre::MaterialPtr material = Ogre::MaterialManager::getSingleton().create(ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+    material->setLightingEnabled(false);
+    //material->getTechnique(0)->getPass(0)->setPolygonMode(Ogre::PM_WIREFRAME);
+    material->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+    material->setCullingMode(Ogre::CULL_NONE);
 
-  QImage ScopedPixelBuffer::getQImage(OverlayObject& overlay)
-  {
-    return getQImage(overlay.getTextureWidth(), overlay.getTextureHeight());
-  }
-  
-  QImage ScopedPixelBuffer::getQImage(OverlayObject& overlay,
-                                      QColor& bg_color)
-  {
-    return getQImage(overlay.getTextureWidth(), overlay.getTextureHeight(),
-                     bg_color);
-  }
-  
-  OverlayObject::OverlayObject(const std::string& name)
-    : name_(name)
-  {
-    std::string material_name = name_ + "Material";
-    Ogre::OverlayManager* mOverlayMgr = Ogre::OverlayManager::getSingletonPtr();
-    overlay_ = mOverlayMgr->create(name_);
-    panel_ = static_cast<Ogre::PanelOverlayElement*> (
-      mOverlayMgr->createOverlayElement("Panel", name_ + "Panel"));
-    panel_->setMetricsMode(Ogre::GMM_PIXELS);
-    
-    panel_material_
-      = Ogre::MaterialManager::getSingleton().create(
-        material_name,
-        Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-    panel_->setMaterialName(panel_material_->getName());
-    overlay_->add2D(panel_);
-  }
+    Ogre::TextureUnitState* tex_unit = material->getTechnique(0)->getPass(0)->createTextureUnitState();
+    tex_unit->setTextureName(tex->getName());
+    tex_unit->setTextureFiltering( Ogre::TFO_NONE );
 
-  OverlayObject::~OverlayObject()
-  {
-    hide();
-    panel_material_->unload();
-    Ogre::MaterialManager::getSingleton().remove(panel_material_->getName());
-    // Ogre::OverlayManager* mOverlayMgr = Ogre::OverlayManager::getSingletonPtr();
-    // mOverlayMgr->destroyOverlayElement(panel_);
-    //delete panel_;
-    //delete overlay_;
-  }
+    olm = OverlayManager::getSingletonPtr();
+    panel = static_cast<OverlayContainer*>(olm->createOverlayElement("Panel",std::string("GUI")+boost::lexical_cast<std::string>(text_id)));
+    panel->setMetricsMode(Ogre::GMM_PIXELS);
+    panel->setPosition(0, 0);
+    panel->setDimensions(200, 200);
+    panel->setMaterialName(material->getName());
 
-  std::string OverlayObject::getName()
-  {
-    return name_;
-  }
+    overlay = olm->create(std::string("GUI_OVERLAY")+boost::lexical_cast<std::string>(text_id));
+    overlay->add2D(panel);
 
-  void OverlayObject::hide()
-  {
-    if (overlay_->isVisible()) {
-      overlay_->hide();
-    }
-  }
+    sz_element = "element_"+StringConverter::toString(init);
+    text_area = static_cast<TextAreaOverlayElement*>(olm->createOverlayElement("TextArea",sz_element));
+    text_area->setMetricsMode(Ogre::GMM_PIXELS);
+    panel->addChild(text_area);
+    overlay->show();
+}
 
-  void OverlayObject::show()
-  {
-    if (!overlay_->isVisible()) {
-      overlay_->show();
-    }
-  }
+OgreText::~OgreText()
+{
+    sz_element="element_"+StringConverter::toString(text_id);
+    olm->destroyOverlayElement(sz_element);
+    olm->destroyOverlayElement("GUI");
+    olm->destroy("GUI_OVERLAY");
+    --(this->init);
+}
 
-  bool OverlayObject::isTextureReady()
-  {
-    return !texture_.isNull();
-  }
+void OgreText::setText(char *szString)
+{
+    text_area->setCaption(szString);
+    text_area->setDimensions(1.0f,1.0f);
+    text_area->setMetricsMode(Ogre::GMM_RELATIVE);
+    text_area->setFontName("Arial");
+    text_area->setCharHeight(0.03f);
+}
 
-  bool OverlayObject::updateTextureSize(unsigned int width, unsigned int height)
-  {
-    const std::string texture_name = name_ + "Texture";
-    if (!isTextureReady() ||
-        ((width != texture_->getWidth()) ||
-         (height != texture_->getHeight()))) {
-      if (isTextureReady()) {
-        Ogre::TextureManager::getSingleton().remove(texture_name);
-        panel_material_->getTechnique(0)->getPass(0)
-          ->removeAllTextureUnitStates();
-      }
-      texture_ = Ogre::TextureManager::getSingleton().createManual(
-        texture_name,        // name
-        Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-        Ogre::TEX_TYPE_2D,   // type
-        width, height,   // width & height of the render window 
-        0,                   // number of mipmaps
-        Ogre::PF_A8R8G8B8,   // pixel format chosen to match a format Qt can use
-        Ogre::TU_DEFAULT     // usage
-        );
+void OgreText::setText(String szString) // now You can use Ogre::String as text
+{
+    text_area->setCaption(szString);
+    text_area->setDimensions(1.0f,1.0f);
+    text_area->setMetricsMode(Ogre::GMM_RELATIVE);
+    text_area->setFontName("Arial");
+    text_area->setCharHeight(0.03f);
+}
 
-      panel_material_->getTechnique(0)->getPass(0)
-        ->createTextureUnitState(texture_name);
-        
-      panel_material_->getTechnique(0)->getPass(0)
-        ->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
-    }
-  }
-  bool OverlayObject::updateTextureImage(QImage qImage)
-  {
-      if(isTextureReady())
-      {
-          // Convert to 32-bit RGB
-          if (qImage.format() != QImage::Format_RGB32)
-              qImage = qImage.convertToFormat(QImage::Format_RGB32);
-          // Create an Ogre::Image from the QImage
-          Ogre::Image image;
-          image.loadDynamicImage(
-                      qImage.bits(),
-                      qImage.width(),
-                      qImage.height(),
-                      Ogre::PF_X8R8G8B8);
+void OgreText::setPos(float x,float y)
+{
+    //textArea->setPosition(x,y);
+    panel->setPosition(x,y);
+}
 
-//          const std::string texture_name = name_ + "Texture";
-//          // Create Texture
-//          Ogre::TextureManager* manager = Ogre::TextureManager::getSingletonPtr();
-//          // Create a texture from the image
-//          manager->remove(texture_name);
-//          Ogre::TexturePtr texture = manager->loadImage(texture_name, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,image);
-//          Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().getByName(texture_name, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-//          ROS_ERROR("5");
-//          mat.getPointer()->getTechnique(0)->getPass(0)->getTextureUnitState(0)->setTextureName(texture_name);
-//          ROS_ERROR("6");
-//          mat.getPointer()->getTechnique(0)->setCullingMode( Ogre::CULL_NONE );
-//          ROS_ERROR("7");
-
-//          texture_.freeMethod();
-//          ROS_ERROR("8");
-//          texture_ = texture;
-//          ROS_ERROR("9");
-
-          texture_.getPointer()->loadImage(image);
-      }
-      else
-          ROS_ERROR("Tried to load image to null texture");
-  }
-
-  ScopedPixelBuffer OverlayObject::getBuffer()
-  {
-    if (isTextureReady())
-      return ScopedPixelBuffer(texture_->getBuffer());    
-    else
-      return ScopedPixelBuffer(Ogre::HardwarePixelBufferSharedPtr());
-
-  }
-
-  void OverlayObject::setPosition(double left, double top)
-  {
-    panel_->setPosition(left, top);
-  }
-
-  void OverlayObject::setDimensions(double width, double height)
-  {
-    panel_->setDimensions(width, height);
-  }
-
-  bool OverlayObject::isVisible()
-  {
-    return overlay_->isVisible();
-  }
-
-  unsigned int OverlayObject::getTextureWidth()
-  {
-    if (isTextureReady()) {
-      return texture_->getWidth();
-    }
-    else {
-      return 0;
-    }
-  }
-
-  unsigned int OverlayObject::getTextureHeight()
-  {
-    if (isTextureReady()) {
-      return texture_->getHeight();
-    }
-    else {
-      return 0;
-    }
-  }
-
-  
+void OgreText::setCol(float R,float G,float B,float I)
+{
+    text_area->setColour(Ogre::ColourValue(R,G,B,I));
 }
