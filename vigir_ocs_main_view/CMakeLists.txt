@@ -4,14 +4,14 @@ project(vigir_ocs_main_view)
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
 
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_perspective_view vigir_ocs_ortho_view  vigir_ocs_status_bar vigir_ocs_grasp_widget )
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_perspective_view vigir_ocs_ortho_view  vigir_ocs_status_bar vigir_ocs_grasp_widget vigir_ocs_notification_system)
 
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS ${catkin_INCLUDE_DIRS} src
 	LIBRARIES ${PROJECT_NAME} 
 
-        CATKIN_DEPENDS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_perspective_view vigir_ocs_ortho_view  vigir_ocs_status_bar vigir_ocs_grasp_widget
+        CATKIN_DEPENDS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_perspective_view vigir_ocs_ortho_view  vigir_ocs_status_bar vigir_ocs_grasp_widget vigir_ocs_notification_system
 
 )
 

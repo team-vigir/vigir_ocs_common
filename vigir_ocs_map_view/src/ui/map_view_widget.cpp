@@ -176,6 +176,16 @@ void MapViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize
                     changeCheckBoxState(ui->grid_map,Qt::Unchecked);
             }
         }
+        else if(msg->properties[i].compare("Notification System") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->notification_system,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->notification_system,Qt::Unchecked);
+            }
+        }
     }
 }
 

@@ -291,6 +291,7 @@ public Q_SLOTS:
     void gridMapToggled( bool );
     void footstepPlanningToggled( bool );
     void simulationRobotToggled( bool );
+    void notificationSystemToggled(bool selected);
     // tools
     // enables/disables use of rviz tools
     void cameraToggled( bool );

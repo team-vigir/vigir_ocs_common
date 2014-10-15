@@ -136,6 +136,8 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
     ROS_ERROR("PLAN time: %f steps: %d ratio:%f intmode: %d pattern %d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
 
     footstep_plan_request_pub_.publish(cmd);
+
+    NotificationSystem::Instance()->notifyPassive("Planning Footsteps");
 }
 
 void FootstepVisManager::processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg)

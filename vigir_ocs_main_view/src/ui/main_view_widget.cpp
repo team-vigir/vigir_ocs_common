@@ -103,6 +103,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             QObject::connect(ui->widget_tool, SIGNAL(toggled(bool)), iter->second, SLOT(markerRobotToggled(bool)));
             QObject::connect(ui->robot_joint_markers,SIGNAL(toggled(bool)), iter->second, SLOT(robotJointMarkerToggled(bool)));
             QObject::connect(ui->robot_occlusion_rendering,SIGNAL(toggled(bool)), iter->second, SLOT(robotOcclusionToggled(bool)));            
+            QObject::connect(ui->notification_system,SIGNAL(toggled(bool)), iter->second, SLOT(notificationSystemToggled(bool)));
         }
         else
         {
@@ -437,6 +438,16 @@ void MainViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchroniz
                     changeCheckBoxState(ui->grid_map,Qt::Checked);
                 else
                     changeCheckBoxState(ui->grid_map,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Notification System") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->notification_system,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->notification_system,Qt::Unchecked);
             }
         }
     }

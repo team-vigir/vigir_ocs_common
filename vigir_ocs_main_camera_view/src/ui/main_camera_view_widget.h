@@ -12,6 +12,7 @@
 #include "base_3d_view.h"
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <std_msgs/Float32.h>
+#include "notification_system.h"
 
 namespace Ui
 {

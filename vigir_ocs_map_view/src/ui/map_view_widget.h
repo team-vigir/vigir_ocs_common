@@ -12,6 +12,7 @@
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <QPropertyAnimation>
 #include "flor_ocs_msgs/OCSSynchronize.h"
+#include "notification_system.h"
 
 namespace Ui
 {

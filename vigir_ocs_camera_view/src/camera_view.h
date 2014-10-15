@@ -21,6 +21,7 @@
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 
 #include "base_3d_view.h"
+#include "notification_system.h"
 
 namespace rviz
 {
