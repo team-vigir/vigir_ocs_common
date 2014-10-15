@@ -12,6 +12,7 @@
 #include <QDialog>
 #include <QBasicTimer>
 #include <QElapsedTimer>
+#include "notification_system.h"
 
 namespace Ui {
 class glancehubSbar;
@@ -28,23 +29,23 @@ public:
 
 private:
     Ui::glancehubSbar *ui;
-    glancehub* ghub;
-    ros::NodeHandle nh;
-    ros::Publisher mode_pub;
+    glancehub* ghub_;
+    ros::NodeHandle nh_;
+    ros::Publisher mode_pub_;
     void updateBoxSelection(QString mode);
     void timerEvent(QTimerEvent *event);
-    QString previousSelection;
-    QBasicTimer colorTimer;
-    bool flashingMoveIt;
-    bool flashingFootstep;
-    bool coloredMoveIt;
-    bool coloredFootstep;
-    int flashFootstepCounter;
-    int flashMoveItCounter;
-    QString flashColorMoveIt;
-    QString flashColorFootstep;
-    QString white;
-    int maxFlashes;
+    QString previous_selection_;
+    QBasicTimer color_timer_;
+    bool flashing_move_it_;
+    bool flashing_footstep_;
+    bool colored_moveit_;
+    bool colored_footstep_;
+    int flash_footstep_counter_;
+    int flash_moveit_counter_;
+    QString flash_color_moveit_;
+    QString flash_color_footstep_;
+    QString white_;
+    int max_flashes_;
 
 public Q_SLOTS:
     void receiveMoveitStatus(bool);

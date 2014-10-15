@@ -639,7 +639,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         //initialize Render Order correctly
         setRenderOrder();
 
-        overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Overlay for Notifications", true );
+        overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
         overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
 
         //initialize notification system        
@@ -1106,6 +1106,15 @@ void Base3DView::gridMapToggled( bool selected )
     ocs_sync_pub_.publish(msg);
 }
 
+void Base3DView::notificationSystemToggled(bool selected)
+{
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("Notification System");
+    msg.reset.push_back(false);
+    msg.visible.push_back(selected);
+    ocs_sync_pub_.publish(msg);
+}
+
 void Base3DView::footstepPlanningToggled( bool selected )
 {
     footstep_vis_manager_->setEnabled(selected);
@@ -1353,6 +1362,12 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
                     //can only toggle octomap
                     octomap_->setEnabled(msg->visible[i]);
                 }
+                else if(display_name.compare("Notification System") == 0)
+                {
+                    //only toggle notification visibility
+                    overlay_display_->setEnabled(msg->visible[i]);
+                }
+
             }
         }
         if(groundMapReset)
@@ -1552,7 +1567,8 @@ void Base3DView::insertTemplate( QString path )
         Q_EMIT resetSelection();
     }
 
-    NotificationSystem::Instance()->notify("cheesers",flor_ocs_msgs::OCSOverlayText::TOPROW,flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN,.8f,.8f,.8f);
+    //notify on ui
+    NotificationSystem::Instance()->notifyPassive("Template Inserted");
 }
 
 void Base3DView::insertWaypoint()
@@ -2238,6 +2254,9 @@ void Base3DView::removeTemplate(int id)
 
     // publish template to be removed
     template_remove_pub_.publish( cmd );
+
+    //notify
+    NotificationSystem::Instance()->notifyPassive("Template Removed");
 }
 
 void Base3DView::setContext(int context, std::string name)

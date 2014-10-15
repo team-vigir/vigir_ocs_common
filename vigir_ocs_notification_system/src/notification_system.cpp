@@ -9,7 +9,7 @@ NotificationSystem* NotificationSystem::instance = 0;
 NotificationSystem::NotificationSystem()
 {    
     //create publisher for notifications
-    notification_pub_ = nh.advertise<flor_ocs_msgs::OCSOverlayText>("/flor/ocs/overlay_text",5,false);
+    notification_pub_ = nh.advertise<flor_ocs_msgs::OCSOverlayText>("/flor/ocs/overlay_text",5,false);    
 }
 
 /** This function is called to create an instance of the class.
@@ -24,15 +24,84 @@ NotificationSystem* NotificationSystem::Instance()
    return instance;
 }
 
-/*
-  change to ber horizontally and vertically aligned top center and bottom
-  use update function in place of timer   fade in, uptime, fade out . directly modify alpha in color
-  overlay_text_display needs to get render_panel to be aligned correctly
+//publishes to show white text in top center
+void NotificationSystem::notifyPassive(std::string text)
+{
+    flor_ocs_msgs::OCSOverlayText msg;
+    msg.text = text;
+    //messages probably shouldn't be multiple lines?
+    msg.height = 18;
+    msg.width = text.length() * 8;
+    msg.font = "DejaVu Sans Mono";
+    msg.line_width = 2;
+    msg.text_size = 10;
+    msg.fg_color.r = .8f;
+    msg.fg_color.g = .8f;
+    msg.fg_color.b = .8f;
+    msg.fg_color.a = .9f;
+    msg.bg_color.a = .5f;
+    msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
+    msg.fadeIn = 1.0f;
+    msg.fadeOut = 1.0f;
+    msg.upTime = 2.0f;
+    msg.row = flor_ocs_msgs::OCSOverlayText::TOPROW;
+    msg.column = flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
+    notification_pub_.publish(msg);
 
-  */
+}
 
-//publishes a standard message to have a notification appear and fade out in 3d view
-void NotificationSystem::notify(std::string text, int row, int column, float r, float g, float b)
+//publishes to show yellow text in center
+void NotificationSystem::notifyWarning(std::string text)
+{
+    flor_ocs_msgs::OCSOverlayText msg;
+    msg.text = text;
+    //messages probably shouldn't be multiple lines?
+    msg.height = 18;
+    msg.width = text.length() * 8;
+    msg.font = "DejaVu Sans Mono";
+    msg.line_width = 2;
+    msg.text_size = 10;
+    msg.fg_color.r = 1.0f;
+    msg.fg_color.g = 1.0f;
+    msg.fg_color.b = 0.0f;
+    msg.fg_color.a = .9f;
+    msg.bg_color.a = .5f;
+    msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
+    msg.fadeIn = 1.0f;
+    msg.fadeOut = 1.0f;
+    msg.upTime = 2.0f;
+    msg.row = flor_ocs_msgs::OCSOverlayText::CENTERROW;
+    msg.column = flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
+    notification_pub_.publish(msg);
+}
+
+//publishes to show red text in center
+void NotificationSystem::notifyError(std::string text)
+{
+    flor_ocs_msgs::OCSOverlayText msg;
+    msg.text = text;
+    //messages probably shouldn't be multiple lines?
+    msg.height = 18;
+    msg.width = text.length() * 8;
+    msg.font = "DejaVu Sans Mono";
+    msg.line_width = 2;
+    msg.text_size = 10;
+    msg.fg_color.r = 1.0f;
+    msg.fg_color.g = 0.0f;
+    msg.fg_color.b = 0.0f;
+    msg.fg_color.a = .9f;
+    msg.bg_color.a = .5f;
+    msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
+    msg.fadeIn = 1.0f;
+    msg.fadeOut = 1.0f;
+    msg.upTime = 2.0f;
+    msg.row = flor_ocs_msgs::OCSOverlayText::CENTERROW;
+    msg.column = flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
+    notification_pub_.publish(msg);
+}
+
+//publishes a custom message to have a notification appear and fade out in 3d view
+void NotificationSystem::notifyCustom(std::string text, int row, int column, float r, float g, float b)
 {
     flor_ocs_msgs::OCSOverlayText msg;
     msg.text = text;
@@ -54,6 +123,7 @@ void NotificationSystem::notify(std::string text, int row, int column, float r, 
     msg.row = row;
     msg.column = column;
     notification_pub_.publish(msg);
+
 }
 
 

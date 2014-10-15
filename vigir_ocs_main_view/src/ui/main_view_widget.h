@@ -31,8 +31,7 @@
 #include <QPropertyAnimation>
 #include <flor_ocs_msgs/WindowCodes.h>
 #include "footstep_config.h"
-
-
+#include "notification_system.h"
 
 namespace Ui
 {

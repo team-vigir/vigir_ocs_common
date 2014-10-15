@@ -9,23 +9,23 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     ui(new Ui::glancehubSbar)
 {
     ui->setupUi(this);
-    ghub = new glancehub(this);
+    ghub_ = new glancehub(this);
     //remove window border and set on top
-    Qt::WindowFlags flags = ghub->windowFlags();
+    Qt::WindowFlags flags = ghub_->windowFlags();
     flags |= Qt::WindowStaysOnTopHint;
     flags |= Qt::FramelessWindowHint;
-    flags |= Qt::Dialog; // //ensure ghub as a dialog box, not a seperate window/tab
-    ghub->setWindowFlags(flags);
+    flags |= Qt::Dialog; // //ensure ghub_ as a dialog box, not a seperate window/tab
+    ghub_->setWindowFlags(flags);
 
-    ghub->setWindowOpacity(0);
+    ghub_->setWindowOpacity(0);
 
-    connect(ghub,SIGNAL(sendMoveitStatus(bool)),this,SLOT(receiveMoveitStatus(bool)));
-    connect(ghub,SIGNAL(sendFootstepStatus(int)),this,SLOT(receiveFootstepStatus(int)));
-    connect(ghub,SIGNAL(sendFlorStatus(int)),this,SLOT(receiveFlorStatus(int)));
+    connect(ghub_,SIGNAL(sendMoveitStatus(bool)),this,SLOT(receiveMoveitStatus(bool)));
+    connect(ghub_,SIGNAL(sendFootstepStatus(int)),this,SLOT(receiveFootstepStatus(int)));
+    connect(ghub_,SIGNAL(sendFlorStatus(int)),this,SLOT(receiveFlorStatus(int)));
     connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(receiveModeChange(int)));
 
     ui->modelabel->setText("");// default setting is off on start
-    previousSelection = "Flor_Off";
+    previous_selection_ = "Flor_Off";
 
     //sets first item to unselectable
     QStandardItemModel* model =
@@ -39,7 +39,7 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     ui->modeBox->view()->setFixedWidth(130);
 
     //setup publisher to change modes
-    mode_pub = nh.advertise<flor_control_msgs::FlorControlModeCommand>("/flor/controller/mode_command", 5, false);   
+    mode_pub_ = nh_.advertise<flor_control_msgs::FlorControlModeCommand>("/flor/controller/mode_command", 5, false);
 
     ui->plannerLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
     ui->footstepLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
@@ -51,71 +51,71 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     ui->footstepLight->setToolTip("waiting for status update");
     ui->footstepLabel->setToolTip("waiting for status update");
 
-    colorTimer.start(300,this);
-    maxFlashes = 6;
-    flashingMoveIt = false;
-    flashingFootstep = false;
-    coloredMoveIt = false;
-    coloredFootstep = false;
-    flashFootstepCounter = 0;
-    flashMoveItCounter = 0;
-    white = "QLabel {background-color: white; border:2px solid grey;}";
+    color_timer_.start(300,this);
+    max_flashes_ = 6;
+    flashing_move_it_ = false;
+    flashing_footstep_ = false;
+    colored_moveit_ = false;
+    colored_footstep_ = false;
+    flash_footstep_counter_ = 0;
+    flash_moveit_counter_ = 0;
+    white_ = "QLabel {background-color: white; border:2px solid grey;}";
 }
 
 void glancehubSbar::timerEvent(QTimerEvent *event)
 {
-    if(flashingMoveIt)
+    if(flashing_move_it_)
     {
-        if(flashMoveItCounter < maxFlashes)
+        if(flash_moveit_counter_ < max_flashes_)
         {
             //flash moveit light
-            if(coloredMoveIt)
+            if(colored_moveit_)
             {
-                ui->plannerLight->setStyleSheet(white);
-                coloredMoveIt = !coloredMoveIt;
+                ui->plannerLight->setStyleSheet(white_);
+                colored_moveit_ = !colored_moveit_;
             }
             else
             {
-                ui->plannerLight->setStyleSheet(flashColorMoveIt);
-                coloredMoveIt = !coloredMoveIt;
-                flashMoveItCounter++;
+                ui->plannerLight->setStyleSheet(flash_color_moveit_);
+                colored_moveit_ = !colored_moveit_;
+                flash_moveit_counter_++;
             }
         }
         else
         {
             //flashing done. reset and wait for next call
             //counter is reset by functions that accepts new states
-            flashingMoveIt = false;
+            flashing_move_it_ = false;
         }
     }
 
-    if(flashingFootstep)
+    if(flashing_footstep_)
     {
-        if(flashFootstepCounter < maxFlashes)
+        if(flash_footstep_counter_ < max_flashes_)
         {
             //flash footstep light
-            if(coloredFootstep)
+            if(colored_footstep_)
             {
-                ui->footstepLight->setStyleSheet(white);
-                coloredFootstep = !coloredFootstep;
+                ui->footstepLight->setStyleSheet(white_);
+                colored_footstep_ = !colored_footstep_;
             }
             else
             {
-                ui->footstepLight->setStyleSheet(flashColorFootstep);
-                coloredFootstep = !coloredFootstep;
-                flashFootstepCounter++;
+                ui->footstepLight->setStyleSheet(flash_color_footstep_);
+                colored_footstep_ = !colored_footstep_;
+                flash_footstep_counter_++;
             }
         }
         else
         {
-            flashingFootstep = false;
+            flashing_footstep_ = false;
         }
     }
 }
 
 void glancehubSbar::receiveModeChange(int mode)
 {
-    QString modeBefore = previousSelection;
+    QString modeBefore = previous_selection_;
 
     flor_control_msgs::FlorControlModeCommand msg;
     msg.header.stamp = ros::Time::now();
@@ -128,67 +128,76 @@ void glancehubSbar::receiveModeChange(int mode)
     case 1:
         ui->modelabel->setText(modeBefore+" -> Stand");
         msg.behavior = flor_control_msgs::FlorControlModeCommand::STAND;
-        previousSelection = "Stand";
+        previous_selection_ = "Stand";
         break;
     case 2:
         ui->modelabel->setText(modeBefore+" -> Walk");
         msg.behavior = flor_control_msgs::FlorControlModeCommand::WALK;
-        previousSelection = "Walk";
+        previous_selection_ = "Walk";
         break;
     case 3:
         ui->modelabel->setText(modeBefore+" -> Step");
         msg.behavior = flor_control_msgs::FlorControlModeCommand::STEP;
-        previousSelection = "Step";
+        previous_selection_ = "Step";
         break;
     case 4:
         ui->modelabel->setText(modeBefore+" -> Manipulate");
         msg.behavior = flor_control_msgs::FlorControlModeCommand::MANIPULATE;
-        previousSelection = "Manipulate";
+        previous_selection_ = "Manipulate";
         break;
     case 5:
         ui->modelabel->setText(modeBefore+" -> Flor_Stand");
         msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_STAND;
-        previousSelection = "Flor_Stand";
+        previous_selection_ = "Flor_Stand";
         break;
     case 6:
         ui->modelabel->setText(modeBefore+" -> Flor_Walk_Mani");
         msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_WALK_MANI;
-        previousSelection = "Flor_Walk_Mani";
+        previous_selection_ = "Flor_Walk_Mani";
         break;
     case 7:
         ui->modelabel->setText(modeBefore+" -> Flor_Step_Mani");
         msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_STEP_MANI;
-        previousSelection = "Flor_Step_Mani";
+        previous_selection_ = "Flor_Step_Mani";
         break;
     case 8:
         ui->modelabel->setText(modeBefore+" -> Flor_Dance");
         msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_DANCE;
-        previousSelection = "Flor_Dance";
+        previous_selection_ = "Flor_Dance";
         break;
     case 9:
         ui->modelabel->setText(modeBefore+" -> Flor_WBC");
         msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_WBC;
-        previousSelection = "Flor_WBC";
+        previous_selection_ = "Flor_WBC";
         break;    
     case flor_control_msgs::FlorControlModeCommand::FLOR_STOP:
         ui->modelabel->setText(modeBefore+" -> Flor_Stop");
         msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_STOP;
-        previousSelection = "Flor_Stop";
+        previous_selection_ = "Flor_Stop";
         break;
     }
-    mode_pub.publish(msg);
+    mode_pub_.publish(msg);
+
+
+    //notify on 3d view                     previous is still at the state we want right now
+    QString notificationText = QString("Changed Robot Mode to ") + previous_selection_ ;
+    //flor stop is an error condition
+    if(previous_selection_ == "Flor_Stop")
+        NotificationSystem::Instance()->notifyError(notificationText.toStdString());
+    else
+        NotificationSystem::Instance()->notifyPassive(notificationText.toStdString());
 }
 
 void glancehubSbar::receiveMoveitStatus(bool status)
 {
     if(status)
-        flashColorMoveIt = "QLabel { background-color: red;border:2px solid grey; }";
+        flash_color_moveit_ = "QLabel { background-color: red;border:2px solid grey; }";
     else
-       flashColorMoveIt = "QLabel { background-color: green; border:2px solid grey; }";
-    ui->plannerLight->setToolTip(ghub->getMoveitStat());
-    ui->moveitLabel->setToolTip(ghub->getMoveitStat());
-    flashingMoveIt = true;
-    flashMoveItCounter = 0; // reset counter here because we want to flash latest color 10 times (this function may be called multiple times in short span)
+       flash_color_moveit_ = "QLabel { background-color: green; border:2px solid grey; }";
+    ui->plannerLight->setToolTip(ghub_->getMoveitStat());
+    ui->moveitLabel->setToolTip(ghub_->getMoveitStat());
+    flashing_move_it_ = true;
+    flash_moveit_counter_ = 0; // reset counter here because we want to flash latest color 10 times (this function may be called multiple times in short span)
 }
 
 void glancehubSbar::receiveFootstepStatus(int status)
@@ -196,19 +205,19 @@ void glancehubSbar::receiveFootstepStatus(int status)
         switch(status)
         {
         case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE:
-            flashColorFootstep = "QLabel { background-color: yellow; border:2px solid grey;}";
+            flash_color_footstep_ = "QLabel { background-color: yellow; border:2px solid grey;}";
             break;
         case RobotStatusCodes::FOOTSTEP_PLANNER_FAILED:
-            flashColorFootstep = "QLabel { background-color: red; border:2px solid grey; }";
+            flash_color_footstep_ = "QLabel { background-color: red; border:2px solid grey; }";
             break;
         case RobotStatusCodes::FOOTSTEP_PLANNER_SUCCESS:
-            flashColorFootstep = "QLabel { background-color: green; border:2px solid grey;}";
+            flash_color_footstep_ = "QLabel { background-color: green; border:2px solid grey;}";
             break;
         }
-    ui->footstepLight->setToolTip(ghub->getFootstepStat());
-    ui->footstepLabel->setToolTip(ghub->getFootstepStat());
-    flashingFootstep = true;
-    flashFootstepCounter = 0;
+    ui->footstepLight->setToolTip(ghub_->getFootstepStat());
+    ui->footstepLabel->setToolTip(ghub_->getFootstepStat());
+    flashing_footstep_ = true;
+    flash_footstep_counter_ = 0;
 }
 
 void glancehubSbar::receiveFlorStatus(int status)
@@ -292,6 +301,6 @@ void glancehubSbar::updateBoxSelection(QString mode)
 
 glancehubSbar::~glancehubSbar()
 {
-    delete(ghub);
+    delete(ghub_);
     delete ui;
 }

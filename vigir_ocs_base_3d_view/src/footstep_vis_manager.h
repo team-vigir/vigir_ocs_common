@@ -29,6 +29,7 @@
 #include <vector>
 #include <map>
 #include <stdlib.h>
+#include "notification_system.h"
 
 namespace rviz
 {

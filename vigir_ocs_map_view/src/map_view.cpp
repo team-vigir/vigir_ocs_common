@@ -172,6 +172,9 @@ void MapView::requestMap(double min_z, double max_z, double resolution)
     grid_map_request_pub_.publish(cmd);
 
     Q_EMIT unHighlight();
+
+    //notify ui
+    NotificationSystem::Instance()->notifyPassive("Map Environment Requested");
 }
 
 void MapView::requestOctomap(double min_z, double max_z, double resolution)
@@ -198,6 +201,9 @@ void MapView::requestOctomap(double min_z, double max_z, double resolution)
     octomap_request_pub_.publish(cmd);
 
     Q_EMIT unHighlight();
+
+    //notify ui
+    NotificationSystem::Instance()->notifyPassive("Octomap Requested");
 }
 
 bool MapView::hasValidSelection()
@@ -224,6 +230,9 @@ void MapView::requestPointCloud(int type)
     cmd.environment_region_request = last_request_.environment_region_request;
     cmd.data_source = type;
     point_cloud_request_pub_.publish(cmd);
+
+    //notify ui
+    NotificationSystem::Instance()->notifyPassive("Pointcloud Requested");
 }
 
 void MapView::requestPointCloud(double min_z, double max_z, double resolution, int type, int aggregation_size)
@@ -269,6 +278,9 @@ void MapView::requestPointCloud(double min_z, double max_z, double resolution, i
     last_request_ = cmd;
 
     Q_EMIT unHighlight();
+
+    //notify ui
+    NotificationSystem::Instance()->notifyPassive("Pointcloud Requested");
 }
 
 void MapView::addContextMenu()
