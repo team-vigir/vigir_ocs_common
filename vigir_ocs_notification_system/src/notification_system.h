@@ -5,7 +5,7 @@
 #include "flor_ocs_msgs/OCSOverlayText.h"
 
 //example use
-//NotificationSystem::Instance()->notify("your text",flor_ocs_msgs::OCSOverlayText::TOPROW,flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN,.8f,.8f,.8f);
+//NotificationSystem::Instance()->notifyCustom("your text",flor_ocs_msgs::OCSOverlayText::TOPROW,flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN,.8f,.8f,.8f);
 
 /**
 Current Proposed Notifications (* means implemented)
@@ -21,6 +21,7 @@ Passive(doesn't have to be seen, top center white text)
     manipulation started (arm moves to match ghost)
 
     new pointcloud request*
+
     new camera image request(not for video/fps boost?)
     update head pitch
 

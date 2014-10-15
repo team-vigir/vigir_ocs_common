@@ -722,6 +722,7 @@ void MainViewWidget::setCameraMode()
 {
     ui->modeBox->setCurrentIndex(2);
     setManipulationMode(2);
+
 }
 void MainViewWidget::setWorldMode()
 {
@@ -740,6 +741,9 @@ void MainViewWidget::setManipulationMode(int mode)
     flor_ocs_msgs::OCSControlMode msg;
     msg.manipulationMode =  mode;
     mode_pub_.publish(msg);
+
+    //notify ui
+    NotificationSystem::Instance()->notifyPassive("Changed Interaction Mode");
 }
 
 void MainViewWidget::setObjectMode(int mode)

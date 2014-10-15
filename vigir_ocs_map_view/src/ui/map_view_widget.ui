@@ -627,7 +627,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-532</y>
+           <y>-489</y>
            <width>207</width>
            <height>1669</height>
           </rect>
@@ -1267,6 +1267,7 @@ color: rgb(255, 26, 26);</string>
     <slot>selectionToolToggle(bool)</slot>
     <slot>clearPointCloudRegionRequests()</slot>
     <slot>clearPointCloudStereoRequests()</slot>
+    <slot>notificationSystemToggled(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -1685,6 +1686,22 @@ color: rgb(255, 26, 26);</string>
     <hint type="destinationlabel">
      <x>341</x>
      <y>364</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>notification_system</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>map_view_</receiver>
+   <slot>notificationSystemToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>871</x>
+     <y>567</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>378</x>
+     <y>376</y>
     </hint>
    </hints>
   </connection>
