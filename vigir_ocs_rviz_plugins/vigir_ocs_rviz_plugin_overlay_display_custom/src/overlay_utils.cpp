@@ -64,25 +64,22 @@ OgreText::~OgreText()
 void OgreText::setText(char *szString)
 {
     text_area->setCaption(szString);
-    text_area->setDimensions(1.0f,1.0f);
-    text_area->setMetricsMode(Ogre::GMM_RELATIVE);
     text_area->setFontName("Arial");
-    text_area->setCharHeight(0.03f);
+    text_area->setCharHeight(18);
 }
 
 void OgreText::setText(String szString) // now You can use Ogre::String as text
 {
     text_area->setCaption(szString);
-    text_area->setDimensions(1.0f,1.0f);
-    text_area->setMetricsMode(Ogre::GMM_RELATIVE);
     text_area->setFontName("Arial");
-    text_area->setCharHeight(0.03f);
+    text_area->setCharHeight(18);
 }
 
 void OgreText::setPos(float x,float y)
 {
     //textArea->setPosition(x,y);
-    panel->setPosition(x,y);
+    panel->setPosition(x-((float)text_area->getCaption().size()/2.0)*9.9,y);
+    panel->setDimensions((float)text_area->getCaption().size()*9.9,18);
 }
 
 void OgreText::setCol(float R,float G,float B,float I)
