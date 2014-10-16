@@ -122,6 +122,7 @@ void glancehubSbar::receiveModeChange(int mode)
     ui->modelabel->setStyleSheet("QLabel{color:red; }");
     switch(mode)
     {
+    //cases are indexes within comboBox
     case 0:
         return; //first is not selectable
         break;
@@ -191,9 +192,17 @@ void glancehubSbar::receiveModeChange(int mode)
 void glancehubSbar::receiveMoveitStatus(bool status)
 {
     if(status)
+    {
+        //moveit failed
         flash_color_moveit_ = "QLabel { background-color: red;border:2px solid grey; }";
+        NotificationSystem::Instance()->notifyWarning("Moveit Failed");
+    }
     else
+    {
+        //moveit success
        flash_color_moveit_ = "QLabel { background-color: green; border:2px solid grey; }";
+       //NotificationSystem::Instance()->notifyPassive("Moveit Success");
+    }
     ui->plannerLight->setToolTip(ghub_->getMoveitStat());
     ui->moveitLabel->setToolTip(ghub_->getMoveitStat());
     flashing_move_it_ = true;
@@ -209,6 +218,9 @@ void glancehubSbar::receiveFootstepStatus(int status)
             break;
         case RobotStatusCodes::FOOTSTEP_PLANNER_FAILED:
             flash_color_footstep_ = "QLabel { background-color: red; border:2px solid grey; }";
+
+            //notify ui on failure
+            NotificationSystem::Instance()->notifyWarning("Footstep Planner Failed");
             break;
         case RobotStatusCodes::FOOTSTEP_PLANNER_SUCCESS:
             flash_color_footstep_ = "QLabel { background-color: green; border:2px solid grey;}";

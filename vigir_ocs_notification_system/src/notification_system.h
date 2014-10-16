@@ -18,7 +18,7 @@ Passive(doesn't have to be seen, top center white text)
     grasp locked
     start walking
     stop walking
-    manipulation started (arm moves to match ghost)
+    manipulation started (arm moves to match ghost) moveit start?
 
     new pointcloud request*
 
@@ -27,7 +27,7 @@ Passive(doesn't have to be seen, top center white text)
 
     robot mode change*
 
-    changed interactive marker manipulation mode
+    changed interactive marker manipulation mode*
 
 Warning(Has to be seen,  center, yellow text?) doug hates red text?
 
