@@ -184,6 +184,9 @@ namespace ocs_footstep
         geometry_msgs::PoseStamped goal_pose_;
         vigir_footstep_planning_msgs::Feet goal_;
 
+        // last step plan request received, saved and used mostly for message parameters
+        flor_ocs_msgs::OCSFootstepPlanRequest last_plan_request_;
+
         UpdateFeetClient* update_feet_client_;
         StepPlanRequestClient* step_plan_request_client_;
         EditStepClient* edit_step_client_;

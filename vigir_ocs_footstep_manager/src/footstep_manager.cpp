@@ -52,7 +52,7 @@ void FootstepManager::onInit()
 
     // initialize all ros action clients
     //update feet considering intial goal
-    update_feet_client_ = new UpdateStepPlanClient("update_feet", true);
+    update_feet_client_ = new UpdateFeetClient("update_feet", true);
     //plan request
     step_plan_request_client_ = new StepPlanRequestClient("step_plan_request", true);
     //edit step
@@ -332,6 +332,8 @@ void FootstepManager::calculateGoal()
 
 void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootstepPlanRequest::ConstPtr& plan_request)
 {
+    last_plan_request_ = *plan_request;
+
     if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN)
     {
         // request a completely new plan starting from the robot position
@@ -546,11 +548,11 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_2D;
 
     // need to get the following from the OCS as well
-    request.max_planning_time =
-    //float32 max_planning_time         # maximum planning time given in second
-    //float32 max_number_steps          # maximum number of steps, set 0 for unlimited
-    //float32 max_path_length_ratio     # maximum path length ratio computed as (current path length)/(beeline start<->goal), must be larger 1 otherwise it will be ignored
+    request.max_planning_time = last_plan_request_.max_time;
+    request.max_number_steps = last_plan_request_.max_steps;
+    request.max_path_length_ratio = last_plan_request_.path_length_ratio;
 
+    // and then use the selected parameter set
     request.parameter_set_name.data = selected_footstep_parameter_set_;
 
     // Fill in goal here
