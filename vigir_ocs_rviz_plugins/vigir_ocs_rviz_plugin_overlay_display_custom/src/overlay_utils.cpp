@@ -100,7 +100,6 @@ void OgreText::setPos(float x,float y)
     //textArea->setPosition(x,y);
     panel->setPosition(x-width/2,y);
     panel->setDimensions(width,height);
-    ROS_ERROR("w: %f h: %f",width,height);
 }
 
 void OgreText::setTextColor(float R,float G,float B,float I)

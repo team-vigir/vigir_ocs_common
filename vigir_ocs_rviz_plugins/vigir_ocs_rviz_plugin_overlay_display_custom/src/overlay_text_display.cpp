@@ -135,17 +135,17 @@ OverlayTextDisplay::~OverlayTextDisplay()
 
 void OverlayTextDisplay::onEnable()
 {
-    subscribe();
+    //subscribe();
 }
 
 void OverlayTextDisplay::onDisable()
 {
-    unsubscribe();
+   // unsubscribe();
 }
 
 void OverlayTextDisplay::unsubscribe()
 {
-    sub_.shutdown();
+    sub_.shutdown();    
 }
 
 void OverlayTextDisplay::subscribe()
@@ -180,6 +180,7 @@ void OverlayTextDisplay::onInitialize()
     updateFont();
     updateLineWidth();
     require_update_texture_ = true;
+    subscribe();
 }
 
 void OverlayTextDisplay::update(float wall_dt, float ros_dt)
@@ -401,6 +402,7 @@ void OverlayTextDisplay::updateLineWidth()
 {
     line_width_ = line_width_property_->getInt();
 }
+
 }
 
 #include <pluginlib/class_list_macros.h>
