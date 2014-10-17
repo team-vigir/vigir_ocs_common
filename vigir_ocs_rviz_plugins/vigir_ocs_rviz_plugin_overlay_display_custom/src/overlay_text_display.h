@@ -85,6 +85,12 @@ namespace jsk_rviz_plugin
     int column_;
     int viewport_width_;
     int viewport_height_;
+    float up_time_;
+    float fade_in_;
+    float fade_out_;
+    float fade_in_timer_;
+    float up_timer_;
+    float fade_out_timer_;
 
     ros::Subscriber sub_;
 

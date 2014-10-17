@@ -191,6 +191,47 @@ void OverlayTextDisplay::update(float wall_dt, float ros_dt)
         return;
     }
 
+    //set colors based on fade timers
+    if(fade_in_timer_ > 0)
+    {
+        //increase alpha as timer decreases
+        fade_in_timer_ -= wall_dt;
+        float a = 1.0 - (fade_in_timer_ / fade_in_);
+        //set a to 0 if negative
+        a = a>=0 ? a : 0;
+        fg_color_.setAlpha(a  *230.0); // want max at 90%
+        bg_color_.setAlpha(a  *127.0); // want max at 50%        
+
+        //update text with new color values
+        overlay_text_->setTextColor(fg_color_.redF(),fg_color_.greenF(),fg_color_.blueF(),fg_color_.alphaF());
+        overlay_text_->setPanelColor(bg_color_.red(),bg_color_.green(),bg_color_.blue(),bg_color_.alpha());
+    }
+    else if(up_timer_ > 0)
+    {
+        //constant alpha
+        up_timer_ -= wall_dt;
+        fg_color_.setAlpha(1.0 * 230.0);
+        bg_color_.setAlpha(1.0* 127.0);        
+        //update text with new color values
+        overlay_text_->setTextColor(fg_color_.redF(),fg_color_.greenF(),fg_color_.blueF(),fg_color_.alphaF());
+        overlay_text_->setPanelColor(bg_color_.red(),bg_color_.green(),bg_color_.blue(),bg_color_.alpha());
+    }
+    else if(fade_out_timer_ > 0)
+    {
+        fade_out_timer_ -= wall_dt;
+        //decrease alpha
+        float a = (fade_out_timer_ / fade_out_);
+        a = a>=0 ? a : 0;
+        fg_color_.setAlpha(a * 230.0);
+        bg_color_.setAlpha(a * 127.0);
+
+        //update text with new color values
+        overlay_text_->setTextColor(fg_color_.redF(),fg_color_.greenF(),fg_color_.blueF(),fg_color_.alphaF());
+        overlay_text_->setPanelColor(bg_color_.red(),bg_color_.green(),bg_color_.blue(),bg_color_.alpha());
+
+    }
+
+
     viewport_width_ = this->getAssociatedWidget()->width();
     viewport_height_ = this->getAssociatedWidget()->height();
     setPositionFromAlignment();
@@ -259,13 +300,17 @@ void OverlayTextDisplay::processMessage(const flor_ocs_msgs::OCSOverlayText::Con
                            msg->fg_color.g * 255.0,
                            msg->fg_color.b * 255.0,
                            msg->fg_color.a * 255.0);
-        overlay_text_->setCol(msg->fg_color.r, msg->fg_color.g, msg->fg_color.b, msg->fg_color.a);
+        overlay_text_->setTextColor(msg->fg_color.r, msg->fg_color.g, msg->fg_color.b, msg->fg_color.a);
         text_size_ = msg->text_size;
-        line_width_ = msg->line_width;
-
+        line_width_ = msg->line_width;        
         setPositionFromAlignment();
-        //left_ = 100;
-        //top_ = 100;
+        up_time_ = msg->upTime;
+        fade_in_ = msg->fadeIn;
+        fade_out_ = msg->fadeOut;
+        //setup timers to start fades
+        fade_in_timer_ = fade_in_;
+        up_timer_ = up_time_;
+        fade_out_timer_ = fade_out_;
     }
 
     // font
