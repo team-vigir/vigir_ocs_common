@@ -309,6 +309,9 @@ void FootstepManager::processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPl
 
     // and then the end feet poses
     calculateGoal();
+
+    // then update feet using the footstep planner
+    sendUpdateFeetGoal(goal_);
 }
 
 void FootstepManager::calculateGoal()
@@ -508,28 +511,33 @@ void FootstepManager::sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet& fee
     }
     else
     {
-        ROS_ERROR("StepPlanRequest: Server not connected!");
+        ROS_ERROR("UpdateFeet: Server not connected!");
     }
 }
 
 // action callbacks for goal feet pose update request
 void FootstepManager::activeUpdateFeet()
 {
-    ROS_ERROR("StepPlanRequest: Status changed to active.");
+    ROS_ERROR("UpdateFeet: Status changed to active.");
 }
 
 void FootstepManager::feedbackUpdateFeet(const vigir_footstep_planning_msgs::UpdateFeetFeedbackConstPtr& feedback)
 {
-    ROS_ERROR("StepPlanRequest: Feedback received.");
+    ROS_ERROR("UpdateFeet: Feedback received.");
 }
 
 void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::UpdateFeetResultConstPtr& result)
 {
-    ROS_ERROR("StepPlanRequest: Got action response. %s", result->status.error_msg.c_str());
+    ROS_ERROR("UpdateFeet: Got action response. %s", result->status.error_msg.c_str());
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
+        // update the goal feet
         goal_ = result->feet;
+
+        // THIS IS A TEST, REMOVE IT ONCE WE HAVE A WAY TO REQUEST PLAN WITH ARBITRARY GOAL
+        // request a completely new plan starting from the robot position
+        //requestStepPlanFromRobot();
     }
 }
 

@@ -124,6 +124,7 @@ void FootstepVisManager::requestExecuteStepPlan()
 void FootstepVisManager::requestStepPlan()
 {
     flor_ocs_msgs::OCSFootstepPlanRequest cmd;
+    //cmd.goal_pose = *pose; // this is now set in process goal pose
     cmd.mode = request_mode_;
     cmd.start_index = start_step_index_;
     //set footstep paramaters from ui
@@ -160,6 +161,7 @@ void FootstepVisManager::processFootstepParamSetList(const flor_ocs_msgs::OCSFoo
 
 void FootstepVisManager::updateInteractiveMarkers()
 {
+    int step_plan_count = 0;
     for(int i = 0; i < footstep_list_.footstep_id_list.size(); i++)
     {
         std::string pose_string = "/footstep_"+boost::lexical_cast<std::string>(i)+"_marker";
@@ -196,7 +198,7 @@ void FootstepVisManager::updateInteractiveMarkers()
         if((i+1 < footstep_list_.footstep_id_list.size() && footstep_list_.step_plan_id_list[i] != footstep_list_.step_plan_id_list[i+1]) || i == footstep_list_.footstep_id_list.size()-1)
         {
             // only do something if it's a new step plan
-            std::string step_pose_string = "/step_plan_"+boost::lexical_cast<std::string>(display_step_plan_marker_list_.size())+"_marker";
+            std::string step_pose_string = "/step_plan_"+boost::lexical_cast<std::string>(step_plan_count++)+"_marker";
 
             // if needed, we create a marker
             if(footstep_list_.step_plan_id_list[i] >= display_step_plan_marker_list_.size())
