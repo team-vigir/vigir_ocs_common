@@ -247,7 +247,7 @@ void OverlayTextDisplay::setPositionFromAlignment()
         left_ = 5; //minimal space from edge
         break;
     case flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN:
-        left_ = (viewport_width_ /2) - (texture_width_/2);
+        left_ = (viewport_width_ /2);
         break;
     case flor_ocs_msgs::OCSOverlayText::RIGHTCOLUMN:
         left_ = viewport_width_ - texture_width_ -5;
@@ -260,7 +260,7 @@ void OverlayTextDisplay::setPositionFromAlignment()
         top_ = 5;
         break;
     case flor_ocs_msgs::OCSOverlayText::CENTERROW:
-        top_ = (viewport_height_/2) - (texture_height_/2);
+        top_ = (viewport_height_/2);
         break;
     case flor_ocs_msgs::OCSOverlayText::BOTTOMROW:
         top_ = viewport_height_ - texture_height_ -5;
