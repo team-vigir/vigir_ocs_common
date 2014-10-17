@@ -36,14 +36,15 @@ public:
     void setPanelColor(int R, int G, int B, int I);
     void calculateTextPixelSize(DisplayString text, FontPtr mpFont, Real mCharHeight, Real& width, Real& height);
 private:
-    OverlayManager *olm;
-    OverlayContainer *panel ;
+    OverlayManager *overlay_manager_;
+    OverlayContainer *panel_ ;
     Overlay *overlay;
-    TextAreaOverlayElement *text_area;
+    TextAreaOverlayElement *text_area_;
     static int init;
     int text_id;
     String sz_element;
     Ogre::MaterialPtr material_;
     Ogre::TexturePtr texture_;
+    float padding_;
 };
 #endif
