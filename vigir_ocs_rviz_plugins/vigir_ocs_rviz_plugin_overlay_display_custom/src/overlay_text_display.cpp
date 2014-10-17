@@ -231,9 +231,8 @@ void OverlayTextDisplay::update(float wall_dt, float ros_dt)
 
     }
 
-
-    viewport_width_ = this->getAssociatedWidget()->width();
-    viewport_height_ = this->getAssociatedWidget()->height();
+    viewport_width_ = (Real) (OverlayManager::getSingleton().getViewportWidth());
+    viewport_height_ = (Real) (OverlayManager::getSingleton().getViewportHeight());
     setPositionFromAlignment();
 
     overlay_text_->setPos(left_, top_);

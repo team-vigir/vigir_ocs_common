@@ -637,7 +637,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
         overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
-        overlay_display_->setAssociatedWidget(this);
 
         // initialize notification system
         // and test        
