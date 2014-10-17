@@ -613,8 +613,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ocs_sync_sub_ = nh_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &Base3DView::synchronizeViews, this );
         ocs_sync_pub_ = nh_.advertise<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
 
-
-
         //create joint position error displays
         joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
         joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
@@ -626,24 +624,22 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_joint_arrows_->subProp("Width")->setValue("0.015");
         ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
 
-
-
         disable_joint_markers_ = false;
         occluded_robot_visible_ = false;
         //renderTexture1 = NULL;
 
         //setRobotOccludedRender();
 
-        //update render order whenever objects are added/ display changed
-       // connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
-        //initialize Render Order correctly
+        // update render order whenever objects are added/ display changed
+        //connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
+        // initialize Render Order correctly
         setRenderOrder();
 
         overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
         overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
         overlay_display_->setAssociatedWidget(this);
 
-        //initialize notification system        
+        // initialize notification system
         // and test        
 
     }
@@ -1390,10 +1386,8 @@ void Base3DView::defineFootstepGoal()
     manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
 }
 
-void Base3DView::defineFootstepGoal(unsigned int request_mode)
+void Base3DView::requestFootstepPlan(unsigned int request_mode)
 {
-    defineFootstepGoal();
-
     int footstep_index = -1;
     if(active_context_name_.find("footstep") != std::string::npos)
     {
@@ -1404,6 +1398,7 @@ void Base3DView::defineFootstepGoal(unsigned int request_mode)
         footstep_index = footstep_number.toInt(&ok) / 2; // divide by two since markers come in pairs of cube+text
     }
     footstep_vis_manager_->setRequestMode(request_mode, footstep_index);
+    footstep_vis_manager_->requestStepPlan();
 }
 
 void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
@@ -1646,9 +1641,10 @@ void Base3DView::addBase3DContextElements()
 
     addToContextVector(separator);
 
-    newFootstepMenu = makeContextChild("Define New Step Goal",boost::bind(&vigir_ocs::Base3DView::defineFootstepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
-    continueLastFootstepMenu = makeContextChild("Define Step Goal from Last Step",boost::bind(&vigir_ocs::Base3DView::defineFootstepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_CURRENT_PLAN), NULL, contextMenuItems);
-    continueThisFootstepMenu = makeContextChild("Define Step Goal from Step XX",boost::bind(&vigir_ocs::Base3DView::defineFootstepGoal,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP), NULL, contextMenuItems);
+    footstepGoalMenu = makeContextChild("Create Step Plan Goal",boost::bind(&vigir_ocs::Base3DView::defineFootstepGoal,this), NULL, contextMenuItems);
+    newFootstepMenu = makeContextChild("Request New Step Plan",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
+    continueLastFootstepMenu = makeContextChild("Request Step Plan from Last Step",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_CURRENT_PLAN), NULL, contextMenuItems);
+    continueThisFootstepMenu = makeContextChild("Request Step Plan from Step XX",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP), NULL, contextMenuItems);
     lockFootstepMenu = makeContextChild("Lock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
     unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
     removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);

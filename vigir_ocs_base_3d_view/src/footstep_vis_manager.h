@@ -21,6 +21,7 @@
 #include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepList.h>
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
+#include <flor_ocs_msgs/OCSFootstepPlanGoal.h>
 #include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
 
@@ -64,6 +65,9 @@ public:
       */
     void processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg);
 
+    /**
+      * Receives a list of all the parameter sets
+      */
     void processFootstepParamSetList(const flor_ocs_msgs::OCSFootstepParamSetList::ConstPtr& msg);
 
     /**
@@ -85,6 +89,11 @@ public:
       * Sends a redo request to the footstep manager
       */
     void requestFootstepListRedo();
+
+    /**
+      * Sends a step plan request, and will get the two goal footsteps
+      */
+    void requestStepPlan();
 
     /**
       * Sends a footstep plan execute request to the footstep manager
@@ -112,6 +121,9 @@ public Q_SLOTS:
       */
     void enableMarkers(bool enabled);
 
+    /**
+      * Set the footstep parameter set
+      */
     void setFootstepParameterSet(QString selected);
     /**
       * Update all Footstep parameters from ui
@@ -137,6 +149,7 @@ private:
     ros::Publisher footstep_exec_req_pub_;
 
     ros::Subscriber footstep_goal_sub_;
+    ros::Publisher footstep_plan_goal_pub_;
     ros::Publisher footstep_plan_request_pub_;
     ros::Subscriber footstep_param_set_list_sub_;
     ros::Publisher footstep_param_set_selected_pub_;
@@ -157,8 +170,7 @@ private:
 
     // new displays for walking
     rviz::Display* footsteps_array_;
-    rviz::Display* goal_pose_walk_;
-    rviz::Display* goal_pose_step_;
+    rviz::Display* goal_pose_;
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
     rviz::Display* footsteps_path_body_array_;

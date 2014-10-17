@@ -302,7 +302,7 @@ public Q_SLOTS:
     void robotJointMarkerToggled(bool selected);
     void robotOcclusionToggled(bool selected);
     virtual void defineFootstepGoal();
-    void defineFootstepGoal(unsigned int request_mode);
+    void requestFootstepPlan(unsigned int request_mode);
 
 
     /**
@@ -684,6 +684,7 @@ protected:
     contextMenuItem * unlockFootstepMenu;
     contextMenuItem * undoFootstepMenu;
     contextMenuItem * redoFootstepMenu;
+    contextMenuItem * footstepGoalMenu;
     contextMenuItem * newFootstepMenu;
     contextMenuItem * continueLastFootstepMenu;
     contextMenuItem * continueThisFootstepMenu;

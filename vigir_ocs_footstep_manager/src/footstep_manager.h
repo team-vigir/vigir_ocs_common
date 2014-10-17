@@ -18,9 +18,11 @@
 #include <vigir_footstep_planning_msgs/StepPlan.h>
 #include <flor_ocs_msgs/OCSFootstepList.h>
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
+#include <flor_ocs_msgs/OCSFootstepPlanGoal.h>
 #include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
 #include <flor_state_msgs/LowerBodyState.h>
+#include <vigir_footstep_planning_msgs/UpdateFeetAction.h>
 #include <vigir_footstep_planning_msgs/StepPlanRequestAction.h>
 #include <vigir_footstep_planning_msgs/EditStepAction.h>
 #include <vigir_footstep_planning_msgs/StitchStepPlanAction.h>
@@ -32,6 +34,7 @@
 
 namespace ocs_footstep
 {
+    typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::UpdateFeetAction> UpdateFeetClient;
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::StepPlanRequestAction> StepPlanRequestClient;
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::EditStepAction> EditStepClient;
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::StitchStepPlanAction> StitchStepPlanClient;
@@ -45,6 +48,7 @@ namespace ocs_footstep
         virtual void onInit();
 
         // triggers footstep plan calls
+        void processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal);
         void processFootstepPlanRequest(const flor_ocs_msgs::OCSFootstepPlanRequest::ConstPtr& plan_request);
 
         // feedback look for interaction, should update stepplan and use actions to edit/update
@@ -58,6 +62,10 @@ namespace ocs_footstep
         void processLowerBodyState(const flor_state_msgs::LowerBodyState::ConstPtr& lower_body_state);
 
         // callbacks for actions
+        //updatefeet
+        void activeUpdateFeet();
+        void feedbackUpdateFeet(const vigir_footstep_planning_msgs::UpdateFeetFeedbackConstPtr& feedback);
+        void doneUpdateFeet(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::UpdateFeetResultConstPtr& result);
         //stepplanrequest
         void activeStepPlanRequest();
         void feedbackStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequestFeedbackConstPtr& feedback);
@@ -87,6 +95,7 @@ namespace ocs_footstep
 
     private:
         // send action goals
+        void sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet& feet);
         void sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_index = 0, const unsigned char start_foot = vigir_footstep_planning_msgs::StepPlanRequest::AUTO);
         void sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step, unsigned int plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_2D);
         void sendStitchStepPlanGoal(std::vector<vigir_footstep_planning_msgs::StepPlan>& step_plan_list);
@@ -100,6 +109,7 @@ namespace ocs_footstep
         void publishFootstepParameterSetList();
 
         // plan requests
+        void calculateGoal(); // calculate initial goal pose
         void requestStepPlanFromRobot();
         void requestStepPlanFromStep(vigir_footstep_planning_msgs::Step &step);
         void updateVisualizationMsgs();
@@ -144,6 +154,7 @@ namespace ocs_footstep
         ros::Publisher footstep_param_set_list_pub_;
         ros::Subscriber footstep_param_set_selected_sub_;
 
+        ros::Subscriber footstep_plan_goal_sub_;
         ros::Subscriber footstep_plan_request_sub_;
         ros::Subscriber lower_body_state_sub_;
 
@@ -171,7 +182,12 @@ namespace ocs_footstep
         // used to calculate feet poses for start/end of footstep plan
         flor_state_msgs::LowerBodyState lower_body_state_;
         geometry_msgs::PoseStamped goal_pose_;
+        vigir_footstep_planning_msgs::Feet goal_;
 
+        // last step plan request received, saved and used mostly for message parameters
+        flor_ocs_msgs::OCSFootstepPlanRequest last_plan_request_;
+
+        UpdateFeetClient* update_feet_client_;
         StepPlanRequestClient* step_plan_request_client_;
         EditStepClient* edit_step_client_;
         StitchStepPlanClient* stitch_step_plan_client_;
