@@ -39,6 +39,7 @@ void FootstepManager::onInit()
     footstep_param_set_selected_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 5, &FootstepManager::processFootstepParamSetSelected, this );
 
     // footstep request coming from the OCS
+    footstep_plan_goal_sub_     = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, &FootstepManager::processFootstepPlanGoal, this );
     footstep_plan_request_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, &FootstepManager::processFootstepPlanRequest, this );
 
     // creates publishers for visualization messages
@@ -50,6 +51,8 @@ void FootstepManager::onInit()
     lower_body_state_sub_       = nh.subscribe("/flor/state/lower_body_world", 1, &FootstepManager::processLowerBodyState, this);
 
     // initialize all ros action clients
+    //update feet considering intial goal
+    update_feet_client_ = new UpdateStepPlanClient("update_feet", true);
     //plan request
     step_plan_request_client_ = new StepPlanRequestClient("step_plan_request", true);
     //edit step
@@ -64,6 +67,7 @@ void FootstepManager::onInit()
     execute_step_plan_client_ = new ExecuteStepPlanClient("execute_step_plan", true);
 
     //wait for servers to come online
+    update_feet_client_->waitForServer();
     step_plan_request_client_->waitForServer();
     edit_step_client_->waitForServer();
     stitch_step_plan_client_->waitForServer();
@@ -298,10 +302,36 @@ void FootstepManager::processLowerBodyState(const flor_state_msgs::LowerBodyStat
     lower_body_state_ = *lower_body_state;
 }
 
+void FootstepManager::processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal)
+{
+    // uses goal pose to request
+    goal_pose_ = plan_goal->goal_pose;
+
+    // and then the end feet poses
+    calculateGoal();
+}
+
+void FootstepManager::calculateGoal()
+{
+    //end estimates for foot distance
+    double end_yaw = tf::getYaw(goal_pose_.pose.orientation);
+    double shift_x = -sin(end_yaw) * (0.5 * foot_separation);
+    double shift_y =  cos(end_yaw) * (0.5 * foot_separation);
+
+    goal_.left.pose.position.x = goal_pose_.pose.position.x + shift_x;
+    goal_.left.pose.position.y = goal_pose_.pose.position.y + shift_y;
+
+    goal_.left.pose.position.z = lower_body_state_.left_foot_pose.position.z;//goal_pose_.pose.position.z;
+    goal_.left.pose.orientation = goal_pose_.pose.orientation;
+
+    goal_.right.pose.position.x = goal_pose_.pose.position.x - shift_x;
+    goal_.right.pose.position.y = goal_pose_.pose.position.y - shift_y;
+    goal_.right.pose.position.z = lower_body_state_.right_foot_pose.position.z;//goal_pose_.pose.position.z;
+    goal_.right.pose.orientation = goal_pose_.pose.orientation;
+}
+
 void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootstepPlanRequest::ConstPtr& plan_request)
 {
-    goal_pose_ = plan_request->goal_pose;
-
     if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN)
     {
         // request a completely new plan starting from the robot position
@@ -350,25 +380,7 @@ void FootstepManager::requestStepPlanFromRobot()
     start.right.foot_index = vigir_footstep_planning_msgs::Foot::RIGHT;
     start.right.pose = lower_body_state_.right_foot_pose;
 
-    // and then the end feet poses
-    vigir_footstep_planning_msgs::Feet goal;
-
-    //end estimates for foot distance
-    double end_yaw = tf::getYaw(goal_pose_.pose.orientation);
-    double shift_x = -sin(end_yaw) * (0.5 * foot_separation);
-    double shift_y =  cos(end_yaw) * (0.5 * foot_separation);
-
-    goal.left.pose.position.x = goal_pose_.pose.position.x + shift_x;
-    goal.left.pose.position.y = goal_pose_.pose.position.y + shift_y;
-    goal.left.pose.position.z = start.left.pose.position.z;//goal_pose_.pose.position.z;
-    goal.left.pose.orientation = goal_pose_.pose.orientation;
-
-    goal.right.pose.position.x = goal_pose_.pose.position.x - shift_x;
-    goal.right.pose.position.y = goal_pose_.pose.position.y - shift_y;
-    goal.right.pose.position.z = start.right.pose.position.z;//goal_pose_.pose.position.z;
-    goal.right.pose.orientation = goal_pose_.pose.orientation;
-
-    sendStepPlanRequestGoal(start, goal);
+    sendStepPlanRequestGoal(start, goal_);
 }
 
 void FootstepManager::requestStepPlanFromStep(vigir_footstep_planning_msgs::Step& step)
@@ -385,31 +397,14 @@ void FootstepManager::requestStepPlanFromStep(vigir_footstep_planning_msgs::Step
     start.left  = (step.foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? step.foot : next_step.foot);
     start.right = (step.foot.foot_index == vigir_footstep_planning_msgs::Foot::RIGHT ? step.foot : next_step.foot);
 
-    // and then the end feet poses
-    vigir_footstep_planning_msgs::Feet goal;
-
-    //end estimates for foot distance
-    double end_yaw = tf::getYaw(goal_pose_.pose.orientation);
-    double shift_x = -sin(end_yaw) * (0.5 * foot_separation);
-    double shift_y =  cos(end_yaw) * (0.5 * foot_separation);
-
-    goal.left.pose.position.x = goal_pose_.pose.position.x + shift_x;
-    goal.left.pose.position.y = goal_pose_.pose.position.y + shift_y;
-    goal.left.pose.position.z = goal_pose_.pose.position.z;
-    goal.left.pose.orientation = goal_pose_.pose.orientation;
-
-    goal.right.pose.position.x = goal_pose_.pose.position.x - shift_x;
-    goal.right.pose.position.y = goal_pose_.pose.position.y - shift_y;
-    goal.right.pose.position.z = goal_pose_.pose.position.z;
-    goal.right.pose.orientation = goal_pose_.pose.orientation;
-
+    // calculate
     unsigned char start_foot;
     if(next_step.foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT)
         start_foot = vigir_footstep_planning_msgs::StepPlanRequest::LEFT;
     else
         start_foot = vigir_footstep_planning_msgs::StepPlanRequest::RIGHT;
 
-    sendStepPlanRequestGoal(start, goal, next_step.step_index, start_foot);
+    sendStepPlanRequestGoal(start, goal_, next_step.step_index, start_foot);
 }
 
 void FootstepManager::cleanMarkerArray(visualization_msgs::MarkerArray& old_array, visualization_msgs::MarkerArray& new_array)
@@ -493,6 +488,49 @@ void FootstepManager::publishFootstepParameterSetList()
     footstep_param_set_list_pub_.publish(cmd);
 }
 
+// action goal for updatefeet
+void FootstepManager::sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet& feet)
+{
+    // Fill in goal here
+    vigir_footstep_planning_msgs::UpdateFeetGoal action_goal;
+    action_goal.feet = feet;
+    action_goal.mode.mode = vigir_footstep_planning_msgs::UpdateMode::UPDATE_MODE_3D;
+
+    // and send it to the server
+    if(update_feet_client_->isServerConnected())
+    {
+        update_feet_client_->sendGoal(action_goal,
+                                      boost::bind(&FootstepManager::doneUpdateFeet, this, _1, _2),
+                                      boost::bind(&FootstepManager::activeUpdateFeet, this),
+                                      boost::bind(&FootstepManager::feedbackUpdateFeet, this, _1));
+    }
+    else
+    {
+        ROS_ERROR("StepPlanRequest: Server not connected!");
+    }
+}
+
+// action callbacks for goal feet pose update request
+void FootstepManager::activeUpdateFeet()
+{
+    ROS_ERROR("StepPlanRequest: Status changed to active.");
+}
+
+void FootstepManager::feedbackUpdateFeet(const vigir_footstep_planning_msgs::UpdateFeetFeedbackConstPtr& feedback)
+{
+    ROS_ERROR("StepPlanRequest: Feedback received.");
+}
+
+void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::UpdateFeetResultConstPtr& result)
+{
+    ROS_ERROR("StepPlanRequest: Got action response. %s", result->status.error_msg.c_str());
+
+    if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
+    {
+        goal_ = result->feet;
+    }
+}
+
 // action goal for StepPlanRequest
 void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_index, const unsigned char start_foot)
 {
@@ -508,6 +546,7 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_2D;
 
     // need to get the following from the OCS as well
+    request.max_planning_time =
     //float32 max_planning_time         # maximum planning time given in second
     //float32 max_number_steps          # maximum number of steps, set 0 for unlimited
     //float32 max_path_length_ratio     # maximum path length ratio computed as (current path length)/(beeline start<->goal), must be larger 1 otherwise it will be ignored
@@ -532,7 +571,7 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     }
 }
 
-// action callbacks
+// action callbacks for step plan request
 void FootstepManager::activeStepPlanRequest()
 {
     ROS_ERROR("StepPlanRequest: Status changed to active.");

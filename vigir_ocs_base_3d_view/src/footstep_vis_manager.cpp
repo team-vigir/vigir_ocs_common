@@ -19,11 +19,11 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     footsteps_path_body_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps Path Body", true );
     footsteps_path_body_array_->subProp( "Marker Topic" )->setValue( "/flor/ocs/footstep/footsteps_path_body_array" );
 
-    goal_pose_walk_ = manager_->createDisplay( "rviz/Pose", "Goal pose", true );
-    goal_pose_walk_->subProp( "Topic" )->setValue( "/flor/ocs/footstep/goal_pose" );
-    goal_pose_walk_->subProp( "Shape" )->setValue( "Axes" );
+    goal_pose_ = manager_->createDisplay( "rviz/Pose", "Goal pose", false );
+    goal_pose_->subProp( "Topic" )->setValue( "/flor/ocs/footstep/goal_pose" );
+    goal_pose_->subProp( "Shape" )->setValue( "Axes" );
 
-    planner_start_ = manager_->createDisplay( "rviz/Pose", "Start pose", true );
+    planner_start_ = manager_->createDisplay( "rviz/Pose", "Start pose", false );
     planner_start_->subProp( "Topic" )->setValue( "/ros_footstep_planner/start" );
     planner_start_->subProp( "Shape" )->setValue( "Axes" );
 
@@ -39,6 +39,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
 
     // publishers and subscribers for the plan request
     footstep_goal_sub_               = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &FootstepVisManager::processGoalPose, this );
+    footstep_plan_goal_pub_          = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, false );
     footstep_plan_request_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, false );
     footstep_param_set_list_sub_     = nh_.subscribe<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 5, &FootstepVisManager::processFootstepParamSetList, this );
     footstep_param_set_selected_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 1, false );
@@ -64,8 +65,7 @@ FootstepVisManager::~FootstepVisManager()
 
 void FootstepVisManager::setEnabled(bool enabled)
 {
-    goal_pose_walk_->setEnabled( enabled );
-    goal_pose_step_->setEnabled( enabled );
+    goal_pose_->setEnabled( enabled );
     planner_start_->setEnabled( enabled );
     planned_path_->setEnabled( enabled );
     footsteps_array_->setEnabled( enabled );
@@ -121,10 +121,9 @@ void FootstepVisManager::requestExecuteStepPlan()
     footstep_exec_req_pub_.publish(cmd);
 }
 
-void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+void FootstepVisManager::requestStepPlan()
 {
     flor_ocs_msgs::OCSFootstepPlanRequest cmd;
-    cmd.goal_pose = *pose;
     cmd.mode = request_mode_;
     cmd.start_index = start_step_index_;
     //set footstep paramaters from ui
@@ -138,6 +137,13 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
     footstep_plan_request_pub_.publish(cmd);
 
     NotificationSystem::Instance()->notifyPassive("Planning Footsteps");
+}
+
+void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+{
+    flor_ocs_msgs::OCSFootstepPlanGoal cmd;
+    cmd.goal_pose = *pose;
+    footstep_plan_goal_pub_.publish(cmd);
 }
 
 void FootstepVisManager::processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg)

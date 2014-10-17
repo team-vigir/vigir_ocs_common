@@ -613,8 +613,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ocs_sync_sub_ = nh_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &Base3DView::synchronizeViews, this );
         ocs_sync_pub_ = nh_.advertise<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
 
-
-
         //create joint position error displays
         joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
         joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
@@ -626,24 +624,22 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_joint_arrows_->subProp("Width")->setValue("0.015");
         ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
 
-
-
         disable_joint_markers_ = false;
         occluded_robot_visible_ = false;
         //renderTexture1 = NULL;
 
         //setRobotOccludedRender();
 
-        //update render order whenever objects are added/ display changed
-       // connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
-        //initialize Render Order correctly
+        // update render order whenever objects are added/ display changed
+        //connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
+        // initialize Render Order correctly
         setRenderOrder();
 
         overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
         overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
         overlay_display_->setAssociatedWidget(this);
 
-        //initialize notification system        
+        // initialize notification system
         // and test        
 
     }
