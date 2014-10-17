@@ -13,7 +13,8 @@
 
 int OgreText::init=0;
 
-OgreText::OgreText()
+OgreText::OgreText() :
+    padding_(5.0)
 {
     text_id = this->init++;
 
@@ -36,76 +37,61 @@ OgreText::OgreText()
     tex_unit->setTextureName(texture_->getName());
     tex_unit->setTextureFiltering( Ogre::TFO_NONE );
 
-    olm = OverlayManager::getSingletonPtr();
-    panel = static_cast<OverlayContainer*>(olm->createOverlayElement("Panel",std::string("GUI")+boost::lexical_cast<std::string>(text_id)));
-    panel->setMetricsMode(Ogre::GMM_PIXELS);
-    panel->setPosition(0, 0);
-    panel->setDimensions(1, 1);
-    panel->setMaterialName(material_->getName());
+    overlay_manager_ = OverlayManager::getSingletonPtr();
+    panel_ = static_cast<OverlayContainer*>(overlay_manager_->createOverlayElement("Panel",std::string("GUI")+boost::lexical_cast<std::string>(text_id)));
+    panel_->setMetricsMode(Ogre::GMM_PIXELS);
+    panel_->setPosition(0, 0);
+    panel_->setDimensions(1, 1);
+    panel_->setMaterialName(material_->getName());
 
-    overlay = olm->create(std::string("GUI_OVERLAY")+boost::lexical_cast<std::string>(text_id));
-    overlay->add2D(panel);
+    overlay = overlay_manager_->create(std::string("GUI_OVERLAY")+boost::lexical_cast<std::string>(text_id));
+    overlay->add2D(panel_);
 
     sz_element = "element_"+StringConverter::toString(init);
-    text_area = static_cast<TextAreaOverlayElement*>(olm->createOverlayElement("TextArea",sz_element));
-    text_area->setMetricsMode(Ogre::GMM_PIXELS);
-    panel->addChild(text_area);
+    text_area_ = static_cast<TextAreaOverlayElement*>(overlay_manager_->createOverlayElement("TextArea",sz_element));
+    text_area_->setMetricsMode(Ogre::GMM_PIXELS);
+    panel_->addChild(text_area_);
     overlay->show();
-
-    ResourceGroupManager &resGroupMgr = ResourceGroupManager::getSingleton();
-    if(!resGroupMgr.resourceGroupExists("Fonts"))
-    {
-       resGroupMgr.createResourceGroup("Fonts");
-       // tell it to look at this location
-       resGroupMgr.addResourceLocation("/usr/share/fonts/truetype/dejavu", "FileSystem");
-       // get the font manager
-       FontManager &fontMgr = FontManager::getSingleton();
-       // create a font resource
-       ResourcePtr font = fontMgr.create("DejaVuSansMono","Fonts");
-    }
-
-
-    // set as truetype
 }
 
 OgreText::~OgreText()
 {
     sz_element="element_"+StringConverter::toString(text_id);
-    olm->destroyOverlayElement(sz_element);
-    olm->destroyOverlayElement("GUI");
-    olm->destroy("GUI_OVERLAY");
+    overlay_manager_->destroyOverlayElement(sz_element);
+    overlay_manager_->destroyOverlayElement("GUI");
+    overlay_manager_->destroy("GUI_OVERLAY");
     --(this->init);
 }
 
 void OgreText::setText(char *szString)
 {
-    text_area->setCaption(szString);
-    text_area->setFontName("Arial");
-    text_area->setCharHeight(18);
+    text_area_->setCaption(szString);
+    text_area_->setFontName("Arial");
+    text_area_->setCharHeight(18);
 
 }
 
 void OgreText::setText(String szString) // now You can use Ogre::String as text
 {
-    text_area->setCaption(szString);
-    text_area->setFontName("Arial");
-    text_area->setCharHeight(18);        
+    text_area_->setCaption(szString);
+    text_area_->setFontName("Arial");
+    text_area_->setCharHeight(18);
 }
 
 void OgreText::setPos(float x,float y)
 {
-    FontPtr font = Ogre::FontManager::getSingleton().getByName(text_area->getFontName());
+    FontPtr font = Ogre::FontManager::getSingleton().getByName(text_area_->getFontName());
     Real width,height;
-    calculateTextPixelSize(text_area->getCaption(),font,text_area->getCharHeight(),width,height);
-    //textArea->setPosition(x,y);
-    panel->setPosition(x-width/2,y);
-    panel->setDimensions(width,height);
-    ROS_ERROR("w: %f h: %f",width,height);
+    calculateTextPixelSize(text_area_->getCaption(),font,text_area_->getCharHeight(),width,height);
+    text_area_->setPosition(padding_,padding_);
+    panel_->setPosition(x-width/2-padding_,y-padding_);
+    panel_->setDimensions(width+padding_*2,height+padding_);
+    //ROS_ERROR("[text] w: %f h: %f",width,height);
 }
 
 void OgreText::setTextColor(float R,float G,float B,float I)
 {
-    text_area->setColour(Ogre::ColourValue(R,G,B,I));
+    text_area_->setColour(Ogre::ColourValue(R,G,B,I));
 }
 
 void OgreText::calculateTextPixelSize(DisplayString text, FontPtr mpFont, Real mCharHeight, Real& width, Real& height)
@@ -113,6 +99,7 @@ void OgreText::calculateTextPixelSize(DisplayString text, FontPtr mpFont, Real m
     Real vpWidth, vpHeight;
     vpWidth = (Real) (OverlayManager::getSingleton().getViewportWidth());
     vpHeight = (Real) (OverlayManager::getSingleton().getViewportHeight());
+    //ROS_ERROR("[viewport] w: %f h: %f",vpWidth,vpHeight);
 
     Real mViewportAspectCoef = vpHeight/vpWidth;
 
@@ -134,11 +121,11 @@ void OgreText::calculateTextPixelSize(DisplayString text, FontPtr mpFont, Real m
         }
         else if (character == UNICODE_SPACE) // space
         {
-            len += mpFont->getGlyphAspectRatio(UNICODE_ZERO) * mCharHeight *1.5 * mViewportAspectCoef;
+            len += mpFont->getGlyphAspectRatio(UNICODE_ZERO) * mCharHeight;// * 2.0 * mViewportAspectCoef;
         }
         else
         {
-            len += mpFont->getGlyphAspectRatio(character) * mCharHeight *1.5 * mViewportAspectCoef;
+            len += mpFont->getGlyphAspectRatio(character) * mCharHeight;// * 2.0 * mViewportAspectCoef;
         }
     }
     if(len > width)
@@ -164,18 +151,4 @@ void OgreText::setPanelColor(int R, int G, int B, int I)
 
     // Unlock the pixel buffer
     pixelBuffer->unlock();
-
-    static int counter = 0;
-    if(counter == 0)
-    {
-        Ogre::ResourceManager::ResourceMapIterator iterator = Ogre::FontManager::getSingleton().getResourceIterator();
-        while(iterator.hasMoreElements())
-        {
-            Ogre::FontPtr font = iterator.getNext();
-            ROS_ERROR("font : %s",font.get()->getName().c_str());
-        }
-        counter++;
-    }
-
-
 }

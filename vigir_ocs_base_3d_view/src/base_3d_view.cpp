@@ -650,8 +650,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
     // connect the 3d selection tool to its display
     QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
-    //connect notification overlay to display
-    QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), overlay_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
     Q_EMIT setRenderPanel(this->render_panel_);
     QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
     QObject::connect(selection_3d_display_, SIGNAL(setSelectionRay(Ogre::Ray)), this, SLOT(setSelectionRay(Ogre::Ray)));
