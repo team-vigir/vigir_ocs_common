@@ -82,11 +82,12 @@ void OgreText::setPos(float x,float y)
 {
     FontPtr font = Ogre::FontManager::getSingleton().getByName(text_area_->getFontName());
     Real width,height;
+
     calculateTextPixelSize(text_area_->getCaption(),font,text_area_->getCharHeight(),width,height);
     text_area_->setPosition(padding_,padding_);
     panel_->setPosition(x-width/2-padding_,y-padding_);
     panel_->setDimensions(width+padding_*2,height+padding_);
-    //ROS_ERROR("[text] w: %f h: %f",width,height);
+
 }
 
 void OgreText::setTextColor(float R,float G,float B,float I)
