@@ -1,5 +1,7 @@
 #include "footstep_manager.h"
 
+#include <OGRE/OgreQuaternion.h>
+
 #include <vigir_footstep_planning_msgs/StepPlanRequest.h>
 #include <vigir_footstep_planning_msgs/Step.h>
 #include <vigir_footstep_planning_msgs/Foot.h>
@@ -39,13 +41,15 @@ void FootstepManager::onInit()
     footstep_param_set_selected_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 5, &FootstepManager::processFootstepParamSetSelected, this );
 
     // footstep request coming from the OCS
+    footstep_plan_goal_pub_     = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/updated_goal_pose", 1, false );
     footstep_plan_goal_sub_     = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, &FootstepManager::processFootstepPlanGoal, this );
     footstep_plan_request_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, &FootstepManager::processFootstepPlanRequest, this );
 
-    // creates publishers for visualization messages
-    footstep_array_pub_         = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_array", 1, false );
-    footstep_body_bb_array_pub_ = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_path_body_array", 1, false );
-    footstep_path_pub_          = nh.advertise<nav_msgs::Path>( "/flor/ocs/footstep/path", 1, false );
+    // creates publishers for visualization messages - latched because we want to be able to see planned footsteps in new stations or if something goes wrong
+    footstep_array_pub_         = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_array", 1, true );
+    footstep_body_bb_array_pub_ = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_path_body_array", 1, true );
+    footstep_path_pub_          = nh.advertise<nav_msgs::Path>( "/flor/ocs/footstep/path", 1, true );
+    plan_goal_array_pub_        = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/plan_goal_array", 1, true );
 
     // use this to track current feet pose
     lower_body_state_sub_       = nh.subscribe("/flor/state/lower_body_world", 1, &FootstepManager::processLowerBodyState, this);
@@ -185,6 +189,43 @@ void FootstepManager::stepToMarker(const vigir_footstep_planning_msgs::Step &ste
 
     // rescale marker based on foot size
     marker.scale = foot_size;
+}
+
+void FootstepManager::feetToFootMarkerArray(vigir_footstep_planning_msgs::Feet& input, visualization_msgs::MarkerArray& foot_array_msg)
+{
+    foot_array_msg.markers.clear();
+
+    // left
+    for(int i = 0; i < 2; i++)
+    {
+        visualization_msgs::Marker marker;
+        // create step so we can use utility function
+        vigir_footstep_planning_msgs::Step step;
+        step.foot = i ? input.right : input.left;
+        stepToMarker(step, marker);
+
+        marker.id = foot_array_msg.markers.size();
+        marker.color.r = 0.0;
+        marker.color.g = 0.6;
+        marker.color.b = 0.0;
+        marker.color.a = 0.5;
+        marker.ns = std::string("footstep");
+        foot_array_msg.markers.push_back(marker);
+
+        // add text
+        marker.id++;
+        marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.text = i ? "R" : "L";
+        marker.scale.x *= 2.0;
+        marker.scale.y *= 2.0;
+        marker.scale.z *= 2.0;
+        marker.color.r = 1.0;
+        marker.color.g = 1.0;
+        marker.color.b = 1.0;
+        marker.color.a = 1.0;
+        foot_array_msg.markers.push_back(marker);
+    }
 }
 
 void FootstepManager::stepPlanToFootMarkerArray(std::vector<vigir_footstep_planning_msgs::StepPlan>& input, visualization_msgs::MarkerArray& foot_array_msg)
@@ -428,7 +469,7 @@ void FootstepManager::cleanMarkerArray(visualization_msgs::MarkerArray& old_arra
     }
 }
 
-void FootstepManager::updateVisualizationMsgs()
+void FootstepManager::updateStepPlanVisMsgs()
 {
     // for each step, will need to create a set of two footstep markers
     // a TEXT_VIEW_FACING and CUBE
@@ -454,10 +495,19 @@ void FootstepManager::updateVisualizationMsgs()
     footstep_path_ = path_msg;
 }
 
+void FootstepManager::updateGoalVisMsgs()
+{
+    // for each step, will need to create a set of two footstep markers
+    // a TEXT_VIEW_FACING and CUBE
+    visualization_msgs::MarkerArray foot_array_msg;
+    feetToFootMarkerArray(goal_, foot_array_msg);
+    footstep_array_ = foot_array_msg;
+}
+
 void FootstepManager::publishFootsteps()
 {
     // update visualization msgs so we can publish them
-    updateVisualizationMsgs();
+    updateStepPlanVisMsgs();
 
     footstep_array_pub_.publish(footstep_array_);
     footstep_body_bb_array_pub_.publish(footstep_body_array_);
@@ -535,9 +585,24 @@ void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& sta
         // update the goal feet
         goal_ = result->feet;
 
-        // THIS IS A TEST, REMOVE IT ONCE WE HAVE A WAY TO REQUEST PLAN WITH ARBITRARY GOAL
-        // request a completely new plan starting from the robot position
-        //requestStepPlanFromRobot();
+        // need to send visualization message
+        updateGoalVisMsgs();
+
+        footstep_array_pub_.publish(footstep_array_);
+
+        // and update the interactive marker for the goal
+        flor_ocs_msgs::OCSFootstepPlanGoal cmd;
+//        cmd.goal_pose.pose.position.x = (goal_.left.pose.position.x+goal_.right.pose.position.x)/2.0;
+//        cmd.goal_pose.pose.position.y = (goal_.left.pose.position.y+goal_.right.pose.position.y)/2.0;
+//        cmd.goal_pose.pose.position.z = (goal_.left.pose.position.z+goal_.right.pose.position.z)/2.0;
+//        Ogre::Quaternion q1(goal_.left.pose.orientation.w,goal_.left.pose.orientation.x,goal_.left.pose.orientation.y,goal_.left.pose.orientation.z);
+//        Ogre::Quaternion q2(goal_.right.pose.orientation.w,goal_.right.pose.orientation.x,goal_.right.pose.orientation.y,goal_.right.pose.orientation.z);
+//        Ogre::Quaternion qr = Ogre::Quaternion::Slerp(0.5,q1,q2);
+//        cmd.goal_pose.pose.orientation.w = qr.w;
+//        cmd.goal_pose.pose.orientation.x = qr.x;
+//        cmd.goal_pose.pose.orientation.y = qr.y;
+//        cmd.goal_pose.pose.orientation.z = qr.z;
+        footstep_plan_goal_pub_.publish(cmd);
     }
 }
 

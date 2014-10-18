@@ -77,17 +77,23 @@ void FootstepVisManager::setRequestMode(unsigned char mode, int start_index)
     start_step_index_ = start_index;
 }
 
-void FootstepVisManager::enableMarker(int footstep_id, bool enabled)
+void FootstepVisManager::enableFootstepMarker(int footstep_id, bool enabled)
 {
     if(footstep_id < 0 || footstep_id >= display_footstep_marker_list_.size())
         return;
     display_footstep_marker_list_[footstep_id]->setEnabled( enabled );
 }
 
-void FootstepVisManager::enableMarkers(bool enabled)
+void FootstepVisManager::enableFootstepMarkers(bool enabled)
 {
     for(int i = 0; i < display_footstep_marker_list_.size(); i++)
         display_footstep_marker_list_[i]->setEnabled( enabled );
+}
+
+void FootstepVisManager::enableStepPlanMarkers(bool enabled)
+{
+    for(int i = 0; i < display_step_plan_marker_list_.size(); i++)
+        display_step_plan_marker_list_[i]->setEnabled( enabled );
 }
 
 void FootstepVisManager::setFootstepParameterSet(QString selected)

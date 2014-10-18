@@ -8,7 +8,7 @@ void InteractiveMarkerServerNodelet::onInit()
     interactive_marker_server_add_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 100, &InteractiveMarkerServerNodelet::addInteractiveMarker, this );
     interactive_marker_server_remove_sub_ = nh_.subscribe<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 100, &InteractiveMarkerServerNodelet::removeInteractiveMarker, this );
     interactive_marker_server_update_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 100, &InteractiveMarkerServerNodelet::updatePose, this );
-    interactive_marker_server_mode_sub_ = nh_.subscribe<flor_ocs_msgs::OCSControlMode>( "/flor/ocs/controlModes", 100, &InteractiveMarkerServerNodelet::setMode, this );
+    interactive_marker_server_mode_sub_ = nh_.subscribe<flor_ocs_msgs::OCSControlMode>( "/flor/ocs/control_modes", 100, &InteractiveMarkerServerNodelet::setMode, this );
 }
 
 void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr &msg)
@@ -57,8 +57,8 @@ void InteractiveMarkerServerNodelet::setMode(const flor_ocs_msgs::OCSControlMode
     //ROS_ERROR("CHANGING MODE");
     std::map<std::string,InteractiveMarkerServerCustom*>::iterator iter;
     for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
-        iter->second->setMode(msg->manipulationMode);
-
+        if(iter->second->getMode() != flor_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF)
+            iter->second->setMode(msg->manipulationMode);
 }
 
 }

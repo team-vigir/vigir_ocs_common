@@ -14,6 +14,7 @@
 #include <OGRE/OgrePrerequisites.h>
 #include <OGRE/OgreAny.h>
 #include <boost/algorithm/string/predicate.hpp>
+#include <ros/ros.h>
 
 RayCastUtils::RayCastUtils(Ogre::SceneManager* sm)
     : scene_manager_(sm)
@@ -104,6 +105,20 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
         if ((query_result[qr_idx].movable != NULL) &&
             (query_result[qr_idx].movable->getMovableType().compare("Entity") == 0))
         {
+            // get user-defined data (in this case, usually identifier
+            std::string user_data = "";
+            try
+            {
+                Ogre::Any any = query_result[qr_idx].movable->getUserAny();
+                user_data = Ogre::any_cast<std::string>(any);
+            }
+            catch(...)
+            {
+                user_data = query_result[qr_idx].movable->getName();
+            }
+
+            //ROS_ERROR("raycast[%d]: %s",qr_idx,user_data.c_str());
+
             // need to skip BoundingObject if there is a template, which means the bounding box/sphere is occluding it
             if(boost::algorithm::starts_with(query_result[qr_idx].movable->getName(),"BoundingObject"))
             {
@@ -116,7 +131,40 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                         if(query_result[new_qr_idx].movable->getName().find("Robot") != std::string::npos)
                             break;
                         if(boost::algorithm::starts_with(query_result[new_qr_idx].movable->getName(),"template"))
+                        {
                             qr_idx = new_qr_idx;
+                            break;
+                        }
+                    }
+                }
+            }
+            // and need to skip step plan markers if there's a footstep
+            if(boost::algorithm::starts_with(user_data,"/step_plan_"))
+            {
+                //ROS_ERROR("ignoring step plan");
+                int new_qr_idx;
+                for(new_qr_idx = qr_idx+1; new_qr_idx < query_result.size(); new_qr_idx++)
+                {
+                    if((query_result[new_qr_idx].movable != NULL) &&
+                       query_result[new_qr_idx].movable->getMovableType().compare("Entity") == 0)
+                    {
+                        std::string next_user_data = "";
+                        try
+                        {
+                            Ogre::Any any = query_result[new_qr_idx].movable->getUserAny();
+                            next_user_data = Ogre::any_cast<std::string>(any);
+                        }
+                        catch(...)
+                        {
+                            next_user_data = query_result[qr_idx].movable->getName();
+                        }
+                        //ROS_ERROR("(%s) next is footstep? %s", next_user_data.c_str(), boost::algorithm::starts_with(next_user_data,"footstep") ? "yes" : "no");
+                        if(boost::algorithm::starts_with(next_user_data,"footstep"))
+                        {
+                            qr_idx = new_qr_idx;
+                            user_data = next_user_data;
+                            break;
+                        }
                     }
                 }
             }
@@ -179,18 +227,6 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                 }
                 else if(query_result[qr_idx].movable->getMovableType().compare("Entity") == 0)
                 {
-                    std::string user_data = "";
-                    try
-                    {
-                        Ogre::Any any = pentity->getUserAny();
-                        user_data = Ogre::any_cast<std::string>(any);
-                    }
-                    catch(...)
-                    {
-                        std::cout << "no user data" << std::endl;
-                    }
-
-                    std::cout << "any data: " << user_data << std::endl;
                     if(boost::algorithm::starts_with(user_data,"waypoint"))
                         object_type = 2;
                     else if(boost::algorithm::starts_with(user_data,"template"))

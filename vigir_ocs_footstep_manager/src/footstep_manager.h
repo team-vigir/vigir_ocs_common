@@ -112,9 +112,11 @@ namespace ocs_footstep
         void calculateGoal(); // calculate initial goal pose
         void requestStepPlanFromRobot();
         void requestStepPlanFromStep(vigir_footstep_planning_msgs::Step &step);
-        void updateVisualizationMsgs();
+        void updateGoalVisMsgs();
+        void updateStepPlanVisMsgs();
 
         // auxiliary functions that create visualizations based on step plans
+        void feetToFootMarkerArray(vigir_footstep_planning_msgs::Feet& input, visualization_msgs::MarkerArray& foot_array_msg);
         void stepPlanToFootMarkerArray(std::vector<vigir_footstep_planning_msgs::StepPlan>& input, visualization_msgs::MarkerArray& foot_array_msg);
         void stepPlanToBodyMarkerArray(std::vector<vigir_footstep_planning_msgs::StepPlan>& input, visualization_msgs::MarkerArray& body_array_msg);
         void stepPlanToFootPath(std::vector<vigir_footstep_planning_msgs::StepPlan>& input, nav_msgs::Path& foot_path_msg);
@@ -142,9 +144,7 @@ namespace ocs_footstep
         ros::Publisher footstep_array_pub_;
         ros::Publisher footstep_body_bb_array_pub_;
         ros::Publisher footstep_path_pub_;
-        ros::Subscriber footstep_array_sub_;
-        ros::Subscriber footstep_body_bb_array_sub_;
-        ros::Subscriber footstep_path_sub_;
+        ros::Publisher plan_goal_array_pub_;
 
         ros::Publisher footstep_list_pub_;
         ros::Subscriber footstep_update_sub_;
@@ -154,6 +154,7 @@ namespace ocs_footstep
         ros::Publisher footstep_param_set_list_pub_;
         ros::Subscriber footstep_param_set_selected_sub_;
 
+        ros::Publisher footstep_plan_goal_pub_;
         ros::Subscriber footstep_plan_goal_sub_;
         ros::Subscriber footstep_plan_request_sub_;
         ros::Subscriber lower_body_state_sub_;

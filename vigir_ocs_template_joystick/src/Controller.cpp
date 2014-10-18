@@ -46,8 +46,8 @@ namespace vigir_ocs
     {
         ros::NodeHandle nh_out(nh, "/template");
 
-        joystick_modes_sub = nh.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",5,&Controller::modeCb,this);
-        joystick_modes_pub = nh.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",5,false);
+        joystick_modes_sub = nh.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",5,&Controller::modeCb,this);
+        joystick_modes_pub = nh.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",5,false);
 
         //subscribe to list to grab movement data
         template_list_sub = nh_out.subscribe<flor_ocs_msgs::OCSTemplateList>( "list", 5, &Controller::templateListCb ,this );

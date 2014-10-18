@@ -114,12 +114,17 @@ public Q_SLOTS:
     /**
       * Set visibility of individual footstep interactive marker
       */
-    void enableMarker(int footstep_id, bool enabled);
+    void enableFootstepMarker(int footstep_id, bool enabled);
 
     /**
       * Set visibility of all footstep interactive markers
       */
-    void enableMarkers(bool enabled);
+    void enableFootstepMarkers(bool enabled);
+
+    /**
+      * Set visibility of all step plan interactive markers
+      */
+    void enableStepPlanMarkers(bool enabled);
 
     /**
       * Set the footstep parameter set

@@ -413,8 +413,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         interactive_marker_remove_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
 
         //Publisher/Subscriber to the IM mode
-        interactive_marker_server_mode_pub_ = nh_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1,false);
-        interactive_marker_server_mode_sub_ = nh_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1, &Base3DView::processInteractiveMarkerMode, this);
+        interactive_marker_server_mode_pub_ = nh_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1,false);
+        interactive_marker_server_mode_sub_ = nh_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1, &Base3DView::processInteractiveMarkerMode, this);
 
         // subscribe to the moveit pose topics
         end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
@@ -2043,13 +2043,16 @@ void Base3DView::deselectAll()
     Q_EMIT enableTemplateMarkers( false );
 
     // disable all footstep markers
-    footstep_vis_manager_->enableMarkers( false );
+    footstep_vis_manager_->enableFootstepMarkers( false );
 
     // disable all robot IK markers
     for( int i = 0; i < im_ghost_robot_.size(); i++ )
     {
         im_ghost_robot_[i]->setEnabled( false );
     }
+
+    // enable stepplan markers
+    footstep_vis_manager_->enableStepPlanMarkers( true );
 }
 
 void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
@@ -2063,20 +2066,27 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
     switch(msg->type)
     {
         case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
+            // disable step plan markers
+            footstep_vis_manager_->enableStepPlanMarkers( false );
             // enable template marker
             if(msg->id == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
                 left_marker_moveit_loopback_ = false;
             else if(msg->id == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
                 right_marker_moveit_loopback_ = false;
             im_ghost_robot_[msg->id]->setEnabled( true );
+            footstep_vis_manager_->enableStepPlanMarkers( false );
             break;
         case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
+            // disable step plan markers
+            footstep_vis_manager_->enableStepPlanMarkers( false );
             // enable template marker
             Q_EMIT enableTemplateMarker( msg->id, true );
             break;
         case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
+            // disable step plan markers
+            footstep_vis_manager_->enableStepPlanMarkers( false );
             // id takes into account text marker as well, so we do this to find the real marker id
-            footstep_vis_manager_->enableMarker( msg->id/2, true );
+            footstep_vis_manager_->enableFootstepMarker( msg->id/2, true );
             break;
         default:
             break;
@@ -3816,10 +3826,18 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
     bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
     bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
 
-    if(key_event->key == 24 && key_event->state && ctrl_is_pressed) // 'q'
+    if(key_event->key == 9 && key_event->state) // 'esc'
+    {
+        deselectAll();
+    }
+    else if(key_event->key == 24 && key_event->state && ctrl_is_pressed) // 'q'
+    {
         robotModelToggled(!robot_model_->isEnabled());
+    }
     else if(key_event->key == 25 && key_event->state && ctrl_is_pressed) // 'w'
+    {
         simulationRobotToggled(!ghost_robot_model_->isEnabled());
+    }
     else if(key_event->key == 10 && key_event->state && ctrl_is_pressed) // ctrl+1
     {
         clearPointCloudRaycastRequests();

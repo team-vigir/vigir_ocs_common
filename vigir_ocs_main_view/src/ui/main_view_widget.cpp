@@ -909,9 +909,9 @@ void MainViewWidget::setupToolbar()
     connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(setManipulationMode(int)));
 
     //publisher for joystick modes
-    mode_pub_ = n_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1,false);
+    mode_pub_ = n_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1,false);
     //need to subscribe to stay in sync with modes
-    mode_sub_ = n_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/controlModes",1, &MainViewWidget::modeCB,this);
+    mode_sub_ = n_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1, &MainViewWidget::modeCB,this);
 
     connect(ui->footstepParamSetBox,SIGNAL(currentIndexChanged(QString)),((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SLOT(setFootstepParameterSet(QString)));
     connect(((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));    
