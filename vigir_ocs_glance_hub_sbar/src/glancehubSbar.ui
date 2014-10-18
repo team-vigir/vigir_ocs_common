@@ -42,7 +42,16 @@
     <property name="spacing">
      <number>0</number>
     </property>
-    <property name="margin">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
     <item>
@@ -57,7 +66,16 @@
        <property name="spacing">
         <number>4</number>
        </property>
-       <property name="margin">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
         <number>0</number>
        </property>
        <item>
@@ -118,56 +136,6 @@
          <property name="maxCount">
           <number>10</number>
          </property>
-         <item>
-          <property name="text">
-           <string>---Select Mode---</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Stand</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Walk</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Step</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Manipulate</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Flor_Stand</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Flor_Walk_Mani</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Flor_Step_Mani</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Flor_Dance</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Flor_WBC</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item>

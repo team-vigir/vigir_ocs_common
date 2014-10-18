@@ -24,14 +24,12 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     connect(ghub_,SIGNAL(sendFlorStatus(int)),this,SLOT(receiveFlorStatus(int)));
     connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(receiveModeChange(int)));
 
-    ui->modelabel->setText("");// default setting is off on start
+    ui->modelabel->setText(""); // default setting is off on start
     previous_selection_ = "Flor_Off";
 
     //sets first item to unselectable
-    QStandardItemModel* model =
-            qobject_cast<QStandardItemModel*>(ui->modeBox->model());
-    QModelIndex firstIndex = model->index(0, ui->modeBox->modelColumn(),
-            ui->modeBox->rootModelIndex());
+    QStandardItemModel* model = qobject_cast<QStandardItemModel*>(ui->modeBox->model());
+    QModelIndex firstIndex = model->index(0, ui->modeBox->modelColumn(), ui->modeBox->rootModelIndex());
     QStandardItem* firstItem = model->itemFromIndex(firstIndex);
     firstItem->setSelectable(false);
 
@@ -40,6 +38,11 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
 
     //setup publisher to change modes
     mode_pub_ = nh_.advertise<flor_control_msgs::FlorControlModeCommand>("/flor/controller/mode_command", 5, false);
+
+    // load control modes into dropdown box from parameters
+    nh_.getParam("/atlas_controller/allowed_control_modes", allowed_control_modes_);
+    for(int i = 0; i < allowed_control_modes_.size(); i++)
+        ui->modeBox->addItem(allowed_control_modes_[i].c_str());
 
     ui->plannerLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
     ui->footstepLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
@@ -115,75 +118,19 @@ void glancehubSbar::timerEvent(QTimerEvent *event)
 
 void glancehubSbar::receiveModeChange(int mode)
 {
-    QString modeBefore = previous_selection_;
+    ui->modelabel->setStyleSheet("QLabel{color:red; }");
+    ui->modelabel->setText(previous_selection_+" -> "+allowed_control_modes_[mode].c_str());
 
     flor_control_msgs::FlorControlModeCommand msg;
     msg.header.stamp = ros::Time::now();
-    ui->modelabel->setStyleSheet("QLabel{color:red; }");
-    switch(mode)
-    {
-    //cases are indexes within comboBox
-    case 0:
-        return; //first is not selectable
-        break;
-    case 1:
-        ui->modelabel->setText(modeBefore+" -> Stand");
-        msg.behavior = flor_control_msgs::FlorControlModeCommand::STAND;
-        previous_selection_ = "Stand";
-        break;
-    case 2:
-        ui->modelabel->setText(modeBefore+" -> Walk");
-        msg.behavior = flor_control_msgs::FlorControlModeCommand::WALK;
-        previous_selection_ = "Walk";
-        break;
-    case 3:
-        ui->modelabel->setText(modeBefore+" -> Step");
-        msg.behavior = flor_control_msgs::FlorControlModeCommand::STEP;
-        previous_selection_ = "Step";
-        break;
-    case 4:
-        ui->modelabel->setText(modeBefore+" -> Manipulate");
-        msg.behavior = flor_control_msgs::FlorControlModeCommand::MANIPULATE;
-        previous_selection_ = "Manipulate";
-        break;
-    case 5:
-        ui->modelabel->setText(modeBefore+" -> Flor_Stand");
-        msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_STAND;
-        previous_selection_ = "Flor_Stand";
-        break;
-    case 6:
-        ui->modelabel->setText(modeBefore+" -> Flor_Walk_Mani");
-        msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_WALK_MANI;
-        previous_selection_ = "Flor_Walk_Mani";
-        break;
-    case 7:
-        ui->modelabel->setText(modeBefore+" -> Flor_Step_Mani");
-        msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_STEP_MANI;
-        previous_selection_ = "Flor_Step_Mani";
-        break;
-    case 8:
-        ui->modelabel->setText(modeBefore+" -> Flor_Dance");
-        msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_DANCE;
-        previous_selection_ = "Flor_Dance";
-        break;
-    case 9:
-        ui->modelabel->setText(modeBefore+" -> Flor_WBC");
-        msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_WBC;
-        previous_selection_ = "Flor_WBC";
-        break;    
-    case flor_control_msgs::FlorControlModeCommand::FLOR_STOP:
-        ui->modelabel->setText(modeBefore+" -> Flor_Stop");
-        msg.behavior = flor_control_msgs::FlorControlModeCommand::FLOR_STOP;
-        previous_selection_ = "Flor_Stop";
-        break;
-    }
+    msg.behavior = mode;
+    previous_selection_ = allowed_control_modes_[mode].c_str();
     mode_pub_.publish(msg);
-
 
     //notify on 3d view                     previous is still at the state we want right now
     QString notificationText = QString("Changed Robot Mode to ") + previous_selection_ ;
     //flor stop is an error condition
-    if(previous_selection_ == "Flor_Stop")
+    if(previous_selection_ == "stop")
         NotificationSystem::Instance()->notifyError(notificationText.toStdString());
     else
         NotificationSystem::Instance()->notifyPassive(notificationText.toStdString());
@@ -233,82 +180,21 @@ void glancehubSbar::receiveFootstepStatus(int status)
 }
 
 void glancehubSbar::receiveFlorStatus(int status)
-{    
-    QString newText;
-    switch(status)
-    {
-    case flor_control_msgs::FlorControlModeCommand::FLOR_DANCE:
-        newText = QString::fromStdString("Flor_Dance");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_MANIPULATE:
-        newText = QString::fromStdString("Flor_Manipulate");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_OFF:
-        newText = QString::fromStdString("Flor_Off");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_STAND:
-        newText = QString::fromStdString("Flor_Stand");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_STEP:
-        newText = QString::fromStdString("Flor_Step");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_STEP_MANI:
-        newText = QString::fromStdString("Flor_Step_Mani");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_STOP:
-        newText = QString::fromStdString("Flor_Stop");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_WALK:
-        newText = QString::fromStdString("Flor_Walk");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_WALK_MANI:
-        newText = QString::fromStdString("Flor_Walk_Mani");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_WBC:
-        newText = QString::fromStdString("Flor_WBC");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FREEZE:
-        newText = QString::fromStdString("Freeze");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::MANIPULATE:
-        newText = QString::fromStdString("Manipulate");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::STAND:
-        newText = QString::fromStdString("Stand");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::STAND_PREP:
-        newText = QString::fromStdString("Stand_Prep");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::STEP:
-        newText = QString::fromStdString("Step");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::USER:
-        newText = QString::fromStdString("User");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::WALK:
-        newText = QString::fromStdString("Walk");
-        break;
-    }   
-    updateBoxSelection(newText);
+{
+    updateBoxSelection(status);
     ui->modelabel->setText(""); // only want to display transitions
 }
 
-void glancehubSbar::updateBoxSelection(QString mode)
+void glancehubSbar::updateBoxSelection(int mode)
 {
-    if(mode == "Flor_Stop")
+    if(allowed_control_modes_[mode] == "stop")
     {
         ui->modeBox->setCurrentIndex(0);
         return;
     }
 
-    for(int i=0;i<ui->modeBox->count();i++)
-    {
-        if(ui->modeBox->itemText(i) == mode)
-        {
-            ui->modeBox->setCurrentIndex(i);
-            return;
-        }
-    }
+    ui->modeBox->setCurrentIndex(mode);
+
 }
 
 glancehubSbar::~glancehubSbar()

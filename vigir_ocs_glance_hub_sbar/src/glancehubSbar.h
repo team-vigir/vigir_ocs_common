@@ -32,7 +32,7 @@ private:
     glancehub* ghub_;
     ros::NodeHandle nh_;
     ros::Publisher mode_pub_;
-    void updateBoxSelection(QString mode);
+    void updateBoxSelection(int mode);
     void timerEvent(QTimerEvent *event);
     QString previous_selection_;
     QBasicTimer color_timer_;
@@ -46,6 +46,7 @@ private:
     QString flash_color_footstep_;
     QString white_;
     int max_flashes_;
+    std::vector<std::string> allowed_control_modes_;
 
 public Q_SLOTS:
     void receiveMoveitStatus(bool);
