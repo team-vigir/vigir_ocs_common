@@ -12,6 +12,7 @@
 #include<QTextStream>
 #include<QDebug>
 #include <ros/package.h>
+#include <atlas_msgs/AtlasSimInterfaceCommand.h>
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
@@ -591,31 +592,29 @@ void Widget::robotfault(const flor_control_msgs::FlorRobotFault::ConstPtr& msg)
 void Widget:: behavstate( const flor_control_msgs::FlorControlMode::ConstPtr& msg )
 {
     switch(msg->bdi_current_behavior)
-    { // defined in flor_control_msgs::FlorControlModeCommand.msg
-    case flor_control_msgs::FlorControlModeCommand::STAND:       ui->cur_st->setText("STAND"); break;
-    case flor_control_msgs::FlorControlModeCommand::USER:        ui->cur_st->setText("USER"); break;
-    case flor_control_msgs::FlorControlModeCommand::FREEZE:      ui->cur_st->setText("FREEZE"); break;
-    case flor_control_msgs::FlorControlModeCommand::STAND_PREP:  ui->cur_st->setText("STAND_PREP"); break;
-    case flor_control_msgs::FlorControlModeCommand::WALK:        ui->cur_st->setText("WALK"); break;
-    case flor_control_msgs::FlorControlModeCommand::STEP:        ui->cur_st->setText("STEP"); break;
-    case flor_control_msgs::FlorControlModeCommand::MANIPULATE:  ui->cur_st->setText("MANIPULATE"); break;
-    case flor_control_msgs::FlorControlModeCommand::CALIBRATE:   ui->cur_st->setText("CALIBRATE"); break;
-    case flor_control_msgs::FlorControlModeCommand::UNKNOWN_BDI: ui->cur_st->setText("UNKOWN"); break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_OFF:    ui->cur_st->setText("OFF"); break;
+    { // defined in AtlasInterface or SimInterfaceCommand
+    case atlas_msgs::AtlasSimInterfaceCommand::NONE:        ui->cur_st->setText("NONE"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::FREEZE:      ui->cur_st->setText("FREEZE"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::STAND_PREP:  ui->cur_st->setText("STAND_PREP"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::STAND:       ui->cur_st->setText("STAND"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::WALK:        ui->cur_st->setText("WALK"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::STEP:        ui->cur_st->setText("STEP"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::MANIPULATE:  ui->cur_st->setText("MANIPULATE"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::USER:        ui->cur_st->setText("USER"); break;
+    case 8:                                                 ui->cur_st->setText("CALIBRATE"); break;  // not in simulation, but in AtlasInterface
     default: ROS_ERROR("Unknown current behavior = %d", msg->bdi_current_behavior); ui->cur_st->setText("Unknown!"); break;
     }
     switch(msg->bdi_desired_behavior)
     {
-    case flor_control_msgs::FlorControlModeCommand::STAND:       ui->d_state->setText("STAND"); break;
-    case flor_control_msgs::FlorControlModeCommand::USER:        ui->d_state->setText("USER"); break;
-    case flor_control_msgs::FlorControlModeCommand::FREEZE:      ui->d_state->setText("FREEZE"); break;
-    case flor_control_msgs::FlorControlModeCommand::STAND_PREP:  ui->d_state->setText("STAND_PREP"); break;
-    case flor_control_msgs::FlorControlModeCommand::WALK:        ui->d_state->setText("WALK"); break;
-    case flor_control_msgs::FlorControlModeCommand::STEP:        ui->d_state->setText("STEP"); break;
-    case flor_control_msgs::FlorControlModeCommand::MANIPULATE:  ui->d_state->setText("MANIPULATE"); break;
-    case flor_control_msgs::FlorControlModeCommand::CALIBRATE:   ui->d_state->setText("CALIBRATE"); break;
-    case flor_control_msgs::FlorControlModeCommand::UNKNOWN_BDI: ui->d_state->setText("UNKNOWN"); break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_OFF:    ui->d_state->setText("OFF"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::NONE:        ui->d_state->setText("NONE"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::FREEZE:      ui->d_state->setText("FREEZE"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::STAND_PREP:  ui->d_state->setText("STAND_PREP"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::STAND:       ui->d_state->setText("STAND"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::WALK:        ui->d_state->setText("WALK"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::STEP:        ui->d_state->setText("STEP"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::MANIPULATE:  ui->d_state->setText("MANIPULATE"); break;
+    case atlas_msgs::AtlasSimInterfaceCommand::USER:        ui->d_state->setText("USER"); break;
+    case 8:                                                 ui->d_state->setText("CALIBRATE"); break;  // not in simulation, but in AtlasInterface
     default: ROS_ERROR("Unknown desired behavior = %d", msg->bdi_desired_behavior); ui->d_state->setText("Unknown!"); break;
     }
 

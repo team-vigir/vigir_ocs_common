@@ -17,6 +17,10 @@ glancehub::glancehub(QWidget *parent) :
     controlMode_sub = nh.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode",5,&glancehub::controlModeMsgRcv, this);
     robotStatusMoveit_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/planning/upper_body/status",2,&glancehub::robotStatusMoveit,this);
     robotStatusFootstep_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/footstep_planner/status",2,&glancehub::robotStatusFootstep,this);
+
+    // load control modes into dropdown box from parameters
+    nh.getParam("/atlas_controller/allowed_control_modes", allowed_control_modes_);
+
     timer.start(33, this);
     std::string fileName;
     if(nh.getParam("robotErrorFileLocation",fileName))
@@ -241,60 +245,11 @@ void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPt
 void glancehub::controlModeMsgRcv(const flor_control_msgs::FlorControlMode::ConstPtr& msg)
 {
     QString newText;
-    switch(msg->behavior)
-    {
-    case flor_control_msgs::FlorControlModeCommand::FLOR_DANCE:
-        newText = QString::fromStdString("Flor Dance");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_MANIPULATE:
-        newText = QString::fromStdString("Flor Manipulate");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_OFF:
-        newText = QString::fromStdString("Flor Off");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_STAND:
-        newText = QString::fromStdString("Flor Stand");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_STEP:
-        newText = QString::fromStdString("Flor Step");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_STEP_MANI:
-        newText = QString::fromStdString("Flor Step Mani");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_STOP:
-        newText = QString::fromStdString("Flor Stop");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_WALK:
-        newText = QString::fromStdString("Flor Walk");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_WALK_MANI:
-        newText = QString::fromStdString("Flor Walk Mani");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_WBC:
-        newText = QString::fromStdString("Flor WBC");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FREEZE:
-        newText = QString::fromStdString("Freeze");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::MANIPULATE:
-        newText = QString::fromStdString("Manipulate");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::STAND:
-        newText = QString::fromStdString("Stand");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::STAND_PREP:
-        newText = QString::fromStdString("Stand Prep");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::STEP:
-        newText = QString::fromStdString("Step");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::USER:
-        newText = QString::fromStdString("User");
-        break;
-    case flor_control_msgs::FlorControlModeCommand::WALK:
-        newText = QString::fromStdString("Walk");
-        break;
-    }
+    if (msg->behavior >= 0 && msg->behavior <  allowed_control_modes_.size())
+        newText = QString::fromStdString(allowed_control_modes_[msg->behavior]);
+    else
+        newText = QString::fromStdString("Unknown");
+
     //notify status bar
     Q_EMIT sendFlorStatus(msg->behavior);
 

@@ -196,7 +196,8 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
 
     //map all toggles button to their identifiers
-    stop_mapper_->setMapping(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),flor_control_msgs::FlorControlModeCommand::FLOR_STOP);
+    ROS_WARN(" Hard coding a STOP with index 1"); // @todo - verify this setup
+    stop_mapper_->setMapping(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),1); // flor_control_msgs::FlorControlModeCommand::FLOR_STOP);
 
     //connect all buttons for mouse presses
     connect(((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()),SIGNAL(emergencyStop()),stop_mapper_,SLOT(map()));

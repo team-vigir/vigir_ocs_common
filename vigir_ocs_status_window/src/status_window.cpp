@@ -17,6 +17,9 @@ status_window::status_window(QWidget *parent) :
     mode_subscriber = nh_.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode",1,&status_window::controlModeMsgReceived, this);
     stability_subscriber = nh_.subscribe<flor_ocs_msgs::OCSRobotStability>("/flor/controller/stability",1,&status_window::stabilityMsgReceived, this);
 
+    // load control modes into dropdown box from parameters
+    nh_.getParam("/atlas_controller/allowed_control_modes", allowed_control_modes_);
+
     jntList = new jointList(NULL);
     jntList->hide();
     rbtStatus = new robotStatus(NULL);
@@ -68,63 +71,15 @@ void status_window::controlModeMsgReceived(const flor_control_msgs::FlorControlM
     ui->l_legLabel->setText(getControllerStatus(modeMsg->left_leg));
     ui->r_armLabel->setText(getControllerStatus(modeMsg->right_arm));
     ui->r_legLabel->setText(getControllerStatus(modeMsg->right_leg));
-    switch(modeMsg->behavior)
-    {
-    case flor_control_msgs::FlorControlModeCommand::STAND:
-        ui->behaviorLabel->setText(QString::fromStdString("Stand"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::USER:
-        ui->behaviorLabel->setText(QString::fromStdString("User"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FREEZE:
-        ui->behaviorLabel->setText(QString::fromStdString("Freeze"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::STAND_PREP:
-        ui->behaviorLabel->setText(QString::fromStdString("Stand Prep"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::WALK:
-        ui->behaviorLabel->setText(QString::fromStdString("Walk"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::STEP:
-        ui->behaviorLabel->setText(QString::fromStdString("Step"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::MANIPULATE:
-        ui->behaviorLabel->setText(QString::fromStdString("Manipulate"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_DANCE:
-        ui->behaviorLabel->setText(QString::fromStdString("Flor Dance"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_WALK:
-        ui->behaviorLabel->setText(QString::fromStdString("Flor Walk"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_MANIPULATE:
-        ui->behaviorLabel->setText(QString::fromStdString("Flor Manipulate"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_OFF:
-        ui->behaviorLabel->setText(QString::fromStdString("Flor Off"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_STAND:
-        ui->behaviorLabel->setText(QString::fromStdString("Flor Stand"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_STEP:
-        ui->behaviorLabel->setText(QString::fromStdString("Flor Step"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_STEP_MANI:
-        ui->behaviorLabel->setText(QString::fromStdString("Flor Step/Manipulate"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_STOP:
-        ui->behaviorLabel->setText(QString::fromStdString("Flor Stop"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_WALK_MANI:
-        ui->behaviorLabel->setText(QString::fromStdString("Flor Walk/Manipulate"));
-        break;
-    case flor_control_msgs::FlorControlModeCommand::FLOR_WBC:
-        ui->behaviorLabel->setText(QString::fromStdString("Flor Whole Body Control"));
-        break;
-    default:
-        ui->behaviorLabel->setText(QString::fromStdString("Unknown"));
-        break;
-    }
+
+    QString newText;
+    if (modeMsg->behavior >= 0 && modeMsg->behavior <  allowed_control_modes_.size())
+        newText = QString::fromStdString(allowed_control_modes_[modeMsg->behavior]);
+    else
+        newText = QString::fromStdString("Unknown");
+
+    ui->behaviorLabel->setText(newText);
+
 }
 
 QString status_window::getControllerStatus(uint8_t flag)

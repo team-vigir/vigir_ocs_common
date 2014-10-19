@@ -4,7 +4,7 @@ set(ROS_BUILD_TYPE RelWithDebInfo)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz flor_ocs_msgs flor_control_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz flor_ocs_msgs flor_control_msgs atlas_msgs)
 
 ## Declare things to be passed to other projects
 catkin_package(	

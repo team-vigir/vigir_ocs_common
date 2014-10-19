@@ -40,6 +40,8 @@ private:
     ros::Subscriber robotStatusFootstep_sub;
     QBasicTimer timer;
 
+    std::vector<std::string> allowed_control_modes_;
+
     std::vector<std::string> errors;
     std::string messagesPath;
 

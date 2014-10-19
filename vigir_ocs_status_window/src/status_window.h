@@ -54,6 +54,7 @@ private:
     QString oldRobotStyleSheet;
 
     std::vector<int> keys_pressed_list_;
+    std::vector<std::string> allowed_control_modes_;
 
     ros::NodeHandle nh_;
 

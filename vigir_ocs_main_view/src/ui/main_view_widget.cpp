@@ -352,8 +352,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     stop_mapper_ = new QSignalMapper(this);
     connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
 
-    //map all toggles button to their identifiers
-    stop_mapper_->setMapping(((vigir_ocs::Base3DView*) views_list["Top Left"]),flor_control_msgs::FlorControlModeCommand::FLOR_STOP);
+    //map all toggles button to their identifiers                              @todo - verify
+    stop_mapper_->setMapping(((vigir_ocs::Base3DView*) views_list["Top Left"]),1);//flor_control_msgs::FlorControlModeCommand::FLOR_STOP);
 
     //connect all buttons for mouse presses
     connect(((vigir_ocs::Base3DView*) views_list["Top Left"]),SIGNAL(emergencyStop()),stop_mapper_,SLOT(map()));

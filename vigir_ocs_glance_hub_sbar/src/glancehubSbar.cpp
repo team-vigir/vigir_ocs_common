@@ -119,12 +119,19 @@ void glancehubSbar::timerEvent(QTimerEvent *event)
 void glancehubSbar::receiveModeChange(int mode)
 {
     ui->modelabel->setStyleSheet("QLabel{color:red; }");
-    ui->modelabel->setText(previous_selection_+" -> "+allowed_control_modes_[mode].c_str());
+
+    QString newText;
+    if (mode >= 0 && mode <  allowed_control_modes_.size())
+        newText = QString::fromStdString(allowed_control_modes_[mode]);
+    else
+        newText = QString::fromStdString("Unknown");
+
+    ui->modelabel->setText(previous_selection_+" -> "+newText);
 
     flor_control_msgs::FlorControlModeCommand msg;
     msg.header.stamp = ros::Time::now();
     msg.behavior = mode;
-    previous_selection_ = allowed_control_modes_[mode].c_str();
+    previous_selection_ = newText;
     mode_pub_.publish(msg);
 
     //notify on 3d view                     previous is still at the state we want right now
@@ -187,7 +194,13 @@ void glancehubSbar::receiveFlorStatus(int status)
 
 void glancehubSbar::updateBoxSelection(int mode)
 {
-    if(allowed_control_modes_[mode] == "stop")
+    QString newText;
+    if (mode >= 0 && mode <  allowed_control_modes_.size())
+        newText = QString::fromStdString(allowed_control_modes_[mode]);
+    else
+        newText = QString::fromStdString("Unknown");
+
+    if(newText == "stop")
     {
         ui->modeBox->setCurrentIndex(0);
         return;
