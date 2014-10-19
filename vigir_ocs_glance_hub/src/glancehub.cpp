@@ -245,13 +245,13 @@ void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPt
 void glancehub::controlModeMsgRcv(const flor_control_msgs::FlorControlMode::ConstPtr& msg)
 {
     QString newText;
-    if (msg->behavior >= 0 && msg->behavior <  allowed_control_modes_.size())
-        newText = QString::fromStdString(allowed_control_modes_[msg->behavior]);
+    if (msg->control_mode >= 0 && msg->control_mode <  allowed_control_modes_.size())
+        newText = QString::fromStdString(allowed_control_modes_[msg->control_mode]);
     else
         newText = QString::fromStdString("Unknown");
 
     //notify status bar
-    Q_EMIT sendFlorStatus(msg->behavior);
+    Q_EMIT sendFlorStatus(msg->control_mode);
 
     ui->controlModeLabel->setText(newText);
     std::cout << "Changing to "<< newText.toStdString() << " Mode" << std::endl;

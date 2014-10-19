@@ -130,7 +130,7 @@ void glancehubSbar::receiveModeChange(int mode)
 
     flor_control_msgs::FlorControlModeCommand msg;
     msg.header.stamp = ros::Time::now();
-    msg.behavior = mode;
+    msg.requested_control_mode = mode;
     previous_selection_ = newText;
     mode_pub_.publish(msg);
 
