@@ -1426,7 +1426,7 @@ void Base3DView::processNewSelection( const geometry_msgs::Point::ConstPtr& pose
 
 void Base3DView::processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr& msg )
 {
-    flor_atlas_current_mode_ = msg->behavior;
+    flor_atlas_current_mode_ = msg->control_mode;
 }
 
 void Base3DView::newSelection( Ogre::Vector3 position )
@@ -2095,16 +2095,6 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
 
 void Base3DView::executeFootstepPlanContextMenu()
 {
-    /*flor_control_msgs::FlorControlModeCommand cmd;
-    if(context_menu_selected_item_->text().contains("Step Manipulate"))
-        cmd.behavior = cmd.FLOR_STEP_MANI;
-    else if(context_menu_selected_item_->text().contains("Walk Manipulate"))
-        cmd.behavior = cmd.FLOR_WALK_MANI;
-    else if(context_menu_selected_item_->text().contains("Step"))
-        cmd.behavior = cmd.FLOR_STEP;
-    else if(context_menu_selected_item_->text().contains("Walk"))
-        cmd.behavior = cmd.FLOR_WALK;
-    flor_mode_command_pub_.publish(cmd);*/
     footstep_vis_manager_->requestExecuteStepPlan();
 }
 
