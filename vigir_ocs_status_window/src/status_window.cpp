@@ -73,8 +73,8 @@ void status_window::controlModeMsgReceived(const flor_control_msgs::FlorControlM
     ui->r_legLabel->setText(getControllerStatus(modeMsg->right_leg));
 
     QString newText;
-    if (modeMsg->behavior >= 0 && modeMsg->behavior <  allowed_control_modes_.size())
-        newText = QString::fromStdString(allowed_control_modes_[modeMsg->behavior]);
+    if (modeMsg->control_mode >= 0 && modeMsg->control_mode <  allowed_control_modes_.size())
+        newText = QString::fromStdString(allowed_control_modes_[modeMsg->control_mode]);
     else
         newText = QString::fromStdString("Unknown");
 
