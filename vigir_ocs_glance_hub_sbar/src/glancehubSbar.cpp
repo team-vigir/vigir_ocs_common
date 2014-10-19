@@ -19,13 +19,18 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
 
     ghub_->setWindowOpacity(0);
 
-    connect(ghub_,SIGNAL(sendMoveitStatus(bool)),this,SLOT(receiveMoveitStatus(bool)));
-    connect(ghub_,SIGNAL(sendFootstepStatus(int)),this,SLOT(receiveFootstepStatus(int)));
-    connect(ghub_,SIGNAL(sendFlorStatus(int)),this,SLOT(receiveFlorStatus(int)));
-    connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(receiveModeChange(int)));
+    // load control modes into dropdown box from parameters
+    nh_.getParam("/atlas_controller/allowed_control_modes", allowed_control_modes_);
+    ROS_INFO(" Add %ld allowable control modes:", allowed_control_modes_.size());
+    for(int i = 0; i < allowed_control_modes_.size(); i++)
+    {
+        std::cout << allowed_control_modes_[i] << std::endl;
+        ui->modeBox->addItem(allowed_control_modes_[i].c_str());
+    }
+
 
     ui->modelabel->setText(""); // default setting is off on start
-    previous_selection_ = "Flor_Off";
+    previous_selection_ = "none";
 
     //sets first item to unselectable
     QStandardItemModel* model = qobject_cast<QStandardItemModel*>(ui->modeBox->model());
@@ -33,16 +38,17 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     QStandardItem* firstItem = model->itemFromIndex(firstIndex);
     firstItem->setSelectable(false);
 
+    // Now connect signals
+    connect(ghub_,SIGNAL(sendMoveitStatus(bool)),this,SLOT(receiveMoveitStatus(bool)));
+    connect(ghub_,SIGNAL(sendFootstepStatus(int)),this,SLOT(receiveFootstepStatus(int)));
+    connect(ghub_,SIGNAL(sendFlorStatus(int)),this,SLOT(receiveFlorStatus(int)));
+    connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(receiveModeChange(int)));
+
     //set popup width larger
     ui->modeBox->view()->setFixedWidth(130);
 
     //setup publisher to change modes
     mode_pub_ = nh_.advertise<flor_control_msgs::FlorControlModeCommand>("/flor/controller/mode_command", 5, false);
-
-    // load control modes into dropdown box from parameters
-    nh_.getParam("/atlas_controller/allowed_control_modes", allowed_control_modes_);
-    for(int i = 0; i < allowed_control_modes_.size(); i++)
-        ui->modeBox->addItem(allowed_control_modes_[i].c_str());
 
     ui->plannerLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
     ui->footstepLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
