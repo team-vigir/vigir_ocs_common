@@ -1,6 +1,7 @@
 #include "footstep_manager.h"
 
 #include <OGRE/OgreQuaternion.h>
+#include <OGRE/OgreVector3.h>
 
 #include <vigir_footstep_planning_msgs/StepPlanRequest.h>
 #include <vigir_footstep_planning_msgs/Step.h>
@@ -41,7 +42,8 @@ void FootstepManager::onInit()
     footstep_param_set_selected_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 5, &FootstepManager::processFootstepParamSetSelected, this );
 
     // footstep request coming from the OCS
-    footstep_plan_goal_pub_     = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/updated_goal_pose", 1, false );
+    footstep_goal_pose_fb_pub_  = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
+    footstep_goal_pose_fb_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/goal_pose_feedback", 1, &FootstepManager::processFootstepPlanGoalFeedback, this );
     footstep_plan_goal_sub_     = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, &FootstepManager::processFootstepPlanGoal, this );
     footstep_plan_request_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, &FootstepManager::processFootstepPlanRequest, this );
 
@@ -202,12 +204,13 @@ void FootstepManager::feetToFootMarkerArray(vigir_footstep_planning_msgs::Feet& 
         // create step so we can use utility function
         vigir_footstep_planning_msgs::Step step;
         step.foot = i ? input.right : input.left;
+        step.header = input.left.header;
         stepToMarker(step, marker);
 
         marker.id = foot_array_msg.markers.size();
         marker.color.r = 0.0;
-        marker.color.g = 0.6;
-        marker.color.b = 0.0;
+        marker.color.g = 0.0;
+        marker.color.b = 0.6;
         marker.color.a = 0.5;
         marker.ns = std::string("footstep");
         foot_array_msg.markers.push_back(marker);
@@ -355,6 +358,83 @@ void FootstepManager::processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPl
     sendUpdateFeetGoal(goal_);
 }
 
+void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal)
+{
+    // need to update feet poses, so we first find the difference between the old and the new pose
+    Ogre::Vector3 p_old(goal_pose_.pose.position.x,
+                        goal_pose_.pose.position.y,
+                        goal_pose_.pose.position.z);
+    Ogre::Vector3 p_new(plan_goal->goal_pose.pose.position.x,
+                        plan_goal->goal_pose.pose.position.y,
+                        plan_goal->goal_pose.pose.position.z);
+    Ogre::Quaternion q_old( goal_pose_.pose.orientation.w, // need the conjugate (w,-x,-y,-z) of the old one
+                           -goal_pose_.pose.orientation.x,
+                           -goal_pose_.pose.orientation.y,
+                           -goal_pose_.pose.orientation.z);
+    Ogre::Quaternion q_new(plan_goal->goal_pose.pose.orientation.w,
+                           plan_goal->goal_pose.pose.orientation.x,
+                           plan_goal->goal_pose.pose.orientation.y,
+                           plan_goal->goal_pose.pose.orientation.z);
+    Ogre::Quaternion d_quat = q_old * q_new;
+
+    // update left foot
+    {
+    // need to calculate position relative to old goal pose
+    Ogre::Vector3 d(goal_.left.pose.position.x-goal_pose_.pose.position.x,
+                    goal_.left.pose.position.y-goal_pose_.pose.position.y,
+                    goal_.left.pose.position.z-goal_pose_.pose.position.z);
+    d = p_new + d_quat * d;
+
+    goal_.left.pose.position.x = d.x;
+    goal_.left.pose.position.y = d.y;
+    goal_.left.pose.position.z = d.z;
+
+    // and we need to multiply quaternions
+    Ogre::Quaternion q(goal_.left.pose.orientation.w,
+                       goal_.left.pose.orientation.x,
+                       goal_.left.pose.orientation.y,
+                       goal_.left.pose.orientation.z);
+    q = d_quat * q;
+
+    goal_.left.pose.orientation.w = q.w;
+    goal_.left.pose.orientation.x = q.x;
+    goal_.left.pose.orientation.y = q.y;
+    goal_.left.pose.orientation.z = q.z;
+    }
+    // update right foot
+    {
+    // need to calculate position relative to old goal pose
+    Ogre::Vector3 d(goal_.right.pose.position.x-goal_pose_.pose.position.x,
+                    goal_.right.pose.position.y-goal_pose_.pose.position.y,
+                    goal_.right.pose.position.z-goal_pose_.pose.position.z);
+    d = p_new + d_quat * d;
+
+    goal_.right.pose.position.x = d.x;
+    goal_.right.pose.position.y = d.y;
+    goal_.right.pose.position.z = d.z;
+    // and we need to multiply quaternions
+    Ogre::Quaternion q(goal_.right.pose.orientation.w,
+                       goal_.right.pose.orientation.x,
+                       goal_.right.pose.orientation.y,
+                       goal_.right.pose.orientation.z);
+    q = d_quat * q;
+
+    goal_.right.pose.orientation.w = q.w;
+    goal_.right.pose.orientation.x = q.x;
+    goal_.right.pose.orientation.y = q.y;
+    goal_.right.pose.orientation.z = q.z;
+    }
+
+    // updates internal goal pose
+    goal_pose_ = plan_goal->goal_pose;
+
+    // need to update feet poses
+    updateGoalVisMsgs();
+
+    // send
+    plan_goal_array_pub_.publish(footstep_array_);
+}
+
 void FootstepManager::calculateGoal()
 {
     //end estimates for foot distance
@@ -362,12 +442,13 @@ void FootstepManager::calculateGoal()
     double shift_x = -sin(end_yaw) * (0.5 * foot_separation);
     double shift_y =  cos(end_yaw) * (0.5 * foot_separation);
 
+    goal_.left.header.frame_id = "/world";
     goal_.left.pose.position.x = goal_pose_.pose.position.x + shift_x;
     goal_.left.pose.position.y = goal_pose_.pose.position.y + shift_y;
-
     goal_.left.pose.position.z = lower_body_state_.left_foot_pose.position.z;//goal_pose_.pose.position.z;
     goal_.left.pose.orientation = goal_pose_.pose.orientation;
 
+    goal_.right.header.frame_id = "/world";
     goal_.right.pose.position.x = goal_pose_.pose.position.x - shift_x;
     goal_.right.pose.position.y = goal_pose_.pose.position.y - shift_y;
     goal_.right.pose.position.z = lower_body_state_.right_foot_pose.position.z;//goal_pose_.pose.position.z;
@@ -588,21 +669,21 @@ void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& sta
         // need to send visualization message
         updateGoalVisMsgs();
 
-        footstep_array_pub_.publish(footstep_array_);
+        plan_goal_array_pub_.publish(footstep_array_);
 
         // and update the interactive marker for the goal
         flor_ocs_msgs::OCSFootstepPlanGoal cmd;
-//        cmd.goal_pose.pose.position.x = (goal_.left.pose.position.x+goal_.right.pose.position.x)/2.0;
-//        cmd.goal_pose.pose.position.y = (goal_.left.pose.position.y+goal_.right.pose.position.y)/2.0;
-//        cmd.goal_pose.pose.position.z = (goal_.left.pose.position.z+goal_.right.pose.position.z)/2.0;
-//        Ogre::Quaternion q1(goal_.left.pose.orientation.w,goal_.left.pose.orientation.x,goal_.left.pose.orientation.y,goal_.left.pose.orientation.z);
-//        Ogre::Quaternion q2(goal_.right.pose.orientation.w,goal_.right.pose.orientation.x,goal_.right.pose.orientation.y,goal_.right.pose.orientation.z);
-//        Ogre::Quaternion qr = Ogre::Quaternion::Slerp(0.5,q1,q2);
-//        cmd.goal_pose.pose.orientation.w = qr.w;
-//        cmd.goal_pose.pose.orientation.x = qr.x;
-//        cmd.goal_pose.pose.orientation.y = qr.y;
-//        cmd.goal_pose.pose.orientation.z = qr.z;
-        footstep_plan_goal_pub_.publish(cmd);
+        cmd.goal_pose.pose.position.x = (goal_.left.pose.position.x+goal_.right.pose.position.x)/2.0;
+        cmd.goal_pose.pose.position.y = (goal_.left.pose.position.y+goal_.right.pose.position.y)/2.0;
+        cmd.goal_pose.pose.position.z = (goal_.left.pose.position.z+goal_.right.pose.position.z)/2.0;
+        Ogre::Quaternion q1(goal_.left.pose.orientation.w,goal_.left.pose.orientation.x,goal_.left.pose.orientation.y,goal_.left.pose.orientation.z);
+        Ogre::Quaternion q2(goal_.right.pose.orientation.w,goal_.right.pose.orientation.x,goal_.right.pose.orientation.y,goal_.right.pose.orientation.z);
+        Ogre::Quaternion qr = Ogre::Quaternion::Slerp(0.5,q1,q2);
+        cmd.goal_pose.pose.orientation.w = qr.w;
+        cmd.goal_pose.pose.orientation.x = qr.x;
+        cmd.goal_pose.pose.orientation.y = qr.y;
+        cmd.goal_pose.pose.orientation.z = qr.z;
+        footstep_goal_pose_fb_pub_.publish(cmd);
     }
 }
 

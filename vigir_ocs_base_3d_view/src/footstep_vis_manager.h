@@ -61,6 +61,11 @@ public:
     void processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose);
 
     /**
+      * Update goal pose marker
+      */
+    void processGoalPoseFeedback(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal);
+
+    /**
       * Receives list of footsteps and creates/removes interactive markers
       */
     void processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg);
@@ -154,6 +159,8 @@ private:
     ros::Publisher footstep_exec_req_pub_;
 
     ros::Subscriber footstep_goal_sub_;
+    ros::Publisher footstep_goal_pose_fb_pub_;
+    ros::Subscriber footstep_goal_pose_fb_sub_;
     ros::Publisher footstep_plan_goal_pub_;
     ros::Publisher footstep_plan_request_pub_;
     ros::Subscriber footstep_param_set_list_sub_;
@@ -172,6 +179,9 @@ private:
     std::vector<rviz::Display*> display_footstep_marker_list_;
     // marker for step plans
     std::vector<rviz::Display*> display_step_plan_marker_list_;
+
+    // marker for goal
+    rviz::Display* display_goal_marker_;
 
     // new displays for walking
     rviz::Display* footsteps_array_;
