@@ -10,9 +10,15 @@ namespace vigir_ocs
 {
 FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     QObject(NULL),
-    manager_(manager)
+    manager_(manager),
+    display_goal_marker_(NULL)
 {
     // creates all the rviz displays
+    //for step plan goal
+    footsteps_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps array", true );
+    footsteps_array_->subProp( "Marker Topic" )->setValue( "/flor/ocs/footstep/plan_goal_array" );
+
+    //and results
     footsteps_array_ = manager_->createDisplay( "rviz/MarkerArray", "Footsteps array", true );
     footsteps_array_->subProp( "Marker Topic" )->setValue( "/flor/ocs/footstep/footsteps_array" );
 
@@ -40,6 +46,8 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     // publishers and subscribers for the plan request
     footstep_goal_sub_               = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &FootstepVisManager::processGoalPose, this );
     footstep_plan_goal_pub_          = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, false );
+    footstep_goal_pose_fb_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
+    footstep_goal_pose_fb_sub_       = nh_.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/goal_pose_feedback", 1, &FootstepVisManager::processGoalPoseFeedback, this );
     footstep_plan_request_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, false );
     footstep_param_set_list_sub_     = nh_.subscribe<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 5, &FootstepVisManager::processFootstepParamSetList, this );
     footstep_param_set_selected_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 1, false );
@@ -151,6 +159,39 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
     flor_ocs_msgs::OCSFootstepPlanGoal cmd;
     cmd.goal_pose = *pose;
     footstep_plan_goal_pub_.publish(cmd);
+}
+
+void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr &plan_goal)
+{
+    // only do something if it's a new step plan
+    std::string step_pose_string = "/step_plan_goal_marker";
+
+    // if needed, we create a marker
+    if(!display_goal_marker_)
+    {
+        // create a marker server for this footstep
+        flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+        marker.name  = std::string("Step Plan Goal");
+        marker.topic = step_pose_string;
+        marker.frame = manager_->getFixedFrame().toStdString();
+        marker.scale = 0.5;
+        marker.point.x = plan_goal->goal_pose.pose.position.x;
+        marker.point.y = plan_goal->goal_pose.pose.position.y;
+        marker.point.z = plan_goal->goal_pose.pose.position.z;
+        marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF;
+        interactive_marker_add_pub_.publish(marker);
+
+        display_goal_marker_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - Step Plan Goal", true );
+        display_goal_marker_->subProp( "Update Topic" )->setValue( (step_pose_string+"/pose_marker/update").c_str() );
+        display_goal_marker_->subProp( "Show Axes" )->setValue( true );
+        display_goal_marker_->subProp( "Show Visual Aids" )->setValue( true );
+    }
+
+    // update interactive marker pose
+    flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+    cmd.topic = step_pose_string;
+    cmd.pose = plan_goal->goal_pose;
+    interactive_marker_update_pub_.publish(cmd);
 }
 
 void FootstepVisManager::processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg)
@@ -266,6 +307,12 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
             ROS_ERROR("Error: input string was not valid");
         }
 
+    }
+    else if(boost::starts_with(msg.topic,"/step_plan_goal"))
+    {
+        flor_ocs_msgs::OCSFootstepPlanGoal cmd;
+        cmd.goal_pose = msg.pose;
+        footstep_goal_pose_fb_pub_.publish(cmd);
     }
 }
 

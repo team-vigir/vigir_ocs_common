@@ -49,6 +49,7 @@ namespace ocs_footstep
 
         // triggers footstep plan calls
         void processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal);
+        void processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal);
         void processFootstepPlanRequest(const flor_ocs_msgs::OCSFootstepPlanRequest::ConstPtr& plan_request);
 
         // feedback look for interaction, should update stepplan and use actions to edit/update
@@ -154,7 +155,8 @@ namespace ocs_footstep
         ros::Publisher footstep_param_set_list_pub_;
         ros::Subscriber footstep_param_set_selected_sub_;
 
-        ros::Publisher footstep_plan_goal_pub_;
+        ros::Publisher footstep_goal_pose_fb_pub_;
+        ros::Subscriber footstep_goal_pose_fb_sub_;
         ros::Subscriber footstep_plan_goal_sub_;
         ros::Subscriber footstep_plan_request_sub_;
         ros::Subscriber lower_body_state_sub_;
