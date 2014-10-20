@@ -795,8 +795,6 @@ protected:
 
     ros::Subscriber send_cartesian_sub_;
 
-
-
     ////////////////////
     // ghost
 

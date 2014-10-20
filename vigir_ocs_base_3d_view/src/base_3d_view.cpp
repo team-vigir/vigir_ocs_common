@@ -623,10 +623,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
         ghost_joint_arrows_->subProp("Width")->setValue("0.015");
         ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
+        ghost_joint_arrows_->subProp("isGhost")->setValue(true);
 
         disable_joint_markers_ = false;
-        occluded_robot_visible_ = false;
-        //renderTexture1 = NULL;
+        occluded_robot_visible_ = false;        
 
         //setRobotOccludedRender();
 
@@ -635,11 +635,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // initialize Render Order correctly
         setRenderOrder();
 
+        // initialize notification system
         overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
         overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
-
-        // initialize notification system
-        // and test        
 
     }
 
@@ -976,7 +974,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     //Means that currently doing
 
-    if(is_primary_view_ && occluded_robot_visible_)
+    if(is_primary_view_)
         setRenderOrder();   
 
 }
@@ -1120,8 +1118,7 @@ void Base3DView::simulationRobotToggled( bool selected )
     if(selected)
     {
         update_markers_ = true;
-
-        publishGhostPoses();
+        publishGhostPoses();        
     }
 
     ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.5f );

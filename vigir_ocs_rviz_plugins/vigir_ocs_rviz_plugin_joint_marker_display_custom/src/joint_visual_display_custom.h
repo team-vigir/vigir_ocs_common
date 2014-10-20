@@ -75,6 +75,9 @@ public:
     void setWidth( float w );
     void setScale( float s );
 
+    //only to be called from joint marker display custom, should be friended?
+    void update( float wall_dt, float ros_dt );
+
 
 
 
@@ -104,10 +107,16 @@ private:
     std::map<std::string, Ogre::Vector3> position_;
     std::map<std::string, Ogre::Quaternion> orientation_;
 
+    //store last msg for update function
+    sensor_msgs::JointState::ConstPtr joint_msg_;
+
     //used to determine circular size of markers
     float marker_scale_;
-
     float width_, scale_;
+
+    //determines the rate at which arrows move around circles
+    float arrow_step_interval_;
+    float arrow_timer_;
 
     std::map<std::string,int> current_arrow_point_;
 
