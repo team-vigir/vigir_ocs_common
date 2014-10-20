@@ -44,6 +44,8 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     connect(ghub_,SIGNAL(sendFlorStatus(int)),this,SLOT(receiveFlorStatus(int)));
     connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(receiveModeChange(int)));
 
+    ui->modeBox->installEventFilter(this);
+
     //set popup width larger
     ui->modeBox->view()->setFixedWidth(130);
 
@@ -69,6 +71,12 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     flash_footstep_counter_ = 0;
     flash_moveit_counter_ = 0;
     white_ = "QLabel {background-color: white; border:2px solid grey;}";
+}
+
+glancehubSbar::~glancehubSbar()
+{
+    delete ghub_;
+    delete ui;
 }
 
 void glancehubSbar::timerEvent(QTimerEvent *event)
@@ -122,7 +130,7 @@ void glancehubSbar::timerEvent(QTimerEvent *event)
     }
 }
 
-void glancehubSbar::receiveModeChange(int mode)
+void glancehubSbar::receiveModeChange(int mode, bool publish)
 {
     ui->modelabel->setStyleSheet("QLabel{color:red; }");
 
@@ -134,11 +142,20 @@ void glancehubSbar::receiveModeChange(int mode)
 
     ui->modelabel->setText(previous_selection_+" -> "+newText);
 
-    flor_control_msgs::FlorControlModeCommand msg;
-    msg.header.stamp = ros::Time::now();
-    msg.requested_control_mode = mode;
-    previous_selection_ = newText;
-    mode_pub_.publish(msg);
+    // since we're already receiving an UI event for this, set current index but use event filter to ignore events
+    ignore_events_ = true;
+    ui->modeBox->setCurrentIndex(mode);
+    ignore_events_ = false;
+
+    // only publish the mode selection command if this slot is called from UI or if publish is not set to false
+    if(publish)
+    {
+        flor_control_msgs::FlorControlModeCommand msg;
+        msg.header.stamp = ros::Time::now();
+        msg.requested_control_mode = mode;
+        previous_selection_ = newText;
+        mode_pub_.publish(msg);
+    }
 
     //notify on 3d view                     previous is still at the state we want right now
     QString notificationText = QString("Changed Robot Mode to ") + previous_selection_ ;
@@ -155,6 +172,8 @@ void glancehubSbar::receiveMoveitStatus(bool status)
     {
         //moveit failed
         flash_color_moveit_ = "QLabel { background-color: red;border:2px solid grey; }";
+
+        //notify ui on failure
         NotificationSystem::Instance()->notifyWarning("Moveit Failed");
     }
     else
@@ -171,21 +190,21 @@ void glancehubSbar::receiveMoveitStatus(bool status)
 
 void glancehubSbar::receiveFootstepStatus(int status)
 {
-        switch(status)
-        {
-        case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE:
-            flash_color_footstep_ = "QLabel { background-color: yellow; border:2px solid grey;}";
-            break;
-        case RobotStatusCodes::FOOTSTEP_PLANNER_FAILED:
-            flash_color_footstep_ = "QLabel { background-color: red; border:2px solid grey; }";
+    switch(status)
+    {
+    case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE:
+        flash_color_footstep_ = "QLabel { background-color: yellow; border:2px solid grey;}";
+        break;
+    case RobotStatusCodes::FOOTSTEP_PLANNER_FAILED:
+        flash_color_footstep_ = "QLabel { background-color: red; border:2px solid grey; }";
 
-            //notify ui on failure
-            NotificationSystem::Instance()->notifyWarning("Footstep Planner Failed");
-            break;
-        case RobotStatusCodes::FOOTSTEP_PLANNER_SUCCESS:
-            flash_color_footstep_ = "QLabel { background-color: green; border:2px solid grey;}";
-            break;
-        }
+        //notify ui on failure
+        NotificationSystem::Instance()->notifyWarning("Footstep Planner Failed");
+        break;
+    case RobotStatusCodes::FOOTSTEP_PLANNER_SUCCESS:
+        flash_color_footstep_ = "QLabel { background-color: green; border:2px solid grey;}";
+        break;
+    }
     ui->footstepLight->setToolTip(ghub_->getFootstepStat());
     ui->footstepLabel->setToolTip(ghub_->getFootstepStat());
     flashing_footstep_ = true;
@@ -194,30 +213,14 @@ void glancehubSbar::receiveFootstepStatus(int status)
 
 void glancehubSbar::receiveFlorStatus(int status)
 {
-    updateBoxSelection(status);
+    receiveModeChange(status,false); // change mode but don't want to publish
     ui->modelabel->setText(""); // only want to display transitions
 }
 
-void glancehubSbar::updateBoxSelection(int mode)
+bool glancehubSbar::eventFilter( QObject * o, QEvent * e )
 {
-    QString newText;
-    if (mode >= 0 && mode <  allowed_control_modes_.size())
-        newText = QString::fromStdString(allowed_control_modes_[mode]);
+    if(!ignore_events_)
+        return ui->modeBox->eventFilter( o, e );
     else
-        newText = QString::fromStdString("Unknown");
-
-    if(newText == "stop")
-    {
-        ui->modeBox->setCurrentIndex(0);
-        return;
-    }
-
-    ui->modeBox->setCurrentIndex(mode);
-
-}
-
-glancehubSbar::~glancehubSbar()
-{
-    delete(ghub_);
-    delete ui;
+        return true;
 }
