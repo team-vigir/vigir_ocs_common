@@ -22,6 +22,7 @@
 #include <flor_ocs_msgs/OCSFootstepList.h>
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepPlanGoal.h>
+#include <flor_ocs_msgs/OCSFootstepPlanGoalFeedback.h>
 #include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
 
@@ -63,7 +64,7 @@ public:
     /**
       * Update goal pose marker
       */
-    void processGoalPoseFeedback(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal);
+    void processGoalPoseFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalFeedback::ConstPtr& plan_goal);
 
     /**
       * Receives list of footsteps and creates/removes interactive markers
@@ -115,6 +116,11 @@ public Q_SLOTS:
       * Set visibility of all footstep-related displays
       */
     void setEnabled(bool enabled);
+
+    /**
+      * Set visibility of individual footstep interactive marker
+      */
+    void enableFootstepGoalMarker(int footstep_id, bool enabled);
 
     /**
       * Set visibility of individual footstep interactive marker
@@ -182,6 +188,7 @@ private:
 
     // marker for goal
     rviz::Display* display_goal_marker_;
+    rviz::Display* display_goal_footstep_marker_[2]; //0 left 1 right
 
     // new displays for walking
     rviz::Display* footsteps_array_;

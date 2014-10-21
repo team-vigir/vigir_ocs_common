@@ -231,6 +231,8 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                         object_type = 2;
                     else if(boost::algorithm::starts_with(user_data,"template"))
                         object_type = 3;
+                    else if(boost::algorithm::starts_with(user_data,"footstep goal"))
+                        object_type = 4;
                     else if(boost::algorithm::starts_with(user_data,"footstep"))
                         object_type = 4;
                     object_name = user_data;
@@ -319,6 +321,8 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                         object_type = 2;
                     else if(boost::algorithm::starts_with(user_data,"template"))
                         object_type = 3;
+                    else if(boost::algorithm::starts_with(user_data,"footstep goal"))
+                        object_type = 4;
                     else if(boost::algorithm::starts_with(user_data,"footstep"))
                         object_type = 4;
                 }

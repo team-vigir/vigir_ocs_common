@@ -643,9 +643,13 @@ protected:
       */
     void selectTemplate(int id);
     /**
-      * Select a template
+      * Select a footstep
       */
     void selectFootstep(int id);
+    /**
+      * Select a footstep from the step plan goal
+      */
+    void selectFootstepGoal(int id);
     /**
       * select left arm end effector
       */

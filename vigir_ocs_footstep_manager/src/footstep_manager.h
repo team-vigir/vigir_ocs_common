@@ -19,9 +19,12 @@
 #include <flor_ocs_msgs/OCSFootstepList.h>
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepPlanGoal.h>
+#include <flor_ocs_msgs/OCSFootstepPlanGoalFeedback.h>
 #include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
+
 #include <flor_state_msgs/LowerBodyState.h>
+
 #include <vigir_footstep_planning_msgs/UpdateFeetAction.h>
 #include <vigir_footstep_planning_msgs/StepPlanRequestAction.h>
 #include <vigir_footstep_planning_msgs/EditStepAction.h>
@@ -29,6 +32,9 @@
 #include <vigir_footstep_planning_msgs/UpdateStepPlanAction.h>
 #include <vigir_footstep_planning_msgs/ExecuteStepPlanAction.h>
 #include <vigir_footstep_planning_msgs/GetAllParameterSetsAction.h>
+#include <vigir_footstep_planning_msgs/ParameterSet.h>
+
+#include <vigir_global_footstep_planner/parameter_set.h>
 
 #include <actionlib/client/simple_action_client.h>
 
@@ -49,7 +55,7 @@ namespace ocs_footstep
 
         // triggers footstep plan calls
         void processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal);
-        void processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal);
+        void processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalFeedback::ConstPtr& plan_goal);
         void processFootstepPlanRequest(const flor_ocs_msgs::OCSFootstepPlanRequest::ConstPtr& plan_request);
 
         // feedback look for interaction, should update stepplan and use actions to edit/update
@@ -108,6 +114,7 @@ namespace ocs_footstep
         void publishFootsteps();
         void publishFootstepList();
         void publishFootstepParameterSetList();
+        void publishGoalMarkerFeedback();
 
         // plan requests
         void calculateGoal(); // calculate initial goal pose
@@ -171,7 +178,7 @@ namespace ocs_footstep
         nav_msgs::Path footstep_path_;
 
         // Footstep parameter sets
-        std::vector<std::string> footstep_parameter_set_list_;
+        std::vector<vigir_footstep_planning_msgs::ParameterSet> footstep_parameter_set_list_;
         std::string selected_footstep_parameter_set_;
 
         // Parameters

@@ -10,8 +10,7 @@ namespace vigir_ocs
 {
 FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     QObject(NULL),
-    manager_(manager),
-    display_goal_marker_(NULL)
+    manager_(manager)
 {
     // creates all the rviz displays
     //for step plan goal
@@ -46,8 +45,8 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     // publishers and subscribers for the plan request
     footstep_goal_sub_               = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &FootstepVisManager::processGoalPose, this );
     footstep_plan_goal_pub_          = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, false );
-    footstep_goal_pose_fb_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
-    footstep_goal_pose_fb_sub_       = nh_.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/goal_pose_feedback", 1, &FootstepVisManager::processGoalPoseFeedback, this );
+    footstep_goal_pose_fb_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoalFeedback>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
+    footstep_goal_pose_fb_sub_       = nh_.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalFeedback>( "/flor/ocs/footstep/goal_pose_feedback", 1, &FootstepVisManager::processGoalPoseFeedback, this );
     footstep_plan_request_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, false );
     footstep_param_set_list_sub_     = nh_.subscribe<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 5, &FootstepVisManager::processFootstepParamSetList, this );
     footstep_param_set_selected_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 1, false );
@@ -65,6 +64,11 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     path_length_ratio_ = 0;
     interaction_mode_ = 0;
     pattern_generation_enabled_ = 0;
+
+    // initialize displays for goals
+    display_goal_marker_ = NULL;
+    display_goal_footstep_marker_[0] = NULL;
+    display_goal_footstep_marker_[1] = NULL;
 }
 
 FootstepVisManager::~FootstepVisManager()
@@ -85,6 +89,14 @@ void FootstepVisManager::setRequestMode(unsigned char mode, int start_index)
     start_step_index_ = start_index;
 }
 
+void FootstepVisManager::enableFootstepGoalMarker(int footstep_id, bool enabled)
+{
+    if(footstep_id < 0 || footstep_id > 1)
+        return;
+    if(display_goal_footstep_marker_[footstep_id])
+        display_goal_footstep_marker_[footstep_id]->setEnabled( enabled );
+}
+
 void FootstepVisManager::enableFootstepMarker(int footstep_id, bool enabled)
 {
     if(footstep_id < 0 || footstep_id >= display_footstep_marker_list_.size())
@@ -96,12 +108,17 @@ void FootstepVisManager::enableFootstepMarkers(bool enabled)
 {
     for(int i = 0; i < display_footstep_marker_list_.size(); i++)
         display_footstep_marker_list_[i]->setEnabled( enabled );
+    for(int i = 0; i < 2; i++)
+        if(display_goal_footstep_marker_[i])
+            display_goal_footstep_marker_[i]->setEnabled( enabled );
 }
 
 void FootstepVisManager::enableStepPlanMarkers(bool enabled)
 {
     for(int i = 0; i < display_step_plan_marker_list_.size(); i++)
         display_step_plan_marker_list_[i]->setEnabled( enabled );
+    if(display_goal_marker_)
+        display_goal_marker_->setEnabled(enabled);
 }
 
 void FootstepVisManager::setFootstepParameterSet(QString selected)
@@ -161,37 +178,76 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
     footstep_plan_goal_pub_.publish(cmd);
 }
 
-void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr &plan_goal)
+void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalFeedback::ConstPtr &plan_goal)
 {
-    // only do something if it's a new step plan
-    std::string step_pose_string = "/step_plan_goal_marker";
-
-    // if needed, we create a marker
-    if(!display_goal_marker_)
+    // only do something if we're getting feedback
+    if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalFeedback::FEEDBACK)
     {
-        // create a marker server for this footstep
-        flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
-        marker.name  = std::string("Step Plan Goal");
-        marker.topic = step_pose_string;
-        marker.frame = manager_->getFixedFrame().toStdString();
-        marker.scale = 0.5;
-        marker.point.x = plan_goal->goal_pose.pose.position.x;
-        marker.point.y = plan_goal->goal_pose.pose.position.y;
-        marker.point.z = plan_goal->goal_pose.pose.position.z;
-        marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF;
-        interactive_marker_add_pub_.publish(marker);
+        // create/update step plan goal marker
+        {
+        std::string step_pose_string = "/step_plan_goal_marker";
 
-        display_goal_marker_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - Step Plan Goal", true );
-        display_goal_marker_->subProp( "Update Topic" )->setValue( (step_pose_string+"/pose_marker/update").c_str() );
-        display_goal_marker_->subProp( "Show Axes" )->setValue( true );
-        display_goal_marker_->subProp( "Show Visual Aids" )->setValue( true );
+        // if needed, we create a marker
+        if(!display_goal_marker_)
+        {
+            // create a marker server for this footstep
+            flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+            marker.name  = std::string("Step Plan Goal");
+            marker.topic = step_pose_string;
+            marker.frame = manager_->getFixedFrame().toStdString();
+            marker.scale = 0.5;
+            marker.point.x = plan_goal->goal_pose.pose.position.x;
+            marker.point.y = plan_goal->goal_pose.pose.position.y;
+            marker.point.z = plan_goal->goal_pose.pose.position.z;
+            marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF;
+            interactive_marker_add_pub_.publish(marker);
+
+            display_goal_marker_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - Step Plan Goal", true );
+            display_goal_marker_->subProp( "Update Topic" )->setValue( (step_pose_string+"/pose_marker/update").c_str() );
+            display_goal_marker_->subProp( "Show Axes" )->setValue( true );
+            display_goal_marker_->subProp( "Show Visual Aids" )->setValue( true );
+        }
+
+        // update interactive marker pose
+        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.topic = step_pose_string;
+        cmd.pose = plan_goal->goal_pose;
+        interactive_marker_update_pub_.publish(cmd);
+        }
+        // create/update footstep goal markers - 0 left, 1 right
+        for(int i = 0; i < 2; i++)
+        {
+            std::string pose_string = i ? "/footstep_goal_right" : "/footstep_goal_left";
+
+            // if needed, we create a marker
+            if(!display_goal_footstep_marker_[i])
+            {
+                // create a marker server for this footstep
+                flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+                marker.name  = std::string("Footstep Goal ")+(i ? "Right" : "Left");
+                marker.topic = pose_string;
+                marker.frame = manager_->getFixedFrame().toStdString();
+                marker.scale = 0.2;
+                marker.point.x = i ? plan_goal->right_foot.pose.position.x : plan_goal->left_foot.pose.position.x;
+                marker.point.y = i ? plan_goal->right_foot.pose.position.y : plan_goal->left_foot.pose.position.y;
+                marker.point.z = i ? plan_goal->right_foot.pose.position.z : plan_goal->left_foot.pose.position.z;
+                marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::OBJECT_6DOF;
+                interactive_marker_add_pub_.publish(marker);
+
+                rviz::Display* im = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker - Footstep  Goal ")+(i ? "Right" : "Left")).c_str(), false );
+                im->subProp( "Update Topic" )->setValue( (pose_string+"/pose_marker/update").c_str() );
+                im->subProp( "Show Axes" )->setValue( true );
+                im->subProp( "Show Visual Aids" )->setValue( true );
+                display_goal_footstep_marker_[i] = im;
+            }
+
+            // update interactive marker pose
+            flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+            cmd.topic = pose_string;
+            cmd.pose.pose = i ? plan_goal->right_foot.pose : plan_goal->left_foot.pose;
+            interactive_marker_update_pub_.publish(cmd);
+        }
     }
-
-    // update interactive marker pose
-    flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-    cmd.topic = step_pose_string;
-    cmd.pose = plan_goal->goal_pose;
-    interactive_marker_update_pub_.publish(cmd);
 }
 
 void FootstepVisManager::processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg)
@@ -286,12 +342,32 @@ void FootstepVisManager::updateInteractiveMarkers()
             interactive_marker_update_pub_.publish(cmd);
         }
     }
-
 }
 
 void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg)
 {
-    if(boost::starts_with(msg.topic,"/footstep_"))
+    // goal feedback
+    if(boost::starts_with(msg.topic,"/footstep_goal") || boost::starts_with(msg.topic,"/step_plan_goal"))
+    {
+        flor_ocs_msgs::OCSFootstepPlanGoalFeedback cmd;
+        if(boost::starts_with(msg.topic,"/step_plan_goal"))
+        {
+            cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalFeedback::GOAL;
+            cmd.goal_pose = msg.pose;
+        }
+        else if(boost::starts_with(msg.topic,"/footstep_goal_left"))
+        {
+            cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalFeedback::LEFT;
+            cmd.left_foot = msg.pose;
+        }
+        else if(boost::starts_with(msg.topic,"/footstep_goal_right"))
+        {
+            cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalFeedback::RIGHT;
+            cmd.right_foot = msg.pose;
+        }
+        footstep_goal_pose_fb_pub_.publish(cmd);
+    }
+    else if(boost::starts_with(msg.topic,"/footstep_"))
     {
         try
         {
@@ -307,12 +383,6 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
             ROS_ERROR("Error: input string was not valid");
         }
 
-    }
-    else if(boost::starts_with(msg.topic,"/step_plan_goal"))
-    {
-        flor_ocs_msgs::OCSFootstepPlanGoal cmd;
-        cmd.goal_pose = msg.pose;
-        footstep_goal_pose_fb_pub_.publish(cmd);
     }
 }
 

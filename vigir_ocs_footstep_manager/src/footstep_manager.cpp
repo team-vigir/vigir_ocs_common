@@ -42,8 +42,8 @@ void FootstepManager::onInit()
     footstep_param_set_selected_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 5, &FootstepManager::processFootstepParamSetSelected, this );
 
     // footstep request coming from the OCS
-    footstep_goal_pose_fb_pub_  = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
-    footstep_goal_pose_fb_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/goal_pose_feedback", 1, &FootstepManager::processFootstepPlanGoalFeedback, this );
+    footstep_goal_pose_fb_pub_  = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoalFeedback>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
+    footstep_goal_pose_fb_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalFeedback>( "/flor/ocs/footstep/goal_pose_feedback", 1, &FootstepManager::processFootstepPlanGoalFeedback, this );
     footstep_plan_goal_sub_     = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, &FootstepManager::processFootstepPlanGoal, this );
     footstep_plan_request_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, &FootstepManager::processFootstepPlanRequest, this );
 
@@ -197,7 +197,6 @@ void FootstepManager::feetToFootMarkerArray(vigir_footstep_planning_msgs::Feet& 
 {
     foot_array_msg.markers.clear();
 
-    // left
     for(int i = 0; i < 2; i++)
     {
         visualization_msgs::Marker marker;
@@ -212,7 +211,7 @@ void FootstepManager::feetToFootMarkerArray(vigir_footstep_planning_msgs::Feet& 
         marker.color.g = 0.0;
         marker.color.b = 0.6;
         marker.color.a = 0.5;
-        marker.ns = std::string("footstep");
+        marker.ns = std::string("footstep goal");
         foot_array_msg.markers.push_back(marker);
 
         // add text
@@ -237,14 +236,16 @@ void FootstepManager::stepPlanToFootMarkerArray(std::vector<vigir_footstep_plann
 
     for(int i = 0; i < input.size(); i++)
     {
+        // get the parameter set used for this step plan
         for(int j = 0; j < input[i].steps.size(); j++)
         {
             visualization_msgs::Marker marker;
             stepToMarker(input[i].steps[j], marker);
 
             marker.id = foot_array_msg.markers.size();
-            marker.color.r = 0.0;//input.steps[i].foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? 0.6 : 0.0;
-            marker.color.g = 0.6;//input.steps[i].foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? 0.0 : 0.6;
+            // need something better than this to compute color, but for now we only have two known modes (green, yellow)
+            marker.color.r = input[i].mode == 4 ? 0.6 : 0.0; // TO DO: READ PARAMETER MAP FOR MODE -> COLOR
+            marker.color.g = 0.6;
             marker.color.b = 0.0;
             marker.color.a = 0.5;
             marker.ns = std::string("footstep");
@@ -358,81 +359,111 @@ void FootstepManager::processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPl
     sendUpdateFeetGoal(goal_);
 }
 
-void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal)
+void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalFeedback::ConstPtr& plan_goal)
 {
-    // need to update feet poses, so we first find the difference between the old and the new pose
-    Ogre::Vector3 p_old(goal_pose_.pose.position.x,
-                        goal_pose_.pose.position.y,
-                        goal_pose_.pose.position.z);
-    Ogre::Vector3 p_new(plan_goal->goal_pose.pose.position.x,
-                        plan_goal->goal_pose.pose.position.y,
-                        plan_goal->goal_pose.pose.position.z);
-    Ogre::Quaternion q_old( goal_pose_.pose.orientation.w, // need the conjugate (w,-x,-y,-z) of the old one
-                           -goal_pose_.pose.orientation.x,
-                           -goal_pose_.pose.orientation.y,
-                           -goal_pose_.pose.orientation.z);
-    Ogre::Quaternion q_new(plan_goal->goal_pose.pose.orientation.w,
-                           plan_goal->goal_pose.pose.orientation.x,
-                           plan_goal->goal_pose.pose.orientation.y,
-                           plan_goal->goal_pose.pose.orientation.z);
-    Ogre::Quaternion d_quat = q_old * q_new;
+    // only one that sends feedback is the manager, so return to avoid infinite loop
+    if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalFeedback::FEEDBACK)
+        return;
 
-    // update left foot
+    if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalFeedback::GOAL)
     {
-    // need to calculate position relative to old goal pose
-    Ogre::Vector3 d(goal_.left.pose.position.x-goal_pose_.pose.position.x,
-                    goal_.left.pose.position.y-goal_pose_.pose.position.y,
-                    goal_.left.pose.position.z-goal_pose_.pose.position.z);
-    d = p_new + d_quat * d;
+        // need to update feet poses, so we first find the difference between the old and the new pose
+        Ogre::Vector3 p_old(goal_pose_.pose.position.x,
+                            goal_pose_.pose.position.y,
+                            goal_pose_.pose.position.z);
+        Ogre::Vector3 p_new(plan_goal->goal_pose.pose.position.x,
+                            plan_goal->goal_pose.pose.position.y,
+                            plan_goal->goal_pose.pose.position.z);
+        Ogre::Quaternion q_old( goal_pose_.pose.orientation.w, // need the conjugate (w,-x,-y,-z) of the old one
+                               -goal_pose_.pose.orientation.x,
+                               -goal_pose_.pose.orientation.y,
+                               -goal_pose_.pose.orientation.z);
+        Ogre::Quaternion q_new(plan_goal->goal_pose.pose.orientation.w,
+                               plan_goal->goal_pose.pose.orientation.x,
+                               plan_goal->goal_pose.pose.orientation.y,
+                               plan_goal->goal_pose.pose.orientation.z);
+        Ogre::Quaternion d_quat = q_old * q_new;
 
-    goal_.left.pose.position.x = d.x;
-    goal_.left.pose.position.y = d.y;
-    goal_.left.pose.position.z = d.z;
+        // update left foot
+        {
+        // need to calculate position relative to old goal pose
+        Ogre::Vector3 d(goal_.left.pose.position.x-goal_pose_.pose.position.x,
+                        goal_.left.pose.position.y-goal_pose_.pose.position.y,
+                        goal_.left.pose.position.z-goal_pose_.pose.position.z);
+        d = p_new + d_quat * d;
 
-    // and we need to multiply quaternions
-    Ogre::Quaternion q(goal_.left.pose.orientation.w,
-                       goal_.left.pose.orientation.x,
-                       goal_.left.pose.orientation.y,
-                       goal_.left.pose.orientation.z);
-    q = d_quat * q;
+        goal_.left.pose.position.x = d.x;
+        goal_.left.pose.position.y = d.y;
+        goal_.left.pose.position.z = d.z;
 
-    goal_.left.pose.orientation.w = q.w;
-    goal_.left.pose.orientation.x = q.x;
-    goal_.left.pose.orientation.y = q.y;
-    goal_.left.pose.orientation.z = q.z;
+        // and we need to multiply quaternions
+        Ogre::Quaternion q(goal_.left.pose.orientation.w,
+                           goal_.left.pose.orientation.x,
+                           goal_.left.pose.orientation.y,
+                           goal_.left.pose.orientation.z);
+        q = d_quat * q;
+
+        goal_.left.pose.orientation.w = q.w;
+        goal_.left.pose.orientation.x = q.x;
+        goal_.left.pose.orientation.y = q.y;
+        goal_.left.pose.orientation.z = q.z;
+        }
+        // update right foot
+        {
+        // need to calculate position relative to old goal pose
+        Ogre::Vector3 d(goal_.right.pose.position.x-goal_pose_.pose.position.x,
+                        goal_.right.pose.position.y-goal_pose_.pose.position.y,
+                        goal_.right.pose.position.z-goal_pose_.pose.position.z);
+        d = p_new + d_quat * d;
+
+        goal_.right.pose.position.x = d.x;
+        goal_.right.pose.position.y = d.y;
+        goal_.right.pose.position.z = d.z;
+        // and we need to multiply quaternions
+        Ogre::Quaternion q(goal_.right.pose.orientation.w,
+                           goal_.right.pose.orientation.x,
+                           goal_.right.pose.orientation.y,
+                           goal_.right.pose.orientation.z);
+        q = d_quat * q;
+
+        goal_.right.pose.orientation.w = q.w;
+        goal_.right.pose.orientation.x = q.x;
+        goal_.right.pose.orientation.y = q.y;
+        goal_.right.pose.orientation.z = q.z;
+        }
+
+        // updates internal goal pose
+        goal_pose_ = plan_goal->goal_pose;
     }
-    // update right foot
+    else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalFeedback::LEFT)
     {
-    // need to calculate position relative to old goal pose
-    Ogre::Vector3 d(goal_.right.pose.position.x-goal_pose_.pose.position.x,
-                    goal_.right.pose.position.y-goal_pose_.pose.position.y,
-                    goal_.right.pose.position.z-goal_pose_.pose.position.z);
-    d = p_new + d_quat * d;
-
-    goal_.right.pose.position.x = d.x;
-    goal_.right.pose.position.y = d.y;
-    goal_.right.pose.position.z = d.z;
-    // and we need to multiply quaternions
-    Ogre::Quaternion q(goal_.right.pose.orientation.w,
-                       goal_.right.pose.orientation.x,
-                       goal_.right.pose.orientation.y,
-                       goal_.right.pose.orientation.z);
-    q = d_quat * q;
-
-    goal_.right.pose.orientation.w = q.w;
-    goal_.right.pose.orientation.x = q.x;
-    goal_.right.pose.orientation.y = q.y;
-    goal_.right.pose.orientation.z = q.z;
+        goal_.left.pose.position.x = plan_goal->left_foot.pose.position.x;
+        goal_.left.pose.position.y = plan_goal->left_foot.pose.position.y;
+        goal_.left.pose.position.z = plan_goal->left_foot.pose.position.z;
+        goal_.left.pose.orientation.w = plan_goal->left_foot.pose.orientation.w;
+        goal_.left.pose.orientation.x = plan_goal->left_foot.pose.orientation.x;
+        goal_.left.pose.orientation.y = plan_goal->left_foot.pose.orientation.y;
+        goal_.left.pose.orientation.z = plan_goal->left_foot.pose.orientation.z;
     }
-
-    // updates internal goal pose
-    goal_pose_ = plan_goal->goal_pose;
+    else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalFeedback::RIGHT)
+    {
+        goal_.right.pose.position.x = plan_goal->right_foot.pose.position.x;
+        goal_.right.pose.position.y = plan_goal->right_foot.pose.position.y;
+        goal_.right.pose.position.z = plan_goal->right_foot.pose.position.z;
+        goal_.right.pose.orientation.w = plan_goal->right_foot.pose.orientation.w;
+        goal_.right.pose.orientation.x = plan_goal->right_foot.pose.orientation.x;
+        goal_.right.pose.orientation.y = plan_goal->right_foot.pose.orientation.y;
+        goal_.right.pose.orientation.z = plan_goal->right_foot.pose.orientation.z;
+    }
 
     // need to update feet poses
     updateGoalVisMsgs();
 
     // send
     plan_goal_array_pub_.publish(footstep_array_);
+
+    // and update the interactive markers
+    publishGoalMarkerFeedback();
 }
 
 void FootstepManager::calculateGoal()
@@ -585,6 +616,18 @@ void FootstepManager::updateGoalVisMsgs()
     footstep_array_ = foot_array_msg;
 }
 
+void FootstepManager::publishGoalMarkerFeedback()
+{
+    flor_ocs_msgs::OCSFootstepPlanGoalFeedback cmd;
+    cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalFeedback::FEEDBACK;
+    // for stepplan goal
+    cmd.goal_pose = goal_pose_;
+    // and for goal feetposes
+    cmd.left_foot.pose = goal_.left.pose;
+    cmd.right_foot.pose = goal_.right.pose;
+    footstep_goal_pose_fb_pub_.publish(cmd);
+}
+
 void FootstepManager::publishFootsteps()
 {
     // update visualization msgs so we can publish them
@@ -620,7 +663,10 @@ void FootstepManager::publishFootstepList()
 void FootstepManager::publishFootstepParameterSetList()
 {
     flor_ocs_msgs::OCSFootstepParamSetList cmd;
-    cmd.param_set = footstep_parameter_set_list_;
+    for(int i = 0; i < footstep_parameter_set_list_.size(); i++)
+    {
+        cmd.param_set.push_back(footstep_parameter_set_list_[i].name.data);
+    }
     footstep_param_set_list_pub_.publish(cmd);
 }
 
@@ -642,24 +688,24 @@ void FootstepManager::sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet& fee
     }
     else
     {
-        ROS_ERROR("UpdateFeet: Server not connected!");
+        ROS_INFO("UpdateFeet: Server not connected!");
     }
 }
 
 // action callbacks for goal feet pose update request
 void FootstepManager::activeUpdateFeet()
 {
-    ROS_ERROR("UpdateFeet: Status changed to active.");
+    ROS_INFO("UpdateFeet: Status changed to active.");
 }
 
 void FootstepManager::feedbackUpdateFeet(const vigir_footstep_planning_msgs::UpdateFeetFeedbackConstPtr& feedback)
 {
-    ROS_ERROR("UpdateFeet: Feedback received.");
+    ROS_INFO("UpdateFeet: Feedback received.");
 }
 
 void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::UpdateFeetResultConstPtr& result)
 {
-    ROS_ERROR("UpdateFeet: Got action response. %s", result->status.error_msg.c_str());
+    ROS_INFO("UpdateFeet: Got action response. %s", result->status.error_msg.c_str());
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
@@ -671,19 +717,20 @@ void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& sta
 
         plan_goal_array_pub_.publish(footstep_array_);
 
-        // and update the interactive marker for the goal
-        flor_ocs_msgs::OCSFootstepPlanGoal cmd;
-        cmd.goal_pose.pose.position.x = (goal_.left.pose.position.x+goal_.right.pose.position.x)/2.0;
-        cmd.goal_pose.pose.position.y = (goal_.left.pose.position.y+goal_.right.pose.position.y)/2.0;
-        cmd.goal_pose.pose.position.z = (goal_.left.pose.position.z+goal_.right.pose.position.z)/2.0;
+        // update goal pose - should I be doing this?
+        goal_pose_.pose.position.x = (goal_.left.pose.position.x+goal_.right.pose.position.x)/2.0;
+        goal_pose_.pose.position.y = (goal_.left.pose.position.y+goal_.right.pose.position.y)/2.0;
+        goal_pose_.pose.position.z = (goal_.left.pose.position.z+goal_.right.pose.position.z)/2.0;
         Ogre::Quaternion q1(goal_.left.pose.orientation.w,goal_.left.pose.orientation.x,goal_.left.pose.orientation.y,goal_.left.pose.orientation.z);
         Ogre::Quaternion q2(goal_.right.pose.orientation.w,goal_.right.pose.orientation.x,goal_.right.pose.orientation.y,goal_.right.pose.orientation.z);
         Ogre::Quaternion qr = Ogre::Quaternion::Slerp(0.5,q1,q2);
-        cmd.goal_pose.pose.orientation.w = qr.w;
-        cmd.goal_pose.pose.orientation.x = qr.x;
-        cmd.goal_pose.pose.orientation.y = qr.y;
-        cmd.goal_pose.pose.orientation.z = qr.z;
-        footstep_goal_pose_fb_pub_.publish(cmd);
+        goal_pose_.pose.orientation.w = qr.w;
+        goal_pose_.pose.orientation.x = qr.x;
+        goal_pose_.pose.orientation.y = qr.y;
+        goal_pose_.pose.orientation.z = qr.z;
+
+        // and update the interactive markers
+        publishGoalMarkerFeedback();
     }
 }
 
@@ -723,30 +770,30 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     }
     else
     {
-        ROS_ERROR("StepPlanRequest: Server not connected!");
+        ROS_INFO("StepPlanRequest: Server not connected!");
     }
 }
 
 // action callbacks for step plan request
 void FootstepManager::activeStepPlanRequest()
 {
-    ROS_ERROR("StepPlanRequest: Status changed to active.");
+    ROS_INFO("StepPlanRequest: Status changed to active.");
 }
 
 void FootstepManager::feedbackStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequestFeedbackConstPtr& feedback)
 {
-    ROS_ERROR("StepPlanRequest: Feedback received.");
+    ROS_INFO("StepPlanRequest: Feedback received.");
 }
 
 void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::StepPlanRequestResultConstPtr& result)
 {
-    ROS_ERROR("StepPlanRequest: Got action response. %s", result->status.error_msg.c_str());
+    ROS_INFO("StepPlanRequest: Got action response. %s", result->status.error_msg.c_str());
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
         if(result->step_plan.steps.size() == 0)
         {
-            ROS_ERROR("StepPlanRequest: Received empty step plan.");
+            ROS_INFO("StepPlanRequest: Received empty step plan.");
             return;
         }
 
@@ -787,24 +834,24 @@ void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& s
     }
     else
     {
-        ROS_ERROR("EditStep: Server not connected!");
+        ROS_INFO("EditStep: Server not connected!");
     }
 }
 
 // action callbacks
 void FootstepManager::activeEditStep()
 {
-    ROS_ERROR("EditStep: Status changed to active.");
+    ROS_INFO("EditStep: Status changed to active.");
 }
 
 void FootstepManager::feedbackEditStep(const vigir_footstep_planning_msgs::EditStepFeedbackConstPtr& feedback)
 {
-    ROS_ERROR("EditStep: Feedback received.");
+    ROS_INFO("EditStep: Feedback received.");
 }
 
 void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::EditStepResultConstPtr& result)
 {
-    ROS_ERROR("EditStep: Got action response. %s", result->status.error_msg.c_str());
+    ROS_INFO("EditStep: Got action response. %s", result->status.error_msg.c_str());
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
@@ -844,24 +891,24 @@ void FootstepManager::sendStitchStepPlanGoal(std::vector<vigir_footstep_planning
     }
     else
     {
-        ROS_ERROR("StitchStepPlan: Server not connected!");
+        ROS_INFO("StitchStepPlan: Server not connected!");
     }
 }
 
 // action callbacks
 void FootstepManager::activeStitchStepPlan()
 {
-    ROS_ERROR("StitchStepPlan: Status changed to active.");
+    ROS_INFO("StitchStepPlan: Status changed to active.");
 }
 
 void FootstepManager::feedbackStitchStepPlan(const vigir_footstep_planning_msgs::StitchStepPlanFeedbackConstPtr& feedback)
 {
-    ROS_ERROR("StitchStepPlan: Feedback received.");
+    ROS_INFO("StitchStepPlan: Feedback received.");
 }
 
 void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::StitchStepPlanResultConstPtr& result)
 {
-    ROS_ERROR("StitchStepPlan: Got action response. %s", result->status.error_msg.c_str());
+    ROS_INFO("StitchStepPlan: Got action response. %s", result->status.error_msg.c_str());
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
@@ -894,24 +941,24 @@ void FootstepManager::sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepP
     }
     else
     {
-        ROS_ERROR("StitchStepPlan: Server not connected!");
+        ROS_INFO("StitchStepPlan: Server not connected!");
     }
 }
 
 // action callbacks
 void FootstepManager::activeUpdateStepPlan()
 {
-    ROS_ERROR("UpdateStepPlan: Status changed to active.");
+    ROS_INFO("UpdateStepPlan: Status changed to active.");
 }
 
 void FootstepManager::feedbackUpdateStepPlan(const vigir_footstep_planning_msgs::UpdateStepPlanFeedbackConstPtr& feedback)
 {
-    ROS_ERROR("UpdateStepPlan: Feedback received.");
+    ROS_INFO("UpdateStepPlan: Feedback received.");
 }
 
 void FootstepManager::doneUpdateStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::UpdateStepPlanResultConstPtr& result)
 {
-    ROS_ERROR("UpdateStepPlan: Got action response. %s", result->status.error_msg.c_str());
+    ROS_INFO("UpdateStepPlan: Got action response. %s", result->status.error_msg.c_str());
 }
 
 // action goal for executestep
@@ -934,24 +981,24 @@ void FootstepManager::sendExecuteStepPlanGoal()
     }
     else
     {
-        ROS_ERROR("ExecuteStepPlan: Server not connected!");
+        ROS_INFO("ExecuteStepPlan: Server not connected!");
     }
 }
 
 // action callbacks
 void FootstepManager::activeExecuteStepPlan()
 {
-    ROS_ERROR("ExecuteStepPlan: Status changed to active.");
+    ROS_INFO("ExecuteStepPlan: Status changed to active.");
 }
 
 void FootstepManager::feedbackExecuteStepPlan(const vigir_footstep_planning_msgs::ExecuteStepPlanFeedbackConstPtr& feedback)
 {
-    ROS_ERROR("ExecuteStepPlan: Feedback received.");
+    ROS_INFO("ExecuteStepPlan: Feedback received.");
 }
 
 void FootstepManager::doneExecuteStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::ExecuteStepPlanResultConstPtr& result)
 {
-    ROS_ERROR("ExecuteStepPlan: Got action response. %d", result->status.status);
+    ROS_INFO("ExecuteStepPlan: Got action response. %d", result->status.status);
 
     if(result->status.status == vigir_footstep_planning_msgs::FootstepExecutionStatus::NO_ERROR)
     {
@@ -976,32 +1023,32 @@ void FootstepManager::sendGetAllParameterSetsGoal()
     }
     else
     {
-        ROS_ERROR("GetAllParameterSets: Server not connected!");
+        ROS_INFO("GetAllParameterSets: Server not connected!");
     }
 }
 
 void FootstepManager::activeGetAllParameterSets()
 {
-    ROS_ERROR("GetAllParameterSets: Status changed to active.");
+    ROS_INFO("GetAllParameterSets: Status changed to active.");
 }
 
 void FootstepManager::feedbackGetAllParameterSets(const vigir_footstep_planning_msgs::GetAllParameterSetsFeedbackConstPtr& feedback)
 {
-    ROS_ERROR("GetAllParameterSets: Feedback received.");
+    ROS_INFO("GetAllParameterSets: Feedback received.");
 }
 
 void FootstepManager::doneGetAllParameterSets(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::GetAllParameterSetsResultConstPtr& result)
 {
-    ROS_ERROR("GetAllParameterSets: Got action response. %s", result->status.error_msg.c_str());
+    ROS_INFO("GetAllParameterSets: Got action response. %s", result->status.error_msg.c_str());
 
     if(result->status.error == vigir_footstep_planning_msgs::FootstepExecutionStatus::NO_ERROR)
     {
         footstep_parameter_set_list_.clear();
         for(int i = 0; i < result->param_sets.size(); i++)
-            footstep_parameter_set_list_.push_back(result->param_sets[i].name.data);
+            footstep_parameter_set_list_.push_back(result->param_sets[i]);
 
         if(selected_footstep_parameter_set_ == "" && footstep_parameter_set_list_.size() > 0)
-            selected_footstep_parameter_set_ = footstep_parameter_set_list_[0];
+            selected_footstep_parameter_set_ = footstep_parameter_set_list_[0].name.data;
 
         this->publishFootstepParameterSetList();
     }
@@ -1091,7 +1138,7 @@ void FootstepManager::extendPlanList(const vigir_footstep_planning_msgs::StepPla
                     }
                     else
                     {
-                        ROS_ERROR("Failed to call EditStep service.");
+                        ROS_INFO("Failed to call EditStep service.");
                     }
                 }*/
                 break;
