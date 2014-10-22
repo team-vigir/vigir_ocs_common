@@ -70,6 +70,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     display_goal_footstep_marker_[0] = NULL;
     display_goal_footstep_marker_[1] = NULL;
     has_goal_ = false;
+    start_step_index_ = -1;
 }
 
 FootstepVisManager::~FootstepVisManager()
@@ -79,6 +80,8 @@ FootstepVisManager::~FootstepVisManager()
 void FootstepVisManager::setStartingFootstep(int footstep_id)
 {
     //set to plan from the footstep obtained via context
+    request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP;
+    start_step_index_ = footstep_id;
 }
 
 void FootstepVisManager::clearStartingFootstep()
@@ -107,12 +110,6 @@ void FootstepVisManager::setEnabled(bool enabled)
     planner_start_->setEnabled( enabled );
     planned_path_->setEnabled( enabled );
     footsteps_array_->setEnabled( enabled );
-}
-
-void FootstepVisManager::setRequestMode(unsigned char mode, int start_index)
-{
-    request_mode_ = mode;
-    start_step_index_ = start_index;
 }
 
 void FootstepVisManager::enableFootstepGoalMarker(int footstep_id, bool enabled)

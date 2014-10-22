@@ -97,10 +97,10 @@ public:
 
     void removeFootstep(int footstep_id);
 
+    // verify state of plans
     bool hasGoal() { return has_goal_; }
-
     bool hasValidStepPlan() { return has_valid_step_plan_; }
-
+    bool hasStartingFootstep() { return (start_step_index_ >= 0); }
     unsigned int numStepPlans() { return num_step_plans_; }
 
 public Q_SLOTS:

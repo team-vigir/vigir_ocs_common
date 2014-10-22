@@ -1394,7 +1394,6 @@ void Base3DView::requestFootstepPlan(unsigned int request_mode)
         bool ok;
         footstep_index = footstep_number.toInt(&ok) / 2; // divide by two since markers come in pairs of cube+text
     }
-    footstep_vis_manager_->setRequestMode(request_mode, footstep_index);
     footstep_vis_manager_->requestStepPlan();
 }
 
