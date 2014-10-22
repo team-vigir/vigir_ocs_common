@@ -616,6 +616,13 @@ void FootstepManager::updateGoalVisMsgs()
     footstep_array_ = foot_array_msg;
 }
 
+void FootstepManager::publishGoalMarkerClear()
+{
+    flor_ocs_msgs::OCSFootstepPlanGoalFeedback cmd;
+    cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalFeedback::CLEAR;
+    footstep_goal_pose_fb_pub_.publish(cmd);
+}
+
 void FootstepManager::publishGoalMarkerFeedback()
 {
     flor_ocs_msgs::OCSFootstepPlanGoalFeedback cmd;
@@ -812,6 +819,8 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
 
         // try to stitch all plans in the list together
         //sendStitchStepPlanGoal(getStepPlanList());
+
+        publishGoalMarkerClear();
     }
 }
 

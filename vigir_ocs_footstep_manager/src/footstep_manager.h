@@ -114,6 +114,9 @@ namespace ocs_footstep
         void publishFootsteps();
         void publishFootstepList();
         void publishFootstepParameterSetList();
+
+        // interactive markers for goal
+        void publishGoalMarkerClear();
         void publishGoalMarkerFeedback();
 
         // plan requests

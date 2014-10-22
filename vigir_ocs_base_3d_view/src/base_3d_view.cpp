@@ -1729,6 +1729,8 @@ contextMenuItem * Base3DView::makeContextChild(QString name,boost::function<void
 
 void Base3DView::selectOnDoubleClick(int x, int y)
 {
+    deselectAll();
+
     Q_EMIT queryContext(x,y);    
     if(active_context_name_.find("LeftArm") != std::string::npos)
         selectLeftArm();
@@ -1739,8 +1741,6 @@ void Base3DView::selectOnDoubleClick(int x, int y)
     // need to select foot
     else if(active_context_name_.find("footstep") != std::string::npos)
         selectContextMenu();
-    else //deselect if no valid object is over mouse
-        deselectAll();
 }
 
 void Base3DView::createContextMenu(bool, int x, int y)
@@ -1949,6 +1949,8 @@ void Base3DView::removeTemplateContextMenu()
 
 void Base3DView::selectContextMenu()
 {
+    deselectAll();
+
     int id;
     if((id = findObjectContext("template")) != -1)
         selectTemplate(id);

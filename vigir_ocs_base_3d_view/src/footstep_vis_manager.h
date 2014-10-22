@@ -118,9 +118,14 @@ public Q_SLOTS:
     void setEnabled(bool enabled);
 
     /**
-      * Set visibility of individual footstep interactive marker
+      * Set visibility of individual footstep goal interactive marker
       */
     void enableFootstepGoalMarker(int footstep_id, bool enabled);
+
+    /**
+      * Set visibility of all footstep goal markers
+      */
+    void enableFootstepGoalDisplays(bool feet_markers, bool plan_markers, bool feet_array);
 
     /**
       * Set visibility of individual footstep interactive marker
@@ -192,6 +197,7 @@ private:
 
     // new displays for walking
     rviz::Display* footsteps_array_;
+    rviz::Display* goal_steps_array_;
     rviz::Display* goal_pose_;
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
@@ -206,6 +212,7 @@ private:
     float path_length_ratio_;
     int interaction_mode_;
     bool pattern_generation_enabled_;
+    bool goal_visible_;
 
 };
 
