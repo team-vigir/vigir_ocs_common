@@ -1622,6 +1622,7 @@ void Base3DView::addBase3DContextElements()
     unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::unlockFootstep,this),NULL,contextMenuItems);
     removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::removeFootstep,this),NULL,contextMenuItems);
     selectStartFootstepMenu = makeContextChild("Set Starting Footstep",boost::bind(&Base3DView::setStartingFootstep,this),NULL,contextMenuItems);
+    clearStartFootstepMenu = makeContextChild("Clear Starting Footstep",boost::bind(&Base3DView::clearStartingFootstep,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
@@ -1808,6 +1809,11 @@ void Base3DView::createContextMenu(bool, int x, int y)
         context_menu_.removeAction(executeFootstepPlanMenu->action);
     }
 
+    if(!footstep_vis_manager_->hasStartingFootstep())
+    {
+        context_menu_.removeAction(clearStartFootstepMenu->action);
+    }
+
     // context is stored in the active_context_ variable
     //lock/unlock arms context items
     if(active_context_name_.find("template") == std::string::npos)
@@ -1976,6 +1982,11 @@ int Base3DView::findObjectContext(std::string obj_type)
         if(ok) return t;
     }
     return -1;
+}
+
+void Base3DView::clearStartingFootstep()
+{
+
 }
 
 void Base3DView::lockFootstep()

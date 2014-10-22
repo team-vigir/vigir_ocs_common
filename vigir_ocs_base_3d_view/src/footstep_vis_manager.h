@@ -89,6 +89,8 @@ public:
     // Updates starting footstep from which to start planning
     void setStartingFootstep(int footstep_id);
 
+    void clearStartingFootstep();
+
     void lockFootstep(int footstep_id);
 
     void unlockFootstep(int footstep_id);

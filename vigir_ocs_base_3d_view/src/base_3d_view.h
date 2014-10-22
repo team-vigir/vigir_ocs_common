@@ -669,6 +669,8 @@ protected:
 
     void removeFootstep();
 
+    void clearStartingFootstep();
+
 
 
 
@@ -690,6 +692,7 @@ protected:
       */
     void executeFootstepPlanContextMenu();
 
+
     contextMenuItem * selectFootstepGoalMenu;
     contextMenuItem * insertTemplateMenu;
     contextMenuItem * removeTemplateMenu;
@@ -697,6 +700,7 @@ protected:
     contextMenuItem * removeFootstepMenu;
     contextMenuItem * selectFootstepMenu;
     contextMenuItem * selectStartFootstepMenu;
+    contextMenuItem * clearStartFootstepMenu;
     contextMenuItem * lockFootstepMenu;
     contextMenuItem * unlockFootstepMenu;
     contextMenuItem * undoFootstepMenu;

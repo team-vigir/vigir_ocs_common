@@ -81,6 +81,11 @@ void FootstepVisManager::setStartingFootstep(int footstep_id)
     //set to plan from the footstep obtained via context
 }
 
+void FootstepVisManager::clearStartingFootstep()
+{
+
+}
+
 void FootstepVisManager::lockFootstep(int footstep_id)
 {
 
