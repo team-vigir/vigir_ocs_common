@@ -1726,6 +1726,8 @@ contextMenuItem * Base3DView::makeContextChild(QString name,boost::function<void
 
 void Base3DView::selectOnDoubleClick(int x, int y)
 {
+    deselectAll();
+
     Q_EMIT queryContext(x,y);    
     if(active_context_name_.find("LeftArm") != std::string::npos)
         selectLeftArm();
@@ -1736,8 +1738,6 @@ void Base3DView::selectOnDoubleClick(int x, int y)
     // need to select foot
     else if(active_context_name_.find("footstep") != std::string::npos)
         selectContextMenu();
-    else //deselect if no valid object is over mouse
-        deselectAll();
 }
 
 void Base3DView::createContextMenu(bool, int x, int y)
@@ -1938,7 +1938,7 @@ void Base3DView::removeTemplateContextMenu()
     int start = active_context_name_.find(" ")+1;
     int end = active_context_name_.find(".");
     QString template_number(active_context_name_.substr(start, end-start).c_str());
-    ROS_INFO("%d %d %s",start,end,template_number.toStdString().c_str());
+    //ROS_INFO("%d %d %s",start,end,template_number.toStdString().c_str());
     bool ok;
     int t = template_number.toInt(&ok);
     if(ok) removeTemplate(t);
@@ -1946,11 +1946,17 @@ void Base3DView::removeTemplateContextMenu()
 
 void Base3DView::selectContextMenu()
 {
+    deselectAll();
+
     int id;
     if((id = findObjectContext("template")) != -1)
         selectTemplate(id);
+    else if((id = findObjectContext("footstep goal")) != -1)
+        selectFootstepGoal(id);
     else if((id = findObjectContext("footstep")) != -1)
-        selectFootstep(id); //NEED TO CREATE SELECT FOOTSTEP FUNCTION
+        selectFootstep(id);
+
+    //ROS_ERROR("select context menu: %d", id);
 }
 
 int Base3DView::findObjectContext(std::string obj_type)
@@ -1959,10 +1965,10 @@ int Base3DView::findObjectContext(std::string obj_type)
     {
         // all selectable objects use the convention "object_type n",
         // so we look for the starting and ending indexes for n
-        int start = active_context_name_.find(" ")+1;
+        int start = obj_type.length()+1;
         int end = active_context_name_.size();
         QString number(active_context_name_.substr(start, end-start).c_str());
-        ROS_INFO("%d %d %s",start,end,number.toStdString().c_str());
+        //ROS_ERROR("%d %d %s",start,end,number.toStdString().c_str());
         bool ok;
         int t = number.toInt(&ok);
         if(ok) return t;
@@ -1982,6 +1988,14 @@ void Base3DView::selectFootstep(int id)
 {
     flor_ocs_msgs::OCSObjectSelection cmd;
     cmd.type = flor_ocs_msgs::OCSObjectSelection::FOOTSTEP;
+    cmd.id = id;
+    select_object_pub_.publish(cmd);
+}
+
+void Base3DView::selectFootstepGoal(int id)
+{
+    flor_ocs_msgs::OCSObjectSelection cmd;
+    cmd.type = flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL;
     cmd.id = id;
     select_object_pub_.publish(cmd);
 }
@@ -2084,6 +2098,12 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
             footstep_vis_manager_->enableStepPlanMarkers( false );
             // id takes into account text marker as well, so we do this to find the real marker id
             footstep_vis_manager_->enableFootstepMarker( msg->id/2, true );
+            break;
+        case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL:
+            // disable step plan markers
+            footstep_vis_manager_->enableStepPlanMarkers( false );
+            // id takes into account text marker as well, so we do this to find the real marker id
+            footstep_vis_manager_->enableFootstepGoalMarker( msg->id/2, true );
             break;
         default:
             break;
