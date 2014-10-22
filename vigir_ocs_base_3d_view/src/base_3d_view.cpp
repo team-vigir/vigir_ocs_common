@@ -1611,19 +1611,30 @@ void Base3DView::addBase3DContextElements()
     separator->name = "Separator";
 
     // selection items
-    selectTemplateMenu = makeContextChild("Select Template",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    selectTemplateMenu = makeContextChild("Select Template",boost::bind(&Base3DView::selectTemplate,this),NULL,contextMenuItems);
 
     leftArmMenu = makeContextChild("Select Left Arm",boost::bind(&Base3DView::selectLeftArm,this),NULL,contextMenuItems);
     rightArmMenu = makeContextChild("Select Right Arm",boost::bind(&Base3DView::selectRightArm,this),NULL,contextMenuItems);
 
-    selectFootstepMenu = makeContextChild("Select Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
-    lockFootstepMenu = makeContextChild("Lock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
-    unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
-    removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
+    selectFootstepGoalMenu = makeContextChild("Select Footstep",boost::bind(&Base3DView::selectFootstepGoal,this),NULL,contextMenuItems);
+    selectFootstepMenu = makeContextChild("Select Footstep",boost::bind(&Base3DView::selectFootstep,this),NULL,contextMenuItems);
+    lockFootstepMenu = makeContextChild("Lock Footstep",boost::bind(&Base3DView::lockFootstep,this),NULL,contextMenuItems);
+    unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::unlockFootstep,this),NULL,contextMenuItems);
+    removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::removeFootstep,this),NULL,contextMenuItems);
+    selectStartFootstepMenu = makeContextChild("Set Starting Footstep",boost::bind(&Base3DView::setStartingFootstep,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
     snapHandMenu = makeContextChild("Snap Hand to Ghost",boost::bind(&Base3DView::snapHandGhost,this),NULL,contextMenuItems);
+
+    addToContextVector(separator);
+
+    footstepGoalMenu = makeContextChild("Create Step Plan Goal",boost::bind(&vigir_ocs::Base3DView::defineFootstepGoal,this), NULL, contextMenuItems);
+    defaultFootstepRequestMenu = makeContextChild("Request Step Plan Default",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
+    customFootstepRequestMenu = makeContextChild("Request Step Plan...",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
+    executeFootstepPlanMenu = makeContextChild(QString("Execute Step Plan"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
+    undoFootstepMenu = makeContextChild("Undo Step Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL,contextMenuItems);
+    redoFootstepMenu = makeContextChild("Redo Step Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
@@ -1636,26 +1647,7 @@ void Base3DView::addBase3DContextElements()
     lockRightMenu = makeContextChild("Lock Right Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL,contextMenuItems);
     unlockArmsMenu = makeContextChild("Unlock Arms",boost::bind(&Base3DView::setTemplateGraspLock,this,-1),NULL,contextMenuItems);
 
-    addToContextVector(separator);
-
-    footstepGoalMenu = makeContextChild("Create Step Plan Goal",boost::bind(&vigir_ocs::Base3DView::defineFootstepGoal,this), NULL, contextMenuItems);
-    newFootstepMenu = makeContextChild("Request New Step Plan",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
-    continueLastFootstepMenu = makeContextChild("Request Step Plan from Last Step",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_CURRENT_PLAN), NULL, contextMenuItems);
-    continueThisFootstepMenu = makeContextChild("Request Step Plan from Step XX",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP), NULL, contextMenuItems);
-    lockFootstepMenu = makeContextChild("Lock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
-    unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
-    removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::selectContextMenu,this),NULL,contextMenuItems);
-
-    addToContextVector(separator);
-
-    undoFootstepMenu = makeContextChild("Undo Footstep Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL,contextMenuItems);
-    redoFootstepMenu = makeContextChild("Redo Footstep Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL,contextMenuItems);
-
-    addToContextVector(separator);
-
-    executeFootstepPlanMenu = makeContextChild(QString("Execute Footstep Plan"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
-
-    addToContextVector(separator);
+    addToContextVector(separator);       
 
     cartesianMotionMenu = makeContextParent("Cartesian Motion", contextMenuItems);
 
@@ -1737,10 +1729,11 @@ void Base3DView::selectOnDoubleClick(int x, int y)
     else if(active_context_name_.find("RightArm") != std::string::npos)
         selectRightArm();
     else if(active_context_name_.find("template") != std::string::npos)
-        selectContextMenu();
-    // need to select foot
+        selectTemplate();
+    else if(active_context_name_.find("footstep goal") != std::string::npos)
+        selectFootstepGoal();
     else if(active_context_name_.find("footstep") != std::string::npos)
-        selectContextMenu();
+        selectFootstep();
 }
 
 void Base3DView::createContextMenu(bool, int x, int y)
@@ -1785,16 +1778,24 @@ void Base3DView::createContextMenu(bool, int x, int y)
     }
 
     //remove footstep-related items if context is not footstep
-    if(active_context_name_.find("footstep") == std::string::npos)
+    if(active_context_name_.find("footstep") == std::string::npos || active_context_name_.find("footstep goal") != std::string::npos)
     {
-        //remove context items as not needed
+
         context_menu_.removeAction(selectFootstepMenu->action);
-    }
         context_menu_.removeAction(lockFootstepMenu->action);
         context_menu_.removeAction(unlockFootstepMenu->action);
         context_menu_.removeAction(removeFootstepMenu->action);
-    //}
+        context_menu_.removeAction(selectStartFootstepMenu->action);
+    }
 
+    //footstep goal is still technically a footstep but need seperate case
+    if(active_context_name_.find("footstep goal") == std::string::npos)
+    {
+        //remove context items as not needed
+        context_menu_.removeAction(selectFootstepGoalMenu->action);
+    }
+
+    // context is stored in the active_context_ variable
     //lock/unlock arms context items
     if(active_context_name_.find("template") == std::string::npos)
     {
@@ -1947,21 +1948,6 @@ void Base3DView::removeTemplateContextMenu()
     if(ok) removeTemplate(t);
 }
 
-void Base3DView::selectContextMenu()
-{
-    deselectAll();
-
-    int id;
-    if((id = findObjectContext("template")) != -1)
-        selectTemplate(id);
-    else if((id = findObjectContext("footstep goal")) != -1)
-        selectFootstepGoal(id);
-    else if((id = findObjectContext("footstep")) != -1)
-        selectFootstep(id);
-
-    //ROS_ERROR("select context menu: %d", id);
-}
-
 int Base3DView::findObjectContext(std::string obj_type)
 {
     if(active_context_name_.find(obj_type) != std::string::npos)
@@ -1979,28 +1965,74 @@ int Base3DView::findObjectContext(std::string obj_type)
     return -1;
 }
 
-void Base3DView::selectTemplate(int id)
+void Base3DView::lockFootstep()
 {
-    flor_ocs_msgs::OCSObjectSelection cmd;
-    cmd.type = flor_ocs_msgs::OCSObjectSelection::TEMPLATE;
-    cmd.id = id;
-    select_object_pub_.publish(cmd);
+    int id;
+    if((id = findObjectContext("footstep")) != -1)
+        footstep_vis_manager_->lockFootstep(id);
 }
 
-void Base3DView::selectFootstep(int id)
+void Base3DView::unlockFootstep()
 {
-    flor_ocs_msgs::OCSObjectSelection cmd;
-    cmd.type = flor_ocs_msgs::OCSObjectSelection::FOOTSTEP;
-    cmd.id = id;
-    select_object_pub_.publish(cmd);
+    int id;
+    if((id = findObjectContext("footstep")) != -1)
+        footstep_vis_manager_->unlockFootstep(id);
 }
 
-void Base3DView::selectFootstepGoal(int id)
+void Base3DView::removeFootstep()
 {
-    flor_ocs_msgs::OCSObjectSelection cmd;
-    cmd.type = flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL;
-    cmd.id = id;
-    select_object_pub_.publish(cmd);
+    int id;
+    if((id = findObjectContext("footstep")) != -1)
+        footstep_vis_manager_->removeFootstep(id);
+}
+
+void Base3DView::setStartingFootstep()
+{
+    int id;
+    if((id = findObjectContext("footstep")) != -1)
+        footstep_vis_manager_->setStartingFootstep(id);
+}
+
+void Base3DView::selectTemplate()
+{
+    int id;
+    if((id = findObjectContext("template")) != -1)
+    {
+        deselectAll();
+
+        flor_ocs_msgs::OCSObjectSelection cmd;
+        cmd.type = flor_ocs_msgs::OCSObjectSelection::TEMPLATE;
+        cmd.id = id;
+        select_object_pub_.publish(cmd);
+    }
+}
+
+void Base3DView::selectFootstep()
+{
+    int id;
+    if((id = findObjectContext("footstep")) != -1)
+    {
+        deselectAll();
+
+        flor_ocs_msgs::OCSObjectSelection cmd;
+        cmd.type = flor_ocs_msgs::OCSObjectSelection::FOOTSTEP;
+        cmd.id = id;
+        select_object_pub_.publish(cmd);
+    }
+}
+
+void Base3DView::selectFootstepGoal()
+{
+    int id;
+    if((id = findObjectContext("footstep goal")) != -1)
+    {
+        deselectAll();
+
+        flor_ocs_msgs::OCSObjectSelection cmd;
+        cmd.type = flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL;
+        cmd.id = id;
+        select_object_pub_.publish(cmd);
+    }
 }
 
 void Base3DView::selectLeftArm()
@@ -2031,7 +2063,7 @@ void Base3DView::setTemplateGraspLock(int arm)
     int id = findObjectContext("template");
     if (arm == -1) // unlocks both arms
     {
-        selectTemplate(id);
+        selectTemplate();
 
         ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] = false;
         ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] = false;
@@ -2043,7 +2075,7 @@ void Base3DView::setTemplateGraspLock(int arm)
     }
     else if(id != -1) //locks arm
     {
-        selectTemplate(id);
+        selectTemplate();
 
         ghost_pose_source_[arm] = true;
         ghost_world_lock_[arm] = true;

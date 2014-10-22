@@ -76,6 +76,26 @@ FootstepVisManager::~FootstepVisManager()
 {
 }
 
+void FootstepVisManager::setStartingFootstep(int footstep_id)
+{
+    //set to plan from the footstep obtained via context
+}
+
+void FootstepVisManager::lockFootstep(int footstep_id)
+{
+
+}
+
+void FootstepVisManager::unlockFootstep(int footstep_id)
+{
+
+}
+
+void FootstepVisManager::removeFootstep(int footstep_id)
+{
+
+}
+
 void FootstepVisManager::setEnabled(bool enabled)
 {
     goal_pose_->setEnabled( enabled );

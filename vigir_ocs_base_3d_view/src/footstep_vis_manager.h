@@ -111,6 +111,18 @@ public:
       */
     void setRequestMode(unsigned char mode = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN, int start_index = -1);
 
+    /**
+     * Updates starting footstep from which to start planning
+     */
+    void setStartingFootstep(int footstep_id);
+
+    void lockFootstep(int footstep_id);
+
+    void unlockFootstep(int footstep_id);
+
+    void removeFootstep(int footstep_id);
+
+
 public Q_SLOTS:
     /**
       * Set visibility of all footstep-related displays
