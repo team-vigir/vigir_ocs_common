@@ -49,71 +49,44 @@ class FootstepVisManager: public QObject
     Q_OBJECT
 public:
 
-    /**
-      * @param manager Pointer to the baseview visualization manager for this rviz instance
-      * Class "FootstepVisManager" implements every function related to visualization of and interaction with footsteps.
-      */
+    // Class "FootstepVisManager" implements every function related to visualization of and interaction with footsteps.
     FootstepVisManager( rviz::VisualizationManager* manager );
     virtual ~FootstepVisManager();
 
-    /**
-      * Create a footstep plan request with the given goal
-      */
+    // Create a footstep plan request with the given goal
     void processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose);
 
-    /**
-      * Update goal pose marker
-      */
+    // Update goal pose marker
     void processGoalPoseFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalFeedback::ConstPtr& plan_goal);
 
-    /**
-      * Receives list of footsteps and creates/removes interactive markers
-      */
+    // Receives list of footsteps and creates/removes interactive markers
     void processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg);
 
-    /**
-      * Receives a list of all the parameter sets
-      */
+    // Receives a list of all the parameter sets
     void processFootstepParamSetList(const flor_ocs_msgs::OCSFootstepParamSetList::ConstPtr& msg);
 
-    /**
-      * ROS Callback: receives interactive marker pose updates
-      */
+    // ROS Callback: receives interactive marker pose updates
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
-    /**
-      * Select footstep using the context menu
-      */
+    // Select footstep using the context menu
     void selectContextMenu();
 
-    /**
-      * Sends an undo request to the footstep manager, a.k.a. restore previous state
-      */
+    // Sends an undo request to the footstep manager, a.k.a. restore previous state
     void requestFootstepListUndo();
 
-    /**
-      * Sends a redo request to the footstep manager
-      */
+    // Sends a redo request to the footstep manager
     void requestFootstepListRedo();
 
-    /**
-      * Sends a step plan request, and will get the two goal footsteps
-      */
+    // Sends a step plan request, and will get the two goal footsteps
     void requestStepPlan();
 
-    /**
-      * Sends a footstep plan execute request to the footstep manager
-      */
+    // Sends a footstep plan execute request to the footstep manager
     void requestExecuteStepPlan();
 
-    /**
-      * Sets the request mode for new footstep plans
-      */
+    // Sets the request mode for new footstep plans
     void setRequestMode(unsigned char mode = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN, int start_index = -1);
 
-    /**
-     * Updates starting footstep from which to start planning
-     */
+    // Updates starting footstep from which to start planning
     void setStartingFootstep(int footstep_id);
 
     void lockFootstep(int footstep_id);
@@ -122,52 +95,36 @@ public:
 
     void removeFootstep(int footstep_id);
 
+    bool hasGoal() { return goal_visible_; }
+
 
 public Q_SLOTS:
-    /**
-      * Set visibility of all footstep-related displays
-      */
+    // Set visibility of all footstep-related displays
     void setEnabled(bool enabled);
 
-    /**
-      * Set visibility of individual footstep goal interactive marker
-      */
+    // Set visibility of individual footstep goal interactive marker
     void enableFootstepGoalMarker(int footstep_id, bool enabled);
 
-    /**
-      * Set visibility of all footstep goal markers
-      */
+    // Set visibility of all footstep goal markers
     void enableFootstepGoalDisplays(bool feet_markers, bool plan_markers, bool feet_array);
 
-    /**
-      * Set visibility of individual footstep interactive marker
-      */
+    // Set visibility of individual footstep interactive marker
     void enableFootstepMarker(int footstep_id, bool enabled);
 
-    /**
-      * Set visibility of all footstep interactive markers
-      */
+    // Set visibility of all footstep interactive markers
     void enableFootstepMarkers(bool enabled);
 
-    /**
-      * Set visibility of all step plan interactive markers
-      */
+    // Set visibility of all step plan interactive markers
     void enableStepPlanMarkers(bool enabled);
 
-    /**
-      * Set the footstep parameter set
-      */
+    // Set the footstep parameter set
     void setFootstepParameterSet(QString selected);
-    /**
-      * Update all Footstep parameters from ui
-      */
+
+    // Update all Footstep parameters from ui
     void updateFootstepParamaters(double,int,double,int,bool);
 
 Q_SIGNALS:
-
-    /**
-      * Set visibility of all footstep interactive markers
-      */
+    // Set visibility of all footstep interactive markers
     void populateFootstepParameterSetBox(std::vector<std::string>);
 
 private:
