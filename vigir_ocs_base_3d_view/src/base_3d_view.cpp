@@ -1795,6 +1795,19 @@ void Base3DView::createContextMenu(bool, int x, int y)
         context_menu_.removeAction(selectFootstepGoalMenu->action);
     }
 
+    //cannot request footstep plan without goal
+    if(!footstep_vis_manager_->hasGoal())
+    {
+        context_menu_.removeAction(defaultFootstepRequestMenu->action);
+        context_menu_.removeAction(customFootstepRequestMenu->action);
+    }
+
+    //cannot execute without footstep plan
+    if(!footstep_vis_manager_->hasValidStepPlan())
+    {
+        context_menu_.removeAction(executeFootstepPlanMenu->action);
+    }
+
     // context is stored in the active_context_ variable
     //lock/unlock arms context items
     if(active_context_name_.find("template") == std::string::npos)
