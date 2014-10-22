@@ -2980,6 +2980,12 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
     {
         //joint icon plugin will not name joints with "ghost/" prefix, need to adjust
         jointPositionIconName = jointPositionIconName.substr(6,jointPositionIconName.size());
+
+        //cant display ghost joints
+        if(!ghost_robot_model_->isEnabled())
+        {
+            ((rviz::JointMarkerDisplayCustom*)ghost_joint_arrows_)->setJointAlpha(0,jointPositionIconName);
+        }
         //ghost joint marker still sends fingers, need to hide
         if(name.find("_f")!= std::string::npos && name.find("_j")!= std::string::npos)
         {
@@ -2987,6 +2993,7 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
             return;
         }
     }
+
     //want to disable a marker that has already been created
     if(disable_joint_markers_ )
     {

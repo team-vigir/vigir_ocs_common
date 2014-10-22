@@ -366,7 +366,7 @@ void JointMarkerDisplayCustom::processMessage( const sensor_msgs::JointState::Co
                 std::string link_name = joint->child_link_name;
                 Ogre::Quaternion orientation;
                 Ogre::Vector3 position;
-                calculateGhostTransform(link_name,position,orientation);
+                calculateGhostTransform(link_name,joint_name,position,orientation);
                 //set positions of ghost visual
                 visual_->setFramePosition( joint_name, position );
                 visual_->setFrameOrientation( joint_name, orientation );
@@ -383,8 +383,8 @@ void JointMarkerDisplayCustom::processMessage( const sensor_msgs::JointState::Co
 }
 
 
-void JointMarkerDisplayCustom::calculateGhostTransform(std::string link_name, Ogre::Vector3& position, Ogre::Quaternion& orientation)
-{
+void JointMarkerDisplayCustom::calculateGhostTransform(std::string link_name, std::string joint_name,Ogre::Vector3& position, Ogre::Quaternion& orientation)
+{       
     geometry_msgs::Pose pose;
     MoveItOcsModel* ghost_robot_state = RobotStateManager::Instance()->getGhostRobotStateSingleton();
 
@@ -397,9 +397,18 @@ void JointMarkerDisplayCustom::calculateGhostTransform(std::string link_name, Og
     Ogre::Quaternion linkRotation(pose.orientation.w,pose.orientation.x,pose.orientation.y,pose.orientation.z);
     linkPosition = rootPosition + rootRotation * linkPosition;
     linkRotation = rootRotation * linkRotation;
+
     //rotate 90 to align correctly with joints
     Ogre::Quaternion q;
-    q.FromAngleAxis(Ogre::Radian(-M_PI/2),Ogre::Vector3::UNIT_Y);
+    QString str(joint_name.c_str());
+    str = str.mid(str.length() - 1, 1); //last char
+    if(str == "x")
+        q.FromAngleAxis(Ogre::Radian(M_PI/2),Ogre::Vector3::UNIT_Y);
+    else if(str == "y")
+        q.FromAngleAxis(Ogre::Radian(M_PI/2),Ogre::Vector3::UNIT_Z);
+    else
+        q.FromAngleAxis(Ogre::Radian(M_PI/2),Ogre::Vector3::UNIT_X);
+
     linkRotation =  q * linkRotation;
 
     position.x = linkPosition.x;

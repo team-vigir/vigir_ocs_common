@@ -97,7 +97,7 @@ protected:
   virtual void subscribe();
   virtual void unsubscribe();
 
-  void calculateGhostTransform(std::string link_name, Ogre::Vector3& position, Ogre::Quaternion& orientation);
+  void calculateGhostTransform(std::string link_name, std::string joint_name, Ogre::Vector3& position, Ogre::Quaternion& orientation);
   void processMessage( const sensor_msgs::JointState::ConstPtr& msg );
   void processPelvisEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose);
   // The object for urdf model
