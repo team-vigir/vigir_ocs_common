@@ -95,8 +95,11 @@ public:
 
     void removeFootstep(int footstep_id);
 
-    bool hasGoal() { return goal_visible_; }
+    bool hasGoal() { return has_goal_; }
 
+    bool hasValidStepPlan() { return has_valid_step_plan_; }
+
+    unsigned int numStepPlans() { return num_step_plans_; }
 
 public Q_SLOTS:
     // Set visibility of all footstep-related displays
@@ -181,8 +184,11 @@ private:
     float path_length_ratio_;
     int interaction_mode_;
     bool pattern_generation_enabled_;
-    bool goal_visible_;
 
+    // variables that determine the state of the footstep plan
+    bool has_goal_;
+    bool has_valid_step_plan_;
+    unsigned int num_step_plans_;
 };
 
 }

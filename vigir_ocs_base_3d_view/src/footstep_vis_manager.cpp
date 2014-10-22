@@ -69,7 +69,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     display_goal_marker_ = NULL;
     display_goal_footstep_marker_[0] = NULL;
     display_goal_footstep_marker_[1] = NULL;
-    goal_visible_ = false;
+    has_goal_ = false;
 }
 
 FootstepVisManager::~FootstepVisManager()
@@ -115,7 +115,7 @@ void FootstepVisManager::enableFootstepGoalMarker(int footstep_id, bool enabled)
     if(footstep_id < 0 || footstep_id > 1)
         return;
     if(display_goal_footstep_marker_[footstep_id])
-        display_goal_footstep_marker_[footstep_id]->setEnabled( enabled && goal_visible_ );
+        display_goal_footstep_marker_[footstep_id]->setEnabled( enabled && has_goal_ );
 }
 
 void FootstepVisManager::enableFootstepGoalDisplays(bool feet_markers, bool plan_markers, bool feet_array)
@@ -145,7 +145,7 @@ void FootstepVisManager::enableFootstepMarkers(bool enabled)
         display_footstep_marker_list_[i]->setEnabled( enabled );
     for(int i = 0; i < 2; i++)
         if(display_goal_footstep_marker_[i])
-            display_goal_footstep_marker_[i]->setEnabled( enabled && goal_visible_ );
+            display_goal_footstep_marker_[i]->setEnabled( enabled && has_goal_ );
 }
 
 void FootstepVisManager::enableStepPlanMarkers(bool enabled)
@@ -153,7 +153,7 @@ void FootstepVisManager::enableStepPlanMarkers(bool enabled)
     for(int i = 0; i < display_step_plan_marker_list_.size(); i++)
         display_step_plan_marker_list_[i]->setEnabled( enabled );
     if(display_goal_marker_)
-        display_goal_marker_->setEnabled( enabled && goal_visible_ );
+        display_goal_marker_->setEnabled( enabled && has_goal_ );
 }
 
 void FootstepVisManager::setFootstepParameterSet(QString selected)
@@ -209,7 +209,7 @@ void FootstepVisManager::requestStepPlan()
 void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
     // enable visibility of goal
-    goal_visible_ = true;
+    has_goal_ = true;
     enableFootstepGoalDisplays( false, true, true );
 
     flor_ocs_msgs::OCSFootstepPlanGoal cmd;
@@ -289,7 +289,7 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
     }
     else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalFeedback::CLEAR)
     {
-        goal_visible_ = false;
+        has_goal_ = false;
 
         enableFootstepGoalDisplays( false, false, false );
     }
@@ -309,7 +309,7 @@ void FootstepVisManager::processFootstepParamSetList(const flor_ocs_msgs::OCSFoo
 
 void FootstepVisManager::updateInteractiveMarkers()
 {
-    int step_plan_count = 0;
+    num_step_plans_ = 0;
     for(int i = 0; i < footstep_list_.footstep_id_list.size(); i++)
     {
         std::string pose_string = "/footstep_"+boost::lexical_cast<std::string>(i)+"_marker";
@@ -346,7 +346,7 @@ void FootstepVisManager::updateInteractiveMarkers()
         if((i+1 < footstep_list_.footstep_id_list.size() && footstep_list_.step_plan_id_list[i] != footstep_list_.step_plan_id_list[i+1]) || i == footstep_list_.footstep_id_list.size()-1)
         {
             // only do something if it's a new step plan
-            std::string step_pose_string = "/step_plan_"+boost::lexical_cast<std::string>(step_plan_count++)+"_marker";
+            std::string step_pose_string = "/step_plan_"+boost::lexical_cast<std::string>(num_step_plans_++)+"_marker";
 
             // if needed, we create a marker
             if(footstep_list_.step_plan_id_list[i] >= display_step_plan_marker_list_.size())
@@ -387,6 +387,9 @@ void FootstepVisManager::updateInteractiveMarkers()
             interactive_marker_update_pub_.publish(cmd);
         }
     }
+
+    // check if it is possible to execute footstep plan without specifying a plan
+    has_valid_step_plan_ = (num_step_plans_ == 1 ? true : false);
 }
 
 void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg)
