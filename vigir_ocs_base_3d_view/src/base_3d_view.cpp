@@ -3069,7 +3069,8 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
     {
         //linearly interpolate color and alpha based on ratio of boundPercentage under .1
         float p = boundPercent / .1;
-        float alpha = 1.0 - p; //want alpha to be atleast .3
+        //float alpha = 1.0 - p; // increase alpha as you get closer to limits
+        float alpha = 1.0f;
         float green = p;
         //increase alpha as boundPercent decreases
         //yellow  to red as boundPercent decreases

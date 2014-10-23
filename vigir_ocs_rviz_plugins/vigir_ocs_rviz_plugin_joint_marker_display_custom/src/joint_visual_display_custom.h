@@ -78,7 +78,7 @@ public:
     //only to be called from joint marker display custom, should be friended?
     void update( float wall_dt, float ros_dt );
 
-
+    void setGhost(bool ghost);
 
 
 
@@ -102,6 +102,7 @@ private:
     Ogre::SceneManager* scene_manager_;
 
     Ogre::ColourValue* color_;
+    bool is_ghost_;
     float alpha_;
 
     std::map<std::string, Ogre::Vector3> position_;

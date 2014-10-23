@@ -41,6 +41,7 @@ namespace rviz
         //change this to make animation faster/slower
         arrow_step_interval_ = .10f;
         arrow_timer_ = arrow_step_interval_;
+        is_ghost_ = false;
     }
 
     JointVisualCustom::~JointVisualCustom()
@@ -59,6 +60,11 @@ namespace rviz
         scene_manager_->destroySceneNode( frame_node_ );
 
         delete(color_);
+    }
+
+    void JointVisualCustom::setGhost(bool ghost)
+    {
+        is_ghost_ = ghost;
     }
 
     void JointVisualCustom::setMessage( const sensor_msgs::JointState::ConstPtr& msg )
@@ -104,8 +110,15 @@ namespace rviz
                     for (int j = 0; j < 32; j++)
                     {
                         //calculate current point to be drawn
-                        Ogre::Vector3 point = Ogre::Vector3((0.05+marker_scale_*scale_*0.5)*sin(j*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(j*2*M_PI/32), 0);
-
+                        Ogre::Vector3 point ;
+                        if(is_ghost_)
+                        {
+                            point= Ogre::Vector3(0, (0.05+marker_scale_*scale_*0.5)*sin(j*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(j*2*M_PI/32));
+                        }
+                        else
+                        {
+                            point= Ogre::Vector3((0.05+marker_scale_*scale_*0.5)*sin(j*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(j*2*M_PI/32), 0);
+                        }
                         //at skipped point?  and have a desired direction for an arrow?
                         if(j == current_arrow_point_[joint_name] && arrow_directions_.find(joint_name) != arrow_directions_.end())
                         {
@@ -117,8 +130,17 @@ namespace rviz
                                 next_index = 31;
                             else if (next_index == 32)
                                 next_index = 0;
-                            //arrow points to previous point or next point in the circle
-                            Ogre::Vector3 next_point = Ogre::Vector3((0.05+marker_scale_*scale_*0.5)*sin(next_index*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(next_index*2*M_PI/32), 0);
+
+                            Ogre::Vector3 next_point;
+                            if(is_ghost_)
+                            {
+                                next_point= Ogre::Vector3(0,(0.05+marker_scale_*scale_*0.5)*sin(next_index*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(next_index*2*M_PI/32));
+                            }
+                            else
+                            {
+                                next_point= Ogre::Vector3((0.05+marker_scale_*scale_*0.5)*sin(next_index*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(next_index*2*M_PI/32), 0);
+                            }
+                            //arrow points to previous point or next point in the circle                            
                             effort_arrow_[joint_name]->setDirection(orientation_[joint_name] * (next_point-point));
                         }
                         //draw point
@@ -128,8 +150,16 @@ namespace rviz
                     // set the arrow index
                     current_arrow_point_[joint_name] = next_index;
 
-                    // add the first point again to close the circle
-                    Ogre::Vector3 point = Ogre::Vector3((0.05+marker_scale_*scale_*0.5)*sin(0*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(0*2*M_PI/32), 0);
+                    Ogre::Vector3 point ;
+                    if(is_ghost_)
+                    {
+                        point= Ogre::Vector3(0,(0.05+marker_scale_*scale_*0.5)*sin(0*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(0*2*M_PI/32));
+                    }
+                    else
+                    {
+                        point=Ogre::Vector3((0.05+marker_scale_*scale_*0.5)*sin(0*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(0*2*M_PI/32), 0);
+                    }
+                    // add the first point again to close the circle                    
                     effort_circle_[joint_name]->addPoint(orientation_[joint_name] * point + position_[joint_name]);
                 }
             }

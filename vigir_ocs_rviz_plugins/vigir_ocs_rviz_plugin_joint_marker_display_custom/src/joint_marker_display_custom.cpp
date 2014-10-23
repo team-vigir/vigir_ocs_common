@@ -367,6 +367,7 @@ void JointMarkerDisplayCustom::processMessage( const sensor_msgs::JointState::Co
                 Ogre::Quaternion orientation;
                 Ogre::Vector3 position;
                 calculateGhostTransform(link_name,joint_name,position,orientation);
+                //visual_->setGhost(true);
                 //set positions of ghost visual
                 visual_->setFramePosition( joint_name, position );
                 visual_->setFrameOrientation( joint_name, orientation );
@@ -396,20 +397,25 @@ void JointMarkerDisplayCustom::calculateGhostTransform(std::string link_name, st
     Ogre::Vector3 linkPosition(pose.position.x,pose.position.y,pose.position.z);
     Ogre::Quaternion linkRotation(pose.orientation.w,pose.orientation.x,pose.orientation.y,pose.orientation.z);
     linkPosition = rootPosition + rootRotation * linkPosition;
-    linkRotation = rootRotation * linkRotation;
+    //obtain conjugate of rootRotation
+    rootRotation.x = -rootRotation.x;
+    rootRotation.y = -rootRotation.y;
+    rootRotation.z = -rootRotation.z;
+    linkRotation = rootRotation;// * linkRotation;
 
-    //rotate 90 to align correctly with joints
+//    //rotate 90 to align correctly with joints
     Ogre::Quaternion q;
     QString str(joint_name.c_str());
     str = str.mid(str.length() - 1, 1); //last char
+    //tried xyz , zxy , yxz,   just z, x(head joint was correct) -68 close -55 farther
     if(str == "x")
-        q.FromAngleAxis(Ogre::Radian(M_PI/2),Ogre::Vector3::UNIT_Y);
+        q.FromAngleAxis(Ogre::Radian(Ogre::Degree(-78)),Ogre::Vector3::UNIT_Y);
     else if(str == "y")
-        q.FromAngleAxis(Ogre::Radian(M_PI/2),Ogre::Vector3::UNIT_Z);
+        q.FromAngleAxis(Ogre::Radian(Ogre::Degree(90)),Ogre::Vector3::UNIT_X);
     else
-        q.FromAngleAxis(Ogre::Radian(M_PI/2),Ogre::Vector3::UNIT_X);
+        q.FromAngleAxis(Ogre::Radian(Ogre::Degree(-78)),Ogre::Vector3::UNIT_Z);
 
-    linkRotation =  q * linkRotation;
+    linkRotation =  linkRotation * q;
 
     position.x = linkPosition.x;
     position.y = linkPosition.y;
