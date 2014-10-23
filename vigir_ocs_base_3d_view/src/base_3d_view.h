@@ -402,6 +402,7 @@ public Q_SLOTS:
       *               +1  |  Transparent Objects
       */
     void setRenderOrder();
+    void resetRenderOrder();
 
 Q_SIGNALS:
     /**

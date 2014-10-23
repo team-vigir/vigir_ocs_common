@@ -619,7 +619,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         joint_arrows_->subProp("Width")->setValue("0.015");
         joint_arrows_->subProp("Scale")->setValue("1.2");        
 
-        ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", true );
+        ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", false );
         ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
         ghost_joint_arrows_->subProp("Width")->setValue("0.015");
         ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
@@ -633,7 +633,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // update render order whenever objects are added/ display changed
         //connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
         // initialize Render Order correctly
-        setRenderOrder();
+        //setRenderOrder();
 
         overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
         overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
@@ -977,8 +977,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
     //Means that currently doing
 
     if(is_primary_view_ && occluded_robot_visible_)
-        setRenderOrder();   
-
+        setRenderOrder();
 }
 
 void Base3DView::publishCameraTransform()
@@ -1630,7 +1629,7 @@ void Base3DView::addBase3DContextElements()
     addToContextVector(separator);
 
     footstepGoalMenu = makeContextChild("Create Step Plan Goal",boost::bind(&vigir_ocs::Base3DView::defineFootstepGoal,this), NULL, contextMenuItems);
-    defaultFootstepRequestMenu = makeContextChild("Request Step Plan Default",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
+    defaultFootstepRequestMenu = makeContextChild("Request Step Plan",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
     customFootstepRequestMenu = makeContextChild("Request Step Plan...",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
     executeFootstepPlanMenu = makeContextChild(QString("Execute Step Plan"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
     undoFootstepMenu = makeContextChild("Undo Step Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL,contextMenuItems);
@@ -1796,17 +1795,17 @@ void Base3DView::createContextMenu(bool, int x, int y)
     }
 
     //cannot request footstep plan without goal
-    if(!footstep_vis_manager_->hasGoal())
-    {
-        context_menu_.removeAction(defaultFootstepRequestMenu->action);
+    //if(!footstep_vis_manager_->hasGoal())
+    //{
+    //    context_menu_.removeAction(defaultFootstepRequestMenu->action);
         context_menu_.removeAction(customFootstepRequestMenu->action);
-    }
+    //}
 
     //cannot execute without footstep plan
-    if(!footstep_vis_manager_->hasValidStepPlan())
-    {
-        context_menu_.removeAction(executeFootstepPlanMenu->action);
-    }
+    //if(!footstep_vis_manager_->hasValidStepPlan())
+    //{
+    //    context_menu_.removeAction(executeFootstepPlanMenu->action);
+    //}
 
     if(!footstep_vis_manager_->hasStartingFootstep())
     {
@@ -3314,6 +3313,23 @@ void Base3DView::setRenderOrder()
         //camera should be unaffected by render order
         if(display_name.find("Camera") == std::string::npos)
             setSceneNodeRenderGroup(display->getSceneNode(), 1);
+    }
+}
+
+void Base3DView::resetRenderOrder()
+{
+    /*
+      Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
+                    +1  |  Transparent Objects
+    **/
+    int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();
+    for(int i = 0; i < num_displays; i++)
+    {
+        rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
+        std::string display_name = display->getNameStd();
+        //camera should be unaffected by render order
+        if(display_name.find("Camera") == std::string::npos)
+            setSceneNodeRenderGroup(display->getSceneNode(), 0);
     }
 }
 

@@ -238,10 +238,10 @@ void MapView::requestPointCloud(int type)
 void MapView::requestPointCloud(double min_z, double max_z, double resolution, int type, int aggregation_size)
 {
 	// first we update the size of the points in the point cloud based on resolution
-	if(type == flor_perception_msgs::PointCloudTypeRegionRequest::STEREO) // hard coded for now 
-	    stereo_point_cloud_viewer_->subProp( "Size (m)" )->setValue( resolution );
-	else if(type == flor_perception_msgs::PointCloudTypeRegionRequest::LIDAR_FILTERED || type == flor_perception_msgs::PointCloudTypeRegionRequest::LIDAR_UNFILTERED)
-        region_point_cloud_viewer_->subProp( "Size (m)" )->setValue( resolution );
+//	if(type == flor_perception_msgs::PointCloudTypeRegionRequest::STEREO) // hard coded for now
+//	    stereo_point_cloud_viewer_->subProp( "Size (m)" )->setValue( resolution );
+//	else if(type == flor_perception_msgs::PointCloudTypeRegionRequest::LIDAR_FILTERED || type == flor_perception_msgs::PointCloudTypeRegionRequest::LIDAR_UNFILTERED)
+//        region_point_cloud_viewer_->subProp( "Size (m)" )->setValue( resolution );
 
 	// then we create the point cloud request message.
     float win_width = render_panel_->width();

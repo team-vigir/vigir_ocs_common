@@ -80,16 +80,16 @@ FootstepVisManager::~FootstepVisManager()
 
 void FootstepVisManager::setStartingFootstep(int footstep_id)
 {
-    //set to plan from the footstep obtained via context
-    request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP;
-    start_step_index_ = footstep_id;
+    ////set to plan from the footstep obtained via context
+    //request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP;
+    //start_step_index_ = footstep_id;
 }
 
 void FootstepVisManager::clearStartingFootstep()
 {
     //set to plan from the footstep obtained via context
-    request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN;
-    start_step_index_ = -1;
+    //request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN;
+    //start_step_index_ = -1;
 }
 
 void FootstepVisManager::lockFootstep(int footstep_id)

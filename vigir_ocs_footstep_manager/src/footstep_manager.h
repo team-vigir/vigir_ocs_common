@@ -178,6 +178,7 @@ namespace ocs_footstep
         std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> > footstep_plans_redo_stack_;
         visualization_msgs::MarkerArray footstep_array_;
         visualization_msgs::MarkerArray footstep_body_array_;
+        visualization_msgs::MarkerArray footstep_goal_array_;
         nav_msgs::Path footstep_path_;
 
         // Footstep parameter sets

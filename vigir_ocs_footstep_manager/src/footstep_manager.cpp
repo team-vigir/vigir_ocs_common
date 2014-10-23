@@ -460,7 +460,7 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
     updateGoalVisMsgs();
 
     // send
-    plan_goal_array_pub_.publish(footstep_array_);
+    plan_goal_array_pub_.publish(footstep_goal_array_);
 
     // and update the interactive markers
     publishGoalMarkerFeedback();
@@ -613,7 +613,7 @@ void FootstepManager::updateGoalVisMsgs()
     // a TEXT_VIEW_FACING and CUBE
     visualization_msgs::MarkerArray foot_array_msg;
     feetToFootMarkerArray(goal_, foot_array_msg);
-    footstep_array_ = foot_array_msg;
+    footstep_goal_array_ = foot_array_msg;
 }
 
 void FootstepManager::publishGoalMarkerClear()
@@ -722,7 +722,7 @@ void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& sta
         // need to send visualization message
         updateGoalVisMsgs();
 
-        plan_goal_array_pub_.publish(footstep_array_);
+        plan_goal_array_pub_.publish(footstep_goal_array_);
 
         // update goal pose - should I be doing this?
         goal_pose_.pose.position.x = (goal_.left.pose.position.x+goal_.right.pose.position.x)/2.0;
