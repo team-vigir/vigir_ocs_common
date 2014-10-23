@@ -64,13 +64,14 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     path_length_ratio_ = 0;
     interaction_mode_ = 0;
     pattern_generation_enabled_ = 0;
+    request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN;
+    start_step_index_ = -1;
 
     // initialize displays for goals
     display_goal_marker_ = NULL;
     display_goal_footstep_marker_[0] = NULL;
     display_goal_footstep_marker_[1] = NULL;
     has_goal_ = false;
-    start_step_index_ = -1;
 }
 
 FootstepVisManager::~FootstepVisManager()
@@ -86,7 +87,9 @@ void FootstepVisManager::setStartingFootstep(int footstep_id)
 
 void FootstepVisManager::clearStartingFootstep()
 {
-
+    //set to plan from the footstep obtained via context
+    request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN;
+    start_step_index_ = -1;
 }
 
 void FootstepVisManager::lockFootstep(int footstep_id)
@@ -201,7 +204,7 @@ void FootstepVisManager::requestStepPlan()
     cmd.path_length_ratio = path_length_ratio_;
     cmd.interaction_mode = interaction_mode_;
     cmd.pattern_generation_enabled = pattern_generation_enabled_;
-    ROS_ERROR("PLAN time: %f steps: %d ratio:%f intmode: %d pattern %d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
+    ROS_INFO("PLAN time:%f steps:%d ratio:%f intmode:%d pattern:%d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
 
     footstep_plan_request_pub_.publish(cmd);
 
