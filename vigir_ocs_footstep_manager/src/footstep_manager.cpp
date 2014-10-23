@@ -531,10 +531,13 @@ void FootstepManager::requestStepPlanFromRobot()
     // first we calculate start feet poses
     vigir_footstep_planning_msgs::Feet start;
 
+    start.header = lower_body_state_.header;
     //start left
+    start.left.header = lower_body_state_.header;
     start.left.foot_index = vigir_footstep_planning_msgs::Foot::LEFT;
     start.left.pose = lower_body_state_.left_foot_pose;
     //start right
+    start.right.header = lower_body_state_.header;
     start.right.foot_index = vigir_footstep_planning_msgs::Foot::RIGHT;
     start.right.pose = lower_body_state_.right_foot_pose;
 
@@ -552,6 +555,7 @@ void FootstepManager::requestStepPlanFromStep(vigir_footstep_planning_msgs::Step
 
     // first we get the start feet poses based on the selected step
     vigir_footstep_planning_msgs::Feet start;
+    start.header = step.foot.header;
     start.left  = (step.foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? step.foot : next_step.foot);
     start.right = (step.foot.foot_index == vigir_footstep_planning_msgs::Foot::RIGHT ? step.foot : next_step.foot);
 
