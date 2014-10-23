@@ -44,6 +44,7 @@
 #include "rviz/visualization_manager.h"
 #include "rviz/load_resource.h"
 #include "rviz/properties/bool_property.h"
+#include "rviz/properties/float_property.h"
 
 #include "interaction_tool_custom.h"
 
@@ -131,8 +132,11 @@ void InteractionToolCustom::updateFocus( const ViewportMouseEvent& event )
         rviz::Display* display = context_->getRootDisplayGroup()->getDisplayAt(i);
         std::string display_name = display->getNameStd();
         //ROS_ERROR("    display name: %s", display_name.c_str());
-        if(display_name.find("Robot") != std::string::npos || display_name.find("BoundingObject") != std::string::npos || display_name.find("Footsteps Path Body") != std::string::npos)
+        if(display_name.find("Robot") != std::string::npos || display_name.find("BoundingObject") != std::string::npos || display_name.find("Footsteps Path Body") != std::string::npos || display_name.find("Ground map") != std::string::npos)
         {
+            if(display_name.find("Ground map") != std::string::npos)
+                if(((rviz::FloatProperty*)display->subProp("Alpha"))->getFloat() == 1.0)
+                    continue;
             // traverse scene graph below scene node
             //display_config[display->getSceneNode()] = std::vector<bool>();
             setChildrenVisibility(display->getSceneNode(), display_config[display->getSceneNode()], false);
@@ -151,8 +155,11 @@ void InteractionToolCustom::updateFocus( const ViewportMouseEvent& event )
     {
         rviz::Display* display = context_->getRootDisplayGroup()->getDisplayAt(i);
         std::string display_name = display->getNameStd();
-        if(display_name.find("Robot") != std::string::npos || display_name.find("BoundingObject") != std::string::npos || display_name.find("Footsteps Path Body") != std::string::npos)
+        if(display_name.find("Robot") != std::string::npos || display_name.find("BoundingObject") != std::string::npos || display_name.find("Footsteps Path Body") != std::string::npos || display_name.find("Ground map") != std::string::npos)
         {
+            if(display_name.find("Ground map") != std::string::npos)
+                if(((rviz::FloatProperty*)display->subProp("Alpha"))->getFloat() == 1.0)
+                    continue;
             //display->getSceneNode()->setVisible(true);
             restoreChildrenVisibility(display->getSceneNode(),display_config[display->getSceneNode()]);
         }
