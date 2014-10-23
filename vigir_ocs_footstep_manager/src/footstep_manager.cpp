@@ -37,7 +37,8 @@ void FootstepManager::onInit()
     footstep_update_sub_             = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, &FootstepManager::processFootstepPoseUpdate, this );
     footstep_undo_req_sub_           = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, &FootstepManager::processUndoRequest, this );
     footstep_redo_req_sub_           = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, &FootstepManager::processRedoRequest, this );
-    footstep_exec_req_sub_           = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
+    footstep_execute_req_sub_        = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
+    footstep_stitch_req_sub_         = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/stitch", 1, &FootstepManager::processStitchPlansRequest, this );
     footstep_param_set_list_pub_     = nh.advertise<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 1, false );
     footstep_param_set_selected_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 5, &FootstepManager::processFootstepParamSetSelected, this );
 
@@ -150,6 +151,11 @@ void FootstepManager::processRedoRequest(const std_msgs::Bool::ConstPtr& msg)
 void FootstepManager::processExecuteFootstepRequest(const std_msgs::Bool::ConstPtr& msg)
 {
     sendExecuteStepPlanGoal();
+}
+
+void FootstepManager::processStitchPlansRequest(const std_msgs::Bool::ConstPtr& msg)
+{
+    sendStitchStepPlanGoal(getStepPlanList());
 }
 
 void FootstepManager::processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg)
@@ -1128,32 +1134,19 @@ bool FootstepManager::findStepPlan(const unsigned int& step_index, unsigned int&
 
 void FootstepManager::extendPlanList(const vigir_footstep_planning_msgs::StepPlan& new_step_plan)
 {
+    vigir_footstep_planning_msgs::StepPlan new_step_plan_copy = new_step_plan;
     // first we need to remove any extra steps in the existing step list based on the new step plan step index
     for(int i = 0; i < getStepPlanList().size(); i++)
     {
         for(int j = 0; j < getStepPlanList()[i].steps.size(); j++)
         {
-            if(new_step_plan.steps[0].step_index <= getStepPlanList()[i].steps[j].step_index)
+            if(getStepPlanList()[i].steps[j].step_index > new_step_plan_copy.steps[0].step_index)
             {
-                // delete [j,end] since we already have these in the new plan
+                // delete [j+1,end] since we already have these in the new plan
                 getStepPlanList()[i].steps.erase(getStepPlanList()[i].steps.begin()+j, getStepPlanList()[i].steps.end());
                 getStepPlanList()[i].cost.erase(getStepPlanList()[i].cost.begin()+j, getStepPlanList()[i].cost.end());
-                // use service because the contents of the stepplan message may change, and we need synchronous call for this
-                /*for(int d = getStepPlanList()[i].steps.size()-1; d >= j; d--)
-                {
-                    vigir_footstep_planning_msgs::EditStepService srv;
-                    srv.request.step_plan = getStepPlanList()[i];
-                    srv.request.edit_step.plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_REMOVE;
-                    srv.request.edit_step.step = getStepPlanList()[i].steps[j];
-                    if(edit_step_service_client_.call(srv))
-                    {
-                        getStepPlanList()[i] = srv.response.step_plans[0];
-                    }
-                    else
-                    {
-                        ROS_INFO("Failed to call EditStep service.");
-                    }
-                }*/
+                new_step_plan_copy.steps.erase(new_step_plan_copy.steps.begin(), new_step_plan_copy.steps.begin()+1);
+                // WHEN I UPDATE STEPPLAN MARKERS IN BETWEEN STEPPLANS, I WILL HAVE TO ADD THE LAST STEP OF PLAN A TO PLAN B
                 break;
             }
         }

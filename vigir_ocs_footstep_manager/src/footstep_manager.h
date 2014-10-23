@@ -63,6 +63,7 @@ namespace ocs_footstep
         void processUndoRequest(const std_msgs::Bool::ConstPtr& msg);
         void processRedoRequest(const std_msgs::Bool::ConstPtr& msg);
         void processExecuteFootstepRequest(const std_msgs::Bool::ConstPtr& msg);
+        void processStitchPlansRequest(const std_msgs::Bool::ConstPtr& msg);
         void processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg);
 
         // get the current and goal poses to be used when requesting a footstep plan
@@ -161,7 +162,8 @@ namespace ocs_footstep
         ros::Subscriber footstep_update_sub_;
         ros::Subscriber footstep_undo_req_sub_;
         ros::Subscriber footstep_redo_req_sub_;
-        ros::Subscriber footstep_exec_req_sub_;
+        ros::Subscriber footstep_execute_req_sub_;
+        ros::Subscriber footstep_stitch_req_sub_;
         ros::Publisher footstep_param_set_list_pub_;
         ros::Subscriber footstep_param_set_selected_sub_;
 

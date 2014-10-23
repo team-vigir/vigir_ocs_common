@@ -91,6 +91,8 @@ public:
 
     void clearStartingFootstep();
 
+    void requestStitchFootstepPlans();
+
     void lockFootstep(int footstep_id);
 
     void unlockFootstep(int footstep_id);
@@ -141,7 +143,8 @@ private:
     ros::Subscriber footstep_list_sub_;
     ros::Publisher footstep_undo_req_pub_;
     ros::Publisher footstep_redo_req_pub_;
-    ros::Publisher footstep_exec_req_pub_;
+    ros::Publisher footstep_execute_req_pub_;
+    ros::Publisher footstep_stitch_req_pub_;
 
     ros::Subscriber footstep_goal_sub_;
     ros::Publisher footstep_goal_pose_fb_pub_;

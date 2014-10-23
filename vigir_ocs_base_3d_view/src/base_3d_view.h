@@ -672,6 +672,8 @@ protected:
 
     void clearStartingFootstep();
 
+    void stitchFootstepPlans();
+
 
 
 
@@ -706,7 +708,8 @@ protected:
     contextMenuItem * unlockFootstepMenu;
     contextMenuItem * undoFootstepMenu;
     contextMenuItem * redoFootstepMenu;
-    contextMenuItem * footstepGoalMenu;    
+    contextMenuItem * footstepGoalMenu;
+    contextMenuItem * stitchFootstepMenu;
     contextMenuItem * defaultFootstepRequestMenu;
     contextMenuItem * customFootstepRequestMenu;
     contextMenuItem * executeFootstepPlanMenu;

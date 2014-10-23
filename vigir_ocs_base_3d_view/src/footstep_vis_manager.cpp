@@ -36,11 +36,12 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     planned_path_->subProp( "Topic" )->setValue( "/flor/ocs/footstep/path" );
 
     // creates publishers and subscribers for the interaction loop
-    footstep_update_pub_     = nh_.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, false );
-    footstep_list_sub_       = nh_.subscribe<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 5, &FootstepVisManager::processFootstepList, this );
-    footstep_undo_req_pub_   = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, false );
-    footstep_redo_req_pub_   = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, false );
-    footstep_exec_req_pub_   = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/execute", 1, false );
+    footstep_update_pub_      = nh_.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, false );
+    footstep_list_sub_        = nh_.subscribe<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 5, &FootstepVisManager::processFootstepList, this );
+    footstep_undo_req_pub_    = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, false );
+    footstep_redo_req_pub_    = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, false );
+    footstep_execute_req_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/execute", 1, false );
+    footstep_stitch_req_pub_  = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/stitch", 1, false );
 
     // publishers and subscribers for the plan request
     footstep_goal_sub_               = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &FootstepVisManager::processGoalPose, this );
@@ -80,16 +81,24 @@ FootstepVisManager::~FootstepVisManager()
 
 void FootstepVisManager::setStartingFootstep(int footstep_id)
 {
-    ////set to plan from the footstep obtained via context
-    //request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP;
-    //start_step_index_ = footstep_id;
+    //set to plan from the footstep obtained via context
+    request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP;
+    start_step_index_ = footstep_id;
 }
 
 void FootstepVisManager::clearStartingFootstep()
 {
     //set to plan from the footstep obtained via context
-    //request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN;
-    //start_step_index_ = -1;
+    request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN;
+    start_step_index_ = -1;
+}
+
+void FootstepVisManager::requestStitchFootstepPlans()
+{
+    // send request to footstep manager
+    std_msgs::Bool cmd;
+    cmd.data = true;
+    footstep_stitch_req_pub_.publish(cmd);
 }
 
 void FootstepVisManager::lockFootstep(int footstep_id)
@@ -189,7 +198,7 @@ void FootstepVisManager::requestExecuteStepPlan()
     // send request to footstep manager
     std_msgs::Bool cmd;
     cmd.data = true;
-    footstep_exec_req_pub_.publish(cmd);
+    footstep_execute_req_pub_.publish(cmd);
 }
 
 void FootstepVisManager::requestStepPlan()

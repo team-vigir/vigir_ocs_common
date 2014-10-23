@@ -1384,15 +1384,6 @@ void Base3DView::defineFootstepGoal()
 
 void Base3DView::requestFootstepPlan(unsigned int request_mode)
 {
-    int footstep_index = -1;
-    if(active_context_name_.find("footstep") != std::string::npos)
-    {
-        int start = active_context_name_.find(" ")+1;
-        QString footstep_number(active_context_name_.substr(start, active_context_name_.length()-start).c_str());
-        ROS_INFO("%d %lu %s",start,active_context_name_.length(),footstep_number.toStdString().c_str());
-        bool ok;
-        footstep_index = footstep_number.toInt(&ok) / 2; // divide by two since markers come in pairs of cube+text
-    }
     footstep_vis_manager_->requestStepPlan();
 }
 
@@ -1621,6 +1612,7 @@ void Base3DView::addBase3DContextElements()
     removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::removeFootstep,this),NULL,contextMenuItems);
     selectStartFootstepMenu = makeContextChild("Set Starting Footstep",boost::bind(&Base3DView::setStartingFootstep,this),NULL,contextMenuItems);
     clearStartFootstepMenu = makeContextChild("Clear Starting Footstep",boost::bind(&Base3DView::clearStartingFootstep,this),NULL,contextMenuItems);
+    stitchFootstepMenu = makeContextChild("Stitch Plans",boost::bind(&Base3DView::stitchFootstepPlans,this),NULL,contextMenuItems);
 
     addToContextVector(separator);
 
@@ -1984,35 +1976,40 @@ int Base3DView::findObjectContext(std::string obj_type)
 
 void Base3DView::clearStartingFootstep()
 {
+    footstep_vis_manager_->clearStartingFootstep();
+}
 
+void Base3DView::stitchFootstepPlans()
+{
+    footstep_vis_manager_->requestStitchFootstepPlans();
 }
 
 void Base3DView::lockFootstep()
 {
     int id;
     if((id = findObjectContext("footstep")) != -1)
-        footstep_vis_manager_->lockFootstep(id);
+        footstep_vis_manager_->lockFootstep(id/2); // divide by two since markers come in pairs of cube+text
 }
 
 void Base3DView::unlockFootstep()
 {
     int id;
     if((id = findObjectContext("footstep")) != -1)
-        footstep_vis_manager_->unlockFootstep(id);
+        footstep_vis_manager_->unlockFootstep(id/2); // divide by two since markers come in pairs of cube+text
 }
 
 void Base3DView::removeFootstep()
 {
     int id;
     if((id = findObjectContext("footstep")) != -1)
-        footstep_vis_manager_->removeFootstep(id);
+        footstep_vis_manager_->removeFootstep(id/2); // divide by two since markers come in pairs of cube+text
 }
 
 void Base3DView::setStartingFootstep()
 {
     int id;
     if((id = findObjectContext("footstep")) != -1)
-        footstep_vis_manager_->setStartingFootstep(id);
+        footstep_vis_manager_->setStartingFootstep(id/2); // divide by two since markers come in pairs of cube+text
 }
 
 void Base3DView::selectTemplate()
