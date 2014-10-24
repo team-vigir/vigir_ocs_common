@@ -113,7 +113,7 @@ CameraView::CameraView( QWidget* parent, Base3DView* copy_from )
     Q_EMIT unHighlight();
 
     // and advertise the head pitch update function
-    head_pitch_update_pub_ = nh_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ry", 1, false );
+    //head_pitch_update_pub_ = nh_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ry", 1, false );
     head_pitch_update_traj_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory > ("/flor/neck_controller/trajectory",1,false);
 
     rviz::EmptyViewController* camera_controller = new rviz::EmptyViewController();
@@ -237,6 +237,8 @@ void CameraView::setCurrentCameraPitch( int degrees )
 void CameraView::setCameraPitch( int degrees )
 {
 	trajectory_msgs::JointTrajectory trajectory;
+
+    trajectory.joint_names.push_back("neck_ry");
 
 	trajectory.header.stamp = ros::Time::now();
 

@@ -32,12 +32,20 @@ void FootstepManager::onInit()
     nh.param("upper_body/origin_shift/y", upper_body_origin_shift.y, 0.0);
     nh.param("upper_body/origin_shift/z", upper_body_origin_shift.z, 0.0);
 
+    // planner will always create new plans if this is unchanged
+    start_step_index_ = -1;
+
+    // initialize step plan list
+    addNewPlanList();
+
     // creates publishers and subscribers for the interaction loop
     footstep_list_pub_               = nh.advertise<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, false );
     footstep_update_sub_             = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, &FootstepManager::processFootstepPoseUpdate, this );
     footstep_undo_req_sub_           = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, &FootstepManager::processUndoRequest, this );
     footstep_redo_req_sub_           = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, &FootstepManager::processRedoRequest, this );
-    footstep_exec_req_sub_           = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
+    footstep_start_index_pub_        = nh.subscribe<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, &FootstepManager::processSetStartIndex, this );
+    footstep_execute_req_sub_        = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
+    footstep_stitch_req_sub_         = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/stitch", 1, &FootstepManager::processStitchPlansRequest, this );
     footstep_param_set_list_pub_     = nh.advertise<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 1, false );
     footstep_param_set_selected_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 5, &FootstepManager::processFootstepParamSetSelected, this );
 
@@ -83,9 +91,6 @@ void FootstepManager::onInit()
 
     // initialize service for deleting footsteps
     edit_step_service_client_ = nh.serviceClient<vigir_footstep_planning_msgs::EditStepService>("/vigir/global_footstep_planner/edit_step");
-
-    // initialize step plan list
-    addNewPlanList();
 
     // request parameter sets
     sendGetAllParameterSetsGoal();
@@ -147,9 +152,21 @@ void FootstepManager::processRedoRequest(const std_msgs::Bool::ConstPtr& msg)
 }
 
 // maybe create an action for this so that I can forward feedback from controller
+void FootstepManager::processSetStartIndex(const std_msgs::Int32::ConstPtr &msg)
+{
+    start_step_index_ = msg->data;
+
+    publishFootsteps();
+}
+
 void FootstepManager::processExecuteFootstepRequest(const std_msgs::Bool::ConstPtr& msg)
 {
     sendExecuteStepPlanGoal();
+}
+
+void FootstepManager::processStitchPlansRequest(const std_msgs::Bool::ConstPtr& msg)
+{
+    sendStitchStepPlanGoal(getStepPlanList());
 }
 
 void FootstepManager::processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg)
@@ -243,10 +260,9 @@ void FootstepManager::stepPlanToFootMarkerArray(std::vector<vigir_footstep_plann
             stepToMarker(input[i].steps[j], marker);
 
             marker.id = foot_array_msg.markers.size();
-            // need something better than this to compute color, but for now we only have two known modes (green, yellow)
-            marker.color.r = input[i].mode == 4 ? 0.6 : 0.0; // TO DO: READ PARAMETER MAP FOR MODE -> COLOR
-            marker.color.g = 0.6;
-            marker.color.b = 0.0;
+            marker.color.r = 0.0;
+            marker.color.g = start_step_index_ == input[i].steps[j].step_index ? 0.0 : 0.6;
+            marker.color.b = start_step_index_ == input[i].steps[j].step_index ? 0.6 : 0.0;
             marker.color.a = 0.5;
             marker.ns = std::string("footstep");
             foot_array_msg.markers.push_back(marker);
@@ -314,9 +330,10 @@ void FootstepManager::stepPlanToBodyMarkerArray(std::vector<vigir_footstep_plann
             marker.scale.z = 0.02;
 
             marker.id = body_array_msg.markers.size();
-            marker.color.r = 0.0;
-            marker.color.g = 0.0;
-            marker.color.b = 0.5;
+            // need something better than this to compute color, but for now we only have two known modes (green, yellow)
+            marker.color.r = input[i].mode == 4 ? 0.4 : 0.0; // TO DO: READ PARAMETER MAP FOR MODE -> COLOR
+            marker.color.g = input[i].mode == 4 ? 0.4 : 0.0;
+            marker.color.b = input[i].mode == 4 ? 0.0 : 0.4;
             marker.color.a = 0.2;
             body_array_msg.markers.push_back(marker);
         }
@@ -460,7 +477,7 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
     updateGoalVisMsgs();
 
     // send
-    plan_goal_array_pub_.publish(footstep_array_);
+    plan_goal_array_pub_.publish(footstep_goal_array_);
 
     // and update the interactive markers
     publishGoalMarkerFeedback();
@@ -490,24 +507,26 @@ void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootste
 {
     last_plan_request_ = *plan_request;
 
-    if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN)
+    if(getStepPlanList().size() == 0 || getStepPlan().steps.size() == 0 || start_step_index_ > getStepPlan().steps.back().step_index)
+        start_step_index_ = -1;
+
+    if(start_step_index_ == -1)//if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN)
     {
         // request a completely new plan starting from the robot position
         requestStepPlanFromRobot();
     }
-    else if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_CURRENT_PLAN)
+    else if(start_step_index_ == getStepPlan().steps.back().step_index)//if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_CURRENT_PLAN)
     {
         // get last step
         vigir_footstep_planning_msgs::Step step = getStepPlan().steps.back();
         // request a footstep plan starting from the last step
         requestStepPlanFromStep(step);
     }
-    else if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP)
+    else //if(plan_request->mode == flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP)
     {
-        vigir_footstep_planning_msgs::StepPlan step_plan;
         vigir_footstep_planning_msgs::Step step;
         // unlikely, but if start index is the very first step
-        if(plan_request->start_index == 0)
+        if(start_step_index_ == 0)
         {
             if(getStepPlan().steps.size() > 1)
                 step = getStepPlan().steps[0];
@@ -518,7 +537,7 @@ void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootste
         {
             // if it didn't find a step with the requested step_index, return
             unsigned int step_plan_index;
-            if(!findStep(plan_request->start_index-1, step, step_plan_index))
+            if(!findStep(start_step_index_-1, step, step_plan_index))
                 return;
         }
 
@@ -531,10 +550,13 @@ void FootstepManager::requestStepPlanFromRobot()
     // first we calculate start feet poses
     vigir_footstep_planning_msgs::Feet start;
 
+    start.header = lower_body_state_.header;
     //start left
+    start.left.header = lower_body_state_.header;
     start.left.foot_index = vigir_footstep_planning_msgs::Foot::LEFT;
     start.left.pose = lower_body_state_.left_foot_pose;
     //start right
+    start.right.header = lower_body_state_.header;
     start.right.foot_index = vigir_footstep_planning_msgs::Foot::RIGHT;
     start.right.pose = lower_body_state_.right_foot_pose;
 
@@ -552,6 +574,7 @@ void FootstepManager::requestStepPlanFromStep(vigir_footstep_planning_msgs::Step
 
     // first we get the start feet poses based on the selected step
     vigir_footstep_planning_msgs::Feet start;
+    start.header = step.foot.header;
     start.left  = (step.foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? step.foot : next_step.foot);
     start.right = (step.foot.foot_index == vigir_footstep_planning_msgs::Foot::RIGHT ? step.foot : next_step.foot);
 
@@ -613,7 +636,7 @@ void FootstepManager::updateGoalVisMsgs()
     // a TEXT_VIEW_FACING and CUBE
     visualization_msgs::MarkerArray foot_array_msg;
     feetToFootMarkerArray(goal_, foot_array_msg);
-    footstep_array_ = foot_array_msg;
+    footstep_goal_array_ = foot_array_msg;
 }
 
 void FootstepManager::publishGoalMarkerClear()
@@ -722,7 +745,7 @@ void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& sta
         // need to send visualization message
         updateGoalVisMsgs();
 
-        plan_goal_array_pub_.publish(footstep_array_);
+        plan_goal_array_pub_.publish(footstep_goal_array_);
 
         // update goal pose - should I be doing this?
         goal_pose_.pose.position.x = (goal_.left.pose.position.x+goal_.right.pose.position.x)/2.0;
@@ -931,7 +954,7 @@ void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState&
     }
 }
 
-// action goal for updatestepplan
+// action goal for pplan
 void FootstepManager::sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan& step_plan)
 {
     // Fill in goal here
@@ -1124,32 +1147,19 @@ bool FootstepManager::findStepPlan(const unsigned int& step_index, unsigned int&
 
 void FootstepManager::extendPlanList(const vigir_footstep_planning_msgs::StepPlan& new_step_plan)
 {
+    vigir_footstep_planning_msgs::StepPlan new_step_plan_copy = new_step_plan;
     // first we need to remove any extra steps in the existing step list based on the new step plan step index
     for(int i = 0; i < getStepPlanList().size(); i++)
     {
         for(int j = 0; j < getStepPlanList()[i].steps.size(); j++)
         {
-            if(new_step_plan.steps[0].step_index <= getStepPlanList()[i].steps[j].step_index)
+            if(getStepPlanList()[i].steps[j].step_index > new_step_plan_copy.steps[0].step_index)
             {
-                // delete [j,end] since we already have these in the new plan
+                // delete [j+1,end] since we already have these in the new plan
                 getStepPlanList()[i].steps.erase(getStepPlanList()[i].steps.begin()+j, getStepPlanList()[i].steps.end());
                 getStepPlanList()[i].cost.erase(getStepPlanList()[i].cost.begin()+j, getStepPlanList()[i].cost.end());
-                // use service because the contents of the stepplan message may change, and we need synchronous call for this
-                /*for(int d = getStepPlanList()[i].steps.size()-1; d >= j; d--)
-                {
-                    vigir_footstep_planning_msgs::EditStepService srv;
-                    srv.request.step_plan = getStepPlanList()[i];
-                    srv.request.edit_step.plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_REMOVE;
-                    srv.request.edit_step.step = getStepPlanList()[i].steps[j];
-                    if(edit_step_service_client_.call(srv))
-                    {
-                        getStepPlanList()[i] = srv.response.step_plans[0];
-                    }
-                    else
-                    {
-                        ROS_INFO("Failed to call EditStep service.");
-                    }
-                }*/
+                new_step_plan_copy.steps.erase(new_step_plan_copy.steps.begin(), new_step_plan_copy.steps.begin()+1);
+                // WHEN I UPDATE STEPPLAN MARKERS IN BETWEEN STEPPLANS, I WILL HAVE TO ADD THE LAST STEP OF PLAN A TO PLAN B
                 break;
             }
         }

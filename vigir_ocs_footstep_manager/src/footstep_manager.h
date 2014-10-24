@@ -10,6 +10,7 @@
 
 #include <std_msgs/Bool.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Int32.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Vector3.h>
 #include <visualization_msgs/MarkerArray.h>
@@ -62,7 +63,9 @@ namespace ocs_footstep
         void processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg);
         void processUndoRequest(const std_msgs::Bool::ConstPtr& msg);
         void processRedoRequest(const std_msgs::Bool::ConstPtr& msg);
+        void processSetStartIndex(const std_msgs::Int32::ConstPtr& msg);
         void processExecuteFootstepRequest(const std_msgs::Bool::ConstPtr& msg);
+        void processStitchPlansRequest(const std_msgs::Bool::ConstPtr& msg);
         void processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg);
 
         // get the current and goal poses to be used when requesting a footstep plan
@@ -161,7 +164,9 @@ namespace ocs_footstep
         ros::Subscriber footstep_update_sub_;
         ros::Subscriber footstep_undo_req_sub_;
         ros::Subscriber footstep_redo_req_sub_;
-        ros::Subscriber footstep_exec_req_sub_;
+        ros::Subscriber footstep_start_index_pub_;
+        ros::Subscriber footstep_execute_req_sub_;
+        ros::Subscriber footstep_stitch_req_sub_;
         ros::Publisher footstep_param_set_list_pub_;
         ros::Subscriber footstep_param_set_selected_sub_;
 
@@ -178,6 +183,7 @@ namespace ocs_footstep
         std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> > footstep_plans_redo_stack_;
         visualization_msgs::MarkerArray footstep_array_;
         visualization_msgs::MarkerArray footstep_body_array_;
+        visualization_msgs::MarkerArray footstep_goal_array_;
         nav_msgs::Path footstep_path_;
 
         // Footstep parameter sets
@@ -199,6 +205,9 @@ namespace ocs_footstep
 
         // last step plan request received, saved and used mostly for message parameters
         flor_ocs_msgs::OCSFootstepPlanRequest last_plan_request_;
+
+        // specifies which footstep will be used as starting point for the planner, -1 to start a new one
+        int start_step_index_;
 
         UpdateFeetClient* update_feet_client_;
         StepPlanRequestClient* step_plan_request_client_;

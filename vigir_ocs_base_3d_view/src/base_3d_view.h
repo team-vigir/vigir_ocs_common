@@ -389,6 +389,7 @@ public Q_SLOTS:
       *               +1  |  Transparent Objects
       */
     void setRenderOrder();
+    void resetRenderOrder();
 
 Q_SIGNALS:
     /**
@@ -628,15 +629,15 @@ protected:
     /**
       * Select a template
       */
-    void selectTemplate(int id);
+    void selectTemplate();
     /**
       * Select a footstep
       */
-    void selectFootstep(int id);
+    void selectFootstep();
     /**
       * Select a footstep from the step plan goal
       */
-    void selectFootstepGoal(int id);
+    void selectFootstepGoal();
     /**
       * select left arm end effector
       */
@@ -645,6 +646,21 @@ protected:
       * select right arm end effector
       */
     void selectRightArm();
+    /**
+      *  select the starting footstep and send to footstep vis manager
+      */
+    void setStartingFootstep();
+
+    void lockFootstep();
+
+    void unlockFootstep();
+
+    void removeFootstep();
+
+    void clearStartingFootstep();
+
+    void stitchFootstepPlans();
+
 
 
 
@@ -666,19 +682,23 @@ protected:
       */
     void executeFootstepPlanContextMenu();
 
+
+    contextMenuItem * selectFootstepGoalMenu;
     contextMenuItem * insertTemplateMenu;
     contextMenuItem * removeTemplateMenu;
     contextMenuItem * selectTemplateMenu;
     contextMenuItem * removeFootstepMenu;
     contextMenuItem * selectFootstepMenu;
+    contextMenuItem * selectStartFootstepMenu;
+    contextMenuItem * clearStartFootstepMenu;
     contextMenuItem * lockFootstepMenu;
     contextMenuItem * unlockFootstepMenu;
     contextMenuItem * undoFootstepMenu;
     contextMenuItem * redoFootstepMenu;
     contextMenuItem * footstepGoalMenu;
-    contextMenuItem * newFootstepMenu;
-    contextMenuItem * continueLastFootstepMenu;
-    contextMenuItem * continueThisFootstepMenu;
+    contextMenuItem * stitchFootstepMenu;
+    contextMenuItem * defaultFootstepRequestMenu;
+    contextMenuItem * customFootstepRequestMenu;
     contextMenuItem * executeFootstepPlanMenu;
     contextMenuItem * cartesianMotionMenu;
     contextMenuItem * createCartesianMarkerMenu;
