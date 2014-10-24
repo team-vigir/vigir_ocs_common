@@ -40,6 +40,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     footstep_list_sub_        = nh_.subscribe<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 5, &FootstepVisManager::processFootstepList, this );
     footstep_undo_req_pub_    = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, false );
     footstep_redo_req_pub_    = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, false );
+    footstep_start_index_pub_ = nh_.advertise<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, false );
     footstep_execute_req_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/execute", 1, false );
     footstep_stitch_req_pub_  = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/stitch", 1, false );
 
@@ -65,7 +66,6 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     path_length_ratio_ = 0;
     interaction_mode_ = 0;
     pattern_generation_enabled_ = 0;
-    request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN;
     start_step_index_ = -1;
 
     // initialize displays for goals
@@ -82,15 +82,21 @@ FootstepVisManager::~FootstepVisManager()
 void FootstepVisManager::setStartingFootstep(int footstep_id)
 {
     //set to plan from the footstep obtained via context
-    request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::CONTINUE_FROM_STEP;
     start_step_index_ = footstep_id;
+
+    std_msgs::Int32 cmd;
+    cmd.data = start_step_index_;
+    footstep_start_index_pub_.publish(cmd);
 }
 
 void FootstepVisManager::clearStartingFootstep()
 {
     //set to plan from the footstep obtained via context
-    request_mode_ = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN;
     start_step_index_ = -1;
+
+    std_msgs::Int32 cmd;
+    cmd.data = start_step_index_;
+    footstep_start_index_pub_.publish(cmd);
 }
 
 void FootstepVisManager::requestStitchFootstepPlans()
@@ -204,9 +210,6 @@ void FootstepVisManager::requestExecuteStepPlan()
 void FootstepVisManager::requestStepPlan()
 {
     flor_ocs_msgs::OCSFootstepPlanRequest cmd;
-    //cmd.goal_pose = *pose; // this is now set in process goal pose
-    cmd.mode = request_mode_;
-    cmd.start_index = start_step_index_;
     //set footstep paramaters from ui
     cmd.max_time = max_time_;
     cmd.max_steps = max_steps_;

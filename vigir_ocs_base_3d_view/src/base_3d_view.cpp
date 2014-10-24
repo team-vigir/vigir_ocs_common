@@ -1979,6 +1979,13 @@ void Base3DView::clearStartingFootstep()
     footstep_vis_manager_->clearStartingFootstep();
 }
 
+void Base3DView::setStartingFootstep()
+{
+    int id;
+    if((id = findObjectContext("footstep")) != -1)
+        footstep_vis_manager_->setStartingFootstep(id/2); // divide by two since markers come in pairs of cube+text
+}
+
 void Base3DView::stitchFootstepPlans()
 {
     footstep_vis_manager_->requestStitchFootstepPlans();
@@ -2003,13 +2010,6 @@ void Base3DView::removeFootstep()
     int id;
     if((id = findObjectContext("footstep")) != -1)
         footstep_vis_manager_->removeFootstep(id/2); // divide by two since markers come in pairs of cube+text
-}
-
-void Base3DView::setStartingFootstep()
-{
-    int id;
-    if((id = findObjectContext("footstep")) != -1)
-        footstep_vis_manager_->setStartingFootstep(id/2); // divide by two since markers come in pairs of cube+text
 }
 
 void Base3DView::selectTemplate()

@@ -13,6 +13,7 @@
 
 #include <std_msgs/Bool.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Int32.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 
@@ -83,20 +84,17 @@ public:
     // Sends a footstep plan execute request to the footstep manager
     void requestExecuteStepPlan();
 
+    // Sends a footstep plan stitch request to the footstep manager
+    void requestStitchFootstepPlans();
+
     // Sets the request mode for new footstep plans
     void setRequestMode(unsigned char mode = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN, int start_index = -1);
 
-    // Updates starting footstep from which to start planning
+    // Set individual footstep parameters used for planning
     void setStartingFootstep(int footstep_id);
-
     void clearStartingFootstep();
-
-    void requestStitchFootstepPlans();
-
     void lockFootstep(int footstep_id);
-
     void unlockFootstep(int footstep_id);
-
     void removeFootstep(int footstep_id);
 
     // verify state of plans
@@ -143,6 +141,7 @@ private:
     ros::Subscriber footstep_list_sub_;
     ros::Publisher footstep_undo_req_pub_;
     ros::Publisher footstep_redo_req_pub_;
+    ros::Publisher footstep_start_index_pub_;
     ros::Publisher footstep_execute_req_pub_;
     ros::Publisher footstep_stitch_req_pub_;
 
@@ -180,7 +179,6 @@ private:
     rviz::Display* planned_path_;
     rviz::Display* footsteps_path_body_array_;
 
-    unsigned char request_mode_;
     int start_step_index_;
 
     // footstep parameters set from ui
