@@ -639,6 +639,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
         overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
 
+        base_context_menu_ = new BaseContextMenu(this,footstep_vis_manager_);
+
     }
 
     // Connect the 3D selection tool to
@@ -1756,6 +1758,8 @@ void Base3DView::createContextMenu(bool, int x, int y)
     // context is stored in the active_context_ variable
     std::cout << "Active context: " << active_context_ << std::endl;
 
+    //context_menu_ = base_context_menu_->getContextMenu();
+
     addToContextMenuFromVector();
 
     //insert stuff in constructor
@@ -1850,6 +1854,11 @@ void Base3DView::createContextMenu(bool, int x, int y)
     initializing_context_menu_--;
 }
 
+void addToBaseContextMenu(std::vector<contextMenuItem*> items)
+{
+    base_context_menu_->addToContextMenuExternally(items);
+}
+
 void Base3DView::addToContextVector(contextMenuItem* item)
 {
     contextMenuItems.push_back(item); //insert new element
@@ -1897,31 +1906,31 @@ void Base3DView::addToContextMenuFromVector()
 
 void Base3DView::processContextMenuVector()
 {
-    for(int i =0; i<contextMenuItems.size();i++)
-    {
-        //check parent if it exists?
-        if(contextMenuItems[i]->parent != NULL && ((QMenu*)context_menu_selected_item_->parent())->title() == contextMenuItems[i]->parent->name )
-        {
-            //check actual item
-            if( context_menu_selected_item_->text() == contextMenuItems[i]->name)
-            {
-                if(contextMenuItems[i]->function != NULL)
-                {
-                    contextMenuItems[i]->function(); //call binded function
-                }
-            }
-        }
-        else // no parent, must still check item
-        {
-            if( context_menu_selected_item_->text() == contextMenuItems[i]->name)
-            {
-                if(contextMenuItems[i]->function != NULL)
-                {
-                    contextMenuItems[i]->function(); //call binded function
-                }
-            }
-        }
-    }
+//    for(int i =0; i<contextMenuItems.size();i++)
+//    {
+//        //check parent if it exists?
+//        if(contextMenuItems[i]->parent != NULL && ((QMenu*)context_menu_selected_item_->parent())->title() == contextMenuItems[i]->parent->name )
+//        {
+//            //check actual item
+//            if( context_menu_selected_item_->text() == contextMenuItems[i]->name)
+//            {
+//                if(contextMenuItems[i]->function != NULL)
+//                {
+//                    contextMenuItems[i]->function(); //call binded function
+//                }
+//            }
+//        }
+//        else // no parent, must still check item
+//        {
+//            if( context_menu_selected_item_->text() == contextMenuItems[i]->name)
+//            {
+//                if(contextMenuItems[i]->function != NULL)
+//                {
+//                    contextMenuItems[i]->function(); //call binded function
+//                }
+//            }
+//        }
+//    }
 }
 
 //callback functions for context Menu
@@ -2251,7 +2260,7 @@ void Base3DView::processContextMenu(int x, int y)
     //std::cout << selectedItem << std::endl;
     if(context_menu_selected_item_ != NULL)
     {
-        processContextMenuVector();
+        base_context_menu_->processContextMenuVector(context_menu_selected_item_);
     }
 }
 

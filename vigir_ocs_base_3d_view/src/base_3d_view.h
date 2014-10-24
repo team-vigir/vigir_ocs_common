@@ -76,20 +76,7 @@
 
 // local includes
 #include "footstep_vis_manager.h"
-
-struct contextMenuItem
-{
-    QString name;
-    //callback function of this item, sometimes null for parent items
-    boost::function<void()> function;
-    struct contextMenuItem * parent;
-    //menu associated with this item, for children to add to menu
-    QMenu* menu;
-    //can only have action or menu. never both
-    QAction* action;
-    //tells whether to make an action or a menu object
-    bool hasChildren;
-};
+#include "base_context_menu.h"
 
 namespace rviz
 {
@@ -710,12 +697,15 @@ protected:
 
     QTreeWidget * templateRoot;
 
+    BaseContextMenu * base_context_menu_;
     QMenu context_menu_;
     QAction* context_menu_selected_item_;
 
     int initializing_context_menu_;
     std::string active_context_name_;
 
+
+    void addToBaseContextMenu();
     /**
       * add all existing templates to the insert template context menu
       */

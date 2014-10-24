@@ -19,8 +19,8 @@
   <build_depend>vigir_ocs_status_bar</build_depend>
   <build_depend>vigir_ocs_grasp_widget</build_depend>  
   <build_depend>vigir_ocs_notification_system</build_depend>
-
-  
+  <build_depend>vigir_ocs_context_menu_manager</build_depend>
+ 
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
@@ -31,6 +31,7 @@
   <run_depend>vigir_ocs_status_bar</run_depend>
   <run_depend>vigir_ocs_grasp_widget</run_depend>  
   <run_depend>vigir_ocs_notification_system</run_depend>
+  <run_depend>vigir_ocs_context_menu_manager</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
