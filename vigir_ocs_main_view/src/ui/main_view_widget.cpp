@@ -630,7 +630,7 @@ void MainViewWidget::addContextMenu()
     vigir_ocs::Base3DView::makeContextChild("Save Octomap",boost::bind(&MainViewWidget::systemCommandContext,this,"save_octomap"), systemCommands, contextMenuElements);
     vigir_ocs::Base3DView::makeContextChild("Save Pointcloud",boost::bind(&MainViewWidget::systemCommandContext,this,"save_pointcloud"), systemCommands, contextMenuElements);
 
-    //add all context menu items to each view
+    //add all context menu items to each view (base has its own vector of context items, this adds to that vector)
     for(int i=0;i<contextMenuElements.size();i++)
     {
         ((vigir_ocs::Base3DView*) views_list["Top Left"])->addToContextVector(contextMenuElements[i]);
