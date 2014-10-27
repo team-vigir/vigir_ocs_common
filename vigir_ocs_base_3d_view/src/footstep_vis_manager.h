@@ -23,8 +23,9 @@
 #include <flor_ocs_msgs/OCSFootstepList.h>
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepPlanGoal.h>
-#include <flor_ocs_msgs/OCSFootstepPlanGoalFeedback.h>
+#include <flor_ocs_msgs/OCSFootstepPlanGoalUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
+#include <flor_ocs_msgs/OCSFootstepPlanUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
 
 #include <string>
@@ -58,7 +59,7 @@ public:
     void processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose);
 
     // Update goal pose marker
-    void processGoalPoseFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalFeedback::ConstPtr& plan_goal);
+    void processGoalPoseFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalUpdate::ConstPtr& plan_goal);
 
     // Receives list of footsteps and creates/removes interactive markers
     void processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg);

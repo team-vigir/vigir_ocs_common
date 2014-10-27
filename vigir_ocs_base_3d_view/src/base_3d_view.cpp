@@ -1787,17 +1787,17 @@ void Base3DView::createContextMenu(bool, int x, int y)
     }
 
     //cannot request footstep plan without goal
-    //if(!footstep_vis_manager_->hasGoal())
-    //{
-    //    context_menu_.removeAction(defaultFootstepRequestMenu->action);
-        context_menu_.removeAction(customFootstepRequestMenu->action);
-    //}
+    if(!footstep_vis_manager_->hasGoal())
+    {
+        context_menu_.removeAction(defaultFootstepRequestMenu->action);
+    }
+    context_menu_.removeAction(customFootstepRequestMenu->action);
 
     //cannot execute without footstep plan
-    //if(!footstep_vis_manager_->hasValidStepPlan())
-    //{
-    //    context_menu_.removeAction(executeFootstepPlanMenu->action);
-    //}
+    if(!footstep_vis_manager_->hasValidStepPlan())
+    {
+        context_menu_.removeAction(executeFootstepPlanMenu->action);
+    }
 
     if(!footstep_vis_manager_->hasStartingFootstep())
     {
