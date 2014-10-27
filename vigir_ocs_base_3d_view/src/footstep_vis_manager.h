@@ -151,6 +151,7 @@ private:
     ros::Subscriber footstep_goal_pose_fb_sub_;
     ros::Publisher footstep_plan_goal_pub_;
     ros::Publisher footstep_plan_request_pub_;
+    ros::Publisher footstep_plan_update_pub_;
     ros::Subscriber footstep_param_set_list_sub_;
     ros::Publisher footstep_param_set_selected_pub_;
 
