@@ -26,16 +26,8 @@
 
 #include <flor_state_msgs/LowerBodyState.h>
 
-#include <vigir_footstep_planning_msgs/UpdateFeetAction.h>
-#include <vigir_footstep_planning_msgs/StepPlanRequestAction.h>
-#include <vigir_footstep_planning_msgs/EditStepAction.h>
-#include <vigir_footstep_planning_msgs/StitchStepPlanAction.h>
-#include <vigir_footstep_planning_msgs/UpdateStepPlanAction.h>
-#include <vigir_footstep_planning_msgs/ExecuteStepPlanAction.h>
-#include <vigir_footstep_planning_msgs/GetAllParameterSetsAction.h>
-#include <vigir_footstep_planning_msgs/ParameterSet.h>
-
-#include <vigir_global_footstep_planner/parameter_set.h>
+#include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
+#include <vigir_footstep_planning_msgs/parameter_set.h>
 
 #include <actionlib/client/simple_action_client.h>
 
