@@ -76,7 +76,6 @@
 
 // local includes
 #include "footstep_vis_manager.h"
-#include "base_context_menu.h"
 
 namespace rviz
 {
@@ -95,6 +94,8 @@ class FPSViewController;
 
 namespace vigir_ocs
 {
+class BaseContextMenu;
+struct contextMenuItem;
 
 // Class "Main3DView" implements the RobotModel class with joint manipulation that can be added to any QT application.
 class Base3DView: public QWidget
@@ -111,25 +112,6 @@ public:
       */
     Base3DView( Base3DView* copy_from = NULL, std::string base_frame = "/pelvis", std::string widget_name = "", QWidget *parent = 0 );
     virtual ~Base3DView();
-
-    /**
-      *Helper function for the context menu: creates a sub menu
-      */
-    static contextMenuItem * makeContextParent(QString name,std::vector<contextMenuItem * > &contextMenuElements);
-    /**
-      * Helper function for the context menu: creates a selectable item
-      */
-    static contextMenuItem * makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent,std::vector<contextMenuItem * > &contextMenuElements);
-
-    /**
-      * Helper function for context menu: stores template context menu structure
-      */
-    void setTemplateTree(QTreeWidget * root);
-
-    /**
-      * Helper function for context menu: adds an item to context menu
-      */
-    void addToContextVector(contextMenuItem* item);
 
     /**
       * ROS Callback: Receives occupancy map from onboard based on the slice of octomap
@@ -683,53 +665,20 @@ protected:
     void executeFootstepPlanContextMenu();
 
 
-    contextMenuItem * selectFootstepGoalMenu;
-    contextMenuItem * insertTemplateMenu;
-    contextMenuItem * removeTemplateMenu;
-    contextMenuItem * selectTemplateMenu;
-    contextMenuItem * removeFootstepMenu;
-    contextMenuItem * selectFootstepMenu;
-    contextMenuItem * selectStartFootstepMenu;
-    contextMenuItem * clearStartFootstepMenu;
-    contextMenuItem * lockFootstepMenu;
-    contextMenuItem * unlockFootstepMenu;
-    contextMenuItem * undoFootstepMenu;
-    contextMenuItem * redoFootstepMenu;
-    contextMenuItem * footstepGoalMenu;
-    contextMenuItem * stitchFootstepMenu;
-    contextMenuItem * defaultFootstepRequestMenu;
-    contextMenuItem * customFootstepRequestMenu;
-    contextMenuItem * executeFootstepPlanMenu;
-    contextMenuItem * cartesianMotionMenu;
-    contextMenuItem * createCartesianMarkerMenu;
-    contextMenuItem * removeCartesianMarkerMenu;
-    contextMenuItem * circularMotionMenu;
-    contextMenuItem * createCircularMarkerMenu;
-    contextMenuItem * removeCircularMarkerMenu;
-    contextMenuItem * lockLeftMenu;
-    contextMenuItem * lockRightMenu;
-    contextMenuItem * unlockArmsMenu;
-    contextMenuItem * snapHandMenu;
-    contextMenuItem * leftArmMenu;
-    contextMenuItem * rightArmMenu;
 
-    std::vector<contextMenuItem*> contextMenuItems;
+    //std::vector<contextMenuItem*> contextMenuItems;
 
-    QTreeWidget * templateRoot;
+    //QTreeWidget * templateRoot;
 
     BaseContextMenu * base_context_menu_;
-    QMenu context_menu_;
+    //QMenu* context_menu_;
     QAction* context_menu_selected_item_;
 
-    int initializing_context_menu_;
+
     std::string active_context_name_;
 
+    void addToBaseContextMenu(std::vector<contextMenuItem*> items);
 
-    void addToBaseContextMenu();
-    /**
-      * add all existing templates to the insert template context menu
-      */
-    void addTemplatesToContext();
     /**
       * insert individual menu to context menu
       */

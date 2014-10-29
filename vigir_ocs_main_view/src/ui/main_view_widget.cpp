@@ -366,7 +366,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     ocs_sync_sub_ = n_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &MainViewWidget::synchronizeToggleButtons, this );
 
-
+    main_view_context_menu_ = new MainViewContextMenu(this);
+    primary_view_ = (vigir_ocs::Base3DView*) views_list["Top Left"];
 
 }
 
@@ -483,88 +484,7 @@ void MainViewWidget::moveEvent(QMoveEvent * event)
 }
 
 
-void MainViewWidget::updateContextMenu()
-{
-    //change default checkable values of context items.. must as they are created with menu
-    joystickContext->action->setCheckable(true);
-    positionContext->action->setCheckable(true);
-    graspContext->action->setCheckable(true);
-    jointControlContext->action->setCheckable(true);
-    pelvisContext->action->setCheckable(true);
-    ghostContext->action->setCheckable(true);
-    plannerContext->action->setCheckable(true);
-    footBasicContext->action->setCheckable(true);
-    footAdvancedContext->action->setCheckable(true);
-    footParameterContext->action->setCheckable(true);
-    objectContext->action->setCheckable(true);
-    worldContext->action->setCheckable(true);
-    cameraContext->action->setCheckable(true);
 
-    //update context menu elements with checks
-    if(!ui->joystickBtn->isChecked())
-        joystickContext->action->setChecked(false);
-    else
-        joystickContext->action->setChecked(true);
-
-    if(!ui->jointControlBtn->isChecked())
-        jointControlContext->action->setChecked(false);
-    else
-        jointControlContext->action->setChecked(true);
-
-    if(!ui->pelvisControlBtn->isChecked())
-        pelvisContext->action->setChecked(false);
-    else
-        pelvisContext->action->setChecked(true);
-
-    if(!ui->basicStepBtn->isChecked())
-        footBasicContext->action->setChecked(false);
-    else
-        footBasicContext->action->setChecked(true);
-
-    if(!ui->stepBtn->isChecked())
-        footAdvancedContext->action->setChecked(false);
-    else
-        footAdvancedContext->action->setChecked(true);
-
-    if(!ui->footstepParamBtn->isChecked())
-        footParameterContext->action->setChecked(false);
-    else
-        footParameterContext->action->setChecked(true);
-
-    if(!ui->ghostControlBtn->isChecked())
-        ghostContext->action->setChecked(false);
-    else
-        ghostContext->action->setChecked(true);
-
-    if(!ui->positionModeBtn->isChecked())
-         positionContext->action->setChecked(false);
-    else
-         positionContext->action->setChecked(true);
-
-    if(!ui->plannerConfigBtn->isChecked())
-       plannerContext->action->setChecked(false);
-    else
-       plannerContext->action->setChecked(true);
-
-    switch(ui->modeBox->currentIndex())
-    {
-    case 0:
-        objectContext->action->setChecked(true);
-        worldContext->action->setChecked(false);
-        cameraContext->action->setChecked(false);
-        break;
-    case 1:
-        objectContext->action->setChecked(false);
-        worldContext->action->setChecked(true);
-        cameraContext->action->setChecked(false);
-        break;
-    case 2:
-        objectContext->action->setChecked(false);
-        worldContext->action->setChecked(false);
-        cameraContext->action->setChecked(true);
-        break;
-    }
-}
 
 void MainViewWidget::hideGraspWidgets()
 {

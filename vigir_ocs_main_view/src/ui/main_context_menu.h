@@ -23,16 +23,31 @@ class MainViewContextMenu: public ContextMenuManager
     Q_OBJECT
 public:
 
-    MainViewContextMenu();
+    MainViewContextMenu(MainViewWidget* main_view);
     virtual ~MainViewContextMenu();
    
 Q_SIGNALS:
 
-
+public Q_SLOTS;
+    void updateContextMenu();
 private:   
+    MainViewWidget* main_view_;
     void createContextMenu();
 
-
+    //context item references for checking/unchecking in context menu
+    contextMenuItem * joystickContext;
+    contextMenuItem * positionContext;
+    contextMenuItem * graspContext;
+    contextMenuItem * jointControlContext;
+    contextMenuItem * pelvisContext;
+    contextMenuItem * ghostContext;
+    contextMenuItem * plannerContext;
+    contextMenuItem * footBasicContext;
+    contextMenuItem * footAdvancedContext;
+    contextMenuItem * footParameterContext;
+    contextMenuItem * objectContext;
+    contextMenuItem * worldContext;
+    contextMenuItem * cameraContext;
    //CALLBACKS///////////////////////////////////
 
 
