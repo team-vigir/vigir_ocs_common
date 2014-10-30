@@ -41,6 +41,7 @@
 #include <flor_grasp_msgs/GraspState.h>
 #include <flor_grasp_msgs/GraspSelection.h>
 #include <flor_grasp_msgs/TemplateSelection.h>
+#include <flor_grasp_msgs/LinkState.h>
 
 #define FINGER_EFFORTS 4
 
@@ -189,9 +190,9 @@ private:
     tf::Transform gp_T_palm_;     //describes palm in grasp pose frame
 
     // get joint states
-    ros::Subscriber joint_states_sub_;
+    ros::Subscriber link_states_sub_;
 
-    void jointStatesCB(const sensor_msgs::JointState::ConstPtr& joint_states);
+    void linkStatesCB(const flor_grasp_msgs::LinkState::ConstPtr& link_states);
 
     bool show_grasp_;
     bool stitch_template_;
