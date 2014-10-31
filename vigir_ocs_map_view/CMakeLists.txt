@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz flor_ocs_msgs
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-    CATKIN_DEPENDS roscpp rospy std_msgs rviz flor_ocs_msgs flor_perception_msgs vigir_ocs_base_3d_view vigir_ocs_status_bar vigir_ocs_ortho_view vigir_ocs_notification_system
+    CATKIN_DEPENDS roscpp rospy std_msgs rviz flor_ocs_msgs flor_perception_msgs vigir_ocs_base_3d_view vigir_ocs_status_bar vigir_ocs_ortho_view vigir_ocs_notification_system vigir_ocs_context_menu_manager
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
@@ -29,6 +29,7 @@ qt4_wrap_cpp(MOC_FILES_WIDGET
 qt4_wrap_cpp(MOC_FILES
   src/map_view.h
   src/ui/map_view_widget.h
+  src/map_context_menu.h
   src/ui/map_region_configure_widget.h
   src/ui/region_3d_configure_widget.h
 )
@@ -53,6 +54,7 @@ set(SOURCE_FILES
   src/ui/region_3d_configure_widget.cpp
   src/ui/map_region_configure_widget.cpp
   src/ui/map_view_widget.cpp
+  src/map_context_menu.cpp
   src/main.cpp
   ${MOC_FILES}
 )

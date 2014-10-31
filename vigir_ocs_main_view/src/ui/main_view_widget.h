@@ -56,8 +56,8 @@ public:
 
     virtual void timerEvent(QTimerEvent *event);
 
-    vigir_ocs::Base3DView* getPrimaryView(){return primary_view_};
-    Ui::MainViewWidget* getUi(){return ui};
+    vigir_ocs::Base3DView* getPrimaryView(){return primary_view;_}
+    Ui::MainViewWidget* getUi(){return ui;}
 
 public Q_SLOTS:
     void oneViewToggle();
@@ -107,7 +107,8 @@ protected:
     Ui::MainViewWidget *ui;
     MainViewContextMenu* main_view_context_menu_;
 
-    std::map<std::string,QWidget*> views_list;
+    std::map<std::string,QWidget*> views_list_;
+    std::map<std::string,QWidget*> getViewsList(){return views_list_;}
 
     QWidget* position_widget_;
     QPushButton* four_view_button_;

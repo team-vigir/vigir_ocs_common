@@ -638,10 +638,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // initialize notification system
         overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
-        overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
-
-        //initialize context menu
-        base_context_menu_ = new BaseContextMenu(this,footstep_vis_manager_);
+        overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");      
 
     }
 
@@ -717,8 +714,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     // advertise publisher for camera transform
     camera_transform_pub_ = nh_.advertise<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform", 5, false );
 
-    //build context menu
-    addBase3DContextElements();
+    //initialize context menu
+    base_context_menu_ = new BaseContextMenu(this,footstep_vis_manager_);
 
     //Initialize shift_pressed_ to false and set interactive_marker_mode_ to default
     shift_pressed_ = false;
@@ -1870,11 +1867,6 @@ void Base3DView::createContextMenu(bool, int x, int y)
 }
 **/
 
-void Base3DView::addToBaseContextMenu(std::vector<contextMenuItem*> items)
-{
-    base_context_menu_->addToContextMenuExternally(items);
-}
-
 //void Base3DView::addToContextVector(contextMenuItem* item)
 //{
 //    contextMenuItems.push_back(item); //insert new element
@@ -2334,6 +2326,11 @@ void Base3DView::removeTemplate(int id)
 
     //notify
     NotificationSystem::Instance()->notifyPassive("Template Removed");
+}
+
+void Base3DView::emitQueryContext(int x,int y)
+{
+    Q_EMIT queryContext(x,y);
 }
 
 void Base3DView::setContext(int context, std::string name)

@@ -73,6 +73,7 @@
 
 #include "robot_state_manager.h"
 #include "notification_system.h"
+#include "context_menu_manager.h"
 
 // local includes
 #include "footstep_vis_manager.h"
@@ -133,6 +134,7 @@ public:
     void processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc );
 
 
+    BaseContextMenu * getBaseContextMenu(){return base_context_menu_;}
 
     /**
       * ROS Callback: receives left arm end effector position from moveit
@@ -296,18 +298,20 @@ public Q_SLOTS:
       */
     void insertWaypoint();
 
-    /**
-      * Create the right click context menu based on the context
-      */
-    virtual void createContextMenu( bool, int, int );
-    /**
-      * process selection of the context menu item
-      */
-    virtual void processContextMenu( int x, int y );
+//    /**
+//      * Create the right click context menu based on the context
+//      */
+//    virtual void createContextMenu( bool, int, int );
+//    /**
+//      * process selection of the context menu item
+//      */
+//    virtual void processContextMenu( int x, int y );
     /**
       * sends back the context
       */
     void setContext( int, std::string );
+
+    void emitQueryContext(int x,int y);
 
     /**
       * get the last selection ray
@@ -674,14 +678,13 @@ protected:
 
     //QTreeWidget * templateRoot;
 
-    BaseContextMenu * base_context_menu_;
+    BaseContextMenu * base_context_menu_;    
+
     //QMenu* context_menu_;
     QAction* context_menu_selected_item_;
 
 
     std::string active_context_name_;
-
-    void addToBaseContextMenu(std::vector<contextMenuItem*> items);
 
     /**
       * insert individual menu to context menu

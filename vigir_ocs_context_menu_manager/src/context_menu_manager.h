@@ -40,25 +40,33 @@ struct contextMenuItem
 
 class ContextMenuManager: public QObject
 {
+
+
     Q_OBJECT
 public:
-
-    ContextMenuManager();
-    virtual ~ContextMenuManager();
-
-
-protected:
-
     // specific to every type of menu_manager, -set your own build order etc..
     //void createContextMenu();
     contextMenuItem *addMenuItem(QString name);
     contextMenuItem *addActionItem(QString name, boost::function<void()> function, contextMenuItem * parent);
     void addSeperator();
+
     //visibility handled after construction in associated widget
     void setItemVisibility(QString name, bool visibility);
+
+    //stores heirarchy of the context menu to be constructed
     std::vector<contextMenuItem*> context_menu_items_;
+    //std::vector<contextMenuItem*> getContextMenuItems(){return context_menu_items_;}
 
 
+protected:
+
+
+
+private:
+    ContextMenuManager();  // Private so that it can  not be called
+    ContextMenuManager(RobotStateManager const&){};             // copy constructor is private
+    ContextMenuManager& operator=(ContextMenuManager const&){};  // assignment operator is private
+    static ContextMenuManager* instance;
 
 
 };

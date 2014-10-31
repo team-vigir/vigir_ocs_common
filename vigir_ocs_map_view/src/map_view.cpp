@@ -66,7 +66,8 @@ MapView::MapView( QWidget* parent )
 
     setViewPlane("XY");
 
-    addContextMenu();
+    //create context menu for this view
+    map_view_context_menu = new MapViewContextMenu(this);
 
     //set default tool
     manager_->getToolManager()->setCurrentTool( interactive_markers_tool_);

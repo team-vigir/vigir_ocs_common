@@ -36,41 +36,41 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     QHBoxLayout* aux_layout;
 
     // setup default views
-    views_list["Top Left"] = new vigir_ocs::PerspectiveView(NULL, "/world", "MainView");
-    views_list["Top Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"]),"/pelvis", "MainView"); //views_list["Top Right"] = new vigir_ocs::OrthoView();
-    views_list["Bottom Left"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"]),"/pelvis", "MainView"); //views_list["Bottom Left"] = new vigir_ocs::OrthoView();
-    views_list["Bottom Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list["Top Left"]),"/pelvis", "MainView"); //views_list["Bottom Right"] = new vigir_ocs::OrthoView();
+    views_list_["Top Left"] = new vigir_ocs::PerspectiveView(NULL, "/world", "MainView");
+    views_list_["Top Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list_["Top Left"]),"/pelvis", "MainView"); //views_list_["Top Right"] = new vigir_ocs::OrthoView();
+    views_list_["Bottom Left"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list_["Top Left"]),"/pelvis", "MainView"); //views_list_["Bottom Left"] = new vigir_ocs::OrthoView();
+    views_list_["Bottom Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list_["Top Left"]),"/pelvis", "MainView"); //views_list_["Bottom Right"] = new vigir_ocs::OrthoView();
 
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
-    aux_layout->addWidget(views_list["Top Left"]);
+    aux_layout->addWidget(views_list_["Top Left"]);
     ui->center_parent_->setLayout(aux_layout);
 
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
-    aux_layout->addWidget(views_list["Top Right"]);
+    aux_layout->addWidget(views_list_["Top Right"]);
     ui->top_right_parent_->setLayout(aux_layout);
 
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
-    aux_layout->addWidget(views_list["Bottom Left"]);
+    aux_layout->addWidget(views_list_["Bottom Left"]);
     ui->bottom_left_parent_->setLayout(aux_layout);
 
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
-    aux_layout->addWidget(views_list["Bottom Right"]);
+    aux_layout->addWidget(views_list_["Bottom Right"]);
     ui->bottom_right_parent_->setLayout(aux_layout);
 
-    ((vigir_ocs::OrthoView*)views_list["Top Right"])->setViewPlane("XY");
-    ((vigir_ocs::OrthoView*)views_list["Bottom Left"])->setViewPlane("XZ");
-    ((vigir_ocs::OrthoView*)views_list["Bottom Right"])->setViewPlane("YZ");
+    ((vigir_ocs::OrthoView*)views_list_["Top Right"])->setViewPlane("XY");
+    ((vigir_ocs::OrthoView*)views_list_["Bottom Left"])->setViewPlane("XZ");
+    ((vigir_ocs::OrthoView*)views_list_["Bottom Right"])->setViewPlane("YZ");
 
     std::map<std::string, QWidget*>::iterator iter;
 
-    for (iter = views_list.begin(); iter != views_list.end(); ++iter)
+    for (iter = views_list_.begin(); iter != views_list_.end(); ++iter)
     {
         // only need to connect to the main rviz instance (maybe not all of them?
-        if(iter->second == views_list["Top Left"])
+        if(iter->second == views_list_["Top Left"])
         {
             ((vigir_ocs::Base3DView*)iter->second)->updateRenderMask(true);
 
@@ -117,7 +117,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     icon_path_ = QString(ip.c_str());
 
     //contains both view buttons for alignment
-    position_widget_ = new QWidget(views_list["Top Left"]);
+    position_widget_ = new QWidget(views_list_["Top Left"]);
     position_widget_->setStyleSheet("background-color: rgb(108, 108, 108);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0);");
     position_widget_->setMaximumSize(46,22);
 
@@ -160,10 +160,10 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     rviz::DisplaysPanel* displays_panel = new rviz::DisplaysPanel(this);
     displays_panel->setMaximumWidth(225);
-    displays_panel->initialize( ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
+    displays_panel->initialize( ((vigir_ocs::PerspectiveView*)views_list_["Top Left"])->getVisualizationManager());
 
 //    rviz::ViewsPanel* views_panel = new rviz::ViewsPanel(this);
-//    views_panel->setViewManager(((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()->getViewManager());
+//    views_panel->setViewManager(((vigir_ocs::PerspectiveView*)views_list_["Top Left"])->getVisualizationManager()->getViewManager());
 
     QVBoxLayout* displays_layout = new QVBoxLayout();
     displays_layout->setMargin(0);
@@ -186,7 +186,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     footstep_configure_widget_ = new FootstepConfigure();
     //connect to update footstep paramaters from ui
     connect(footstep_configure_widget_,SIGNAL(sendFootstepParamaters(double,int,double,int,bool)),
-            ((vigir_ocs::Base3DView*) views_list["Top Left"])->getFootstepVisManager(),SLOT(updateFootstepParamaters(double,int,double,int,bool)));
+            ((vigir_ocs::Base3DView*) views_list_["Top Left"])->getFootstepVisManager(),SLOT(updateFootstepParamaters(double,int,double,int,bool)));
 
     // setup all buttons/icons in the toolbar
     setupToolbar();
@@ -197,8 +197,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     statusBar = new StatusBar(this);
 
     //connect view to update position data and fps
-    connect(views_list["Top Left"],SIGNAL(sendPositionText(QString)),statusBar,SLOT(receivePositionText(QString)));
-    connect(views_list["Top Left"],SIGNAL(sendFPS(int)),statusBar,SLOT(receiveFPS(int)));
+    connect(views_list_["Top Left"],SIGNAL(sendPositionText(QString)),statusBar,SLOT(receivePositionText(QString)));
+    connect(views_list_["Top Left"],SIGNAL(sendFPS(int)),statusBar,SLOT(receiveFPS(int)));
 
     ui->statusLayout->addWidget(statusBar);
     grasp_toggle_button_ = new QPushButton(this);
@@ -318,10 +318,10 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     sys_command_pub_ = n_.advertise<std_msgs::String>("/syscommand",1,false);
 
     //send template tree to base3dview
-    ((vigir_ocs::Base3DView*)views_list["Top Left"])->setTemplateTree(ui->template_widget->getTreeRoot());
-    ((vigir_ocs::Base3DView*)views_list["Top Right"])->setTemplateTree(ui->template_widget->getTreeRoot());
-    ((vigir_ocs::Base3DView*)views_list["Bottom Left"])->setTemplateTree(ui->template_widget->getTreeRoot());
-    ((vigir_ocs::Base3DView*)views_list["Bottom Right"])->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((vigir_ocs::Base3DView*)views_list_["Top Left"])->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((vigir_ocs::Base3DView*)views_list_["Top Right"])->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((vigir_ocs::Base3DView*)views_list_["Bottom Left"])->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((vigir_ocs::Base3DView*)views_list_["Bottom Right"])->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
 
     addContextMenu();
 
@@ -337,7 +337,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));
 
 
-    connect(((vigir_ocs::Base3DView*) views_list["Top Left"]),SIGNAL(updateMainViewItems()),this,SLOT(updateContextMenu()));
+    connect(((vigir_ocs::Base3DView*) views_list_["Top Left"]),SIGNAL(updateMainViewItems()),this,SLOT(updateContextMenu()));
 
     timer.start(100, this);
 
@@ -353,10 +353,10 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
 
     //map all toggles button to their identifiers                              @todo - verify
-    stop_mapper_->setMapping(((vigir_ocs::Base3DView*) views_list["Top Left"]),1);//flor_control_msgs::FlorControlModeCommand::FLOR_STOP);
+    stop_mapper_->setMapping(((vigir_ocs::Base3DView*) views_list_["Top Left"]),1);//flor_control_msgs::FlorControlModeCommand::FLOR_STOP);
 
     //connect all buttons for mouse presses
-    connect(((vigir_ocs::Base3DView*) views_list["Top Left"]),SIGNAL(emergencyStop()),stop_mapper_,SLOT(map()));
+    connect(((vigir_ocs::Base3DView*) views_list_["Top Left"]),SIGNAL(emergencyStop()),stop_mapper_,SLOT(map()));
 
     //Restore State
     QSettings settings("OCS", "main_view");
@@ -366,8 +366,11 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     ocs_sync_sub_ = n_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &MainViewWidget::synchronizeToggleButtons, this );
 
+    //useful to getting access to callbacks for context menu
+    primary_view_ = (vigir_ocs::Base3DView*) views_list_["Top Left"];
+
+    //create context menu and add to base3dview
     main_view_context_menu_ = new MainViewContextMenu(this);
-    primary_view_ = (vigir_ocs::Base3DView*) views_list["Top Left"];
 
 }
 
@@ -503,7 +506,7 @@ void MainViewWidget::addContextMenu()
 //    //must do parent objects before children
 //    //and in the order you want them to show up in the context menu
 
-//    vigir_ocs::Base3DView::makeContextChild("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,(vigir_ocs::Base3DView*)views_list["Top Left"]), NULL, contextMenuElements);
+//    vigir_ocs::Base3DView::makeContextChild("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,(vigir_ocs::Base3DView*)views_list_["Top Left"]), NULL, contextMenuElements);
 
 //    contextMenuElements.push_back(separator);
 
@@ -553,10 +556,10 @@ void MainViewWidget::addContextMenu()
 //    //add all context menu items to each view (base has its own vector of context items, this adds to that vector)
 //    for(int i=0;i<contextMenuElements.size();i++)
 //    {
-//        ((vigir_ocs::Base3DView*) views_list["Top Left"])->addToContextVector(contextMenuElements[i]);
-//        ((vigir_ocs::Base3DView*) views_list["Top Right"])->addToContextVector(contextMenuElements[i]);
-//        ((vigir_ocs::Base3DView*) views_list["Bottom Left"])->addToContextVector(contextMenuElements[i]);
-//        ((vigir_ocs::Base3DView*) views_list["Bottom Right"])->addToContextVector(contextMenuElements[i]);
+//        ((vigir_ocs::Base3DView*) views_list_["Top Left"])->addToContextVector(contextMenuElements[i]);
+//        ((vigir_ocs::Base3DView*) views_list_["Top Right"])->addToContextVector(contextMenuElements[i]);
+//        ((vigir_ocs::Base3DView*) views_list_["Bottom Left"])->addToContextVector(contextMenuElements[i]);
+//        ((vigir_ocs::Base3DView*) views_list_["Bottom Right"])->addToContextVector(contextMenuElements[i]);
 //    }
 }
 
@@ -833,8 +836,8 @@ void MainViewWidget::setupToolbar()
     //need to subscribe to stay in sync with modes
     mode_sub_ = n_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1, &MainViewWidget::modeCB,this);
 
-    connect(ui->footstepParamSetBox,SIGNAL(currentIndexChanged(QString)),((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SLOT(setFootstepParameterSet(QString)));
-    connect(((vigir_ocs::Base3DView*)views_list["Top Left"])->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));    
+    connect(ui->footstepParamSetBox,SIGNAL(currentIndexChanged(QString)),((vigir_ocs::Base3DView*)views_list_["Top Left"])->getFootstepVisManager(),SLOT(setFootstepParameterSet(QString)));
+    connect(((vigir_ocs::Base3DView*)views_list_["Top Left"])->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));
 
 }
 
@@ -880,9 +883,9 @@ void MainViewWidget::oneViewToggle()
 
     std::map<std::string, QWidget*>::iterator iter;
 
-    for (iter = views_list.begin(); iter != views_list.end(); ++iter)
+    for (iter = views_list_.begin(); iter != views_list_.end(); ++iter)
     {
-        if(iter->second == views_list["Top Left"])
+        if(iter->second == views_list_["Top Left"])
             ((vigir_ocs::Base3DView*)iter->second)->updateRenderMask(true);
         else
             ((vigir_ocs::Base3DView*)iter->second)->updateRenderMask(false);
@@ -909,12 +912,12 @@ void MainViewWidget::fourViewToggle()
 
     std::map<std::string, QWidget*>::iterator iter;
 
-    for (iter = views_list.begin(); iter != views_list.end(); ++iter)
+    for (iter = views_list_.begin(); iter != views_list_.end(); ++iter)
         ((vigir_ocs::Base3DView*)iter->second)->updateRenderMask(true);
 }
 
 void MainViewWidget::ft_sensorToggled(bool toggled){
-    ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->ft_sensorToggled(toggled);
+    ((vigir_ocs::PerspectiveView*)views_list_["Top Left"])->ft_sensorToggled(toggled);
 }
 
 void MainViewWidget::zero_leftPressed(){

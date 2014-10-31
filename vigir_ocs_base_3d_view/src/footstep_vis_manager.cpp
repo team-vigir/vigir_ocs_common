@@ -36,7 +36,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     planned_path_->subProp( "Topic" )->setValue( "/flor/ocs/footstep/path" );
 
     // creates publishers and subscribers for the interaction loop
-    footstep_update_pub_      = nh_.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, false );
+    footstep_update_pub_      = nh_.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/step_update", 1, false );
     footstep_list_sub_        = nh_.subscribe<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 5, &FootstepVisManager::processFootstepList, this );
     footstep_undo_req_pub_    = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, false );
     footstep_redo_req_pub_    = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, false );
@@ -47,9 +47,10 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     // publishers and subscribers for the plan request
     footstep_goal_sub_               = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &FootstepVisManager::processGoalPose, this );
     footstep_plan_goal_pub_          = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, false );
-    footstep_goal_pose_fb_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoalFeedback>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
-    footstep_goal_pose_fb_sub_       = nh_.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalFeedback>( "/flor/ocs/footstep/goal_pose_feedback", 5, &FootstepVisManager::processGoalPoseFeedback, this );
+    footstep_goal_pose_fb_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
+    footstep_goal_pose_fb_sub_       = nh_.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 5, &FootstepVisManager::processGoalPoseFeedback, this );
     footstep_plan_request_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, false );
+    footstep_plan_update_pub_        = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanUpdate>( "/flor/ocs/footstep/plan_update", 1, false );
     footstep_param_set_list_sub_     = nh_.subscribe<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 5, &FootstepVisManager::processFootstepParamSetList, this );
     footstep_param_set_selected_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 1, false );
 
@@ -234,10 +235,10 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
     footstep_plan_goal_pub_.publish(cmd);
 }
 
-void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalFeedback::ConstPtr &plan_goal)
+void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalUpdate::ConstPtr &plan_goal)
 {
     // only do something if we're getting feedback
-    if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalFeedback::FEEDBACK)
+    if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::FEEDBACK)
     {
         // create/update step plan goal marker
         {
@@ -304,7 +305,7 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
             interactive_marker_update_pub_.publish(cmd);
         }
     }
-    else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalFeedback::CLEAR)
+    else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::CLEAR)
     {
         has_goal_ = false;
 
@@ -412,32 +413,48 @@ void FootstepVisManager::updateInteractiveMarkers()
 void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg)
 {
     // goal feedback
-    if(boost::starts_with(msg.topic,"/footstep_goal") || boost::starts_with(msg.topic,"/step_plan_goal"))
+    if(boost::starts_with(msg.topic,"/step_plan_goal") || boost::starts_with(msg.topic,"/footstep_goal"))
     {
-        flor_ocs_msgs::OCSFootstepPlanGoalFeedback cmd;
+        flor_ocs_msgs::OCSFootstepPlanGoalUpdate cmd;
         if(boost::starts_with(msg.topic,"/step_plan_goal"))
         {
-            cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalFeedback::GOAL;
+            cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::GOAL;
             cmd.goal_pose = msg.pose;
         }
         else if(boost::starts_with(msg.topic,"/footstep_goal_left"))
         {
-            cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalFeedback::LEFT;
+            cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::LEFT;
             cmd.left_foot = msg.pose;
         }
         else if(boost::starts_with(msg.topic,"/footstep_goal_right"))
         {
-            cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalFeedback::RIGHT;
+            cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::RIGHT;
             cmd.right_foot = msg.pose;
         }
         footstep_goal_pose_fb_pub_.publish(cmd);
+    }
+    else if(boost::starts_with(msg.topic,"/step_plan_"))
+    {
+        try
+        {
+            flor_ocs_msgs::OCSFootstepPlanUpdate cmd;
+            int start_idx = strlen("/step_plan_");
+            int end_idx = msg.topic.substr(start_idx, msg.topic.size()-start_idx).find("_marker");
+            cmd.step_plan_id = boost::lexical_cast<int>(msg.topic.substr(start_idx,end_idx).c_str());
+            cmd.pose = msg.pose;
+            footstep_plan_update_pub_.publish(cmd);
+        }
+        catch( boost::bad_lexical_cast const& )
+        {
+            ROS_ERROR("Error: input string was not valid");
+        }
     }
     else if(boost::starts_with(msg.topic,"/footstep_"))
     {
         try
         {
             flor_ocs_msgs::OCSFootstepUpdate cmd;
-            int start_idx = msg.topic.find("/footstep_") + strlen("/footstep_");
+            int start_idx = strlen("/footstep_");
             int end_idx = msg.topic.substr(start_idx, msg.topic.size()-start_idx).find("_marker");
             cmd.footstep_id = boost::lexical_cast<int>(msg.topic.substr(start_idx,end_idx).c_str());
             cmd.pose = msg.pose;
@@ -447,7 +464,6 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
         {
             ROS_ERROR("Error: input string was not valid");
         }
-
     }
 }
 

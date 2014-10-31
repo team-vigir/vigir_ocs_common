@@ -18,6 +18,7 @@
 #include "ortho_view.h"
 #include "interaction_tool_custom.h"
 #include "notification_system.h"
+#include "map_context_menu.h"
 
 
 namespace rviz
@@ -66,13 +67,10 @@ private:
 
     int selected_area_[4];
 
-    flor_perception_msgs::PointCloudTypeRegionRequest last_request_;
+    flor_perception_msgs::PointCloudTypeRegionRequest last_request_;   
 
-    void addContextMenu();
-    std::vector<contextMenuItem *> contextMenuElements;
-    contextMenuItem * blockRegion;
-    contextMenuItem * clearRegion;
-    contextMenuItem * pointCloudMenu;
+    MapViewContextMenu * map_view_context_menu;
+
     void blockRegionContext(int boxType);
     void clearRegionContext(int boxType);
     void requestAreaMapContext();

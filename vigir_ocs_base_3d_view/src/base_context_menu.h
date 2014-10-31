@@ -34,23 +34,20 @@ public:
     void resetMenu();
     //QMenu *getContextMenu();
     void addToContextMenuExternally(std::vector<contextMenuItem* > external_context_menu);
-    void processContextMenuVector(QAction* context_menu_selected_item);
+
     void setItemVisibility(QString name, bool visibility);
     void setActiveContext(std::string name, int num);
 
 Q_SIGNALS:
 
 
-private:
-   //process Vector to build menu + actions correctly, base3dview is the only one that builds, others like MainView must send their context items to base
-   void buildContextMenuHeirarchy();
+private:  
    void createContextMenuItems();
    void addTemplatesToContext();
-   void createContextMenu(bool, int x, int y);
-   void processContextMenu(int x, int y);
+   void createContextMenu(bool, int x, int y);   
 
    //CALLBACKS///////////////////////////////////
-    void selectTemplate();
+   // void selectTemplate();
     void contextInsertTemplate(QString path);
 
 

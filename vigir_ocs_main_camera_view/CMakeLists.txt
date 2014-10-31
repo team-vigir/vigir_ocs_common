@@ -3,7 +3,7 @@ project(vigir_ocs_main_camera_view)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_status_bar vigir_ocs_camera_view flor_ocs_msgs vigir_ocs_notification_system)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_status_bar vigir_ocs_camera_view flor_ocs_msgs vigir_ocs_notification_system vigir_ocs_context_menu_manager)
 
 ## Declare things to be passed to other projects
 catkin_package(	
@@ -25,6 +25,7 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 qt4_wrap_cpp(MOC_FILES
   src/ui/main_camera_view_widget.h
+  src/ui/main_camera_context_menu.h
 )
 
 ## Here we add QtCreator ui files
@@ -37,6 +38,7 @@ qt4_wrap_ui(UIC_FILES
 
 set(SOURCE_FILES
   src/ui/main_camera_view_widget.cpp
+  src/ui/main_camera_context_menu.cpp
   src/main.cpp
   ${MOC_FILES}
 )

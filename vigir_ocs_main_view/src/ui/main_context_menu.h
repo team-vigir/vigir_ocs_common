@@ -1,6 +1,6 @@
 
-#ifndef BASE_CONTEXT_MENU_H
-#define BASE_CONTEXT_MENU_H
+#ifndef MAIN_CONTEXT_MENU_H
+#define MAIN_CONTEXT_MENU_H
 
 #include <QObject>
 
@@ -18,21 +18,23 @@
 
 namespace vigir_ocs
 {
-class MainViewContextMenu: public ContextMenuManager
+class MainViewContextMenu
 {
     Q_OBJECT
 public:
 
     MainViewContextMenu(MainViewWidget* main_view);
     virtual ~MainViewContextMenu();
-   
+    std::map<contextMenuItem*,std::string> context_Item_Map_;
 Q_SIGNALS:
 
 public Q_SLOTS;
     void updateContextMenu();
+
 private:   
     MainViewWidget* main_view_;
     void createContextMenu();
+
 
     //context item references for checking/unchecking in context menu
     contextMenuItem * joystickContext;
@@ -57,4 +59,4 @@ private:
 };
 
 }
-#endif BASE_CONTEXT_MENU_H
+#endif //MAIN_CONTEXT_MENU_H
