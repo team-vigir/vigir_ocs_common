@@ -2340,7 +2340,7 @@ void Base3DView::setContext(int context, std::string name)
 {
     active_context_ = context;
     active_context_name_ = name;
-    base_context_menu_->setActiveContext(name);
+    base_context_menu_->setActiveContext(name, active_context_);
     //std::cout << "Active context: " << active_context_ << std::endl;
 }
 

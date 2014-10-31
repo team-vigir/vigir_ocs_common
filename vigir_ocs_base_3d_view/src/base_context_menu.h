@@ -36,7 +36,7 @@ public:
     void addToContextMenuExternally(std::vector<contextMenuItem* > external_context_menu);
     void processContextMenuVector(QAction* context_menu_selected_item);
     void setItemVisibility(QString name, bool visibility);
-    void setActiveContext(std::string name);
+    void setActiveContext(std::string name, int num);
 
 Q_SIGNALS:
 
@@ -51,6 +51,7 @@ private:
 
    //CALLBACKS///////////////////////////////////
     void selectTemplate();
+    void contextInsertTemplate(QString path);
 
 
    //END CALLBACKS///////////////////////////
@@ -64,6 +65,7 @@ private:
    Base3DView* base_3d_view_;
    QTreeWidget * template_root_;
    std::string active_context_name_;
+   int active_context_;
 
 
    //Menu Items/////////////////////////

@@ -45,22 +45,19 @@ public:
 
     ContextMenuManager();
     virtual ~ContextMenuManager();
-    //visibility handled after construction in associated widget
-    void setItemVisibility(QString name, bool visibility);
 
 
-
-    //should be private
-    std::vector<contextMenuItem*> context_menu_items_;
-
-
-private:  
+protected:
 
     // specific to every type of menu_manager, -set your own build order etc..
     //void createContextMenu();
     contextMenuItem *addMenuItem(QString name);
     contextMenuItem *addActionItem(QString name, boost::function<void()> function, contextMenuItem * parent);
     void addSeperator();
+    //visibility handled after construction in associated widget
+    void setItemVisibility(QString name, bool visibility);
+    std::vector<contextMenuItem*> context_menu_items_;
+
 
 
 

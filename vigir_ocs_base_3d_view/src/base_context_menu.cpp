@@ -117,7 +117,7 @@ void BaseContextMenu::addTemplatesToContext()
             //build path to template for insertion
             QString path = localParent->name + "/" + (*it)->text(0);
             // ROS_ERROR("path %s",qPrintable(path));
-            addActionItem((*it)->text(0), localParent, boost::bind(&BaseContextMenu::contextInsertTemplate,this,path));
+            addActionItem((*it)->text(0), boost::bind(&BaseContextMenu::contextInsertTemplate,this,path),localParent);
         }
         ++it;
     }
@@ -130,7 +130,7 @@ void BaseContextMenu::buildContextMenuHeirarchy()
     {
         if(context_menu_items_[i]->name == "Separator")
         {
-            context_menu_.addSeparator();
+            context_menu_->addSeparator();
             continue;
         }
         //top level menu item
@@ -138,12 +138,12 @@ void BaseContextMenu::buildContextMenuHeirarchy()
         {
             if(context_menu_items_[i]->hasChildren)
             {
-                QMenu * menu = context_menu_.addMenu(context_menu_items_[i]->name);
+                QMenu * menu = context_menu_->addMenu(context_menu_items_[i]->name);
                 context_menu_items_[i]->menu = menu;
             }
             else //no children, must be action
             {
-                QAction * action = context_menu_.addAction(context_menu_items_[i]->name);
+                QAction * action = context_menu_->addAction(context_menu_items_[i]->name);
                 context_menu_items_[i]->action = action;
             }
         }
@@ -161,7 +161,7 @@ void BaseContextMenu::buildContextMenuHeirarchy()
             }
         }
     }
-    Q_EMIT updateMainViewItems();
+    //Q_EMIT updateMainViewItems();
 }
 
 void BaseContextMenu::createContextMenuItems()
@@ -253,7 +253,7 @@ void BaseContextMenu::createContextMenu(bool, int x, int y)
     //arms selection  only show appropriate arm
     if(active_context_name_.find("LeftArm") != std::string::npos)
     {
-        base_context_menu_->setItemVisibility("Select Right Arm",false);
+        setItemVisibility("Select Right Arm",false);
         //context_menu_->setItemVisibility("Select Right Arm",false);
     }
 /**
@@ -362,15 +362,16 @@ void BaseContextMenu::createContextMenu(bool, int x, int y)
     initializing_context_menu_--;
 }
 
-void BaseContextMenu::setActiveContext(std::string name)
+void BaseContextMenu::setActiveContext(std::string name,int num)
 {
-     active_context_name_ = name;
+    active_context_ = num; //necessary?
+    active_context_name_ = name;
 }
 
 
 void BaseContextMenu::processContextMenu(int x, int y)
 {
-    QPoint globalPos = this->mapToGlobal(QPoint(x,y));
+    QPoint globalPos = mapToGlobal(QPoint(x,y));
     context_menu_selected_item_ = base_context_menu_->getContextMenu()->exec(globalPos);
 
     //std::cout << selectedItem << std::endl;
@@ -385,6 +386,11 @@ void BaseContextMenu::processContextMenu(int x, int y)
 void BaseContextMenu::selectTemplate()
 {
     base_3d_view_->selectTemplate();
+}
+
+void BaseContextMenu::contextInsertTemplate(QString path)
+{
+    base_3d_view_->insertTemplate(path);
 }
 
 }
