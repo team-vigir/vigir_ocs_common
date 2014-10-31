@@ -162,13 +162,13 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     displays_panel->setMaximumWidth(225);
     displays_panel->initialize( ((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager());
 
-//    rviz::ViewsPanel* views_panel = new rviz::ViewsPanel(this);
-//    views_panel->setViewManager(((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()->getViewManager());
+    rviz::ViewsPanel* views_panel = new rviz::ViewsPanel(this);
+    views_panel->setViewManager(((vigir_ocs::PerspectiveView*)views_list["Top Left"])->getVisualizationManager()->getViewManager());
 
     QVBoxLayout* displays_layout = new QVBoxLayout();
     displays_layout->setMargin(0);
     displays_layout->addWidget(displays_panel);
-    //displays_layout->addWidget(views_panel);
+    displays_layout->addWidget(views_panel);
     ui->rviz_options->setLayout(displays_layout);
 
     QObject::connect(ui->ft_sensor, SIGNAL(toggled(bool)), this, SLOT(ft_sensorToggled(bool)));

@@ -1466,8 +1466,6 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             }
             break;
         // not a template
-        case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
-        case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
         default:
             {
             selected_template_id_ = -1;

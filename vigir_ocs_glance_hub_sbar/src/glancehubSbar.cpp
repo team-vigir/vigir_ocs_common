@@ -36,7 +36,7 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     QStandardItemModel* model = qobject_cast<QStandardItemModel*>(ui->modeBox->model());
     QModelIndex firstIndex = model->index(0, ui->modeBox->modelColumn(), ui->modeBox->rootModelIndex());
     QStandardItem* firstItem = model->itemFromIndex(firstIndex);
-    firstItem->setSelectable(false);
+    if(firstItem != NULL) firstItem->setSelectable(false);
 
     // Now connect signals
     connect(ghub_,SIGNAL(sendMoveitStatus(bool)),this,SLOT(receiveMoveitStatus(bool)));

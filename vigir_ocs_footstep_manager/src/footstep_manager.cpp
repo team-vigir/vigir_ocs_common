@@ -507,8 +507,22 @@ void FootstepManager::calculateGoal()
 void FootstepManager::processFootstepPlanUpdate(const flor_ocs_msgs::OCSFootstepPlanUpdate::ConstPtr& msg)
 {
     // basic error checking
-    if(getStepPlanList().size() == 0 || getStepPlan().steps.size() == 0)
+    if(getStepPlanList().size() == 0 || getStepPlan().steps.size() == 0 || msg->step_plan_id >= getStepPlanList().size())
         return;
+
+    // update the stepplan that ends at the marker the marker
+    sendUpdateStepPlanGoal(getStepPlanList()[msg->step_plan_id]);
+
+    // if there is a stepplan starting at the marker, we need to update it as well
+    if(msg->step_plan_id+1 < getStepPlanList().size())
+    {
+        // WHEN I UPDATE STEPPLAN MARKERS IN BETWEEN STEPPLANS, I WILL HAVE TO ADD THE LAST STEP OF PLAN A TO PLAN B
+        // this step is deleted when the plan is received because it's already part of the previous step plan
+        vigir_footstep_planning_msgs::StepPlan next_plan;
+        next_plan = getStepPlanList()[msg->step_plan_id+1];
+        next_plan.steps.insert(next_plan.steps.begin(), getStepPlanList()[msg->step_plan_id].steps.back());
+        sendUpdateStepPlanGoal(next_plan);
+    }
 }
 
 void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootstepPlanRequest::ConstPtr& plan_request)
@@ -955,6 +969,9 @@ void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState&
         // add new step plan to the list
         getStepPlanList().push_back(result->step_plan);
 
+        // clear start step index
+        start_step_index_ = -1;
+
         publishFootsteps();
     }
 }
@@ -978,7 +995,7 @@ void FootstepManager::sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepP
     }
     else
     {
-        ROS_INFO("StitchStepPlan: Server not connected!");
+        ROS_INFO("UpdateStepPlan: Server not connected!");
     }
 }
 
@@ -1164,6 +1181,7 @@ void FootstepManager::extendPlanList(const vigir_footstep_planning_msgs::StepPla
                 getStepPlanList()[i].steps.erase(getStepPlanList()[i].steps.begin()+j, getStepPlanList()[i].steps.end());
                 getStepPlanList()[i].cost.erase(getStepPlanList()[i].cost.begin()+j, getStepPlanList()[i].cost.end());
                 new_step_plan_copy.steps.erase(new_step_plan_copy.steps.begin(), new_step_plan_copy.steps.begin()+1);
+                new_step_plan_copy.cost.erase(new_step_plan_copy.cost.begin(), new_step_plan_copy.cost.begin()+1);
                 // WHEN I UPDATE STEPPLAN MARKERS IN BETWEEN STEPPLANS, I WILL HAVE TO ADD THE LAST STEP OF PLAN A TO PLAN B
                 break;
             }
@@ -1177,7 +1195,7 @@ void FootstepManager::extendPlanList(const vigir_footstep_planning_msgs::StepPla
     }
 
     // finally, add resulting plan to the top of the stack of plans
-    getStepPlanList().push_back(new_step_plan);
+    getStepPlanList().push_back(new_step_plan_copy);
 }
 
 }

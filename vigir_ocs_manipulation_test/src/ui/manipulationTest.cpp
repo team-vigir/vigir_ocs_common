@@ -49,7 +49,7 @@ ManipulationTest::ManipulationTest(QWidget *parent) :
 void ManipulationTest::addInteractiveMarker( const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr& msg )
 {
     static int markerCounter = 0;
-    if(msg->topic.find("/template_pose_") != std::string::npos)
+    if(msg->topic.find("/template_") != std::string::npos)
     {
         int size = msg->topic.size()-15;
         QString num( msg->topic.substr(15,size).c_str());

@@ -15,6 +15,8 @@
 #include <flor_ocs_msgs/OCSInteractiveMarkerAdd.h>
 #include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <flor_ocs_msgs/OCSControlMode.h>
+#include <flor_ocs_msgs/OCSObjectSelection.h>
+#include <flor_ocs_msgs/OCSSelectedObjectUpdate.h>
 
 #include <std_msgs/String.h>
 #include <std_msgs/Int8.h>
@@ -33,19 +35,27 @@ namespace ocs_interactive_marker_server
         void updatePose( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );
         void onMarkerFeedback( std::string topic_name, geometry_msgs::PoseStamped pose );
         void setMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
+        void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &obj);
+        void timerCallback(const ros::TimerEvent& event);
 
       private:
-        ros::NodeHandle nh_;
+        void publishSelectedObject();
 
         ros::Publisher interactive_marker_server_feedback_pub_;
         ros::Subscriber interactive_marker_server_add_sub_;
         ros::Subscriber interactive_marker_server_remove_sub_;
         ros::Subscriber interactive_marker_server_update_sub_;
         ros::Subscriber interactive_marker_server_mode_sub_;
-
+        ros::Subscriber select_object_sub_;
+        ros::Publisher selected_object_update_pub_;
 
         std::map<std::string,InteractiveMarkerServerCustom*> marker_map_;
+        std::map<std::string,geometry_msgs::PoseStamped> pose_map_;
 
         boost::mutex interactive_marker_server_change_mutex_;
+
+        std::string selected_object_topic_;
+
+        ros::Timer timer_;
     };
 }

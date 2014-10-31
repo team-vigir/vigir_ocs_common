@@ -68,7 +68,7 @@ void workerFunc()
     move_state_deferred->move_server_camera_frame_slice_packet = move_server_camera_frame_slice_packet;
 
     // Connect
-    res = serverConnect("192.168.1.101", "7899", move_state_deferred);
+    res = serverConnect("192.168.1.14", "7899", move_state_deferred);
     ROS_ERROR("connect: %d", res);
 
     while(1)

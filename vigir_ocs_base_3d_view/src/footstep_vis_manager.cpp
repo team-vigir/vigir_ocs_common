@@ -327,39 +327,10 @@ void FootstepVisManager::processFootstepParamSetList(const flor_ocs_msgs::OCSFoo
 
 void FootstepVisManager::updateInteractiveMarkers()
 {
+    // first we create/update the step plan markers, since these are the ones we'll be seing/interacting with first
     num_step_plans_ = 0;
     for(int i = 0; i < footstep_list_.footstep_id_list.size(); i++)
     {
-        std::string pose_string = "/footstep_"+boost::lexical_cast<std::string>(i)+"_marker";
-
-        // if needed, we create a marker
-        if(i >= display_footstep_marker_list_.size())
-        {
-            // create a marker server for this footstep
-            flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
-            marker.name  = std::string("Footstep ")+boost::lexical_cast<std::string>(i);
-            marker.topic = pose_string;
-            marker.frame = manager_->getFixedFrame().toStdString();
-            marker.scale = 0.2;
-            marker.point.x = footstep_list_.pose[i].pose.position.x;
-            marker.point.y = footstep_list_.pose[i].pose.position.y;
-            marker.point.z = footstep_list_.pose[i].pose.position.z;
-            marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::OBJECT_6DOF;
-            interactive_marker_add_pub_.publish(marker);
-
-            rviz::Display* im = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker - Footstep ")+boost::lexical_cast<std::string>(i)).c_str(), false );
-            im->subProp( "Update Topic" )->setValue( (pose_string+"/pose_marker/update").c_str() );
-            im->subProp( "Show Axes" )->setValue( true );
-            im->subProp( "Show Visual Aids" )->setValue( true );
-            display_footstep_marker_list_.push_back(im);
-        }
-
-        // update interactive marker pose
-        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-        cmd.topic = pose_string;
-        cmd.pose = footstep_list_.pose[i];
-        interactive_marker_update_pub_.publish(cmd);
-
         // also check step plan ID so that we always have markers for the end points of step plans
         if((i+1 < footstep_list_.footstep_id_list.size() && footstep_list_.step_plan_id_list[i] != footstep_list_.step_plan_id_list[i+1]) || i == footstep_list_.footstep_id_list.size()-1)
         {
@@ -388,10 +359,11 @@ void FootstepVisManager::updateInteractiveMarkers()
                 display_step_plan_marker_list_.push_back(im);
             }
 
+            display_step_plan_marker_list_[num_step_plans_-1]->setEnabled( true );
+
             // update interactive marker pose
             flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
             cmd.topic = step_pose_string;
-
             cmd.pose.pose.position.x = (footstep_list_.pose[i].pose.position.x+footstep_list_.pose[i-1].pose.position.x)/2.0;
             cmd.pose.pose.position.y = (footstep_list_.pose[i].pose.position.y+footstep_list_.pose[i-1].pose.position.y)/2.0;
             cmd.pose.pose.position.z = (footstep_list_.pose[i].pose.position.z+footstep_list_.pose[i-1].pose.position.z)/2.0;
@@ -406,8 +378,54 @@ void FootstepVisManager::updateInteractiveMarkers()
         }
     }
 
+    // check if we need to disable any step plan markers
+    for(int i = num_step_plans_; i < display_step_plan_marker_list_.size(); i++)
+        display_step_plan_marker_list_[i]->setEnabled( false );
+
     // check if it is possible to execute footstep plan without specifying a plan
     has_valid_step_plan_ = (num_step_plans_ == 1 ? true : false);
+
+    // then we create/update the individual step markers
+    for(int i = 0; i < footstep_list_.footstep_id_list.size(); i++)
+    {
+        std::string pose_string = "/footstep_"+boost::lexical_cast<std::string>(i)+"_marker";
+
+        // if needed, we create a marker
+        if(i >= display_footstep_marker_list_.size())
+        {
+            // create a marker server for this footstep
+            flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+            marker.name  = std::string("Footstep ")+boost::lexical_cast<std::string>(i);
+            marker.topic = pose_string;
+            marker.frame = manager_->getFixedFrame().toStdString();
+            marker.scale = 0.2;
+            marker.point.x = footstep_list_.pose[i].pose.position.x;
+            marker.point.y = footstep_list_.pose[i].pose.position.y;
+            marker.point.z = footstep_list_.pose[i].pose.position.z;
+            marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::OBJECT_6DOF;
+            interactive_marker_add_pub_.publish(marker);
+
+            rviz::Display* im = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker - Footstep ")+boost::lexical_cast<std::string>(i)).c_str(), false );
+            im->subProp( "Update Topic" )->setValue( (pose_string+"/pose_marker/update").c_str() );
+            im->subProp( "Show Axes" )->setValue( true );
+            im->subProp( "Show Visual Aids" )->setValue( true );
+            display_footstep_marker_list_.push_back(im);
+        }
+
+        //display_footstep_marker_list_[i]->setEnabled( true );
+
+        // update interactive marker pose
+        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.topic = pose_string;
+        cmd.pose = footstep_list_.pose[i];
+        interactive_marker_update_pub_.publish(cmd);
+    }
+
+    // make sure extra markers are disabled
+    for(int i = footstep_list_.footstep_id_list.size(); i < display_footstep_marker_list_.size(); i++)
+    {
+        display_footstep_marker_list_[i]->setEnabled( false );
+    }
 }
 
 void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg)
