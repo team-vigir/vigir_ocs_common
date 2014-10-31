@@ -101,6 +101,10 @@ struct contextMenuItem;
 class Base3DView: public QWidget
 {
     Q_OBJECT
+
+    //friend to access certain protected methods for context menu callbacks
+    friend class BaseContextMenu;
+
 public:
 
     /**

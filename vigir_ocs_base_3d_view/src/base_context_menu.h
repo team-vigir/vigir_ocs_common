@@ -19,12 +19,12 @@
 
 namespace vigir_ocs
 {
+
 class BaseContextMenu: public ContextMenuManager
 {
     Q_OBJECT
 
-    //friend to access certain protected methods for context callbacks
-    friend class Base3DView;
+
 
 public:
     BaseContextMenu(Base3DView* base_3d_view, FootstepVisManager* footstep_vis_manager);
