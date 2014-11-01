@@ -20,8 +20,9 @@
 #include <flor_ocs_msgs/OCSFootstepList.h>
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepPlanGoal.h>
-#include <flor_ocs_msgs/OCSFootstepPlanGoalFeedback.h>
+#include <flor_ocs_msgs/OCSFootstepPlanGoalUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
+#include <flor_ocs_msgs/OCSFootstepPlanUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
 
 #include <flor_state_msgs/LowerBodyState.h>
@@ -48,8 +49,9 @@ namespace ocs_footstep
 
         // triggers footstep plan calls
         void processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal);
-        void processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalFeedback::ConstPtr& plan_goal);
+        void processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalUpdate::ConstPtr& plan_goal);
         void processFootstepPlanRequest(const flor_ocs_msgs::OCSFootstepPlanRequest::ConstPtr& plan_request);
+        void processFootstepPlanUpdate(const flor_ocs_msgs::OCSFootstepPlanUpdate::ConstPtr& msg);
 
         // feedback look for interaction, should update stepplan and use actions to edit/update
         void processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg);
@@ -166,6 +168,7 @@ namespace ocs_footstep
         ros::Subscriber footstep_goal_pose_fb_sub_;
         ros::Subscriber footstep_plan_goal_sub_;
         ros::Subscriber footstep_plan_request_sub_;
+        ros::Subscriber footstep_plan_update_sub_;
         ros::Subscriber lower_body_state_sub_;
 
         // footstep plan request

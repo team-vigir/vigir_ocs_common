@@ -4,7 +4,7 @@ namespace ocs_template
 {
 void TemplateNodelet::onInit()
 {
-    ros::NodeHandle& nh         = getNodeHandle();
+    ros::NodeHandle& nh = getNodeHandle();
     ros::NodeHandle nh_out(nh, "template");
 
     // also create a publisher to set parameters of cropped image
@@ -22,7 +22,7 @@ void TemplateNodelet::onInit()
     
     id_counter_ = 0;
 
-    timer = nh_out.createTimer(ros::Duration(0.066), &TemplateNodelet::timerCallback, this);
+    timer = nh_out.createTimer(ros::Duration(0.033), &TemplateNodelet::timerCallback, this);
 }
 
 void TemplateNodelet::timerCallback(const ros::TimerEvent& event)

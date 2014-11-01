@@ -40,7 +40,7 @@ void FootstepManager::onInit()
 
     // creates publishers and subscribers for the interaction loop
     footstep_list_pub_               = nh.advertise<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, false );
-    footstep_update_sub_             = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/update", 1, &FootstepManager::processFootstepPoseUpdate, this );
+    footstep_update_sub_             = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/step_update", 1, &FootstepManager::processFootstepPoseUpdate, this );
     footstep_undo_req_sub_           = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, &FootstepManager::processUndoRequest, this );
     footstep_redo_req_sub_           = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, &FootstepManager::processRedoRequest, this );
     footstep_start_index_pub_        = nh.subscribe<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, &FootstepManager::processSetStartIndex, this );
@@ -50,10 +50,11 @@ void FootstepManager::onInit()
     footstep_param_set_selected_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 5, &FootstepManager::processFootstepParamSetSelected, this );
 
     // footstep request coming from the OCS
-    footstep_goal_pose_fb_pub_  = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoalFeedback>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
-    footstep_goal_pose_fb_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalFeedback>( "/flor/ocs/footstep/goal_pose_feedback", 1, &FootstepManager::processFootstepPlanGoalFeedback, this );
+    footstep_goal_pose_fb_pub_  = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
+    footstep_goal_pose_fb_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 1, &FootstepManager::processFootstepPlanGoalFeedback, this );
     footstep_plan_goal_sub_     = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, &FootstepManager::processFootstepPlanGoal, this );
     footstep_plan_request_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, &FootstepManager::processFootstepPlanRequest, this );
+    footstep_plan_update_sub_   = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanUpdate>( "/flor/ocs/footstep/plan_update", 1, &FootstepManager::processFootstepPlanUpdate, this );
 
     // creates publishers for visualization messages - latched because we want to be able to see planned footsteps in new stations or if something goes wrong
     footstep_array_pub_         = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_array", 1, true );
@@ -376,13 +377,13 @@ void FootstepManager::processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPl
     sendUpdateFeetGoal(goal_);
 }
 
-void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalFeedback::ConstPtr& plan_goal)
+void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalUpdate::ConstPtr& plan_goal)
 {
     // only one that sends feedback is the manager, so return to avoid infinite loop
-    if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalFeedback::FEEDBACK)
+    if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::FEEDBACK)
         return;
 
-    if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalFeedback::GOAL)
+    if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::GOAL)
     {
         // need to update feet poses, so we first find the difference between the old and the new pose
         Ogre::Vector3 p_old(goal_pose_.pose.position.x,
@@ -452,7 +453,7 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
         // updates internal goal pose
         goal_pose_ = plan_goal->goal_pose;
     }
-    else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalFeedback::LEFT)
+    else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::LEFT)
     {
         goal_.left.pose.position.x = plan_goal->left_foot.pose.position.x;
         goal_.left.pose.position.y = plan_goal->left_foot.pose.position.y;
@@ -462,7 +463,7 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
         goal_.left.pose.orientation.y = plan_goal->left_foot.pose.orientation.y;
         goal_.left.pose.orientation.z = plan_goal->left_foot.pose.orientation.z;
     }
-    else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalFeedback::RIGHT)
+    else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::RIGHT)
     {
         goal_.right.pose.position.x = plan_goal->right_foot.pose.position.x;
         goal_.right.pose.position.y = plan_goal->right_foot.pose.position.y;
@@ -501,6 +502,27 @@ void FootstepManager::calculateGoal()
     goal_.right.pose.position.y = goal_pose_.pose.position.y - shift_y;
     goal_.right.pose.position.z = lower_body_state_.right_foot_pose.position.z;//goal_pose_.pose.position.z;
     goal_.right.pose.orientation = goal_pose_.pose.orientation;
+}
+
+void FootstepManager::processFootstepPlanUpdate(const flor_ocs_msgs::OCSFootstepPlanUpdate::ConstPtr& msg)
+{
+    // basic error checking
+    if(getStepPlanList().size() == 0 || getStepPlan().steps.size() == 0 || msg->step_plan_id >= getStepPlanList().size())
+        return;
+
+    // update the stepplan that ends at the marker the marker
+    sendUpdateStepPlanGoal(getStepPlanList()[msg->step_plan_id]);
+
+    // if there is a stepplan starting at the marker, we need to update it as well
+    if(msg->step_plan_id+1 < getStepPlanList().size())
+    {
+        // WHEN I UPDATE STEPPLAN MARKERS IN BETWEEN STEPPLANS, I WILL HAVE TO ADD THE LAST STEP OF PLAN A TO PLAN B
+        // this step is deleted when the plan is received because it's already part of the previous step plan
+        vigir_footstep_planning_msgs::StepPlan next_plan;
+        next_plan = getStepPlanList()[msg->step_plan_id+1];
+        next_plan.steps.insert(next_plan.steps.begin(), getStepPlanList()[msg->step_plan_id].steps.back());
+        sendUpdateStepPlanGoal(next_plan);
+    }
 }
 
 void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootstepPlanRequest::ConstPtr& plan_request)
@@ -641,15 +663,15 @@ void FootstepManager::updateGoalVisMsgs()
 
 void FootstepManager::publishGoalMarkerClear()
 {
-    flor_ocs_msgs::OCSFootstepPlanGoalFeedback cmd;
-    cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalFeedback::CLEAR;
+    flor_ocs_msgs::OCSFootstepPlanGoalUpdate cmd;
+    cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::CLEAR;
     footstep_goal_pose_fb_pub_.publish(cmd);
 }
 
 void FootstepManager::publishGoalMarkerFeedback()
 {
-    flor_ocs_msgs::OCSFootstepPlanGoalFeedback cmd;
-    cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalFeedback::FEEDBACK;
+    flor_ocs_msgs::OCSFootstepPlanGoalUpdate cmd;
+    cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::FEEDBACK;
     // for stepplan goal
     cmd.goal_pose = goal_pose_;
     // and for goal feetposes
@@ -840,9 +862,6 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
 
         publishFootsteps();
 
-        // try to stitch all plans in the list together
-        //sendStitchStepPlanGoal(getStepPlanList());
-
         publishGoalMarkerClear();
     }
 }
@@ -950,6 +969,9 @@ void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState&
         // add new step plan to the list
         getStepPlanList().push_back(result->step_plan);
 
+        // clear start step index
+        start_step_index_ = -1;
+
         publishFootsteps();
     }
 }
@@ -973,7 +995,7 @@ void FootstepManager::sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepP
     }
     else
     {
-        ROS_INFO("StitchStepPlan: Server not connected!");
+        ROS_INFO("UpdateStepPlan: Server not connected!");
     }
 }
 
@@ -1035,8 +1057,8 @@ void FootstepManager::doneExecuteStepPlan(const actionlib::SimpleClientGoalState
     if(result->status.status == vigir_footstep_planning_msgs::FootstepExecutionStatus::NO_ERROR)
     {
         cleanStacks();
-
         publishFootsteps();
+        publishFootstepList();
     }
 }
 
@@ -1159,6 +1181,7 @@ void FootstepManager::extendPlanList(const vigir_footstep_planning_msgs::StepPla
                 getStepPlanList()[i].steps.erase(getStepPlanList()[i].steps.begin()+j, getStepPlanList()[i].steps.end());
                 //getStepPlanList()[i].cost.erase(getStepPlanList()[i].cost.begin()+j, getStepPlanList()[i].cost.end());
                 new_step_plan_copy.steps.erase(new_step_plan_copy.steps.begin(), new_step_plan_copy.steps.begin()+1);
+                new_step_plan_copy.cost.erase(new_step_plan_copy.cost.begin(), new_step_plan_copy.cost.begin()+1);
                 // WHEN I UPDATE STEPPLAN MARKERS IN BETWEEN STEPPLANS, I WILL HAVE TO ADD THE LAST STEP OF PLAN A TO PLAN B
                 break;
             }
@@ -1172,7 +1195,7 @@ void FootstepManager::extendPlanList(const vigir_footstep_planning_msgs::StepPla
     }
 
     // finally, add resulting plan to the top of the stack of plans
-    getStepPlanList().push_back(new_step_plan);
+    getStepPlanList().push_back(new_step_plan_copy);
 }
 
 }

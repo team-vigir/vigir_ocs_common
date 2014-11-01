@@ -348,7 +348,7 @@ void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char i
 {
     ROS_ERROR("Adding template marker %d",id);
     //std::cout << "Adding template marker " << id << std::endl;
-    std::string template_pose_string = std::string("/template_pose_")+boost::to_string((unsigned int)id); // one for each template
+    std::string template_pose_string = std::string("/template_")+boost::to_string((unsigned int)id)+std::string("_marker"); // one for each template
 
     // Add template marker
     rviz::Display* interactive_marker_template = vis_manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker template ")+boost::to_string((unsigned int)id)).c_str(), true );
@@ -415,7 +415,7 @@ void TemplateDisplayCustom::onMarkerFeedback(const flor_ocs_msgs::OCSInteractive
         {
             flor_ocs_msgs::OCSTemplateUpdate out;
             out.pose = msg->pose;
-            out.template_id = atoi(topic_name.erase(0,std::string("/template_pose_").size()).c_str());
+            out.template_id = atoi(topic_name.erase(topic_name.find("_marker"),topic_name.size()).erase(0,std::string("/template_").size()).c_str());
             template_pose_pub_list_[i].publish(out);
         }
     }

@@ -99,7 +99,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
         robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_left_hand",1, true);
 
         // We first subscribe to the JointState messages
-        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/l_hand/tactile_feedback", 2, &graspWidget::jointStatesCB, this );
+        link_states_sub_ = nh_.subscribe<flor_grasp_msgs::LinkState>( "/grasp_control/l_hand/tactile_feedback", 2, &graspWidget::linkStatesCB, this );
 
         template_stitch_pose_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/grasp_control/l_hand/template_stitch_pose",1, &graspWidget::templateStitchPoseCallback,  this );
         template_stitch_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/grasp_control/l_hand/template_stitch_request", 1, false );
@@ -152,7 +152,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
         robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_right_hand",1, true);
 
         // We first subscribe to the JointState messages
-        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/grasp_control/r_hand/tactile_feedback", 2, &graspWidget::jointStatesCB, this );
+        link_states_sub_ = nh_.subscribe<flor_grasp_msgs::LinkState>( "/grasp_control/r_hand/tactile_feedback", 2, &graspWidget::linkStatesCB, this );
 
         template_stitch_pose_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/grasp_control/r_hand/template_stitch_pose",1, &graspWidget::templateStitchPoseCallback,  this );
         template_stitch_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/grasp_control/r_hand/template_stitch_request", 1, false );
@@ -1060,88 +1060,85 @@ void graspWidget::handOffsetCallback(const geometry_msgs::PoseStamped::ConstPtr&
     this->hand_offset_pose_.setOrigin(tf::Vector3(msg->pose.position.x,msg->pose.position.y,msg->pose.position.z) );
 }
 
-void graspWidget::jointStatesCB( const sensor_msgs::JointState::ConstPtr& joint_states )
+void graspWidget::linkStatesCB( const flor_grasp_msgs::LinkState::ConstPtr& link_states )
 {
-    if(hand_type_ == "irobot")
-    {
+//    if(hand_type_ == "irobot")
+//    {
         double min_feedback = 0, max_feedback = 1.0;
-        for(int i = 0; i < joint_states->name.size(); i++)
+        for(int i = 0; i < link_states->name.size(); i++)
         {
             // get the joint name to figure out the color of the links
-            std::string joint_name = joint_states->name[i].c_str();
+            std::string link_name = link_states->name[i].c_str();
 
             // velocity represents tactile feedback
-            double feedback = joint_states->velocity[i];
-
-            // NOTE: this is SPECIFIC to the irobot hands and how they are setup in the urdf and grasp controllers, IT IS NOT GENERAL
-            std::string link_name = joint_name;
+            double feedback = link_states->tactile_array[i].pressure[0];
 
             //ROS_ERROR("Applying color to %s",link_name.c_str());
             // calculate color intensity based on min/max feedback
             unsigned char color_intensity = (unsigned char)((feedback - min_feedback)/(max_feedback-min_feedback) * 255.0);
             publishLinkColor(link_name,color_intensity,255-color_intensity,0);
         }
-    }
-    else if(hand_type_ == "robotiq")
-    {
-        double min_feedback = 0, max_feedback = 1.0;
-        for(int i = 0; i < joint_states->name.size(); i++)
-        {
-            // get the joint name to figure out the color of the links
-            std::string joint_name = joint_states->name[i].c_str();
+//    }
+//    else if(hand_type_ == "robotiq")
+//    {
+//        double min_feedback = 0, max_feedback = 1.0;
+//        for(int i = 0; i < link_states->name.size(); i++)
+//        {
+//            // get the joint name to figure out the color of the links
+//            std::string joint_name = link_states->name[i].c_str();
 
-            // velocity represents tactile feedback
-            double feedback = joint_states->velocity[i];
+//            // velocity represents tactile feedback
+//            double feedback = link_states->velocity[i];
 
-            // NOTE: this is SPECIFIC to the irobot hands and how they are setup in the urdf and grasp controllers, IT IS NOT GENERAL
-            std::string link_name = joint_name;
+//            // NOTE: this is SPECIFIC to the irobot hands and how they are setup in the urdf and grasp controllers, IT IS NOT GENERAL
+//            std::string link_name = joint_name;
 
-            //ROS_ERROR("Applying color to %s",link_name.c_str());
-            // calculate color intensity based on min/max feedback
-            unsigned char color_intensity = (unsigned char)((feedback - min_feedback)/(max_feedback-min_feedback) * 255.0);
-            publishLinkColor(link_name,color_intensity,255-color_intensity,0);
-        }
-    }
-    else
-    {
-        //Index 	Name            Link
-        //0         right_f0_j0 	Palm index base
-        //1         right_f0_j1 	Index proximal
-        //2         right_f0_j2 	Index distal
-        //3         right_f1_j0 	Palm middle base
-        //4         right_f1_j1 	Middle proximal
-        //5         right_f1_j2 	Middle distal
-        //6         right_f2_j0 	Palm little base
-        //7         right_f2_j1 	Little proximal
-        //8         right_f2_j2 	Little distal
-        //9         right_f3_j0 	Palm cylinder
-        //10        right_f3_j1 	Thumb proximal
-        //11        right_f3_j2 	Thumb distal
+//            //ROS_ERROR("Applying color to %s",link_name.c_str());
+//            // calculate color intensity based on min/max feedback
+//            unsigned char color_intensity = (unsigned char)((feedback - min_feedback)/(max_feedback-min_feedback) * 255.0);
+//            publishLinkColor(link_name,color_intensity,255-color_intensity,0);
+//        }
+//    }
+//    else
+//    {
+//        //Index 	Name            Link
+//        //0         right_f0_j0 	Palm index base
+//        //1         right_f0_j1 	Index proximal
+//        //2         right_f0_j2 	Index distal
+//        //3         right_f1_j0 	Palm middle base
+//        //4         right_f1_j1 	Middle proximal
+//        //5         right_f1_j2 	Middle distal
+//        //6         right_f2_j0 	Palm little base
+//        //7         right_f2_j1 	Little proximal
+//        //8         right_f2_j2 	Little distal
+//        //9         right_f3_j0 	Palm cylinder
+//        //10        right_f3_j1 	Thumb proximal
+//        //11        right_f3_j2 	Thumb distal
 
-        double min_feedback = 0, max_feedback = 1.0;
-        for(int i = 0; i < joint_states->name.size(); i++)
-        {
-            // get the joint name to figure out the color of the links
-            std::string joint_name = joint_states->name[i].c_str();
+//        double min_feedback = 0, max_feedback = 1.0;
+//        for(int i = 0; i < link_states->name.size(); i++)
+//        {
+//            // get the joint name to figure out the color of the links
+//            std::string joint_name = link_states->name[i].c_str();
 
-            // velocity represents tactile feedback
-            double feedback = joint_states->velocity[i];
+//            // velocity represents tactile feedback
+//            double feedback = link_states->velocity[i];
             
-            // NOTE: this is SPECIFIC to atlas hands, IT IS NOT GENERAL
-            std::string link_name;
-            link_name = joint_name;
-            size_t found = link_name.find('j');
-            if( found != std::string::npos )
-                link_name = link_name.erase(found,1);
+//            // NOTE: this is SPECIFIC to atlas hands, IT IS NOT GENERAL
+//            std::string link_name;
+//            link_name = joint_name;
+//            size_t found = link_name.find('j');
+//            if( found != std::string::npos )
+//                link_name = link_name.erase(found,1);
 
-            boost::erase_all(link_name, "/");
+//            boost::erase_all(link_name, "/");
 
-            //ROS_ERROR("Applying color to %s",link_name.c_str());
-            // calculate color intensity based on min/max feedback
-            unsigned char color_intensity = (unsigned char)((feedback - min_feedback)/(max_feedback-min_feedback) * 255.0);
-            publishLinkColor(link_name,color_intensity,255-color_intensity,0);
-        }
-    }
+//            //ROS_ERROR("Applying color to %s",link_name.c_str());
+//            // calculate color intensity based on min/max feedback
+//            unsigned char color_intensity = (unsigned char)((feedback - min_feedback)/(max_feedback-min_feedback) * 255.0);
+//            publishLinkColor(link_name,color_intensity,255-color_intensity,0);
+//        }
+//    }
 }
 
 void graspWidget::publishLinkColor(std::string link_name, unsigned char r, unsigned char g, unsigned char b)
@@ -1466,8 +1463,6 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             }
             break;
         // not a template
-        case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
-        case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
         default:
             {
             selected_template_id_ = -1;
