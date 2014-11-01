@@ -98,7 +98,7 @@ namespace ocs_footstep
     private:
         // send action goals
         void sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet& feet);
-        void sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_index = 0, const unsigned char start_foot = vigir_footstep_planning_msgs::StepPlanRequest::AUTO);
+        void sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_step_index = 0, const unsigned char start_foot = vigir_footstep_planning_msgs::StepPlanRequest::AUTO);
         void sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step, unsigned int plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_2D);
         void sendStitchStepPlanGoal(std::vector<vigir_footstep_planning_msgs::StepPlan>& step_plan_list);
         void sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan& step_plan);
