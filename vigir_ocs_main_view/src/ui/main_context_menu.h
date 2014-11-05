@@ -16,9 +16,7 @@
 #include "main_view_widget.h"
 
 
-namespace vigir_ocs
-{
-class MainViewContextMenu
+class MainViewContextMenu : public QObject
 {
     Q_OBJECT
 public:
@@ -58,5 +56,4 @@ private:
 
 };
 
-}
 #endif //MAIN_CONTEXT_MENU_H

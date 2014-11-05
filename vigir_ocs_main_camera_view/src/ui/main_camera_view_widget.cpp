@@ -6,6 +6,7 @@
 #include <ros/package.h>
 
 #include <rviz/displays_panel.h>
+#include "main_camera_context_menu.h"
 
 MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     QWidget(parent),
@@ -222,7 +223,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     ui->robot_joint_markers->setCheckState(Qt::Unchecked);
 
     //build and add Context menu to base3dview
-    main_camera_context_menu_ = new vigir_ocs::MainCameraContextMenu(this);
+    main_camera_context_menu_ = new MainCameraContextMenu(this);
 
     timer.start(100, this);
 }

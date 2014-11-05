@@ -1,9 +1,6 @@
 
 #include "main_context_menu.h"
 
-namespace vigir_ocs
-{
-
 MainViewContextMenu::MainViewContextMenu(MainViewWidget main_view)
 {
     main_view_ = main_view;
@@ -105,61 +102,61 @@ void MainViewContextMenu::createContextMenu()
     //and in the order you want them to show up in the context menu
 
 
-    .addActionItem("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,main_view_->getPrimaryView()), NULL);
+    ContextMenuManager::Instance()->addActionItem("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,main_view_->getPrimaryView()), NULL);
 
-    addSeperator();
+    ContextMenuManager::Instance()->addSeperator();
     /**
     //manage windows-------------
     contextMenuItem * windowVisibility = addMenuItem"Window Visibility");
 
-    joystickContext =  addActionItem("Joystick",boost::bind(&MainViewWidget::contextToggleWindow,this, WINDOW_JOYSTICK));
+    joystickContext =  ContextMenuManager::Instance()->addActionItem("Joystick",boost::bind(&MainViewWidget::contextToggleWindow,this, WINDOW_JOYSTICK));
 
-    graspContext = addActionItem("Grasp",boost::bind(&MainViewWidget::graspWidgetToggle,this), windowVisibility );
+    graspContext = ContextMenuManager::Instance()->addActionItem("Grasp",boost::bind(&MainViewWidget::graspWidgetToggle,this), windowVisibility );
 
-    positionContext = addActionItem("Position Mode",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_POSITION_MODE), windowVisibility);
+    positionContext = ContextMenuManager::Instance()->addActionItem("Position Mode",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_POSITION_MODE), windowVisibility);
 
     //elements from joint control toolbar
-    jointControlContext = addActionItem("Joint Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_JOINT_CONTROL), windowVisibility);
-    pelvisContext = addActionItem("Pelvis Pose",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_BDI_PELVIS_POSE), windowVisibility);
-    ghostContext = addActionItem("Ghost Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_GHOST_CONFIG), windowVisibility);
-    plannerContext = addActionItem("Planner Configuration",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_PLANNER_CONFIG), windowVisibility);
+    jointControlContext = ContextMenuManager::Instance()->addActionItem("Joint Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_JOINT_CONTROL), windowVisibility);
+    pelvisContext = ContextMenuManager::Instance()->addActionItem("Pelvis Pose",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_BDI_PELVIS_POSE), windowVisibility);
+    ghostContext = ContextMenuManager::Instance()->addActionItem("Ghost Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_GHOST_CONFIG), windowVisibility);
+    plannerContext = ContextMenuManager::Instance()->addActionItem("Planner Configuration",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_PLANNER_CONFIG), windowVisibility);
 
     //elements from footstep control toolbar
-    footBasicContext = addActionItem("Basic Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_BASIC), windowVisibility);
-    footAdvancedContext = addActionItem("Advanced Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_ADVANCED), windowVisibility);
-    footParameterContext = addActionItem("Footstep Parameter Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_PARAMETER), windowVisibility);
+    footBasicContext = ContextMenuManager::Instance()->addActionItem("Basic Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_BASIC), windowVisibility);
+    footAdvancedContext = ContextMenuManager::Instance()->addActionItem("Advanced Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_ADVANCED), windowVisibility);
+    footParameterContext = ContextMenuManager::Instance()->addActionItem("Footstep Parameter Control",boost::bind(&MainViewWidget::contextToggleWindow,this,WINDOW_FOOTSTEP_PARAMETER), windowVisibility);
 
     //------------------------
-    addSeperator();
+    ContextMenuManager::Instance()->addSeperator();
 
-    contextMenuItem * manipulationModes = addMenuItem("Manipulation Mode");
+    contextMenuItem * manipulationModes = ContextMenuManager::Instance()->addMenuItem("Manipulation Mode");
 
-    objectContext = vigir_ocs::Base3DView::makeContextChild("Object",boost::bind(&MainViewWidget::setObjectManipulationMode,this), manipulationModes);
-    worldContext = vigir_ocs::Base3DView::makeContextChild("World",boost::bind(&MainViewWidget::setWorldMode,this), manipulationModes);
-    cameraContext = vigir_ocs::Base3DView::makeContextChild("Camera",boost::bind(&MainViewWidget::setCameraMode,this), manipulationModes);
+    objectContext = ContextMenuManager::Instance()->addActionItem("Object",boost::bind(&MainViewWidget::setObjectManipulationMode,this), manipulationModes);
+    worldContext = ContextMenuManager::Instance()->addActionItem("World",boost::bind(&MainViewWidget::setWorldMode,this), manipulationModes);
+    cameraContext = ContextMenuManager::Instance()->addActionItem("Camera",boost::bind(&MainViewWidget::setCameraMode,this), manipulationModes);
 
-    contextMenuItem * objectModes = vigir_ocs::Base3DView::makeContextParent("Object Mode", contextMenuElements);
+    contextMenuItem * objectModes = ContextMenuManager::Instance()->addMenuItem("Object Mode");
 
-    addActionItem("Template",boost::bind(&MainViewWidget::setTemplateMode,this), objectModes);
-    addActionItem("Left Arm",boost::bind(&MainViewWidget::setLeftArmMode,this), objectModes);
-    addActionItem("Right Arm",boost::bind(&MainViewWidget::setRightArmMode,this), objectModes);
+    ContextMenuManager::Instance()->addActionItem("Template",boost::bind(&MainViewWidget::setTemplateMode,this), objectModes);
+    ContextMenuManager::Instance()->addActionItem("Left Arm",boost::bind(&MainViewWidget::setLeftArmMode,this), objectModes);
+    ContextMenuManager::Instance()->addActionItem("Right Arm",boost::bind(&MainViewWidget::setRightArmMode,this), objectModes);
 
-    addSeperator();
+    ContextMenuManager::Instance()->addSeperator();
 
-    contextMenuItem * systemCommands = addMenuItem("System Commands");
+    contextMenuItem * systemCommands = ContextMenuManager::Instance()->addMenuItem("System Commands");
 
-    addActionItem("Reset World Model",boost::bind(&MainViewWidget::systemCommandContext,this, "reset"), systemCommands);
-    addActionItem("Save Octomap",boost::bind(&MainViewWidget::systemCommandContext,this,"save_octomap"), systemCommands);
-    addActionItem("Save Pointcloud",boost::bind(&MainViewWidget::systemCommandContext,this,"save_pointcloud"), systemCommands);
+    ContextMenuManager::Instance()->addActionItem("Reset World Model",boost::bind(&MainViewWidget::systemCommandContext,this, "reset"), systemCommands);
+    ContextMenuManager::Instance()->addActionItem("Save Octomap",boost::bind(&MainViewWidget::systemCommandContext,this,"save_octomap"), systemCommands);
+    ContextMenuManager::Instance()->addActionItem("Save Pointcloud",boost::bind(&MainViewWidget::systemCommandContext,this,"save_pointcloud"), systemCommands);
     **/
 
     std::map<std::string,QWidget*> views_list = main_view_->getViewsList();
 
-    //add all context menu items to each view (base has its own vector of context items, this adds to that vector)
-    ((vigir_ocs::Base3DView*) views_list["Top Left"])->getBaseContextMenu()->addToContextMenuExternally(context_menu_items_);
-    ((vigir_ocs::Base3DView*) views_list["Top Right"])->getBaseContextMenu()->addToContextMenuExternally(context_menu_items_);
-    ((vigir_ocs::Base3DView*) views_list["Bottom Left"])->getBaseContextMenu()->addToContextMenuExternally(context_menu_items_);
-    ((vigir_ocs::Base3DView*) views_list["Bottom Right"])->getBaseContextMenu()->addToContextMenuExternally(context_menu_items_);
+//    //add all context menu items to each view (base has its own vector of context items, this adds to that vector)
+//    ((vigir_ocs::Base3DView*) views_list["Top Left"])->getBaseContextMenu()->addToContextMenuExternally(context_menu_items_);
+//    ((vigir_ocs::Base3DView*) views_list["Top Right"])->getBaseContextMenu()->addToContextMenuExternally(context_menu_items_);
+//    ((vigir_ocs::Base3DView*) views_list["Bottom Left"])->getBaseContextMenu()->addToContextMenuExternally(context_menu_items_);
+//    ((vigir_ocs::Base3DView*) views_list["Bottom Right"])->getBaseContextMenu()->addToContextMenuExternally(context_menu_items_);
 
 }
 
@@ -168,5 +165,4 @@ void MainViewContextMenu::createContextMenu()
 
 //void MainViewContextMenu::publishPointCloudWorldRequest()
 
-}
 

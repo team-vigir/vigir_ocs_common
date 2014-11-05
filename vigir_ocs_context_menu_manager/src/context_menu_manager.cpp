@@ -16,7 +16,8 @@ ContextMenuManager* ContextMenuManager::Instance()
 }
 ContextMenuManager::ContextMenuManager()
 {
-
+    initializing_context_menu_ = 0;
+    active_context_ = 0;
 }
 
 contextMenuItem * ContextMenuManager::addMenuItem(QString name)
@@ -38,6 +39,11 @@ contextMenuItem *  ContextMenuManager::addActionItem(QString name, boost::functi
     child->hasChildren = false;
     context_menu_items_.push_back(child);
     return child;
+}
+
+void ContextMenuManager::addCustomItem(contextMenuItem* item)
+{
+    context_menu_items_.push_back(item);
 }
 
 void ContextMenuManager::addSeperator()
@@ -88,6 +94,13 @@ void ContextMenuManager::buildContextMenuHeirarchy()
     //Q_EMIT updateMainViewItems();
 }
 
+void ContextMenuManager::resetMenu()
+{
+    context_menu_->clear();
+    context_menu_->setTitle("Base Menu");
+    context_menu_->setStyleSheet("font-size:11px;");
+}
+
 void ContextMenuManager::createContextMenu(bool, int x, int y)
 {
     initializing_context_menu_++;
@@ -97,7 +110,9 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     resetMenu();
 
     // first we need to query the 3D scene to retrieve the context
-    base_3d_view_->emitQueryContext(x,y);
+    Q_EMIT queryContext(x,y);
+    //base_3d_view_->emitQueryContext(x,y);
+
     // context is stored in the active_context_ variable
     //std::cout << "Active context: " << active_context_ << std::endl;
 
@@ -222,11 +237,16 @@ void ContextMenuManager::setActiveContext(std::string name,int num)
     active_context_name_ = name;
 }
 
+void ContextMenuManager::setGlobalPos(QPoint globalPos)
+{
+    global_pos_ = globalPos;
+}
 
 void ContextMenuManager::processContextMenu(int x, int y)
 {
-    QPoint globalPos = base_3d_view_->mapToGlobal(QPoint(x,y));
-    context_menu_selected_item_ = context_menu_->exec(globalPos);
+    //tells base3dview to send globalpos
+    Q_EMIT queryGlobalPos(x,y);
+    context_menu_selected_item_ = context_menu_->exec(global_pos_);
 
     //std::cout << selectedItem << std::endl;
     if(context_menu_selected_item_ != NULL)

@@ -13,12 +13,13 @@
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <std_msgs/Float32.h>
 #include "notification_system.h"
-#include "main_camera_context_menu.h"
 
 namespace Ui
 {
     class MainCameraViewWidget;
 }
+
+class MainCameraContextMenu;
 
 class MainCameraViewWidget : public QWidget
 {
@@ -47,7 +48,7 @@ private Q_SLOTS:
 private:
     Ui::MainCameraViewWidget *ui;
 
-    vigir_ocs::MainCameraContextMenu * main_camera_context_menu_;
+    MainCameraContextMenu * main_camera_context_menu_;
 
 
     std::map<std::string,QWidget*> views_list_;

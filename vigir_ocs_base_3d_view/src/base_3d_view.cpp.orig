@@ -638,7 +638,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // initialize notification system
         overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
-        overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");      
+        overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
+
+        //initialize context menu
+        base_context_menu_ = new BaseContextMenu(this,footstep_vis_manager_);
 
     }
 
@@ -661,8 +664,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     QObject::connect(render_panel_, SIGNAL(signalMouseDoubleClickEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseDoubleClick(QMouseEvent*)));
     QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(raycastRequest(bool,int,int)));
     //QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(raycastRequestROI(bool,int,int)));
-    //initializes overall context menu
-    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), ContextMenuManager::Instance(), SLOT(createContextMenu(bool,int,int)));
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), base_context_menu_, SLOT(createContextMenu(bool,int,int)));
     QObject::connect(mouse_event_handler_, SIGNAL(signalMouseLeftDoubleClick(int,int)), this, SLOT(selectOnDoubleClick(int,int)));
 
     Q_FOREACH( QWidget* sp, findChildren<QWidget*>() ) {
@@ -715,12 +717,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     // advertise publisher for camera transform
     camera_transform_pub_ = nh_.advertise<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform", 5, false );
 
-    //initialize  base-specific context menu
-    base_context_menu_ = new BaseContextMenu(this,footstep_vis_manager_);
-
-    //connect overall context menu for position queries
-    connect(ContextMenuManager::Instance(),SIGNAL(queryContext(int,int)),this,SLOT(emitQueryContext(int,int)));
-    connect(ContextMenuManager::Instance(),SIGNAL(queryGlobalPos(int,int)),this,SLOT(emitQueryContext(int,int)));
+    //build context menu
+    addBase3DContextElements();
 
     //Initialize shift_pressed_ to false and set interactive_marker_mode_ to default
     shift_pressed_ = false;
@@ -736,11 +734,6 @@ Base3DView::~Base3DView()
     delete manager_;
 }
 
-void Base3DView::setContextGlobalPos(int x, int y)
-{
-    QPoint globalPos = this->mapToGlobal(QPoint(x,y));
-    ContextMenuManager::Instance()->setGlobalPos(globalPos);
-}
 
 //NOTE: DOES NOT CURRENTLY WORK, TODO: figure a way to pass a rendered texture from shader program to shader program to accumulate effects
 void Base3DView::blurRender()
@@ -1800,17 +1793,25 @@ void Base3DView::createContextMenu(bool, int x, int y)
     }
 
     //cannot request footstep plan without goal
+<<<<<<< HEAD
     //if(!footstep_vis_manager_->hasGoal())
     //{
     //    context_menu_.removeAction(defaultFootstepRequestMenu->action);
         context_menu_->removeAction(customFootstepRequestMenu->action);
     //}
+=======
+    if(!footstep_vis_manager_->hasGoal())
+    {
+        context_menu_.removeAction(defaultFootstepRequestMenu->action);
+    }
+    context_menu_.removeAction(customFootstepRequestMenu->action);
+>>>>>>> pachu-indigo
 
     //cannot execute without footstep plan
-    //if(!footstep_vis_manager_->hasValidStepPlan())
-    //{
-    //    context_menu_.removeAction(executeFootstepPlanMenu->action);
-    //}
+    if(!footstep_vis_manager_->hasValidStepPlan())
+    {
+        context_menu_.removeAction(executeFootstepPlanMenu->action);
+    }
 
     if(!footstep_vis_manager_->hasStartingFootstep())
     {
@@ -1876,6 +1877,11 @@ void Base3DView::createContextMenu(bool, int x, int y)
     initializing_context_menu_--;
 }
 **/
+
+void Base3DView::addToBaseContextMenu(std::vector<contextMenuItem*> items)
+{
+    base_context_menu_->addToContextMenuExternally(items);
+}
 
 //void Base3DView::addToContextVector(contextMenuItem* item)
 //{
@@ -2338,16 +2344,11 @@ void Base3DView::removeTemplate(int id)
     NotificationSystem::Instance()->notifyPassive("Template Removed");
 }
 
-void Base3DView::emitQueryContext(int x,int y)
-{
-    Q_EMIT queryContext(x,y);
-}
-
 void Base3DView::setContext(int context, std::string name)
 {
     active_context_ = context;
     active_context_name_ = name;
-    ContextMenuManager::Instance()->setActiveContext(name, active_context_);
+    base_context_menu_->setActiveContext(name, active_context_);
     //std::cout << "Active context: " << active_context_ << std::endl;
 }
 

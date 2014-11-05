@@ -6,8 +6,7 @@ namespace vigir_ocs
 BaseContextMenu::BaseContextMenu(vigir_ocs::Base3DView* base_3d_view, FootstepVisManager* footstep_vis_manager)
 {
     base_3d_view_ = base_3d_view;
-    footstep_vis_manager_ = footstep_vis_manager;
-    initializing_context_menu_ = 0;
+    footstep_vis_manager_ = footstep_vis_manager;    
     //init vector with elements from base3dview
     createContextMenuItems();
 }
@@ -16,23 +15,6 @@ BaseContextMenu::~BaseContextMenu()
 {
 }
 
-
-
-
-void BaseContextMenu::addToContextMenuExternally(std::vector<contextMenuItem* > external_context_menu)
-{
-    for(int i=0;i<external_context_menu.size();i++)
-    {
-        context_menu_items_.push_back(external_context_menu[i]);
-    }
-}
-
-void BaseContextMenu::resetMenu()
-{
-    context_menu_->clear();
-    context_menu_->setTitle("Base Menu");
-    context_menu_->setStyleSheet("font-size:11px;");
-}
 
 //called from main view
 void BaseContextMenu::setTemplateTree(QTreeWidget * root)
@@ -59,14 +41,14 @@ void BaseContextMenu::addTemplatesToContext()
             localParent->hasChildren = true;
             localParent->name = (*it)->text(0);
             localParent->parent = insertTemplateMenu;
-            context_menu_items_.push_back(localParent);
+            ContextMenuManager::Instance()->addCustomItem(localParent);
         }
         else
         {
             //build path to template for insertion
             QString path = localParent->name + "/" + (*it)->text(0);
             // ROS_ERROR("path %s",qPrintable(path));
-            addActionItem((*it)->text(0), boost::bind(&BaseContextMenu::contextInsertTemplate,this,path),localParent);
+            ContextMenuManager::Instance()->addActionItem((*it)->text(0), boost::bind(&BaseContextMenu::contextInsertTemplate,this,path),localParent);
         }
         ++it;
     }
@@ -77,56 +59,57 @@ void BaseContextMenu::createContextMenuItems()
     //creates all menu items for context menu in a base view, visibility is set on create
 
     // selection items
-    selectTemplateMenu = addActionItem("Select Template",boost::bind(&Base3DView::selectTemplate,base_3d_view_),NULL);
+    //selectTemplateMenu = addActionItem("Select Template",boost::bind(&Base3DView::selectTemplate,base_3d_view_),NULL);
+    //menu_items_.insert(std::make_pair<std::string,contextMenuItem*>("Select Template",ContextMenuManager::Instance()->addActionItem("Select Template",boost::bind(&Base3DView::selectTemplate,base_3d_view_),NULL)));
 
+    ContextMenuManager::Instance()->addActionItem("Select Template",boost::bind(&Base3DView::selectTemplate,base_3d_view_),NULL);
     /**
-    leftArmMenu = addActionItem("Select Left Arm",boost::bind(&BaseContextMenu::selectLeftArm,this),NULL);
-    rightArmMenu = addActionItem("Select Right Arm",boost::bind(&BaseContextMenu::selectRightArm,this),NULL);
+    ContextMenuManager::Instance()->addActionItem("Select Left Arm",boost::bind(&BaseContextMenu::selectLeftArm,this),NULL);
+    ContextMenuManager::Instance()->addActionItem("Select Right Arm",boost::bind(&BaseContextMenu::selectRightArm,this),NULL);
 
-    selectFootstepGoalMenu = addActionItem("Select Footstep",boost::bind(&BaseContextMenu::selectFootstepGoal,this),NULL);
-    selectFootstepMenu = addActionItem("Select Footstep",boost::bind(&BaseContextMenu::selectFootstep,this),NULL);
-    lockFootstepMenu = addActionItem("Lock Footstep",boost::bind(&BaseContextMenu::lockFootstep,this),NULL);
-    unlockFootstepMenu = addActionItem("Unlock Footstep",boost::bind(&BaseContextMenu::unlockFootstep,this),NULL);
-    removeFootstepMenu = addActionItem("Remove Footstep",boost::bind(&BaseContextMenu::removeFootstep,this),NULL);
-    selectStartFootstepMenu = addActionItem("Set Starting Footstep",boost::bind(&BaseContextMenu::setStartingFootstep,this),NULL);
-    clearStartFootstepMenu = addActionItem("Clear Starting Footstep",boost::bind(&BaseContextMenu::clearStartingFootstep,this),NULL);
-    stitchFootstepMenu = addActionItem("Stitch Plans",boost::bind(&BaseContextMenu::stitchFootstepPlans,this),NULL);
+    ContextMenuManager::Instance()->addActionItem("Select Footstep",boost::bind(&BaseContextMenu::selectFootstepGoal,this),NULL);
+    ContextMenuManager::Instance()->addActionItem("Select Footstep",boost::bind(&BaseContextMenu::selectFootstep,this),NULL);
+    ContextMenuManager::Instance()->addActionItem("Lock Footstep",boost::bind(&BaseContextMenu::lockFootstep,this),NULL);
+    ContextMenuManager::Instance()->addActionItem("Unlock Footstep",boost::bind(&BaseContextMenu::unlockFootstep,this),NULL);
+    ContextMenuManager::Instance()->addActionItem("Remove Footstep",boost::bind(&BaseContextMenu::removeFootstep,this),NULL);
+    ContextMenuManager::Instance()->addActionItem("Set Starting Footstep",boost::bind(&BaseContextMenu::setStartingFootstep,this),NULL);
+    ContextMenuManager::Instance()->addActionItem("Clear Starting Footstep",boost::bind(&BaseContextMenu::clearStartingFootstep,this),NULL);
+    ContextMenuManager::Instance()->addActionItem("Stitch Plans",boost::bind(&BaseContextMenu::stitchFootstepPlans,this),NULL);
 
-    addSeperator();
+    ContextMenuManager::Instance()->addSeperator();
 
-    snapHandMenu = addActionItem("Snap Hand to Ghost",boost::bind(&BaseContextMenu::snapHandGhost,this),NULL);
+    ContextMenuManager::Instance()->addActionItem("Snap Hand to Ghost",boost::bind(&BaseContextMenu::snapHandGhost,this),NULL);
 
-    addToContextVector(separator);
 
-    footstepGoalMenu = addActionItem("Create Step Plan Goal",boost::bind(&vigir_ocs::BaseContextMenu::defineFootstepGoal,this), NULL);
-    defaultFootstepRequestMenu = addActionItem("Request Step Plan",boost::bind(&vigir_ocs::BaseContextMenu::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL);
-    customFootstepRequestMenu = addActionItem("Request Step Plan...",boost::bind(&vigir_ocs::BaseContextMenu::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL);
-    executeFootstepPlanMenu = addActionItem(QString("Execute Step Plan"),boost::bind(&BaseContextMenu::executeFootstepPlanContextMenu,this),NULL);
-    undoFootstepMenu = addActionItem("Undo Step Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL);
-    redoFootstepMenu = addActionItem("Redo Step Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL);
+    ContextMenuManager::Instance()->addActionItem("Create Step Plan Goal",boost::bind(&vigir_ocs::BaseContextMenu::defineFootstepGoal,this), NULL);
+    ContextMenuManager::Instance()->addActionItem("Request Step Plan",boost::bind(&vigir_ocs::BaseContextMenu::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL);
+    ContextMenuManager::Instance()->addActionItem("Request Step Plan...",boost::bind(&vigir_ocs::BaseContextMenu::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL);
+    ContextMenuManager::Instance()->addActionItem(QString("Execute Step Plan"),boost::bind(&BaseContextMenu::executeFootstepPlanContextMenu,this),NULL);
+    ContextMenuManager::Instance()->addActionItem("Undo Step Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL);
+    ContextMenuManager::Instance()->addActionItem("Redo Step Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL);
 
-    addSeperator();
+    ContextMenuManager::Instance()->addSeperator();
 
     insertTemplateMenu = addMenuItem("Insert Template");
     removeTemplateMenu = addActionItem("Remove Template",boost::bind(&BaseContextMenu::removeTemplateContextMenu,this),NULL);
 
-    addSeperator();
+    ContextMenuManager::Instance()->addSeperator();
 
-    lockLeftMenu = addActionItem("Lock Left Arm to Template",boost::bind(&BaseContextMenu::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL);
-    lockRightMenu = addActionItem("Lock Right Arm to Template",boost::bind(&BaseContextMenu::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL);
-    unlockArmsMenu = addActionItem("Unlock Arms",boost::bind(&BaseContextMenu::setTemplateGraspLock,this,-1),NULL);
+    ContextMenuManager::Instance()->addActionItem("Lock Left Arm to Template",boost::bind(&BaseContextMenu::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL);
+    ContextMenuManager::Instance()->addActionItem("Lock Right Arm to Template",boost::bind(&BaseContextMenu::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL);
+    ContextMenuManager::Instance()->addActionItem("Unlock Arms",boost::bind(&BaseContextMenu::setTemplateGraspLock,this,-1),NULL);
 
-    addSeperator();
+    ContextMenuManager::Instance()->addSeperator();
 
-    cartesianMotionMenu = addMenuItem("Cartesian Motion");
+    cartesianMotionMenu = ContextMenuManager::Instance()->addMenuItem("Cartesian Motion");
 
-    createCartesianMarkerMenu = addActionItem("Create Cartesian Motion Marker",boost::bind(&BaseContextMenu::createCartesianContextMenu,this),cartesianMotionMenu);
-    removeCartesianMarkerMenu = addActionItem("Remove All Markers",boost::bind(&BaseContextMenu::removeCartesianContextMenu,this),cartesianMotionMenu);
+    ContextMenuManager::Instance()->addActionItem("Create Cartesian Motion Marker",boost::bind(&BaseContextMenu::createCartesianContextMenu,this),cartesianMotionMenu);
+    ContextMenuManager::Instance()->addActionItem("Remove All Markers",boost::bind(&BaseContextMenu::removeCartesianContextMenu,this),cartesianMotionMenu);
 
-    circularMotionMenu = addMenuItem("Circular Motion");
+    circularMotionMenu = ContextMenuManager::Instance()->addMenuItem("Circular Motion");
 
-    createCircularMarkerMenu = addActionItem("Create Circular Motion Marker",boost::bind(&BaseContextMenu::createCircularContextMenu,this),circularMotionMenu);
-    removeCircularMarkerMenu = addActionItem("Remove marker",boost::bind(&BaseContextMenu::removeCircularContextMenu,this),circularMotionMenu);
+    ContextMenuManager::Instance()->addActionItem("Create Circular Motion Marker",boost::bind(&BaseContextMenu::createCircularContextMenu,this),circularMotionMenu);
+    ContextMenuManager::Instance()->addActionItem("Remove marker",boost::bind(&BaseContextMenu::removeCircularContextMenu,this),circularMotionMenu);
 
     addSeperator();
     **/

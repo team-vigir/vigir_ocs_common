@@ -20,7 +20,7 @@
 namespace vigir_ocs
 {
 
-class BaseContextMenu: public ContextMenuManager
+class BaseContextMenu: public QObject
 {
     Q_OBJECT
 
@@ -33,18 +33,15 @@ public:
     void setTemplateTree(QTreeWidget * root);
     void resetMenu();
     //QMenu *getContextMenu();
-    void addToContextMenuExternally(std::vector<contextMenuItem* > external_context_menu);
+    //void addToContextMenuExternally(std::vector<contextMenuItem* > external_context_menu);
 
     void setItemVisibility(QString name, bool visibility);
     void setActiveContext(std::string name, int num);
 
-Q_SIGNALS:
-
 
 private:  
    void createContextMenuItems();
-   void addTemplatesToContext();
-   void createContextMenu(bool, int x, int y);   
+   void addTemplatesToContext();  
 
    //CALLBACKS///////////////////////////////////
    // void selectTemplate();
@@ -53,48 +50,47 @@ private:
 
    //END CALLBACKS///////////////////////////
 
-   //Only Base3dView constructs and interacts with the context menu
-   QMenu* context_menu_;
-   QAction* context_menu_selected_item_;
-   int initializing_context_menu_;
+
 
    FootstepVisManager* footstep_vis_manager_;
    Base3DView* base_3d_view_;
    QTreeWidget * template_root_;
-   std::string active_context_name_;
-   int active_context_;
 
+   //need to build template tree
+   contextMenuItem * insertTemplateMenu;
+
+   std::vector<contextMenuItem*> context_menu_items_;
 
    //Menu Items/////////////////////////
-   contextMenuItem * selectFootstepGoalMenu;
-   contextMenuItem * insertTemplateMenu;
-   contextMenuItem * removeTemplateMenu;
-   contextMenuItem * selectTemplateMenu;
-   contextMenuItem * removeFootstepMenu;
-   contextMenuItem * selectFootstepMenu;
-   contextMenuItem * selectStartFootstepMenu;
-   contextMenuItem * clearStartFootstepMenu;
-   contextMenuItem * lockFootstepMenu;
-   contextMenuItem * unlockFootstepMenu;
-   contextMenuItem * undoFootstepMenu;
-   contextMenuItem * redoFootstepMenu;
-   contextMenuItem * footstepGoalMenu;
-   contextMenuItem * stitchFootstepMenu;
-   contextMenuItem * defaultFootstepRequestMenu;
-   contextMenuItem * customFootstepRequestMenu;
-   contextMenuItem * executeFootstepPlanMenu;
-   contextMenuItem * cartesianMotionMenu;
-   contextMenuItem * createCartesianMarkerMenu;
-   contextMenuItem * removeCartesianMarkerMenu;
-   contextMenuItem * circularMotionMenu;
-   contextMenuItem * createCircularMarkerMenu;
-   contextMenuItem * removeCircularMarkerMenu;
-   contextMenuItem * lockLeftMenu;
-   contextMenuItem * lockRightMenu;
-   contextMenuItem * unlockArmsMenu;
-   contextMenuItem * snapHandMenu;
-   contextMenuItem * leftArmMenu;
-   contextMenuItem * rightArmMenu;
+//   contextMenuItem * selectFootstepGoalMenu;
+
+//   contextMenuItem * removeTemplateMenu;
+//   contextMenuItem * selectTemplateMenu;
+//   contextMenuItem * removeFootstepMenu;
+//   contextMenuItem * selectFootstepMenu;
+//   contextMenuItem * selectStartFootstepMenu;
+//   contextMenuItem * clearStartFootstepMenu;
+//   contextMenuItem * lockFootstepMenu;
+//   contextMenuItem * unlockFootstepMenu;
+//   contextMenuItem * undoFootstepMenu;
+//   contextMenuItem * redoFootstepMenu;
+//   contextMenuItem * footstepGoalMenu;
+//   contextMenuItem * stitchFootstepMenu;
+//   contextMenuItem * defaultFootstepRequestMenu;
+//   contextMenuItem * customFootstepRequestMenu;
+//   contextMenuItem * executeFootstepPlanMenu;
+//   contextMenuItem * cartesianMotionMenu;
+//   contextMenuItem * createCartesianMarkerMenu;
+//   contextMenuItem * removeCartesianMarkerMenu;
+//   contextMenuItem * circularMotionMenu;
+//   contextMenuItem * createCircularMarkerMenu;
+//   contextMenuItem * removeCircularMarkerMenu;
+//   contextMenuItem * lockLeftMenu;
+//   contextMenuItem * lockRightMenu;
+//   contextMenuItem * unlockArmsMenu;
+//   contextMenuItem * snapHandMenu;
+//   contextMenuItem * leftArmMenu;
+//   contextMenuItem * rightArmMenu;
 
 };
 

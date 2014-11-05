@@ -20,7 +20,6 @@
 #include "QAction"
 
 
-
 namespace vigir_ocs
 {
 
@@ -44,30 +43,57 @@ class ContextMenuManager: public QObject
 
     Q_OBJECT
 public:
-    // specific to every type of menu_manager, -set your own build order etc..
+    static ContextMenuManager* Instance();
     //void createContextMenu();
     contextMenuItem *addMenuItem(QString name);
     contextMenuItem *addActionItem(QString name, boost::function<void()> function, contextMenuItem * parent);
     void addSeperator();
+    void setGlobalPos(QPoint globalPos);
+    void setActiveContext(std::string name,int num);
+    void addCustomItem(contextMenuItem* item);
 
-    //visibility handled after construction in associated widget
-    void setItemVisibility(QString name, bool visibility);
 
-    //stores heirarchy of the context menu to be constructed
-    std::vector<contextMenuItem*> context_menu_items_;
     //std::vector<contextMenuItem*> getContextMenuItems(){return context_menu_items_;}
-
 
 protected:
 
 
 
 private:
+    //Singleton Stuff//////////////////////
     ContextMenuManager();  // Private so that it can  not be called
-    ContextMenuManager(RobotStateManager const&){};             // copy constructor is private
+    ContextMenuManager(ContextMenuManager const&){};             // copy constructor is private
     ContextMenuManager& operator=(ContextMenuManager const&){};  // assignment operator is private
     static ContextMenuManager* instance;
+    //end Singleton declaration //////////////////////////////////
 
+    void buildContextMenuHeirarchy();
+    void resetMenu();
+
+    void processContextMenu(int x, int y);
+    void processContextMenuVector(QAction* context_menu_selected_item);
+
+    //visibility handled after construction in associated widget
+    void setItemVisibility(QString name, bool visibility);
+
+    //stores heirarchy of the context menu to be constructed
+    std::vector<contextMenuItem*> context_menu_items_;
+    QMenu* context_menu_;
+    QAction* context_menu_selected_item_;
+    int initializing_context_menu_;
+
+    std::string active_context_name_;
+    int active_context_;
+    QPoint global_pos_;
+
+
+public Q_SLOTS:
+    void createContextMenu(bool, int x, int y);
+
+    //communicates to base3dview via signals
+Q_SIGNALS:
+    void queryContext(int x,int y);
+    void queryGlobalPos(int,int);
 
 };
 

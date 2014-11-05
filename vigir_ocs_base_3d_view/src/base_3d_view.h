@@ -78,6 +78,7 @@
 // local includes
 #include "footstep_vis_manager.h"
 
+
 namespace rviz
 {
 class Display;
@@ -96,7 +97,7 @@ class FPSViewController;
 namespace vigir_ocs
 {
 class BaseContextMenu;
-struct contextMenuItem;
+//struct contextMenuItem;
 
 // Class "Main3DView" implements the RobotModel class with joint manipulation that can be added to any QT application.
 class Base3DView: public QWidget
@@ -279,6 +280,7 @@ public Q_SLOTS:
     virtual void defineFootstepGoal();
     void requestFootstepPlan(unsigned int request_mode);
 
+    void setContextGlobalPos(int x, int y);
 
     /**
       * Sets position of new selection marker
@@ -393,7 +395,7 @@ Q_SIGNALS:
     /**
       * send position of the mouse when clicked to create context menu
       */
-    void queryContext( int, int );
+    void queryContext( int, int );            
     /**
       * Sets the ctr-click marker position
       */
@@ -413,7 +415,7 @@ Q_SIGNALS:
     /**
       * emit signal to indicate that the context menu has been processed
       */
-    void finishedContextMenuSetup( int x, int y );
+    //void finishedContextMenuSetup( int x, int y );
     /**
       * Sends the current ctr-click position as text
       */
