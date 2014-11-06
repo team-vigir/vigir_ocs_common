@@ -1371,13 +1371,15 @@ void Base3DView::defineFootstepGoal()
     manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
 }
 
-void Base3DView::requestFootstepPlan(unsigned int request_mode)
+void Base3DView::requestFootstepPlan()
 {
     footstep_vis_manager_->requestStepPlan();
 }
 
 void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
+    // If a goal is set, need to go back to interactive marker tool
+    manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
 }
 
 void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc )
@@ -1610,8 +1612,8 @@ void Base3DView::addBase3DContextElements()
     addToContextVector(separator);
 
     footstepGoalMenu = makeContextChild("Create Step Plan Goal",boost::bind(&vigir_ocs::Base3DView::defineFootstepGoal,this), NULL, contextMenuItems);
-    defaultFootstepRequestMenu = makeContextChild("Request Step Plan",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
-    customFootstepRequestMenu = makeContextChild("Request Step Plan...",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
+    defaultFootstepRequestMenu = makeContextChild("Request Step Plan",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this), NULL, contextMenuItems);
+    customFootstepRequestMenu = makeContextChild("Request Step Plan...",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this), NULL, contextMenuItems);
     executeFootstepPlanMenu = makeContextChild(QString("Execute Step Plan"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
     undoFootstepMenu = makeContextChild("Undo Step Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL,contextMenuItems);
     redoFootstepMenu = makeContextChild("Redo Step Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL,contextMenuItems);
@@ -3895,18 +3897,23 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
 
     if(key_event->key == 9 && key_event->state) // 'esc'
     {
+        // reset everything
         deselectAll();
+        manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
     }
-    else if(key_event->key == 24 && key_event->state && ctrl_is_pressed) // 'q'
+    else if(key_event->key == 24 && key_event->state && ctrl_is_pressed) // ctrl+q
     {
+        // robot model visibility
         robotModelToggled(!robot_model_->isEnabled());
     }
-    else if(key_event->key == 25 && key_event->state && ctrl_is_pressed) // 'w'
+    else if(key_event->key == 25 && key_event->state && ctrl_is_pressed) // ctrl+w
     {
+        // ghost visibility
         simulationRobotToggled(!ghost_robot_model_->isEnabled());
     }
     else if(key_event->key == 10 && key_event->state && ctrl_is_pressed) // ctrl+1
     {
+        // reset point clouds
         clearPointCloudRaycastRequests();
         clearPointCloudRegionRequests();
         clearPointCloudStereoRequests();
@@ -3916,10 +3923,27 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         // rainbow color
         region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
     }
-    else if(key_event->key == 19 && key_event->state && ctrl_is_pressed) // ctrl+9
+    else if(key_event->key == 19 && key_event->state && ctrl_is_pressed) // ctrl+0
     {
         // intensity
         region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
+    }
+    else if(key_event->key == 42 && key_event->state && ctrl_is_pressed) // ctrl+g
+    {
+        // define a step goal
+        defineFootstepGoal();
+    }
+    else if(key_event->key == 43 && key_event->state && ctrl_is_pressed) // ctrl+h
+    {
+        // request plan
+        if(footstep_vis_manager_->hasGoal())
+            requestFootstepPlan();
+    }
+    else if(key_event->key == 44 && key_event->state && ctrl_is_pressed) // ctrl+j
+    {
+        // request plan
+        if(footstep_vis_manager_->hasValidStepPlan())
+            executeFootstepPlanContextMenu();
     }
     else if(ctrl_is_pressed && alt_is_pressed) //emergency stop
     {

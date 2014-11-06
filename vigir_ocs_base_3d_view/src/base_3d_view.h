@@ -302,7 +302,7 @@ public Q_SLOTS:
     void robotJointMarkerToggled(bool selected);
     void robotOcclusionToggled(bool selected);
     virtual void defineFootstepGoal();
-    void requestFootstepPlan(unsigned int request_mode);
+    void requestFootstepPlan();
 
 
     /**

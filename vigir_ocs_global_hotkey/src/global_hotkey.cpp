@@ -1,5 +1,71 @@
 #include "global_hotkey.h"
 
+// taken from http://stackoverflow.com/questions/10157826/xkb-how-to-convert-a-keycode-to-keysym
+KeySym KeyCodeToKeySym(Display * display, KeyCode keycode, unsigned int event_mask)
+{
+    KeySym keysym = NoSymbol;
+
+    //Get the map
+    XkbDescPtr keyboard_map = XkbGetMap(display, XkbAllClientInfoMask, XkbUseCoreKbd);
+    if (keyboard_map)
+    {
+        //What is diff between XkbKeyGroupInfo and XkbKeyNumGroups?
+        unsigned char info = XkbKeyGroupInfo(keyboard_map, keycode);
+        unsigned int num_groups = XkbKeyNumGroups(keyboard_map, keycode);
+
+        //Get the group
+        unsigned int group = 0x00;
+        switch (XkbOutOfRangeGroupAction(info))
+        {
+            case XkbRedirectIntoRange:
+                /* If the RedirectIntoRange flag is set, the four least significant
+                 * bits of the groups wrap control specify the index of a group to
+                 * which all illegal groups correspond. If the specified group is
+                 * also out of range, all illegal groups map to Group1.
+                 */
+                group = XkbOutOfRangeGroupInfo(info);
+                if (group >= num_groups)
+                    group = 0;
+            break;
+
+            case XkbClampIntoRange:
+                /* If the ClampIntoRange flag is set, out-of-range groups correspond
+                 * to the nearest legal group. Effective groups larger than the
+                 * highest supported group are mapped to the highest supported group;
+                 * effective groups less than Group1 are mapped to Group1 . For
+                 * example, a key with two groups of symbols uses Group2 type and
+                 * symbols if the global effective group is either Group3 or Group4.
+                 */
+                group = num_groups - 1;
+            break;
+
+            case XkbWrapIntoRange:
+                /* If neither flag is set, group is wrapped into range using integer
+                 * modulus. For example, a key with two groups of symbols for which
+                 * groups wrap uses Group1 symbols if the global effective group is
+                 * Group3 or Group2 symbols if the global effective group is Group4.
+                 */
+            default:
+                if (num_groups != 0)
+                    group %= num_groups;
+            break;
+        }
+
+        XkbKeyTypePtr key_type = XkbKeyKeyType(keyboard_map, keycode, group);
+        unsigned int active_mods = event_mask & key_type->mods.mask;
+
+        int i, level = 0;
+        for (i = 0; i < key_type->map_count; i++)
+            if (key_type->map[i].active && key_type->map[i].mods.mask == active_mods)
+                level = key_type->map[i].level;
+
+        keysym = XkbKeySymEntry(keyboard_map, keycode, level, group);
+        XkbFreeClientMap(keyboard_map, XkbAllClientInfoMask, true);
+    }
+
+    return keysym;
+}
+
 namespace vigir_ocs
 {
 GlobalHotkey::GlobalHotkey() :
@@ -9,18 +75,8 @@ GlobalHotkey::GlobalHotkey() :
 
     // create publishers for visualization
     key_event_pub_  = nh_out.advertise<flor_ocs_msgs::OCSKeyEvent>( "key_event", 1, false );
-    
-    int depth,screen,connection;
-	display_name_ = XOpenDisplay(NULL);
-    //screen = DefaultScreen(display_name_);
-	//depth = DefaultDepth(display_name_,screen);
-	//connection = ConnectionNumber(display_name_);
-	//printf("Keylogger started\n\nInfo about X11 connection:\n");
-	//printf(" The display is::%s\n",XDisplayName((char*)display_name_));
-	//printf(" Width::%d\tHeight::%d\n", DisplayWidth(display_name_,screen), DisplayHeight(display_name_,screen));
-	//printf(" Connection number is %d\n",connection);
-	
-    memset(old_keys_,false,4096*sizeof(bool));
+
+    display_name_ = XOpenDisplay(NULL);
 }
 
 GlobalHotkey::~GlobalHotkey()
@@ -76,8 +132,8 @@ void GlobalHotkey::calculateCursorPosition(int &x, int &y)
 
 void GlobalHotkey::onUpdate()
 {
-	bool new_keys[4096];
-	memset(new_keys,false,4096*sizeof(bool));
+    bool state_changed = false;
+    std::vector<int> new_keys;
 	
     // grab keys
 	char keys_return[32];
@@ -93,48 +149,57 @@ void GlobalHotkey::onUpdate()
 				if ((num & 0x01) == 1) 
 				{
                     //printf("%d ",i*8+pos);
-					new_keys[i*8+pos] = true;
+                    new_keys.push_back(i*8+pos);
 				}
 				pos++; num /= 2;
 			}
 
-            printf("%x ",(unsigned char)keys_return[i]);
+            //printf("%x ",(unsigned char)keys_return[i]);
 		}
 	}
-    printf("\n");
-
-    // RUN 'xev' TO GET KEYCODES
+    //printf("\n");
 
     int x,y;
     calculateCursorPosition(x,y);
 	
     if(registering_keystrokes_)
     {
-        for(int i = 0; i < 4096; i++)
+        unsigned int event_mask = 0;//ShiftMask | LockMask;
+
+        // check if key was pressed/released before updating old_keys_ array
+        for(int i = 0; i < new_keys.size(); i++)
         {
-            // check if key was pressed/released before updating old_keys_ array
-            if(!old_keys_[i] && new_keys[i])
+            KeySym keysym = KeyCodeToKeySym(display_name_, new_keys[i], event_mask);
+
+            if(std::find(old_keys_.begin(), old_keys_.end(), new_keys[i]) == old_keys_.end())
             {
-                //printf("key pressed (%d); cursor at %d, %d\n",i,x,y);
-                publishKeyPressed(i,x,y);
+                printf("key pressed (%d,%s); cursor at %d, %d\n",new_keys[i],XKeysymToString(keysym),x,y);
+                publishKeyPressed(new_keys[i],x,y);
+                state_changed = true;
             }
-            else if(old_keys_[i] && !new_keys[i])
+        }
+        for(int i = 0; i < old_keys_.size(); i++)
+        {
+            KeySym keysym = KeyCodeToKeySym(display_name_, old_keys_[i], event_mask);
+
+            if(std::find(new_keys.begin(), new_keys.end(), old_keys_[i]) == new_keys.end())
             {
-                //printf("key released (%d); cursor at %d, %d\n",i,x,y);
-                publishKeyReleased(i,x,y);
+                printf("key released (%d,%s); cursor at %d, %d\n",old_keys_[i],XKeysymToString(keysym),x,y);
+                publishKeyReleased(old_keys_[i],x,y);
+                state_changed = true;
             }
         }
     }
 
-    // check if state has changed
-    int state_changed = memcmp(old_keys_, new_keys, 4096*sizeof(bool));
-
     // save key states
-    memcpy(old_keys_, new_keys, 4096*sizeof(bool));
+    old_keys_ = new_keys;
 
     //printf("key states(%d): %d, %d, %d\n", state_changed, old_keys_[37], old_keys_[64], old_keys_[45]);
 
-    if(old_keys_[37] && old_keys_[64] && old_keys_[45] && state_changed != 0) // ctrl + alt + k
+    if(state_changed &&
+       std::find(old_keys_.begin(), old_keys_.end(), 37) != old_keys_.end() &&
+       std::find(old_keys_.begin(), old_keys_.end(), 64) != old_keys_.end() &&
+       std::find(old_keys_.begin(), old_keys_.end(), 45) != old_keys_.end()) // ctrl + alt + k
         registering_keystrokes_ = !registering_keystrokes_;
 }
 
@@ -142,7 +207,7 @@ void GlobalHotkey::publishKeyPressed(int k, int x, int y)
 {
     flor_ocs_msgs::OCSKeyEvent cmd;
 
-    cmd.key = k;
+    cmd.key_code = k;
     cmd.state = 1;
     cmd.cursor_x = x;
     cmd.cursor_y = y;
@@ -155,7 +220,7 @@ void GlobalHotkey::publishKeyReleased(int k, int x, int y)
 {
     flor_ocs_msgs::OCSKeyEvent cmd;
 
-    cmd.key = k;
+    cmd.key_code = k;
     cmd.state = 0;
     cmd.cursor_x = x;
     cmd.cursor_y = y;

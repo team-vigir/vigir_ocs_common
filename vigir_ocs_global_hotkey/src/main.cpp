@@ -11,7 +11,7 @@ int main(int argc, char **argv)
     {
         global_hotkey.onUpdate();
 	    ros::spinOnce();
-        usleep(3000);
+        usleep(1000);
     }
 
     return 0;
