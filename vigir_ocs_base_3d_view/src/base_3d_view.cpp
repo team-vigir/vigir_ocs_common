@@ -3886,60 +3886,60 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
 {
     // store key state
     if(key_event->state)
-        keys_pressed_list_.push_back(key_event->keycode);
+        keys_pressed_list_.push_back(key_event->keystr);
     else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keystr), keys_pressed_list_.end());
 
     // process hotkeys
-    bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37) != keys_pressed_list_.end());
-    bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
-    bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
+    bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Control_") != keys_pressed_list_.end());
+    bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Shift_") != keys_pressed_list_.end());
+    bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Alt_") != keys_pressed_list_.end());
 
-    if(key_event->keycode == 9 && key_event->state) // 'esc'
+    if(key_event->keystr == "Escape" && key_event->state) // 'esc'
     {
         // reset everything
         deselectAll();
         manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
     }
-    else if(key_event->keycode == 24 && key_event->state && ctrl_is_pressed) // ctrl+q
+    else if(key_event->keystr == "q" && key_event->state && ctrl_is_pressed) // ctrl+q
     {
         // robot model visibility
         robotModelToggled(!robot_model_->isEnabled());
     }
-    else if(key_event->keycode == 25 && key_event->state && ctrl_is_pressed) // ctrl+w
+    else if(key_event->keystr == "w" && key_event->state && ctrl_is_pressed) // ctrl+w
     {
         // ghost visibility
         simulationRobotToggled(!ghost_robot_model_->isEnabled());
     }
-    else if(key_event->keycode == 10 && key_event->state && ctrl_is_pressed) // ctrl+1
+    else if(key_event->keystr == "1" && key_event->state && ctrl_is_pressed) // ctrl+1
     {
         // reset point clouds
         clearPointCloudRaycastRequests();
         clearPointCloudRegionRequests();
         clearPointCloudStereoRequests();
     }
-    else if(key_event->keycode == 18 && key_event->state && ctrl_is_pressed) // ctrl+9
+    else if(key_event->keystr == "9" && key_event->state && ctrl_is_pressed) // ctrl+9
     {
         // rainbow color
         region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
     }
-    else if(key_event->keycode == 19 && key_event->state && ctrl_is_pressed) // ctrl+0
+    else if(key_event->keystr == "0" && key_event->state && ctrl_is_pressed) // ctrl+0
     {
         // intensity
         region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
     }
-    else if(key_event->keycode == 42 && key_event->state && ctrl_is_pressed) // ctrl+g
+    else if(key_event->keystr == "g" && key_event->state && ctrl_is_pressed) // ctrl+g
     {
         // define a step goal
         defineFootstepGoal();
     }
-    else if(key_event->keycode == 43 && key_event->state && ctrl_is_pressed) // ctrl+h
+    else if(key_event->keystr == "h" && key_event->state && ctrl_is_pressed) // ctrl+h
     {
         // request plan
         if(footstep_vis_manager_->hasGoal())
             requestFootstepPlan();
     }
-    else if(key_event->keycode == 44 && key_event->state && ctrl_is_pressed) // ctrl+j
+    else if(key_event->keystr == "j" && key_event->state && ctrl_is_pressed) // ctrl+j
     {
         // request plan
         if(footstep_vis_manager_->hasValidStepPlan())

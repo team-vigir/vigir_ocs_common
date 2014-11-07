@@ -487,7 +487,7 @@ protected:
 
     Ogre::Camera* getCamera();
 
-    NotificationSystem * notification_system_;
+    NotificationSystem* notification_system_;
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
@@ -594,7 +594,7 @@ protected:
 
     int flor_atlas_current_mode_;
 
-    std::vector<int> keys_pressed_list_;
+    std::vector<std::string> keys_pressed_list_;
 
     ros::Subscriber key_event_sub_;
     ros::Subscriber hotkey_relay_sub_;
