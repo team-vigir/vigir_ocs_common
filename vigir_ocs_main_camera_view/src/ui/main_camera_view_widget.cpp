@@ -487,23 +487,23 @@ void MainCameraViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::
 {
     // store key state
     if(key_event->state)
-        keys_pressed_list_.push_back(key_event->key);
+        keys_pressed_list_.push_back(key_event->keycode);
     else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
 
     bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37) != keys_pressed_list_.end());
     bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
     bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
 
     // process hotkeys
-    if(key_event->key == 13 && key_event->state && ctrl_is_pressed) // '4' - get single image in the main view
+    if(key_event->keycode == 13 && key_event->state && ctrl_is_pressed) // '4' - get single image in the main view
         ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->requestSingleFeedImage();
-    else if(key_event->key == 14 && key_event->state && ctrl_is_pressed) // '5' - set main view to 5 fps
+    else if(key_event->keycode == 14 && key_event->state && ctrl_is_pressed) // '5' - set main view to 5 fps
     {
         ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderChanged(5);
         ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderReleased();
     }
-    else if(key_event->key == 15 && key_event->state && ctrl_is_pressed) // '6' - close selected
+    else if(key_event->keycode == 15 && key_event->state && ctrl_is_pressed) // '6' - close selected
     {
         ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->closeSelectedArea();
     }

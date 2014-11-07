@@ -391,9 +391,9 @@ void MapViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPt
 {
     // store key state
     if(key_event->state)
-        keys_pressed_list_.push_back(key_event->key);
+        keys_pressed_list_.push_back(key_event->keycode);
     else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
 
     // process hotkeys
     bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37) != keys_pressed_list_.end());
@@ -402,18 +402,18 @@ void MapViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPt
     //std::vector<int>::iterator key_is_pressed;
 
     //key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    //if(key_event->key == 32 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+o
+    //if(key_event->keycode == 32 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+o
     //    requestOctomap();
-    //if(key_event->key == 58 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+m
+    //if(key_event->keycode == 58 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+m
     //    requestMap();
-    if(key_event->key == 11 && key_event->state && ctrl_is_pressed) // '2' - unfiltered
+    if(key_event->keycode == 11 && key_event->state && ctrl_is_pressed) // '2' - unfiltered
     {
         if(ui->map_view_->hasValidSelection())                   
             ui->map_view_->requestPointCloud(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution(),1,region3dConfig->getAggregSize());        
         else
             ui->map_view_->requestPointCloud(1);
     }
-    else if(key_event->key == 12 && key_event->state && ctrl_is_pressed) // '3' - stereo
+    else if(key_event->keycode == 12 && key_event->state && ctrl_is_pressed) // '3' - stereo
     {
         if(ui->map_view_->hasValidSelection())                   
             ui->map_view_->requestPointCloud(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution(),2,region3dConfig->getAggregSize());        

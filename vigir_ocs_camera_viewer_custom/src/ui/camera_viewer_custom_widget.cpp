@@ -237,16 +237,16 @@ void CameraViewerCustomWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEve
 {
     // store key state
     if(key_event->state)
-        keys_pressed_list_.push_back(key_event->key);
+        keys_pressed_list_.push_back(key_event->keycode);
     else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
 
     // process hotkeys
     std::vector<int>::iterator key_is_pressed;
 
     key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    if(key_event->key == 41 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+f
+    if(key_event->keycode == 41 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+f
         ui->camera_view_->requestSingleFeedImage();
-    if(key_event->key == 54 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+c
+    if(key_event->keycode == 54 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+c
         ui->camera_view_->requestSingleAreaImage();
 }

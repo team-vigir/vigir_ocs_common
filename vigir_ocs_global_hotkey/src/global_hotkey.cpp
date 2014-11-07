@@ -207,7 +207,10 @@ void GlobalHotkey::publishKeyPressed(int k, int x, int y)
 {
     flor_ocs_msgs::OCSKeyEvent cmd;
 
-    cmd.key_code = k;
+    cmd.keycode = k;
+    KeySym keysym = KeyCodeToKeySym(display_name_, k, 0);
+    cmd.keysym = keysym;
+    cmd.keystr = XKeysymToString(keysym);
     cmd.state = 1;
     cmd.cursor_x = x;
     cmd.cursor_y = y;
@@ -220,7 +223,10 @@ void GlobalHotkey::publishKeyReleased(int k, int x, int y)
 {
     flor_ocs_msgs::OCSKeyEvent cmd;
 
-    cmd.key_code = k;
+    cmd.keycode = k;
+    KeySym keysym = KeyCodeToKeySym(display_name_, k, 0);
+    cmd.keysym = keysym;
+    cmd.keystr = XKeysymToString(keysym);
     cmd.state = 0;
     cmd.cursor_x = x;
     cmd.cursor_y = y;
