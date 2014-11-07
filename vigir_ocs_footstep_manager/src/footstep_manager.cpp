@@ -1181,7 +1181,7 @@ void FootstepManager::extendPlanList(const vigir_footstep_planning_msgs::StepPla
                 getStepPlanList()[i].steps.erase(getStepPlanList()[i].steps.begin()+j, getStepPlanList()[i].steps.end());
                 //getStepPlanList()[i].cost.erase(getStepPlanList()[i].cost.begin()+j, getStepPlanList()[i].cost.end());
                 new_step_plan_copy.steps.erase(new_step_plan_copy.steps.begin(), new_step_plan_copy.steps.begin()+1);
-                new_step_plan_copy.cost.erase(new_step_plan_copy.cost.begin(), new_step_plan_copy.cost.begin()+1);
+                //new_step_plan_copy.cost.erase(new_step_plan_copy.cost.begin(), new_step_plan_copy.cost.begin()+1);
                 // WHEN I UPDATE STEPPLAN MARKERS IN BETWEEN STEPPLANS, I WILL HAVE TO ADD THE LAST STEP OF PLAN A TO PLAN B
                 break;
             }
