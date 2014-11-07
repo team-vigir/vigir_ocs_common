@@ -627,9 +627,9 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-489</y>
+           <y>-560</y>
            <width>207</width>
-           <height>1669</height>
+           <height>1573</height>
           </rect>
          </property>
          <property name="maximumSize">
@@ -989,36 +989,6 @@ color: rgb(255, 26, 26);</string>
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="footstep_planning">
-               <property name="text">
-                <string>Footstep Planning</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="templates">
-               <property name="text">
-                <string>Templates</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="grasp_model">
-               <property name="text">
-                <string>Grasp</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QWidget" name="widget_5" native="true">
                <layout class="QHBoxLayout" name="horizontalLayout_3">
                 <property name="leftMargin">
@@ -1154,16 +1124,6 @@ color: rgb(255, 26, 26);</string>
                  </widget>
                 </item>
                </layout>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="laser_scan_2">
-               <property name="text">
-                <string>Laser Scan</string>
-               </property>
-               <property name="checked">
-                <bool>false</bool>
-               </property>
               </widget>
              </item>
              <item>
