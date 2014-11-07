@@ -51,7 +51,15 @@ private:
     contextMenuItem * objectContext;
     contextMenuItem * worldContext;
     contextMenuItem * cameraContext;
+
    //CALLBACKS///////////////////////////////////
+    void systemCommandContext(std::string command);
+    void contextToggleWindow(int window);
+    void setTemplateMode();
+    void setLeftArmMode();
+    void setRightArmMode();
+    void setCameraMode();
+    void setWorldMode();
 
 
 
