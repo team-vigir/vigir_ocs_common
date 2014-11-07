@@ -688,26 +688,26 @@ protected:
 
     std::string active_context_name_;
 
-    /**
-      * insert individual menu to context menu
-      */
-    void contextInsertTemplate(QString name);
-    /**
-      * Adds all context menu elements
-      */
-    void addBase3DContextElements();
-    /**
-      * Helper function for adding context menu from vector
-      */
-    void processContextMenuVector();
-    /**
-      * Helper function for adding context menu from vector
-      */
-    void addToContextMenuFromVector();
-    /**
-      * Select template or hands using the context menu
-      */
-    void selectContextMenu();
+//    /**
+//      * insert individual menu to context menu
+//      */
+//    void contextInsertTemplate(QString name);
+//    /**
+//      * Adds all context menu elements
+//      */
+//    void addBase3DContextElements();
+//    /**
+//      * Helper function for adding context menu from vector
+//      */
+//    void processContextMenuVector();
+//    /**
+//      * Helper function for adding context menu from vector
+//      */
+//    void addToContextMenuFromVector();
+//    /**
+//      * Select template or hands using the context menu
+//      */
+//    void selectContextMenu();
     /**
       * removes template using id
       */

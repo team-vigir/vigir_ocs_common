@@ -56,7 +56,7 @@ public:
 
     virtual void timerEvent(QTimerEvent *event);
 
-    vigir_ocs::Base3DView* getPrimaryView(){return primary_view;_}
+    vigir_ocs::Base3DView* getPrimaryView() {return primary_view;}
     Ui::MainViewWidget* getUi(){return ui;}
 
 public Q_SLOTS:
@@ -124,7 +124,7 @@ protected:
     ros::Publisher window_control_pub_;
     ros::Subscriber key_event_sub_;
     ros::Publisher ft_zero_pub_;
-    ros::Publisher sys_command_pub_;
+
 
     ros::Publisher mode_pub_;
     ros::Subscriber mode_sub_;
@@ -132,7 +132,7 @@ protected:
 
     ros::Subscriber ocs_sync_sub_;
 
-    std_msgs::String sysCmdMsg;
+
 
     StatusBar * statusBar;
 

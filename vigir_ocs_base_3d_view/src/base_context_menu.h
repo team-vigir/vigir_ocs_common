@@ -43,9 +43,9 @@ private:
    void createContextMenuItems();
    void addTemplatesToContext();  
 
-   //CALLBACKS///////////////////////////////////
-   // void selectTemplate();
+   //CALLBACKS///////////////////////////////////   
     void contextInsertTemplate(QString path);
+    void removeTemplateContextMenu();
 
 
    //END CALLBACKS///////////////////////////
@@ -57,7 +57,7 @@ private:
    QTreeWidget * template_root_;
 
    //need to build template tree
-   contextMenuItem * insertTemplateMenu;
+   contextMenuItem * insertTemplateMenu_;
 
    std::vector<contextMenuItem*> context_menu_items_;
 

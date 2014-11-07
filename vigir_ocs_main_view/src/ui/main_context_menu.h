@@ -33,6 +33,9 @@ private:
     MainViewWidget* main_view_;
     void createContextMenu();
 
+    ros::NodeHandle n_;
+    std_msgs::String sysCmdMsg;
+    ros::Publisher sys_command_pub_;
 
     //context item references for checking/unchecking in context menu
     contextMenuItem * joystickContext;

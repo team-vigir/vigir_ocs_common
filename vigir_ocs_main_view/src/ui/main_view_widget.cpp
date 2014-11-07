@@ -315,7 +315,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     connect(graspFadeOut,SIGNAL(finished()),this,SLOT(hideGraspWidgets()));
 
-    sys_command_pub_ = n_.advertise<std_msgs::String>("/syscommand",1,false);
+
 
     //send template tree to base3dview
     ((vigir_ocs::Base3DView*)views_list_["Top Left"])->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
@@ -564,94 +564,90 @@ void MainViewWidget::addContextMenu()
 }
 
 //callback functions for context menu
-void MainViewWidget::systemCommandContext(std::string command)
-{
-    sysCmdMsg.data = command;
-    sys_command_pub_.publish(sysCmdMsg);
-}
-void MainViewWidget::contextToggleWindow(int window)
-{
-    switch(window)
-    {
-    case WINDOW_JOYSTICK:
-        if(!ui->joystickBtn->isChecked())
-            ui->joystickBtn->setChecked(true);
-        else
-            ui->joystickBtn->setChecked(false);
-        break;
-    case WINDOW_JOINT_CONTROL:
-        if(!ui->jointControlBtn->isChecked())
-            ui->jointControlBtn->setChecked(true);
-        else
-            ui->jointControlBtn->setChecked(false);
-        break;
-    case WINDOW_BDI_PELVIS_POSE:
-        if(!ui->pelvisControlBtn->isChecked())
-            ui->pelvisControlBtn->setChecked(true);
-        else
-            ui->pelvisControlBtn->setChecked(false);
-        break;
-    case WINDOW_FOOTSTEP_BASIC:
-        if(!ui->basicStepBtn->isChecked())
-            ui->basicStepBtn->setChecked(true);
-        else
-            ui->basicStepBtn->setChecked(false);
-        break;
-    case WINDOW_FOOTSTEP_ADVANCED:
-        if(!ui->stepBtn->isChecked())
-            ui->stepBtn->setChecked(true);
-        else
-            ui->stepBtn->setChecked(false);
-        break;
-    case WINDOW_FOOTSTEP_PARAMETER:
-        if(!ui->footstepParamBtn->isChecked())
-            ui->footstepParamBtn->setChecked(true);
-        else
-            ui->footstepParamBtn->setChecked(false);
-        break;
-    case WINDOW_GHOST_CONFIG:
-        if(!ui->ghostControlBtn->isChecked())
-            ui->ghostControlBtn->setChecked(true);
-        else
-            ui->ghostControlBtn->setChecked(false);
-        break;
-    case WINDOW_POSITION_MODE:
-        if(!ui->positionModeBtn->isChecked())
-            ui->positionModeBtn->setChecked(true);
-        else
-            ui->positionModeBtn->setChecked(false);
-        break;
-    case WINDOW_PLANNER_CONFIG:
-        if(!ui->plannerConfigBtn->isChecked())
-            ui->plannerConfigBtn->setChecked(true);
-        else
-            ui->plannerConfigBtn->setChecked(false);
-        break;
-    }
-}
-void MainViewWidget::setTemplateMode()
-{
-    setObjectMode(0);
-}
-void MainViewWidget::setLeftArmMode()
-{
-    setObjectMode(1);
-}
-void MainViewWidget::setRightArmMode()
-{
-    setObjectMode(2);
-}
-void MainViewWidget::setCameraMode()
-{
-    ui->modeBox->setCurrentIndex(2);
-    setManipulationMode(2);
 
-}
-void MainViewWidget::setWorldMode()
-{
-    ui->modeBox->setCurrentIndex(1);
-    setManipulationMode(1);
-}
+//void MainViewWidget::contextToggleWindow(int window)
+//{
+//    switch(window)
+//    {
+//    case WINDOW_JOYSTICK:
+//        if(!ui->joystickBtn->isChecked())
+//            ui->joystickBtn->setChecked(true);
+//        else
+//            ui->joystickBtn->setChecked(false);
+//        break;
+//    case WINDOW_JOINT_CONTROL:
+//        if(!ui->jointControlBtn->isChecked())
+//            ui->jointControlBtn->setChecked(true);
+//        else
+//            ui->jointControlBtn->setChecked(false);
+//        break;
+//    case WINDOW_BDI_PELVIS_POSE:
+//        if(!ui->pelvisControlBtn->isChecked())
+//            ui->pelvisControlBtn->setChecked(true);
+//        else
+//            ui->pelvisControlBtn->setChecked(false);
+//        break;
+//    case WINDOW_FOOTSTEP_BASIC:
+//        if(!ui->basicStepBtn->isChecked())
+//            ui->basicStepBtn->setChecked(true);
+//        else
+//            ui->basicStepBtn->setChecked(false);
+//        break;
+//    case WINDOW_FOOTSTEP_ADVANCED:
+//        if(!ui->stepBtn->isChecked())
+//            ui->stepBtn->setChecked(true);
+//        else
+//            ui->stepBtn->setChecked(false);
+//        break;
+//    case WINDOW_FOOTSTEP_PARAMETER:
+//        if(!ui->footstepParamBtn->isChecked())
+//            ui->footstepParamBtn->setChecked(true);
+//        else
+//            ui->footstepParamBtn->setChecked(false);
+//        break;
+//    case WINDOW_GHOST_CONFIG:
+//        if(!ui->ghostControlBtn->isChecked())
+//            ui->ghostControlBtn->setChecked(true);
+//        else
+//            ui->ghostControlBtn->setChecked(false);
+//        break;
+//    case WINDOW_POSITION_MODE:
+//        if(!ui->positionModeBtn->isChecked())
+//            ui->positionModeBtn->setChecked(true);
+//        else
+//            ui->positionModeBtn->setChecked(false);
+//        break;
+//    case WINDOW_PLANNER_CONFIG:
+//        if(!ui->plannerConfigBtn->isChecked())
+//            ui->plannerConfigBtn->setChecked(true);
+//        else
+//            ui->plannerConfigBtn->setChecked(false);
+//        break;
+//    }
+//}
+//void MainViewWidget::setTemplateMode()
+//{
+//    setObjectMode(0);
+//}
+//void MainViewWidget::setLeftArmMode()
+//{
+//    setObjectMode(1);
+//}
+//void MainViewWidget::setRightArmMode()
+//{
+//    setObjectMode(2);
+//}
+//void MainViewWidget::setCameraMode()
+//{
+//    ui->modeBox->setCurrentIndex(2);
+//    setManipulationMode(2);
+
+//}
+//void MainViewWidget::setWorldMode()
+//{
+//    ui->modeBox->setCurrentIndex(1);
+//    setManipulationMode(1);
+//}
 void MainViewWidget::setObjectManipulationMode()
 {
     ui->modeBox->setCurrentIndex(0);

@@ -51,6 +51,7 @@ public:
     void setGlobalPos(QPoint globalPos);
     void setActiveContext(std::string name,int num);
     void addCustomItem(contextMenuItem* item);
+    std::string getCurrentActiveContext();
 
 
     //std::vector<contextMenuItem*> getContextMenuItems(){return context_menu_items_;}

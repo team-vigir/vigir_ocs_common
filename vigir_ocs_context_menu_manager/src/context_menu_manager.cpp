@@ -230,6 +230,10 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     initializing_context_menu_--;
 }
 
+std::string ContextMenuManager::getCurrentActiveContext()
+{
+    return active_context_name_;
+}
 
 void ContextMenuManager::setActiveContext(std::string name,int num)
 {
