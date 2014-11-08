@@ -97,7 +97,6 @@ class FPSViewController;
 namespace vigir_ocs
 {
 class BaseContextMenu;
-//struct contextMenuItem;
 
 // Class "Main3DView" implements the RobotModel class with joint manipulation that can be added to any QT application.
 class Base3DView: public QWidget
