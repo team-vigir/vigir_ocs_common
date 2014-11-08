@@ -33,6 +33,9 @@ private:
     MainViewWidget* main_view_;
     void createContextMenu();
 
+    ros::NodeHandle n_;
+    std_msgs::String sysCmdMsg;
+    ros::Publisher sys_command_pub_;
 
     //context item references for checking/unchecking in context menu
     contextMenuItem * joystickContext;
@@ -48,7 +51,15 @@ private:
     contextMenuItem * objectContext;
     contextMenuItem * worldContext;
     contextMenuItem * cameraContext;
+
    //CALLBACKS///////////////////////////////////
+    void systemCommandContext(std::string command);
+    void contextToggleWindow(int window);
+    void setTemplateMode();
+    void setLeftArmMode();
+    void setRightArmMode();
+    void setCameraMode();
+    void setWorldMode();
 
 
 

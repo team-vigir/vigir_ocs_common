@@ -1693,12 +1693,6 @@ void Base3DView::insertWaypoint()
 //    }
 //}
 
-
-void Base3DView::contextInsertTemplate(QString path)
-{
-    insertTemplate(path);
-}
-
 //contextMenuItem * Base3DView::makeContextParent(QString name,std::vector<contextMenuItem * > &contextMenuElements)
 //{
 //    contextMenuItem * parent = new contextMenuItem();
@@ -1960,16 +1954,7 @@ void Base3DView::insertTemplateContextMenu()
     }
 }
 
-void Base3DView::removeTemplateContextMenu()
-{
-    int start = active_context_name_.find(" ")+1;
-    int end = active_context_name_.find(".");
-    QString template_number(active_context_name_.substr(start, end-start).c_str());
-    //ROS_INFO("%d %d %s",start,end,template_number.toStdString().c_str());
-    bool ok;
-    int t = template_number.toInt(&ok);
-    if(ok) removeTemplate(t);
-}
+
 
 int Base3DView::findObjectContext(std::string obj_type)
 {

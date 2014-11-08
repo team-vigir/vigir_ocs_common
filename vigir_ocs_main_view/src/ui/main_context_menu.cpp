@@ -5,6 +5,8 @@ MainViewContextMenu::MainViewContextMenu(MainViewWidget main_view)
 {
     main_view_ = main_view;
     createContextMenu();
+
+    sys_command_pub_ = n_.advertise<std_msgs::String>("/syscommand",1,false);
 }
 
 MainViewContextMenu::~MainViewContextMenu()
@@ -29,52 +31,52 @@ void MainViewContextMenu::updateContextMenu()
     cameraContext->action->setCheckable(true);
 
     //update context menu elements with checks
-    if(!ui->joystickBtn->isChecked())
+    if(!main_view_->getUi()->joystickBtn->isChecked())
         joystickContext->action->setChecked(false);
     else
         joystickContext->action->setChecked(true);
 
-    if(!ui->jointControlBtn->isChecked())
+    if(!main_view_->getUi()->jointControlBtn->isChecked())
         jointControlContext->action->setChecked(false);
     else
         jointControlContext->action->setChecked(true);
 
-    if(!ui->pelvisControlBtn->isChecked())
+    if(!main_view_->getUi()->pelvisControlBtn->isChecked())
         pelvisContext->action->setChecked(false);
     else
         pelvisContext->action->setChecked(true);
 
-    if(!ui->basicStepBtn->isChecked())
+    if(!main_view_->getUi()->basicStepBtn->isChecked())
         footBasicContext->action->setChecked(false);
     else
         footBasicContext->action->setChecked(true);
 
-    if(!ui->stepBtn->isChecked())
+    if(!main_view_->getUi()->stepBtn->isChecked())
         footAdvancedContext->action->setChecked(false);
     else
         footAdvancedContext->action->setChecked(true);
 
-    if(!ui->footstepParamBtn->isChecked())
+    if(!main_view_->getUi()->footstepParamBtn->isChecked())
         footParameterContext->action->setChecked(false);
     else
         footParameterContext->action->setChecked(true);
 
-    if(!ui->ghostControlBtn->isChecked())
+    if(!main_view_->getUi()->ghostControlBtn->isChecked())
         ghostContext->action->setChecked(false);
     else
         ghostContext->action->setChecked(true);
 
-    if(!ui->positionModeBtn->isChecked())
+    if(!main_view_->getUi()->positionModeBtn->isChecked())
          positionContext->action->setChecked(false);
     else
          positionContext->action->setChecked(true);
 
-    if(!ui->plannerConfigBtn->isChecked())
+    if(!main_view_->getUi()->plannerConfigBtn->isChecked())
        plannerContext->action->setChecked(false);
     else
        plannerContext->action->setChecked(true);
 
-    switch(ui->modeBox->currentIndex())
+    switch(main_view_->getUi()->modeBox->currentIndex())
     {
     case 0:
         objectContext->action->setChecked(true);
@@ -105,9 +107,9 @@ void MainViewContextMenu::createContextMenu()
     ContextMenuManager::Instance()->addActionItem("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,main_view_->getPrimaryView()), NULL);
 
     ContextMenuManager::Instance()->addSeperator();
-    /**
+
     //manage windows-------------
-    contextMenuItem * windowVisibility = addMenuItem"Window Visibility");
+    contextMenuItem * windowVisibility = ContextMenuManager::Instance()->addMenuItem("Window Visibility");
 
     joystickContext =  ContextMenuManager::Instance()->addActionItem("Joystick",boost::bind(&MainViewWidget::contextToggleWindow,this, WINDOW_JOYSTICK));
 
@@ -148,9 +150,9 @@ void MainViewContextMenu::createContextMenu()
     ContextMenuManager::Instance()->addActionItem("Reset World Model",boost::bind(&MainViewWidget::systemCommandContext,this, "reset"), systemCommands);
     ContextMenuManager::Instance()->addActionItem("Save Octomap",boost::bind(&MainViewWidget::systemCommandContext,this,"save_octomap"), systemCommands);
     ContextMenuManager::Instance()->addActionItem("Save Pointcloud",boost::bind(&MainViewWidget::systemCommandContext,this,"save_pointcloud"), systemCommands);
-    **/
+    //**/
 
-    std::map<std::string,QWidget*> views_list = main_view_->getViewsList();
+    //std::map<std::string,QWidget*> views_list = main_view_->getViewsList();
 
 //    //add all context menu items to each view (base has its own vector of context items, this adds to that vector)
 //    ((vigir_ocs::Base3DView*) views_list["Top Left"])->getBaseContextMenu()->addToContextMenuExternally(context_menu_items_);
@@ -163,6 +165,95 @@ void MainViewContextMenu::createContextMenu()
 
 //CALLBACKS/////////////////////
 
-//void MainViewContextMenu::publishPointCloudWorldRequest()
+void MainViewContextMenu::systemCommandContext(std::string command)
+{
+    sysCmdMsg.data = command;
+    sys_command_pub_.publish(sysCmdMsg);
+}
+
+void MainViewContextMenu::contextToggleWindow(int window)
+{
+    switch(window)
+    {
+    case WINDOW_JOYSTICK:
+        if(!main_view_->getUi()->joystickBtn->isChecked())
+            main_view_->getUi()->joystickBtn->setChecked(true);
+        else
+            main_view_->getUi()->joystickBtn->setChecked(false);
+        break;
+    case WINDOW_JOINT_CONTROL:
+        if(!main_view_->getUi()->jointControlBtn->isChecked())
+            main_view_->getUi()->jointControlBtn->setChecked(true);
+        else
+            main_view_->getUi()->jointControlBtn->setChecked(false);
+        break;
+    case WINDOW_BDI_PELVIS_POSE:
+        if(!main_view_->getUi()->pelvisControlBtn->isChecked())
+            main_view_->getUi()->pelvisControlBtn->setChecked(true);
+        else
+            main_view_->getUi()->pelvisControlBtn->setChecked(false);
+        break;
+    case WINDOW_FOOTSTEP_BASIC:
+        if(!main_view_->getUi()->basicStepBtn->isChecked())
+            main_view_->getUi()->basicStepBtn->setChecked(true);
+        else
+            main_view_->getUi()->basicStepBtn->setChecked(false);
+        break;
+    case WINDOW_FOOTSTEP_ADVANCED:
+        if(!main_view_->getUi()->stepBtn->isChecked())
+            main_view_->getUi()->stepBtn->setChecked(true);
+        else
+            main_view_->getUi()->stepBtn->setChecked(false);
+        break;
+    case WINDOW_FOOTSTEP_PARAMETER:
+        if(!main_view_->getUi()->footstepParamBtn->isChecked())
+            main_view_->getUi()->footstepParamBtn->setChecked(true);
+        else
+            main_view_->getUi()->footstepParamBtn->setChecked(false);
+        break;
+    case WINDOW_GHOST_CONFIG:
+        if(!main_view_->getUi()->ghostControlBtn->isChecked())
+            main_view_->getUi()->ghostControlBtn->setChecked(true);
+        else
+            main_view_->getUi()->ghostControlBtn->setChecked(false);
+        break;
+    case WINDOW_POSITION_MODE:
+        if(!main_view_->getUi()->positionModeBtn->isChecked())
+            main_view_->getUi()->positionModeBtn->setChecked(true);
+        else
+            main_view_->getUi()->positionModeBtn->setChecked(false);
+        break;
+    case WINDOW_PLANNER_CONFIG:
+        if(!main_view_->getUi()->plannerConfigBtn->isChecked())
+            main_view_->getUi()->plannerConfigBtn->setChecked(true);
+        else
+            main_view_->getUi()->plannerConfigBtn->setChecked(false);
+        break;
+    }
+}
+void MainViewContextMenu::setTemplateMode()
+{
+    main_view_->setObjectMode(0);
+}
+void MainViewContextMenu::setLeftArmMode()
+{
+    main_view_->setObjectMode(1);
+}
+void MainViewContextMenu::setRightArmMode()
+{
+    main_view_->setObjectMode(2);
+}
+void MainViewContextMenu::setCameraMode()
+{
+    main_view_->getUi()->modeBox->setCurrentIndex(2);
+    main_view_->setManipulationMode(2);
+
+}
+void MainViewContextMenu::setWorldMode()
+{
+    main_view_->getUi()->modeBox->setCurrentIndex(1);
+    main_view_->setManipulationMode(1);
+}
+
 
 
