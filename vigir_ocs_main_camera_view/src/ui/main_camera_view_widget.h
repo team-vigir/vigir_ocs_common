@@ -19,6 +19,7 @@ namespace Ui
     class MainCameraViewWidget;
 }
 
+//forward declare to have both reference each other
 class MainCameraContextMenu;
 
 class MainCameraViewWidget : public QWidget

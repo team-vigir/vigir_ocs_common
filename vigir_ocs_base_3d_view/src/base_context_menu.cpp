@@ -67,7 +67,7 @@ void BaseContextMenu::createContextMenuItems()
     ContextMenuManager::Instance()->addActionItem("Select Left Arm",boost::bind(&Base3DView::selectLeftArm,base_3d_view_),NULL);
     ContextMenuManager::Instance()->addActionItem("Select Right Arm",boost::bind(&Base3DView::selectRightArm,base_3d_view_),NULL);
 
-    ContextMenuManager::Instance()->addActionItem("Select Footstep",boost::bind(&Base3DView::selectFootstepGoal,base_3d_view_),NULL);
+    ContextMenuManager::Instance()->addActionItem("Select Footstep Goal",boost::bind(&Base3DView::selectFootstepGoal,base_3d_view_),NULL);
     ContextMenuManager::Instance()->addActionItem("Select Footstep",boost::bind(&Base3DView::selectFootstep,base_3d_view_),NULL);
     ContextMenuManager::Instance()->addActionItem("Lock Footstep",boost::bind(&Base3DView::lockFootstep,base_3d_view_),NULL);
     ContextMenuManager::Instance()->addActionItem("Unlock Footstep",boost::bind(&Base3DView::unlockFootstep,base_3d_view_),NULL);
@@ -76,16 +76,14 @@ void BaseContextMenu::createContextMenuItems()
     ContextMenuManager::Instance()->addActionItem("Clear Starting Footstep",boost::bind(&Base3DView::clearStartingFootstep,base_3d_view_),NULL);
     ContextMenuManager::Instance()->addActionItem("Stitch Plans",boost::bind(&Base3DView::stitchFootstepPlans,base_3d_view_),NULL);
 
-
     ContextMenuManager::Instance()->addSeperator();
 
-    ContextMenuManager::Instance()->addActionItem("Snap Hand to Ghost",boost::bind(&Base3DView::snapHandGhost,this),NULL);
-
+    ContextMenuManager::Instance()->addActionItem("Snap Hand to Ghost",boost::bind(&Base3DView::snapHandGhost,base_3d_view_),NULL);
 
     ContextMenuManager::Instance()->addActionItem("Create Step Plan Goal",boost::bind(&Base3DView::defineFootstepGoal,base_3d_view_), NULL);
     ContextMenuManager::Instance()->addActionItem("Request Step Plan",boost::bind(&Base3DView::requestFootstepPlan,base_3d_view_,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL);
     ContextMenuManager::Instance()->addActionItem("Request Step Plan...",boost::bind(&Base3DView::requestFootstepPlan,base_3d_view_,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL);
-    ContextMenuManager::Instance()->addActionItem(QString("Execute Step Plan"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,base_3d_view_),NULL);
+    ContextMenuManager::Instance()->addActionItem("Execute Step Plan",boost::bind(&Base3DView::executeFootstepPlanContextMenu,base_3d_view_),NULL);
     ContextMenuManager::Instance()->addActionItem("Undo Step Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL);
     ContextMenuManager::Instance()->addActionItem("Redo Step Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL);
 
@@ -113,12 +111,7 @@ void BaseContextMenu::createContextMenuItems()
     ContextMenuManager::Instance()->addActionItem("Remove marker",boost::bind(&Base3DView::removeCircularContextMenu,base_3d_view_),circularMotionMenu);
 
     ContextMenuManager::Instance()->addSeperator();
-
 }
-
-
-
-
 
 //CALLBACKS///////
 void BaseContextMenu::contextInsertTemplate(QString path)
@@ -137,6 +130,7 @@ void BaseContextMenu::removeTemplateContextMenu()
     int t = template_number.toInt(&ok);
     if(ok) base_3d_view_->removeTemplate(t);
 }
+//END CALLBACKS////////////////////////////////////////////
 
 }
 

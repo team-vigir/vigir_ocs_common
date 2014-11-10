@@ -1,8 +1,8 @@
-
+#include "camera_view_widget.h"
 #include "main_camera_context_menu.h"
 
 
-MainCameraContextMenu::MainCameraContextMenu(MainCameraViewWidget main_camera_view)
+MainCameraContextMenu::MainCameraContextMenu(MainCameraViewWidget* main_camera_view)
 {
     main_camera_view_ = main_camera_view;
     sys_command_pub_ = nh_.advertise<std_msgs::String>("/syscommand",1,false);
@@ -17,8 +17,8 @@ void MainCameraContextMenu::createContextMenu()
 {
     //grab 4 views
     std::map<std::string,QWidget*> views_list = main_camera_view_->getViewsList();
-
-    ContextMenuManager::Instance()->addActionItem("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())), NULL);
+    ContextMenuManager::Instance()->addActionItem("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,
+                                                                                    ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list["Top Left"])->getCameraView())), NULL);
 
     ContextMenuManager::Instance()->addSeperator();
 

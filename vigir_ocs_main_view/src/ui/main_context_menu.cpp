@@ -1,7 +1,7 @@
 
 #include "main_context_menu.h"
 
-MainViewContextMenu::MainViewContextMenu(MainViewWidget main_view)
+MainViewContextMenu::MainViewContextMenu(MainViewWidget *main_view)
 {
     main_view_ = main_view;
     createContextMenu();

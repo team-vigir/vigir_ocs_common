@@ -26,19 +26,20 @@ public:
     MapViewContextMenu(MapView* map_view);
     virtual ~MapViewContextMenu();
 
-Q_SIGNALS:
 
-public Q_SLOTS;
-    void updateContextMenu();
+
 private:
     MapView* map_view_;
     void createContextMenu();
 
-    //context item references for checking/unchecking in context menu
-    contextMenuItem * blockRegion;
-    contextMenuItem * clearRegion;
-    contextMenuItem * pointCloudMenu;
+    ros::NodeHandle nh_;
+    //copied from map_view
+    ros::Publisher augment_grid_map_pub_;
    //CALLBACKS///////////////////////////////////
+    void requestAreaMapContext();
+    void requestOctomapContext();
+//    void blockRegionContext(int boxType);
+//    void clearRegionContext(int boxType);
 
 
 

@@ -56,7 +56,7 @@ public:
 
     virtual void timerEvent(QTimerEvent *event);
 
-    vigir_ocs::Base3DView* getPrimaryView() {return primary_view;}
+    vigir_ocs::Base3DView* getPrimaryView() {return primary_view_;}
     Ui::MainViewWidget* getUi(){return ui;}
 
 public Q_SLOTS:
@@ -77,16 +77,16 @@ private Q_SLOTS:
     void toggleFootstepConfig();
 
 protected:
-    void addContextMenu();
-    void setTemplateMode();
-    void setLeftArmMode();
-    void setRightArmMode();
-    void setCameraMode();
-    void setWorldMode();
+    //void addContextMenu();
+    //void setTemplateMode();
+    //void setLeftArmMode();
+    //void setRightArmMode();
+    //void setCameraMode();
+    //void setWorldMode();
     void setObjectManipulationMode();
     void setObjectMode(int mode);
     void setupToolbar();
-    void contextToggleWindow(int window);
+    //void contextToggleWindow(int window);
     void systemCommandContext(std::string command);
     void loadButtonIcon(QPushButton* btn, QString image_name);
     void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);

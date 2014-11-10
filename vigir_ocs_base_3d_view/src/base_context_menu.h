@@ -24,8 +24,6 @@ class BaseContextMenu: public QObject
 {
     Q_OBJECT
 
-
-
 public:
     BaseContextMenu(Base3DView* base_3d_view, FootstepVisManager* footstep_vis_manager);
     virtual ~BaseContextMenu();
@@ -50,16 +48,12 @@ private:
 
    //END CALLBACKS///////////////////////////
 
-
-
    FootstepVisManager* footstep_vis_manager_;
    Base3DView* base_3d_view_;
    QTreeWidget * template_root_;
 
    //need to build template tree
    contextMenuItem * insertTemplateMenu_;
-
-   std::vector<contextMenuItem*> context_menu_items_;
 
    //Menu Items/////////////////////////
 //   contextMenuItem * selectFootstepGoalMenu;

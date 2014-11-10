@@ -3,9 +3,7 @@
 #define MAIN_CONTEXT_MENU_H
 
 #include <QObject>
-
 #include <ros/ros.h>
-
 #include <string>
 #include <boost/bind.hpp>
 #include <vector>
@@ -19,14 +17,12 @@
 class MainViewContextMenu : public QObject
 {
     Q_OBJECT
-public:
 
+public:
     MainViewContextMenu(MainViewWidget* main_view);
     virtual ~MainViewContextMenu();
-    std::map<contextMenuItem*,std::string> context_Item_Map_;
-Q_SIGNALS:
 
-public Q_SLOTS;
+public Q_SLOTS:
     void updateContextMenu();
 
 private:   
@@ -60,9 +56,6 @@ private:
     void setRightArmMode();
     void setCameraMode();
     void setWorldMode();
-
-
-
    //END CALLBACKS///////////////////////////
 
 };

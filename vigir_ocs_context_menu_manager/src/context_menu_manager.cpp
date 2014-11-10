@@ -1,8 +1,6 @@
 
 #include "context_menu_manager.h"
 
-namespace vigir_ocs
-{
 
 ContextMenuManager* ContextMenuManager::instance = 0;
 
@@ -122,42 +120,40 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     if(active_context_name_.find("LeftArm") != std::string::npos)
     {
         setItemVisibility("Select Right Arm",false);
-        //context_menu_->setItemVisibility("Select Right Arm",false);
+
     }
-/**
     else if(active_context_name_.find("RightArm") != std::string::npos)
     {
-        context_menu_->removeAction(leftArmMenu->action);
+        setItemVisibility("Select Left Arm",false);
     }
     else //neither arm selected
     {
-        context_menu_->removeAction(rightArmMenu->action);
-        context_menu_->removeAction(leftArmMenu->action);
+        setItemVisibility("Select Right Arm",false);
+        setItemVisibility("Select Left Arm",false);
     }
 
     //remove footstep-related items if context is not footstep
     if(active_context_name_.find("footstep") == std::string::npos || active_context_name_.find("footstep goal") != std::string::npos)
     {
-
-        context_menu_->removeAction(selectFootstepMenu->action);
-        context_menu_->removeAction(lockFootstepMenu->action);
-        context_menu_->removeAction(unlockFootstepMenu->action);
-        context_menu_->removeAction(removeFootstepMenu->action);
-        context_menu_->removeAction(selectStartFootstepMenu->action);
+        setItemVisibility("Select Footstep",false);
+        setItemVisibility("Lock Footstep",false);
+        setItemVisibility("Unlock Footstep",false);
+        setItemVisibility("Remove Footstep",false);
+        setItemVisibility("Set Starting Footstep",false);
     }
 
     //footstep goal is still technically a footstep but need seperate case
     if(active_context_name_.find("footstep goal") == std::string::npos)
     {
-        //remove context items as not needed
-        context_menu_->removeAction(selectFootstepGoalMenu->action);
+        //context_menu_->removeAction(selectFootstepGoalMenu->action);
+        setItemVisibility("Select Footstep Goal",false);
     }
 
     //cannot request footstep plan without goal
     //if(!footstep_vis_manager_->hasGoal())
     //{
-    //    context_menu_.removeAction(defaultFootstepRequestMenu->action);
-        context_menu_->removeAction(customFootstepRequestMenu->action);
+        //setItemVisibility("Request Step Plan",false);
+        setItemVisibility("Request Step Plan...",false);
     //}
 
     //cannot execute without footstep plan
@@ -165,10 +161,11 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     //{
     //    context_menu_.removeAction(executeFootstepPlanMenu->action);
     //}
-
+/**
     if(!footstep_vis_manager_->hasStartingFootstep())
     {
-        context_menu_.removeAction(clearStartFootstepMenu->action);
+        setItemVisibility("Clear Starting Footstep",false);
+       //context_menu_.removeAction(clearStartFootstepMenu->action);
     }
 
     // context is stored in the active_context_ variable
@@ -176,22 +173,22 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     if(active_context_name_.find("template") == std::string::npos)
     {
         //remove context items as not needed
-        context_menu_.removeAction(removeTemplateMenu->action);
-        context_menu_.removeAction(selectTemplateMenu->action);
-        context_menu_.removeAction(lockLeftMenu->action);
-        context_menu_.removeAction(lockRightMenu->action);
+        setItemVisibility("Remove Template",false);
+        setItemVisibility("Select Template",false);
+        setItemVisibility("Lock Left Arm to Template",false);
+        setItemVisibility("Lock Right Arm to Template",false);
     }
 
     if((ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] && ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM]) || (ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] && ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM]))
     {
-        //show only unlock
-        context_menu_.removeAction(lockLeftMenu->action);
-        context_menu_.removeAction(lockRightMenu->action);
+        //show only unlock        
+        setItemVisibility("Lock Left Arm to Template",false);
+        setItemVisibility("Lock Right Arm to Template",false);
     }
     else
     {
-        //dont show unlock.. both arms are free and ready to be locked
-        context_menu_.removeAction(unlockArmsMenu->action);
+        //dont show unlock.. both arms are free and ready to be locked        
+        setItemVisibility("Unlock Arms",false);
     }
 
 //    if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100)
@@ -205,25 +202,29 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
 
     if(cartesian_marker_list_.size() == 0)
     {
-        cartesianMotionMenu->menu->removeAction(removeCartesianMarkerMenu->action);
-        //removeCartesianMarkerMenu->action->setEnabled(false);
+        //remove cartesian marker menu
+        setItemVisibility("Remove All Markers",false);
     }
     else
-        removeCartesianMarkerMenu->action->setEnabled(true);
+        setItemVisibility("Remove All Markers",true);
+
 
     if(circular_marker_ != NULL)
     {
-        createCircularMarkerMenu->action->setEnabled(false);
-        removeCircularMarkerMenu->action->setEnabled(true);
+        setItemVisibility("Create Circular Motion Marker",false);
+        setItemVisibility("Remove marker",true);
+//        createCircularMarkerMenu->action->setEnabled(false);
+//        removeCircularMarkerMenu->action->setEnabled(true);
     }
     else if(circular_marker_ == NULL)
     {
-        createCircularMarkerMenu->action->setEnabled(true);
-        circularMotionMenu->menu->removeAction(removeCircularMarkerMenu->action);
-        //removeCircularMarkerMenu->action->setEnabled(false);
+        setItemVisibility("Create Circular Motion Marker",true);
+        setItemVisibility("Remove marker",false);
+//        createCircularMarkerMenu->action->setEnabled(true);
+//        circularMotionMenu->menu->removeAction(removeCircularMarkerMenu->action);
     }
-
 **/
+
     if(initializing_context_menu_ == 1)
         processContextMenu(x, y);
 
@@ -305,8 +306,3 @@ void ContextMenuManager::processContextMenuVector(QAction* context_menu_selected
 
 
 
-
-
-
-
-}

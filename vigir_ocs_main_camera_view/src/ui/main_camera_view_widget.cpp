@@ -7,6 +7,7 @@
 
 #include <rviz/displays_panel.h>
 #include "main_camera_context_menu.h"
+#include "base_context_menu.h"
 
 MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     QWidget(parent),

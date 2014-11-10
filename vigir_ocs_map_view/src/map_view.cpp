@@ -23,6 +23,7 @@
 #include <flor_ocs_msgs/OCSAugmentRegions.h>
 
 #include "map_view.h"
+#include "map_context_menu.h"
 
 namespace vigir_ocs
 {
@@ -67,7 +68,7 @@ MapView::MapView( QWidget* parent )
     setViewPlane("XY");
 
     //create context menu for this view
-    map_view_context_menu = new MapViewContextMenu(this);
+    map_view_context_menu_ = new MapViewContextMenu(this);
 
     //set default tool
     manager_->getToolManager()->setCurrentTool( interactive_markers_tool_);
@@ -284,59 +285,59 @@ void MapView::requestPointCloud(double min_z, double max_z, double resolution, i
     NotificationSystem::Instance()->notifyPassive("Pointcloud Requested");
 }
 
-void MapView::addContextMenu()
-{
-    //can tell context menu to add a separator when this item is added
-    contextMenuItem * separator = new contextMenuItem();
-    separator->name = "Separator";
+//void MapView::addContextMenu()
+//{
+//    //can tell context menu to add a separator when this item is added
+//    contextMenuItem * separator = new contextMenuItem();
+//    separator->name = "Separator";
 
-    //request point cloud from tools section
-    vigir_ocs::Base3DView::makeContextChild("Request Point Cloud",boost::bind(&MapView::publishPointCloudWorldRequest,this), NULL, contextMenuElements);
+//    //request point cloud from tools section
+//    vigir_ocs::Base3DView::makeContextChild("Request Point Cloud",boost::bind(&MapView::publishPointCloudWorldRequest,this), NULL, contextMenuElements);
 
-    contextMenuElements.push_back(separator);
+//    contextMenuElements.push_back(separator);
 
-    vigir_ocs::Base3DView::makeContextChild("Request Area Map",boost::bind(&MapView::requestAreaMapContext,this), NULL, contextMenuElements);
+//    vigir_ocs::Base3DView::makeContextChild("Request Area Map",boost::bind(&MapView::requestAreaMapContext,this), NULL, contextMenuElements);
 
-    contextMenuElements.push_back(separator);
+//    contextMenuElements.push_back(separator);
 
-    vigir_ocs::Base3DView::makeContextChild("Request Octomap",boost::bind(&MapView::requestOctomapContext,this), NULL, contextMenuElements);
+//    vigir_ocs::Base3DView::makeContextChild("Request Octomap",boost::bind(&MapView::requestOctomapContext,this), NULL, contextMenuElements);
 
-    pointCloudMenu = vigir_ocs::Base3DView::makeContextParent("Request Point Clound Types", contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("LIDAR filtered",boost::bind(&MapView::requestPointCloud,this,0), pointCloudMenu, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("LIDAR unfiltered",boost::bind(&MapView::requestPointCloud,this,1), pointCloudMenu, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Stereo",boost::bind(&MapView::requestPointCloud,this,2), pointCloudMenu, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Stereo Sandia",boost::bind(&MapView::requestPointCloud,this,3), pointCloudMenu, contextMenuElements);
+//    pointCloudMenu = vigir_ocs::Base3DView::makeContextParent("Request Point Clound Types", contextMenuElements);
+//    vigir_ocs::Base3DView::makeContextChild("LIDAR filtered",boost::bind(&MapView::requestPointCloud,this,0), pointCloudMenu, contextMenuElements);
+//    vigir_ocs::Base3DView::makeContextChild("LIDAR unfiltered",boost::bind(&MapView::requestPointCloud,this,1), pointCloudMenu, contextMenuElements);
+//    vigir_ocs::Base3DView::makeContextChild("Stereo",boost::bind(&MapView::requestPointCloud,this,2), pointCloudMenu, contextMenuElements);
+//    vigir_ocs::Base3DView::makeContextChild("Stereo Sandia",boost::bind(&MapView::requestPointCloud,this,3), pointCloudMenu, contextMenuElements);
 
-    contextMenuElements.push_back(separator);
+//    contextMenuElements.push_back(separator);
 
-    blockRegion = vigir_ocs::Base3DView::makeContextParent("Block Region", contextMenuElements);
+//    blockRegion = vigir_ocs::Base3DView::makeContextParent("Block Region", contextMenuElements);
 
-    vigir_ocs::Base3DView::makeContextChild("Axis-Aligned Rectangle",boost::bind(&MapView::blockRegionContext,this, 1), blockRegion, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Line",boost::bind(&MapView::blockRegionContext,this, 0), blockRegion, contextMenuElements);
+//    vigir_ocs::Base3DView::makeContextChild("Axis-Aligned Rectangle",boost::bind(&MapView::blockRegionContext,this, 1), blockRegion, contextMenuElements);
+//    vigir_ocs::Base3DView::makeContextChild("Line",boost::bind(&MapView::blockRegionContext,this, 0), blockRegion, contextMenuElements);
 
-    clearRegion = vigir_ocs::Base3DView::makeContextParent("Clear Region", contextMenuElements);
+//    clearRegion = vigir_ocs::Base3DView::makeContextParent("Clear Region", contextMenuElements);
 
-    vigir_ocs::Base3DView::makeContextChild("Axis-Aligned Rectangle",boost::bind(&MapView::clearRegionContext,this, 1), clearRegion, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Line",boost::bind(&MapView::clearRegionContext,this, 0), clearRegion, contextMenuElements);
+//    vigir_ocs::Base3DView::makeContextChild("Axis-Aligned Rectangle",boost::bind(&MapView::clearRegionContext,this, 1), clearRegion, contextMenuElements);
+//    vigir_ocs::Base3DView::makeContextChild("Line",boost::bind(&MapView::clearRegionContext,this, 0), clearRegion, contextMenuElements);
 
-    contextMenuElements.push_back(separator);
+//    contextMenuElements.push_back(separator);
 
-    //add all context menu items to each view
-    for(int i=0;i<contextMenuElements.size();i++)
-    {
-        this->addToContextVector(contextMenuElements[i]);
-    }
-}
+//    //add all context menu items to each view
+//    for(int i=0;i<contextMenuElements.size();i++)
+//    {
+//        this->addToContextVector(contextMenuElements[i]);
+//    }
+//}
 
-void MapView::requestAreaMapContext()
-{
-    Q_EMIT UIrequestAreaMap();
-}
+//void MapView::requestAreaMapContext()
+//{
+//    Q_EMIT UIrequestAreaMap();
+//}
 
-void MapView::requestOctomapContext()
-{
-    Q_EMIT UIrequestOctomap();
-}
+//void MapView::requestOctomapContext()
+//{
+//    Q_EMIT UIrequestOctomap();
+//}
 
 void MapView::blockRegionContext(int boxType)
 {

@@ -1,5 +1,6 @@
 #include "main_view_widget.h"
 #include "ui_main_view_widget.h"
+#include "base_context_menu.h"
 
 MainViewWidget::MainViewWidget(QWidget *parent) :
     QWidget(parent),
@@ -315,15 +316,11 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     connect(graspFadeOut,SIGNAL(finished()),this,SLOT(hideGraspWidgets()));
 
-
-
     //send template tree to base3dview
     ((vigir_ocs::Base3DView*)views_list_["Top Left"])->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
     ((vigir_ocs::Base3DView*)views_list_["Top Right"])->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
     ((vigir_ocs::Base3DView*)views_list_["Bottom Left"])->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
     ((vigir_ocs::Base3DView*)views_list_["Bottom Right"])->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
-
-    addContextMenu();
 
     sidebar_toggle_ = new QPushButton(this);
     sidebar_toggle_->setStyleSheet("font: 9pt \"MS Shell Dlg 2\";background-color: rgb(0, 0, 0);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
@@ -495,8 +492,8 @@ void MainViewWidget::hideGraspWidgets()
 }
 
 //define all context menu items to be displayed for main view and add them to base 3d view
-void MainViewWidget::addContextMenu()
-{
+//void MainViewWidget::addContextMenu()
+//{
 //    //can tell context menu to add a separator when this item is added
 //    contextMenuItem * separator = new contextMenuItem();
 //    separator->name = "Separator";
@@ -561,7 +558,7 @@ void MainViewWidget::addContextMenu()
 //        ((vigir_ocs::Base3DView*) views_list_["Bottom Left"])->addToContextVector(contextMenuElements[i]);
 //        ((vigir_ocs::Base3DView*) views_list_["Bottom Right"])->addToContextVector(contextMenuElements[i]);
 //    }
-}
+//}
 
 //callback functions for context menu
 

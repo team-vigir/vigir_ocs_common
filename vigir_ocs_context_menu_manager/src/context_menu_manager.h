@@ -19,9 +19,11 @@
 #include "QMenu"
 #include "QAction"
 
-
-namespace vigir_ocs
-{
+/**
+ * Context Menu Singleton to manage overall context menu across different widgets if necessary.
+ *
+ * Do not construct context items with duplicate names as visibility won't be able to be handled correctly.
+ */
 
 struct contextMenuItem
 {
@@ -98,5 +100,4 @@ Q_SIGNALS:
 
 };
 
-}
 #endif // CONTEXT_MENU_MANAGER_H
