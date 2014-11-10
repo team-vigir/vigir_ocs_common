@@ -22,36 +22,37 @@ MapViewContextMenu::~MapViewContextMenu()
 
 void MapViewContextMenu::createContextMenu()
 {
+    ContextMenuManager* context_menu_manager = map_view_->getContextMenuManager();
     //request point cloud from tools section
-    ContextMenuManager::Instance()->addActionItem("Request Point Cloud",boost::bind(&MapView::publishPointCloudWorldRequest,map_view_), NULL);
+    context_menu_manager->addActionItem("Request Point Cloud",boost::bind(&MapView::publishPointCloudWorldRequest,map_view_), NULL);
 
-    ContextMenuManager::Instance()->addSeperator();    
+    context_menu_manager->addSeperator();
 
-    ContextMenuManager::Instance()->addActionItem("Request Area Map",boost::bind(&MapViewContextMenu::requestAreaMapContext,this), NULL);
+    context_menu_manager->addActionItem("Request Area Map",boost::bind(&MapViewContextMenu::requestAreaMapContext,this), NULL);
 
-    ContextMenuManager::Instance()->addSeperator();
+    context_menu_manager->addSeperator();
 
-    ContextMenuManager::Instance()->addActionItem("Request Octomap",boost::bind(&MapViewContextMenu::requestOctomapContext,this), NULL);
+    context_menu_manager->addActionItem("Request Octomap",boost::bind(&MapViewContextMenu::requestOctomapContext,this), NULL);
 
-    contextMenuItem * pointCloudMenu = ContextMenuManager::Instance()->addMenuItem("Request Point Clound Types");
-    ContextMenuManager::Instance()->addActionItem("LIDAR filtered",boost::bind(&MapView::requestPointCloud,map_view_,0), pointCloudMenu);
-    ContextMenuManager::Instance()->addActionItem("LIDAR unfiltered",boost::bind(&MapView::requestPointCloud,map_view_,1), pointCloudMenu);
-    ContextMenuManager::Instance()->addActionItem("Stereo",boost::bind(&MapView::requestPointCloud,map_view_,2), pointCloudMenu);
-    ContextMenuManager::Instance()->addActionItem("Stereo Sandia",boost::bind(&MapView::requestPointCloud,map_view_,3), pointCloudMenu);
+    contextMenuItem * pointCloudMenu = context_menu_manager->addMenuItem("Request Point Clound Types");
+    context_menu_manager->addActionItem("LIDAR filtered",boost::bind(&MapView::requestPointCloud,map_view_,0), pointCloudMenu);
+    context_menu_manager->addActionItem("LIDAR unfiltered",boost::bind(&MapView::requestPointCloud,map_view_,1), pointCloudMenu);
+    context_menu_manager->addActionItem("Stereo",boost::bind(&MapView::requestPointCloud,map_view_,2), pointCloudMenu);
+    context_menu_manager->addActionItem("Stereo Sandia",boost::bind(&MapView::requestPointCloud,map_view_,3), pointCloudMenu);
 
-    ContextMenuManager::Instance()->addSeperator();
+    context_menu_manager->addSeperator();
 
-    contextMenuItem * blockRegion = ContextMenuManager::Instance()->addMenuItem("Block Region");
+    contextMenuItem * blockRegion = context_menu_manager->addMenuItem("Block Region");
 
-    ContextMenuManager::Instance()->addActionItem("Axis-Aligned Rectangle",boost::bind(&MapView::blockRegionContext,map_view_, 1), blockRegion);
-    ContextMenuManager::Instance()->addActionItem("Line",boost::bind(&MapView::blockRegionContext,map_view_, 0), blockRegion);
+    context_menu_manager->addActionItem("Axis-Aligned Rectangle",boost::bind(&MapView::blockRegionContext,map_view_, 1), blockRegion);
+    context_menu_manager->addActionItem("Line",boost::bind(&MapView::blockRegionContext,map_view_, 0), blockRegion);
 
-    contextMenuItem * clearRegion = ContextMenuManager::Instance()->addMenuItem("Clear Region");
+    contextMenuItem * clearRegion = context_menu_manager->addMenuItem("Clear Region");
 
-    ContextMenuManager::Instance()->addActionItem("Axis-Aligned Rectangle",boost::bind(&MapView::clearRegionContext,map_view_, 1), clearRegion);
-    ContextMenuManager::Instance()->addActionItem("Line",boost::bind(&MapView::clearRegionContext,map_view_, 0), clearRegion);
+    context_menu_manager->addActionItem("Axis-Aligned Rectangle",boost::bind(&MapView::clearRegionContext,map_view_, 1), clearRegion);
+    context_menu_manager->addActionItem("Line",boost::bind(&MapView::clearRegionContext,map_view_, 0), clearRegion);
 
-    ContextMenuManager::Instance()->addSeperator();
+    context_menu_manager->addSeperator();
 }
 
 //CALLBACKS/////////////////////

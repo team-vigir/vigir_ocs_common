@@ -331,10 +331,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     sidebar_toggle_->setIcon(Btn);
     sidebar_toggle_->setIconSize(pix.rect().size() / 8);
 
-    connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));
-
-
-    connect(((vigir_ocs::Base3DView*) views_list_["Top Left"]),SIGNAL(updateMainViewItems()),this,SLOT(updateContextMenu()));
+    connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));  
 
     timer.start(100, this);
 
@@ -562,66 +559,66 @@ void MainViewWidget::hideGraspWidgets()
 
 //callback functions for context menu
 
-//void MainViewWidget::contextToggleWindow(int window)
-//{
-//    switch(window)
-//    {
-//    case WINDOW_JOYSTICK:
-//        if(!ui->joystickBtn->isChecked())
-//            ui->joystickBtn->setChecked(true);
-//        else
-//            ui->joystickBtn->setChecked(false);
-//        break;
-//    case WINDOW_JOINT_CONTROL:
-//        if(!ui->jointControlBtn->isChecked())
-//            ui->jointControlBtn->setChecked(true);
-//        else
-//            ui->jointControlBtn->setChecked(false);
-//        break;
-//    case WINDOW_BDI_PELVIS_POSE:
-//        if(!ui->pelvisControlBtn->isChecked())
-//            ui->pelvisControlBtn->setChecked(true);
-//        else
-//            ui->pelvisControlBtn->setChecked(false);
-//        break;
-//    case WINDOW_FOOTSTEP_BASIC:
-//        if(!ui->basicStepBtn->isChecked())
-//            ui->basicStepBtn->setChecked(true);
-//        else
-//            ui->basicStepBtn->setChecked(false);
-//        break;
-//    case WINDOW_FOOTSTEP_ADVANCED:
-//        if(!ui->stepBtn->isChecked())
-//            ui->stepBtn->setChecked(true);
-//        else
-//            ui->stepBtn->setChecked(false);
-//        break;
-//    case WINDOW_FOOTSTEP_PARAMETER:
-//        if(!ui->footstepParamBtn->isChecked())
-//            ui->footstepParamBtn->setChecked(true);
-//        else
-//            ui->footstepParamBtn->setChecked(false);
-//        break;
-//    case WINDOW_GHOST_CONFIG:
-//        if(!ui->ghostControlBtn->isChecked())
-//            ui->ghostControlBtn->setChecked(true);
-//        else
-//            ui->ghostControlBtn->setChecked(false);
-//        break;
-//    case WINDOW_POSITION_MODE:
-//        if(!ui->positionModeBtn->isChecked())
-//            ui->positionModeBtn->setChecked(true);
-//        else
-//            ui->positionModeBtn->setChecked(false);
-//        break;
-//    case WINDOW_PLANNER_CONFIG:
-//        if(!ui->plannerConfigBtn->isChecked())
-//            ui->plannerConfigBtn->setChecked(true);
-//        else
-//            ui->plannerConfigBtn->setChecked(false);
-//        break;
-//    }
-//}
+void MainViewWidget::contextToggleWindow(int window)
+{
+    switch(window)
+    {
+    case WINDOW_JOYSTICK:
+        if(!ui->joystickBtn->isChecked())
+            ui->joystickBtn->setChecked(true);
+        else
+            ui->joystickBtn->setChecked(false);
+        break;
+    case WINDOW_JOINT_CONTROL:
+        if(!ui->jointControlBtn->isChecked())
+            ui->jointControlBtn->setChecked(true);
+        else
+            ui->jointControlBtn->setChecked(false);
+        break;
+    case WINDOW_BDI_PELVIS_POSE:
+        if(!ui->pelvisControlBtn->isChecked())
+            ui->pelvisControlBtn->setChecked(true);
+        else
+            ui->pelvisControlBtn->setChecked(false);
+        break;
+    case WINDOW_FOOTSTEP_BASIC:
+        if(!ui->basicStepBtn->isChecked())
+            ui->basicStepBtn->setChecked(true);
+        else
+            ui->basicStepBtn->setChecked(false);
+        break;
+    case WINDOW_FOOTSTEP_ADVANCED:
+        if(!ui->stepBtn->isChecked())
+            ui->stepBtn->setChecked(true);
+        else
+            ui->stepBtn->setChecked(false);
+        break;
+    case WINDOW_FOOTSTEP_PARAMETER:
+        if(!ui->footstepParamBtn->isChecked())
+            ui->footstepParamBtn->setChecked(true);
+        else
+            ui->footstepParamBtn->setChecked(false);
+        break;
+    case WINDOW_GHOST_CONFIG:
+        if(!ui->ghostControlBtn->isChecked())
+            ui->ghostControlBtn->setChecked(true);
+        else
+            ui->ghostControlBtn->setChecked(false);
+        break;
+    case WINDOW_POSITION_MODE:
+        if(!ui->positionModeBtn->isChecked())
+            ui->positionModeBtn->setChecked(true);
+        else
+            ui->positionModeBtn->setChecked(false);
+        break;
+    case WINDOW_PLANNER_CONFIG:
+        if(!ui->plannerConfigBtn->isChecked())
+            ui->plannerConfigBtn->setChecked(true);
+        else
+            ui->plannerConfigBtn->setChecked(false);
+        break;
+    }
+}
 //void MainViewWidget::setTemplateMode()
 //{
 //    setObjectMode(0);
@@ -634,21 +631,104 @@ void MainViewWidget::hideGraspWidgets()
 //{
 //    setObjectMode(2);
 //}
-//void MainViewWidget::setCameraMode()
-//{
-//    ui->modeBox->setCurrentIndex(2);
-//    setManipulationMode(2);
+void MainViewWidget::setCameraMode()
+{
+    ui->modeBox->setCurrentIndex(2);
+    setManipulationMode(2);
 
-//}
-//void MainViewWidget::setWorldMode()
-//{
-//    ui->modeBox->setCurrentIndex(1);
-//    setManipulationMode(1);
-//}
+}
+void MainViewWidget::setWorldMode()
+{
+    ui->modeBox->setCurrentIndex(1);
+    setManipulationMode(1);
+}
 void MainViewWidget::setObjectManipulationMode()
 {
     ui->modeBox->setCurrentIndex(0);
     setManipulationMode(0);
+}
+
+void MainViewWidget::updateContextMenu()
+{
+    //change default checkable values of context items.. must as they are created with menu
+    main_view_context_menu_->setAllCheckable();
+//    joystickContext->action->setCheckable(true);
+//    positionContext->action->setCheckable(true);
+//    graspContext->action->setCheckable(true);
+//    jointControlContext->action->setCheckable(true);
+//    pelvisContext->action->setCheckable(true);
+//    ghostContext->action->setCheckable(true);
+//    plannerContext->action->setCheckable(true);
+//    footBasicContext->action->setCheckable(true);
+//    footAdvancedContext->action->setCheckable(true);
+//    footParameterContext->action->setCheckable(true);
+//    objectContext->action->setCheckable(true);
+//    worldContext->action->setCheckable(true);
+//    cameraContext->action->setCheckable(true);
+
+    //update context menu elements with checks
+    if(!ui->joystickBtn->isChecked())
+        main_view_context_menu_->setItemCheckState("Joystick",false);
+    else
+        main_view_context_menu_->setItemCheckState("Joystick",true);
+
+    if(!ui->jointControlBtn->isChecked())
+        main_view_context_menu_->setItemCheckState("Joint Control",false);
+    else
+        main_view_context_menu_->setItemCheckState("Joint Control",true);
+
+    if(!ui->pelvisControlBtn->isChecked())
+        main_view_context_menu_->setItemCheckState("Pelvis Pose",false);
+    else
+        main_view_context_menu_->setItemCheckState("Pelvis Pose",true);
+
+    if(!ui->basicStepBtn->isChecked())
+        main_view_context_menu_->setItemCheckState("Basic Footstep Interface",false);
+    else
+        main_view_context_menu_->setItemCheckState("Basic Footstep Interface",true);
+    if(!ui->stepBtn->isChecked())
+        main_view_context_menu_->setItemCheckState("Advanced Footstep Interface",false);
+    else
+        main_view_context_menu_->setItemCheckState("Advanced Footstep Interface",true);
+
+    if(!ui->footstepParamBtn->isChecked())
+        main_view_context_menu_->setItemCheckState("Footstep Parameter Interface",false);
+    else
+        main_view_context_menu_->setItemCheckState("Footstep Parameter Interface",true);
+
+    if(!ui->ghostControlBtn->isChecked())
+        main_view_context_menu_->setItemCheckState("Ghost Control",false);
+    else
+        main_view_context_menu_->setItemCheckState("Ghost Control",true);
+
+    if(!ui->positionModeBtn->isChecked())
+         main_view_context_menu_->setItemCheckState("Position Mode",false);
+    else
+         main_view_context_menu_->setItemCheckState("Position Mode",true);
+
+    if(!ui->plannerConfigBtn->isChecked())
+       main_view_context_menu_->setItemCheckState("Planner Configuration",false);
+    else
+       main_view_context_menu_->setItemCheckState("Planner Configuration",true);
+
+    switch(ui->modeBox->currentIndex())
+    {
+    case 0:
+        main_view_context_menu_->setItemCheckState("Object",true);
+        main_view_context_menu_->setItemCheckState("World",false);
+        main_view_context_menu_->setItemCheckState("Camera",false);
+        break;
+    case 1:
+        main_view_context_menu_->setItemCheckState("Object",false);
+        main_view_context_menu_->setItemCheckState("World",true);
+        main_view_context_menu_->setItemCheckState("Camera",false);
+        break;
+    case 2:
+        main_view_context_menu_->setItemCheckState("Object",false);
+        main_view_context_menu_->setItemCheckState("World",false);
+        main_view_context_menu_->setItemCheckState("Camera",true);
+        break;
+    }
 }
 
 void MainViewWidget::setManipulationMode(int mode)

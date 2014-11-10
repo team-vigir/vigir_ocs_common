@@ -1,21 +1,11 @@
 
 #include "context_menu_manager.h"
+#include "base_3d_view.h"
 
-
-ContextMenuManager* ContextMenuManager::instance = 0;
-
-
-ContextMenuManager* ContextMenuManager::Instance()
+ContextMenuManager::ContextMenuManager(vigir_ocs::Base3DView *base_view)
 {
-   if (!instance)   // Only allow one instance of class to be generated.
-       instance = new ContextMenuManager();
-
-   return instance;
-}
-ContextMenuManager::ContextMenuManager()
-{
-    initializing_context_menu_ = 0;
-    active_context_ = 0;
+    initializing_context_menu_ = 0;    
+    base_3d_view_ = base_view;
 }
 
 contextMenuItem * ContextMenuManager::addMenuItem(QString name)
@@ -89,7 +79,8 @@ void ContextMenuManager::buildContextMenuHeirarchy()
             }
         }
     }
-    //Q_EMIT updateMainViewItems();
+    //update main view ischecked properties if needed
+    Q_EMIT updateMainViewItems();
 }
 
 void ContextMenuManager::resetMenu()
@@ -108,8 +99,8 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     resetMenu();
 
     // first we need to query the 3D scene to retrieve the context
-    Q_EMIT queryContext(x,y);
-    //base_3d_view_->emitQueryContext(x,y);
+    //Q_EMIT queryContext(x,y);
+    base_3d_view_->emitQueryContext(x,y);
 
     // context is stored in the active_context_ variable
     //std::cout << "Active context: " << active_context_ << std::endl;
@@ -117,12 +108,12 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     //toggle visibility of context items for a base view
 
     //arms selection  only show appropriate arm
-    if(active_context_name_.find("LeftArm") != std::string::npos)
+    if(base_3d_view_->getActiveContext().find("LeftArm") != std::string::npos)
     {
         setItemVisibility("Select Right Arm",false);
 
     }
-    else if(active_context_name_.find("RightArm") != std::string::npos)
+    else if(base_3d_view_->getActiveContext().find("RightArm") != std::string::npos)
     {
         setItemVisibility("Select Left Arm",false);
     }
@@ -133,7 +124,7 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     }
 
     //remove footstep-related items if context is not footstep
-    if(active_context_name_.find("footstep") == std::string::npos || active_context_name_.find("footstep goal") != std::string::npos)
+    if(base_3d_view_->getActiveContext().find("footstep") == std::string::npos || base_3d_view_->getActiveContext().find("footstep goal") != std::string::npos)
     {
         setItemVisibility("Select Footstep",false);
         setItemVisibility("Lock Footstep",false);
@@ -143,14 +134,14 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     }
 
     //footstep goal is still technically a footstep but need seperate case
-    if(active_context_name_.find("footstep goal") == std::string::npos)
+    if(base_3d_view_->getActiveContext().find("footstep goal") == std::string::npos)
     {
         //context_menu_->removeAction(selectFootstepGoalMenu->action);
         setItemVisibility("Select Footstep Goal",false);
     }
 
     //cannot request footstep plan without goal
-    //if(!footstep_vis_manager_->hasGoal())
+    //if(!base_3d_view_->getFootstepVisManager()->hasGoal())
     //{
         //setItemVisibility("Request Step Plan",false);
         setItemVisibility("Request Step Plan...",false);
@@ -161,8 +152,8 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     //{
     //    context_menu_.removeAction(executeFootstepPlanMenu->action);
     //}
-/**
-    if(!footstep_vis_manager_->hasStartingFootstep())
+
+    if(!base_3d_view_->getFootstepVisManager()->hasStartingFootstep())
     {
         setItemVisibility("Clear Starting Footstep",false);
        //context_menu_.removeAction(clearStartFootstepMenu->action);
@@ -170,7 +161,7 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
 
     // context is stored in the active_context_ variable
     //lock/unlock arms context items
-    if(active_context_name_.find("template") == std::string::npos)
+    if(base_3d_view_->getActiveContext().find("template") == std::string::npos)
     {
         //remove context items as not needed
         setItemVisibility("Remove Template",false);
@@ -179,7 +170,7 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
         setItemVisibility("Lock Right Arm to Template",false);
     }
 
-    if((ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] && ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM]) || (ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] && ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM]))
+    if((base_3d_view_->getGhostPoseSource()[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] && base_3d_view_->getGhostWorldLock()[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM]) || (base_3d_view_->getGhostPoseSource()[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] && base_3d_view_->getGhostWorldLock()[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM]))
     {
         //show only unlock        
         setItemVisibility("Lock Left Arm to Template",false);
@@ -200,7 +191,7 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
 //        context_menu_.removeAction(executeFootstepPlanMenu->action);
 //    }
 
-    if(cartesian_marker_list_.size() == 0)
+    if(base_3d_view_->getCartesianMarkerList().size() == 0)
     {
         //remove cartesian marker menu
         setItemVisibility("Remove All Markers",false);
@@ -209,21 +200,20 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
         setItemVisibility("Remove All Markers",true);
 
 
-    if(circular_marker_ != NULL)
+    if(base_3d_view_->getCircularMarker() != NULL)
     {
         setItemVisibility("Create Circular Motion Marker",false);
         setItemVisibility("Remove marker",true);
 //        createCircularMarkerMenu->action->setEnabled(false);
 //        removeCircularMarkerMenu->action->setEnabled(true);
     }
-    else if(circular_marker_ == NULL)
+    else if(base_3d_view_->getCircularMarker() == NULL)
     {
         setItemVisibility("Create Circular Motion Marker",true);
         setItemVisibility("Remove marker",false);
 //        createCircularMarkerMenu->action->setEnabled(true);
 //        circularMotionMenu->menu->removeAction(removeCircularMarkerMenu->action);
     }
-**/
 
     if(initializing_context_menu_ == 1)
         processContextMenu(x, y);
@@ -231,27 +221,28 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     initializing_context_menu_--;
 }
 
-std::string ContextMenuManager::getCurrentActiveContext()
-{
-    return active_context_name_;
-}
+//std::string ContextMenuManager::getCurrentActiveContext()
+//{
+//    return active_context_name_;
+//}
 
-void ContextMenuManager::setActiveContext(std::string name,int num)
-{
-    active_context_ = num; //necessary?
-    active_context_name_ = name;
-}
+//void ContextMenuManager::setActiveContext(std::string name,int num)
+//{
+//    active_context_ = num; //necessary?
+//    active_context_name_ = name;
+//}
 
-void ContextMenuManager::setGlobalPos(QPoint globalPos)
-{
-    global_pos_ = globalPos;
-}
+//void ContextMenuManager::setGlobalPos(QPoint globalPos)
+//{
+//    global_pos_ = globalPos;
+//}
 
 void ContextMenuManager::processContextMenu(int x, int y)
 {
     //tells base3dview to send globalpos
-    Q_EMIT queryGlobalPos(x,y);
-    context_menu_selected_item_ = context_menu_->exec(global_pos_);
+    //Q_EMIT queryGlobalPos(x,y);
+    QPoint globalPos = base_3d_view_->mapToGlobal(QPoint(x,y));
+    context_menu_selected_item_ = context_menu_->exec(globalPos);
 
     //std::cout << selectedItem << std::endl;
     if(context_menu_selected_item_ != NULL)

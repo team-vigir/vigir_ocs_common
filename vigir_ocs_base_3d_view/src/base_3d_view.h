@@ -104,7 +104,7 @@ class Base3DView: public QWidget
     Q_OBJECT
 
     //friend to access certain protected methods for context menu callbacks
-    friend class BaseContextMenu;
+    friend class BaseContextMenu;    
 
 public:
 
@@ -135,6 +135,12 @@ public:
 
 
     BaseContextMenu * getBaseContextMenu(){return base_context_menu_;}
+    ContextMenuManager * getContextMenuManager(){return context_menu_manager_;}
+    std::string getActiveContext(){return active_context_name_;}
+    std::vector<rviz::Display*> getCartesianMarkerList(){return cartesian_marker_list_;}
+    rviz::Display* getCircularMarker(){return circular_marker_;}
+    std::vector<unsigned char> getGhostPoseSource(){return ghost_pose_source_;}
+    std::vector<unsigned char> getGhostWorldLock(){return ghost_world_lock_;}
 
     /**
       * ROS Callback: receives left arm end effector position from moveit
@@ -229,7 +235,8 @@ public:
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }
     rviz::Display* getSelection3DDisplay() { return selection_3d_display_; }
     rviz::Display* getOverlayDisplay() { return overlay_display_; }
-    MouseEventHandler* getMouseEventHander() { return mouse_event_handler_; }
+    MouseEventHandler* getMouseEventHander() { return mouse_event_handler_; }    
+
 
     /**
       * Changes the OGRE render mask for this window which determines which object will be rendered
@@ -279,7 +286,7 @@ public Q_SLOTS:
     virtual void defineFootstepGoal();
     void requestFootstepPlan(unsigned int request_mode);
 
-    void setContextGlobalPos(int x, int y);
+    //void setContextGlobalPos(int x, int y);
 
     /**
       * Sets position of new selection marker
@@ -422,7 +429,7 @@ Q_SIGNALS:
     /**
       * updates the context menu items
       */
-    void updateMainViewItems();
+    //void updateMainViewItems();
     /**
       * Handler for the large red stop button
       */
@@ -680,10 +687,10 @@ protected:
     //QTreeWidget * templateRoot;
 
     BaseContextMenu * base_context_menu_;    
+    ContextMenuManager* context_menu_manager_;
 
     //QMenu* context_menu_;
     QAction* context_menu_selected_item_;
-
 
     std::string active_context_name_;
 

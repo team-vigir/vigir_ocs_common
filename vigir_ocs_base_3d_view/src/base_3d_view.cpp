@@ -642,6 +642,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
     }
 
+    //initialize overall context menu
+    context_menu_manager_ = new ContextMenuManager(this);
+
     // Connect the 3D selection tool to
     QObject::connect(this, SIGNAL(queryContext(int,int)), selection_3d_display_, SLOT(queryContext(int,int)));
     QObject::connect(selection_3d_display_, SIGNAL(setContext(int,std::string)), this, SLOT(setContext(int,std::string)));
@@ -662,7 +665,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(raycastRequest(bool,int,int)));
     //QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(raycastRequestROI(bool,int,int)));
     //initializes overall context menu
-    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), ContextMenuManager::Instance(), SLOT(createContextMenu(bool,int,int)));
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)),context_menu_manager_, SLOT(createContextMenu(bool,int,int)));
     QObject::connect(mouse_event_handler_, SIGNAL(signalMouseLeftDoubleClick(int,int)), this, SLOT(selectOnDoubleClick(int,int)));
 
     Q_FOREACH( QWidget* sp, findChildren<QWidget*>() ) {
@@ -716,11 +719,11 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     camera_transform_pub_ = nh_.advertise<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform", 5, false );
 
     //initialize  base-specific context menu
-    base_context_menu_ = new BaseContextMenu(this,footstep_vis_manager_);
+    base_context_menu_ = new BaseContextMenu(this);
 
-    //connect overall context menu for position queries
-    connect(ContextMenuManager::Instance(),SIGNAL(queryContext(int,int)),this,SLOT(emitQueryContext(int,int)));
-    connect(ContextMenuManager::Instance(),SIGNAL(queryGlobalPos(int,int)),this,SLOT(emitQueryContext(int,int)));
+//    //connect overall context menu for position queries
+//    connect(ContextMenuManager::Instance(),SIGNAL(queryContext(int,int)),this,SLOT(emitQueryContext(int,int)));
+//    connect(ContextMenuManager::Instance(),SIGNAL(queryGlobalPos(int,int)),this,SLOT(emitQueryContext(int,int)));
 
     //Initialize shift_pressed_ to false and set interactive_marker_mode_ to default
     shift_pressed_ = false;
@@ -736,11 +739,11 @@ Base3DView::~Base3DView()
     delete manager_;
 }
 
-void Base3DView::setContextGlobalPos(int x, int y)
-{
-    QPoint globalPos = this->mapToGlobal(QPoint(x,y));
-    ContextMenuManager::Instance()->setGlobalPos(globalPos);
-}
+//void Base3DView::setContextGlobalPos(int x, int y)
+//{
+//    QPoint globalPos = this->mapToGlobal(QPoint(x,y));
+//   context_menu_manager_->setGlobalPos(globalPos);
+//}
 
 //NOTE: DOES NOT CURRENTLY WORK, TODO: figure a way to pass a rendered texture from shader program to shader program to accumulate effects
 void Base3DView::blurRender()
@@ -2332,7 +2335,7 @@ void Base3DView::setContext(int context, std::string name)
 {
     active_context_ = context;
     active_context_name_ = name;
-    ContextMenuManager::Instance()->setActiveContext(name, active_context_);
+   //context_menu_manager_->setActiveContext(name, active_context_);
     //std::cout << "Active context: " << active_context_ << std::endl;
 }
 

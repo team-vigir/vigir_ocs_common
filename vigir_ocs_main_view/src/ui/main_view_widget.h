@@ -40,7 +40,7 @@ namespace Ui
 }
 
 class MainViewWidget : public QWidget
-{
+{   
     Q_OBJECT
 
 public:
@@ -68,25 +68,30 @@ public Q_SLOTS:
     void toggleWindow(int);    
     void setManipulationMode(int);        
 
-
-private Q_SLOTS:
-    void toggleSidebarVisibility();
+    //consider protecting
+    void updateContextMenu();
+    void setObjectManipulationMode();
+    void setObjectMode(int mode);
+    void contextToggleWindow(int window);
     void graspWidgetToggle();
+    void setCameraMode();
+    void setWorldMode();
+
+protected Q_SLOTS:
+    void toggleSidebarVisibility();    
     void hideGraspWidgets();
     void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
     void toggleFootstepConfig();
+
+
 
 protected:
     //void addContextMenu();
     //void setTemplateMode();
     //void setLeftArmMode();
     //void setRightArmMode();
-    //void setCameraMode();
-    //void setWorldMode();
-    void setObjectManipulationMode();
-    void setObjectMode(int mode);
+
     void setupToolbar();
-    //void contextToggleWindow(int window);
     void systemCommandContext(std::string command);
     void loadButtonIcon(QPushButton* btn, QString image_name);
     void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);

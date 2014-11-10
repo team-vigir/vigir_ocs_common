@@ -17,19 +17,22 @@ void MainCameraContextMenu::createContextMenu()
 {
     //grab 4 views
     std::map<std::string,QWidget*> views_list = main_camera_view_->getViewsList();
-    ContextMenuManager::Instance()->addActionItem("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,
-                                                                                    ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list["Top Left"])->getCameraView())), NULL);
+    vigir_ocs::Base3DView* base_view =  ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list["Top Left"])->getCameraView());
+    ContextMenuManager * context_menu_manager = base_view->getContextMenuManager();
 
-    ContextMenuManager::Instance()->addSeperator();
+    context_menu_manager->addActionItem("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,
+                                                                                    base_view), NULL);
 
-    contextMenuItem * systemCommands = ContextMenuManager::Instance()->addMenuItem("System Commands");
+    context_menu_manager->addSeperator();
 
-    ContextMenuManager::Instance()->addActionItem("Reset World Model",boost::bind(&MainCameraContextMenu::systemCommandContext,this, "reset"), systemCommands);
-    ContextMenuManager::Instance()->addActionItem("Save Octomap",boost::bind(&MainCameraContextMenu::systemCommandContext,this,"save_octomap"), systemCommands);
-    ContextMenuManager::Instance()->addActionItem("Save Pointcloud",boost::bind(&MainCameraContextMenu::systemCommandContext,this,"save_pointcloud"), systemCommands);
-    ContextMenuManager::Instance()->addActionItem("Save Image Head",boost::bind(&MainCameraContextMenu::systemCommandContext,this,"save_image_left_eye"), systemCommands);
-    ContextMenuManager::Instance()->addActionItem("Save Left Hand Image",boost::bind(&MainCameraContextMenu::systemCommandContext,this,"save_image_left_hand"), systemCommands);
-    ContextMenuManager::Instance()->addActionItem("Save Right Hand Image",boost::bind(&MainCameraContextMenu::systemCommandContext,this,"save_image_right_hand"), systemCommands);
+    contextMenuItem * systemCommands = context_menu_manager->addMenuItem("System Commands");
+
+    context_menu_manager->addActionItem("Reset World Model",boost::bind(&MainCameraContextMenu::systemCommandContext,this, "reset"), systemCommands);
+    context_menu_manager->addActionItem("Save Octomap",boost::bind(&MainCameraContextMenu::systemCommandContext,this,"save_octomap"), systemCommands);
+    context_menu_manager->addActionItem("Save Pointcloud",boost::bind(&MainCameraContextMenu::systemCommandContext,this,"save_pointcloud"), systemCommands);
+    context_menu_manager->addActionItem("Save Image Head",boost::bind(&MainCameraContextMenu::systemCommandContext,this,"save_image_left_eye"), systemCommands);
+    context_menu_manager->addActionItem("Save Left Hand Image",boost::bind(&MainCameraContextMenu::systemCommandContext,this,"save_image_left_hand"), systemCommands);
+    context_menu_manager->addActionItem("Save Right Hand Image",boost::bind(&MainCameraContextMenu::systemCommandContext,this,"save_image_right_hand"), systemCommands);
 }
 
 //CALLBACKS/////////////////////

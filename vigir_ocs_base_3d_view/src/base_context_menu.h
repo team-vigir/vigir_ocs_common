@@ -25,7 +25,7 @@ class BaseContextMenu: public QObject
     Q_OBJECT
 
 public:
-    BaseContextMenu(Base3DView* base_3d_view, FootstepVisManager* footstep_vis_manager);
+    BaseContextMenu(Base3DView* base_3d_view);
     virtual ~BaseContextMenu();
 
     void setTemplateTree(QTreeWidget * root);
@@ -47,7 +47,7 @@ private:
 
 
    //END CALLBACKS///////////////////////////
-
+   ContextMenuManager* context_menu_manager_;
    FootstepVisManager* footstep_vis_manager_;
    Base3DView* base_3d_view_;
    QTreeWidget * template_root_;
