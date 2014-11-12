@@ -56,7 +56,7 @@ public:
     //void createContextMenu();
     contextMenuItem *addMenuItem(QString name);
     contextMenuItem *addActionItem(QString name, boost::function<void()> function, contextMenuItem * parent);
-    void addSeperator();
+    void addSeparatorItem();
     void setGlobalPos(QPoint globalPos);
     //void setActiveContext(std::string name,int num);
     void addCustomItem(contextMenuItem* item);
@@ -85,7 +85,7 @@ private:
 
     //stores heirarchy of the context menu to be constructed
     std::vector<contextMenuItem*> context_menu_items_;
-    QMenu* context_menu_;
+    QMenu context_menu_;
     QAction* context_menu_selected_item_;
     int initializing_context_menu_;
 

@@ -26,11 +26,11 @@ void MapViewContextMenu::createContextMenu()
     //request point cloud from tools section
     context_menu_manager->addActionItem("Request Point Cloud",boost::bind(&MapView::publishPointCloudWorldRequest,map_view_), NULL);
 
-    context_menu_manager->addSeperator();
+    context_menu_manager->addSeparatorItem();
 
     context_menu_manager->addActionItem("Request Area Map",boost::bind(&MapViewContextMenu::requestAreaMapContext,this), NULL);
 
-    context_menu_manager->addSeperator();
+    context_menu_manager->addSeparatorItem();
 
     context_menu_manager->addActionItem("Request Octomap",boost::bind(&MapViewContextMenu::requestOctomapContext,this), NULL);
 
@@ -40,7 +40,7 @@ void MapViewContextMenu::createContextMenu()
     context_menu_manager->addActionItem("Stereo",boost::bind(&MapView::requestPointCloud,map_view_,2), pointCloudMenu);
     context_menu_manager->addActionItem("Stereo Sandia",boost::bind(&MapView::requestPointCloud,map_view_,3), pointCloudMenu);
 
-    context_menu_manager->addSeperator();
+    context_menu_manager->addSeparatorItem();
 
     contextMenuItem * blockRegion = context_menu_manager->addMenuItem("Block Region");
 
@@ -52,7 +52,7 @@ void MapViewContextMenu::createContextMenu()
     context_menu_manager->addActionItem("Axis-Aligned Rectangle",boost::bind(&MapView::clearRegionContext,map_view_, 1), clearRegion);
     context_menu_manager->addActionItem("Line",boost::bind(&MapView::clearRegionContext,map_view_, 0), clearRegion);
 
-    context_menu_manager->addSeperator();
+    context_menu_manager->addSeparatorItem();
 }
 
 //CALLBACKS/////////////////////

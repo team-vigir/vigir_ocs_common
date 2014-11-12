@@ -23,7 +23,7 @@ void MainCameraContextMenu::createContextMenu()
     context_menu_manager->addActionItem("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,
                                                                                     base_view), NULL);
 
-    context_menu_manager->addSeperator();
+    context_menu_manager->addSeparatorItem();
 
     contextMenuItem * systemCommands = context_menu_manager->addMenuItem("System Commands");
 

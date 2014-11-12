@@ -721,10 +721,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     //initialize  base-specific context menu
     base_context_menu_ = new BaseContextMenu(this);
 
-//    //connect overall context menu for position queries
-//    connect(ContextMenuManager::Instance(),SIGNAL(queryContext(int,int)),this,SLOT(emitQueryContext(int,int)));
-//    connect(ContextMenuManager::Instance(),SIGNAL(queryGlobalPos(int,int)),this,SLOT(emitQueryContext(int,int)));
-
     //Initialize shift_pressed_ to false and set interactive_marker_mode_ to default
     shift_pressed_ = false;
     interactive_marker_mode_ = 0;

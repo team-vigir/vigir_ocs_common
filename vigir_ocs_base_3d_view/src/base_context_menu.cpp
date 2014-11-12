@@ -8,8 +8,8 @@ BaseContextMenu::BaseContextMenu(vigir_ocs::Base3DView* base_3d_view)
     base_3d_view_ = base_3d_view;
     footstep_vis_manager_ = base_3d_view_->getFootstepVisManager();
     //init vector with elements from base3dview
-    createContextMenuItems();
     context_menu_manager_ = base_3d_view_->getContextMenuManager();
+    createContextMenuItems();
 }
 
 BaseContextMenu::~BaseContextMenu()
@@ -77,7 +77,7 @@ void BaseContextMenu::createContextMenuItems()
     context_menu_manager_->addActionItem("Clear Starting Footstep",boost::bind(&Base3DView::clearStartingFootstep,base_3d_view_),NULL);
     context_menu_manager_->addActionItem("Stitch Plans",boost::bind(&Base3DView::stitchFootstepPlans,base_3d_view_),NULL);
 
-    context_menu_manager_->addSeperator();
+    context_menu_manager_->addSeparatorItem();
 
     context_menu_manager_->addActionItem("Snap Hand to Ghost",boost::bind(&Base3DView::snapHandGhost,base_3d_view_),NULL);
 
@@ -88,18 +88,18 @@ void BaseContextMenu::createContextMenuItems()
     context_menu_manager_->addActionItem("Undo Step Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL);
     context_menu_manager_->addActionItem("Redo Step Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL);
 
-    context_menu_manager_->addSeperator();
+    context_menu_manager_->addSeparatorItem();
 
     insertTemplateMenu_ = context_menu_manager_->addMenuItem("Insert Template");
     context_menu_manager_->addActionItem("Remove Template",boost::bind(&BaseContextMenu::removeTemplateContextMenu,this),NULL);
 
-    context_menu_manager_->addSeperator();
+    context_menu_manager_->addSeparatorItem();
 
     context_menu_manager_->addActionItem("Lock Left Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,base_3d_view_,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL);
     context_menu_manager_->addActionItem("Lock Right Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,base_3d_view_,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL);
     context_menu_manager_->addActionItem("Unlock Arms",boost::bind(&Base3DView::setTemplateGraspLock,base_3d_view_,-1),NULL);
 
-    context_menu_manager_->addSeperator();
+    context_menu_manager_->addSeparatorItem();
 
     contextMenuItem * cartesianMotionMenu = context_menu_manager_->addMenuItem("Cartesian Motion");
 
@@ -111,7 +111,7 @@ void BaseContextMenu::createContextMenuItems()
     context_menu_manager_->addActionItem("Create Circular Motion Marker",boost::bind(&Base3DView::createCircularContextMenu,base_3d_view_),circularMotionMenu);
     context_menu_manager_->addActionItem("Remove marker",boost::bind(&Base3DView::removeCircularContextMenu,base_3d_view_),circularMotionMenu);
 
-    context_menu_manager_->addSeperator();
+    context_menu_manager_->addSeparatorItem();
 }
 
 //CALLBACKS///////

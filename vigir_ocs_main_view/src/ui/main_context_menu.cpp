@@ -5,13 +5,14 @@
 MainViewContextMenu::MainViewContextMenu(MainViewWidget *main_view)
 {
     main_view_ = main_view;
-    createContextMenu();
+
 
     sys_command_pub_ = n_.advertise<std_msgs::String>("/syscommand",1,false);
 
     base_view_ = main_view->getPrimaryView();
     context_menu_manager_ = base_view_->getContextMenuManager();
     connect(context_menu_manager_,SIGNAL(updateMainViewItems()),main_view_,SLOT(updateContextMenu()));
+    createContextMenu();
 }
 
 MainViewContextMenu::~MainViewContextMenu()
@@ -43,7 +44,7 @@ void MainViewContextMenu::createContextMenu()
 
     context_menu_manager_->addActionItem("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,base_view_), NULL);
 
-    context_menu_manager_->addSeperator();
+    context_menu_manager_->addSeparatorItem();
 
     //manage windows-------------
     contextMenuItem * windowVisibility = context_menu_manager_->addMenuItem("Window Visibility");
@@ -66,7 +67,7 @@ void MainViewContextMenu::createContextMenu()
     context_menu_items_map_["Footstep Parameter Control"] = context_menu_manager_->addActionItem("Footstep Parameter Control",boost::bind(&MainViewWidget::contextToggleWindow,main_view_,WINDOW_FOOTSTEP_PARAMETER), windowVisibility);
 
     //------------------------
-    context_menu_manager_->addSeperator();
+    context_menu_manager_->addSeparatorItem();
 
     contextMenuItem* manipulationModes = context_menu_manager_->addMenuItem("Manipulation Mode");
 
@@ -80,7 +81,7 @@ void MainViewContextMenu::createContextMenu()
     context_menu_manager_->addActionItem("Left Arm",boost::bind(&MainViewContextMenu::setLeftArmMode,this), objectModes);
     context_menu_manager_->addActionItem("Right Arm",boost::bind(&MainViewContextMenu::setRightArmMode,this), objectModes);
 
-    context_menu_manager_->addSeperator();
+    context_menu_manager_->addSeparatorItem();
 
     contextMenuItem * systemCommands = context_menu_manager_->addMenuItem("System Commands");
 
@@ -96,67 +97,6 @@ void MainViewContextMenu::systemCommandContext(std::string command)
     sysCmdMsg.data = command;
     sys_command_pub_.publish(sysCmdMsg);
 }
-
-//void MainViewContextMenu::contextToggleWindow(int window)
-//{
-//    switch(window)
-//    {
-//    case WINDOW_JOYSTICK:
-//        if(!main_view_->getUi()->joystickBtn->isChecked())
-//            main_view_->getUi()->joystickBtn->setChecked(true);
-//        else
-//            main_view_->getUi()->joystickBtn->setChecked(false);
-//        break;
-//    case WINDOW_JOINT_CONTROL:
-//        if(!main_view_->getUi()->jointControlBtn->isChecked())
-//            main_view_->getUi()->jointControlBtn->setChecked(true);
-//        else
-//            main_view_->getUi()->jointControlBtn->setChecked(false);
-//        break;
-//    case WINDOW_BDI_PELVIS_POSE:
-//        if(!main_view_->getUi()->pelvisControlBtn->isChecked())
-//            main_view_->getUi()->pelvisControlBtn->setChecked(true);
-//        else
-//            main_view_->getUi()->pelvisControlBtn->setChecked(false);
-//        break;
-//    case WINDOW_FOOTSTEP_BASIC:
-//        if(!main_view_->getUi()->basicStepBtn->isChecked())
-//            main_view_->getUi()->basicStepBtn->setChecked(true);
-//        else
-//            main_view_->getUi()->basicStepBtn->setChecked(false);
-//        break;
-//    case WINDOW_FOOTSTEP_ADVANCED:
-//        if(!main_view_->getUi()->stepBtn->isChecked())
-//            main_view_->getUi()->stepBtn->setChecked(true);
-//        else
-//            main_view_->getUi()->stepBtn->setChecked(false);
-//        break;
-//    case WINDOW_FOOTSTEP_PARAMETER:
-//        if(!main_view_->getUi()->footstepParamBtn->isChecked())
-//            main_view_->getUi()->footstepParamBtn->setChecked(true);
-//        else
-//            main_view_->getUi()->footstepParamBtn->setChecked(false);
-//        break;
-//    case WINDOW_GHOST_CONFIG:
-//        if(!main_view_->getUi()->ghostControlBtn->isChecked())
-//            main_view_->getUi()->ghostControlBtn->setChecked(true);
-//        else
-//            main_view_->getUi()->ghostControlBtn->setChecked(false);
-//        break;
-//    case WINDOW_POSITION_MODE:
-//        if(!main_view_->getUi()->positionModeBtn->isChecked())
-//            main_view_->getUi()->positionModeBtn->setChecked(true);
-//        else
-//            main_view_->getUi()->positionModeBtn->setChecked(false);
-//        break;
-//    case WINDOW_PLANNER_CONFIG:
-//        if(!main_view_->getUi()->plannerConfigBtn->isChecked())
-//            main_view_->getUi()->plannerConfigBtn->setChecked(true);
-//        else
-//            main_view_->getUi()->plannerConfigBtn->setChecked(false);
-//        break;
-//    }
-//}
 void MainViewContextMenu::setTemplateMode()
 {
     main_view_->setObjectMode(0);
@@ -169,17 +109,7 @@ void MainViewContextMenu::setRightArmMode()
 {
     main_view_->setObjectMode(2);
 }
-//void MainViewContextMenu::setCameraMode()
-//{
-//    main_view_->getUi()->modeBox->setCurrentIndex(2);
-//    main_view_->setManipulationMode(2);
-
-//}
-//void MainViewContextMenu::setWorldMode()
-//{
-//    main_view_->getUi()->modeBox->setCurrentIndex(1);
-//    main_view_->setManipulationMode(1);
-//}
+//END CALLBACKS////////////////////////////
 
 
 
