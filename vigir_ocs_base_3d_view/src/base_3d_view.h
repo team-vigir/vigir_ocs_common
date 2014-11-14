@@ -284,7 +284,6 @@ public Q_SLOTS:
     void robotJointMarkerToggled(bool selected);
     void robotOcclusionToggled(bool selected);
     virtual void defineFootstepGoal();
-   // void requestFootstepPlan();
 
     /**
       * Sets position of new selection marker

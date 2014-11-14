@@ -1372,11 +1372,6 @@ void Base3DView::defineFootstepGoal()
     manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
 }
 
-//void Base3DView::requestFootstepPlan()
-//{
-//    footstep_vis_manager_->requestStepPlan();
-//}
-
 void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
     // If a goal is set, need to go back to interactive marker tool
