@@ -1629,10 +1629,10 @@ int Base3DView::findObjectContext(std::string obj_type)
     return -1;
 }
 
-void Base3DView::clearStartingFootstep()
-{
-    footstep_vis_manager_->clearStartingFootstep();
-}
+//void Base3DView::clearStartingFootstep()
+//{
+//    footstep_vis_manager_->clearStartingFootstep();
+//}
 
 void Base3DView::setStartingFootstep()
 {
@@ -1641,10 +1641,10 @@ void Base3DView::setStartingFootstep()
         footstep_vis_manager_->setStartingFootstep(id/2); // divide by two since markers come in pairs of cube+text
 }
 
-void Base3DView::stitchFootstepPlans()
-{
-    footstep_vis_manager_->requestStitchFootstepPlans();
-}
+//void Base3DView::stitchFootstepPlans()
+//{
+//    footstep_vis_manager_->requestStitchFootstepPlans();
+//}
 
 void Base3DView::lockFootstep()
 {
@@ -1817,11 +1817,6 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
         default:
             break;
     }
-}
-
-void Base3DView::executeFootstepPlanContextMenu()
-{
-    footstep_vis_manager_->requestExecuteStepPlan();
 }
 
 void Base3DView::createCartesianContextMenu()

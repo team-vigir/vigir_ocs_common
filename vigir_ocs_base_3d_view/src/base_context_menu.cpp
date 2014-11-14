@@ -9,6 +9,7 @@ BaseContextMenu::BaseContextMenu(vigir_ocs::Base3DView* base_3d_view)
     footstep_vis_manager_ = base_3d_view_->getFootstepVisManager();
     //init vector with elements from base3dview
     context_menu_manager_ = base_3d_view_->getContextMenuManager();
+    //add all other context items
     createContextMenuItems();
 }
 
@@ -23,6 +24,7 @@ void BaseContextMenu::setTemplateTree(QTreeWidget * root)
     if(root != NULL)
     {
         template_root_ = root;
+        //want insert template to be first context item
         addTemplatesToContext();
     }
 }
@@ -59,10 +61,6 @@ void BaseContextMenu::createContextMenuItems()
 {
     //creates all menu items for context menu in a base view, visibility is set on create
 
-    // selection items
-    //selectTemplateMenu = addActionItem("Select Template",boost::bind(&Base3DView::selectTemplate,base_3d_view_),NULL);
-    //menu_items_.insert(std::make_pair<std::string,contextMenuItem*>("Select Template",context_menu_manager_->addActionItem("Select Template",boost::bind(&Base3DView::selectTemplate,base_3d_view_),NULL)));
-
     context_menu_manager_->addActionItem("Select Template",boost::bind(&Base3DView::selectTemplate,base_3d_view_),NULL);
 
     context_menu_manager_->addActionItem("Select Left Arm",boost::bind(&Base3DView::selectLeftArm,base_3d_view_),NULL);
@@ -74,8 +72,8 @@ void BaseContextMenu::createContextMenuItems()
     context_menu_manager_->addActionItem("Unlock Footstep",boost::bind(&Base3DView::unlockFootstep,base_3d_view_),NULL);
     context_menu_manager_->addActionItem("Remove Footstep",boost::bind(&Base3DView::removeFootstep,base_3d_view_),NULL);
     context_menu_manager_->addActionItem("Set Starting Footstep",boost::bind(&Base3DView::setStartingFootstep,base_3d_view_),NULL);
-    context_menu_manager_->addActionItem("Clear Starting Footstep",boost::bind(&Base3DView::clearStartingFootstep,base_3d_view_),NULL);
-    context_menu_manager_->addActionItem("Stitch Plans",boost::bind(&Base3DView::stitchFootstepPlans,base_3d_view_),NULL);
+    context_menu_manager_->addActionItem("Clear Starting Footstep",boost::bind(&FootstepVisManager::clearStartingFootstep,footstep_vis_manager_),NULL);
+    context_menu_manager_->addActionItem("Stitch Plans",boost::bind(&FootstepVisManager::requestStitchFootstepPlans,footstep_vis_manager_),NULL);
 
     context_menu_manager_->addSeparatorItem();
 
@@ -84,7 +82,7 @@ void BaseContextMenu::createContextMenuItems()
     context_menu_manager_->addActionItem("Create Step Plan Goal",boost::bind(&Base3DView::defineFootstepGoal,base_3d_view_), NULL);
     context_menu_manager_->addActionItem("Request Step Plan",boost::bind(&Base3DView::requestFootstepPlan,base_3d_view_,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL);
     context_menu_manager_->addActionItem("Request Step Plan...",boost::bind(&Base3DView::requestFootstepPlan,base_3d_view_,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL);
-    context_menu_manager_->addActionItem("Execute Step Plan",boost::bind(&Base3DView::executeFootstepPlanContextMenu,base_3d_view_),NULL);
+    context_menu_manager_->addActionItem("Execute Step Plan",boost::bind(&FootstepVisManager::requestExecuteStepPlan,footstep_vis_manager_),NULL);
     context_menu_manager_->addActionItem("Undo Step Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL);
     context_menu_manager_->addActionItem("Redo Step Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL);
 

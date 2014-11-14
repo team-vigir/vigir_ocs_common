@@ -601,8 +601,6 @@ protected:
 
 
 
-
-
     ////////////////////
     // selection
 
@@ -641,18 +639,9 @@ protected:
 
     void removeFootstep();
 
-    void clearStartingFootstep();
-
-    void stitchFootstepPlans();
-
-
-
-
 
     ////////////////////
     // context menu
-
-
     /**
       * Context menu action for inserting a template
       */
@@ -664,19 +653,9 @@ protected:
     /**
       * Context menu action for executing a footstep plan
       */
-    void executeFootstepPlanContextMenu();
-
-
-
-    //std::vector<contextMenuItem*> contextMenuItems;
-
-    //QTreeWidget * templateRoot;
 
     BaseContextMenu * base_context_menu_;    
     ContextMenuManager* context_menu_manager_;
-
-    //QMenu* context_menu_;
-    QAction* context_menu_selected_item_;
 
     std::string active_context_name_;
 
@@ -688,8 +667,6 @@ protected:
       * Gives object context on right click
       */
     int findObjectContext(std::string obj_type);
-
-
 
 
     ////////////////////

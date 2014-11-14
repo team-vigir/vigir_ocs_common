@@ -600,9 +600,9 @@ void MainViewWidget::updateContextMenu()
         main_view_context_menu_->setItemCheckState("Advanced Footstep Interface",true);
 
     if(!ui->footstepParamBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Footstep Parameter Interface",false);
+        main_view_context_menu_->setItemCheckState("Footstep Parameter Control",false);
     else
-        main_view_context_menu_->setItemCheckState("Footstep Parameter Interface",true);
+        main_view_context_menu_->setItemCheckState("Footstep Parameter Control",true);
 
     if(!ui->ghostControlBtn->isChecked())
         main_view_context_menu_->setItemCheckState("Ghost Control",false);
@@ -619,7 +619,6 @@ void MainViewWidget::updateContextMenu()
     else
        main_view_context_menu_->setItemCheckState("Planner Configuration",true);
 
-    ROS_ERROR("main view 2");
     switch(ui->modeBox->currentIndex())
     {
     case 0:
