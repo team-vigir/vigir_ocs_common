@@ -86,11 +86,6 @@ protected Q_SLOTS:
 
 
 protected:
-    //void addContextMenu();
-    //void setTemplateMode();
-    //void setLeftArmMode();
-    //void setRightArmMode();
-
     void setupToolbar();
     void systemCommandContext(std::string command);
     void loadButtonIcon(QPushButton* btn, QString image_name);
@@ -102,10 +97,6 @@ protected:
     void moveEvent(QMoveEvent * event);
 
     flor_ocs_msgs::OCSControlMode controlModes;
-
-
-    //contextMenuItem *makeContextParent(QString name);
-    //void makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent);
 
     vigir_ocs::Base3DView* primary_view_;
 

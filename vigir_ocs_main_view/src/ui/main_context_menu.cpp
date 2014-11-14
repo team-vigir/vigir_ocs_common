@@ -5,14 +5,12 @@
 MainViewContextMenu::MainViewContextMenu(MainViewWidget *main_view)
 {
     main_view_ = main_view;
-
-
-    sys_command_pub_ = n_.advertise<std_msgs::String>("/syscommand",1,false);
-
-    base_view_ = main_view->getPrimaryView();
+    base_view_ = main_view_->getPrimaryView();
     context_menu_manager_ = base_view_->getContextMenuManager();
+    //connect context menu elements to be updated by ui
     connect(context_menu_manager_,SIGNAL(updateMainViewItems()),main_view_,SLOT(updateContextMenu()));
     createContextMenu();
+    sys_command_pub_ = n_.advertise<std_msgs::String>("/syscommand",1,false);
 }
 
 MainViewContextMenu::~MainViewContextMenu()
@@ -29,8 +27,12 @@ void MainViewContextMenu::setAllCheckable()
 }
 
 void MainViewContextMenu::setItemCheckState(std::string name, bool checkable)
-{
-    context_menu_items_map_[name]->action->setCheckable(checkable);
+{    
+    //contains?
+    if(context_menu_items_map_.find(name) != context_menu_items_map_.end())
+        context_menu_items_map_[name]->action->setCheckable(checkable);
+    else
+        ROS_ERROR("Context item in main view not found: %s\n", name.c_str());
 }
 
 void MainViewContextMenu::createContextMenu()

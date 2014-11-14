@@ -57,8 +57,6 @@ Q_SIGNALS:
 public Q_SLOTS:
     void enableSelectionTool(bool, int, int);
     void selectionToolToggle(bool);
-    //virtual void createContextMenu( bool, int, int );
-    //virtual void processContextMenu( int x, int y );
 
 private:
     rviz::Tool* selection_tool_;
@@ -79,8 +77,6 @@ private:
 protected:
     void blockRegionContext(int boxType);
     void clearRegionContext(int boxType);
-    //void requestAreaMapContext();
-    //void requestOctomapContext();
-};
+    };
 }
 #endif // map_view_H

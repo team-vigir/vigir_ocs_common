@@ -81,9 +81,6 @@ private:
     void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
     void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
 
-    //void systemCommandContext(std::string command);
-    //ros::Publisher sys_command_pub_;
-    //std_msgs::String sysCmdMsg;
 
     bool lock_pitch_slider_;
 

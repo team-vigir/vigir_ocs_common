@@ -340,42 +340,6 @@ void MainCameraViewWidget::moveEvent(QMoveEvent * event)
     settings.setValue("mainWindowGeometry", this->saveGeometry());    
 }
 
-//void MainCameraViewWidget::addContextMenu()
-//{
-//    //can tell context menu to add a separator when this item is added
-//    contextMenuItem * separator = new contextMenuItem();
-//    separator->name = "Separator";
-
-//    vigir_ocs::Base3DView::makeContextChild("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())), NULL, contextMenuElements);
-
-//    contextMenuElements.push_back(separator);
-
-//    contextMenuItem * systemCommands = vigir_ocs::Base3DView::makeContextParent("System Commands", contextMenuElements);
-
-//    vigir_ocs::Base3DView::makeContextChild("Reset World Model",boost::bind(&MainCameraViewWidget::systemCommandContext,this, "reset"), systemCommands, contextMenuElements);
-//    vigir_ocs::Base3DView::makeContextChild("Save Octomap",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_octomap"), systemCommands, contextMenuElements);
-//    vigir_ocs::Base3DView::makeContextChild("Save Pointcloud",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_pointcloud"), systemCommands, contextMenuElements);
-//    vigir_ocs::Base3DView::makeContextChild("Save Image Head",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_left_eye"), systemCommands, contextMenuElements);
-//    vigir_ocs::Base3DView::makeContextChild("Save Left Hand Image",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_left_hand"), systemCommands, contextMenuElements);
-//    vigir_ocs::Base3DView::makeContextChild("Save Right Hand Image",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_right_hand"), systemCommands, contextMenuElements);
-
-//    //add all context menu items to each view
-//    for(int i=0;i<contextMenuElements.size();i++)
-//    {
-//        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())->addToContextVector(contextMenuElements[i]);
-//        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Right"])->getCameraView())->addToContextVector(contextMenuElements[i]);
-//        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Bottom Left"])->getCameraView())->addToContextVector(contextMenuElements[i]);
-//        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Bottom Right"])->getCameraView())->addToContextVector(contextMenuElements[i]);
-//    }
-//}
-
-//callback function for context menu
-//void MainCameraViewWidget::systemCommandContext(std::string command)
-//{
-//    sysCmdMsg.data = command;
-//    sys_command_pub_.publish(sysCmdMsg);
-//}
-
 void MainCameraViewWidget::lockPitchUpdates()
 {
     lock_pitch_slider_ = true;

@@ -8,13 +8,10 @@
 #define CONTEXT_MENU_MANAGER_H
 
 #include <QObject>
-
 #include <ros/ros.h>
-
 #include <string>
 #include <boost/bind.hpp>
 #include <vector>
-#include <map>
 #include <stdlib.h>
 #include "QMenu"
 #include "QAction"
@@ -23,6 +20,7 @@
 /**
  * WARN
  * Do not construct context items with duplicate names as visibility won't be able to be handled correctly.
+ * -could add extra QString to contextMenuItem to handle item name rather than title name
  */
 
 struct contextMenuItem
@@ -39,7 +37,7 @@ struct contextMenuItem
     bool hasChildren;
 };
 
-//forward declare to use in cpp
+//forward declare to use in source file
 namespace vigir_ocs
 {
     class Base3DView;
@@ -53,17 +51,11 @@ class ContextMenuManager: public QObject
     Q_OBJECT
 public:
     static ContextMenuManager* Instance();
-    //void createContextMenu();
     contextMenuItem *addMenuItem(QString name);
     contextMenuItem *addActionItem(QString name, boost::function<void()> function, contextMenuItem * parent);
     void addSeparatorItem();
-    void setGlobalPos(QPoint globalPos);
-    //void setActiveContext(std::string name,int num);
+    void setGlobalPos(QPoint globalPos);    
     void addCustomItem(contextMenuItem* item);
-   // std::string getCurrentActiveContext();
-
-
-    //std::vector<contextMenuItem*> getContextMenuItems(){return context_menu_items_;}
 
 protected:
     ContextMenuManager(vigir_ocs::Base3DView* base_view);  // Only called by base3dview

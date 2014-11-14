@@ -286,8 +286,6 @@ public Q_SLOTS:
     virtual void defineFootstepGoal();
     void requestFootstepPlan(unsigned int request_mode);
 
-    //void setContextGlobalPos(int x, int y);
-
     /**
       * Sets position of new selection marker
       */
@@ -306,14 +304,6 @@ public Q_SLOTS:
       */
     void insertWaypoint();
 
-//    /**
-//      * Create the right click context menu based on the context
-//      */
-//    virtual void createContextMenu( bool, int, int );
-//    /**
-//      * process selection of the context menu item
-//      */
-//    virtual void processContextMenu( int x, int y );
     /**
       * sends back the context
       */
@@ -426,10 +416,6 @@ Q_SIGNALS:
       * Sends the current ctr-click position as text
       */
     void sendPositionText(QString s);
-    /**
-      * updates the context menu items
-      */
-    //void updateMainViewItems();
     /**
       * Handler for the large red stop button
       */
@@ -694,26 +680,6 @@ protected:
 
     std::string active_context_name_;
 
-//    /**
-//      * insert individual menu to context menu
-//      */
-//    void contextInsertTemplate(QString name);
-//    /**
-//      * Adds all context menu elements
-//      */
-//    void addBase3DContextElements();
-//    /**
-//      * Helper function for adding context menu from vector
-//      */
-//    void processContextMenuVector();
-//    /**
-//      * Helper function for adding context menu from vector
-//      */
-//    void addToContextMenuFromVector();
-//    /**
-//      * Select template or hands using the context menu
-//      */
-//    void selectContextMenu();
     /**
       * removes template using id
       */

@@ -44,14 +44,11 @@ void ContextMenuManager::addSeparatorItem()
 //builds entire context menu including specific widgets
 void ContextMenuManager::buildContextMenuHeirarchy()
 {
-    ROS_ERROR("build 1");
     for(int i=0;i<context_menu_items_.size();i++)
     {
-        //ROS_ERROR("NAME: %s\n",qPrintable(context_menu_items_[i]->name));
         if(context_menu_items_[i]->name.contains("Separator"))
         {
             context_menu_.addSeparator();
-            ROS_ERROR("build 2");
             continue;
         }
         //top level menu item
@@ -59,16 +56,12 @@ void ContextMenuManager::buildContextMenuHeirarchy()
         {
             if(context_menu_items_[i]->hasChildren)
             {
-                ROS_ERROR("build 3");
-                QMenu * menu = context_menu_.addMenu(context_menu_items_[i]->name);
-                ROS_ERROR("build 4");
+                QMenu * menu = context_menu_.addMenu(context_menu_items_[i]->name);                
                 context_menu_items_[i]->menu = menu;
             }
             else //no children, must be action
             {
-                ROS_ERROR("build 5");
-                QAction * action = context_menu_.addAction(context_menu_items_[i]->name);
-                ROS_ERROR("build 6");
+                QAction * action = context_menu_.addAction(context_menu_items_[i]->name);             
                 context_menu_items_[i]->action = action;
             }
         }
@@ -76,14 +69,11 @@ void ContextMenuManager::buildContextMenuHeirarchy()
         {
             if(context_menu_items_[i]->hasChildren)
             {
-                ROS_ERROR("build 7");
-                QMenu * menu = context_menu_items_[i]->parent->menu->addMenu(context_menu_items_[i]->name);
-                ROS_ERROR("build 8");
+                QMenu * menu = context_menu_items_[i]->parent->menu->addMenu(context_menu_items_[i]->name);             
                 context_menu_items_[i]->menu = menu;
             }
             else
             {
-
                 QAction * action = context_menu_items_[i]->parent->menu->addAction(context_menu_items_[i]->name);
                 context_menu_items_[i]->action = action;
             }
@@ -95,33 +85,23 @@ void ContextMenuManager::buildContextMenuHeirarchy()
 
 void ContextMenuManager::resetMenu()
 {
-    ROS_ERROR("reset 1");
     context_menu_.clear();
-    ROS_ERROR("reset 2");
     context_menu_.setTitle("Base Menu");
-    context_menu_.setStyleSheet("font-size:11px;");
-    ROS_ERROR("reset 3");
+    context_menu_.setStyleSheet("font-size:11px;");    
 }
 
 void ContextMenuManager::createContextMenu(bool, int x, int y)
 {
-    ROS_ERROR("create 1");
     initializing_context_menu_++;
 
     context_menu_selected_item_ = NULL;
 
     resetMenu();
-    ROS_ERROR("create 2");
 
     // first we need to query the 3D scene to retrieve the context
-    //Q_EMIT queryContext(x,y);
     base_3d_view_->emitQueryContext(x,y);
 
     buildContextMenuHeirarchy();
-
-    ROS_ERROR("create 3");
-    // context is stored in the active_context_ variable
-    //std::cout << "Active context: " << active_context_ << std::endl;
 
     //toggle visibility of context items for a base view
 
@@ -177,8 +157,6 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
        //context_menu_.removeAction(clearStartFootstepMenu->action);
     }
 
-    ROS_ERROR("create 3");
-
     // context is stored in the active_context_ variable
     //lock/unlock arms context items
     if(base_3d_view_->getActiveContext().find("template") == std::string::npos)
@@ -201,7 +179,6 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
         //dont show unlock.. both arms are free and ready to be locked        
         setItemVisibility("Unlock Arms",false);
     }
-    ROS_ERROR("create 4");
 //    if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100)
 //    {
 //        executeFootstepPlanMenu->action->setEnabled(true);
@@ -219,51 +196,28 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     else
         setItemVisibility("Remove All Markers",true);
 
-    ROS_ERROR("create 5");
 
     if(base_3d_view_->getCircularMarker() != NULL)
     {
         setItemVisibility("Create Circular Motion Marker",false);
         setItemVisibility("Remove marker",true);
-//        createCircularMarkerMenu->action->setEnabled(false);
-//        removeCircularMarkerMenu->action->setEnabled(true);
     }
     else if(base_3d_view_->getCircularMarker() == NULL)
     {
         setItemVisibility("Create Circular Motion Marker",true);
         setItemVisibility("Remove marker",false);
-//        createCircularMarkerMenu->action->setEnabled(true);
-//        circularMotionMenu->menu->removeAction(removeCircularMarkerMenu->action);
     }
 
     if(initializing_context_menu_ == 1)
         processContextMenu(x, y);
 
-
-    ROS_ERROR("create 6");
     initializing_context_menu_--;
 }
 
-//std::string ContextMenuManager::getCurrentActiveContext()
-//{
-//    return active_context_name_;
-//}
-
-//void ContextMenuManager::setActiveContext(std::string name,int num)
-//{
-//    active_context_ = num; //necessary?
-//    active_context_name_ = name;
-//}
-
-//void ContextMenuManager::setGlobalPos(QPoint globalPos)
-//{
-//    global_pos_ = globalPos;
-//}
 
 void ContextMenuManager::processContextMenu(int x, int y)
 {
-    //tells base3dview to send globalpos
-    //Q_EMIT queryGlobalPos(x,y);
+    //tells base3dview to send globalpos   
     QPoint globalPos = base_3d_view_->mapToGlobal(QPoint(x,y));
     context_menu_selected_item_ = context_menu_.exec(globalPos);
 

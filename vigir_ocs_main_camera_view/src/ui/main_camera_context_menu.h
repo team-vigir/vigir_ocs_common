@@ -2,13 +2,10 @@
 #define MAIN_CAMERA_CONTEXT_MENU_H
 
 #include <QObject>
-
 #include <ros/ros.h>
-
 #include <string>
 #include <boost/bind.hpp>
 #include <stdlib.h>
-#include <QTreeWidget>
 #include "context_menu_manager.h"
 #include "main_camera_view_widget.h"
 

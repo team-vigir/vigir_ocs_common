@@ -1,15 +1,10 @@
-
 #ifndef BASE_CONTEXT_MENU_H
 #define BASE_CONTEXT_MENU_H
 
 #include <QObject>
-
 #include <ros/ros.h>
-
 #include <string>
 #include <boost/bind.hpp>
-#include <vector>
-#include <map>
 #include <stdlib.h>
 #include <QTreeWidget>
 #include "context_menu_manager.h"
@@ -29,13 +24,9 @@ public:
     virtual ~BaseContextMenu();
 
     void setTemplateTree(QTreeWidget * root);
-    void resetMenu();
-    //QMenu *getContextMenu();
-    //void addToContextMenuExternally(std::vector<contextMenuItem* > external_context_menu);
-
+    void resetMenu();        
     void setItemVisibility(QString name, bool visibility);
     void setActiveContext(std::string name, int num);
-
 
 private:  
    void createContextMenuItems();
@@ -46,7 +37,8 @@ private:
     void removeTemplateContextMenu();
 
 
-   //END CALLBACKS///////////////////////////
+   //END CALLBACKS//////////////////////////
+
    ContextMenuManager* context_menu_manager_;
    FootstepVisManager* footstep_vis_manager_;
    Base3DView* base_3d_view_;
@@ -54,38 +46,6 @@ private:
 
    //need to build template tree
    contextMenuItem * insertTemplateMenu_;
-
-   //Menu Items/////////////////////////
-//   contextMenuItem * selectFootstepGoalMenu;
-
-//   contextMenuItem * removeTemplateMenu;
-//   contextMenuItem * selectTemplateMenu;
-//   contextMenuItem * removeFootstepMenu;
-//   contextMenuItem * selectFootstepMenu;
-//   contextMenuItem * selectStartFootstepMenu;
-//   contextMenuItem * clearStartFootstepMenu;
-//   contextMenuItem * lockFootstepMenu;
-//   contextMenuItem * unlockFootstepMenu;
-//   contextMenuItem * undoFootstepMenu;
-//   contextMenuItem * redoFootstepMenu;
-//   contextMenuItem * footstepGoalMenu;
-//   contextMenuItem * stitchFootstepMenu;
-//   contextMenuItem * defaultFootstepRequestMenu;
-//   contextMenuItem * customFootstepRequestMenu;
-//   contextMenuItem * executeFootstepPlanMenu;
-//   contextMenuItem * cartesianMotionMenu;
-//   contextMenuItem * createCartesianMarkerMenu;
-//   contextMenuItem * removeCartesianMarkerMenu;
-//   contextMenuItem * circularMotionMenu;
-//   contextMenuItem * createCircularMarkerMenu;
-//   contextMenuItem * removeCircularMarkerMenu;
-//   contextMenuItem * lockLeftMenu;
-//   contextMenuItem * lockRightMenu;
-//   contextMenuItem * unlockArmsMenu;
-//   contextMenuItem * snapHandMenu;
-//   contextMenuItem * leftArmMenu;
-//   contextMenuItem * rightArmMenu;
-
 };
 
 }

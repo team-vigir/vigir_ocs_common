@@ -6,7 +6,6 @@
 #include <ros/ros.h>
 #include <string>
 #include <boost/bind.hpp>
-#include <vector>
 #include <map>
 #include <stdlib.h>
 #include <QTreeWidget>
