@@ -26,6 +26,8 @@
 
 #include <map>
 
+#include "robot_state_manager.h"
+
 namespace Ogre
 {
 class Entity;
@@ -82,6 +84,7 @@ private Q_SLOTS:
   void setRenderPanel(rviz::RenderPanel*);
   void updateName();
   void updateRobotDescription();
+  void updateGhost();
 
 protected:
   void setPose();
@@ -94,8 +97,9 @@ protected:
   virtual void subscribe();
   virtual void unsubscribe();
 
+  void calculateGhostTransform(std::string link_name, std::string joint_name, Ogre::Vector3& position, Ogre::Quaternion& orientation);
   void processMessage( const sensor_msgs::JointState::ConstPtr& msg );
-
+  void processPelvisEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose);
   // The object for urdf model
   boost::shared_ptr<urdf::Model> robot_model_;
 
@@ -106,6 +110,8 @@ protected:
   FloatProperty * width_property_,* scale_property_;
   StringProperty* name_property_;
   StringProperty *robot_description_property_;
+  BoolProperty * is_ghost_property_;
+
 
   ros::NodeHandle nh_;
 
@@ -116,7 +122,11 @@ protected:
   std::vector<RenderPanel*> render_panel_list_;
   RenderPanel* render_panel_; // this is the active render panel
 
+  ros::Subscriber ghost_root_sub_;
+  geometry_msgs::Pose ghost_root_pose_;
+
   bool initialized_;
+  bool is_ghost_;
 };
 
 } // namespace rviz

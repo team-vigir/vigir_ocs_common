@@ -2,6 +2,8 @@
 #include "ui_map_view_widget.h"
 #include "ui/template_loader_widget.h"
 #include <rviz/displays_panel.h>
+#include "base_context_menu.h"
+#include "map_context_menu.h"
 
 MapViewWidget::MapViewWidget(QWidget *parent) :
     QWidget(parent),
@@ -51,8 +53,6 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
 
     key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MapViewWidget::processNewKeyEvent, this );
 
-    ((vigir_ocs::Base3DView*)ui->map_view_)->setTemplateTree(ui->template_widget_3->getTreeRoot());
-
     //hide sidebar elements that aren't necessary
     ui->Template->hide();
     ui->Tools->hide();
@@ -85,6 +85,9 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
 
     //setup toolbar and necessary components
     setupToolbar();
+
+    //setup template tree for context menu
+    ((vigir_ocs::Base3DView*)ui->map_view_)->getBaseContextMenu()->setTemplateTree(ui->template_widget_3->getTreeRoot());
 
     //setup sidebar toggle button
     sidebar_toggle_ = new QPushButton(this);

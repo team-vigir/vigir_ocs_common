@@ -92,7 +92,11 @@ JointMarkerDisplayCustom::JointMarkerDisplayCustom()
             new rviz::StringProperty( "Robot Description", "robot_description",
                                       "Name of the parameter to search for to load the robot description.",
                                       this, SLOT( updateRobotDescription() ) );
+    is_ghost_property_ =
+            new rviz::BoolProperty("isGhost",false,"determines if joint display is associated with Ghost robot",
+                                   this,SLOT(updateGhost()));
 
+    ghost_root_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/robot", 5, &JointMarkerDisplayCustom::processPelvisEndEffector, this );
 }
 
 JointMarkerDisplayCustom::~JointMarkerDisplayCustom()
@@ -108,6 +112,11 @@ void JointMarkerDisplayCustom::onInitialize()
 {
     initialized_ = true;
     context_->getSceneManager()->addRenderQueueListener(this);
+}
+
+void JointMarkerDisplayCustom::updateGhost()
+{
+    is_ghost_ = is_ghost_property_->getBool();
 }
 
 void JointMarkerDisplayCustom::updateWidthAndScale()
@@ -263,6 +272,8 @@ void JointMarkerDisplayCustom::setJointAlpha(float alpha,std::string joint_name)
 
 void JointMarkerDisplayCustom::update( float wall_dt, float ros_dt )
 {
+    //propogate update function to icons, needed for animation
+    if(visual_) visual_->update(wall_dt,ros_dt);
 }
 
 void JointMarkerDisplayCustom::fixedFrameChanged()
@@ -313,38 +324,54 @@ void JointMarkerDisplayCustom::processMessage( const sensor_msgs::JointState::Co
         if(!joint)
             ROS_ERROR("null joint");
         int joint_type = joint->type;
-        if ( joint_type == urdf::Joint::REVOLUTE )
+        if (joint_type == urdf::Joint::REVOLUTE)
         {
-            // we expect that parent_link_name equals to frame_id.
-            std::string parent_link_name = joint->child_link_name;
-            Ogre::Quaternion orientation;
-            Ogre::Vector3 position;
-
-            // Here we call the rviz::FrameManager to get the transform from the
-            // fixed frame to the frame in the header of this Effort message.  If
-            // it fails, we can't do anything else so we return.
-            if( !context_->getFrameManager()->getTransform( parent_link_name,
-                                                            ros::Time(),
-                                                            //msg->header.stamp, // ???
-                                                            position, orientation ))
+            if ( !is_ghost_ )
             {
-                ROS_DEBUG( "Error transforming from frame '%s' to frame '%s'",
-                           parent_link_name.c_str(), qPrintable( fixed_frame_) );
-                continue;
-            }
-            ;
-            tf::Vector3 axis_joint(joint->axis.x, joint->axis.y, joint->axis.z);
-            tf::Vector3 axis_z(0,0,1);
-            tf::Quaternion axis_rotation(tf::tfCross(axis_joint, axis_z), tf::tfAngle(axis_joint, axis_z));
-            if ( std::isnan(axis_rotation.x()) ||
-                 std::isnan(axis_rotation.y()) ||
-                 std::isnan(axis_rotation.z()) ) axis_rotation = tf::Quaternion::getIdentity();
+                // we expect that parent_link_name equals to frame_id.
+                std::string parent_link_name = joint->child_link_name;
+                Ogre::Quaternion orientation;
+                Ogre::Vector3 position;
 
-            tf::Quaternion axis_orientation(orientation.x, orientation.y, orientation.z, orientation.w);
-            tf::Quaternion axis_rot = axis_orientation * axis_rotation;
-            Ogre::Quaternion joint_orientation(Ogre::Real(axis_rot.w()), Ogre::Real(axis_rot.x()), Ogre::Real(axis_rot.y()), Ogre::Real(axis_rot.z()));
-            visual_->setFramePosition( joint_name, position );
-            visual_->setFrameOrientation( joint_name, joint_orientation );
+                // Here we call the rviz::FrameManager to get the transform from the
+                // fixed frame to the frame in the header of this Effort message.  If
+                // it fails, we can't do anything else so we return.
+                if( !context_->getFrameManager()->getTransform( parent_link_name,
+                                                                ros::Time(),
+                                                                //msg->header.stamp, // ???
+                                                                position, orientation ))
+                {
+                    ROS_DEBUG( "Error transforming from frame '%s' to frame '%s'",
+                               parent_link_name.c_str(), qPrintable( fixed_frame_) );
+                    continue;
+                }
+                ;
+                tf::Vector3 axis_joint(joint->axis.x, joint->axis.y, joint->axis.z);
+                tf::Vector3 axis_z(0,0,1);
+                tf::Quaternion axis_rotation(tf::tfCross(axis_joint, axis_z), tf::tfAngle(axis_joint, axis_z));
+                if ( std::isnan(axis_rotation.x()) ||
+                     std::isnan(axis_rotation.y()) ||
+                     std::isnan(axis_rotation.z()) ) axis_rotation = tf::Quaternion::getIdentity();
+
+                tf::Quaternion axis_orientation(orientation.x, orientation.y, orientation.z, orientation.w);
+                tf::Quaternion axis_rot = axis_orientation * axis_rotation;
+                Ogre::Quaternion joint_orientation(Ogre::Real(axis_rot.w()), Ogre::Real(axis_rot.x()), Ogre::Real(axis_rot.y()), Ogre::Real(axis_rot.z()));
+                //set positions of visual
+                visual_->setFramePosition( joint_name, position );
+                visual_->setFrameOrientation( joint_name, joint_orientation );
+            }
+            else if (is_ghost_)
+            {
+                //evaluate ghost joint positions
+                std::string link_name = joint->child_link_name;
+                Ogre::Quaternion orientation;
+                Ogre::Vector3 position;
+                calculateGhostTransform(link_name,joint_name,position,orientation);
+                //visual_->setGhost(true);
+                //set positions of ghost visual
+                visual_->setFramePosition( joint_name, position );
+                visual_->setFrameOrientation( joint_name, orientation );
+            }
         }
     }
 
@@ -355,6 +382,55 @@ void JointMarkerDisplayCustom::processMessage( const sensor_msgs::JointState::Co
     visual_->setScale( scale );
     visual_->setMessage( msg );
 }
+
+
+void JointMarkerDisplayCustom::calculateGhostTransform(std::string link_name, std::string joint_name,Ogre::Vector3& position, Ogre::Quaternion& orientation)
+{       
+    geometry_msgs::Pose pose;
+    MoveItOcsModel* ghost_robot_state = RobotStateManager::Instance()->getGhostRobotStateSingleton();
+
+    ghost_robot_state->getLinkPose(link_name,pose);
+
+    // accumulate all the transforms for root pose
+    Ogre::Vector3 rootPosition(ghost_root_pose_.position.x,ghost_root_pose_.position.y,ghost_root_pose_.position.z);
+    Ogre::Quaternion rootRotation(ghost_root_pose_.orientation.w,ghost_root_pose_.orientation.x,ghost_root_pose_.orientation.y,ghost_root_pose_.orientation.z);
+    Ogre::Vector3 linkPosition(pose.position.x,pose.position.y,pose.position.z);
+    Ogre::Quaternion linkRotation(pose.orientation.w,pose.orientation.x,pose.orientation.y,pose.orientation.z);
+    linkPosition = rootPosition + rootRotation * linkPosition;
+    //obtain conjugate of rootRotation
+    rootRotation.x = -rootRotation.x;
+    rootRotation.y = -rootRotation.y;
+    rootRotation.z = -rootRotation.z;
+    linkRotation = rootRotation;// * linkRotation;
+
+//    //rotate 90 to align correctly with joints
+    Ogre::Quaternion q;
+    QString str(joint_name.c_str());
+    str = str.mid(str.length() - 1, 1); //last char
+    //tried xyz , zxy , yxz,   just z, x(head joint was correct) -68 close -55 farther
+    if(str == "x")
+        q.FromAngleAxis(Ogre::Radian(Ogre::Degree(-78)),Ogre::Vector3::UNIT_Y);
+    else if(str == "y")
+        q.FromAngleAxis(Ogre::Radian(Ogre::Degree(90)),Ogre::Vector3::UNIT_X);
+    else
+        q.FromAngleAxis(Ogre::Radian(Ogre::Degree(-78)),Ogre::Vector3::UNIT_Z);
+
+    linkRotation =  linkRotation * q;
+
+    position.x = linkPosition.x;
+    position.y = linkPosition.y;
+    position.z = linkPosition.z;
+    orientation.x = linkRotation.x;
+    orientation.y = linkRotation.y;
+    orientation.z = linkRotation.z;
+    orientation.w = linkRotation.w;
+}
+
+void JointMarkerDisplayCustom::processPelvisEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
+{
+    ghost_root_pose_ = pose->pose;
+}
+
 
 } // namespace rviz
 

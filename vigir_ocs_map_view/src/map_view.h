@@ -20,6 +20,7 @@
 #include "notification_system.h"
 
 
+
 namespace rviz
 {
 class RenderPanelCustom;
@@ -27,9 +28,14 @@ class RenderPanelCustom;
 
 namespace vigir_ocs
 {
+
+//forward declare to reference later
+class MapViewContextMenu;
+
 // Class "MapView" implements the RobotModel class with joint manipulation that can be added to any QT application.
 class MapView: public OrthoView
 {
+    friend class MapViewContextMenu;
     Q_OBJECT
 public:
     MapView( QWidget* parent = 0 );
@@ -51,8 +57,6 @@ Q_SIGNALS:
 public Q_SLOTS:
     void enableSelectionTool(bool, int, int);
     void selectionToolToggle(bool);
-    //virtual void createContextMenu( bool, int, int );
-    //virtual void processContextMenu( int x, int y );
 
 private:
     rviz::Tool* selection_tool_;
@@ -66,17 +70,13 @@ private:
 
     int selected_area_[4];
 
-    flor_perception_msgs::PointCloudTypeRegionRequest last_request_;
+    flor_perception_msgs::PointCloudTypeRegionRequest last_request_;   
 
-    void addContextMenu();
-    std::vector<contextMenuItem *> contextMenuElements;
-    contextMenuItem * blockRegion;
-    contextMenuItem * clearRegion;
-    contextMenuItem * pointCloudMenu;
+    MapViewContextMenu * map_view_context_menu_;
+
+protected:
     void blockRegionContext(int boxType);
     void clearRegionContext(int boxType);
-    void requestAreaMapContext();
-    void requestOctomapContext();    
-};
+    };
 }
 #endif // map_view_H

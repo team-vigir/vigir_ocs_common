@@ -6,6 +6,8 @@
 #include <ros/package.h>
 
 #include <rviz/displays_panel.h>
+#include "main_camera_context_menu.h"
+#include "base_context_menu.h"
 
 MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     QWidget(parent),
@@ -170,14 +172,10 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     neck_pos_sub_ = nh_.subscribe<std_msgs::Float32> ( "/flor/neck_controller/current_position" , 2, &MainCameraViewWidget::updatePitch, this );
 
     //send template list to views for context menu
-    ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
-    ((CameraViewWidget*)views_list_["Top Right"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
-    ((CameraViewWidget*)views_list_["Bottom Left"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
-    ((CameraViewWidget*)views_list_["Bottom Right"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
-
-    sys_command_pub_ = nh_.advertise<std_msgs::String>("/syscommand",1,false);
-
-    addContextMenu();
+    ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((CameraViewWidget*)views_list_["Top Right"])->getCameraView()->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((CameraViewWidget*)views_list_["Bottom Left"])->getCameraView()->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((CameraViewWidget*)views_list_["Bottom Right"])->getCameraView()->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
 
     //hide sidebar elements that are no longer necessary
     ui->Tools->hide();
@@ -224,6 +222,9 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     //disable joint markers by default
     ui->robot_joint_markers->setCheckState(Qt::Unchecked);
+
+    //build and add Context menu to base3dview
+    main_camera_context_menu_ = new MainCameraContextMenu(this);
 
     timer.start(100, this);
 }
@@ -337,42 +338,6 @@ void MainCameraViewWidget::moveEvent(QMoveEvent * event)
 {    
     QSettings settings("OCS", "camera_view");
     settings.setValue("mainWindowGeometry", this->saveGeometry());    
-}
-
-void MainCameraViewWidget::addContextMenu()
-{
-    //can tell context menu to add a separator when this item is added
-    contextMenuItem * separator = new contextMenuItem();
-    separator->name = "Separator";
-
-    vigir_ocs::Base3DView::makeContextChild("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())), NULL, contextMenuElements);
-
-    contextMenuElements.push_back(separator);
-
-    contextMenuItem * systemCommands = vigir_ocs::Base3DView::makeContextParent("System Commands", contextMenuElements);
-
-    vigir_ocs::Base3DView::makeContextChild("Reset World Model",boost::bind(&MainCameraViewWidget::systemCommandContext,this, "reset"), systemCommands, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Save Octomap",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_octomap"), systemCommands, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Save Pointcloud",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_pointcloud"), systemCommands, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Save Image Head",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_left_eye"), systemCommands, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Save Left Hand Image",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_left_hand"), systemCommands, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Save Right Hand Image",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_right_hand"), systemCommands, contextMenuElements);
-
-    //add all context menu items to each view
-    for(int i=0;i<contextMenuElements.size();i++)
-    {
-        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())->addToContextVector(contextMenuElements[i]);
-        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Right"])->getCameraView())->addToContextVector(contextMenuElements[i]);
-        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Bottom Left"])->getCameraView())->addToContextVector(contextMenuElements[i]);
-        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Bottom Right"])->getCameraView())->addToContextVector(contextMenuElements[i]);
-    }
-}
-
-//callback function for context menu
-void MainCameraViewWidget::systemCommandContext(std::string command)
-{
-    sysCmdMsg.data = command;
-    sys_command_pub_.publish(sysCmdMsg);
 }
 
 void MainCameraViewWidget::lockPitchUpdates()

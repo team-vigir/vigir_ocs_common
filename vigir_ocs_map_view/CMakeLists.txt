@@ -29,6 +29,7 @@ qt4_wrap_cpp(MOC_FILES_WIDGET
 qt4_wrap_cpp(MOC_FILES
   src/map_view.h
   src/ui/map_view_widget.h
+  src/map_context_menu.h
   src/ui/map_region_configure_widget.h
   src/ui/region_3d_configure_widget.h
 )
@@ -53,6 +54,7 @@ set(SOURCE_FILES
   src/ui/region_3d_configure_widget.cpp
   src/ui/map_region_configure_widget.cpp
   src/ui/map_view_widget.cpp
+  src/map_context_menu.cpp
   src/main.cpp
   ${MOC_FILES}
 )

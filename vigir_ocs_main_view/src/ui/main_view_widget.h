@@ -32,6 +32,7 @@
 #include <flor_ocs_msgs/WindowCodes.h>
 #include "footstep_config.h"
 #include "notification_system.h"
+#include "main_context_menu.h"
 
 namespace Ui
 {
@@ -39,7 +40,7 @@ namespace Ui
 }
 
 class MainViewWidget : public QWidget
-{
+{   
     Q_OBJECT
 
 public:
@@ -55,6 +56,9 @@ public:
 
     virtual void timerEvent(QTimerEvent *event);
 
+    vigir_ocs::Base3DView* getPrimaryView() {return primary_view_;}
+    Ui::MainViewWidget* getUi(){return ui;}
+
 public Q_SLOTS:
     void oneViewToggle();
     void fourViewToggle();
@@ -63,26 +67,26 @@ public Q_SLOTS:
     void zero_rightPressed();
     void toggleWindow(int);    
     void setManipulationMode(int);        
-    void updateContextMenu();
 
-private Q_SLOTS:
-    void toggleSidebarVisibility();
+    //consider protecting
+    void updateContextMenu();
+    void setObjectManipulationMode();
+    void setObjectMode(int mode);
+    void contextToggleWindow(int window);
     void graspWidgetToggle();
+    void setCameraMode();
+    void setWorldMode();
+
+protected Q_SLOTS:
+    void toggleSidebarVisibility();    
     void hideGraspWidgets();
     void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
     void toggleFootstepConfig();
 
+
+
 protected:
-    void addContextMenu();
-    void setTemplateMode();
-    void setLeftArmMode();
-    void setRightArmMode();
-    void setCameraMode();
-    void setWorldMode();
-    void setObjectManipulationMode();
-    void setObjectMode(int mode);
     void setupToolbar();
-    void contextToggleWindow(int window);
     void systemCommandContext(std::string command);
     void loadButtonIcon(QPushButton* btn, QString image_name);
     void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
@@ -94,15 +98,13 @@ protected:
 
     flor_ocs_msgs::OCSControlMode controlModes;
 
-
-    //contextMenuItem *makeContextParent(QString name);
-    //void makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent);
-
-    std::vector<contextMenuItem *> contextMenuElements;
+    vigir_ocs::Base3DView* primary_view_;
 
     Ui::MainViewWidget *ui;
+    MainViewContextMenu* main_view_context_menu_;
 
-    std::map<std::string,QWidget*> views_list;
+    std::map<std::string,QWidget*> views_list_;
+    std::map<std::string,QWidget*> getViewsList(){return views_list_;}
 
     QWidget* position_widget_;
     QPushButton* four_view_button_;
@@ -118,7 +120,7 @@ protected:
     ros::Publisher window_control_pub_;
     ros::Subscriber key_event_sub_;
     ros::Publisher ft_zero_pub_;
-    ros::Publisher sys_command_pub_;
+
 
     ros::Publisher mode_pub_;
     ros::Subscriber mode_sub_;
@@ -126,7 +128,7 @@ protected:
 
     ros::Subscriber ocs_sync_sub_;
 
-    std_msgs::String sysCmdMsg;
+
 
     StatusBar * statusBar;
 
@@ -141,20 +143,7 @@ protected:
 
     QWidget *graspContainer;
 
-    //context item references for checking/unchecking in context menu
-    contextMenuItem * joystickContext;
-    contextMenuItem * positionContext;
-    contextMenuItem * graspContext;
-    contextMenuItem * jointControlContext;
-    contextMenuItem * pelvisContext;
-    contextMenuItem * ghostContext;
-    contextMenuItem * plannerContext;
-    contextMenuItem * footBasicContext;
-    contextMenuItem * footAdvancedContext;
-    contextMenuItem * footParameterContext;
-    contextMenuItem * objectContext;
-    contextMenuItem * worldContext;
-    contextMenuItem * cameraContext;
+
 
     QSignalMapper* stop_mapper_;
 
