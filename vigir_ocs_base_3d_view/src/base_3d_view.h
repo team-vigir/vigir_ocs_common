@@ -479,6 +479,7 @@ protected:
     rviz::Display* raycast_point_cloud_viewer_;
     rviz::Display* joint_arrows_;
     rviz::Display* ghost_joint_arrows_;
+    rviz::Display* frustum_display_;
     std::map<std::string,rviz::Display*> frustum_viewer_list_;
 
     // list of gridmaps to be displayed
