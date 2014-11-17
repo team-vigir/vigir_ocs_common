@@ -3,6 +3,7 @@
 
 
 /*
+ * based on jsk-rviz-plugin
   Added ability to change colors. Scale/position/color are no longer based on effort
 
   */

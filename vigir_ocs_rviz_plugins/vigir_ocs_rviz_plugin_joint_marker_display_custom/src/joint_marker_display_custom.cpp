@@ -63,6 +63,7 @@
 
 #include "joint_marker_display_custom.h"
 
+//based on jsk-rviz-plugin
 namespace rviz
 {
 

@@ -1,0 +1,9 @@
+<library path="libvigir_ocs_rviz_plugin_camera_frustum_display_custom">
+  <class name="rviz/CameraFrustumDisplayCustom"
+         type="rviz::CameraFrustumDisplayCustom"
+         base_class_type="rviz::Display">
+    <description>
+      Customized camera frustum display plugin that renders camera visibility.
+    </description>
+  </class>
+</library>
