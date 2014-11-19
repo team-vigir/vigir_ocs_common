@@ -189,6 +189,16 @@ void MapViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize
                     changeCheckBoxState(ui->notification_system,Qt::Unchecked);
             }
         }
+        else if(msg->properties[i].compare("Frustum Display") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->camera_frustum,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->camera_frustum,Qt::Unchecked);
+            }
+        }
     }
 }
 

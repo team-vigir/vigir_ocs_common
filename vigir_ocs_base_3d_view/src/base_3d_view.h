@@ -274,6 +274,7 @@ public Q_SLOTS:
     void footstepPlanningToggled( bool );
     void simulationRobotToggled( bool );
     void notificationSystemToggled(bool);
+    void cameraFrustumToggled(bool);
     // tools
     // enables/disables use of rviz tools
     void cameraToggled( bool );
@@ -404,10 +405,6 @@ Q_SIGNALS:
       */
     void enableTemplateMarkers( bool );
     /**
-      * Sets the frustum properties of the camera view
-      */
-    void setFrustum( const float &, const float &, const float&, const float& );
-    /**
       * emit signal to indicate that the context menu has been processed
       */
     //void finishedContextMenuSetup( int x, int y );
@@ -480,7 +477,7 @@ protected:
     rviz::Display* joint_arrows_;
     rviz::Display* ghost_joint_arrows_;
     rviz::Display* frustum_display_;
-    std::map<std::string,rviz::Display*> frustum_viewer_list_;
+    std::map<std::string,rviz::Display*> frustum_map_;
 
     // list of gridmaps to be displayed
     std::vector<rviz::Display*> ground_map_;
@@ -843,6 +840,7 @@ protected:
       */
     void snapHandGhost();
 
+    void initializeFrustums(std::string prefix);
 
     void blurRender();
     void setChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility, bool visibility);

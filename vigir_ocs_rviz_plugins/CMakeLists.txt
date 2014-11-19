@@ -29,7 +29,6 @@ catkin_package(
     vigir_ocs_rviz_plugin_grasp_display_custom
     vigir_ocs_rviz_plugin_robot_display_custom
     vigir_ocs_rviz_plugin_map_display_custom
-    vigir_ocs_rviz_plugin_frustum_display_custom
     vigir_ocs_rviz_plugin_interaction_tool_custom
     vigir_ocs_rviz_plugin_ortho_view_controller_custom
     vigir_ocs_rviz_plugin_joint_marker_display_custom
@@ -49,7 +48,6 @@ catkin_package(
     vigir_ocs_rviz_plugin_grasp_display_custom/src
     vigir_ocs_rviz_plugin_robot_display_custom/src
     vigir_ocs_rviz_plugin_map_display_custom/src
-    vigir_ocs_rviz_plugin_frustum_display_custom/src
     vigir_ocs_rviz_plugin_interaction_tool_custom/src
     vigir_ocs_rviz_plugin_ortho_view_controller_custom/src
     vigir_ocs_rviz_plugin_overlay_display_custom/src
@@ -83,7 +81,6 @@ include_directories(
     vigir_ocs_rviz_plugin_grasp_display_custom/src
     vigir_ocs_rviz_plugin_robot_display_custom/src
     vigir_ocs_rviz_plugin_map_display_custom/src
-    vigir_ocs_rviz_plugin_frustum_display_custom/src
     vigir_ocs_rviz_plugin_interaction_tool_custom/src
     vigir_ocs_rviz_plugin_ortho_view_controller_custom/src
     vigir_ocs_rviz_plugin_overlay_display_custom/src
@@ -109,7 +106,6 @@ add_subdirectory(vigir_ocs_rviz_plugin_octomap_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_grasp_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_robot_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_map_display_custom)
-add_subdirectory(vigir_ocs_rviz_plugin_frustum_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_interaction_tool_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_ortho_view_controller_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_overlay_display_custom)
@@ -130,7 +126,6 @@ install(FILES
   grasp_display_custom_plugin_description.xml
   robot_display_custom_plugin_description.xml
   map_display_custom_plugin_description.xml
-  frustum_display_custom_plugin_description.xml
   interaction_tool_custom_plugin_description.xml
   ortho_view_controller_custom_plugin_description.xml
   overlay_display_custom_plugin_description.xml

@@ -309,9 +309,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-539</y>
+        <y>-585</y>
         <width>207</width>
-        <height>1693</height>
+        <height>1717</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -1118,6 +1118,16 @@ color: rgb(255, 26, 26);</string>
             </property>
             <property name="checked">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="camera_frustum">
+            <property name="text">
+             <string>Camera Frustums</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
             </property>
            </widget>
           </item>

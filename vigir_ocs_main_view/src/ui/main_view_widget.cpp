@@ -105,6 +105,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             QObject::connect(ui->robot_joint_markers,SIGNAL(toggled(bool)), iter->second, SLOT(robotJointMarkerToggled(bool)));
             QObject::connect(ui->robot_occlusion_rendering,SIGNAL(toggled(bool)), iter->second, SLOT(robotOcclusionToggled(bool)));            
             QObject::connect(ui->notification_system,SIGNAL(toggled(bool)), iter->second, SLOT(notificationSystemToggled(bool)));
+            QObject::connect(ui->camera_frustum,SIGNAL(toggled(bool)), iter->second, SLOT(cameraFrustumToggled(bool)));
         }
         else
         {
@@ -446,6 +447,16 @@ void MainViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchroniz
                     changeCheckBoxState(ui->notification_system,Qt::Checked);
                 else
                     changeCheckBoxState(ui->notification_system,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Frustum Display") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->camera_frustum,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->camera_frustum,Qt::Unchecked);
             }
         }
     }

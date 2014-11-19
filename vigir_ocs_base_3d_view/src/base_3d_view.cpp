@@ -460,9 +460,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // advertise pointcloud request
         pointcloud_request_world_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
 
-        // frustum
-        frustum_viewer_list_["head_left"] = manager_->createDisplay( "rviz/FrustumDisplayCustom", "Frustum - Left Eye", true );
-
         // Create a display for 3D selection
         selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
         //}
@@ -497,9 +494,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         pelvis_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/pelvis_marker_pose" );
         pelvis_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
         ((rviz::VectorProperty*)pelvis_bounding_box_->subProp( "Scale" ))->setVector( Ogre::Vector3(0.005f,0.005f,0.005f) );
-
-        // set frustum
-        QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
 
         // create the window for cartesian motion
         cartesian_config_widget_ = new QWidget();
@@ -628,11 +622,16 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
         overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");      
 
-        //create visualization for camera frustum
-        //left eye
+        //create visualizations for camera frustum
+        //initializeFrustums("/flor/ocs/camera/atlas");
+       // initializeFrustums("/flor/ocs/camera/left_hand");
+        //initializeFrustums("/flor/ocs/camera/right_hand");
+
+        //left eye test, need to load topics on launch
         frustum_display_ = manager_->createDisplay("rviz/CameraFrustumDisplayCustom","Frustum Display", true);
         frustum_display_->subProp("Topic")->setValue("/multisense_sl/left/camera_info");
-        frustum_display_->subProp("Alpha")->setValue("0.1");
+        frustum_display_->subProp("alpha")->setValue("0.05");
+        frustum_display_->setEnabled(false);
     }
 
     //initialize overall context menu
@@ -728,6 +727,23 @@ Base3DView::~Base3DView()
     delete manager_;
 }
 
+void Base3DView::initializeFrustums(std::string prefix)
+{
+    // get cameras parameters and create rviz::display
+    XmlRpc::XmlRpcValue camera_topic_prefix;
+
+    nh_.getParam(prefix+"/topic_prefix", camera_topic_prefix);
+    for(int i = 0; i < camera_topic_prefix.size(); i++)
+    {
+        std::string topic = static_cast<std::string>(camera_topic_prefix[i]);
+        //ROS_ERROR("topic %s",topic.c_str());
+        rviz::Display* frustum_display = manager_->createDisplay("rviz/CameraFrustumDisplayCustom","Frustum Display", true);
+        frustum_display->subProp("Topic")->setValue(topic.c_str());
+        frustum_display->subProp("alpha")->setValue("0.05");
+        frustum_display->setEnabled(false);
+        frustum_map_[topic] = frustum_display;
+    }
+}
 //NOTE: DOES NOT CURRENTLY WORK, TODO: figure a way to pass a rendered texture from shader program to shader program to accumulate effects
 void Base3DView::blurRender()
 {
@@ -1103,6 +1119,15 @@ void Base3DView::notificationSystemToggled(bool selected)
     ocs_sync_pub_.publish(msg);
 }
 
+void Base3DView::cameraFrustumToggled(bool selected)
+{
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("Frustum Display");
+    msg.reset.push_back(false);
+    msg.visible.push_back(selected);
+    ocs_sync_pub_.publish(msg);
+}
+
 void Base3DView::footstepPlanningToggled( bool selected )
 {
     footstep_vis_manager_->setEnabled(selected);
@@ -1354,6 +1379,16 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
                 {
                     //only toggle notification visibility
                     overlay_display_->setEnabled(msg->visible[i]);
+                }
+                else if(display_name.compare("Frustum Display") == 0)
+                {
+                    //toggle all frustums
+                    for (std::map<std::string,rviz::Display*>::iterator it=frustum_map_.begin(); it!=frustum_map_.end(); ++it)
+                    {
+                        rviz::Display* frustum_display = it->second;
+                        frustum_display->setEnabled(msg->visible[i]);
+                    }
+                    frustum_display_->setEnabled(msg->visible[i]);
                 }
 
             }

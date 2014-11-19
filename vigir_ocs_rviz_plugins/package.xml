@@ -48,7 +48,6 @@
       <rviz plugin="${prefix}/grasp_display_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/robot_display_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/map_display_custom_plugin_description.xml"/>
-      <rviz plugin="${prefix}/frustum_display_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/interaction_tool_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/ortho_view_controller_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/overlay_display_custom_plugin_description.xml"/>
