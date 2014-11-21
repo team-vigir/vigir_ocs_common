@@ -78,7 +78,7 @@ public Q_SLOTS:
     void on_verticalSlider_3_sliderReleased();
     void on_verticalSlider_2_sliderReleased();
     void on_verticalSlider_4_sliderReleased();
-    void on_pushButton_clicked();
+    void handOffsetToggle();
 
 private:
     void setProgressLevel(uint8_t level);
@@ -92,7 +92,7 @@ private:
     void setUpButtons();
 
     Ui::graspWidget *ui;
-    handOffsetWidget *ui2;
+    handOffsetWidget * hand_offset_widget_;
 
     void graspStateReceived (const flor_grasp_msgs::GraspState::ConstPtr& graspState);
     void graspSelectedReceived (const flor_grasp_msgs::GraspSelection::ConstPtr& graspMsg);

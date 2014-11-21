@@ -30,6 +30,12 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
     ui->stitch_template->setDisabled(true);
     setUpButtons();
 
+    //create hand offset widget
+    hand_offset_widget_ = new handOffsetWidget();
+    hand_offset_widget_->hide();
+
+    connect(ui->graspOffsetButton, SIGNAL(clicked()), this, SLOT(handOffsetToggle()));
+
     // these are not parameters anymore, but arguments in the constructor
     //ros::NodeHandle nhp("~");
     //nhp.param<std::string>("hand",hand_,"left"); // private parameter
@@ -232,8 +238,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
 
 
 graspWidget::~graspWidget()
-{
-    ui2->close();
+{    
     delete ui;
 }
 
@@ -1407,7 +1412,7 @@ int graspWidget::hideHand()
 }
 
 void graspWidget::on_show_grasp_toggled(bool checked)
-{
+{        
     show_grasp_ = checked;
     ui->show_grasp_radio->setEnabled(show_grasp_);
     ui->show_pre_grasp_radio->setEnabled(show_grasp_);
@@ -1524,11 +1529,12 @@ void graspWidget::on_verticalSlider_4_sliderReleased()
     this->on_userSlider_sliderReleased();
 }
 
-void graspWidget::on_pushButton_clicked()
+void graspWidget::handOffsetToggle()
 {
-    ui2 = new handOffsetWidget;
-
-    ui2->show();
+    if(hand_offset_widget_->isVisible())
+        hand_offset_widget_->hide();
+    else
+        hand_offset_widget_->show();
 }
 
 Ui::graspWidget * graspWidget::getUi()
