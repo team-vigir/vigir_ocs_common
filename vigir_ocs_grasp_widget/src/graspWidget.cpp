@@ -1535,6 +1535,10 @@ void graspWidget::handOffsetToggle()
         hand_offset_widget_->hide();
     else
         hand_offset_widget_->show();
+    if(hand_ == "left")
+        hand_offset_widget_->setWindowTitle("Left Hand Grasp Offset Widget");
+    else
+        hand_offset_widget_->setWindowTitle("Right Hand Grasp Offset Widget");
 }
 
 Ui::graspWidget * graspWidget::getUi()
