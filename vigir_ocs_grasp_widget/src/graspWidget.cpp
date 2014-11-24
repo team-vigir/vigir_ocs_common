@@ -77,7 +77,6 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
     template_list_sub_           = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",                    5, &graspWidget::processTemplateList, this );
     template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>("/grasp_control/template_selection", 1, &graspWidget::templateMatchFeedback, this );
     grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(       grasp_control_prefix+"/active_state",            1, &graspWidget::graspStateReceived,  this );
-
     grasp_selection_pub_        = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/grasp_selection",        1, false);
     grasp_release_pub_          = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/release_grasp" ,         1, false);
     grasp_mode_command_pub_     = nh_.advertise<flor_grasp_msgs::GraspState>(        grasp_control_prefix+"/mode_command",     1, false);
@@ -393,11 +392,27 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         ui->performButton->setDisabled(false);
     }
 
-    bool was_empty = ui->templateBox->count() == 0 ? true : false;
+    bool was_empty = ui->templateBox->count() == 0;
 
     QString currentItem = ui->templateBox->currentText();
-    //ui->templateBox->clear();
 
+#if 1 //refactor
+    ui->templateBox->clear();
+    for(int i=0;i<list->template_list.size();i++)
+    {
+        // remove the .mesh string from the template name
+        std::string templateName = list->template_list[i];
+        if(templateName.size() > 5 && templateName.substr(templateName.size()-5,5) == ".mesh")
+            templateName = templateName.substr(0,templateName.size()-5);
+        templateName = boost::to_string((int)list->template_id_list[i])+std::string(": ")+templateName;
+        //add template
+        ui->templateBox->addItem(QString::fromStdString(templateName));
+    }
+    //reset current item
+    int idx = ui->templateBox->findText(currentItem);
+    if(idx != -1)
+        ui->templateBox->setCurrentIndex(idx);
+#else // old way
     // populate template combobox
     for(int i = 0; i < list->template_list.size(); i++)
     {
@@ -421,26 +436,35 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         }
     }
 
+    //remove leftover extra templates that may not be relevant?
     for(int i = list->template_list.size(); i < ui->templateBox->count(); i++)
+    {
+        ROS_ERROR("item %s %d",qPrintable(ui->templateBox->itemText(i)),ui->templateBox->count() - list->template_list.size());
         ui->templateBox->removeItem(i);
+        ui->templateBox->removeItem(list->template_list.size());
+    }
+#endif
 
+    //previously selected item is no longer present?
     if(selected_template_id_ != -1 && ui->templateBox->findText(currentItem) == -1)
     {
+//        ROS_ERROR("Selected item no longer present");
+//        ROS_ERROR("before %d", selected_template_id_);
         hideHand();
         ui->graspBox->clear();
         selected_template_id_ = -1;
         selected_grasp_id_ = -1;
-        ui->graspBox->setEnabled(false);
+        ui->graspBox->setEnabled(false);        
     }
     else
     {
         if(was_empty && ui->templateBox->count() > 0)
         {
-            //ROS_ERROR("Seleting template 0");
+            //ROS_ERROR("Selecting template 0");
             ui->templateBox->setCurrentIndex(0);
             on_templateBox_activated(ui->templateBox->itemText(0));
             on_templateRadio_clicked();
-            selected_template_id_ = 0;
+            selected_template_id_ = list->template_id_list[0];
         }
 
         if(selected_grasp_id_ != -1 && show_grasp_)
@@ -1187,10 +1211,13 @@ void graspWidget::publishHandPose(unsigned int id)
     //grasp_transform.header.frame_id = (QString("/template_tf_")+QString::number(selected_template_id_)).toStdString();
 
     unsigned int template_index;
+    //find selected template
     for(template_index = 0; template_index < last_template_list_.template_id_list.size(); template_index++)
+    {
         if(last_template_list_.template_id_list[template_index] == selected_template_id_)
             break;
-
+    }
+    //past the end/no template selected?
     if(template_index == last_template_list_.template_id_list.size()) return;
 
     geometry_msgs::PoseStamped template_transform;
@@ -1460,8 +1487,10 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
                 ui->templateBox->setCurrentIndex(tmp);
                 on_templateBox_activated(ui->templateBox->itemText(tmp));
                 on_templateRadio_clicked();
-                selected_template_id_ = tmp;
-
+                //selected_template_id_ = tmp;
+                //template indexes increase during lifetime
+                //ie. if template 0 is deleted, there will never be another template 0.
+                selected_template_id_ = *it;
                 if(selected_grasp_id_ != -1 && show_grasp_)
                     publishHandPose(selected_grasp_id_);
             }
@@ -1535,6 +1564,7 @@ void graspWidget::handOffsetToggle()
         hand_offset_widget_->hide();
     else
         hand_offset_widget_->show();
+
     if(hand_ == "left")
         hand_offset_widget_->setWindowTitle("Left Hand Grasp Offset Widget");
     else

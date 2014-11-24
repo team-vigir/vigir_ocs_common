@@ -425,6 +425,8 @@ Q_SIGNALS:
 protected:
     virtual void timerEvent(QTimerEvent *event);
 
+    void updateGhostRobotOpacity();
+
     /**
       * Adds joint disks that visualize the current state of the joints
       */

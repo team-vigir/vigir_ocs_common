@@ -988,7 +988,18 @@ void Base3DView::timerEvent(QTimerEvent *event)
     //Means that currently doing
 
     if(is_primary_view_ && occluded_robot_visible_)
+    {
         setRenderOrder();
+        //updateGhostRobotOpacity();
+    }
+
+}
+
+void Base3DView::updateGhostRobotOpacity()
+{
+    MoveItOcsModel* robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
+    MoveItOcsModel* ghost_robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
+
 }
 
 void Base3DView::publishCameraTransform()
