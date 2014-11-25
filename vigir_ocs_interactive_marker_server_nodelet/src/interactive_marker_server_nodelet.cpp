@@ -44,7 +44,7 @@ void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::O
     {
         //ROS_INFO("Adding marker %s", msg->topic.c_str());
         marker_map_[msg->topic] = new InteractiveMarkerServerCustom(msg->name, msg->topic, msg->mode, msg->frame, msg->scale, msg->point);
-        marker_map_[msg->topic]->onFeedback = boost::bind(&InteractiveMarkerServerNodelet::onMarkerFeedback, this, _1, _2);
+        marker_map_[msg->topic]->onFeedback = boost::bind(&InteractiveMarkerServerNodelet::onMarkerFeedback, this, _1, _2, _3);
     }
 }
 
@@ -87,7 +87,7 @@ void InteractiveMarkerServerNodelet::updatePose(const flor_ocs_msgs::OCSInteract
             // close the loop by sending feedback IF needed
             if(msg->update_mode == flor_ocs_msgs::OCSInteractiveMarkerUpdate::SET_POSE)
             {
-                marker_map_[msg->topic]->onFeedback(msg->topic,msg->pose);
+                marker_map_[msg->topic]->onFeedback(msg->event_type,msg->topic,msg->pose);
                 pose_map_[msg->topic] = msg->pose;
                 publishSelectedObject();
             }
@@ -114,11 +114,12 @@ void InteractiveMarkerServerNodelet::updatePose(const flor_ocs_msgs::OCSInteract
     }
 }
 
-void InteractiveMarkerServerNodelet::onMarkerFeedback(std::string topic_name, geometry_msgs::PoseStamped pose)
+void InteractiveMarkerServerNodelet::onMarkerFeedback(unsigned char event_type, std::string topic_name, geometry_msgs::PoseStamped pose)
 {
     flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
     cmd.topic = topic_name;
     cmd.pose = pose;
+    cmd.event_type = event_type;
     interactive_marker_server_feedback_pub_.publish(cmd);
 }
 
