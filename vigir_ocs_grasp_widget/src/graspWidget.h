@@ -125,8 +125,11 @@ private:
     typedef struct
     {
         unsigned char        template_type;
+        geometry_msgs::Point b_max;
+        geometry_msgs::Point b_min;
         geometry_msgs::Point com;
         float                mass;
+        std::string          mesh_path;
     } TemplateDBItem;
     std::vector<TemplateDBItem> template_db_;
 
