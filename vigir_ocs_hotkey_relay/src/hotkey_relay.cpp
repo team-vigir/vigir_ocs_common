@@ -22,35 +22,35 @@ void HotkeyRelay::processKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &ke
 {
     // store key state
     if(key_event->state)
-        keys_pressed_list_.push_back(key_event->key);
+        keys_pressed_list_.push_back(key_event->keycode);
     else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
 
     // process hotkeys
     bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37) != keys_pressed_list_.end());
     bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
     bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
 
-    if(key_event->key == 10 && key_event->state && ctrl_is_pressed) // ctrl+1
+    if(key_event->keycode == 10 && key_event->state && ctrl_is_pressed) // ctrl+1
     {
         flor_ocs_msgs::OCSHotkeyRelay cmd;
         cmd.relay_code = 1;
         key_event_pub_.publish(cmd);
     }
-    else if(key_event->key == 15 && key_event->state && ctrl_is_pressed) // ctrl+6
+    else if(key_event->keycode == 15 && key_event->state && ctrl_is_pressed) // ctrl+6
     {
         flor_ocs_msgs::OCSHotkeyRelay cmd;
         cmd.relay_code = flor_ocs_msgs::OCSHotkeyRelay::CLEAR_IMAGE_SELECTED;
         key_event_pub_.publish(cmd);
     }
-    else if(key_event->key == 18 && key_event->state && ctrl_is_pressed) // ctrl+9
+    else if(key_event->keycode == 18 && key_event->state && ctrl_is_pressed) // ctrl+9
     {
         // rainbow color
         flor_ocs_msgs::OCSHotkeyRelay cmd;
         cmd.relay_code = flor_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_RAINBOW;
         key_event_pub_.publish(cmd);
     }
-    else if(key_event->key == 19 && key_event->state && ctrl_is_pressed) // ctrl+0
+    else if(key_event->keycode == 19 && key_event->state && ctrl_is_pressed) // ctrl+0
     {
         // intensity
         flor_ocs_msgs::OCSHotkeyRelay cmd;

@@ -4,6 +4,8 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/X.h>
+#include <X11/XKBlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -32,7 +34,7 @@ namespace vigir_ocs
 
         Display *display_name_;
         
-        bool old_keys_[4096];
+        std::vector<int> old_keys_;
         bool registering_keystrokes_;
     };
 }

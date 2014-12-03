@@ -11,22 +11,16 @@
   <build_depend>rqt_gui</build_depend>
   <build_depend>rqt_gui_cpp</build_depend>
   <build_depend>rviz</build_depend>
-  <build_depend>vigir_ocs_camera_viewer_custom</build_depend>
-  <build_depend>vigir_ocs_main_3d_view</build_depend>
   <build_depend>vigir_ocs_map_view</build_depend>
   <build_depend>vigir_ocs_status_window</build_depend>
   
   <run_depend>rqt_gui</run_depend>
   <run_depend>rqt_gui_cpp</run_depend>
   <run_depend>rviz</run_depend>
-  <run_depend>vigir_ocs_camera_viewer_custom</run_depend>
-  <run_depend>vigir_ocs_main_3d_view</run_depend>
   <run_depend>vigir_ocs_map_view</run_depend>
   <run_depend>vigir_ocs_status_window</run_depend>
 
   <export>
-    <rqt_gui plugin="${prefix}/camera_viewer_custom_plugin_description.xml"/>
-    <rqt_gui plugin="${prefix}/main_3d_view_custom_plugin_description.xml"/>
     <rqt_gui plugin="${prefix}/map_view_custom_plugin_description.xml"/>
     <rqt_gui plugin="${prefix}/status_view_custom_plugin_description.xml"/>
   </export>

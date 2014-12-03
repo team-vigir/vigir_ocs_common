@@ -19,6 +19,9 @@ namespace Ui
     class MainCameraViewWidget;
 }
 
+//forward declare to have both reference each other
+class MainCameraContextMenu;
+
 class MainCameraViewWidget : public QWidget
 {
     Q_OBJECT
@@ -31,6 +34,7 @@ public:
 
     virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
     virtual void updatePitch( const std_msgs::Float32::ConstPtr &pitch);
+    std::map<std::string,QWidget*> getViewsList(){return views_list_;}
 
 public Q_SLOTS:
     void oneViewToggle();
@@ -45,11 +49,11 @@ private Q_SLOTS:
 private:
     Ui::MainCameraViewWidget *ui;
 
-    std::vector<contextMenuItem *> contextMenuElements;
+    MainCameraContextMenu * main_camera_context_menu_;
 
-    void addContextMenu();
-    void systemCommandContext(std::string command);
+
     std::map<std::string,QWidget*> views_list_;
+
     int views_initialized_;
 
     void closeEvent(QCloseEvent *event);
@@ -71,13 +75,12 @@ private:
 
     ros::Subscriber key_event_sub_;
     ros::Subscriber neck_pos_sub_;
-    ros::Publisher sys_command_pub_;
+
 
     ros::Subscriber ocs_sync_sub_;
     void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
     void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
 
-    std_msgs::String sysCmdMsg;
 
     bool lock_pitch_slider_;
 
@@ -85,6 +88,7 @@ private:
     QSignalMapper* stop_mapper_;
 
     QPushButton* sidebar_toggle_;
+
 };
 
 #endif // MAIN_CAMERA_VIEW_WIDGET_H

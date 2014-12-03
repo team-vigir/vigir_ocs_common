@@ -627,9 +627,9 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-489</y>
+           <y>-558</y>
            <width>207</width>
-           <height>1669</height>
+           <height>1597</height>
           </rect>
          </property>
          <property name="maximumSize">
@@ -989,36 +989,6 @@ color: rgb(255, 26, 26);</string>
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="footstep_planning">
-               <property name="text">
-                <string>Footstep Planning</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="templates">
-               <property name="text">
-                <string>Templates</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="grasp_model">
-               <property name="text">
-                <string>Grasp</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QWidget" name="widget_5" native="true">
                <layout class="QHBoxLayout" name="horizontalLayout_3">
                 <property name="leftMargin">
@@ -1157,16 +1127,6 @@ color: rgb(255, 26, 26);</string>
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="laser_scan_2">
-               <property name="text">
-                <string>Laser Scan</string>
-               </property>
-               <property name="checked">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QCheckBox" name="octomap_2">
                <property name="text">
                 <string>Octomap</string>
@@ -1183,6 +1143,13 @@ color: rgb(255, 26, 26);</string>
                </property>
                <property name="checked">
                 <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="camera_frustum">
+               <property name="text">
+                <string>Camera Frustums</string>
                </property>
               </widget>
              </item>
@@ -1268,6 +1235,7 @@ color: rgb(255, 26, 26);</string>
     <slot>clearPointCloudRegionRequests()</slot>
     <slot>clearPointCloudStereoRequests()</slot>
     <slot>notificationSystemToggled(bool)</slot>
+    <slot>cameraFrustumToggled(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -1280,8 +1248,8 @@ color: rgb(255, 26, 26);</string>
    <slot>insertWaypoint()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>641</x>
-     <y>485</y>
+     <x>963</x>
+     <y>-300</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1296,8 +1264,8 @@ color: rgb(255, 26, 26);</string>
    <slot>markerTemplateToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>645</x>
-     <y>443</y>
+     <x>963</x>
+     <y>-414</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1312,8 +1280,8 @@ color: rgb(255, 26, 26);</string>
    <slot>insertTemplate(QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>645</x>
-     <y>632</y>
+     <x>963</x>
+     <y>40</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1328,8 +1296,8 @@ color: rgb(255, 26, 26);</string>
    <slot>selectionToolToggle(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>645</x>
-     <y>331</y>
+     <x>963</x>
+     <y>-462</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1344,8 +1312,8 @@ color: rgb(255, 26, 26);</string>
    <slot>templatePathChanged(QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>645</x>
-     <y>467</y>
+     <x>963</x>
+     <y>-23</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1360,8 +1328,8 @@ color: rgb(255, 26, 26);</string>
    <slot>defineFootstepGoal()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>641</x>
-     <y>322</y>
+     <x>963</x>
+     <y>-246</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1376,8 +1344,8 @@ color: rgb(255, 26, 26);</string>
    <slot>robotModelToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>624</x>
-     <y>63</y>
+     <x>963</x>
+     <y>74</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1392,8 +1360,8 @@ color: rgb(255, 26, 26);</string>
    <slot>simulationRobotToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>624</x>
-     <y>91</y>
+     <x>963</x>
+     <y>98</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1408,8 +1376,8 @@ color: rgb(255, 26, 26);</string>
    <slot>gridMapToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>624</x>
-     <y>231</y>
+     <x>917</x>
+     <y>272</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1424,8 +1392,8 @@ color: rgb(255, 26, 26);</string>
    <slot>footstepPlanningToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>624</x>
-     <y>259</y>
+     <x>963</x>
+     <y>170</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1440,8 +1408,8 @@ color: rgb(255, 26, 26);</string>
    <slot>requestMap()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>645</x>
-     <y>410</y>
+     <x>149</x>
+     <y>39</y>
     </hint>
     <hint type="destinationlabel">
      <x>399</x>
@@ -1456,8 +1424,8 @@ color: rgb(255, 26, 26);</string>
    <slot>requestOctomap()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>645</x>
-     <y>453</y>
+     <x>316</x>
+     <y>40</y>
     </hint>
     <hint type="destinationlabel">
      <x>399</x>
@@ -1472,8 +1440,8 @@ color: rgb(255, 26, 26);</string>
    <slot>publishPointCloudWorldRequest()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>645</x>
-     <y>141</y>
+     <x>963</x>
+     <y>-384</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1488,8 +1456,8 @@ color: rgb(255, 26, 26);</string>
    <slot>graspModelToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>647</x>
-     <y>498</y>
+     <x>963</x>
+     <y>218</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>
@@ -1504,8 +1472,8 @@ color: rgb(255, 26, 26);</string>
    <slot>templatesToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>647</x>
-     <y>498</y>
+     <x>963</x>
+     <y>194</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>
@@ -1520,8 +1488,8 @@ color: rgb(255, 26, 26);</string>
    <slot>requestedPointCloudToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>653</x>
-     <y>523</y>
+     <x>917</x>
+     <y>296</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>
@@ -1536,8 +1504,8 @@ color: rgb(255, 26, 26);</string>
    <slot>markerArrayToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>624</x>
-     <y>203</y>
+     <x>963</x>
+     <y>368</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1552,8 +1520,8 @@ color: rgb(255, 26, 26);</string>
    <slot>laserScanToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>624</x>
-     <y>175</y>
+     <x>963</x>
+     <y>242</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1568,8 +1536,8 @@ color: rgb(255, 26, 26);</string>
    <slot>stereoPointCloudToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>624</x>
-     <y>147</y>
+     <x>917</x>
+     <y>344</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1584,8 +1552,8 @@ color: rgb(255, 26, 26);</string>
    <slot>lidarPointCloudToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>624</x>
-     <y>119</y>
+     <x>917</x>
+     <y>320</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1600,8 +1568,8 @@ color: rgb(255, 26, 26);</string>
    <slot>clearMapRequests()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>769</x>
-     <y>473</y>
+     <x>963</x>
+     <y>273</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>
@@ -1616,8 +1584,8 @@ color: rgb(255, 26, 26);</string>
    <slot>clearPointCloudRaycastRequests()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>769</x>
-     <y>573</y>
+     <x>963</x>
+     <y>306</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>
@@ -1632,8 +1600,8 @@ color: rgb(255, 26, 26);</string>
    <slot>defineFootstepGoal()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>679</x>
-     <y>363</y>
+     <x>963</x>
+     <y>-216</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>
@@ -1648,8 +1616,8 @@ color: rgb(255, 26, 26);</string>
    <slot>requestPointCloud()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>679</x>
-     <y>463</y>
+     <x>558</x>
+     <y>40</y>
     </hint>
     <hint type="destinationlabel">
      <x>406</x>
@@ -1664,8 +1632,8 @@ color: rgb(255, 26, 26);</string>
    <slot>clearPointCloudRegionRequests()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>948</x>
-     <y>488</y>
+     <x>963</x>
+     <y>321</y>
     </hint>
     <hint type="destinationlabel">
      <x>341</x>
@@ -1680,8 +1648,8 @@ color: rgb(255, 26, 26);</string>
    <slot>clearPointCloudStereoRequests()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>948</x>
-     <y>513</y>
+     <x>963</x>
+     <y>345</y>
     </hint>
     <hint type="destinationlabel">
      <x>341</x>
@@ -1696,8 +1664,24 @@ color: rgb(255, 26, 26);</string>
    <slot>notificationSystemToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
+     <x>963</x>
+     <y>395</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>378</x>
+     <y>376</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>camera_frustum</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>map_view_</receiver>
+   <slot>cameraFrustumToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
      <x>871</x>
-     <y>567</y>
+     <y>426</y>
     </hint>
     <hint type="destinationlabel">
      <x>378</x>

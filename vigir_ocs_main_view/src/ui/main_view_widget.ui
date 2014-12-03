@@ -1234,9 +1234,9 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-366</y>
+           <y>-464</y>
            <width>212</width>
-           <height>1546</height>
+           <height>1570</height>
           </rect>
          </property>
          <property name="maximumSize">
@@ -1858,6 +1858,13 @@ color: rgb(255, 26, 26);</string>
                </property>
                <property name="checked">
                 <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="camera_frustum">
+               <property name="text">
+                <string>Camera Frustums</string>
                </property>
               </widget>
              </item>

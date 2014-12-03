@@ -563,16 +563,16 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
 {
     // store key state
     if(key_event->state)
-        keys_pressed_list_.push_back(key_event->key);
+        keys_pressed_list_.push_back(key_event->keycode);
     else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
 
     // process hotkeys
     bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37) != keys_pressed_list_.end());
     bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
     bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
 
-    /*if(key_event->key == 12 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+3
+    /*if(key_event->keycode == 12 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+3
     {
         if(this->isVisible())
         {
@@ -585,20 +585,20 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
         }
     }*/
 
-    if(key_event->key == 26 && key_event->state && ctrl_is_pressed && shift_is_pressed)
+    if(key_event->keycode == 26 && key_event->state && ctrl_is_pressed && shift_is_pressed)
             on_send_left_cartesian_button__clicked();
-    else if(key_event->key == 27 && key_event->state && ctrl_is_pressed && shift_is_pressed)
+    else if(key_event->keycode == 27 && key_event->state && ctrl_is_pressed && shift_is_pressed)
         on_send_right_cartesian_button__clicked();
-    else if(key_event->key == 26 && key_event->state && ctrl_is_pressed)
+    else if(key_event->keycode == 26 && key_event->state && ctrl_is_pressed)
         on_send_left_configuration_button__clicked();
-    else if(key_event->key == 27 && key_event->state && ctrl_is_pressed)
+    else if(key_event->keycode == 27 && key_event->state && ctrl_is_pressed)
         on_send_right_configuration_button__clicked();
-    else if(key_event->key == 41 && key_event->state && ctrl_is_pressed)
+    else if(key_event->keycode == 41 && key_event->state && ctrl_is_pressed)
         on_send_upper_body_button__clicked();
-    else if(key_event->key == 39 && key_event->state && ctrl_is_pressed)
+    else if(key_event->keycode == 39 && key_event->state && ctrl_is_pressed)
         snapClicked();
 
-    std::cout << "key code:" << key_event->key << std::endl;
+    std::cout << "key code:" << key_event->keycode << std::endl;
 }
 
 void GhostControlWidget::on_send_left_cartesian_button__clicked()

@@ -309,10 +309,14 @@ void CameraViewWidget::alterChoices(int index)
 
 void CameraViewWidget::imageFeedSliderChanged(int fps)
 {
-    camera_view_->changeCameraSpeed(fps);
-    feed_slider->setToolTip(QString::number(fps)+"fps");
-    QPoint p = QCursor::pos();
-    QToolTip::showText(QPoint( p.x()+4, p.y()+4 ), QString::number(fps)+"fps");
+    if(fps != feed_slider->value())
+    {
+        camera_view_->changeCameraSpeed(fps);
+        feed_slider->setValue(fps);
+        feed_slider->setToolTip(QString::number(fps)+"fps");
+        QPoint p = QCursor::pos();
+        QToolTip::showText(QPoint( p.x()+4, p.y()+4 ), QString::number(fps)+"fps");
+    }
 }
 
 void CameraViewWidget::imageFeedSliderReleased()
@@ -330,10 +334,14 @@ void CameraViewWidget::imageFeedButtonClicked()
 
 void CameraViewWidget::areaFeedSliderChanged(int fps)
 {
-    camera_view_->changeCropCameraSpeed(fps);
-    area_slider->setToolTip(QString::number(fps)+"fps");
-    QPoint p = QCursor::pos();
-    QToolTip::showText(QPoint( p.x()+4, p.y()+4 ), QString::number(fps)+"fps");
+    if(fps != area_slider->value())
+    {
+        camera_view_->changeCropCameraSpeed(fps);
+        area_slider->setValue(fps);
+        area_slider->setToolTip(QString::number(fps)+"fps");
+        QPoint p = QCursor::pos();
+        QToolTip::showText(QPoint( p.x()+4, p.y()+4 ), QString::number(fps)+"fps");
+    }
 }
 
 void CameraViewWidget::areaFeedSliderReleased()
@@ -409,9 +417,9 @@ void CameraViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Cons
 {
     // store key state
     if(key_event->state)
-        keys_pressed_list_.push_back(key_event->key);
+        keys_pressed_list_.push_back(key_event->keycode);
     else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
 
     // process hotkeys
 }

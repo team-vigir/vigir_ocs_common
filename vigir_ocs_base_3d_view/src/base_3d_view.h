@@ -73,23 +73,11 @@
 
 #include "robot_state_manager.h"
 #include "notification_system.h"
+#include "context_menu_manager.h"
 
 // local includes
 #include "footstep_vis_manager.h"
 
-struct contextMenuItem
-{
-    QString name;
-    //callback function of this item, sometimes null for parent items
-    boost::function<void()> function;
-    struct contextMenuItem * parent;
-    //menu associated with this item, for children to add to menu
-    QMenu* menu;
-    //can only have action or menu. never both
-    QAction* action;
-    //tells whether to make an action or a menu object
-    bool hasChildren;
-};
 
 namespace rviz
 {
@@ -108,11 +96,16 @@ class FPSViewController;
 
 namespace vigir_ocs
 {
+class BaseContextMenu;
 
 // Class "Main3DView" implements the RobotModel class with joint manipulation that can be added to any QT application.
 class Base3DView: public QWidget
 {
     Q_OBJECT
+
+    //friend to access certain protected methods for context menu callbacks
+    friend class BaseContextMenu;    
+
 public:
 
     /**
@@ -124,25 +117,6 @@ public:
       */
     Base3DView( Base3DView* copy_from = NULL, std::string base_frame = "/pelvis", std::string widget_name = "", QWidget *parent = 0 );
     virtual ~Base3DView();
-
-    /**
-      *Helper function for the context menu: creates a sub menu
-      */
-    static contextMenuItem * makeContextParent(QString name,std::vector<contextMenuItem * > &contextMenuElements);
-    /**
-      * Helper function for the context menu: creates a selectable item
-      */
-    static contextMenuItem * makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent,std::vector<contextMenuItem * > &contextMenuElements);
-
-    /**
-      * Helper function for context menu: stores template context menu structure
-      */
-    void setTemplateTree(QTreeWidget * root);
-
-    /**
-      * Helper function for context menu: adds an item to context menu
-      */
-    void addToContextVector(contextMenuItem* item);
 
     /**
       * ROS Callback: Receives occupancy map from onboard based on the slice of octomap
@@ -160,6 +134,13 @@ public:
     void processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc );
 
 
+    BaseContextMenu * getBaseContextMenu(){return base_context_menu_;}
+    ContextMenuManager * getContextMenuManager(){return context_menu_manager_;}
+    std::string getActiveContext(){return active_context_name_;}
+    std::vector<rviz::Display*> getCartesianMarkerList(){return cartesian_marker_list_;}
+    rviz::Display* getCircularMarker(){return circular_marker_;}
+    std::vector<unsigned char> getGhostPoseSource(){return ghost_pose_source_;}
+    std::vector<unsigned char> getGhostWorldLock(){return ghost_world_lock_;}
 
     /**
       * ROS Callback: receives left arm end effector position from moveit
@@ -254,7 +235,8 @@ public:
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }
     rviz::Display* getSelection3DDisplay() { return selection_3d_display_; }
     rviz::Display* getOverlayDisplay() { return overlay_display_; }
-    MouseEventHandler* getMouseEventHander() { return mouse_event_handler_; }
+    MouseEventHandler* getMouseEventHander() { return mouse_event_handler_; }    
+
 
     /**
       * Changes the OGRE render mask for this window which determines which object will be rendered
@@ -292,6 +274,7 @@ public Q_SLOTS:
     void footstepPlanningToggled( bool );
     void simulationRobotToggled( bool );
     void notificationSystemToggled(bool);
+    void cameraFrustumToggled(bool);
     // tools
     // enables/disables use of rviz tools
     void cameraToggled( bool );
@@ -302,8 +285,6 @@ public Q_SLOTS:
     void robotJointMarkerToggled(bool selected);
     void robotOcclusionToggled(bool selected);
     virtual void defineFootstepGoal();
-    void requestFootstepPlan(unsigned int request_mode);
-
 
     /**
       * Sets position of new selection marker
@@ -324,17 +305,11 @@ public Q_SLOTS:
     void insertWaypoint();
 
     /**
-      * Create the right click context menu based on the context
-      */
-    virtual void createContextMenu( bool, int, int );
-    /**
-      * process selection of the context menu item
-      */
-    virtual void processContextMenu( int x, int y );
-    /**
       * sends back the context
       */
     void setContext( int, std::string );
+
+    void emitQueryContext(int x,int y);
 
     /**
       * get the last selection ray
@@ -416,7 +391,7 @@ Q_SIGNALS:
     /**
       * send position of the mouse when clicked to create context menu
       */
-    void queryContext( int, int );
+    void queryContext( int, int );            
     /**
       * Sets the ctr-click marker position
       */
@@ -430,21 +405,13 @@ Q_SIGNALS:
       */
     void enableTemplateMarkers( bool );
     /**
-      * Sets the frustum properties of the camera view
-      */
-    void setFrustum( const float &, const float &, const float&, const float& );
-    /**
       * emit signal to indicate that the context menu has been processed
       */
-    void finishedContextMenuSetup( int x, int y );
+    //void finishedContextMenuSetup( int x, int y );
     /**
       * Sends the current ctr-click position as text
       */
     void sendPositionText(QString s);
-    /**
-      * updates the context menu items
-      */
-    void updateMainViewItems();
     /**
       * Handler for the large red stop button
       */
@@ -487,7 +454,7 @@ protected:
 
     Ogre::Camera* getCamera();
 
-    NotificationSystem * notification_system_;
+    NotificationSystem* notification_system_;
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
@@ -509,7 +476,8 @@ protected:
     rviz::Display* raycast_point_cloud_viewer_;
     rviz::Display* joint_arrows_;
     rviz::Display* ghost_joint_arrows_;
-    std::map<std::string,rviz::Display*> frustum_viewer_list_;
+    rviz::Display* frustum_display_;
+    std::map<std::string,rviz::Display*> frustum_map_;
 
     // list of gridmaps to be displayed
     std::vector<rviz::Display*> ground_map_;
@@ -594,7 +562,7 @@ protected:
 
     int flor_atlas_current_mode_;
 
-    std::vector<int> keys_pressed_list_;
+    std::vector<std::string> keys_pressed_list_;
 
     ros::Subscriber key_event_sub_;
     ros::Subscriber hotkey_relay_sub_;
@@ -627,8 +595,6 @@ protected:
     bool disable_joint_markers_;
     //flag to disable extra calls to setting render order in timer function
     bool occluded_robot_visible_;
-
-
 
 
 
@@ -670,18 +636,9 @@ protected:
 
     void removeFootstep();
 
-    void clearStartingFootstep();
-
-    void stitchFootstepPlans();
-
-
-
-
 
     ////////////////////
     // context menu
-
-
     /**
       * Context menu action for inserting a template
       */
@@ -693,73 +650,12 @@ protected:
     /**
       * Context menu action for executing a footstep plan
       */
-    void executeFootstepPlanContextMenu();
 
+    BaseContextMenu * base_context_menu_;    
+    ContextMenuManager* context_menu_manager_;
 
-    contextMenuItem * selectFootstepGoalMenu;
-    contextMenuItem * insertTemplateMenu;
-    contextMenuItem * removeTemplateMenu;
-    contextMenuItem * selectTemplateMenu;
-    contextMenuItem * removeFootstepMenu;
-    contextMenuItem * selectFootstepMenu;
-    contextMenuItem * selectStartFootstepMenu;
-    contextMenuItem * clearStartFootstepMenu;
-    contextMenuItem * lockFootstepMenu;
-    contextMenuItem * unlockFootstepMenu;
-    contextMenuItem * undoFootstepMenu;
-    contextMenuItem * redoFootstepMenu;
-    contextMenuItem * footstepGoalMenu;
-    contextMenuItem * stitchFootstepMenu;
-    contextMenuItem * defaultFootstepRequestMenu;
-    contextMenuItem * customFootstepRequestMenu;
-    contextMenuItem * executeFootstepPlanMenu;
-    contextMenuItem * cartesianMotionMenu;
-    contextMenuItem * createCartesianMarkerMenu;
-    contextMenuItem * removeCartesianMarkerMenu;
-    contextMenuItem * circularMotionMenu;
-    contextMenuItem * createCircularMarkerMenu;
-    contextMenuItem * removeCircularMarkerMenu;
-    contextMenuItem * lockLeftMenu;
-    contextMenuItem * lockRightMenu;
-    contextMenuItem * unlockArmsMenu;
-    contextMenuItem * snapHandMenu;
-    contextMenuItem * leftArmMenu;
-    contextMenuItem * rightArmMenu;
-
-    std::vector<contextMenuItem*> contextMenuItems;
-
-    QTreeWidget * templateRoot;
-
-    QMenu context_menu_;
-    QAction* context_menu_selected_item_;
-
-    int initializing_context_menu_;
     std::string active_context_name_;
 
-    /**
-      * add all existing templates to the insert template context menu
-      */
-    void addTemplatesToContext();
-    /**
-      * insert individual menu to context menu
-      */
-    void contextInsertTemplate(QString name);
-    /**
-      * Adds all context menu elements
-      */
-    void addBase3DContextElements();
-    /**
-      * Helper function for adding context menu from vector
-      */
-    void processContextMenuVector();
-    /**
-      * Helper function for adding context menu from vector
-      */
-    void addToContextMenuFromVector();
-    /**
-      * Select template or hands using the context menu
-      */
-    void selectContextMenu();
     /**
       * removes template using id
       */
@@ -768,8 +664,6 @@ protected:
       * Gives object context on right click
       */
     int findObjectContext(std::string obj_type);
-
-
 
 
     ////////////////////
@@ -818,8 +712,6 @@ protected:
     QDoubleSpinBox* circular_angle_;
 
     ros::Subscriber send_cartesian_sub_;
-
-
 
     ////////////////////
     // ghost
@@ -948,6 +840,7 @@ protected:
       */
     void snapHandGhost();
 
+    void initializeFrustums(std::string prefix);
 
     void blurRender();
     void setChildrenVisibility(Ogre::SceneNode* node, std::vector<bool>& last_visibility, bool visibility);

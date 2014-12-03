@@ -3,6 +3,7 @@
 
 
 /*
+ * based on jsk-rviz-plugin
   Added ability to change colors. Scale/position/color are no longer based on effort
 
   */
@@ -38,6 +39,10 @@ namespace rviz
         color_ = new Ogre::ColourValue(0,1.0,0,.9f);
 
         marker_scale_ = .08f;
+        //change this to make animation faster/slower
+        arrow_step_interval_ = .10f;
+        arrow_timer_ = arrow_step_interval_;
+        is_ghost_ = false;
     }
 
     JointVisualCustom::~JointVisualCustom()
@@ -58,82 +63,114 @@ namespace rviz
         delete(color_);
     }
 
-    void JointVisualCustom::setMessage( const sensor_msgs::JointStateConstPtr& msg )
+    void JointVisualCustom::setGhost(bool ghost)
     {
-        // for all joints...
-        int joint_num = msg->name.size();
-        for (int i = 0; i < joint_num; i++ )
+        is_ghost_ = ghost;
+    }
+
+    void JointVisualCustom::setMessage( const sensor_msgs::JointState::ConstPtr& msg )
+    {
+       joint_msg_ = msg;
+    }
+
+    void JointVisualCustom::update( float wall_dt, float ros_dt )
+    {
+        arrow_timer_ -= wall_dt;
+        if(arrow_timer_ < 0 && joint_msg_)
         {
-            std::string joint_name = msg->name[i];            
-            const urdf::Joint* joint = urdf_model_->getJoint(joint_name).get();
-            int joint_type = joint->type;
-            if ( joint_type == urdf::Joint::REVOLUTE )
+            // for all joints...
+            int joint_num = joint_msg_->name.size();
+            for (int i = 0; i < joint_num; i++ )
             {
-                if(effort_circle_.find(joint_name) == effort_circle_.end())
+                std::string joint_name = joint_msg_->name[i];
+                const urdf::Joint* joint = urdf_model_->getJoint(joint_name).get();
+                int joint_type = joint->type;
+                if ( joint_type == urdf::Joint::REVOLUTE )
                 {
-                    effort_circle_[joint_name] = new rviz::BillboardLine( scene_manager_, frame_node_ );
-                    effort_arrow_[joint_name] = new rviz::Arrow( scene_manager_, frame_node_ );
-                    current_arrow_point_[joint_name] = 0;
-
-                    setJointColor(0,1,0,joint_name);
-                }
-
-                //tf::Transform offset = poseFromJoint(joint);
-                boost::shared_ptr<urdf::JointLimits> limit = joint->limits;
-
-                //set arrow dimensions
-                effort_arrow_[joint_name]->set(0, width_*2, width_*2*1.0, width_*2*2.0);
-
-                //initialize circle
-                effort_circle_[joint_name]->clear();
-                effort_circle_[joint_name]->setLineWidth(width_);
-
-                //store next arrow index
-                int next_index;
-
-                //circle is made up of points.. for each oint
-                for (int j = 0; j < 32; j++)
-                {
-                    //calculate current point to be drawn
-                    Ogre::Vector3 point = Ogre::Vector3((0.05+marker_scale_*scale_*0.5)*sin(j*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(j*2*M_PI/32), 0);
-                    //ROS_ERROR("[%d] point %f %f %f ",current_arrow_point_[joint_name],point.x,point.y,point.z);
-
-                    //at skipped point?  and have a desired direction for an arrow?
-                    if(j == current_arrow_point_[joint_name] && arrow_directions_.find(joint_name) != arrow_directions_.end())
+                    if(effort_circle_.find(joint_name) == effort_circle_.end())
                     {
-                        //ROS_ERROR("%s: %d", joint_name.c_str(), j);
-                        //move arrow along circle by setting position at different points
-                        effort_arrow_[joint_name]->setPosition(orientation_[joint_name] * point + position_[joint_name]);
-                        //calculate next index for arrow direction
-                        next_index = current_arrow_point_[joint_name] + arrow_directions_[joint_name];
-                        if(next_index == -1)
-                            next_index = 31;
-                        else if (next_index == 32)
-                            next_index = 0;
-                        //arrow points to previous point or next point in the circle
-                        Ogre::Vector3 next_point = Ogre::Vector3((0.05+marker_scale_*scale_*0.5)*sin(next_index*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(next_index*2*M_PI/32), 0);
-                        //ROS_ERROR("next point %f %f %f ",next_point.x,next_point.y,next_point.z);
-                        effort_arrow_[joint_name]->setDirection(orientation_[joint_name] * (next_point-point));
+                        effort_circle_[joint_name] = new rviz::BillboardLine( scene_manager_, frame_node_ );
+                        setRenderOrder(effort_circle_[joint_name]->getSceneNode());
+                        effort_arrow_[joint_name] = new rviz::Arrow( scene_manager_, frame_node_ );
+                        setRenderOrder(effort_arrow_[joint_name]->getSceneNode());
+                        current_arrow_point_[joint_name] = 0;
+
+                        setJointColor(0,1,0,joint_name);
                     }
 
-                    //ROS_ERROR("arrow point: %d",current_arrow_point_[joint_name]);
-                    //draw point
+                    //set arrow dimensions
+                    effort_arrow_[joint_name]->set(0, width_*2, width_*2*1.0, width_*2*2.0);
+
+                    //initialize circle
+                    effort_circle_[joint_name]->clear();
+                    effort_circle_[joint_name]->setLineWidth(width_);
+
+                    //store next arrow index
+                    int next_index;
+                    //circle is made up of points.. for each point
+                    for (int j = 0; j < 32; j++)
+                    {
+                        //calculate current point to be drawn
+                        Ogre::Vector3 point ;
+                        if(is_ghost_)
+                        {
+                            point= Ogre::Vector3(0, (0.05+marker_scale_*scale_*0.5)*sin(j*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(j*2*M_PI/32));
+                        }
+                        else
+                        {
+                            point= Ogre::Vector3((0.05+marker_scale_*scale_*0.5)*sin(j*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(j*2*M_PI/32), 0);
+                        }
+                        //at skipped point?  and have a desired direction for an arrow?
+                        if(j == current_arrow_point_[joint_name] && arrow_directions_.find(joint_name) != arrow_directions_.end())
+                        {
+                            //move arrow along circle by setting position at different points
+                            effort_arrow_[joint_name]->setPosition(orientation_[joint_name] * point + position_[joint_name]);
+                            //calculate next index for arrow direction
+                            next_index = current_arrow_point_[joint_name] + arrow_directions_[joint_name];
+                            if(next_index == -1)
+                                next_index = 31;
+                            else if (next_index == 32)
+                                next_index = 0;
+
+                            Ogre::Vector3 next_point;
+                            if(is_ghost_)
+                            {
+                                next_point= Ogre::Vector3(0,(0.05+marker_scale_*scale_*0.5)*sin(next_index*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(next_index*2*M_PI/32));
+                            }
+                            else
+                            {
+                                next_point= Ogre::Vector3((0.05+marker_scale_*scale_*0.5)*sin(next_index*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(next_index*2*M_PI/32), 0);
+                            }
+                            //arrow points to previous point or next point in the circle                            
+                            effort_arrow_[joint_name]->setDirection(orientation_[joint_name] * (next_point-point));
+                        }
+                        //draw point
+                        effort_circle_[joint_name]->addPoint(orientation_[joint_name] * point + position_[joint_name]);
+                    }
+
+                    // set the arrow index
+                    current_arrow_point_[joint_name] = next_index;
+
+                    Ogre::Vector3 point ;
+                    if(is_ghost_)
+                    {
+                        point= Ogre::Vector3(0,(0.05+marker_scale_*scale_*0.5)*sin(0*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(0*2*M_PI/32));
+                    }
+                    else
+                    {
+                        point=Ogre::Vector3((0.05+marker_scale_*scale_*0.5)*sin(0*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(0*2*M_PI/32), 0);
+                    }
+                    // add the first point again to close the circle                    
                     effort_circle_[joint_name]->addPoint(orientation_[joint_name] * point + position_[joint_name]);
                 }
-
-                // set the arrow index
-                current_arrow_point_[joint_name] = next_index;
-
-                // add the first point again to close the circle
-                Ogre::Vector3 point = Ogre::Vector3((0.05+marker_scale_*scale_*0.5)*sin(0*2*M_PI/32), (0.05+marker_scale_*scale_*0.5)*cos(0*2*M_PI/32), 0);
-                effort_circle_[joint_name]->addPoint(orientation_[joint_name] * point + position_[joint_name]);
             }
+            //reset timer
+            arrow_timer_ = arrow_step_interval_;
         }
     }
 
     void JointVisualCustom::setArrowDirection(std::string jointName,int direction)
-    {
-        //ROS_ERROR("set arrow %s %d",jointName.c_str(),direction);
+    {        
         arrow_directions_[jointName] = direction;
     }
 
@@ -142,7 +179,7 @@ namespace rviz
         for(int i =0;i<sceneNode->numAttachedObjects();i++)
         {
             Ogre::MovableObject* obj =  sceneNode->getAttachedObject(i);
-            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + 50);
+            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + 1);
         }
         //recurse for all potential children
         for(int i =0;i<sceneNode->numChildren();i++)
@@ -186,13 +223,13 @@ namespace rviz
     {        
         color_->a = a;
         if(effort_circle_.count(joint_name)> 0)// && effort_arrow_.count(joint_name)> 0)
-        {
-            //ROS_ERROR("set alpha %s %f", joint_name.c_str(), a);
+        {            
             effort_circle_[joint_name]->setColor(color_->r,color_->g,color_->b,color_->a);
             effort_arrow_[joint_name]->setColor(color_->r,color_->g,color_->b,color_->a);
         }
         else
         {
+            //may occur on startup with ghost
             ROS_ERROR("Tried to change non-existing joint alpha : %s\n",joint_name.c_str());
         }
     }
@@ -203,8 +240,7 @@ namespace rviz
         color_->g = g;
         color_->b = b;
         if(effort_circle_.count(joint_name)> 0)// && effort_arrow_.count(joint_name)> 0)
-        {
-          /// ROS_ERROR("set color %s %f %f %f", joint_name.c_str(),color_->r,color_->g,color_->b);
+        {          
             effort_circle_[joint_name]->setColor(color_->r,color_->g,color_->b,color_->a);
             effort_arrow_[joint_name]->setColor(color_->r,color_->g,color_->b,color_->a);
         }

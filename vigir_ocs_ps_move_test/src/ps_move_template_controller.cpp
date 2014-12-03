@@ -33,7 +33,6 @@ void quatToEuler(QQuaternion q1, float& heading, float& attitude, float& bank)
 
 PSMoveTemplateController::PSMoveTemplateController()
 {
-
     // get the camera pose and properties
     camera_sub_ = nh_.subscribe<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform",5,&PSMoveTemplateController::processCameraTransform,this);
 

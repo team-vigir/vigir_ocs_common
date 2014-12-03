@@ -61,6 +61,7 @@
 
 // local includes
 #include "base_3d_view.h"
+#include "base_context_menu.h"
 
 // define used to determine interactive marker mode
 #define IM_MODE_OFFSET 3
@@ -88,8 +89,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     , left_marker_moveit_loopback_(true)
     , right_marker_moveit_loopback_(true)
     , position_only_ik_(false)
-    , visualize_grid_map_(true)
-    , initializing_context_menu_(0)
+    , visualize_grid_map_(true)   
     , circular_marker_(0)
 {
     // Construct and lay out render panel.
@@ -460,9 +460,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // advertise pointcloud request
         pointcloud_request_world_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
 
-        // frustum
-        frustum_viewer_list_["head_left"] = manager_->createDisplay( "rviz/FrustumDisplayCustom", "Frustum - Left Eye", true );
-
         // Create a display for 3D selection
         selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
         //}
@@ -497,9 +494,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         pelvis_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/pelvis_marker_pose" );
         pelvis_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
         ((rviz::VectorProperty*)pelvis_bounding_box_->subProp( "Scale" ))->setVector( Ogre::Vector3(0.005f,0.005f,0.005f) );
-
-        // set frustum
-        QObject::connect(this, SIGNAL(setFrustum(const float&,const float&,const float&,const float&)), frustum_viewer_list_["head_left"], SLOT(setFrustum(const float&,const float&,const float&,const float&)));
 
         // create the window for cartesian motion
         cartesian_config_widget_ = new QWidget();
@@ -612,10 +606,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
         ghost_joint_arrows_->subProp("Width")->setValue("0.015");
         ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
+        ghost_joint_arrows_->subProp("isGhost")->setValue(true);
 
         disable_joint_markers_ = false;
-        occluded_robot_visible_ = false;
-        //renderTexture1 = NULL;
+        occluded_robot_visible_ = false;        
 
         //setRobotOccludedRender();
 
@@ -624,13 +618,24 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // initialize Render Order correctly
         //setRenderOrder();
 
-        overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
-        overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
-
         // initialize notification system
-        // and test        
+        overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
+        overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");      
 
+        //create visualizations for camera frustum
+        //initializeFrustums("/flor/ocs/camera/atlas");
+       // initializeFrustums("/flor/ocs/camera/left_hand");
+        //initializeFrustums("/flor/ocs/camera/right_hand");
+
+        //left eye test, need to load topics on launch
+        frustum_display_ = manager_->createDisplay("rviz/CameraFrustumDisplayCustom","Frustum Display", true);
+        frustum_display_->subProp("Topic")->setValue("/multisense_sl/left/camera_info");
+        frustum_display_->subProp("alpha")->setValue("0.05");
+        frustum_display_->setEnabled(false);
     }
+
+    //initialize overall context menu
+    context_menu_manager_ = new ContextMenuManager(this);
 
     // Connect the 3D selection tool to
     QObject::connect(this, SIGNAL(queryContext(int,int)), selection_3d_display_, SLOT(queryContext(int,int)));
@@ -651,7 +656,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     QObject::connect(render_panel_, SIGNAL(signalMouseDoubleClickEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseDoubleClick(QMouseEvent*)));
     QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(raycastRequest(bool,int,int)));
     //QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(raycastRequestROI(bool,int,int)));
-    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)), this, SLOT(createContextMenu(bool,int,int)));
+    //initializes overall context menu
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)),context_menu_manager_, SLOT(createContextMenu(bool,int,int)));
     QObject::connect(mouse_event_handler_, SIGNAL(signalMouseLeftDoubleClick(int,int)), this, SLOT(selectOnDoubleClick(int,int)));
 
     Q_FOREACH( QWidget* sp, findChildren<QWidget*>() ) {
@@ -704,8 +710,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     // advertise publisher for camera transform
     camera_transform_pub_ = nh_.advertise<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform", 5, false );
 
-    //build context menu
-    addBase3DContextElements();
+    //initialize  base-specific context menu
+    base_context_menu_ = new BaseContextMenu(this);
 
     //Initialize shift_pressed_ to false and set interactive_marker_mode_ to default
     shift_pressed_ = false;
@@ -721,7 +727,23 @@ Base3DView::~Base3DView()
     delete manager_;
 }
 
+void Base3DView::initializeFrustums(std::string prefix)
+{
+    // get cameras parameters and create rviz::display
+    XmlRpc::XmlRpcValue camera_topic_prefix;
 
+    nh_.getParam(prefix+"/topic_prefix", camera_topic_prefix);
+    for(int i = 0; i < camera_topic_prefix.size(); i++)
+    {
+        std::string topic = static_cast<std::string>(camera_topic_prefix[i]);
+        //ROS_ERROR("topic %s",topic.c_str());
+        rviz::Display* frustum_display = manager_->createDisplay("rviz/CameraFrustumDisplayCustom","Frustum Display", true);
+        frustum_display->subProp("Topic")->setValue(topic.c_str());
+        frustum_display->subProp("alpha")->setValue("0.05");
+        frustum_display->setEnabled(false);
+        frustum_map_[topic] = frustum_display;
+    }
+}
 //NOTE: DOES NOT CURRENTLY WORK, TODO: figure a way to pass a rendered texture from shader program to shader program to accumulate effects
 void Base3DView::blurRender()
 {
@@ -1097,6 +1119,15 @@ void Base3DView::notificationSystemToggled(bool selected)
     ocs_sync_pub_.publish(msg);
 }
 
+void Base3DView::cameraFrustumToggled(bool selected)
+{
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("Frustum Display");
+    msg.reset.push_back(false);
+    msg.visible.push_back(selected);
+    ocs_sync_pub_.publish(msg);
+}
+
 void Base3DView::footstepPlanningToggled( bool selected )
 {
     footstep_vis_manager_->setEnabled(selected);
@@ -1349,6 +1380,16 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
                     //only toggle notification visibility
                     overlay_display_->setEnabled(msg->visible[i]);
                 }
+                else if(display_name.compare("Frustum Display") == 0)
+                {
+                    //toggle all frustums
+                    for (std::map<std::string,rviz::Display*>::iterator it=frustum_map_.begin(); it!=frustum_map_.end(); ++it)
+                    {
+                        rviz::Display* frustum_display = it->second;
+                        frustum_display->setEnabled(msg->visible[i]);
+                    }
+                    frustum_display_->setEnabled(msg->visible[i]);
+                }
 
             }
         }
@@ -1371,13 +1412,10 @@ void Base3DView::defineFootstepGoal()
     manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
 }
 
-void Base3DView::requestFootstepPlan(unsigned int request_mode)
-{
-    footstep_vis_manager_->requestStepPlan();
-}
-
 void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
+    // If a goal is set, need to go back to interactive marker tool
+    manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
 }
 
 void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc )
@@ -1571,134 +1609,6 @@ void Base3DView::insertWaypoint()
     }
 }
 
-void Base3DView::setTemplateTree(QTreeWidget * root)
-{
-    if(root != NULL)
-    {
-        templateRoot = root;
-        addTemplatesToContext();
-    }
-}
-
-void Base3DView::addBase3DContextElements()
-{
-    //creates all menu items for context menu in a base view, visibility is set on create
-
-    //seperator item can be added to vector to create a seperator in context menu
-    contextMenuItem * separator = new contextMenuItem();
-    separator->name = "Separator";
-
-    // selection items
-    selectTemplateMenu = makeContextChild("Select Template",boost::bind(&Base3DView::selectTemplate,this),NULL,contextMenuItems);
-
-    leftArmMenu = makeContextChild("Select Left Arm",boost::bind(&Base3DView::selectLeftArm,this),NULL,contextMenuItems);
-    rightArmMenu = makeContextChild("Select Right Arm",boost::bind(&Base3DView::selectRightArm,this),NULL,contextMenuItems);
-
-    selectFootstepGoalMenu = makeContextChild("Select Footstep",boost::bind(&Base3DView::selectFootstepGoal,this),NULL,contextMenuItems);
-    selectFootstepMenu = makeContextChild("Select Footstep",boost::bind(&Base3DView::selectFootstep,this),NULL,contextMenuItems);
-    lockFootstepMenu = makeContextChild("Lock Footstep",boost::bind(&Base3DView::lockFootstep,this),NULL,contextMenuItems);
-    unlockFootstepMenu = makeContextChild("Unlock Footstep",boost::bind(&Base3DView::unlockFootstep,this),NULL,contextMenuItems);
-    removeFootstepMenu = makeContextChild("Remove Footstep",boost::bind(&Base3DView::removeFootstep,this),NULL,contextMenuItems);
-    selectStartFootstepMenu = makeContextChild("Set Starting Footstep",boost::bind(&Base3DView::setStartingFootstep,this),NULL,contextMenuItems);
-    clearStartFootstepMenu = makeContextChild("Clear Starting Footstep",boost::bind(&Base3DView::clearStartingFootstep,this),NULL,contextMenuItems);
-    stitchFootstepMenu = makeContextChild("Stitch Plans",boost::bind(&Base3DView::stitchFootstepPlans,this),NULL,contextMenuItems);
-
-    addToContextVector(separator);
-
-    snapHandMenu = makeContextChild("Snap Hand to Ghost",boost::bind(&Base3DView::snapHandGhost,this),NULL,contextMenuItems);
-
-    addToContextVector(separator);
-
-    footstepGoalMenu = makeContextChild("Create Step Plan Goal",boost::bind(&vigir_ocs::Base3DView::defineFootstepGoal,this), NULL, contextMenuItems);
-    defaultFootstepRequestMenu = makeContextChild("Request Step Plan",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
-    customFootstepRequestMenu = makeContextChild("Request Step Plan...",boost::bind(&vigir_ocs::Base3DView::requestFootstepPlan,this,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL, contextMenuItems);
-    executeFootstepPlanMenu = makeContextChild(QString("Execute Step Plan"),boost::bind(&Base3DView::executeFootstepPlanContextMenu,this),NULL,contextMenuItems);
-    undoFootstepMenu = makeContextChild("Undo Step Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL,contextMenuItems);
-    redoFootstepMenu = makeContextChild("Redo Step Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL,contextMenuItems);
-
-    addToContextVector(separator);
-
-    insertTemplateMenu = makeContextParent("Insert Template",contextMenuItems);
-    removeTemplateMenu = makeContextChild("Remove Template",boost::bind(&Base3DView::removeTemplateContextMenu,this),NULL,contextMenuItems);
-
-    addToContextVector(separator);
-
-    lockLeftMenu = makeContextChild("Lock Left Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL,contextMenuItems);
-    lockRightMenu = makeContextChild("Lock Right Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL,contextMenuItems);
-    unlockArmsMenu = makeContextChild("Unlock Arms",boost::bind(&Base3DView::setTemplateGraspLock,this,-1),NULL,contextMenuItems);
-
-    addToContextVector(separator);       
-
-    cartesianMotionMenu = makeContextParent("Cartesian Motion", contextMenuItems);
-
-    createCartesianMarkerMenu = makeContextChild("Create Cartesian Motion Marker",boost::bind(&Base3DView::createCartesianContextMenu,this),cartesianMotionMenu,contextMenuItems);
-    removeCartesianMarkerMenu = makeContextChild("Remove All Markers",boost::bind(&Base3DView::removeCartesianContextMenu,this),cartesianMotionMenu,contextMenuItems);
-
-    circularMotionMenu = makeContextParent("Circular Motion", contextMenuItems);
-
-    createCircularMarkerMenu = makeContextChild("Create Circular Motion Marker",boost::bind(&Base3DView::createCircularContextMenu,this),circularMotionMenu,contextMenuItems);
-    removeCircularMarkerMenu = makeContextChild("Remove marker",boost::bind(&Base3DView::removeCircularContextMenu,this),circularMotionMenu,contextMenuItems);
-
-    addToContextVector(separator);
-}
-
-void Base3DView::addTemplatesToContext()
-{
-    if(templateRoot != NULL)
-    {
-        QTreeWidgetItemIterator it(templateRoot);
-        while (*it)
-        {
-            contextMenuItem * localParent;
-            if(!(*it)->text(0).contains(".mesh")) //only templates have .mesh
-            {
-                //will be traversed before children, can be used locally for children as well
-                //next parent won't be called until after all children, preorder traversal
-                //need to make manually as we have a parent with a parent(not handled by built-in method)
-                localParent = new contextMenuItem();
-                localParent->hasChildren = true;
-                localParent->name = (*it)->text(0);
-                localParent->parent = insertTemplateMenu;
-                addToContextVector(localParent);
-            }
-            else
-            {
-                //build path to template for insertion
-                QString path = localParent->name + "/" + (*it)->text(0);
-                // ROS_ERROR("path %s",qPrintable(path));
-                makeContextChild((*it)->text(0),boost::bind(&Base3DView::contextInsertTemplate,this,path),localParent,contextMenuItems);
-            }
-            ++it;
-        }
-    }
-}
-
-
-void Base3DView::contextInsertTemplate(QString path)
-{
-    insertTemplate(path);
-}
-
-contextMenuItem * Base3DView::makeContextParent(QString name,std::vector<contextMenuItem * > &contextMenuElements)
-{
-    contextMenuItem * parent = new contextMenuItem();
-    parent->name = name;
-    parent->hasChildren = true;
-    contextMenuElements.push_back(parent);
-    return parent;
-}
-
-contextMenuItem * Base3DView::makeContextChild(QString name,boost::function<void()> function,contextMenuItem * parent,std::vector<contextMenuItem * > &contextMenuElements)
-{
-    contextMenuItem * child = new contextMenuItem();
-    child->name = name;
-    child->function = function;
-    child->parent = parent;
-    child->hasChildren = false;
-    contextMenuElements.push_back(child);
-    return child;
-}
-
 void Base3DView::selectOnDoubleClick(int x, int y)
 {
     deselectAll();
@@ -1716,216 +1626,6 @@ void Base3DView::selectOnDoubleClick(int x, int y)
         selectFootstep();
 }
 
-void Base3DView::createContextMenu(bool, int x, int y)
-{
-    initializing_context_menu_++;
-
-    context_menu_selected_item_ = NULL;
-
-    context_menu_.clear();
-    context_menu_.setTitle("Base Menu");
-
-    context_menu_.setStyleSheet("font-size:11px;");
-
-    // first we need to query the 3D scene to retrieve the context
-    Q_EMIT queryContext(x,y);
-    // context is stored in the active_context_ variable
-    std::cout << "Active context: " << active_context_ << std::endl;
-
-    addToContextMenuFromVector();
-
-    //insert stuff in constructor
-    //have special case for empty vector item. insert separator when found
-    //context_menu_.addAction("Insert Template");
-
-    //ROS_ERROR("CONTEXT: %s",active_context_name_.c_str());
-
-    //toggle visibility of context items for a base view
-
-    //arms selection
-    if(active_context_name_.find("LeftArm") != std::string::npos)
-    {
-        context_menu_.removeAction(rightArmMenu->action);
-    }
-    else if(active_context_name_.find("RightArm") != std::string::npos)
-    {
-        context_menu_.removeAction(leftArmMenu->action);
-    }
-    else //neither arm selected
-    {
-        context_menu_.removeAction(rightArmMenu->action);
-        context_menu_.removeAction(leftArmMenu->action);
-    }
-
-    //remove footstep-related items if context is not footstep
-    if(active_context_name_.find("footstep") == std::string::npos || active_context_name_.find("footstep goal") != std::string::npos)
-    {
-
-        context_menu_.removeAction(selectFootstepMenu->action);
-        context_menu_.removeAction(lockFootstepMenu->action);
-        context_menu_.removeAction(unlockFootstepMenu->action);
-        context_menu_.removeAction(removeFootstepMenu->action);
-        context_menu_.removeAction(selectStartFootstepMenu->action);
-    }
-
-    //footstep goal is still technically a footstep but need seperate case
-    if(active_context_name_.find("footstep goal") == std::string::npos)
-    {
-        //remove context items as not needed
-        context_menu_.removeAction(selectFootstepGoalMenu->action);
-    }
-
-    //cannot request footstep plan without goal
-    if(!footstep_vis_manager_->hasGoal())
-    {
-        context_menu_.removeAction(defaultFootstepRequestMenu->action);
-    }
-    context_menu_.removeAction(customFootstepRequestMenu->action);
-
-    //cannot execute without footstep plan
-    if(!footstep_vis_manager_->hasValidStepPlan())
-    {
-        context_menu_.removeAction(executeFootstepPlanMenu->action);
-    }
-
-    if(!footstep_vis_manager_->hasStartingFootstep())
-    {
-        context_menu_.removeAction(clearStartFootstepMenu->action);
-    }
-
-    // context is stored in the active_context_ variable
-    //lock/unlock arms context items
-    if(active_context_name_.find("template") == std::string::npos)
-    {
-        //remove context items as not needed
-        context_menu_.removeAction(removeTemplateMenu->action);
-        context_menu_.removeAction(selectTemplateMenu->action);
-        context_menu_.removeAction(lockLeftMenu->action);
-        context_menu_.removeAction(lockRightMenu->action);
-    }
-
-    if((ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] && ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM]) || (ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] && ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM]))
-    {
-        //show only unlock
-        context_menu_.removeAction(lockLeftMenu->action);
-        context_menu_.removeAction(lockRightMenu->action);
-    }
-    else
-    {
-        //dont show unlock.. both arms are free and ready to be locked
-        context_menu_.removeAction(unlockArmsMenu->action);
-    }
-
-//    if(flor_atlas_current_mode_ == 0 || flor_atlas_current_mode_ == 100)
-//    {
-//        executeFootstepPlanMenu->action->setEnabled(true);
-//    }
-//    else
-//    {
-//        context_menu_.removeAction(executeFootstepPlanMenu->action);
-//    }
-
-    if(cartesian_marker_list_.size() == 0)
-    {
-        cartesianMotionMenu->menu->removeAction(removeCartesianMarkerMenu->action);
-        //removeCartesianMarkerMenu->action->setEnabled(false);
-    }
-    else
-        removeCartesianMarkerMenu->action->setEnabled(true);
-
-    if(circular_marker_ != NULL)
-    {
-        createCircularMarkerMenu->action->setEnabled(false);
-        removeCircularMarkerMenu->action->setEnabled(true);
-    }
-    else if(circular_marker_ == NULL)
-    {
-        createCircularMarkerMenu->action->setEnabled(true);
-        circularMotionMenu->menu->removeAction(removeCircularMarkerMenu->action);
-        //removeCircularMarkerMenu->action->setEnabled(false);
-    }
-
-
-    if(initializing_context_menu_ == 1)
-        processContextMenu(x, y);
-
-    initializing_context_menu_--;
-}
-
-void Base3DView::addToContextVector(contextMenuItem* item)
-{
-    contextMenuItems.push_back(item); //insert new element
-}
-
-void Base3DView::addToContextMenuFromVector()
-{
-    for(int i=0;i<contextMenuItems.size();i++)
-    {
-        if(contextMenuItems[i]->name == "Separator")
-        {
-            context_menu_.addSeparator();
-            continue;
-        }
-        //top level menu item
-        if(contextMenuItems[i]->parent == NULL)
-        {
-            if(contextMenuItems[i]->hasChildren)
-            {
-                QMenu * menu = context_menu_.addMenu(contextMenuItems[i]->name);
-                contextMenuItems[i]->menu = menu;
-            }
-            else //no children, must be action
-            {
-                QAction * action = context_menu_.addAction(contextMenuItems[i]->name);
-                contextMenuItems[i]->action = action;
-            }
-        }
-        else // can guarantee parent has already been added provided elements were added in correct order to vector
-        {
-            if(contextMenuItems[i]->hasChildren)
-            {
-                QMenu * menu = contextMenuItems[i]->parent->menu->addMenu(contextMenuItems[i]->name);
-                contextMenuItems[i]->menu = menu;
-            }
-            else
-            {
-                QAction * action = contextMenuItems[i]->parent->menu->addAction(contextMenuItems[i]->name);
-                contextMenuItems[i]->action = action;
-            }
-        }
-    }
-    Q_EMIT updateMainViewItems();
-}
-
-void Base3DView::processContextMenuVector()
-{
-    for(int i =0; i<contextMenuItems.size();i++)
-    {
-        //check parent if it exists?
-        if(contextMenuItems[i]->parent != NULL && ((QMenu*)context_menu_selected_item_->parent())->title() == contextMenuItems[i]->parent->name )
-        {
-            //check actual item
-            if( context_menu_selected_item_->text() == contextMenuItems[i]->name)
-            {
-                if(contextMenuItems[i]->function != NULL)
-                {
-                    contextMenuItems[i]->function(); //call binded function
-                }
-            }
-        }
-        else // no parent, must still check item
-        {
-            if( context_menu_selected_item_->text() == contextMenuItems[i]->name)
-            {
-                if(contextMenuItems[i]->function != NULL)
-                {
-                    contextMenuItems[i]->function(); //call binded function
-                }
-            }
-        }
-    }
-}
-
 //callback functions for context Menu
 void Base3DView::insertTemplateContextMenu()
 {
@@ -1935,16 +1635,7 @@ void Base3DView::insertTemplateContextMenu()
     }
 }
 
-void Base3DView::removeTemplateContextMenu()
-{
-    int start = active_context_name_.find(" ")+1;
-    int end = active_context_name_.find(".");
-    QString template_number(active_context_name_.substr(start, end-start).c_str());
-    //ROS_INFO("%d %d %s",start,end,template_number.toStdString().c_str());
-    bool ok;
-    int t = template_number.toInt(&ok);
-    if(ok) removeTemplate(t);
-}
+
 
 int Base3DView::findObjectContext(std::string obj_type)
 {
@@ -1963,10 +1654,6 @@ int Base3DView::findObjectContext(std::string obj_type)
     return -1;
 }
 
-void Base3DView::clearStartingFootstep()
-{
-    footstep_vis_manager_->clearStartingFootstep();
-}
 
 void Base3DView::setStartingFootstep()
 {
@@ -1975,10 +1662,6 @@ void Base3DView::setStartingFootstep()
         footstep_vis_manager_->setStartingFootstep(id/2); // divide by two since markers come in pairs of cube+text
 }
 
-void Base3DView::stitchFootstepPlans()
-{
-    footstep_vis_manager_->requestStitchFootstepPlans();
-}
 
 void Base3DView::lockFootstep()
 {
@@ -2153,11 +1836,6 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
     }
 }
 
-void Base3DView::executeFootstepPlanContextMenu()
-{
-    footstep_vis_manager_->requestExecuteStepPlan();
-}
-
 void Base3DView::createCartesianContextMenu()
 {
     // if this is the first cartesian marker, create config window
@@ -2286,19 +1964,6 @@ void Base3DView::removeCircularContextMenu()
     manager_->notifyConfigChanged();
     circular_marker_ = NULL;
 }
-void Base3DView::processContextMenu(int x, int y)
-{
-    QPoint globalPos = this->mapToGlobal(QPoint(x,y));
-    context_menu_selected_item_ = context_menu_.exec(globalPos);
-
-    //std::cout << selectedItem << std::endl;
-    if(context_menu_selected_item_ != NULL)
-    {
-        processContextMenuVector();
-    }
-}
-
-
 
 void Base3DView::removeTemplate(int id)
 {
@@ -2313,10 +1978,15 @@ void Base3DView::removeTemplate(int id)
     NotificationSystem::Instance()->notifyPassive("Template Removed");
 }
 
+void Base3DView::emitQueryContext(int x,int y)
+{
+    Q_EMIT queryContext(x,y);
+}
+
 void Base3DView::setContext(int context, std::string name)
 {
     active_context_ = context;
-    active_context_name_ = name;
+    active_context_name_ = name;  
     //std::cout << "Active context: " << active_context_ << std::endl;
 }
 
@@ -3884,42 +3554,64 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
 {
     // store key state
     if(key_event->state)
-        keys_pressed_list_.push_back(key_event->key);
+        keys_pressed_list_.push_back(key_event->keystr);
     else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keystr), keys_pressed_list_.end());
 
     // process hotkeys
-    bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37) != keys_pressed_list_.end());
-    bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
-    bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
+    bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Control_") != keys_pressed_list_.end());
+    bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Shift_") != keys_pressed_list_.end());
+    bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Alt_") != keys_pressed_list_.end());
 
-    if(key_event->key == 9 && key_event->state) // 'esc'
+    if(key_event->keystr == "Escape" && key_event->state) // 'esc'
     {
+        // reset everything
         deselectAll();
+        manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
     }
-    else if(key_event->key == 24 && key_event->state && ctrl_is_pressed) // 'q'
+    else if(key_event->keystr == "q" && key_event->state && ctrl_is_pressed) // ctrl+q
     {
+        // robot model visibility
         robotModelToggled(!robot_model_->isEnabled());
     }
-    else if(key_event->key == 25 && key_event->state && ctrl_is_pressed) // 'w'
+    else if(key_event->keystr == "w" && key_event->state && ctrl_is_pressed) // ctrl+w
     {
+        // ghost visibility
         simulationRobotToggled(!ghost_robot_model_->isEnabled());
     }
-    else if(key_event->key == 10 && key_event->state && ctrl_is_pressed) // ctrl+1
+    else if(key_event->keystr == "1" && key_event->state && ctrl_is_pressed) // ctrl+1
     {
+        // reset point clouds
         clearPointCloudRaycastRequests();
         clearPointCloudRegionRequests();
         clearPointCloudStereoRequests();
     }
-    else if(key_event->key == 18 && key_event->state && ctrl_is_pressed) // ctrl+9
+    else if(key_event->keystr == "9" && key_event->state && ctrl_is_pressed) // ctrl+9
     {
         // rainbow color
         region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
     }
-    else if(key_event->key == 19 && key_event->state && ctrl_is_pressed) // ctrl+9
+    else if(key_event->keystr == "0" && key_event->state && ctrl_is_pressed) // ctrl+0
     {
         // intensity
         region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
+    }
+    else if(key_event->keystr == "g" && key_event->state && ctrl_is_pressed) // ctrl+g
+    {
+        // define a step goal
+        defineFootstepGoal();
+    }
+    else if(key_event->keystr == "h" && key_event->state && ctrl_is_pressed) // ctrl+h
+    {
+        // request plan
+        if(footstep_vis_manager_->hasGoal())
+            footstep_vis_manager_->requestStepPlan();
+    }
+    else if(key_event->keystr == "j" && key_event->state && ctrl_is_pressed) // ctrl+j
+    {
+        // request plan
+        if(footstep_vis_manager_->hasValidStepPlan())
+            footstep_vis_manager_->requestExecuteStepPlan();
     }
     else if(ctrl_is_pressed && alt_is_pressed) //emergency stop
     {

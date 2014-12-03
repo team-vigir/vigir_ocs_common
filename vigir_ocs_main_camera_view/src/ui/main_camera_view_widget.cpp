@@ -6,6 +6,8 @@
 #include <ros/package.h>
 
 #include <rviz/displays_panel.h>
+#include "main_camera_context_menu.h"
+#include "base_context_menu.h"
 
 MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     QWidget(parent),
@@ -98,6 +100,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
             QObject::connect(ui->robot_joint_markers,SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(robotJointMarkerToggled(bool)));
             QObject::connect(ui->robot_occlusion_rendering,SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(robotOcclusionToggled(bool)));
             QObject::connect(ui->notification_system,SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(notificationSystemToggled(bool)));
+            QObject::connect(ui->camera_frustum,SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(cameraFrustumToggled(bool)));
         }
         else
         {
@@ -170,14 +173,10 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     neck_pos_sub_ = nh_.subscribe<std_msgs::Float32> ( "/flor/neck_controller/current_position" , 2, &MainCameraViewWidget::updatePitch, this );
 
     //send template list to views for context menu
-    ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
-    ((CameraViewWidget*)views_list_["Top Right"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
-    ((CameraViewWidget*)views_list_["Bottom Left"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
-    ((CameraViewWidget*)views_list_["Bottom Right"])->getCameraView()->setTemplateTree(ui->template_widget->getTreeRoot());
-
-    sys_command_pub_ = nh_.advertise<std_msgs::String>("/syscommand",1,false);
-
-    addContextMenu();
+    ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((CameraViewWidget*)views_list_["Top Right"])->getCameraView()->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((CameraViewWidget*)views_list_["Bottom Left"])->getCameraView()->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
+    ((CameraViewWidget*)views_list_["Bottom Right"])->getCameraView()->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
 
     //hide sidebar elements that are no longer necessary
     ui->Tools->hide();
@@ -224,6 +223,9 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     //disable joint markers by default
     ui->robot_joint_markers->setCheckState(Qt::Unchecked);
+
+    //build and add Context menu to base3dview
+    main_camera_context_menu_ = new MainCameraContextMenu(this);
 
     timer.start(100, this);
 }
@@ -310,6 +312,16 @@ void MainCameraViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSync
                     changeCheckBoxState(ui->notification_system,Qt::Unchecked);
             }
         }
+        else if(msg->properties[i].compare("Frustum Display") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->camera_frustum,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->camera_frustum,Qt::Unchecked);
+            }
+        }
     }
 }
 
@@ -337,42 +349,6 @@ void MainCameraViewWidget::moveEvent(QMoveEvent * event)
 {    
     QSettings settings("OCS", "camera_view");
     settings.setValue("mainWindowGeometry", this->saveGeometry());    
-}
-
-void MainCameraViewWidget::addContextMenu()
-{
-    //can tell context menu to add a separator when this item is added
-    contextMenuItem * separator = new contextMenuItem();
-    separator->name = "Separator";
-
-    vigir_ocs::Base3DView::makeContextChild("Request Point Cloud",boost::bind(&vigir_ocs::Base3DView::publishPointCloudWorldRequest,((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())), NULL, contextMenuElements);
-
-    contextMenuElements.push_back(separator);
-
-    contextMenuItem * systemCommands = vigir_ocs::Base3DView::makeContextParent("System Commands", contextMenuElements);
-
-    vigir_ocs::Base3DView::makeContextChild("Reset World Model",boost::bind(&MainCameraViewWidget::systemCommandContext,this, "reset"), systemCommands, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Save Octomap",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_octomap"), systemCommands, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Save Pointcloud",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_pointcloud"), systemCommands, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Save Image Head",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_left_eye"), systemCommands, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Save Left Hand Image",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_left_hand"), systemCommands, contextMenuElements);
-    vigir_ocs::Base3DView::makeContextChild("Save Right Hand Image",boost::bind(&MainCameraViewWidget::systemCommandContext,this,"save_image_right_hand"), systemCommands, contextMenuElements);
-
-    //add all context menu items to each view
-    for(int i=0;i<contextMenuElements.size();i++)
-    {
-        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Left"])->getCameraView())->addToContextVector(contextMenuElements[i]);
-        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Top Right"])->getCameraView())->addToContextVector(contextMenuElements[i]);
-        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Bottom Left"])->getCameraView())->addToContextVector(contextMenuElements[i]);
-        ((vigir_ocs::Base3DView*) ((CameraViewWidget*)views_list_["Bottom Right"])->getCameraView())->addToContextVector(contextMenuElements[i]);
-    }
-}
-
-//callback function for context menu
-void MainCameraViewWidget::systemCommandContext(std::string command)
-{
-    sysCmdMsg.data = command;
-    sys_command_pub_.publish(sysCmdMsg);
 }
 
 void MainCameraViewWidget::lockPitchUpdates()
@@ -487,23 +463,23 @@ void MainCameraViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::
 {
     // store key state
     if(key_event->state)
-        keys_pressed_list_.push_back(key_event->key);
+        keys_pressed_list_.push_back(key_event->keycode);
     else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
 
     bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37) != keys_pressed_list_.end());
     bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
     bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
 
     // process hotkeys
-    if(key_event->key == 13 && key_event->state && ctrl_is_pressed) // '4' - get single image in the main view
+    if(key_event->keycode == 13 && key_event->state && ctrl_is_pressed) // '4' - get single image in the main view
         ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->requestSingleFeedImage();
-    else if(key_event->key == 14 && key_event->state && ctrl_is_pressed) // '5' - set main view to 5 fps
+    else if(key_event->keycode == 14 && key_event->state && ctrl_is_pressed) // '5' - set main view to 5 fps
     {
         ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderChanged(5);
         ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderReleased();
     }
-    else if(key_event->key == 15 && key_event->state && ctrl_is_pressed) // '6' - close selected
+    else if(key_event->keycode == 15 && key_event->state && ctrl_is_pressed) // '6' - close selected
     {
         ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->closeSelectedArea();
     }

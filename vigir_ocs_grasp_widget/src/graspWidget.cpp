@@ -480,13 +480,24 @@ void graspWidget::initTemplateIdMap()
         std::string templatePath(db[i][1].toUtf8().constData());
         std::cout << "-> Adding template (" << templatePath << ") to id (" << (unsigned int)id << ") map" << std::endl;
         template_id_map_.insert(std::pair<unsigned char,std::string>(id,templatePath));
+        geometry_msgs::Point b_max;
+        geometry_msgs::Point b_min;
+        b_min.x = db[i][2].toFloat(&ok);
+        b_min.y = db[i][3].toFloat(&ok);
+        b_min.z = db[i][4].toFloat(&ok);
+        b_max.x = db[i][5].toFloat(&ok);
+        b_max.y = db[i][6].toFloat(&ok);
+        b_max.z = db[i][7].toFloat(&ok);
         geometry_msgs::Point com ;
         com.x = db[i][8].toFloat(&ok);
         com.y = db[i][9].toFloat(&ok);
         com.z = db[i][10].toFloat(&ok);
         double mass = db[i][11].toFloat(&ok);
-        template_item.com  = com;
-        template_item.mass = mass;
+        template_item.b_max = b_max;
+        template_item.b_min = b_min;
+        template_item.com   = com;
+        template_item.mass  = mass;
+        template_item.mesh_path     = templatePath;
         template_item.template_type = id;
         template_db_.push_back(template_item);
     }
@@ -826,8 +837,11 @@ void graspWidget::on_templateButton_clicked()
     for(int index = 0; index < template_db_.size(); index++)
     {
         if(template_db_[index].template_type == msg.template_type.data){
-            msg.com  = template_db_[index].com;
-            msg.mass.data = template_db_[index].mass;
+            msg.bounding_max = template_db_[index].b_max;
+            msg.bounding_min = template_db_[index].b_min;
+            msg.com          = template_db_[index].com;
+            msg.mass.data    = template_db_[index].mass;
+            msg.mesh_path    = template_db_[index].mesh_path;
         }
     }
     msg.template_id.data = ui->templateBox->currentIndex();
@@ -1482,15 +1496,15 @@ void graspWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr 
 {
     // store key state
     if(key_event->state)
-        keys_pressed_list_.push_back(key_event->key);
+        keys_pressed_list_.push_back(key_event->keycode);
     else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->key), keys_pressed_list_.end());
+        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
 
     // process hotkeys
     std::vector<int>::iterator key_is_pressed;
 
     key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    /*if(key_event->key == 16 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+7
+    /*if(key_event->keycode == 16 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+7
     {
         if(this->isVisible())
         {
