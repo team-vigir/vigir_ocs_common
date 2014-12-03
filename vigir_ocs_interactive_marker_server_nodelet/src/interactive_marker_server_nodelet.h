@@ -33,7 +33,7 @@ namespace ocs_interactive_marker_server
         void addInteractiveMarker( const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr& msg );
         void removeInteractiveMarker( const std_msgs::String::ConstPtr& msg );
         void updatePose( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );
-        void onMarkerFeedback( std::string topic_name, geometry_msgs::PoseStamped pose );
+        void onMarkerFeedback(unsigned char event_type, std::string topic_name, geometry_msgs::PoseStamped pose );
         void setMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
         void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &obj);
         void timerCallback(const ros::TimerEvent& event);
