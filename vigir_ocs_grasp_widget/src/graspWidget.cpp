@@ -396,7 +396,6 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
 
     QString currentItem = ui->templateBox->currentText();
 
-#if 1 //refactor
     ui->templateBox->clear();
     for(int i=0;i<list->template_list.size();i++)
     {
@@ -412,38 +411,6 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
     int idx = ui->templateBox->findText(currentItem);
     if(idx != -1)
         ui->templateBox->setCurrentIndex(idx);
-#else // old way
-    // populate template combobox
-    for(int i = 0; i < list->template_list.size(); i++)
-    {
-        // remove the .mesh string from the template name
-        std::string templateName = list->template_list[i];
-        if(templateName.size() > 5 && templateName.substr(templateName.size()-5,5) == ".mesh")
-            templateName = templateName.substr(0,templateName.size()-5);
-        // add the template
-        templateName = boost::to_string((int)list->template_id_list[i])+std::string(": ")+templateName;
-
-        //std::cout << "template item " << (int)list->template_id_list[i] << " has name " << templateName << std::endl;
-
-        // add the template to the box if it doesn't exist
-        if(ui->templateBox->count() < i+1)
-        {
-            ui->templateBox->addItem(QString::fromStdString(templateName));
-        } // update existing templates
-        else if( ui->templateBox->itemText(i).toStdString() != templateName)
-        {
-            ui->templateBox->setItemText(i,QString::fromStdString(templateName));
-        }
-    }
-
-    //remove leftover extra templates that may not be relevant?
-    for(int i = list->template_list.size(); i < ui->templateBox->count(); i++)
-    {
-        ROS_ERROR("item %s %d",qPrintable(ui->templateBox->itemText(i)),ui->templateBox->count() - list->template_list.size());
-        ui->templateBox->removeItem(i);
-        ui->templateBox->removeItem(list->template_list.size());
-    }
-#endif
 
     //previously selected item is no longer present?
     if(selected_template_id_ != -1 && ui->templateBox->findText(currentItem) == -1)

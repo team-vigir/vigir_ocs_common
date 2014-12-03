@@ -805,6 +805,8 @@ protected:
     rviz::Display* right_hand_bounding_box_;
     rviz::Display* pelvis_hand_bounding_box_;
 
+    moveit_msgs::DisplayRobotState ghost_display_state_msg_;
+
     /**
       * Callback for setting im mode
       */

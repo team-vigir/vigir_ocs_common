@@ -990,16 +990,40 @@ void Base3DView::timerEvent(QTimerEvent *event)
     if(is_primary_view_ && occluded_robot_visible_)
     {
         setRenderOrder();
-        //updateGhostRobotOpacity();
+        updateGhostRobotOpacity();
     }
 
 }
 
+//hide ghost parts if ghost position == robot position
 void Base3DView::updateGhostRobotOpacity()
 {
-    MoveItOcsModel* robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
-    MoveItOcsModel* ghost_robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
+//    MoveItOcsModel* robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
+//    MoveItOcsModel* ghost_robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
+//    //compare the links of every joint in robot to ghost
+//    std::vector<std::string> link_names = robot_state->getLinkNames();
+//    for(int i=0;i<link_names.size();i++)
+//    {
+//       std::string link_name = link_names[i];
+//       //get poses of links
+//       geometry_msgs::Pose& robot_pose;
+//       geometry_msgs::Pose& ghost_pose;
+//       if(robot_state->getLinkPose(link_name,robot_pose) || ghost_robot_state->getLinkPose(link_name,ghost_pose))
+//       {
+//           ROS_ERROR("mismatch link?");
+//           break;
+//       }
 
+//       //5cm and 2deg tolerance
+//       if(checkPoseMatch(robot_pose,ghost_pose,0.005f,2.0f))
+//       {
+//           //hide link
+//           moveit_msgs::ObjectColor tmp;
+//           tmp.id = link_name;
+//           tmp.color.a = 0.0f;
+//           ghost_display_state_msg_.highlight_links.push_back(tmp);
+//       }
+//    }
 }
 
 void Base3DView::publishCameraTransform()
