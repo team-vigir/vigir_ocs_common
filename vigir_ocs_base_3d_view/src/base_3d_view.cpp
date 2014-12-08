@@ -601,12 +601,15 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
         joint_arrows_->subProp("Width")->setValue("0.015");
         joint_arrows_->subProp("Scale")->setValue("1.2");        
+        joint_arrows_->subProp("isGhost")->setValue(false);
 
         ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", false );
         ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
         ghost_joint_arrows_->subProp("Width")->setValue("0.015");
         ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
         ghost_joint_arrows_->subProp("isGhost")->setValue(true);
+
+        ghost_joint_arrows_->setEnabled(false);
 
         disable_joint_markers_ = false;
         occluded_robot_visible_ = false;        
@@ -632,6 +635,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         frustum_display_->subProp("Topic")->setValue("/multisense_sl/left/camera_info");
         frustum_display_->subProp("alpha")->setValue("0.05");
         frustum_display_->setEnabled(false);
+
+        ghost_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/robot_state_vis",1, true);        
     }
 
     //initialize overall context menu
@@ -987,43 +992,67 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     //Means that currently doing
 
-    if(is_primary_view_ && occluded_robot_visible_)
+    if(is_primary_view_)
     {
-        setRenderOrder();
-        updateGhostRobotOpacity();
+        //if(occluded_robot_visible_)
+        //    setRenderOrder();
+        if(ghost_robot_model_->isEnabled())
+            updateGhostRobotOpacity();
     }
+
 
 }
 
 //hide ghost parts if ghost position == robot position
 void Base3DView::updateGhostRobotOpacity()
-{
-//    MoveItOcsModel* robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
-//    MoveItOcsModel* ghost_robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
-//    //compare the links of every joint in robot to ghost
-//    std::vector<std::string> link_names = robot_state->getLinkNames();
-//    for(int i=0;i<link_names.size();i++)
-//    {
-//       std::string link_name = link_names[i];
-//       //get poses of links
-//       geometry_msgs::Pose& robot_pose;
-//       geometry_msgs::Pose& ghost_pose;
-//       if(robot_state->getLinkPose(link_name,robot_pose) || ghost_robot_state->getLinkPose(link_name,ghost_pose))
-//       {
-//           ROS_ERROR("mismatch link?");
-//           break;
-//       }
+{    
+    MoveItOcsModel* robot_model = RobotStateManager::Instance()->getRobotStateSingleton();
+    MoveItOcsModel* ghost_robot_model = RobotStateManager::Instance()->getGhostRobotStateSingleton();
+    //compare the links of every joint in robot to ghost
+    std::vector<std::string> link_names = robot_model->getLinkNames();
 
-//       //5cm and 2deg tolerance
-//       if(checkPoseMatch(robot_pose,ghost_pose,0.005f,2.0f))
-//       {
-//           //hide link
-//           moveit_msgs::ObjectColor tmp;
-//           tmp.id = link_name;
-//           tmp.color.a = 0.0f;
-//           ghost_display_state_msg_.highlight_links.push_back(tmp);
-//       }
-//    }
+    //grab current root pose of ghost, necessary as publishing robot state will somehow reset ghost pose
+    geometry_msgs::PoseStamped ghost_root_pose;
+    ghost_root_pose.pose = ghost_root_pose_;
+
+    for(int i=0;i<link_names.size();i++)
+    {
+       std::string link_name = link_names[i];
+       //get poses of links
+       geometry_msgs::Pose robot_pose;
+       geometry_msgs::Pose ghost_pose;       
+       if(!robot_model->getLinkPose(link_name,robot_pose) || !ghost_robot_model->getLinkPose(link_name,ghost_pose))
+       {
+          //ROS_ERROR("mismatch link? %s %d", link_name.c_str(),i);
+          break;
+       }
+       moveit_msgs::ObjectColor tmp;
+       tmp.id = link_name;
+
+       //5cm and 2deg tolerance
+       if(checkPoseMatch(robot_pose,ghost_pose,0.005f,2.0f))
+       {         
+           //hide link
+           tmp.color.a = 0.0f;                      
+       }
+       else
+       {
+           //show link, (could have previously been hidden so we need to update based on posematch)
+           tmp.color.a = 0.5f;
+           tmp.color.r = 0.0f;
+           tmp.color.g = 1.0f;
+           tmp.color.b = 0.0f;
+       }
+       ghost_display_state_msg_.highlight_links.push_back(tmp);
+    }
+
+    robot_state::robotStateToRobotStateMsg(*ghost_robot_model->getState(), ghost_display_state_msg_.state);
+
+    //TODO: figure out why ghost root pose will change on this line
+    ghost_robot_state_vis_pub_.publish(ghost_display_state_msg_);
+
+    //reset root pose back to position before publishing
+    ghost_robot_model->setRootTransform(ghost_root_pose);
 }
 
 void Base3DView::publishCameraTransform()
