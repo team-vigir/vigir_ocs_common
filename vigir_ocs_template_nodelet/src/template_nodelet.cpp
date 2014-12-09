@@ -180,6 +180,113 @@ void TemplateNodelet::publishTemplateList()
     if(transforms.size() > 0)
         tfb_.sendTransform(transforms);
 }
+
+std::vector< std::vector <std::string> > TemplateNodelet::readCSVFile(std::string& file_name){
+    std::ifstream file ( file_name.c_str() );
+    if(!file){
+        ROS_ERROR("NO GRASP DATABASE FILE FOUND: %s",file_name.c_str());
+    }
+
+    std::vector< std::vector <std::string> > db;
+    for (std::string line; std::getline(file, line); )
+    {
+        std::istringstream in(line);
+        std::vector<std::string> tmp;
+        std::string value;
+
+        while(std::getline(in, value, ',')) {
+            std::stringstream trimmer;
+            trimmer << value;
+            value.clear();
+            trimmer >> value; //removes white spaces
+            tmp.push_back(value);
+        }
+        db.push_back(tmp);
+    }
+    return db;
+}
+
+
+void TemplateNodelet::loadObjectTemplateDatabase(std::string& file_name)
+{
+    /*
+     * This should be reading all three files and filling information in the object template map
+     *
+     * grasp_templates.txt
+     * ghost_poses.csv
+     * grasp_library_[hand_model].txt
+     *
+     *
+    */
+    std::vector< std::vector <std::string> > db = readCSVFile(file_name);
+
+    for(int i = 1; i < db.size(); i++) //STARTING FROM 1 SINCE FIRST LINE IS HEADER BEGINING WITH "#"
+    {
+        VigirObjectTemplate object_template;
+        unsigned int type = std::atoi(db[i][0].c_str());
+
+        geometry_msgs::Point b_max;
+        geometry_msgs::Point b_min;
+        b_min.x = std::atof(db[i][2].c_str());
+        b_min.y = std::atof(db[i][3].c_str());
+        b_min.z = std::atof(db[i][4].c_str());
+        b_max.x = std::atof(db[i][5].c_str());
+        b_max.y = std::atof(db[i][6].c_str());
+        b_max.z = std::atof(db[i][7].c_str());
+
+        geometry_msgs::Point com ;
+        com.x = std::atof(db[i][8].c_str());
+        com.y = std::atof(db[i][9].c_str());
+        com.z = std::atof(db[i][10].c_str());
+
+        double mass = std::atof(db[i][11].c_str());
+
+        object_template.b_max = b_max;
+        object_template.b_min = b_min;
+        object_template.com   = com;
+        object_template.mass  = mass;
+        object_template.id    = i-1;
+        object_template.type  = type;
+        object_template_map_.insert(std::pair<unsigned int,VigirObjectTemplate>(type,object_template));
+        //ROS_INFO(" Inserting Object template type: %d with id: %d", object_template_map_[type].type, object_template_map_[type].id);
+    }
+}
+
+void TemplateNodelet::gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans){
+    geometry_msgs::Vector3Stamped direction = trans.direction;
+    tf::Transform template_T_hand, vec_in, vec_out;
+    ROS_INFO("receiving trans distance: %f; dx: %f, dy: %f, dz: %f", trans.desired_distance, direction.vector.x, direction.vector.y, direction.vector.z);
+    float norm = sqrt((direction.vector.x * direction.vector.x) +(direction.vector.y * direction.vector.y) +(direction.vector.z * direction.vector.z));
+    if(norm != 0){
+        direction.vector.x /= norm;
+        direction.vector.y /= norm;
+        direction.vector.z /= norm;
+    }else{
+        ROS_INFO("Norm is ZERO!");
+        direction.vector.x = 0 ;
+        direction.vector.y = -1;
+        direction.vector.z = 0 ;
+    }
+
+    direction.vector.x *= -trans.desired_distance;
+    direction.vector.y *= -trans.desired_distance;
+    direction.vector.z *= -trans.desired_distance;
+
+    ROS_INFO("setting trans; dx: %f, dy: %f, dz: %f", direction.vector.x, direction.vector.y, direction.vector.z);
+
+    template_T_hand.setRotation(tf::Quaternion(pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w));
+    vec_in.setOrigin(tf::Vector3(direction.vector.x,direction.vector.y,direction.vector.z));
+
+    vec_out = template_T_hand * vec_in;
+
+    ROS_INFO("setting result; dx: %f, dy: %f, dz: %f", vec_out.getOrigin().getX(), vec_out.getOrigin().getY(), vec_out.getOrigin().getZ());
+
+    pose.position.x += vec_out.getOrigin().getX();
+    pose.position.y += vec_out.getOrigin().getY();
+    pose.position.z += vec_out.getOrigin().getZ();
+}
+
+
 }
 
 PLUGINLIB_DECLARE_CLASS (vigir_ocs_template_nodelet, TemplateNodelet, ocs_template::TemplateNodelet, nodelet::Nodelet);

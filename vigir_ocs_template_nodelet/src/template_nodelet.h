@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <string>
+#include <fstream>
 
 #include <tf/transform_broadcaster.h>
 
@@ -18,9 +19,36 @@
 #include <flor_grasp_msgs/TemplateSelection.h>
 
 #include <geometry_msgs/PoseStamped.h>
+#include <moveit_msgs/Grasp.h>
+#include <geometric_shapes/mesh_operations.h>
+#include <shape_msgs/Mesh.h>
+#include <geometric_shapes/shapes.h>
+#include <geometric_shapes/shape_messages.h>
+#include <geometric_shapes/shape_operations.h>
 
 namespace ocs_template
 {
+
+    struct VigirObjectTemplate
+    {
+        uint16_t                                  id;
+        uint16_t                                  type;
+        std::string                               name;
+        float                                     mass;
+        geometry_msgs::Point                      com;
+        geometry_msgs::Point                      b_max;
+        geometry_msgs::Point                      b_min;
+        shape_msgs::Mesh                          mesh;
+        std::map<unsigned int,moveit_msgs::Grasp> grasps;
+        std::vector<geometry_msgs::PoseStamped>   stand_poses;
+
+        VigirObjectTemplate() : id(0),
+                                mass(0.0)
+        {
+            //com   = geometry_msgs::Point(0.0,0.0,0.0);
+        }
+    };
+
     class TemplateNodelet : public nodelet::Nodelet
     {
       public:
@@ -33,6 +61,9 @@ namespace ocs_template
         void graspStateFeedbackCb(const flor_grasp_msgs::GraspState::ConstPtr& msg);
         void templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
         void publishTemplateList();
+        std::vector< std::vector <std::string> > readCSVFile(std::string& file_name);
+        void loadObjectTemplateDatabase(std::string& file_name);
+        void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
         void timerCallback(const ros::TimerEvent& event);
 
       protected:
@@ -53,6 +84,7 @@ namespace ocs_template
         std::vector<std::string> template_list_;
         std::vector<geometry_msgs::PoseStamped> pose_list_;
         unsigned char id_counter_;
+        std::map<unsigned int,VigirObjectTemplate>  object_template_map_;
 
         ros::Timer timer;
 

@@ -15,6 +15,8 @@
   <build_depend>pluginlib</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
+  <build_depend>moveit_msgs</build_depend>
+  <build_depend>shape_msgs</build_depend>
   <build_depend>flor_ocs_msgs</build_depend>
   <build_depend>flor_grasp_msgs</build_depend>
   <build_depend>nodelet</build_depend>
@@ -25,6 +27,8 @@
   <run_depend>pluginlib</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
+  <run_depend>moveit_msgs</run_depend>
+  <run_depend>shape_msgs</run_depend>
   <run_depend>flor_ocs_msgs</run_depend>
   <run_depend>flor_grasp_msgs</run_depend>
   <run_depend>nodelet</run_depend>
