@@ -64,6 +64,8 @@ namespace ocs_template
         void publishTemplateList();
         std::vector< std::vector <std::string> > readCSVFile(std::string& file_name);
         void loadObjectTemplateDatabase(std::string& file_name);
+        void loadGraspDatabase(std::string& file_name);
+        void loadGhostDatabase(std::string& file_name);
         void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
         void timerCallback(const ros::TimerEvent& event);
         bool templateInfoSrv(vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Request& req,
@@ -89,6 +91,12 @@ namespace ocs_template
         std::vector<std::string> template_list_;
         std::vector<geometry_msgs::PoseStamped> pose_list_;
         unsigned char id_counter_;
+        // Filename of the grasping library
+        std::string grasp_filename_;
+        // Filename of the object template library
+        std::string ot_filename_;
+        // Filename of the object template library
+        std::string ghost_filename_;
         std::map<unsigned int,VigirObjectTemplate>  object_template_map_;
 
         ros::Timer timer;

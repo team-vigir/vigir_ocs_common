@@ -21,6 +21,33 @@ void TemplateNodelet::onInit()
     grasp_state_feedback_sub_    = nh_out.subscribe<flor_grasp_msgs::GraspState>( "grasp_state_feedback", 1, &TemplateNodelet::graspStateFeedbackCb, this );
 
     template_info_server_        = nh_out.advertiseService("/info", &TemplateNodelet::templateInfoSrv, this);
+
+    // which file are we reading
+    if (!nh_out.hasParam("grasp_filename"))
+    {
+        ROS_ERROR(" Did not find Grasp FILENAME parameter - using \"/opt/vigir-indigo/catkin_ws/src/vigir_templates/vigir_template_library/grasp_library.grasp\" as default");
+    }
+    if (!nh_out.hasParam("ot_filename"))
+    {
+        ROS_ERROR(" Did not find Object Template FILENAME parameter - using \"/opt/vigir-indigo/catkin_ws/src/vigir_templates/vigir_template_library/grasp_library.grasp\" as default");
+    }
+    if (!nh_out.hasParam("ghost_filename"))
+    {
+        ROS_ERROR(" Did not find Ghost FILENAME parameter - using \"/opt/vigir-indigo/catkin_ws/src/vigir_templates/vigir_template_library/grasp_library.grasp\" as default");
+    }
+
+    nh_out.param<std::string>("grasp_filename", this->grasp_filename_,  "/opt/vigir-indigo/catkin_ws/src/vigir_templates/vigir_template_library/grasp_robotiq_library.grasp");
+    nh_out.param<std::string>("ot_filename",    this->ot_filename_,     "/opt/vigir-indigo/catkin_ws/src/vigir_templates/vigir_template_library/grasp_templates.txt");
+    nh_out.param<std::string>("ghost_filename", this->ghost_filename_,  "/opt/vigir-indigo/catkin_ws/src/vigir_templates/vigir_template_library/ghost_poses.csv");
+
+    // Load the Object Template database
+    TemplateNodelet::loadObjectTemplateDatabase(this->ot_filename_);
+
+    // Load the hand specific grasping database
+    TemplateNodelet::loadGraspDatabase(this->grasp_filename_);
+
+    // Load the robot specific ghost_poses database
+    TemplateNodelet::loadGhostDatabase(this->ghost_filename_);
     
     id_counter_ = 0;
 
@@ -206,6 +233,14 @@ std::vector< std::vector <std::string> > TemplateNodelet::readCSVFile(std::strin
         db.push_back(tmp);
     }
     return db;
+}
+
+void TemplateNodelet::loadGraspDatabase(std::string& file_name){
+
+}
+
+void TemplateNodelet::loadGhostDatabase(std::string& file_name){
+
 }
 
 
