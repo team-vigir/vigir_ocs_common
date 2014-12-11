@@ -17,6 +17,7 @@
 #include <flor_grasp_msgs/GraspSelection.h>
 #include <flor_grasp_msgs/GraspState.h>
 #include <flor_grasp_msgs/TemplateSelection.h>
+#include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
 
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/Grasp.h>
@@ -65,6 +66,8 @@ namespace ocs_template
         void loadObjectTemplateDatabase(std::string& file_name);
         void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
         void timerCallback(const ros::TimerEvent& event);
+        bool templateInfoSrv(vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Request& req,
+                             vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Response& res);
 
       protected:
         ros::Subscriber template_update_sub_;
@@ -76,6 +79,8 @@ namespace ocs_template
         ros::Publisher template_list_pub_;
         ros::Publisher grasp_selected_pub_;
         ros::Publisher grasp_selected_state_pub_;
+
+        ros::ServiceServer template_info_server_;
 
         ros::Timer image_publish_timer_;
 

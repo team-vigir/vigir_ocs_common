@@ -19,6 +19,8 @@ void TemplateNodelet::onInit()
     template_match_feedback_sub_ = nh_out.subscribe<flor_grasp_msgs::TemplateSelection>( "template_match_feedback", 1, &TemplateNodelet::templateMatchFeedbackCb, this );
     grasp_request_sub_           = nh_out.subscribe<flor_grasp_msgs::GraspSelection>( "grasp_request", 1, &TemplateNodelet::graspRequestCb, this );
     grasp_state_feedback_sub_    = nh_out.subscribe<flor_grasp_msgs::GraspState>( "grasp_state_feedback", 1, &TemplateNodelet::graspStateFeedbackCb, this );
+
+    template_info_server_        = nh_out.advertiseService("/info", &TemplateNodelet::templateInfoSrv, this);
     
     id_counter_ = 0;
 
@@ -284,6 +286,12 @@ void TemplateNodelet::gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose
     pose.position.x += vec_out.getOrigin().getX();
     pose.position.y += vec_out.getOrigin().getY();
     pose.position.z += vec_out.getOrigin().getZ();
+}
+
+bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Request& req,
+                                      vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Response& res)
+{
+  return true;
 }
 
 
