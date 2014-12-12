@@ -3682,7 +3682,7 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         stop_button_->setVisible(true);
         stop_button_->setGeometry(this->geometry().bottomRight().x()/2 - 200,this->geometry().bottomRight().y()/2 - 150,400,300);
     }
-    else if(shift_is_pressed && !shift_pressed_)
+    else if(shift_is_pressed && !shift_pressed_) // previously shift was not being pressed and now it is being pressed.
     {
         //Lock translation during rotation
         flor_ocs_msgs::OCSControlMode msgMode;
@@ -3693,7 +3693,7 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
         interactive_marker_server_mode_pub_.publish(msgMode);
         shift_pressed_ = true;
     }
-    else
+    else // no buttons
     {
         stop_button_->setVisible(false);
 
