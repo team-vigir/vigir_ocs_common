@@ -46,17 +46,15 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} s
 
 add_executable(glance_hub_sbar ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(glance_hub_sbar ${catkin_LIBRARIES} ${QT_LIBRARIES})
-
 add_dependencies(glance_hub_sbar ${catkin_EXPORTED_TARGETS})
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
-
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
-
-install( TARGETS
-    glance_hub_sbar
-    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+   
+install( TARGETS ${PROJECT_NAME} glance_hub_sbar
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-
 
