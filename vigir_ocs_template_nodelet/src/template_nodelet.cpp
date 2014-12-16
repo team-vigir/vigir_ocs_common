@@ -6,6 +6,7 @@ void TemplateNodelet::onInit()
 {
     ros::NodeHandle& nh = getNodeHandle();
     ros::NodeHandle nh_out(nh, "template");
+    ros::NodeHandle nhp("~");
 
     // also create a publisher to set parameters of cropped image
     template_list_pub_         = nh_out.advertise<flor_ocs_msgs::OCSTemplateList>( "list", 1, false );
@@ -20,34 +21,68 @@ void TemplateNodelet::onInit()
     grasp_request_sub_           = nh_out.subscribe<flor_grasp_msgs::GraspSelection>( "grasp_request", 1, &TemplateNodelet::graspRequestCb, this );
     grasp_state_feedback_sub_    = nh_out.subscribe<flor_grasp_msgs::GraspState>( "grasp_state_feedback", 1, &TemplateNodelet::graspStateFeedbackCb, this );
 
-    template_info_server_        = nh_out.advertiseService("/info", &TemplateNodelet::templateInfoSrv, this);
+    template_info_server_        = nh_out.advertiseService("/state_info", &TemplateNodelet::templateInfoSrv, this);
+
+    grasp_info_server_           = nh_out.advertiseService("/grasp_info", &TemplateNodelet::graspInfoSrv, this);
+
+    ROS_INFO(" Start reading database files");
 
     // which file are we reading
-    if (!nh_out.hasParam("grasp_filename"))
+    if (!nhp.hasParam("r_grasps_filename"))
     {
-        ROS_ERROR(" Did not find Grasp FILENAME parameter - using \"/opt/vigir-indigo/catkin_ws/src/vigir_templates/vigir_template_library/grasp_library.grasp\" as default");
+        ROS_ERROR(" Did not find Right Grasp FILENAME parameter - using \"/vigir_template_library/grasp_templates/r_robotiq_grasp_library.csv\" as default");
     }
-    if (!nh_out.hasParam("ot_filename"))
+    if (!nhp.hasParam("l_grasps_filename"))
     {
-        ROS_ERROR(" Did not find Object Template FILENAME parameter - using \"/opt/vigir-indigo/catkin_ws/src/vigir_templates/vigir_template_library/grasp_library.grasp\" as default");
+        ROS_ERROR(" Did not find Left Grasp FILENAME parameter - using \"/vigir_template_library/grasp_templates/l_robotiq_grasp_library.csv\" as default");
     }
-    if (!nh_out.hasParam("ghost_filename"))
+    if (!nhp.hasParam("ot_filename"))
     {
-        ROS_ERROR(" Did not find Ghost FILENAME parameter - using \"/opt/vigir-indigo/catkin_ws/src/vigir_templates/vigir_template_library/grasp_library.grasp\" as default");
+        ROS_ERROR(" Did not find Object Template FILENAME parameter - using \"/vigir_template_library/object_templates/object_templates.csv\" as default");
+    }
+    if (!nhp.hasParam("stand_filename"))
+    {
+        ROS_ERROR(" Did not find Ghost FILENAME parameter - using \"/vigir_template_library/robot_poses/atlas_v1_v3_joints_stand_poses.csv\" as default");
     }
 
-    nh_out.param<std::string>("grasp_filename", this->grasp_filename_,  "/opt/vigir-indigo/catkin_ws/src/vigir_templates/vigir_template_library/grasp_robotiq_library.grasp");
-    nh_out.param<std::string>("ot_filename",    this->ot_filename_,     "/opt/vigir-indigo/catkin_ws/src/vigir_templates/vigir_template_library/grasp_templates.txt");
-    nh_out.param<std::string>("ghost_filename", this->ghost_filename_,  "/opt/vigir-indigo/catkin_ws/src/vigir_templates/vigir_template_library/ghost_poses.csv");
+    nh_out.param<std::string>("r_grasps_filename", this->r_grasps_filename_,  ros::package::getPath("vigir_template_library")+"/grasp_templates/r_robotiq_grasp_library.csv");
+    nh_out.param<std::string>("l_grasps_filename", this->l_grasps_filename_,  ros::package::getPath("vigir_template_library")+"/grasp_templates/l_robotiq_grasp_library.csv");
+    nh_out.param<std::string>("ot_filename",       this->ot_filename_,        ros::package::getPath("vigir_template_library")+"/object_templates/object_templates.csv");
+    nh_out.param<std::string>("stand_filename",    this->stand_filename_,     ros::package::getPath("vigir_template_library")+"/robot_poses/atlas_v1_v3_joints_stand_poses.csv");
+
+    XmlRpc::XmlRpcValue   gp_T_hand;
 
     // Load the Object Template database
     TemplateNodelet::loadObjectTemplateDatabase(this->ot_filename_);
 
-    // Load the hand specific grasping database
-    TemplateNodelet::loadGraspDatabase(this->grasp_filename_);
+    ROS_INFO("OT Database loaded");
+
+    // Load the right hand specific grasping database
+    nh.getParam("/r_hand_tf/gp_T_hand", gp_T_hand);
+    gp_T_hand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
+    gp_T_hand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
+
+    ROS_INFO("Right Graspit to Palm tf set");
+
+    TemplateNodelet::loadGraspDatabase(this->r_grasps_filename_, "right");
+
+    ROS_INFO("Right Grasp Database loaded");
+
+    // Load the left hand specific grasping database
+    nh.getParam("/l_hand_tf/gp_T_hand", gp_T_hand);
+    gp_T_hand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
+    gp_T_hand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
+
+    ROS_INFO("Right Graspit to Palm tf set");
+
+    TemplateNodelet::loadGraspDatabase(this->l_grasps_filename_, "left");
+
+    ROS_INFO("Left Grasp Database loaded");
 
     // Load the robot specific ghost_poses database
-    TemplateNodelet::loadGhostDatabase(this->ghost_filename_);
+    TemplateNodelet::loadStandPosesDatabase(this->stand_filename_);
+
+    ROS_INFO("Stand Poses Database loaded");
     
     id_counter_ = 0;
 
@@ -235,26 +270,104 @@ std::vector< std::vector <std::string> > TemplateNodelet::readCSVFile(std::strin
     return db;
 }
 
-void TemplateNodelet::loadGraspDatabase(std::string& file_name){
+void TemplateNodelet::loadGraspDatabase(std::string& file_name, std::string hand_side){
+
+
+    //LOADING HAND MODEL FOR JOINT NAMES (SHOULD WORK FOR ANY HAND)
+    hand_model_loader_.reset(new robot_model_loader::RobotModelLoader(hand_side+"_hand_robot_description"));
+    hand_robot_model_ = hand_model_loader_->getModel();
+
+    std::vector<const robot_model::JointModel*> joints = hand_robot_model_->getRootJoint()->getNonFixedDescendantJointModels();
+
+    ROS_INFO("%s %s hand model gotten, #joints: %ld ",hand_side.c_str(), hand_robot_model_->getName().c_str(),joints.size() );
+
+    std::vector< std::vector <std::string> > db = readCSVFile(file_name);
+
+    for(int i = 1; i < db.size(); i++) //STARTING FROM 1 SINCE FIRST LINE IS HEADER BEGINING WITH "#"
+    {
+
+        unsigned int idx = 0;
+        //ORDER IN FILE SHOULD MATCH ORDER IN READING
+        /* template type,
+         * grasp id,
+         * approaching direction (vector (x,y,z), desired, minimal),
+         * final grasp pose relative to template (x,y,z,qw,qx,qy,qz),
+         * pre-grasp pose relative to template (x,y,z,qw,qx,qy,qz),
+         * pre finger poses,
+         * final finger poses
+        */
+
+        //TEMPLATE TYPE
+        unsigned int type = std::atoi(db[i][idx++].c_str());
+
+        //GRASP ID
+        moveit_msgs::Grasp grasp;
+        grasp.id                                           = db[i][idx++];
+
+        //APPROACHING VECTOR
+        grasp.pre_grasp_approach.direction.header.frame_id = hand_robot_model_->getRootJoint()->getChildLinkModel()->getName();
+        grasp.pre_grasp_approach.direction.vector.x        = std::atof(db[i][idx++].c_str());
+        grasp.pre_grasp_approach.direction.vector.y        = std::atof(db[i][idx++].c_str());
+        grasp.pre_grasp_approach.direction.vector.z        = std::atof(db[i][idx++].c_str());
+        grasp.pre_grasp_approach.desired_distance          = std::atof(db[i][idx++].c_str());
+        grasp.pre_grasp_approach.min_distance              = std::atof(db[i][idx++].c_str());
+
+        //GRASP POSE
+        grasp.grasp_pose.header.frame_id                   = hand_robot_model_->getRootJoint()->getChildLinkModel()->getName();
+        grasp.grasp_pose.pose.position.x                   = std::atof(db[i][idx++].c_str());
+        grasp.grasp_pose.pose.position.y                   = std::atof(db[i][idx++].c_str());
+        grasp.grasp_pose.pose.position.z                   = std::atof(db[i][idx++].c_str());
+        grasp.grasp_pose.pose.orientation.w                = std::atof(db[i][idx++].c_str());
+        grasp.grasp_pose.pose.orientation.x                = std::atof(db[i][idx++].c_str());
+        grasp.grasp_pose.pose.orientation.y                = std::atof(db[i][idx++].c_str());
+        grasp.grasp_pose.pose.orientation.z                = std::atof(db[i][idx++].c_str());
+
+        //Static transformation to parent link /[r/l]_hand
+        staticTransform(grasp.grasp_pose.pose);
+
+        //PRE FINGER JOINT POSTURE
+        grasp.pre_grasp_posture.joint_names.resize(joints.size());
+        for(int j=0; j<joints.size();j++)
+            grasp.pre_grasp_posture.joint_names[j] = joints.at(j)->getName();
+        grasp.pre_grasp_posture.points.resize(1);
+        grasp.pre_grasp_posture.points[0].positions.resize(joints.size());
+        for(int j=0; j<joints.size();j++)
+            grasp.pre_grasp_posture.points[0].positions[j] = std::atof(db[i][idx++].c_str());
+
+        grasp.pre_grasp_posture.points[0].time_from_start = ros::Duration(3.0);
+
+        //FINGER JOINT POSTURE
+        grasp.grasp_posture.joint_names.resize(joints.size());
+        for(int j=0; j<joints.size();j++)
+            grasp.grasp_posture.joint_names[j] = joints.at(j)->getName();
+        grasp.grasp_posture.points.resize(1);
+        grasp.grasp_posture.points[0].positions.resize(joints.size());
+        for(int j=0; j<joints.size();j++)
+            grasp.grasp_posture.points[0].positions[j] = std::atof(db[i][idx++].c_str());
+
+        grasp.grasp_posture.points[0].time_from_start = ros::Duration(3.0);
+
+        //RETREAT VECTOR (FIXING TO LIFT 10cm AFTER GRASPING)
+        grasp.post_grasp_retreat.direction.header.frame_id = "world";
+        grasp.post_grasp_retreat.direction.vector.z        = 1.0;
+        grasp.post_grasp_retreat.min_distance              = 0.05;
+        grasp.post_grasp_retreat.desired_distance          = 0.1;
+        object_template_map_[type].grasps.insert(std::pair<unsigned int,moveit_msgs::Grasp>(std::atoi(grasp.id.c_str()),grasp));
+    }
+    for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it)
+        for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it2=it->second.grasps.begin(); it2!=it->second.grasps.end(); ++it2)
+            ROS_INFO("OT Map, inside ot: %d -> Grasp id %s ", it->second.type, it2->second.id.c_str());
 
 }
 
-void TemplateNodelet::loadGhostDatabase(std::string& file_name){
+void TemplateNodelet::loadStandPosesDatabase(std::string& file_name){
 
 }
 
 
 void TemplateNodelet::loadObjectTemplateDatabase(std::string& file_name)
 {
-    /*
-     * This should be reading all three files and filling information in the object template map
-     *
-     * grasp_templates.txt
-     * ghost_poses.csv
-     * grasp_library_[hand_model].txt
-     *
-     *
-    */
+
     std::vector< std::vector <std::string> > db = readCSVFile(file_name);
 
     for(int i = 1; i < db.size(); i++) //STARTING FROM 1 SINCE FIRST LINE IS HEADER BEGINING WITH "#"
@@ -329,6 +442,37 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
   return true;
 }
 
+bool TemplateNodelet::graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Request& req,
+                                   vigir_object_template_msgs::GetGraspInfo::Response& res)
+{
+  return true;
+}
+
+// transform endeffort to palm pose used by GraspIt
+int TemplateNodelet::staticTransform(geometry_msgs::Pose& palm_pose)
+{
+    tf::Transform o_T_hand;    //describes hand in object's frame
+    tf::Transform o_T_pg;       //describes palm_from_graspit in object's frame
+
+    o_T_pg.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
+    o_T_pg.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
+
+    o_T_hand = o_T_pg * gp_T_hand_;
+
+    tf::Quaternion hand_quat;
+    tf::Vector3    hand_vector;
+    hand_quat   = o_T_hand.getRotation();
+    hand_vector = o_T_hand.getOrigin();
+
+    palm_pose.position.x = hand_vector.getX();
+    palm_pose.position.y = hand_vector.getY();
+    palm_pose.position.z = hand_vector.getZ();
+    palm_pose.orientation.x = hand_quat.getX();
+    palm_pose.orientation.y = hand_quat.getY();
+    palm_pose.orientation.z = hand_quat.getZ();
+    palm_pose.orientation.w = hand_quat.getW();
+    return 0;
+}
 
 }
 
