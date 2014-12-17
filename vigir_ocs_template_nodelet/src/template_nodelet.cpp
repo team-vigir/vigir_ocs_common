@@ -361,7 +361,14 @@ void TemplateNodelet::loadGraspDatabase(std::string& file_name, std::string hand
 }
 
 void TemplateNodelet::loadStandPosesDatabase(std::string& file_name){
-
+    /*
+     * Need to fill object_template_map_[type].stand_poses with the poses read from file
+     *
+     * ORDER IN FILE SHOULD MATCH ORDER IN READING
+     * template type,
+     * stand pose id,
+     * stand pose relative to template (x,y,z,qw,qx,qy,qz),
+    */
 }
 
 
@@ -374,6 +381,7 @@ void TemplateNodelet::loadObjectTemplateDatabase(std::string& file_name)
     {
         VigirObjectTemplate object_template;
         unsigned int type = std::atoi(db[i][0].c_str());
+        std::string  path = db[i][1];
 
         geometry_msgs::Point b_max;
         geometry_msgs::Point b_min;
@@ -397,6 +405,7 @@ void TemplateNodelet::loadObjectTemplateDatabase(std::string& file_name)
         object_template.mass  = mass;
         object_template.id    = i-1;
         object_template.type  = type;
+        object_template.path  = path;
         object_template_map_.insert(std::pair<unsigned int,VigirObjectTemplate>(type,object_template));
         //ROS_INFO(" Inserting Object template type: %d with id: %d", object_template_map_[type].type, object_template_map_[type].id);
     }
@@ -439,12 +448,18 @@ void TemplateNodelet::gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose
 bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Request& req,
                                       vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Response& res)
 {
+    /*Fill in the blanks of the response "res"
+     * with the info of the template id in the request "req"
+    */
   return true;
 }
 
 bool TemplateNodelet::graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Request& req,
                                    vigir_object_template_msgs::GetGraspInfo::Response& res)
 {
+    /*Fill in the blanks of the response "res"
+     * with the info of the template id in the request "req"
+    */
   return true;
 }
 

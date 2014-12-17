@@ -37,16 +37,17 @@ namespace ocs_template
 
     struct VigirObjectTemplate
     {
-        uint16_t                                  id;
-        uint16_t                                  type;
-        std::string                               name;
-        float                                     mass;
-        geometry_msgs::Point                      com;
-        geometry_msgs::Point                      b_max;
-        geometry_msgs::Point                      b_min;
-        shape_msgs::Mesh                          mesh;
-        std::map<unsigned int,moveit_msgs::Grasp> grasps;
-        std::vector<geometry_msgs::PoseStamped>   stand_poses;
+        uint16_t                                           id;
+        uint16_t                                           type;
+        std::string                                        name;
+        float                                              mass;
+        geometry_msgs::Point                               com;
+        geometry_msgs::Point                               b_max;
+        geometry_msgs::Point                               b_min;
+        shape_msgs::Mesh                                   mesh;
+        std::string                                        path;
+        std::map<unsigned int,moveit_msgs::Grasp>          grasps;
+        std::map<unsigned int,geometry_msgs::PoseStamped>  stand_poses;
 
         VigirObjectTemplate() : id(0),
                                 mass(0.0)
