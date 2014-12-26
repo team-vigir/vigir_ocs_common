@@ -34,7 +34,7 @@ public:
 
     virtual bool eventFilter( QObject * o, QEvent * e );
 
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    //void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
     vigir_ocs::CameraView* getCameraView() { return camera_view_; }
 
@@ -68,13 +68,9 @@ public Q_SLOTS:
 
 private:
     void loadButtonIconAndStyle(QPushButton* btn, QString image_name);
-    Ui::CameraViewWidget*ui;
+    Ui::CameraViewWidget*ui;   
 
-    std::vector<int> keys_pressed_list_;
-
-    ros::NodeHandle n_;
-
-    ros::Subscriber key_event_sub_;
+    ros::NodeHandle n_;   
 
     vigir_ocs::CameraView* camera_view_;
 

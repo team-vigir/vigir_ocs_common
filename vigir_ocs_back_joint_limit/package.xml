@@ -15,6 +15,8 @@
   <build_depend>tf</build_depend>
   <build_depend>flor_ocs_msgs</build_depend>
   <build_depend>flor_planning_msgs</build_depend>
+  <build_depend>vigir_ocs_hotkey_manager</build_depend>
+
   
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
@@ -24,6 +26,7 @@
   <run_depend>tf</run_depend>
   <run_depend>flor_ocs_msgs</run_depend>
   <run_depend>flor_planning_msgs</run_depend>
+  <run_depend>vigir_ocs_hotkey_manager</run_depend>
   
   <export>
     <!-- You can specify that this package is a metapackage here: -->

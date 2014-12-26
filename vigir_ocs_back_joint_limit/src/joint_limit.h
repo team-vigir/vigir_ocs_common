@@ -17,6 +17,8 @@
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 
+#include "hotkey_manager.h"
+
 namespace Ui {
 class joint_limit;
 }
@@ -31,7 +33,7 @@ public:
 
     void processWindowControl(const std_msgs::Int8::ConstPtr& msg);
 
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    //void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
 private:
     ros::Subscriber window_control_sub;

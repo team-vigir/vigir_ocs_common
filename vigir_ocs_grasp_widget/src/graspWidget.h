@@ -43,6 +43,8 @@
 #include <flor_grasp_msgs/TemplateSelection.h>
 #include <flor_grasp_msgs/LinkState.h>
 
+#include "hotkey_manager.h"
+
 #define FINGER_EFFORTS 4
 
 namespace Ui {
@@ -58,7 +60,7 @@ public:
     ~graspWidget();
 
     void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg);
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    //void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
     Ui::graspWidget * getUi();
     QLayout * getMainLayout();
@@ -213,9 +215,9 @@ private:
     ros::Publisher select_object_pub_;
     ros::Subscriber select_object_sub_;
 
-    std::vector<int> keys_pressed_list_;
+    //std::vector<int> keys_pressed_list_;
 
-    ros::Subscriber key_event_sub_;
+   // ros::Subscriber key_event_sub_;
 
 protected:
     void timerEvent(QTimerEvent *event);

@@ -19,120 +19,109 @@ HotkeyManager * HotkeyManager::Instance()
 void HotkeyManager::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 {
     // store key state
-    if(key_event->state)
-        keys_pressed_list_.push_back(key_event->keystr);
-    else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keystr), keys_pressed_list_.end());
-
-//    // process hotkeys
-//    bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Control_") != keys_pressed_list_.end());
-//    bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Shift_") != keys_pressed_list_.end());
-//    bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Alt_") != keys_pressed_list_.end());
-
-    //case for every hotkey in ocs
-
-    ///BASEVIEW         ///////////////////////////////////////////////////////////////////
-    if(key_event->keystr == "Escape" && key_event->state) // 'esc'
+    if(key_event->state) //add if pressed
     {
-        //callHotkeyFunction("esc");
-        // reset everything
-        //deselectAll();
-       // manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
+        //treat Control_l and Control_r the same, (also for shift and alt)
+        if(key_event->keystr.find("Control") != std::string::npos)
+            keys_pressed_list_.push_back("ctrl");
+        else if(key_event->keystr.find("Shift") != std::string::npos)
+            keys_pressed_list_.push_back("shift");
+        else if(key_event->keystr.find("Alt") != std::string::npos)
+            keys_pressed_list_.push_back("alt");
+        else if(key_event->keystr == "Escape")//may as well keep Escape to lowercase
+            keys_pressed_list_.push_back("esc");
+        else
+            keys_pressed_list_.push_back(key_event->keystr);
     }
-//    else if(key_event->keystr == "q" && key_event->state && ctrl_is_pressed) // ctrl+q
-//    {
-          //callHotkeyFunction("ctrl+q");
-//        // robot model visibility
-//        robotModelToggled(!robot_model_->isEnabled());
-//    }
-//    else if(key_event->keystr == "w" && key_event->state && ctrl_is_pressed) // ctrl+w
-//    {
-//        // ghost visibility
-//        simulationRobotToggled(!ghost_robot_model_->isEnabled());
-//    }
-//    else if(key_event->keystr == "1" && key_event->state && ctrl_is_pressed) // ctrl+1
-//    {
-//        // reset point clouds
-//        clearPointCloudRaycastRequests();
-//        clearPointCloudRegionRequests();
-//        clearPointCloudStereoRequests();
-//    }
-//    else if(key_event->keystr == "9" && key_event->state && ctrl_is_pressed) // ctrl+9
-//    {
-//        // rainbow color
-//        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-//    }
-//    else if(key_event->keystr == "0" && key_event->state && ctrl_is_pressed) // ctrl+0
-//    {
-//        // intensity
-//        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
-//    }
-//    else if(key_event->keystr == "g" && key_event->state && ctrl_is_pressed) // ctrl+g
-//    {
-//        // define a step goal
-//        defineFootstepGoal();
-//    }
-//    else if(key_event->keystr == "h" && key_event->state && ctrl_is_pressed) // ctrl+h
-//    {
-//        // request plan
-//        if(footstep_vis_manager_->hasGoal())
-//            footstep_vis_manager_->requestStepPlan();
-//    }
-//    else if(key_event->keystr == "j" && key_event->state && ctrl_is_pressed) // ctrl+j
-//    {
-//        // request plan
-//        if(footstep_vis_manager_->hasValidStepPlan())
-//            footstep_vis_manager_->requestExecuteStepPlan();
-//    }
-//    else if(ctrl_is_pressed && alt_is_pressed) // ctrl+alt emergency stop
-//    {
-//        stop_button_->setVisible(true);
-//        stop_button_->setGeometry(this->geometry().bottomRight().x()/2 - 200,this->geometry().bottomRight().y()/2 - 150,400,300);
-//    }
-//    else if(shift_is_pressed && !shift_pressed_)
-//    {
-//        //Lock translation during rotation
-//        flor_ocs_msgs::OCSControlMode msgMode;
-//        if(interactive_marker_mode_ < IM_MODE_OFFSET)
-//            msgMode.manipulationMode = interactive_marker_mode_ + IM_MODE_OFFSET;
-//        else
-//            msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
-//        interactive_marker_server_mode_pub_.publish(msgMode);
-//        shift_pressed_ = true;
-//    }
-//    else
-//    {
-//        stop_button_->setVisible(false);
+    else // remove if released
+    {
+        // renamed the keys we inserted, so make sure to erase by new name
+        if(key_event->keystr.find("Control") != std::string::npos)
+            keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), "ctrl"), keys_pressed_list_.end());
+        else if(key_event->keystr.find("Shift") != std::string::npos)
+            keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), "shift"), keys_pressed_list_.end());
+        else if(key_event->keystr.find("Alt") != std::string::npos)
+            keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), "alt"), keys_pressed_list_.end());
+        else if(key_event->keystr == "Escape")//may as well keep Escape to lowercase
+            keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), "esc"), keys_pressed_list_.end());
+        else
+            keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keystr), keys_pressed_list_.end());
+    }
 
-//        //Unclock translation during rotation
-//        if(shift_pressed_)
-//        {
-//            flor_ocs_msgs::OCSControlMode msgMode;
-//            if(interactive_marker_mode_ < IM_MODE_OFFSET)//Check if mode is 0, 1 or 2
-//                msgMode.manipulationMode = interactive_marker_mode_;
-//            else//means that shift is pressed
-//                msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
-//            interactive_marker_server_mode_pub_.publish(msgMode);
-//            shift_pressed_ = false;
-//        }
+    //process hotkeys in a generic manner
+    //sort keys pressed, make sure combinations will always be in same order regardless of how they were hard coded
+    std::sort (keys_pressed_list_.begin(), keys_pressed_list_.end());
 
-//    }
-    ///END BASEVIEW             ///////////////////////////////////////////////////////////////////
+    std::string keyCombo;
+    //build expression to determine which keys are pressed.
+    for(int i=0;i<keys_pressed_list_.size();i++)
+    {
+        std::string key = keys_pressed_list_[i];
 
+        if(i == keys_pressed_list_.size()-1) // dont add plus on the end
+            keyCombo = keyCombo + key;
+        else
+            keyCombo = keyCombo + key +"+";
+    }    
+    //ROS_ERROR("Keys pressed: %s", keyCombo.c_str());
+    callHotkeyFunction(keyCombo);
 }
 
 void HotkeyManager::callHotkeyFunction(std::string keyCombo)
 {
     //gets the boost function then call binded function
-    hotkey_functions_[keyCombo]();
+    if(hotkey_functions_.find(keyCombo) != hotkey_functions_.end())
+        hotkey_functions_[keyCombo]();
+//    else
+//        ROS_ERROR("keycombo %s does not exist", keyCombo.c_str());
 }
 
-void HotkeyManager::addHotkeyFunction(std::string keyCombo, boost::function<void()> function)
+//split std::string and throw tokens into vector, idea from http://stackoverflow.com/questions/236129/split-a-string-in-c
+void HotkeyManager::split(const std::string &s, char delim, std::vector<std::string> &elems)
 {
-    if(hotkey_functions_.find(keyCombo) == hotkey_functions_.end())
-        hotkey_functions_[keyCombo] = function;
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim))
+    {
+        elems.push_back(item);
+    }
+}
+
+
+void HotkeyManager::addHotkeyFunction(std::string keyCombo, boost::function<void()> function)
+{        
+    //tokenize and throw into vector
+    std::vector<std::string> combo;
+    split(keyCombo,'+',combo);
+
+    //sort the designated key combination to make sure combinations will always be in same order regardless of how they were hard coded
+    std::sort (combo.begin(), combo.end());
+
+    std::string mappedCombo;
+    //build final combination
+    for(int i=0;i<combo.size();i++)
+    {
+        std::string key(combo[i]);
+
+        if(i == combo.size()-1) // dont add plus on the end
+            mappedCombo = mappedCombo + key;
+        else
+            mappedCombo = mappedCombo + key +"+";
+    }
+
+    if(hotkey_functions_.find(mappedCombo) == hotkey_functions_.end())
+        hotkey_functions_[mappedCombo] = function;
     else
-        ROS_ERROR("tried to add duplicating hotkey functions");
+        ROS_ERROR("tried to add duplicating hotkey functions for combo: %s", keyCombo.c_str());
+}
+
+void HotkeyManager::printallHotkeyCombinations()
+{
+    std::map<std::string, callback>::iterator iter;
+    for (iter = hotkey_functions_.begin(); iter != hotkey_functions_.end(); ++iter)
+    {
+        ROS_ERROR("Combo: %s", iter->first.c_str() );
+    }
 }
 
 

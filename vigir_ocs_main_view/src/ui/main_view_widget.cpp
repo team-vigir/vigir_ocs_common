@@ -32,7 +32,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui->insert_waypoint->hide();
 
     //subscribe to the global hotkey message
-    key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainViewWidget::processNewKeyEvent, this );
+   //key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainViewWidget::processNewKeyEvent, this );
 
     QHBoxLayout* aux_layout;
 
@@ -340,7 +340,6 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui->Tools->hide();
     ui->Navigation->hide();
     ui->Template->hide();
-
 
 
     // connect emergency stop button to glancehub
@@ -933,21 +932,21 @@ void MainViewWidget::zero_rightPressed(){
     }
 }
 
-void MainViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
-{
-    // store key state
-    if(key_event->state)
-        keys_pressed_list_.push_back(key_event->keycode);
-    else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
+//void MainViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+//{
+//    // store key state
+//    if(key_event->state)
+//        keys_pressed_list_.push_back(key_event->keycode);
+//    else
+//        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
 
-    // process hotkeys
-    std::vector<int>::iterator key_is_pressed;
+//    // process hotkeys
+//    std::vector<int>::iterator key_is_pressed;
 
-    // ctrl
-    //key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+//    // ctrl
+//    //key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
 
-}
+//}
 
 //ADD THIS FUNCTION TO THE INDIVIDUAL WINDOWS
 //SETUP PUBLISHER FOR TOGGLE

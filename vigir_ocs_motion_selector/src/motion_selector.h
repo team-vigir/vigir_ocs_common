@@ -15,6 +15,7 @@
 #include <ros/ros.h>
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
+#include "hotkey_manager.h"
 
 namespace Ui {
 class motion_selector;
@@ -28,7 +29,7 @@ public:
     explicit motion_selector(QWidget *parent = 0);
     ~motion_selector();
 
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    //void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
 private:
     typedef struct
@@ -47,6 +48,7 @@ private:
         QDoubleSpinBox* timeFactor;
         QPushButton* button;
     } quickButton;
+
     std::vector<quickButton*> quickButtonList;
     Ui::motion_selector *ui;
     QString filePath;
@@ -62,9 +64,15 @@ private:
     std::vector<QTreeWidgetItem*> treeItems;
     QBasicTimer timer;
 
-    std::vector<int> keys_pressed_list_;
+    //std::vector<int> keys_pressed_list_;
 
-    ros::Subscriber key_event_sub_;
+    //ros::Subscriber key_event_sub_;
+
+    //hotkey
+    void addHotKeys();
+    void toggleVisibilityHotkey();
+
+
 public Q_SLOTS:
     void on_sendCommand_clicked();
     void on_timeFactorSlider_valueChanged(int value);

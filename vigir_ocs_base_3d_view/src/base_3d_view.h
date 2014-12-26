@@ -74,6 +74,7 @@
 #include "robot_state_manager.h"
 #include "notification_system.h"
 #include "context_menu_manager.h"
+#include "hotkey_manager.h"
 
 // local includes
 #include "footstep_vis_manager.h"
@@ -666,6 +667,19 @@ protected:
       * Gives object context on right click
       */
     int findObjectContext(std::string obj_type);
+
+
+    ////////Hot key/////////////////////
+    void addHotkeys();
+    //Callbacks
+    void resetEverythingHotkey();
+    void showEStopHotkey();
+    void resetPointCloudsHotkey();
+    void rainbowColorHotkey();
+    void pointcloudIntensityHotkey();
+    void requestStepPlanHotkey();
+    void executeStepPlanHotkey();
+    void lockTranslationHotkey();
 
 
     ////////////////////

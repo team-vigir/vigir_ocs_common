@@ -637,6 +637,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         frustum_display_->setEnabled(false);
 
         ghost_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/robot_state_vis",1, true);        
+
+        //initialize hotkeys
+        addHotkeys();
     }
 
     //initialize overall context menu
@@ -724,6 +727,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
+
+
 }
 
 // Destructor.
@@ -3614,6 +3619,86 @@ bool Base3DView::eventFilter( QObject * o, QEvent * e )
     return QWidget::eventFilter( o, e );
 }
 
+void Base3DView::addHotkeys()
+{
+    //adds all hotkey functions to HotkeyManager
+    //some functions are only one line, so the boost bind can pass a paramater to a function call
+    //callbacks are made for multiline functionality or property set
+
+    //reset everything
+    HotkeyManager::Instance()->addHotkeyFunction("esc",boost::bind(&Base3DView::resetEverythingHotkey,this));    
+    //robot visibility
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+q",boost::bind(&Base3DView::robotModelToggled,this,!robot_model_->isEnabled()));    
+    //ghost visibility
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+w",boost::bind(&Base3DView::simulationRobotToggled,this,!ghost_robot_model_->isEnabled()));    
+    //pointcloud reset
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+1",boost::bind(&Base3DView::resetPointCloudsHotkey,this));    
+    //rainbow color on region pointcloud
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+9",boost::bind(&Base3DView::rainbowColorHotkey,this));    
+    //Intensity
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+0",boost::bind(&Base3DView::pointcloudIntensityHotkey,this));    
+    //define step goal
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+g",boost::bind(&Base3DView::defineFootstepGoal,this));   
+    //request footstep plan
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+h",boost::bind(&Base3DView::requestStepPlanHotkey,this));    
+    //execute footstep plan
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+j",boost::bind(&Base3DView::executeStepPlanHotkey,this));    
+    //E-Stop
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+alt",boost::bind(&Base3DView::showEStopHotkey,this));    
+
+    HotkeyManager::Instance()->addHotkeyFunction("shift",boost::bind(&Base3DView::lockTranslationHotkey,this));
+}
+
+///Callbacks for Hotkeys//////////////
+void Base3DView::resetEverythingHotkey()
+{
+    // reset everything
+    deselectAll();
+    manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
+}
+void Base3DView::showEStopHotkey()
+{
+    stop_button_->setVisible(true);
+    stop_button_->setGeometry(this->geometry().bottomRight().x()/2 - 200,this->geometry().bottomRight().y()/2 - 150,400,300);
+}
+void Base3DView::resetPointCloudsHotkey()
+{
+    clearPointCloudRaycastRequests();
+    clearPointCloudRegionRequests();
+    clearPointCloudStereoRequests();
+}
+void Base3DView::rainbowColorHotkey()
+{
+    //set Region pointcloud to rainbow color
+    region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+}
+void Base3DView::pointcloudIntensityHotkey()
+{
+    region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
+}
+void Base3DView::requestStepPlanHotkey()
+{
+   if(footstep_vis_manager_->hasGoal())
+      footstep_vis_manager_->requestStepPlan();
+}
+void Base3DView::executeStepPlanHotkey()
+{
+    if(footstep_vis_manager_->hasValidStepPlan())
+       footstep_vis_manager_->requestExecuteStepPlan();
+}
+
+void Base3DView::lockTranslationHotkey()
+{
+    //Lock translation during rotation
+    flor_ocs_msgs::OCSControlMode msgMode;
+    if(interactive_marker_mode_ < IM_MODE_OFFSET)
+        msgMode.manipulationMode = interactive_marker_mode_ + IM_MODE_OFFSET;
+    else
+        msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
+    interactive_marker_server_mode_pub_.publish(msgMode);
+    shift_pressed_ = true;
+}
+
 void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 {
     // store key state
@@ -3627,88 +3712,19 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
     bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Shift_") != keys_pressed_list_.end());
     bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Alt_") != keys_pressed_list_.end());
 
-    if(key_event->keystr == "Escape" && key_event->state) // 'esc'
+    //Default actions that occur when hotkeys aren't pressed(such as restoring non hotkey state)
+    stop_button_->setVisible(false);
+
+    //Unlock translation during rotation
+    if(shift_pressed_)
     {
-        // reset everything
-        deselectAll();
-        manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
-    }
-    else if(key_event->keystr == "q" && key_event->state && ctrl_is_pressed) // ctrl+q
-    {
-        // robot model visibility
-        robotModelToggled(!robot_model_->isEnabled());
-    }
-    else if(key_event->keystr == "w" && key_event->state && ctrl_is_pressed) // ctrl+w
-    {
-        // ghost visibility
-        simulationRobotToggled(!ghost_robot_model_->isEnabled());
-    }
-    else if(key_event->keystr == "1" && key_event->state && ctrl_is_pressed) // ctrl+1
-    {
-        // reset point clouds
-        clearPointCloudRaycastRequests();
-        clearPointCloudRegionRequests();
-        clearPointCloudStereoRequests();
-    }
-    else if(key_event->keystr == "9" && key_event->state && ctrl_is_pressed) // ctrl+9
-    {
-        // rainbow color
-        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-    }
-    else if(key_event->keystr == "0" && key_event->state && ctrl_is_pressed) // ctrl+0
-    {
-        // intensity
-        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
-    }
-    else if(key_event->keystr == "g" && key_event->state && ctrl_is_pressed) // ctrl+g
-    {
-        // define a step goal
-        defineFootstepGoal();
-    }
-    else if(key_event->keystr == "h" && key_event->state && ctrl_is_pressed) // ctrl+h
-    {
-        // request plan
-        if(footstep_vis_manager_->hasGoal())
-            footstep_vis_manager_->requestStepPlan();
-    }
-    else if(key_event->keystr == "j" && key_event->state && ctrl_is_pressed) // ctrl+j
-    {
-        // request plan
-        if(footstep_vis_manager_->hasValidStepPlan())
-            footstep_vis_manager_->requestExecuteStepPlan();
-    }
-    else if(ctrl_is_pressed && alt_is_pressed) //emergency stop
-    {
-        stop_button_->setVisible(true);
-        stop_button_->setGeometry(this->geometry().bottomRight().x()/2 - 200,this->geometry().bottomRight().y()/2 - 150,400,300);
-    }
-    else if(shift_is_pressed && !shift_pressed_) // previously shift was not being pressed and now it is being pressed.
-    {
-        //Lock translation during rotation
         flor_ocs_msgs::OCSControlMode msgMode;
-        if(interactive_marker_mode_ < IM_MODE_OFFSET)
-            msgMode.manipulationMode = interactive_marker_mode_ + IM_MODE_OFFSET;
-        else
+        if(interactive_marker_mode_ < IM_MODE_OFFSET)//Check if mode is 0, 1 or 2
+            msgMode.manipulationMode = interactive_marker_mode_;
+        else//means that shift is pressed
             msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
         interactive_marker_server_mode_pub_.publish(msgMode);
-        shift_pressed_ = true;
-    }
-    else // no buttons
-    {
-        stop_button_->setVisible(false);
-
-        //Unclock translation during rotation
-        if(shift_pressed_)
-        {
-            flor_ocs_msgs::OCSControlMode msgMode;
-            if(interactive_marker_mode_ < IM_MODE_OFFSET)//Check if mode is 0, 1 or 2
-                msgMode.manipulationMode = interactive_marker_mode_;
-            else//means that shift is pressed
-                msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
-            interactive_marker_server_mode_pub_.publish(msgMode);
-            shift_pressed_ = false;
-        }
-
+        shift_pressed_ = false;
     }
 
 }

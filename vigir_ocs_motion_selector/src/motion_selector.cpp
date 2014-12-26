@@ -23,7 +23,7 @@ motion_selector::motion_selector(QWidget *parent) :
 
     message_pub_ = nh_.advertise<flor_control_msgs::FlorExecuteMotionRequest>( "/flor/motion_service/motion_command",1,false);
 
-    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &motion_selector::processNewKeyEvent, this );
+    //key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &motion_selector::processNewKeyEvent, this );
 
     timer.start(33, this);
 }
@@ -268,28 +268,21 @@ void motion_selector::on_timeFactorSlider_valueChanged(int value)
     ui->timeFactorLabel->setText(QString::number(sliderVal,'g',3));
 }
 
-void motion_selector::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
-{
-    // store key state
-    if(key_event->state)
-        keys_pressed_list_.push_back(key_event->keycode);
-    else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
+//void motion_selector::addHotKeys()
+//{
+//    HotkeyManager::Instance()->addHotkeyFunction("ctrl+m",boost::bind(&motion_selector::toggleVisibilityHotkey,this));
+//}
 
-    // process hotkeys
-    std::vector<int>::iterator key_is_pressed;
+//void motion_selector::toggleVisibilityHotkey()
+//{
+//    if(this->isVisible())
+//    {
+//        this->hide();
+//    }
+//    else
+//    {
+//        //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+//        this->show();
+//    }
+//}
 
-    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    if(key_event->keycode == 14 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+5
-    {
-        if(this->isVisible())
-        {
-            this->hide();
-        }
-        else
-        {
-            this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
-            this->show();
-        }
-    }
-}

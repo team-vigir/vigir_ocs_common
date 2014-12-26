@@ -230,7 +230,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
     select_object_pub_ = nh_.advertise<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 1, false );
     select_object_sub_ = nh_.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &graspWidget::processObjectSelection, this );
 
-    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &graspWidget::processNewKeyEvent, this );
+    //key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &graspWidget::processNewKeyEvent, this );
     timer.start(33, this);
 }
 //SetStylesheet to change on the fly
@@ -1493,31 +1493,31 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
     }
 }
 
-void graspWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
-{
-    // store key state
-    if(key_event->state)
-        keys_pressed_list_.push_back(key_event->keycode);
-    else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
+//void graspWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+//{
+//    // store key state
+//    if(key_event->state)
+//        keys_pressed_list_.push_back(key_event->keycode);
+//    else
+//        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
 
-    // process hotkeys
-    std::vector<int>::iterator key_is_pressed;
+//    // process hotkeys
+//    std::vector<int>::iterator key_is_pressed;
 
-    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    /*if(key_event->keycode == 16 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+7
-    {
-        if(this->isVisible())
-        {
-            this->hide();
-        }
-        else
-        {
-            //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
-            this->show();
-        }
-    }*/
-}
+//    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+//    /*if(key_event->keycode == 16 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+7
+//    {
+//        if(this->isVisible())
+//        {
+//            this->hide();
+//        }
+//        else
+//        {
+//            //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+//            this->show();
+//        }
+//    }*/
+//}
 
 void graspWidget::on_verticalSlider_sliderReleased()
 {
