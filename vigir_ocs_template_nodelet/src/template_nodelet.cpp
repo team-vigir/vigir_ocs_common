@@ -391,6 +391,45 @@ void TemplateNodelet::loadStandPosesDatabase(std::string& file_name){
      * stand pose id,
      * stand pose relative to template (x,y,z,qw,qx,qy,qz),
     */
+   std::vector <std::vector <std::string> > db = readCSVFile(file_name);
+   
+	unsigned int template_type;
+	unsigned int stand_pose_id;
+	unsigned int j;
+	geometry_msgs::PoseStamped current_pose;
+	std::map<unsigned int, VigirObjectTemplate>::Iterator current_template;
+	std::pair<std::map<unsigned int, geometry_msgs::PoseStamped>::Iterator, bool>
+	for (unsigned int i = 0; i < db.size(); ++i) {
+		template_type = std::atoi(db[i][0].c_str());
+		stand_pose_id = std::atoi(db[i][1].c_str());
+		//current_pose.frame_id = 
+
+		current_pose.pose.position.x = std::atoi(db[i][2].c_str());
+		current_pose.pose.position.y = std::atoi(db[i][3].c_str());
+		current_pose.pose.position.z = std::atoi(db[i][4].c_str());
+
+		current_pose.pose.orientation.w = std::atoi(db[i][5].c_str());
+		current_pose.pose.orientation.x = std::atoi(db[i][6].c_str());
+		current_pose.pose.orientation.y = std::atoi(db[i][7].c_str());
+		current_pose.pose.orientation.z = std::atoi(db[i][8].c_str());
+
+		current_template = object_template_map_.find(template_type);
+		if (current_template == object_template_map_.end()){
+			ROS_WARN_STREAM("Could not find associated template for stand pose. Template: "
+									<< template_type << " stand pose: " << stand_pose_id 
+									<< ". Adding stand pose regardless");
+			VigirObjectTemplate new_template;
+			current_template = object_template_map_.insert(std::pair<unsigned int, VigirObjectTemplate> (template_type, new_template))->first;
+		}
+		
+		if (current_template->stand_poses.find(stand_pose_id) != current_template->stand_poses.end()) {
+			ROS_WARN_STREAM("Duplicates in the stand pose list! Template " << template_type 
+									<< " has two stand poses of id: " << stand_pose_id << ". Ignoring second.");
+			continue;
+		}
+		
+		current_template->stand_poses.insert(std::pair<unsigned int, geometry_msgs::PoseStamped> (stand_pose_id, current_pose));
+   }
 }
 
 

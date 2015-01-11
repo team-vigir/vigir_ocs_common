@@ -107,7 +107,7 @@ namespace ocs_template
         std::string   l_grasps_filename_;
         // Filename of the object template library
         std::string   ot_filename_;
-        // Filename of the object template library
+        // Filename of the stand pose library
         std::string   stand_filename_;
         tf::Transform gp_T_hand_;
         std::map<unsigned int,VigirObjectTemplate> object_template_map_;
