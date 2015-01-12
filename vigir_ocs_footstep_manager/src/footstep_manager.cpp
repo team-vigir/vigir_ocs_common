@@ -8,8 +8,6 @@
 #include <vigir_footstep_planning_msgs/Foot.h>
 #include <vigir_footstep_planning_msgs/EditStepService.h>
 
-#include <flor_footstep_planner_msgs/flor_footstep_planner_msgs.h>
-
 namespace ocs_footstep
 {
 void FootstepManager::onInit()
