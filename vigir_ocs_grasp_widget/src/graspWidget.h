@@ -43,6 +43,8 @@
 #include <flor_grasp_msgs/TemplateSelection.h>
 #include <flor_grasp_msgs/LinkState.h>
 
+#include <vigir_object_template_msgs/GetGraspInfo.h>
+
 #define FINGER_EFFORTS 4
 
 namespace Ui {
@@ -216,6 +218,8 @@ private:
     std::vector<int> keys_pressed_list_;
 
     ros::Subscriber key_event_sub_;
+
+    //ros::ServiceClient grasp_info_client_;
 
 protected:
     void timerEvent(QTimerEvent *event);
