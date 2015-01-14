@@ -99,6 +99,8 @@ void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPt
 {
     std::cout << "Added template to list (id: " << (int)id_counter_ << ")" << std::endl;
     template_id_list_.push_back(id_counter_++);
+    //template_type_list_.push_back(msg->template_type);	//Add the type of the template to be instantiated
+    								//Could search for the path in the object_template_map_, but that sounds wasteful. Could we please put it in the message?
     template_list_.push_back(msg->template_path);
     pose_list_.push_back(msg->pose);
     this->publishTemplateList();
@@ -115,6 +117,7 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
     {
         std::cout << "Removed!" << std::endl;
         template_id_list_.erase(template_id_list_.begin()+index);
+        //template_type_list_.erase(template_type_list_.begin()+index);	//Remove it
         template_list_.erase(template_list_.begin()+index);
         pose_list_.erase(pose_list_.begin()+index);
         this->publishTemplateList();
@@ -209,6 +212,7 @@ void TemplateNodelet::publishTemplateList()
 
     cmd.template_id_list = template_id_list_;
     cmd.template_list = template_list_;
+    //cmd.template_type_list = template_type_list_;	//I don't know if we want this information to come out of here; probably not
     cmd.pose = pose_list_;
 
     // publish complete list of templates and poses
@@ -391,18 +395,19 @@ void TemplateNodelet::loadStandPosesDatabase(std::string& file_name){
      * stand pose id,
      * stand pose relative to template (x,y,z,qw,qx,qy,qz),
     */
+    ROS_INFO("Loading Stand Poses...");
    std::vector <std::vector <std::string> > db = readCSVFile(file_name);
    
 	unsigned int template_type;
 	unsigned int stand_pose_id;
 	unsigned int j;
 	geometry_msgs::PoseStamped current_pose;
-	std::map<unsigned int, VigirObjectTemplate>::Iterator current_template;
-	std::pair<std::map<unsigned int, geometry_msgs::PoseStamped>::Iterator, bool>
-	for (unsigned int i = 0; i < db.size(); ++i) {
+	std::map<unsigned int, VigirObjectTemplate>::iterator current_template;
+	for (unsigned int i = 1; i < db.size(); ++i) {
 		template_type = std::atoi(db[i][0].c_str());
 		stand_pose_id = std::atoi(db[i][1].c_str());
-		//current_pose.frame_id = 
+		current_pose.header.frame_id = "/world";
+		current_pose.header.stamp = ros::Time::now();
 
 		current_pose.pose.position.x = std::atoi(db[i][2].c_str());
 		current_pose.pose.position.y = std::atoi(db[i][3].c_str());
@@ -419,16 +424,17 @@ void TemplateNodelet::loadStandPosesDatabase(std::string& file_name){
 									<< template_type << " stand pose: " << stand_pose_id 
 									<< ". Adding stand pose regardless");
 			VigirObjectTemplate new_template;
-			current_template = object_template_map_.insert(std::pair<unsigned int, VigirObjectTemplate> (template_type, new_template))->first;
+			current_template = object_template_map_.insert(std::pair<unsigned int, VigirObjectTemplate> (template_type, new_template)).first;
 		}
 		
-		if (current_template->stand_poses.find(stand_pose_id) != current_template->stand_poses.end()) {
+		if (current_template->second.stand_poses.find(stand_pose_id) != current_template->second.stand_poses.end()) {
 			ROS_WARN_STREAM("Duplicates in the stand pose list! Template " << template_type 
 									<< " has two stand poses of id: " << stand_pose_id << ". Ignoring second.");
 			continue;
 		}
 		
-		current_template->stand_poses.insert(std::pair<unsigned int, geometry_msgs::PoseStamped> (stand_pose_id, current_pose));
+		current_template->second.stand_poses.insert(std::pair<unsigned int, geometry_msgs::PoseStamped> (stand_pose_id, current_pose));
+		ROS_INFO_STREAM("Added stand information: type " << template_type << " pose id: " << stand_pose_id << " pose " << current_pose);
    }
 }
 
@@ -512,6 +518,49 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     /*Fill in the blanks of the response "res"
      * with the info of the template id in the request "req"
     */
+    	//Find the template
+	unsigned int index = 0;
+	unsigned int template_type;
+	for(; index < template_id_list_.size(); index++) {
+		if(template_id_list_[index] == req.template_id){
+			template_type = template_type_list_[index];
+			break;
+		}
+	}
+	
+	if (index == template_id_list_.size()){
+		ROS_ERROR_STREAM("Service requested template id " << req.template_id 
+				<< " when no such id has been instantiated. Callback returning false.");
+		return false;
+	}
+
+	res.template_state_information.template_id 	=	req.template_id;
+	res.template_state_information.type_name 	= 	object_template_map_[template_type].name;
+	res.template_state_information.pose 		= 	pose_list_[req.template_id];
+
+	res.template_type_information.type_name		=	object_template_map_[template_type].name;
+	res.template_type_information.mass 		= 	object_template_map_[template_type].mass;
+	res.template_type_information.center_of_mass 	= 	object_template_map_[template_type].com;
+	
+	//Transfer all known grasps to response
+	for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it = object_template_map_[template_type].grasps.begin(); it != object_template_map_[template_type].grasps.end(); ++it) {
+		res.template_type_information.grasps.push_back(it->second);
+	}
+
+	//Compose a mesh marker
+	res.template_type_information.geometry_marker.header.frame_id = "/world";
+	res.template_type_information.geometry_marker.header.stamp = ros::Time::now();
+	res.template_type_information.geometry_marker.type = res.template_type_information.geometry_marker.MESH_RESOURCE;
+	res.template_type_information.geometry_marker.action = res.template_type_information.geometry_marker.ADD;
+	res.template_type_information.geometry_marker.scale.x = 1;
+	res.template_type_information.geometry_marker.scale.y = 1;
+	res.template_type_information.geometry_marker.scale.z = 1;
+	res.template_type_information.geometry_marker.lifetime = ros::Duration(0);
+	res.template_type_information.geometry_marker.frame_locked = true;
+	res.template_type_information.geometry_marker.mesh_resource = ros::package::getPath("vigir_template_library") + "/" + object_template_map_[template_type].path;
+	res.template_type_information.geometry_marker.pose = pose_list_[index].pose;
+	
+
   return true;
 }
 
