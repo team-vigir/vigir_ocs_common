@@ -570,7 +570,19 @@ bool TemplateNodelet::graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Req
     /*Fill in the blanks of the response "res"
      * with the info of the template id in the request "req"
     */
-  return true;
+    int i=0;
+    for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it2  = object_template_map_[req.template_id].grasps.begin();
+                                                             it2 != object_template_map_[req.template_id].grasps.end();
+                                                             ++it2, i++){
+        res.grasp_information.grasps.push_back(it2->second);
+    }
+    i=0;
+    for (std::map<unsigned int,geometry_msgs::PoseStamped>::iterator it2  = object_template_map_[req.template_id].stand_poses.begin();
+                                                                     it2 != object_template_map_[req.template_id].stand_poses.end();
+                                                                     ++it2, i++){
+        res.grasp_information.stand_poses.push_back(it2->second);
+    }
+    return true;
 }
 
 // transform endeffort to palm pose used by GraspIt

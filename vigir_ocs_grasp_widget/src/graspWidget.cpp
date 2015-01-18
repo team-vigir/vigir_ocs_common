@@ -76,6 +76,8 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
     grasp_release_pub_          = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/release_grasp" ,         1, false);
     grasp_mode_command_pub_     = nh_.advertise<flor_grasp_msgs::GraspState>(        grasp_control_prefix+"/mode_command",     1, false);
 
+    //grasp_info_client_          = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
+
     // create subscribers for grasp status
     std::stringstream finger_joint_name;
     XmlRpc::XmlRpcValue   hand_T_palm;
@@ -441,6 +443,18 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         if(selected_grasp_id_ != -1 && show_grasp_)
             publishHandPose(selected_grasp_id_);
     }
+
+//    //CLIENT EXAMPLE
+//    vigir_object_template_msgs::GetGraspInfo srv;
+//    srv.request.template_id = 3;
+//    if (grasp_info_client_.call(srv))
+//    {
+//        ROS_INFO("#Grasp: %d", (int)srv.response.grasp_information.grasps.size());
+//    }
+//    else
+//    {
+//        ROS_ERROR("Failed to call service request grasp info");
+//    }
 }
 
 void graspWidget::initTemplateMode()
