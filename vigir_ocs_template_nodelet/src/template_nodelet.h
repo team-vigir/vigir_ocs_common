@@ -100,7 +100,7 @@ namespace ocs_template
       private:
         std::vector<unsigned char>                  template_id_list_;
         std::vector<unsigned int>                   template_type_list_;
-	std::vector<std::string>                    template_list_;
+        std::vector<std::string>                    template_list_;
         std::vector<geometry_msgs::PoseStamped>     pose_list_;
         unsigned char id_counter_;
         // Filename of the grasping library

@@ -21,7 +21,7 @@ void TemplateNodelet::onInit()
     grasp_request_sub_           = nh_out.subscribe<flor_grasp_msgs::GraspSelection>( "grasp_request", 1, &TemplateNodelet::graspRequestCb, this );
     grasp_state_feedback_sub_    = nh_out.subscribe<flor_grasp_msgs::GraspState>( "grasp_state_feedback", 1, &TemplateNodelet::graspStateFeedbackCb, this );
 
-    template_info_server_        = nh_out.advertiseService("/state_info", &TemplateNodelet::templateInfoSrv, this);
+    template_info_server_        = nh_out.advertiseService("/template_info", &TemplateNodelet::templateInfoSrv, this);
 
     grasp_info_server_           = nh_out.advertiseService("/grasp_info", &TemplateNodelet::graspInfoSrv, this);
 
@@ -518,7 +518,7 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     /*Fill in the blanks of the response "res"
      * with the info of the template id in the request "req"
     */
-    	//Find the template
+       //Find the template
 	unsigned int index = 0;
 	unsigned int template_type;
 	for(; index < template_id_list_.size(); index++) {
@@ -526,11 +526,11 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
 			template_type = template_type_list_[index];
 			break;
 		}
-	}
+    }
 	
 	if (index == template_id_list_.size()){
-		ROS_ERROR_STREAM("Service requested template id " << req.template_id 
-				<< " when no such id has been instantiated. Callback returning false.");
+        //ROS_ERROR_STREAM("Service requested template id " << req.template_id.data << " when no such id has been instantiated. Callback returning false.");
+        ROS_ERROR("Service requested template id %d when no such id has been instantiated. Callback returning false.",req.template_id);
 		return false;
     }
 
@@ -545,7 +545,7 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
 	//Transfer all known grasps to response
 	for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it = object_template_map_[template_type].grasps.begin(); it != object_template_map_[template_type].grasps.end(); ++it) {
 		res.template_type_information.grasps.push_back(it->second);
-	}
+    }
 
 	//Compose a mesh marker
 	res.template_type_information.geometry_marker.header.frame_id = "/world";
@@ -559,7 +559,7 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     res.template_type_information.geometry_marker.frame_locked    = true;
     res.template_type_information.geometry_marker.mesh_resource   = ros::package::getPath("vigir_template_library") + "/" + object_template_map_[template_type].path;
     res.template_type_information.geometry_marker.pose            = pose_list_[index].pose;
-	
+
 
   return true;
 }

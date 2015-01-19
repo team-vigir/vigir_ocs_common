@@ -44,6 +44,7 @@
 #include <flor_grasp_msgs/LinkState.h>
 
 #include <vigir_object_template_msgs/GetGraspInfo.h>
+#include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
 
 #define FINGER_EFFORTS 4
 
@@ -212,14 +213,15 @@ private:
     // Used to make setting virtual joint positions (-> hand pose) easier
     sensor_msgs::JointState virtual_link_joint_states_;
 
-    ros::Publisher select_object_pub_;
-    ros::Subscriber select_object_sub_;
+    ros::Publisher     select_object_pub_;
+    ros::Subscriber    select_object_sub_;
 
-    std::vector<int> keys_pressed_list_;
+    std::vector<int>   keys_pressed_list_;
 
-    ros::Subscriber key_event_sub_;
+    ros::Subscriber    key_event_sub_;
 
-    //ros::ServiceClient grasp_info_client_;
+    ros::ServiceClient grasp_info_client_;
+    ros::ServiceClient template_info_client_;
 
 protected:
     void timerEvent(QTimerEvent *event);

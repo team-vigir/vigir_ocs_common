@@ -72,11 +72,12 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_typ
     template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>("/grasp_control/template_selection", 1, &graspWidget::templateMatchFeedback, this );
     grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(       grasp_control_prefix+"/active_state",            1, &graspWidget::graspStateReceived,  this );
 
-    grasp_selection_pub_        = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/grasp_selection",        1, false);
-    grasp_release_pub_          = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/release_grasp" ,         1, false);
-    grasp_mode_command_pub_     = nh_.advertise<flor_grasp_msgs::GraspState>(        grasp_control_prefix+"/mode_command",     1, false);
+    grasp_selection_pub_         = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/grasp_selection",        1, false);
+    grasp_release_pub_           = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/release_grasp" ,         1, false);
+    grasp_mode_command_pub_      = nh_.advertise<flor_grasp_msgs::GraspState>(        grasp_control_prefix+"/mode_command",     1, false);
 
-    //grasp_info_client_          = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
+    grasp_info_client_           = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
+    template_info_client_        = nh_.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
 
     // create subscribers for grasp status
     std::stringstream finger_joint_name;
@@ -450,6 +451,19 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
 //    if (grasp_info_client_.call(srv))
 //    {
 //        ROS_INFO("#Grasp: %d", (int)srv.response.grasp_information.grasps.size());
+//    }
+//    else
+//    {
+//        ROS_ERROR("Failed to call service request grasp info");
+//    }
+
+//    //CLIENT EXAMPLE
+//    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
+//    srv.request.template_id = 0;
+//    if (template_info_client_.call(srv))
+//    {
+//        ROS_ERROR("Service worked!!!");
+//        ROS_ERROR("#Template name: %s", srv.response.template_state_information.type_name.c_str() );
 //    }
 //    else
 //    {
