@@ -557,7 +557,7 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     res.template_type_information.geometry_marker.scale.z         = 1;
     res.template_type_information.geometry_marker.lifetime        = ros::Duration(0);
     res.template_type_information.geometry_marker.frame_locked    = true;
-    res.template_type_information.geometry_marker.mesh_resource   = ros::package::getPath("vigir_template_library") + "/" + object_template_map_[template_type].path;
+    res.template_type_information.geometry_marker.mesh_resource   = ros::package::getPath("vigir_template_library") + "/object_templates/" + object_template_map_[template_type].path;
     res.template_type_information.geometry_marker.pose            = pose_list_[index].pose;
 
 
