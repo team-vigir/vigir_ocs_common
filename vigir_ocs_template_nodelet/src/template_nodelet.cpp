@@ -532,15 +532,15 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
 		ROS_ERROR_STREAM("Service requested template id " << req.template_id 
 				<< " when no such id has been instantiated. Callback returning false.");
 		return false;
-	}
+    }
 
-	res.template_state_information.template_id 	=	req.template_id;
-	res.template_state_information.type_name 	= 	object_template_map_[template_type].name;
-	res.template_state_information.pose 		= 	pose_list_[req.template_id];
+    res.template_state_information.template_id 	 = req.template_id;
+    res.template_state_information.type_name 	 = object_template_map_[template_type].name;
+    res.template_state_information.pose 		 = pose_list_[req.template_id];
 
-	res.template_type_information.type_name		=	object_template_map_[template_type].name;
-	res.template_type_information.mass 		= 	object_template_map_[template_type].mass;
-	res.template_type_information.center_of_mass 	= 	object_template_map_[template_type].com;
+    res.template_type_information.type_name      = object_template_map_[template_type].name;
+    res.template_type_information.mass           = object_template_map_[template_type].mass;
+    res.template_type_information.center_of_mass = object_template_map_[template_type].com;
 	
 	//Transfer all known grasps to response
 	for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it = object_template_map_[template_type].grasps.begin(); it != object_template_map_[template_type].grasps.end(); ++it) {
@@ -549,16 +549,16 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
 
 	//Compose a mesh marker
 	res.template_type_information.geometry_marker.header.frame_id = "/world";
-	res.template_type_information.geometry_marker.header.stamp = ros::Time::now();
-	res.template_type_information.geometry_marker.type = res.template_type_information.geometry_marker.MESH_RESOURCE;
-	res.template_type_information.geometry_marker.action = res.template_type_information.geometry_marker.ADD;
-	res.template_type_information.geometry_marker.scale.x = 1;
-	res.template_type_information.geometry_marker.scale.y = 1;
-	res.template_type_information.geometry_marker.scale.z = 1;
-	res.template_type_information.geometry_marker.lifetime = ros::Duration(0);
-	res.template_type_information.geometry_marker.frame_locked = true;
-	res.template_type_information.geometry_marker.mesh_resource = ros::package::getPath("vigir_template_library") + "/" + object_template_map_[template_type].path;
-	res.template_type_information.geometry_marker.pose = pose_list_[index].pose;
+    res.template_type_information.geometry_marker.header.stamp    = ros::Time::now();
+    res.template_type_information.geometry_marker.type            = res.template_type_information.geometry_marker.MESH_RESOURCE;
+    res.template_type_information.geometry_marker.action          = res.template_type_information.geometry_marker.ADD;
+    res.template_type_information.geometry_marker.scale.x         = 1;
+    res.template_type_information.geometry_marker.scale.y         = 1;
+    res.template_type_information.geometry_marker.scale.z         = 1;
+    res.template_type_information.geometry_marker.lifetime        = ros::Duration(0);
+    res.template_type_information.geometry_marker.frame_locked    = true;
+    res.template_type_information.geometry_marker.mesh_resource   = ros::package::getPath("vigir_template_library") + "/" + object_template_map_[template_type].path;
+    res.template_type_information.geometry_marker.pose            = pose_list_[index].pose;
 	
 
   return true;
