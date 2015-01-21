@@ -148,7 +148,7 @@ private:
 
     flor_ocs_msgs::OCSTemplateList last_template_list_;
     int selected_template_id_;
-    int selected_grasp_id_;
+    int selected_pose_id_;
 
 
     QBasicTimer timer;

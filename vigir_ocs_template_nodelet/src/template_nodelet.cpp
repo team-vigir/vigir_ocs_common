@@ -417,14 +417,14 @@ void TemplateNodelet::loadStandPosesDatabase(std::string& file_name){
         current_pose.pose.header.frame_id    = "/world";
         current_pose.pose.header.stamp       = ros::Time::now();
 
-        current_pose.pose.pose.position.x    = std::atoi(db[i][2].c_str());
-        current_pose.pose.pose.position.y    = std::atoi(db[i][3].c_str());
-        current_pose.pose.pose.position.z    = std::atoi(db[i][4].c_str());
+        current_pose.pose.pose.position.x    = std::atof(db[i][2].c_str());
+        current_pose.pose.pose.position.y    = std::atof(db[i][3].c_str());
+        current_pose.pose.pose.position.z    = std::atof(db[i][4].c_str());
 
-        current_pose.pose.pose.orientation.w = std::atoi(db[i][5].c_str());
-        current_pose.pose.pose.orientation.x = std::atoi(db[i][6].c_str());
-        current_pose.pose.pose.orientation.y = std::atoi(db[i][7].c_str());
-        current_pose.pose.pose.orientation.z = std::atoi(db[i][8].c_str());
+        current_pose.pose.pose.orientation.w = std::atof(db[i][5].c_str());
+        current_pose.pose.pose.orientation.x = std::atof(db[i][6].c_str());
+        current_pose.pose.pose.orientation.y = std::atof(db[i][7].c_str());
+        current_pose.pose.pose.orientation.z = std::atof(db[i][8].c_str());
 
 		current_template = object_template_map_.find(template_type);
 		if (current_template == object_template_map_.end()){

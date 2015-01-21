@@ -24,7 +24,7 @@ unsigned char GhostControlWidget::saved_state_position_only_ik_;
 GhostControlWidget::GhostControlWidget(QWidget *parent) :
     QWidget(parent)
     , selected_template_id_(-1)
-    , selected_grasp_id_(-1),
+    , selected_pose_id_(-1),
     ui(new Ui::GhostControlWidget)
 {    
     ui->setupUi(this);
@@ -174,7 +174,7 @@ void GhostControlWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateLi
     {
         ui->graspBox->clear();
         selected_template_id_ = -1;
-        selected_grasp_id_ = -1;
+        selected_pose_id_ = -1;
         ui->graspBox->setEnabled(false);
     }
     else
@@ -199,47 +199,28 @@ void GhostControlWidget::on_templateBox_activated(const QString &arg1)
     std::cout << "updating the ghost widget pose selection box contents" << std::endl;
     // clean grasp box
     ui->graspBox->clear();
-    selected_grasp_id_ = -1;
+    selected_pose_id_ = -1;
 
-    //CHANGE TO CALL FOR GRASP INFO FROM TEMPLATE SERVER
-
-
-    //    //CLIENT EXAMPLE
-    //    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
-    //    srv.request.template_type = 0;
-    //    if (template_info_client_.call(srv))
-    //    {
-    //        ROS_ERROR("Service worked!!!");
-    //        ROS_ERROR("#Template name: %s", srv.response.template_state_information.type_name.c_str() );
-    //    }
-    //    else
-    //    {
-    //        ROS_ERROR("Failed to call service request grasp info");
-    //    }
-
-
-//    // add grasps to the grasp combo box
-//    for(int index = 0; index < pose_db_.size(); index++)
-//    {
-//        QString tmp = arg1;
-//        tmp.remove(0,tmp.indexOf(": ")+2);
-//        std::cout << "comparing db " << pose_db_[index].template_name << " to " << tmp.toStdString() << std::endl;
-
-//        if(pose_db_[index].template_name == tmp.toStdString())
-//        {
-//            std::cout << "Found pose for template" << std::endl;
-//            ui->graspBox->addItem(QString::number(pose_db_[index].pose_id));
-//        }
-//    }
-
-    if(ui->templateBox->count() > 0)
-        selected_grasp_id_ = ui->graspBox->itemText(0).toInt();
+    //CALLING THE TEMPLATE SERVER
+    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
+    srv.request.template_type = last_template_list_.template_type_list[selected_template_id_];
+    if (!template_info_client_.call(srv))
+    {
+        ROS_ERROR("Failed to call service request grasp info");
+    }else{
+        for(int index = 0; index < srv.response.template_type_information.stand_poses.size(); index++)
+        {
+            ui->graspBox->addItem(QString::number(srv.response.template_type_information.stand_poses[index].id));
+        }
+        if(ui->templateBox->count() > 0)
+            selected_pose_id_ = ui->graspBox->itemText(0).toInt();
+    }
 }
 
 void GhostControlWidget::on_graspBox_activated(const QString &arg1)
 {
     std::cout << " pose selection = " << arg1.toStdString() << std::endl;
-    selected_grasp_id_ = arg1.toInt();
+    selected_pose_id_ = arg1.toInt();
 }
 
 void GhostControlWidget::publishState( bool snap )
@@ -703,46 +684,36 @@ void GhostControlWidget::on_send_ghost_to_template_button_clicked()
 
 //    set_to_target_pose_pub_.publish(cmd);
 
-    //    //CLIENT EXAMPLE
-    //    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
-    //    srv.request.template_type = 0;
-    //    if (template_info_client_.call(srv))
-    //    {
-    //        ROS_ERROR("Service worked!!!");
-    //        ROS_ERROR("#Template name: %s", srv.response.template_state_information.type_name.c_str() );
-    //    }
-    //    else
-    //    {
-    //        ROS_ERROR("Failed to call service request grasp info");
-    //    }
+    geometry_msgs::PoseStamped stand_pose;
 
-
-
-    //CHANGE TO CALL FOR STAND POSE INFO FROM TEMPLATE SERVER
-//    unsigned int pose_index;
-//    for(pose_index = 0; pose_index < pose_db_.size(); pose_index++)
-//        if(pose_db_[pose_index].pose_id == selected_grasp_id_)
-//            break;
-
-//    if(pose_index == pose_db_.size()){
-//        ROS_ERROR("Pose not found in database");
-//    }
-//    else
-//    {
-//        if(send_ghost_to_template_pub_)
-//        {
-//        geometry_msgs::PoseStamped pose;
-//        pose.header.frame_id = "/world";
-//        pose.header.stamp = ros::Time::now();
-//        calcTargetPose(last_template_list_.pose[ui->templateBox->currentIndex()].pose,
-//                       pose_db_[pose_index].ghost_pose,
-//                       pose.pose);
-//        send_ghost_to_template_pub_.publish(pose);
-//        }
-//        else{
-//            ROS_ERROR("No Publisher for ghost to template pose");
-//        }
-//    }
+    //CALLING THE TEMPLATE SERVER
+    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
+    srv.request.template_type = last_template_list_.template_type_list[selected_template_id_];
+    if (!template_info_client_.call(srv))
+    {
+        ROS_ERROR("Failed to call service request grasp info");
+    }else{
+        for(int index = 0; index < srv.response.template_type_information.stand_poses.size(); index++)
+        {
+            if(srv.response.template_type_information.stand_poses[index].id == selected_pose_id_){
+                stand_pose = srv.response.template_type_information.stand_poses[index].pose;
+                break;
+            }
+        }
+        if(send_ghost_to_template_pub_)
+        {
+            geometry_msgs::PoseStamped pose;
+            pose.header.frame_id = "/world";
+            pose.header.stamp = ros::Time::now();
+            calcTargetPose(last_template_list_.pose[ui->templateBox->currentIndex()].pose,
+                           stand_pose.pose,
+                           pose.pose);
+            send_ghost_to_template_pub_.publish(pose);
+        }
+        else{
+            ROS_ERROR("No Publisher for ghost to template pose");
+        }
+    }
 }
 
 int GhostControlWidget::calcTargetPose(const geometry_msgs::Pose& pose_1, const geometry_msgs::Pose& pose_2, geometry_msgs::Pose& pose_result)
