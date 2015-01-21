@@ -101,8 +101,8 @@ void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPt
     template_id_list_.push_back(id_counter_++);
 
     for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it){
-        ROS_INFO("Comparing MAP: %s with MSG: %s", it->second.path.c_str(), msg->template_path.c_str());
-        if(it->second.path == msg->template_path ){
+        ROS_INFO("Comparing MAP: %s with MSG: %s", it->second.path.c_str(), ((msg->template_path).substr(0, (msg->template_path).find_last_of("."))).c_str());
+        if(it->second.path == (msg->template_path).substr(0, (msg->template_path).find_last_of(".")) ){ //removing file extension
             template_type_list_.push_back(it->second.type);	//Add the type of the template to be instantiated
         }
     }
@@ -258,7 +258,7 @@ void TemplateNodelet::publishTemplateList()
 std::vector< std::vector <std::string> > TemplateNodelet::readCSVFile(std::string& file_name){
     std::ifstream file ( file_name.c_str() );
     if(!file){
-        ROS_ERROR("NO GRASP DATABASE FILE FOUND: %s",file_name.c_str());
+        ROS_ERROR("NO DATABASE FILE FOUND: %s",file_name.c_str());
     }
 
     std::vector< std::vector <std::string> > db;
