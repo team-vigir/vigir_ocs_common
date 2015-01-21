@@ -99,8 +99,14 @@ void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPt
 {
     std::cout << "Added template to list (id: " << (int)id_counter_ << ")" << std::endl;
     template_id_list_.push_back(id_counter_++);
-    //template_type_list_.push_back(msg->template_type);	//Add the type of the template to be instantiated
-    								//Could search for the path in the object_template_map_, but that sounds wasteful. Could we please put it in the message?
+
+    for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it){
+        ROS_INFO("Comparing MAP: %s with MSG: %s", it->second.path.c_str(), msg->template_path.c_str());
+        if(it->second.path == msg->template_path ){
+            template_type_list_.push_back(it->second.type);	//Add the type of the template to be instantiated
+        }
+    }
+
     template_list_.push_back(msg->template_path);
     pose_list_.push_back(msg->pose);
     this->publishTemplateList();
@@ -117,7 +123,7 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
     {
         std::cout << "Removed!" << std::endl;
         template_id_list_.erase(template_id_list_.begin()+index);
-        //template_type_list_.erase(template_type_list_.begin()+index);	//Remove it
+        template_type_list_.erase(template_type_list_.begin()+index);	//Remove it
         template_list_.erase(template_list_.begin()+index);
         pose_list_.erase(pose_list_.begin()+index);
         this->publishTemplateList();
@@ -210,10 +216,10 @@ void TemplateNodelet::publishTemplateList()
     //std::cout << "timer" << std::endl;
     flor_ocs_msgs::OCSTemplateList cmd;
 
-    cmd.template_id_list = template_id_list_;
-    cmd.template_list = template_list_;
-    //cmd.template_type_list = template_type_list_;	//I don't know if we want this information to come out of here; probably not
-    cmd.pose = pose_list_;
+    cmd.template_id_list   = template_id_list_;
+    cmd.template_list      = template_list_;
+    cmd.template_type_list = template_type_list_;
+    cmd.pose               = pose_list_;
 
     // publish complete list of templates and poses
     template_list_pub_.publish( cmd );
@@ -522,21 +528,21 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
 	unsigned int index = 0;
 	unsigned int template_type;
 	for(; index < template_id_list_.size(); index++) {
-		if(template_id_list_[index] == req.template_id){
+        if(template_id_list_[index] == req.template_type){
 			template_type = template_type_list_[index];
 			break;
 		}
     }
 	
 	if (index == template_id_list_.size()){
-        //ROS_ERROR_STREAM("Service requested template id " << req.template_id.data << " when no such id has been instantiated. Callback returning false.");
-        ROS_ERROR("Service requested template id %d when no such id has been instantiated. Callback returning false.",req.template_id);
+        //ROS_ERROR_STREAM("Service requested template id " << req.template_type.data << " when no such id has been instantiated. Callback returning false.");
+        ROS_ERROR("Service requested template id %d when no such id has been instantiated. Callback returning false.",req.template_type);
 		return false;
     }
 
-    res.template_state_information.template_id 	 = req.template_id;
+    res.template_state_information.template_id 	 = req.template_type;
     res.template_state_information.type_name 	 = object_template_map_[template_type].name;
-    res.template_state_information.pose 		 = pose_list_[req.template_id];
+    res.template_state_information.pose 		 = pose_list_[req.template_type];
 
     res.template_type_information.type_name      = object_template_map_[template_type].name;
     res.template_type_information.mass           = object_template_map_[template_type].mass;
@@ -571,14 +577,14 @@ bool TemplateNodelet::graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Req
      * with the info of the template id in the request "req"
     */
     int i=0;
-    for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it2  = object_template_map_[req.template_id].grasps.begin();
-                                                             it2 != object_template_map_[req.template_id].grasps.end();
+    for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it2  = object_template_map_[req.template_type].grasps.begin();
+                                                             it2 != object_template_map_[req.template_type].grasps.end();
                                                              ++it2, i++){
         res.grasp_information.grasps.push_back(it2->second);
     }
     i=0;
-    for (std::map<unsigned int,geometry_msgs::PoseStamped>::iterator it2  = object_template_map_[req.template_id].stand_poses.begin();
-                                                                     it2 != object_template_map_[req.template_id].stand_poses.end();
+    for (std::map<unsigned int,geometry_msgs::PoseStamped>::iterator it2  = object_template_map_[req.template_type].stand_poses.begin();
+                                                                     it2 != object_template_map_[req.template_type].stand_poses.end();
                                                                      ++it2, i++){
         res.grasp_information.stand_poses.push_back(it2->second);
     }

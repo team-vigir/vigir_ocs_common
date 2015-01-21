@@ -203,6 +203,21 @@ void GhostControlWidget::on_templateBox_activated(const QString &arg1)
 
     //CHANGE TO CALL FOR GRASP INFO FROM TEMPLATE SERVER
 
+
+    //    //CLIENT EXAMPLE
+    //    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
+    //    srv.request.template_type = 0;
+    //    if (template_info_client_.call(srv))
+    //    {
+    //        ROS_ERROR("Service worked!!!");
+    //        ROS_ERROR("#Template name: %s", srv.response.template_state_information.type_name.c_str() );
+    //    }
+    //    else
+    //    {
+    //        ROS_ERROR("Failed to call service request grasp info");
+    //    }
+
+
 //    // add grasps to the grasp combo box
 //    for(int index = 0; index < pose_db_.size(); index++)
 //    {
@@ -687,6 +702,21 @@ void GhostControlWidget::on_send_ghost_to_template_button_clicked()
 //    cmd.data = "l_arm_group";
 
 //    set_to_target_pose_pub_.publish(cmd);
+
+    //    //CLIENT EXAMPLE
+    //    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
+    //    srv.request.template_type = 0;
+    //    if (template_info_client_.call(srv))
+    //    {
+    //        ROS_ERROR("Service worked!!!");
+    //        ROS_ERROR("#Template name: %s", srv.response.template_state_information.type_name.c_str() );
+    //    }
+    //    else
+    //    {
+    //        ROS_ERROR("Failed to call service request grasp info");
+    //    }
+
+
 
     //CHANGE TO CALL FOR STAND POSE INFO FROM TEMPLATE SERVER
 //    unsigned int pose_index;

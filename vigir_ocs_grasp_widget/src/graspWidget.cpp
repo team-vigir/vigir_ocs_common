@@ -447,7 +447,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
 
 //    //CLIENT EXAMPLE
 //    vigir_object_template_msgs::GetGraspInfo srv;
-//    srv.request.template_id = 3;
+//    srv.request.template_type = 3;
 //    if (grasp_info_client_.call(srv))
 //    {
 //        ROS_INFO("#Grasp: %d", (int)srv.response.grasp_information.grasps.size());
@@ -459,7 +459,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
 
 //    //CLIENT EXAMPLE
 //    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
-//    srv.request.template_id = 0;
+//    srv.request.template_type = 0;
 //    if (template_info_client_.call(srv))
 //    {
 //        ROS_ERROR("Service worked!!!");
