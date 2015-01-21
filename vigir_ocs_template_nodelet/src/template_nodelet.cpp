@@ -408,22 +408,23 @@ void TemplateNodelet::loadStandPosesDatabase(std::string& file_name){
 	unsigned int template_type;
 	unsigned int stand_pose_id;
 	unsigned int j;
-	geometry_msgs::PoseStamped current_pose;
+    vigir_object_template_msgs::StandPose current_pose;
 	std::map<unsigned int, VigirObjectTemplate>::iterator current_template;
 	for (unsigned int i = 1; i < db.size(); ++i) {
-		template_type = std::atoi(db[i][0].c_str());
-		stand_pose_id = std::atoi(db[i][1].c_str());
-		current_pose.header.frame_id = "/world";
-		current_pose.header.stamp = ros::Time::now();
+        template_type                        = std::atoi(db[i][0].c_str());
+        stand_pose_id                        = std::atoi(db[i][1].c_str());
+        current_pose.id                      = stand_pose_id;
+        current_pose.pose.header.frame_id    = "/world";
+        current_pose.pose.header.stamp       = ros::Time::now();
 
-		current_pose.pose.position.x = std::atoi(db[i][2].c_str());
-		current_pose.pose.position.y = std::atoi(db[i][3].c_str());
-		current_pose.pose.position.z = std::atoi(db[i][4].c_str());
+        current_pose.pose.pose.position.x    = std::atoi(db[i][2].c_str());
+        current_pose.pose.pose.position.y    = std::atoi(db[i][3].c_str());
+        current_pose.pose.pose.position.z    = std::atoi(db[i][4].c_str());
 
-		current_pose.pose.orientation.w = std::atoi(db[i][5].c_str());
-		current_pose.pose.orientation.x = std::atoi(db[i][6].c_str());
-		current_pose.pose.orientation.y = std::atoi(db[i][7].c_str());
-		current_pose.pose.orientation.z = std::atoi(db[i][8].c_str());
+        current_pose.pose.pose.orientation.w = std::atoi(db[i][5].c_str());
+        current_pose.pose.pose.orientation.x = std::atoi(db[i][6].c_str());
+        current_pose.pose.pose.orientation.y = std::atoi(db[i][7].c_str());
+        current_pose.pose.pose.orientation.z = std::atoi(db[i][8].c_str());
 
 		current_template = object_template_map_.find(template_type);
 		if (current_template == object_template_map_.end()){
@@ -440,8 +441,8 @@ void TemplateNodelet::loadStandPosesDatabase(std::string& file_name){
 			continue;
 		}
 		
-		current_template->second.stand_poses.insert(std::pair<unsigned int, geometry_msgs::PoseStamped> (stand_pose_id, current_pose));
-		ROS_INFO_STREAM("Added stand information: type " << template_type << " pose id: " << stand_pose_id << " pose " << current_pose);
+        current_template->second.stand_poses.insert(std::pair<unsigned int, vigir_object_template_msgs::StandPose> (stand_pose_id, current_pose));
+        ROS_INFO_STREAM("Added stand information: type " << template_type << " pose id: " << stand_pose_id << " pose " << current_pose.pose);
    }
 }
 
@@ -541,28 +542,26 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
         //ROS_ERROR_STREAM("Service requested template id " << req.template_type.data << " when no such id has been instantiated. Callback returning false.");
         ROS_ERROR("Service requested template type %d when no such type has been instantiated. Callback returning false.",req.template_type);
 		return false;
-    }else
-        ROS_INFO("Template Information Found at index: %d", index);
+    }
 
     res.template_state_information.template_type = req.template_type;
     res.template_state_information.template_id   = template_id;
     res.template_state_information.type_name 	 = object_template_map_[req.template_type].name;
     res.template_state_information.pose 		 = pose_list_[index];
 
-    ROS_INFO("Template State Information for %s set", object_template_map_[req.template_type].name.c_str());
-
     res.template_type_information.type_name      = object_template_map_[req.template_type].name;
     res.template_type_information.mass           = object_template_map_[req.template_type].mass;
     res.template_type_information.center_of_mass = object_template_map_[req.template_type].com;
-
-    ROS_INFO("Template Type Information set");
 	
 	//Transfer all known grasps to response
     for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it = object_template_map_[req.template_type].grasps.begin(); it != object_template_map_[req.template_type].grasps.end(); ++it) {
 		res.template_type_information.grasps.push_back(it->second);
     }
 
-    ROS_INFO("Template Grasp Information set");
+    //Transfer all known stand poses to response
+    for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it = object_template_map_[req.template_type].stand_poses.begin(); it != object_template_map_[req.template_type].stand_poses.end(); ++it) {
+        res.template_type_information.stand_poses.push_back(it->second);
+    }
 
 	//Compose a mesh marker
 	res.template_type_information.geometry_marker.header.frame_id = "/world";
@@ -576,9 +575,6 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     res.template_type_information.geometry_marker.frame_locked    = true;
     res.template_type_information.geometry_marker.mesh_resource   = ros::package::getPath("vigir_template_library") + "/object_templates/" + object_template_map_[req.template_type].path;
     res.template_type_information.geometry_marker.pose            = pose_list_[index].pose;
-
-    ROS_INFO("Template geometry Information set");
-
 
   return true;
 }
@@ -596,7 +592,7 @@ bool TemplateNodelet::graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Req
         res.grasp_information.grasps.push_back(it2->second);
     }
     i=0;
-    for (std::map<unsigned int,geometry_msgs::PoseStamped>::iterator it2  = object_template_map_[req.template_type].stand_poses.begin();
+    for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it2  = object_template_map_[req.template_type].stand_poses.begin();
                                                                      it2 != object_template_map_[req.template_type].stand_poses.end();
                                                                      ++it2, i++){
         res.grasp_information.stand_poses.push_back(it2->second);
