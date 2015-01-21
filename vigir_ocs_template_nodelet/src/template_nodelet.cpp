@@ -101,9 +101,10 @@ void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPt
     template_id_list_.push_back(id_counter_++);
 
     for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it){
-        ROS_INFO("Comparing MAP: %s with MSG: %s", it->second.path.c_str(), ((msg->template_path).substr(0, (msg->template_path).find_last_of("."))).c_str());
+        //ROS_INFO("Comparing MAP: %s with MSG: %s", it->second.path.c_str(), ((msg->template_path).substr(0, (msg->template_path).find_last_of("."))).c_str());
         if(it->second.path == (msg->template_path).substr(0, (msg->template_path).find_last_of(".")) ){ //removing file extension
             template_type_list_.push_back(it->second.type);	//Add the type of the template to be instantiated
+            break;
         }
     }
 
@@ -479,8 +480,9 @@ void TemplateNodelet::loadObjectTemplateDatabase(std::string& file_name)
         object_template.id    = i-1;
         object_template.type  = type;
         object_template.path  = path;
+        object_template.name  = path.substr(path.find_last_of("/")+1,path.size());
         object_template_map_.insert(std::pair<unsigned int,VigirObjectTemplate>(type,object_template));
-        //ROS_INFO(" Inserting Object template type: %d with id: %d", object_template_map_[type].type, object_template_map_[type].id);
+        ROS_INFO(" Inserting Object template type: %d with id: %d, name %s", object_template_map_[type].type, object_template_map_[type].id, object_template_map_[type].name.c_str());
     }
 }
 
@@ -526,32 +528,41 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     */
        //Find the template
 	unsigned int index = 0;
-	unsigned int template_type;
+    unsigned int template_id;
 	for(; index < template_id_list_.size(); index++) {
-        if(template_id_list_[index] == req.template_type){
-			template_type = template_type_list_[index];
-			break;
+        if(template_type_list_[index] == req.template_type){
+            template_id = template_type_list_[index];
+            ROS_INFO("Template Type found in server, index: %d, list: %d, requested: %d",index, template_type_list_[index], req.template_type);
+            break;
 		}
     }
 	
-	if (index == template_id_list_.size()){
+    if (index >= template_id_list_.size()){
         //ROS_ERROR_STREAM("Service requested template id " << req.template_type.data << " when no such id has been instantiated. Callback returning false.");
-        ROS_ERROR("Service requested template id %d when no such id has been instantiated. Callback returning false.",req.template_type);
+        ROS_ERROR("Service requested template type %d when no such type has been instantiated. Callback returning false.",req.template_type);
 		return false;
-    }
+    }else
+        ROS_INFO("Template Information Found at index: %d", index);
 
-    res.template_state_information.template_id 	 = req.template_type;
-    res.template_state_information.type_name 	 = object_template_map_[template_type].name;
-    res.template_state_information.pose 		 = pose_list_[req.template_type];
+    res.template_state_information.template_type = req.template_type;
+    res.template_state_information.template_id   = template_id;
+    res.template_state_information.type_name 	 = object_template_map_[req.template_type].name;
+    res.template_state_information.pose 		 = pose_list_[index];
 
-    res.template_type_information.type_name      = object_template_map_[template_type].name;
-    res.template_type_information.mass           = object_template_map_[template_type].mass;
-    res.template_type_information.center_of_mass = object_template_map_[template_type].com;
+    ROS_INFO("Template State Information for %s set", object_template_map_[req.template_type].name.c_str());
+
+    res.template_type_information.type_name      = object_template_map_[req.template_type].name;
+    res.template_type_information.mass           = object_template_map_[req.template_type].mass;
+    res.template_type_information.center_of_mass = object_template_map_[req.template_type].com;
+
+    ROS_INFO("Template Type Information set");
 	
 	//Transfer all known grasps to response
-	for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it = object_template_map_[template_type].grasps.begin(); it != object_template_map_[template_type].grasps.end(); ++it) {
+    for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it = object_template_map_[req.template_type].grasps.begin(); it != object_template_map_[req.template_type].grasps.end(); ++it) {
 		res.template_type_information.grasps.push_back(it->second);
     }
+
+    ROS_INFO("Template Grasp Information set");
 
 	//Compose a mesh marker
 	res.template_type_information.geometry_marker.header.frame_id = "/world";
@@ -563,8 +574,10 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     res.template_type_information.geometry_marker.scale.z         = 1;
     res.template_type_information.geometry_marker.lifetime        = ros::Duration(0);
     res.template_type_information.geometry_marker.frame_locked    = true;
-    res.template_type_information.geometry_marker.mesh_resource   = ros::package::getPath("vigir_template_library") + "/object_templates/" + object_template_map_[template_type].path;
+    res.template_type_information.geometry_marker.mesh_resource   = ros::package::getPath("vigir_template_library") + "/object_templates/" + object_template_map_[req.template_type].path;
     res.template_type_information.geometry_marker.pose            = pose_list_[index].pose;
+
+    ROS_INFO("Template geometry Information set");
 
 
   return true;
