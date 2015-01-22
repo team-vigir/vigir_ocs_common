@@ -213,6 +213,6 @@ namespace ocs_footstep
         ExecuteStepPlanClient* execute_step_plan_client_;
         GetAllParameterSetsClient* get_all_parameter_sets_client_;
 
-        ros::ServiceClient edit_step_service_client_;
+        //ros::ServiceClient edit_step_service_client_;
     };
 }

@@ -80,16 +80,39 @@ void FootstepManager::onInit()
     execute_step_plan_client_ = new ExecuteStepPlanClient("execute_step_plan", true);
 
     //wait for servers to come online
-    update_feet_client_->waitForServer();
-    step_plan_request_client_->waitForServer();
-    edit_step_client_->waitForServer();
-    stitch_step_plan_client_->waitForServer();
-    update_step_plan_client_->waitForServer();
-    get_all_parameter_sets_client_->waitForServer();
-    //execute_step_plan_client_->waitForServer();
+    while(!update_feet_client_->waitForServer(ros::Duration(5.0)))
+    {
+        ROS_INFO("Waiting for the update_feet server to come up");
+    }
+    while(!step_plan_request_client_->waitForServer(ros::Duration(5.0)))
+    {
+        ROS_INFO("Waiting for the step_plan_request server to come up");
+    }
+    while(!edit_step_client_->waitForServer(ros::Duration(5.0)))
+    {
+        ROS_INFO("Waiting for the edit_step server to come up");
+    }
+    while(!stitch_step_plan_client_->waitForServer(ros::Duration(5.0)))
+    {
+        ROS_INFO("Waiting for the stitch_step_plan server to come up");
+    }
+    while(!update_step_plan_client_->waitForServer(ros::Duration(5.0)))
+    {
+        ROS_INFO("Waiting for the update_step_plan server to come up");
+    }
+    while(!get_all_parameter_sets_client_->waitForServer(ros::Duration(5.0)))
+    {
+        ROS_INFO("Waiting for the get_all_parameter_sets server to come up");
+    }
+    //while(!execute_step_plan_client_->waitForServer(ros::Duration(5.0)))
+    //{
+    //    ROS_INFO("Waiting for the execute_step_plan server to come up");
+    //}
+
+    ROS_INFO("FootstepManager initialized!");
 
     // initialize service for deleting footsteps
-    edit_step_service_client_ = nh.serviceClient<vigir_footstep_planning_msgs::EditStepService>("/vigir/global_footstep_planner/edit_step");
+    //edit_step_service_client_ = nh.serviceClient<vigir_footstep_planning_msgs::EditStepService>("/vigir/global_footstep_planner/edit_step");
 
     // request parameter sets
     sendGetAllParameterSetsGoal();
@@ -788,6 +811,9 @@ void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& sta
 void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_step_index, const unsigned char start_foot)
 {
     vigir_footstep_planning_msgs::StepPlanRequest request;
+
+    request.header.frame_id = "/world";
+    request.header.stamp = ros::Time::now();
 
     request.start = start;
     request.goal = goal;
