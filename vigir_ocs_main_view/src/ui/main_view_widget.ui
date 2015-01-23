@@ -854,13 +854,13 @@
           <widget class="QWidget" name="widget_14" native="true">
            <property name="minimumSize">
             <size>
-             <width>100</width>
+             <width>80</width>
              <height>0</height>
             </size>
            </property>
            <property name="baseSize">
             <size>
-             <width>100</width>
+             <width>90</width>
              <height>0</height>
             </size>
            </property>
@@ -1343,7 +1343,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-696</y>
+           <y>0</y>
            <width>212</width>
            <height>1570</height>
           </rect>
