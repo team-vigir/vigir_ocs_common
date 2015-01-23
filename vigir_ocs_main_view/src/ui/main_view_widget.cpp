@@ -34,6 +34,10 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //subscribe to the global hotkey message
     key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainViewWidget::processNewKeyEvent, this );
 
+    //setup lidar spin
+    lidar_spin_rate_pub_ = n_.advertise<std_msgs::Float64>("/multisense/set_spindle_speed",10,false);
+    QObject::connect(ui->lidar_spin_rate, SIGNAL(valueChanged(double)), this, SLOT(setLidarSpinRate(double)));
+
     QHBoxLayout* aux_layout;
 
     // setup default views
@@ -367,6 +371,12 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //create context menu and add to base3dview
     main_view_context_menu_ = new MainViewContextMenu(this);
 
+}
+
+void MainViewWidget::setLidarSpinRate(double spin_rate)
+{    
+    //published in radians directly from widget
+    lidar_spin_rate_pub_.publish(spin_rate);
 }
 
 void MainViewWidget::toggleSidebarVisibility()
