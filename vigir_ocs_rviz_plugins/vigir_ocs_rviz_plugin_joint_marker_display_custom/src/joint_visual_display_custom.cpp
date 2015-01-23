@@ -230,7 +230,7 @@ namespace rviz
         else
         {
             //may occur on startup with ghost
-            ROS_ERROR("Tried to change non-existing joint alpha : %s\n",joint_name.c_str());
+            //ROS_ERROR("Tried to change non-existing joint alpha : %s\n",joint_name.c_str());
         }
     }
 
@@ -246,7 +246,7 @@ namespace rviz
         }
         else
         {
-            ROS_ERROR("Tried to change non-existing joint color: %s \n",joint_name.c_str());
+            //ROS_ERROR("Tried to change non-existing joint color: %s \n",joint_name.c_str());
         }
     }
 
