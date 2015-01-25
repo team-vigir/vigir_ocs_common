@@ -444,31 +444,6 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         if(selected_grasp_id_ != -1 && show_grasp_)
             publishHandPose(selected_grasp_id_);
     }
-
-//    //CLIENT EXAMPLE
-//    vigir_object_template_msgs::GetGraspInfo srv;
-//    srv.request.template_type = 3;
-//    if (grasp_info_client_.call(srv))
-//    {
-//        ROS_INFO("#Grasp: %d", (int)srv.response.grasp_information.grasps.size());
-//    }
-//    else
-//    {
-//        ROS_ERROR("Failed to call service request grasp info");
-//    }
-
-//    //CLIENT EXAMPLE
-//    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
-//    srv.request.template_type = 0;
-//    if (template_info_client_.call(srv))
-//    {
-//        ROS_ERROR("Service worked!!!");
-//        ROS_ERROR("#Template name: %s", srv.response.template_state_information.type_name.c_str() );
-//    }
-//    else
-//    {
-//        ROS_ERROR("Failed to call service request grasp info");
-//    }
 }
 
 void graspWidget::initTemplateMode()
@@ -920,22 +895,37 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
     ui->graspBox->clear();
     selected_grasp_id_ = -1;
 
-    // add grasps to the grasp combo box
-    for(int index = 0; index < grasp_db_.size(); index++)
+    //CALLING THE TEMPLATE SERVER
+    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
+    srv.request.template_type = last_template_list_.template_type_list[selected_template_id_];
+    if (!template_info_client_.call(srv))
     {
-        QString tmp = arg1;
-        tmp.remove(0,tmp.indexOf(": ")+2);
-        std::cout << "comparing db " << grasp_db_[index].template_name << " to " << tmp.toStdString() << std::endl;
-
-        if(grasp_db_[index].template_name == tmp.toStdString() && grasp_db_[index].hand == hand_)
+        ROS_ERROR("Failed to call service request grasp info");
+    }else{
+        for(int index = 0; index < srv.response.template_type_information.stand_poses.size(); index++)
         {
-            std::cout << "Found grasp for template" << std::endl;
-            ui->graspBox->addItem(QString::number(grasp_db_[index].grasp_id));
+            ui->graspBox->addItem(QString(srv.response.template_type_information.grasps[index].id.c_str()));
         }
+        if(ui->templateBox->count() > 0)
+            selected_grasp_id_ = ui->graspBox->itemText(0).toInt();
     }
 
-    if(ui->templateBox->count() > 0)
-        selected_grasp_id_ = ui->graspBox->itemText(0).toInt();
+    // add grasps to the grasp combo box
+//    for(int index = 0; index < grasp_db_.size(); index++)
+//    {
+//        QString tmp = arg1;
+//        tmp.remove(0,tmp.indexOf(": ")+2);
+//        std::cout << "comparing db " << grasp_db_[index].template_name << " to " << tmp.toStdString() << std::endl;
+
+//        if(grasp_db_[index].template_name == tmp.toStdString() && grasp_db_[index].hand == hand_)
+//        {
+//            std::cout << "Found grasp for template" << std::endl;
+//            ui->graspBox->addItem(QString::number(grasp_db_[index].grasp_id));
+//        }
+//    }
+
+//    if(ui->templateBox->count() > 0)
+//        selected_grasp_id_ = ui->graspBox->itemText(0).toInt();
 
     if (ui->manualRadio->isChecked())
     {
