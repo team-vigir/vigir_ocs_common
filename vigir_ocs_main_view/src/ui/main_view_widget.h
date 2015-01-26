@@ -11,6 +11,7 @@
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSControlMode.h>
 #include <std_msgs/Int8.h>
+#include <std_msgs/Float64.h>
 
 #include "statusBar.h"
 #include "graspWidget.h"
@@ -82,6 +83,7 @@ protected Q_SLOTS:
     void hideGraspWidgets();
     void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
     void toggleFootstepConfig();
+    void setLidarSpinRate(double spin_rate);
 
 
 
@@ -128,6 +130,7 @@ protected:
 
     ros::Subscriber ocs_sync_sub_;
 
+    ros::Publisher lidar_spin_rate_pub_;
 
 
     StatusBar * statusBar;
