@@ -512,13 +512,18 @@ void FootstepManager::calculateGoal()
     double shift_x = -sin(end_yaw) * (0.5 * foot_separation);
     double shift_y =  cos(end_yaw) * (0.5 * foot_separation);
 
+    goal_.header.frame_id = "/world";
+    goal_.header.stamp = ros::Time::now();
+
     goal_.left.header.frame_id = "/world";
+    goal_.left.header.stamp = ros::Time::now();
     goal_.left.pose.position.x = goal_pose_.pose.position.x + shift_x;
     goal_.left.pose.position.y = goal_pose_.pose.position.y + shift_y;
     goal_.left.pose.position.z = lower_body_state_.left_foot_pose.position.z;//goal_pose_.pose.position.z;
     goal_.left.pose.orientation = goal_pose_.pose.orientation;
 
     goal_.right.header.frame_id = "/world";
+    goal_.right.header.stamp = ros::Time::now();
     goal_.right.pose.position.x = goal_pose_.pose.position.x - shift_x;
     goal_.right.pose.position.y = goal_pose_.pose.position.y - shift_y;
     goal_.right.pose.position.z = lower_body_state_.right_foot_pose.position.z;//goal_pose_.pose.position.z;
