@@ -352,7 +352,7 @@ void TemplateNodelet::loadGraspDatabase(std::string& file_name, std::string hand
         grasp.grasp_pose.pose.orientation.z                = std::atof(db[i][idx++].c_str());
 
         //Static transformation to parent link /[r/l]_hand
-        staticTransform(grasp.grasp_pose.pose);
+        //staticTransform(grasp.grasp_pose.pose);
 
         //PRE FINGER JOINT POSTURE
         //ROS_INFO("Staring pre finger joint posture idx: %d",idx);
@@ -554,8 +554,10 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     res.template_type_information.center_of_mass = object_template_map_[req.template_type].com;
 	
 	//Transfer all known grasps to response
-    for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it = object_template_map_[req.template_type].grasps.begin(); it != object_template_map_[req.template_type].grasps.end(); ++it) {
-		res.template_type_information.grasps.push_back(it->second);
+    for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it =  object_template_map_[req.template_type].grasps.begin();
+                                                             it != object_template_map_[req.template_type].grasps.end();
+                                                             ++it) {
+        res.template_type_information.grasps.push_back(it->second);
     }
 
     //Transfer all known stand poses to response
