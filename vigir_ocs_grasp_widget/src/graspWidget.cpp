@@ -530,22 +530,14 @@ void graspWidget::on_templateButton_clicked()
     std::cout << "template match requested..." << std::endl;
     flor_grasp_msgs::TemplateSelection msg;
 
-    int graspID = ui->graspBox->currentText().toInt();
     msg.template_type.data = last_template_list_.template_type_list[selected_template_id_];
 
-    //CALLING THE TEMPLATE SERVER
-    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
-    srv.request.template_type = last_template_list_.template_type_list[selected_template_id_];
-    if (!template_info_client_.call(srv))
-    {
-        ROS_ERROR("Failed to call service request grasp info");
-    }else{
-        msg.bounding_max = srv.response.template_type_information.b_max;
-        msg.bounding_min = srv.response.template_type_information.b_min;
-        msg.com          = srv.response.template_type_information.center_of_mass;
-        msg.mass.data    = srv.response.template_type_information.mass;
-        msg.mesh_path    = srv.response.template_type_information.geometry_marker.mesh_resource;
-    }
+    msg.bounding_max = last_template_srv_.response.template_type_information.b_max;
+    msg.bounding_min = last_template_srv_.response.template_type_information.b_min;
+    msg.com          = last_template_srv_.response.template_type_information.center_of_mass;
+    msg.mass.data    = last_template_srv_.response.template_type_information.mass;
+    msg.mesh_path    = last_template_srv_.response.template_type_information.geometry_marker.mesh_resource;
+
     msg.template_id.data = ui->templateBox->currentIndex();
     msg.pose.pose = last_template_list_.pose[ui->templateBox->currentIndex()].pose;
     msg.pose.header.frame_id = "/world";
@@ -588,20 +580,13 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
     ui->graspBox->clear();
     selected_grasp_id_ = -1;
 
-    //CALLING THE TEMPLATE SERVER
-    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
-    srv.request.template_type = last_template_list_.template_type_list[selected_template_id_];
-    if (!template_info_client_.call(srv))
+
+    for(int index = 0; index < last_template_srv_.response.template_type_information.grasps.size(); index++)
     {
-        ROS_ERROR("Failed to call service request grasp info");
-    }else{
-        for(int index = 0; index < srv.response.template_type_information.grasps.size(); index++)
-        {
-            ui->graspBox->addItem(QString(srv.response.template_type_information.grasps[index].id.c_str()));
-        }
-        if(ui->templateBox->count() > 0)
-            selected_grasp_id_ = ui->graspBox->itemText(0).toInt();
+        ui->graspBox->addItem(QString(last_template_srv_.response.template_type_information.grasps[index].id.c_str()));
     }
+    if(ui->templateBox->count() > 0)
+        selected_grasp_id_ = ui->graspBox->itemText(0).toInt();
 
     if (ui->manualRadio->isChecked())
     {
@@ -801,78 +786,70 @@ void graspWidget::publishHandPose(unsigned int id)
     //ROS_ERROR("publishing hand pose for grasp id %d",id);
 
     geometry_msgs::PoseStamped grasp_pose;
+    moveit_msgs::GripperTranslation trans;
 
     std::vector<float> joints;
 
-    //CALLING THE TEMPLATE SERVER
-    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
-    srv.request.template_type = last_template_list_.template_type_list[selected_template_id_];
-    if (!template_info_client_.call(srv))
+
+    for(int index = 0; index < last_template_srv_.response.template_type_information.grasps.size(); index++)
     {
-        ROS_ERROR("Failed to call service request grasp info");
-    }else{
-        for(int index = 0; index < srv.response.template_type_information.grasps.size(); index++)
-        {
-            if(std::atoi(srv.response.template_type_information.grasps[index].id.c_str()) == id){
-                grasp_pose = srv.response.template_type_information.grasps[index].grasp_pose;
-                joints.resize(srv.response.template_type_information.grasps[index].grasp_posture.points[0].positions.size());
-                for(int j=0; j<joints.size();j++)
-                    joints[j] = srv.response.template_type_information.grasps[index].grasp_posture.points[0].positions[j];
-                break;
-            }
+        if(std::atoi(last_template_srv_.response.template_type_information.grasps[index].id.c_str()) == id){
+            grasp_pose = last_template_srv_.response.template_type_information.grasps[index].grasp_pose;
+            joints.resize(last_template_srv_.response.template_type_information.grasps[index].grasp_posture.points[0].positions.size());
+            trans = last_template_srv_.response.template_type_information.grasps[index].pre_grasp_approach;
+            for(int j=0; j<joints.size();j++)
+                joints[j] = last_template_srv_.response.template_type_information.grasps[index].grasp_posture.points[0].positions[j];
+            break;
         }
-
-
-
-
-
-        // get the selected grasp pose
-        geometry_msgs::Pose grasp_transform;//geometry_msgs::PoseStamped grasp_transform;
-        if(ui->show_grasp_radio->isChecked())
-            grasp_transform = grasp_pose.pose;//grasp_transform.pose = grasp_db_[grasp_index].final_pose;
-        else
-            grasp_transform = grasp_pose.pose;//grasp_transform.pose = grasp_db_[grasp_index].pre_grasp_pose;
-
-        staticTransform(grasp_transform);
-
-        unsigned int template_index;
-        for(template_index = 0; template_index < last_template_list_.template_id_list.size(); template_index++)
-            if(last_template_list_.template_id_list[template_index] == selected_template_id_)
-                break;
-
-        if(template_index == last_template_list_.template_id_list.size()) return;
-
-        geometry_msgs::PoseStamped template_transform;
-        template_transform.pose = last_template_list_.pose[template_index].pose;
-        //ROS_ERROR("Template transform:     p=(%f, %f, %f) q=(%f, %f, %f, %f)",template_transform.pose.position.x,template_transform.pose.position.y,template_transform.pose.position.z,template_transform.pose.orientation.w,template_transform.pose.orientation.x,template_transform.pose.orientation.y,template_transform.pose.orientation.z);
-
-        geometry_msgs::PoseStamped hand_transform;
-        calcWristTarget(grasp_transform, template_transform, hand_transform);
-        //ROS_ERROR("Hand transform:         p=(%f, %f, %f) q=(%f, %f, %f, %f)",hand_transform.pose.position.x,hand_transform.pose.position.y,hand_transform.pose.position.z,hand_transform.pose.orientation.w,hand_transform.pose.orientation.x,hand_transform.pose.orientation.y,hand_transform.pose.orientation.z);
-
-        hand_transform.header.stamp = ros::Time::now();
-        hand_transform.header.frame_id = "/world";
-
-        // publish
-        ghost_hand_pub_.publish(hand_transform);
-
-        virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
-        virtual_link_joint_states_.position[1] = hand_transform.pose.position.y;
-        virtual_link_joint_states_.position[2] = hand_transform.pose.position.z;
-        virtual_link_joint_states_.position[3] = hand_transform.pose.orientation.x;
-        virtual_link_joint_states_.position[4] = hand_transform.pose.orientation.y;
-        virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
-        virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
-
-        moveit::core::jointStateToRobotState(virtual_link_joint_states_, *hand_robot_state_);
-
-        publishHandJointStates(joints);
-
-        geometry_msgs::PoseStamped planning_hand_target;
-        calcPlanningTarget(grasp_transform, template_transform, planning_hand_target);
-
-        planning_hand_target_pub_.publish(planning_hand_target);
     }
+
+    // get the selected grasp pose
+    geometry_msgs::Pose grasp_transform;//geometry_msgs::PoseStamped grasp_transform;
+    grasp_transform = grasp_pose.pose;//grasp_transform.pose = grasp_db_[grasp_index].final_pose;
+
+    if(!ui->show_grasp_radio->isChecked())  //Pre-Grasp pose
+        gripperTranslationToPreGraspPose(grasp_transform,trans);
+
+    staticTransform(grasp_transform);
+
+    unsigned int template_index;
+    for(template_index = 0; template_index < last_template_list_.template_id_list.size(); template_index++)
+        if(last_template_list_.template_id_list[template_index] == selected_template_id_)
+            break;
+
+    if(template_index == last_template_list_.template_id_list.size()) return;
+
+    geometry_msgs::PoseStamped template_transform;
+    template_transform.pose = last_template_list_.pose[template_index].pose;
+    //ROS_ERROR("Template transform:     p=(%f, %f, %f) q=(%f, %f, %f, %f)",template_transform.pose.position.x,template_transform.pose.position.y,template_transform.pose.position.z,template_transform.pose.orientation.w,template_transform.pose.orientation.x,template_transform.pose.orientation.y,template_transform.pose.orientation.z);
+
+    geometry_msgs::PoseStamped hand_transform;
+    calcWristTarget(grasp_transform, template_transform, hand_transform);
+    //ROS_ERROR("Hand transform:         p=(%f, %f, %f) q=(%f, %f, %f, %f)",hand_transform.pose.position.x,hand_transform.pose.position.y,hand_transform.pose.position.z,hand_transform.pose.orientation.w,hand_transform.pose.orientation.x,hand_transform.pose.orientation.y,hand_transform.pose.orientation.z);
+
+    hand_transform.header.stamp = ros::Time::now();
+    hand_transform.header.frame_id = "/world";
+
+    // publish
+    ghost_hand_pub_.publish(hand_transform);
+
+    virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
+    virtual_link_joint_states_.position[1] = hand_transform.pose.position.y;
+    virtual_link_joint_states_.position[2] = hand_transform.pose.position.z;
+    virtual_link_joint_states_.position[3] = hand_transform.pose.orientation.x;
+    virtual_link_joint_states_.position[4] = hand_transform.pose.orientation.y;
+    virtual_link_joint_states_.position[5] = hand_transform.pose.orientation.z;
+    virtual_link_joint_states_.position[6] = hand_transform.pose.orientation.w;
+
+    moveit::core::jointStateToRobotState(virtual_link_joint_states_, *hand_robot_state_);
+
+    publishHandJointStates(joints);
+
+    geometry_msgs::PoseStamped planning_hand_target;
+    calcPlanningTarget(grasp_transform, template_transform, planning_hand_target);
+
+    planning_hand_target_pub_.publish(planning_hand_target);
+    
 }
 
 void graspWidget::publishHandJointStates(std::vector<float>& finger_joints)
@@ -1039,6 +1016,40 @@ int graspWidget::staticTransform(geometry_msgs::Pose& palm_pose)
     return 0;
 }
 
+void graspWidget::gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans){
+    geometry_msgs::Vector3Stamped direction = trans.direction;
+    tf::Transform template_T_hand, vec_in, vec_out;
+    ROS_INFO("receiving trans distance: %f; dx: %f, dy: %f, dz: %f", trans.desired_distance, direction.vector.x, direction.vector.y, direction.vector.z);
+    float norm = sqrt((direction.vector.x * direction.vector.x) +(direction.vector.y * direction.vector.y) +(direction.vector.z * direction.vector.z));
+    if(norm != 0){
+        direction.vector.x /= norm;
+        direction.vector.y /= norm;
+        direction.vector.z /= norm;
+    }else{
+        ROS_INFO("Norm is ZERO!");
+        direction.vector.x = 0 ;
+        direction.vector.y = -1;
+        direction.vector.z = 0 ;
+    }
+
+    direction.vector.x *= trans.desired_distance;
+    direction.vector.y *= trans.desired_distance;
+    direction.vector.z *= trans.desired_distance;
+
+    ROS_INFO("setting trans; dx: %f, dy: %f, dz: %f", direction.vector.x, direction.vector.y, direction.vector.z);
+
+    template_T_hand.setRotation(tf::Quaternion(pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w));
+    vec_in.setOrigin(tf::Vector3(direction.vector.x,direction.vector.y,direction.vector.z));
+
+    vec_out = template_T_hand * vec_in;
+
+    ROS_INFO("setting result; dx: %f, dy: %f, dz: %f", vec_out.getOrigin().getX(), vec_out.getOrigin().getY(), vec_out.getOrigin().getZ());
+
+    pose.position.x += vec_out.getOrigin().getX();
+    pose.position.y += vec_out.getOrigin().getY();
+    pose.position.z += vec_out.getOrigin().getZ();
+}
+
 int graspWidget::hideHand()
 {
     geometry_msgs::PoseStamped hand_transform;
@@ -1109,6 +1120,13 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
                 on_templateBox_activated(ui->templateBox->itemText(tmp));
                 on_templateRadio_clicked();
                 selected_template_id_ = tmp;
+
+                //CALL TEMPLATE SERVER ONCE, INSTEAD OF CALLING ON EACH CASE
+                last_template_srv_.request.template_type = last_template_list_.template_type_list[selected_template_id_];
+                if (!template_info_client_.call(last_template_srv_))
+                {
+                    ROS_ERROR("Failed to call service request grasp info");
+                }
 
                 if(selected_grasp_id_ != -1 && show_grasp_)
                     publishHandPose(selected_grasp_id_);

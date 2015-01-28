@@ -103,9 +103,12 @@ private:
     void calcPlanningTarget(const geometry_msgs::Pose& palm_pose, const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& planning_hand_pose);
     int hideHand();
     int staticTransform(geometry_msgs::Pose& palm_pose);
+    void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
 
 
     // need to store updated template list and selected template id to calculate final position of the hand
+    vigir_object_template_msgs::GetTemplateStateAndTypeInfo last_template_srv_;
+
     flor_ocs_msgs::OCSTemplateList last_template_list_;
     int selected_template_id_;
     int selected_grasp_id_;
