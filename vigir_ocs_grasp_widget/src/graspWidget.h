@@ -87,9 +87,6 @@ private:
     void setProgressLevel(uint8_t level);
     void sendManualMsg(uint8_t level, int8_t thumb, int8_t left, int8_t right, int8_t spread);
     void initTemplateMode();
-    void initTemplateIdMap();
-    std::vector< std::vector<QString> > readTextDBFile(QString path);
-    void initGraspDB();
 
     QString icon_path_;
     void setUpButtons();
@@ -107,34 +104,6 @@ private:
     int hideHand();
     int staticTransform(geometry_msgs::Pose& palm_pose);
 
-    QString template_dir_path_;
-    QString grasp_db_path_;
-    QString template_id_db_path_;
-
-    std::map<unsigned char,std::string> template_id_map_;
-    typedef struct
-    {
-        unsigned short grasp_id;
-        unsigned char template_type;
-        std::string template_name;
-        std::string hand;
-        std::string initial_grasp_type;
-        float finger_joints[12];
-        geometry_msgs::Pose final_pose;
-        geometry_msgs::Pose pre_grasp_pose;
-    } GraspDBItem;
-    std::vector<GraspDBItem> grasp_db_;
-
-    typedef struct
-    {
-        unsigned char        template_type;
-        geometry_msgs::Point b_max;
-        geometry_msgs::Point b_min;
-        geometry_msgs::Point com;
-        float                mass;
-        std::string          mesh_path;
-    } TemplateDBItem;
-    std::vector<TemplateDBItem> template_db_;
 
     // need to store updated template list and selected template id to calculate final position of the hand
     flor_ocs_msgs::OCSTemplateList last_template_list_;
@@ -186,7 +155,7 @@ private:
 
     // publisher for the finger joints
     ros::Publisher ghost_hand_joint_state_pub_;
-    void publishHandJointStates(unsigned int grasp_index);
+    void publishHandJointStates(std::vector<float>&);
 
     tf::TransformListener tf_;
 

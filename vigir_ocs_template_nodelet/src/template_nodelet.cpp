@@ -552,6 +552,8 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     res.template_type_information.type_name      = object_template_map_[req.template_type].name;
     res.template_type_information.mass           = object_template_map_[req.template_type].mass;
     res.template_type_information.center_of_mass = object_template_map_[req.template_type].com;
+    res.template_type_information.b_max          = object_template_map_[req.template_type].b_max;
+    res.template_type_information.b_min          = object_template_map_[req.template_type].b_min;
 	
 	//Transfer all known grasps to response
     for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it =  object_template_map_[req.template_type].grasps.begin();
