@@ -25,6 +25,8 @@ void TemplateNodelet::onInit()
 
     grasp_info_server_           = nh_out.advertiseService("/grasp_info", &TemplateNodelet::graspInfoSrv, this);
 
+    co_pub_                      = nh_out.advertise<moveit_msgs::CollisionObject>("/collision_object", 1, false);
+
     ROS_INFO(" Start reading database files");
 
     // which file are we reading
@@ -101,15 +103,17 @@ void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPt
     template_id_list_.push_back(id_counter_++);
 
     for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it){
-        //ROS_INFO("Comparing MAP: %s with MSG: %s", it->second.path.c_str(), ((msg->template_path).substr(0, (msg->template_path).find_last_of("."))).c_str());
         if(it->second.path == (msg->template_path).substr(0, (msg->template_path).find_last_of(".")) ){ //removing file extension
             template_type_list_.push_back(it->second.type);	//Add the type of the template to be instantiated
             break;
         }
     }
-
     template_list_.push_back(msg->template_path);
     pose_list_.push_back(msg->pose);
+
+    //ADD TEMPLATE TO PLANNING SCENE
+    addCollisionObject(id_counter_-1,(msg->template_path).substr(0, (msg->template_path).find_last_of(".")),msg->pose.pose);
+
     this->publishTemplateList();
 }
 
@@ -127,6 +131,10 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
         template_type_list_.erase(template_type_list_.begin()+index);	//Remove it
         template_list_.erase(template_list_.begin()+index);
         pose_list_.erase(pose_list_.begin()+index);
+
+        //REMOVE TEMPLATE FROM THE PLANING SCENE
+        removeCollisionObject(msg->template_id);
+
         this->publishTemplateList();
     }
 }
@@ -142,6 +150,10 @@ void TemplateNodelet::updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::C
     {
         std::cout << "Updated!" << std::endl;
         pose_list_[index] = msg->pose;
+
+
+        //UPDATE TEMPLATE POSE IN THE PLANNING SCENE
+        moveCollisionObject(msg->template_id,msg->pose.pose);
     }
     this->publishTemplateList();
 }
@@ -629,6 +641,65 @@ int TemplateNodelet::staticTransform(geometry_msgs::Pose& palm_pose)
     palm_pose.orientation.w = hand_quat.getW();
     return 0;
 }
+
+
+void TemplateNodelet::addCollisionObject(int index, std::string mesh_name, geometry_msgs::Pose pose){
+    //Add collision object with template pose and bounding box
+
+    ROS_INFO("Add collision template started... ");
+    moveit_msgs::CollisionObject collision_object;
+    collision_object.id = boost::to_string((unsigned int)index);
+    collision_object.header.frame_id = "world";
+
+    std::string mesh_path = "package://vigir_template_library/object_templates/"+mesh_name + ".ply";
+    ROS_INFO("1 mesh_path: %s", mesh_path.c_str());
+    shapes::Mesh* shape = shapes::createMeshFromResource(mesh_path);
+    shapes::ShapeMsg mesh_msg;
+
+//    shape->computeVertexNormals();
+//    for(unsigned int i=0; i<shape->vertex_count*3;i+=3){
+//      shape->vertices[i]   = shape->vertices[i]   + shape->vertex_normals[i]  *0.02;
+//      shape->vertices[i+1] = shape->vertices[i+1] + shape->vertex_normals[i+1]*0.02;
+//      shape->vertices[i+2] = shape->vertices[i+2] + shape->vertex_normals[i+2]*0.02;
+//    }
+
+    shapes::constructMsgFromShape(shape,mesh_msg);
+    shape_msgs::Mesh                        mesh_;
+    mesh_ = boost::get<shape_msgs::Mesh>(mesh_msg);
+
+    collision_object.meshes.push_back(mesh_);
+    collision_object.mesh_poses.push_back(pose);
+    collision_object.operation = collision_object.ADD;
+    ROS_INFO("Adding the object to the environment");
+    co_pub_.publish(collision_object);
+}
+
+void TemplateNodelet::moveCollisionObject(int index, geometry_msgs::Pose pose){
+    //Add collision object with template pose and bounding box
+
+    ROS_INFO("Move collision template started... ");
+    moveit_msgs::CollisionObject collision_object;
+    collision_object.id = boost::to_string((unsigned int)index);
+    collision_object.header.frame_id = "world";
+    collision_object.primitive_poses.push_back(pose);
+    collision_object.operation = collision_object.MOVE;
+    ROS_INFO("Moving the object in the environment");
+    co_pub_.publish(collision_object);
+}
+
+void TemplateNodelet::removeCollisionObject(int index){
+    //Add collision object with template pose and bounding box
+
+    ROS_INFO("Remove collision template started... ");
+    moveit_msgs::CollisionObject collision_object;
+    collision_object.id = boost::to_string((unsigned int)index);
+    collision_object.header.frame_id = "world";
+    collision_object.operation = collision_object.REMOVE;
+    ROS_INFO("Removing the object %d from the environment", index);
+    co_pub_.publish(collision_object);
+}
+
+
 
 }
 

@@ -22,12 +22,13 @@
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 
 #include <geometry_msgs/PoseStamped.h>
-#include <moveit_msgs/Grasp.h>
 #include <geometric_shapes/mesh_operations.h>
 #include <shape_msgs/Mesh.h>
 #include <geometric_shapes/shapes.h>
 #include <geometric_shapes/shape_messages.h>
 #include <geometric_shapes/shape_operations.h>
+#include <moveit_msgs/Grasp.h>
+#include <moveit_msgs/CollisionObject.h>
 
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
@@ -81,6 +82,11 @@ namespace ocs_template
         bool graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Request& req,
                           vigir_object_template_msgs::GetGraspInfo::Response& res);
 
+        //Planning Scene
+        void addCollisionObject(int index, std::string mesh_name, geometry_msgs::Pose pose);
+        void moveCollisionObject(int index, geometry_msgs::Pose pose);
+        void removeCollisionObject(int index);
+
       protected:
         ros::Subscriber template_update_sub_;
         ros::Subscriber template_add_sub_;
@@ -88,9 +94,10 @@ namespace ocs_template
         ros::Subscriber grasp_request_sub_;
         ros::Subscriber grasp_state_feedback_sub_;
         ros::Subscriber template_match_feedback_sub_;
-        ros::Publisher template_list_pub_;
-        ros::Publisher grasp_selected_pub_;
-        ros::Publisher grasp_selected_state_pub_;
+        ros::Publisher  template_list_pub_;
+        ros::Publisher  grasp_selected_pub_;
+        ros::Publisher  grasp_selected_state_pub_;
+        ros::Publisher  co_pub_;
 
         ros::ServiceServer template_info_server_;
         ros::ServiceServer grasp_info_server_;
