@@ -522,7 +522,9 @@ void TemplateNodelet::gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose
     ROS_INFO("setting trans; dx: %f, dy: %f, dz: %f", direction.vector.x, direction.vector.y, direction.vector.z);
 
     template_T_hand.setRotation(tf::Quaternion(pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w));
+    template_T_hand.setOrigin(tf::Vector3(0,0,0));
     vec_in.setOrigin(tf::Vector3(direction.vector.x,direction.vector.y,direction.vector.z));
+    vec_in.setRotation(tf::Quaternion(0,0,0,1));
 
     vec_out = template_T_hand * vec_in;
 
