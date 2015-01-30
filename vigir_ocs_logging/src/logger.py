@@ -12,11 +12,10 @@ class App(object):
 	if rospy.has_param('to_log'):
         	self.toLog = rospy.get_param('to_log')
     	else:
-        	self.toLog = ['/foo','/bar']
+        	self.toLog = ['/foobar','/test']
     	self.listener()
 
     def __init__(self):
-        self.toLog = ''
         self.logging = False
         self.folder = ''
         self.bagProcess = ''
@@ -29,37 +28,48 @@ class App(object):
             os.makedirs(filename)
         self.folder = filename
         
+    def combined(self):
+	output = ''
+	for x in range(len(self.toLog)):
+		output += self.toLog[x] + ' '
+	print output
+	return output
+
+
     def startLogging(self):
 	print "Starting logs"
         bashCommand = ["/bin/bash", "-i", "-c"]
-        bagCommand = "rosbag record -0 {}".format(self.folder) + " " + combined()
-        self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE, preexec_fn=os.setid)
+        bagCommand = "rosbag record -O {}".format(self.folder) + " " + self.combined()
+	print bagCommand
+        self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE)
+	self.logging = True
         
     def killLogging(self):
 	print "Killing logs"
         os.killpg(self.bagProcess.pid, signal.SIGINT)
+	self.logging = False
             
     def listener(self):
         # setup call back for lgging
 	print "Starting listener..."
 	rospy.init_node('log_listener', anonymous=True)
-        rospy.Subscriber('/vigir_logging', OCSLogging, self.callback(self))
+        rospy.Subscriber('/vigir_logging', OCSLogging, self.callback)
         rospy.spin()
         
     def callback(self, data):
 	print "Recieved message!"
 	self.callback_data = data
 	#rospy.loginfo(rospy.get_caller_id() + "I heard %s", self.callback_data.message)
-	print self.callback_data
-        #if(data.run & self.logging):
-        #    killLogging(self)
-	#    self.createExperiment(self, data.experiment_name)
-	#    startLogging(self)
-	#if(data.run & (not self.logging)):
-	#    self.createExperiment(self, data.experiment_name)
-	#    startLogging(self)
-	#if(not data.run & self.logging):
-	#    killLogging(self)
+	#print self.callback_data
+        if(data.run & self.logging):
+            self.killLogging()
+	    self.createExperiment(data.experiment_name)
+	    self.startLogging()
+	if(data.run & (not self.logging)):
+	    self.createExperiment(data.experiment_name)
+	    self.startLogging()
+	if(not data.run & self.logging):
+	    self.killLogging()
         # call log start/stop based on stuff.
 
 if __name__ == "__main__":
