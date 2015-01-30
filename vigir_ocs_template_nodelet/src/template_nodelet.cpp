@@ -672,7 +672,7 @@ void TemplateNodelet::addCollisionObject(int index, std::string mesh_name, geome
     collision_object.meshes.push_back(mesh_);
     collision_object.mesh_poses.push_back(pose);
     collision_object.operation = collision_object.ADD;
-    ROS_INFO("Adding the object to the environment");
+    ROS_INFO("Adding the object: %s to the environment",collision_object.id.c_str());
     co_pub_.publish(collision_object);
 }
 
