@@ -583,7 +583,10 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
 
     for(int index = 0; index < last_template_srv_.response.template_type_information.grasps.size(); index++)
     {
-        ui->graspBox->addItem(QString(last_template_srv_.response.template_type_information.grasps[index].id.c_str()));
+        if(hand_ == "left" && std::atoi(last_template_srv_.response.template_type_information.grasps[index].id.c_str()) >=1000)
+            ui->graspBox->addItem(QString(last_template_srv_.response.template_type_information.grasps[index].id.c_str()));
+        if(hand_ == "right" && std::atoi(last_template_srv_.response.template_type_information.grasps[index].id.c_str()) <1000)
+            ui->graspBox->addItem(QString(last_template_srv_.response.template_type_information.grasps[index].id.c_str()));
     }
     if(ui->templateBox->count() > 0)
         selected_grasp_id_ = ui->graspBox->itemText(0).toInt();
@@ -1043,8 +1046,8 @@ void graspWidget::gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, mo
         direction.vector.z = 0 ;
     }
 
-    direction.vector.x *= -trans.desired_distance;
-    direction.vector.y *= -trans.desired_distance;
+    direction.vector.x *= hand_ == "left" ? -trans.desired_distance : trans.desired_distance;  //Change due to Atlas specifics, hand axis are reflected
+    direction.vector.y *= hand_ == "left" ? -trans.desired_distance : trans.desired_distance;  //Change due to Atlas specifics, hand axis are reflected
     direction.vector.z *= -trans.desired_distance;
 
     ROS_INFO("setting trans; dx: %f, dy: %f, dz: %f", direction.vector.x, direction.vector.y, direction.vector.z);
