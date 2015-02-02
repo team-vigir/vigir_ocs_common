@@ -538,7 +538,7 @@ void graspWidget::on_templateButton_clicked()
     msg.mass.data    = last_template_srv_.response.template_type_information.mass;
     msg.mesh_path    = last_template_srv_.response.template_type_information.geometry_marker.mesh_resource;
 
-    msg.template_id.data = ui->templateBox->currentIndex();
+    msg.template_id.data = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
     msg.pose.pose = last_template_list_.pose[ui->templateBox->currentIndex()].pose;
     msg.pose.header.frame_id = "/world";
     msg.pose.header.stamp = ros::Time::now();
@@ -557,7 +557,7 @@ void graspWidget::on_performButton_clicked()
     {
         ui->stitch_template->setDisabled(false);
         on_templateButton_clicked();
-        msg.template_id.data   = ui->templateBox->currentIndex();
+        msg.template_id.data   = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
         msg.template_type.data = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
     }
     else
