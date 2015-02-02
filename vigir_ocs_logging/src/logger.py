@@ -5,72 +5,119 @@ import sys
 import subprocess
 import signal
 import rospy
+import datetime
+import time
 from flor_ocs_msgs.msg import OCSLogging
 
 class App(object):
-    def main(self):
-	if rospy.has_param('to_log'):
-        	self.toLog = rospy.get_param('to_log')
-    	else:
-        	self.toLog = ['/foobar','/test']
-    	self.listener()
+	def main(self):
+		if rospy.has_param('to_log'):
+			self.toLog = rospy.get_param('to_log')
+		if rospy.has_param('enable_Log_grabbing'):
+			self.enableBDILogging = rospy.get_param('enable_Log_grabbing')
+		if rospy.has_param("logging_location"):
+			self.logLocation = rospy.get_param('logging_location')
+		self.listener()
 
-    def __init__(self):
-        self.logging = False
-        self.folder = ''
-        self.bagProcess = ''
-	self.callback_data = None
+	def __init__(self):
+		self.logging = False
+		self.toLog = ['/foobar','/test']
+		self.folder = ''
+		self.bagProcess = ''
+		self.callback_data = None
+		self.enableBDILogging = False
+		self.name = ''
+		self.logLocation = '/home/vigir/Experiments'
 
-    def createExperiment(self, name):
-	print "Creating experiment..."+name
-        filename = 'home/vigir/Experiments/'+name
-        if not os.path.exists(filename):
-            os.makedirs(filename)
-        self.folder = filename
-        
-    def combined(self):
-	output = ''
-	for x in range(len(self.toLog)):
-		output += self.toLog[x] + ' '
-	print output
-	return output
+	def createExperiment(self, name, description):
+		print "Creating experiment..."+name
+		filename = self.logLocation +'/' + name
+		if not os.path.exists(filename):
+			os.makedirs(filename)
+		self.folder = filename
+		f = open(self.folder + '/Experiment.txt', 'w')
+		f.write('<?xml version="1.0"?>\n')
+		f.write(' <Experiment>\n')
+		f.write(' <Name>'+name+'</Name>\n')
+		self.startTime = datetime.datetime.now()
+		f.write(' <StartTime>'+str(self.startTime)+'</StartTime>\n')
+		f.write(' <Description>'+description+'</Description>\n')
+		f.write(' <TopicsLogged>'+self.combined()+'</TopicsLogged>')
+		f.write('</Experiment>')
+		f.close()
+		self.name = name
+		
+	def combined(self):
+		output = ''
+		for x in range(len(self.toLog)):
+			output += self.toLog[x] + ' '
+		print output
+		return output
 
 
-    def startLogging(self):
-	print "Starting logs"
-        bashCommand = ["/bin/bash", "-i", "-c"]
-        bagCommand = "rosbag record -O {}".format(self.folder) + " " + self.combined()
-	print bagCommand
-        self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE)
-	self.logging = True
-        
-    def killLogging(self):
-	print "Killing logs"
-        os.killpg(self.bagProcess.pid, signal.SIGINT)
-	self.logging = False
-            
-    def listener(self):
-        # setup call back for lgging
-	print "Starting listener..."
-	rospy.init_node('log_listener', anonymous=True)
-        rospy.Subscriber('/vigir_logging', OCSLogging, self.callback)
-        rospy.spin()
-        
-    def callback(self, data):
-	print "Recieved message!"
-	self.callback_data = data
-	#rospy.loginfo(rospy.get_caller_id() + "I heard %s", self.callback_data.message)
-	#print self.callback_data
-        if(data.run & self.logging):
-            self.killLogging()
-	    self.createExperiment(data.experiment_name)
-	    self.startLogging()
-	if(data.run & (not self.logging)):
-	    self.createExperiment(data.experiment_name)
-	    self.startLogging()
-	if(not data.run & self.logging):
-	    self.killLogging()
-        # call log start/stop based on stuff.
+	def startLogging(self):
+		print "Starting logs"
+		bashCommand = ["/bin/bash", "-i", "-c"]
+		bagCommand = "rosbag record -O /"+ self.folder + "/log.bag " + self.combined()
+		print bagCommand
+		self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE, preexec_fn=os.setsid)
+		self.logging = True
+		
+	def killLogging(self, results):
+		print "Killing logs"
+		os.killpg(self.bagProcess.pid, signal.SIGINT)
+		self.logging = False
+		f = open(self.folder + '/Results.txt', 'w')
+		f.write('<?xml version="1.0"?>\n')
+		f.write(' <Experiment>\n')
+		f.write(' <Name>'+self.name+'</Name>\n')
+		f.write(' <StartTime>'+str(self.startTime)+'</StartTime>\n')
+		f.write(' <EndTime>'+str(datetime.datetime.now())+'</EndTime>\n')
+		f.write(' <Summary>'+results+'</Summary>\n')
+		f.write(' <TopicsLogged>'+self.combined()+'</TopicsLogged>')
+		f.write('</Experiment>')
+		f.close()
+		self.folder = ''
+			
+	def listener(self):
+		# setup call back for lgging
+		print "Starting listener..."
+		rospy.init_node('log_listener', anonymous=True)
+		rospy.Subscriber('/vigir_logging', OCSLogging, self.callback)
+		rospy.spin()
+		
+	def grabLogs(self, time):
+		print "Grabbing robot logs!!"
+		bashCommand = ["/bin/bash", "-i", "-c"]
+		if(not(self.folder == '')):
+			if not os.path.exists(self.folder):
+				os.makedirs(self.folder)
+			bagCommand = "python atlas_log_downloader.py 192.168.130.103 /" + self.folder + ' ' + str(time)
+		else:
+			if not os.path.exists(self.logLocation + '/BDI_Logs'):
+				os.makedirs(self.logLocation + '/BDI_Logs')	
+			bagCommand = "python atlas_log_downloader.py 192.168.130.103 /" + self.logLocation + '/BDI_Logs ' + str(time)
+		print bagCommand
+		self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE, preexec_fn=os.setsid)
+
+	def callback(self, data):
+		print "Recieved message!"
+		self.callback_data = data
+		#rospy.loginfo(rospy.get_caller_id() + "I heard %s", self.callback_data.message)
+		#print self.callback_data
+		if(data.bdiLogTime > 0):			
+			if(self.enableBDILogging):
+				self.grabLogs(data.bdiLogTime)
+			return
+		if(data.run & self.logging ):
+			self.killLogging('')
+			self.createExperiment(data.experiment_name, data.description)
+			self.startLogging()
+		if(data.run & (not self.logging)):
+			self.createExperiment(data.experiment_name, data.description)
+			self.startLogging()
+		if(not data.run & self.logging):
+			self.killLogging(data.description)
 
 if __name__ == "__main__":
-    App().main()
+	App().main()
