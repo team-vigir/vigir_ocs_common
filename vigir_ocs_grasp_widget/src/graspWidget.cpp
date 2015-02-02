@@ -530,7 +530,7 @@ void graspWidget::on_templateButton_clicked()
     std::cout << "template match requested..." << std::endl;
     flor_grasp_msgs::TemplateSelection msg;
 
-    msg.template_type.data = last_template_list_.template_type_list[selected_template_id_];
+    msg.template_type.data = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
 
     msg.bounding_max = last_template_srv_.response.template_type_information.b_max;
     msg.bounding_min = last_template_srv_.response.template_type_information.b_min;
@@ -558,7 +558,7 @@ void graspWidget::on_performButton_clicked()
         ui->stitch_template->setDisabled(false);
         on_templateButton_clicked();
         msg.template_id.data   = ui->templateBox->currentIndex();
-        msg.template_type.data = last_template_list_.template_type_list[selected_template_id_];
+        msg.template_type.data = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
     }
     else
     {
@@ -1106,7 +1106,7 @@ void graspWidget::on_stitch_template_toggled(bool checked)
     std::cout << "template stitch requested..." << std::endl;
     flor_grasp_msgs::TemplateSelection msg;
     int graspID = ui->graspBox->currentText().toInt();
-    msg.template_type.data = last_template_list_.template_type_list[selected_template_id_];
+    msg.template_type.data = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
     if(checked)
         msg.confidence.data = 1;
     else
@@ -1138,7 +1138,7 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
                 selected_template_id_ = tmp;
 
                 //CALL TEMPLATE SERVER ONCE, INSTEAD OF CALLING ON EACH CASE
-                last_template_srv_.request.template_type = last_template_list_.template_type_list[selected_template_id_];
+                last_template_srv_.request.template_type = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
                 if (!template_info_client_.call(last_template_srv_))
                 {
                     ROS_ERROR("Failed to call service request grasp info");

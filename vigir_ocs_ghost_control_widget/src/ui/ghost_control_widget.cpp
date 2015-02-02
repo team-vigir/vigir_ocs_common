@@ -203,7 +203,7 @@ void GhostControlWidget::on_templateBox_activated(const QString &arg1)
 
     //CALLING THE TEMPLATE SERVER
     vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
-    srv.request.template_type = last_template_list_.template_type_list[selected_template_id_];
+    srv.request.template_type = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
     if (!template_info_client_.call(srv))
     {
         ROS_ERROR("Failed to call service request grasp info");
@@ -688,7 +688,7 @@ void GhostControlWidget::on_send_ghost_to_template_button_clicked()
 
     //CALLING THE TEMPLATE SERVER
     vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
-    srv.request.template_type = last_template_list_.template_type_list[selected_template_id_];
+    srv.request.template_type = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
     if (!template_info_client_.call(srv))
     {
         ROS_ERROR("Failed to call service request grasp info");
