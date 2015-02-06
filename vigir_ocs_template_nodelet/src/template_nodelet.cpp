@@ -25,7 +25,12 @@ void TemplateNodelet::onInit()
 
     grasp_info_server_           = nh_out.advertiseService("/grasp_info", &TemplateNodelet::graspInfoSrv, this);
 
+    attach_object_server_        = nh_out.advertiseService("/attach_object_template", &TemplateNodelet::attachObjectTemplateSrv, this);
+    stitch_object_server_        = nh_out.advertiseService("/stitch_object_template", &TemplateNodelet::stitchObjectTemplateSrv, this);
+    detach_object_server_        = nh_out.advertiseService("/detach_object_template", &TemplateNodelet::detachObjectTemplateSrv, this);
+
     co_pub_                      = nh_out.advertise<moveit_msgs::CollisionObject>("/collision_object", 1, false);
+    aco_pub_                     = nh_out.advertise<moveit_msgs::AttachedCollisionObject>("/attached_collision_object", 1, false);
 
     ROS_INFO(" Start reading database files");
 
@@ -300,22 +305,18 @@ void TemplateNodelet::loadGraspDatabase(std::string& file_name, std::string hand
     hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
     hand_robot_model_ = hand_model_loader_->getModel();
 
-    std::vector<std::string> joints;
-
-
-
     if(hand_robot_model_->hasJointModelGroup(hand_side+"_hand"))
     {
-        joints.clear();
-        joints = hand_robot_model_->getJointModelGroup(hand_side+"_hand")->getActiveJointModelNames();
+        hand_joint_names_.clear();
+        hand_joint_names_ = hand_robot_model_->getJointModelGroup(hand_side+"_hand")->getActiveJointModelNames();
     }else{
         ROS_WARN("NO JOINTS FOUND FOR %s HAND",hand_side.c_str());
     }
 
-    ROS_INFO("%s %s hand model gotten, #actuated joints: %ld ",hand_side.c_str(), hand_robot_model_->getName().c_str(),joints.size() );
+    ROS_INFO("%s %s hand model gotten, #actuated joints: %ld ",hand_side.c_str(), hand_robot_model_->getName().c_str(),hand_joint_names_.size() );
 
-    for(int i = 0; i < joints.size(); i++)
-        ROS_INFO("Joint %d: %s",i,joints[i].c_str());
+    for(int i = 0; i < hand_joint_names_.size(); i++)
+        ROS_INFO("Joint %d: %s",i,hand_joint_names_[i].c_str());
 
     std::vector< std::vector <std::string> > db = readCSVFile(file_name);
 
@@ -368,25 +369,25 @@ void TemplateNodelet::loadGraspDatabase(std::string& file_name, std::string hand
 
         //PRE FINGER JOINT POSTURE
         //ROS_INFO("Staring pre finger joint posture idx: %d",idx);
-        if(joints.size() > 0){
-            grasp.pre_grasp_posture.joint_names.resize(joints.size());
-            for(int j=0; j<joints.size();j++)
-                grasp.pre_grasp_posture.joint_names[j] = joints.at(j);
+        if(hand_joint_names_.size() > 0){
+            grasp.pre_grasp_posture.joint_names.resize(hand_joint_names_.size());
+            for(int j=0; j<hand_joint_names_.size();j++)
+                grasp.pre_grasp_posture.joint_names[j] = hand_joint_names_.at(j);
             grasp.pre_grasp_posture.points.resize(1);
-            grasp.pre_grasp_posture.points[0].positions.resize(joints.size());
-            for(int j=0; j<joints.size();j++)
+            grasp.pre_grasp_posture.points[0].positions.resize(hand_joint_names_.size());
+            for(int j=0; j<hand_joint_names_.size();j++)
                 grasp.pre_grasp_posture.points[0].positions[j] = std::atof(db[i][idx++].c_str());
 
             grasp.pre_grasp_posture.points[0].time_from_start = ros::Duration(3.0);
 
             //FINGER JOINT POSTURE
             //ROS_INFO("Staring final finger joint posture idx: %d",idx);
-            grasp.grasp_posture.joint_names.resize(joints.size());
-            for(int j=0; j<joints.size();j++)
-                grasp.grasp_posture.joint_names[j] = joints.at(j);
+            grasp.grasp_posture.joint_names.resize(hand_joint_names_.size());
+            for(int j=0; j<hand_joint_names_.size();j++)
+                grasp.grasp_posture.joint_names[j] = hand_joint_names_.at(j);
             grasp.grasp_posture.points.resize(1);
-            grasp.grasp_posture.points[0].positions.resize(joints.size());
-            for(int j=0; j<joints.size();j++)
+            grasp.grasp_posture.points[0].positions.resize(hand_joint_names_.size());
+            for(int j=0; j<hand_joint_names_.size();j++)
                 grasp.grasp_posture.points[0].positions[j] = std::atof(db[i][idx++].c_str());
 
             grasp.grasp_posture.points[0].time_from_start = ros::Duration(3.0);
@@ -618,6 +619,213 @@ bool TemplateNodelet::graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Req
     return true;
 }
 
+bool TemplateNodelet::attachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
+                                              vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res)
+{
+
+    /* First, define the REMOVE object message*/
+    moveit_msgs::CollisionObject remove_object;
+    remove_object.id              = boost::to_string(req.template_id);
+    remove_object.header.frame_id = "world";
+    remove_object.operation       = remove_object.REMOVE;
+    co_pub_.publish(remove_object);
+    ROS_INFO("Collision object :%s removed",remove_object.id.c_str());
+
+
+    ROS_INFO("Attach template to %s started... ",req.pose.header.frame_id.c_str());
+
+    // Define the attached object message
+    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    // We will use this message to add or
+    // subtract the object from the world
+    // and to attach the object to the robot
+    moveit_msgs::AttachedCollisionObject attached_object;
+    attached_object.link_name              = req.pose.header.frame_id;
+    /* The header must contain a valid TF frame*/
+    attached_object.object.header.frame_id = req.pose.header.frame_id;
+    /* The id of the object */
+    attached_object.object.id              = boost::to_string(req.template_id);
+
+    unsigned int index = 0;
+    std::string mesh_name;
+    geometry_msgs::PoseStamped template_pose;
+
+    for(; index < template_id_list_.size(); index++) {
+        if(template_id_list_[index] == req.template_id){
+            mesh_name = (template_list_[index]).substr(0, (template_list_[index]).find_last_of("."));
+            template_pose      = pose_list_[index];
+            ROS_INFO("Template %s found in server, index: %d, list: %d, requested: %d",mesh_name.c_str(), index, template_id_list_[index], req.template_id);
+            break;
+        }
+    }
+
+    if (index >= template_id_list_.size()){
+        //ROS_ERROR_STREAM("Service requested template id " << req.template_type.data << " when no such id has been instantiated. Callback returning false.");
+        ROS_ERROR("Service requested template id %d when no such id has been instantiated. Callback returning false.",req.template_id);
+        return false;
+    }
+
+    std::string mesh_path = "package://vigir_template_library/object_templates/"+ mesh_name + ".ply";
+    ROS_INFO("Requesting mesh_path: %s", mesh_path.c_str());
+
+
+    shapes::Mesh* shape = shapes::createMeshFromResource(mesh_path);
+    shapes::ShapeMsg mesh_msg;
+
+    shapes::constructMsgFromShape(shape,mesh_msg);
+
+    shape_msgs::Mesh mesh_;
+    mesh_ = boost::get<shape_msgs::Mesh>(mesh_msg);
+
+    tf::Transform wt_pose;
+    tf::Transform tp_pose;
+    tf::Transform target_pose;
+    wt_pose.setRotation(tf::Quaternion(req.pose.pose.orientation.x,req.pose.pose.orientation.y,req.pose.pose.orientation.z,req.pose.pose.orientation.w));
+    wt_pose.setOrigin(tf::Vector3(req.pose.pose.position.x,req.pose.pose.position.y,req.pose.pose.position.z) );
+    tp_pose.setRotation(tf::Quaternion(template_pose.pose.orientation.x,template_pose.pose.orientation.y,template_pose.pose.orientation.z,template_pose.pose.orientation.w));
+    tp_pose.setOrigin(tf::Vector3(template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z) );
+
+    target_pose = wt_pose.inverse() * tp_pose;
+
+    geometry_msgs::Pose pose;
+    pose.orientation.x = target_pose.getRotation().getX();
+    pose.orientation.y = target_pose.getRotation().getY();
+    pose.orientation.z = target_pose.getRotation().getZ();
+    pose.orientation.w = target_pose.getRotation().getW();
+    pose.position.x    = target_pose.getOrigin().getX();
+    pose.position.y    = target_pose.getOrigin().getY();
+    pose.position.z    = target_pose.getOrigin().getZ();
+
+    attached_object.object.meshes.push_back(mesh_);
+    attached_object.object.mesh_poses.push_back(pose);
+
+    // Note that attaching an object to the robot requires
+    // the corresponding operation to be specified as an ADD operation
+    attached_object.object.operation = attached_object.object.ADD;
+
+    std::string hand_side;
+    if(req.pose.header.frame_id == "r_hand")
+        hand_side = "right";
+    else
+        hand_side = "left";
+
+    hand_link_names_ = hand_robot_model_->getJointModelGroup(hand_side+ "_hand")->getLinkModelNames();
+    attached_object.touch_links.push_back(hand_robot_model_->getJointModelGroup(hand_side+ "_hand")->getParentModel().getLinkModelNames().at(0));
+    for(int i = 0; i < hand_link_names_.size(); i++){
+        ROS_INFO("Link %d: %s",i,hand_link_names_[i].c_str());
+        attached_object.touch_links.push_back(hand_link_names_[i]);
+    }
+
+    ROS_INFO("Attaching the object to the %s link", req.pose.header.frame_id.c_str());
+    aco_pub_.publish(attached_object);
+
+    return true;
+}
+
+bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetStitchedObjectTemplate::Request& req,
+                                              vigir_object_template_msgs::SetStitchedObjectTemplate::Response& res)
+{
+    /* First, define the DETACH object message*/
+    moveit_msgs::AttachedCollisionObject tmp_attached_object;
+    tmp_attached_object.object.id = boost::to_string(req.template_id);
+    tmp_attached_object.object.operation = tmp_attached_object.object.REMOVE;
+
+    ROS_INFO("Dettaching the object %s",tmp_attached_object.object.id.c_str());
+    aco_pub_.publish(tmp_attached_object);
+
+
+    tmp_attached_object.link_name              = req.pose.header.frame_id;
+    /* The header must contain a valid TF frame*/
+    tmp_attached_object.object.header.frame_id = req.pose.header.frame_id;
+
+    unsigned int index = 0;
+    std::string mesh_name;
+    geometry_msgs::PoseStamped template_pose;
+
+    for(; index < template_id_list_.size(); index++) {
+        if(template_id_list_[index] == req.template_id){
+            mesh_name = (template_list_[index]).substr(0, (template_list_[index]).find_last_of("."));
+            template_pose      = pose_list_[index];
+            ROS_INFO("Template %s found in server, index: %d, list: %d, requested: %d",mesh_name.c_str(), index, template_id_list_[index], req.template_id);
+            break;
+        }
+    }
+
+    if (index >= template_id_list_.size()){
+        //ROS_ERROR_STREAM("Service requested template id " << req.template_type.data << " when no such id has been instantiated. Callback returning false.");
+        ROS_ERROR("Service requested template id %d when no such id has been instantiated. Callback returning false.",req.template_id);
+        return false;
+    }
+
+    std::string mesh_path = "package://vigir_template_library/object_templates/"+ mesh_name + ".ply";
+    ROS_INFO("Requesting mesh_path: %s", mesh_path.c_str());
+
+
+    shapes::Mesh* shape = shapes::createMeshFromResource(mesh_path);
+    shapes::ShapeMsg mesh_msg;
+
+    shapes::constructMsgFromShape(shape,mesh_msg);
+
+    shape_msgs::Mesh mesh_;
+    mesh_ = boost::get<shape_msgs::Mesh>(mesh_msg);
+
+    tf::Transform wt_pose;
+    tf::Transform tp_pose;
+    tf::Transform target_pose;
+    wt_pose.setRotation(tf::Quaternion(req.pose.pose.orientation.x,req.pose.pose.orientation.y,req.pose.pose.orientation.z,req.pose.pose.orientation.w));
+    wt_pose.setOrigin(tf::Vector3(req.pose.pose.position.x,req.pose.pose.position.y,req.pose.pose.position.z) );
+    tp_pose.setRotation(tf::Quaternion(template_pose.pose.orientation.x,template_pose.pose.orientation.y,template_pose.pose.orientation.z,template_pose.pose.orientation.w));
+    tp_pose.setOrigin(tf::Vector3(template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z) );
+
+    target_pose = wt_pose.inverse() * tp_pose;
+
+    geometry_msgs::Pose pose;
+    pose.orientation.x = target_pose.getRotation().getX();
+    pose.orientation.y = target_pose.getRotation().getY();
+    pose.orientation.z = target_pose.getRotation().getZ();
+    pose.orientation.w = target_pose.getRotation().getW();
+    pose.position.x    = target_pose.getOrigin().getX();
+    pose.position.y    = target_pose.getOrigin().getY();
+    pose.position.z    = target_pose.getOrigin().getZ();
+
+    tmp_attached_object.object.meshes.push_back(mesh_);
+    tmp_attached_object.object.mesh_poses.push_back(pose);
+
+    // Note that attaching an object to the robot requires
+    // the corresponding operation to be specified as an ADD operation
+    tmp_attached_object.object.operation = tmp_attached_object.object.ADD;
+
+    ros::Duration(0.5).sleep();
+
+    ROS_INFO("Removing collision object :%s started",tmp_attached_object.object.id.c_str());
+    /* First, define the REMOVE object message*/
+    moveit_msgs::CollisionObject remove_object;
+    remove_object.id = tmp_attached_object.object.id;
+    remove_object.header.frame_id = "world";
+    remove_object.operation = remove_object.REMOVE;
+
+    ROS_INFO("Collision object :%s removed",remove_object.id.c_str());
+
+    co_pub_.publish(remove_object);
+
+    ROS_INFO("Stitching the object %s ",tmp_attached_object.object.id.c_str());
+    aco_pub_.publish(tmp_attached_object);
+    return true;
+
+}
+
+bool TemplateNodelet::detachObjectTemplateSrv(vigir_object_template_msgs::DetachObjectTemplate::Request& req,
+                                              vigir_object_template_msgs::DetachObjectTemplate::Response& res)
+{
+    /* First, define the DETACH object message*/
+    moveit_msgs::AttachedCollisionObject detach_object;
+    detach_object.object.id = boost::to_string(req.template_id);
+    detach_object.object.operation = detach_object.object.REMOVE;
+
+    ROS_INFO("Dettaching the object %s",detach_object.object.id.c_str());
+    aco_pub_.publish(detach_object);
+}
+
 // transform endeffort to palm pose used by GraspIt
 int TemplateNodelet::staticTransform(geometry_msgs::Pose& palm_pose)
 {
@@ -634,9 +842,9 @@ int TemplateNodelet::staticTransform(geometry_msgs::Pose& palm_pose)
     hand_quat   = o_T_hand.getRotation();
     hand_vector = o_T_hand.getOrigin();
 
-    palm_pose.position.x = hand_vector.getX();
-    palm_pose.position.y = hand_vector.getY();
-    palm_pose.position.z = hand_vector.getZ();
+    palm_pose.position.x    = hand_vector.getX();
+    palm_pose.position.y    = hand_vector.getY();
+    palm_pose.position.z    = hand_vector.getZ();
     palm_pose.orientation.x = hand_quat.getX();
     palm_pose.orientation.y = hand_quat.getY();
     palm_pose.orientation.z = hand_quat.getZ();
@@ -658,13 +866,6 @@ void TemplateNodelet::addCollisionObject(int index, std::string mesh_name, geome
     shapes::Mesh* shape = shapes::createMeshFromResource(mesh_path);
     shapes::ShapeMsg mesh_msg;
 
-//    shape->computeVertexNormals();
-//    for(unsigned int i=0; i<shape->vertex_count*3;i+=3){
-//      shape->vertices[i]   = shape->vertices[i]   + shape->vertex_normals[i]  *0.02;
-//      shape->vertices[i+1] = shape->vertices[i+1] + shape->vertex_normals[i+1]*0.02;
-//      shape->vertices[i+2] = shape->vertices[i+2] + shape->vertex_normals[i+2]*0.02;
-//    }
-
     shapes::constructMsgFromShape(shape,mesh_msg);
     shape_msgs::Mesh                        mesh_;
     mesh_ = boost::get<shape_msgs::Mesh>(mesh_msg);
@@ -681,10 +882,10 @@ void TemplateNodelet::moveCollisionObject(int index, geometry_msgs::Pose pose){
 
     ROS_INFO("Move collision template started... ");
     moveit_msgs::CollisionObject collision_object;
-    collision_object.id = boost::to_string((unsigned int)index);
+    collision_object.id              = boost::to_string((unsigned int)index);
     collision_object.header.frame_id = "world";
     collision_object.primitive_poses.push_back(pose);
-    collision_object.operation = collision_object.MOVE;
+    collision_object.operation       = collision_object.MOVE;
     ROS_INFO("Moving the object in the environment");
     co_pub_.publish(collision_object);
 }
@@ -694,9 +895,9 @@ void TemplateNodelet::removeCollisionObject(int index){
 
     ROS_INFO("Remove collision template started... ");
     moveit_msgs::CollisionObject collision_object;
-    collision_object.id = boost::to_string((unsigned int)index);
+    collision_object.id              = boost::to_string((unsigned int)index);
     collision_object.header.frame_id = "world";
-    collision_object.operation = collision_object.REMOVE;
+    collision_object.operation       = collision_object.REMOVE;
     ROS_INFO("Removing the object %d from the environment", index);
     co_pub_.publish(collision_object);
 }

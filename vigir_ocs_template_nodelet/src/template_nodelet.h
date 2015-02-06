@@ -20,6 +20,9 @@
 #include <flor_grasp_msgs/TemplateSelection.h>
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
 #include <vigir_object_template_msgs/GetGraspInfo.h>
+#include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
+#include <vigir_object_template_msgs/SetStitchedObjectTemplate.h>
+#include <vigir_object_template_msgs/DetachObjectTemplate.h>
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometric_shapes/mesh_operations.h>
@@ -29,6 +32,7 @@
 #include <geometric_shapes/shape_operations.h>
 #include <moveit_msgs/Grasp.h>
 #include <moveit_msgs/CollisionObject.h>
+#include <moveit_msgs/AttachedCollisionObject.h>
 
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
@@ -82,6 +86,15 @@ namespace ocs_template
         bool graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Request& req,
                           vigir_object_template_msgs::GetGraspInfo::Response& res);
 
+        bool attachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
+                                     vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
+
+        bool stitchObjectTemplateSrv(vigir_object_template_msgs::SetStitchedObjectTemplate::Request& req,
+                                     vigir_object_template_msgs::SetStitchedObjectTemplate::Response& res);
+
+        bool detachObjectTemplateSrv(vigir_object_template_msgs::DetachObjectTemplate::Request& req,
+                                     vigir_object_template_msgs::DetachObjectTemplate::Response& res);
+
         //Planning Scene
         void addCollisionObject(int index, std::string mesh_name, geometry_msgs::Pose pose);
         void moveCollisionObject(int index, geometry_msgs::Pose pose);
@@ -98,30 +111,36 @@ namespace ocs_template
         ros::Publisher  grasp_selected_pub_;
         ros::Publisher  grasp_selected_state_pub_;
         ros::Publisher  co_pub_;
+        ros::Publisher  aco_pub_;
 
         ros::ServiceServer template_info_server_;
         ros::ServiceServer grasp_info_server_;
+        ros::ServiceServer attach_object_server_;
+        ros::ServiceServer stitch_object_server_;
+        ros::ServiceServer detach_object_server_;
 
         ros::Timer image_publish_timer_;
 
       private:
-        std::vector<unsigned char>                  template_id_list_;
-        std::vector<unsigned char>                  template_type_list_;
-        std::vector<std::string>                    template_list_;
-        std::vector<geometry_msgs::PoseStamped>     pose_list_;
-        unsigned char id_counter_;
+        std::vector<unsigned char>                 template_id_list_;
+        std::vector<unsigned char>                 template_type_list_;
+        std::vector<std::string>                   template_list_;
+        std::vector<geometry_msgs::PoseStamped>    pose_list_;
+        unsigned char                              id_counter_;
         // Filename of the grasping library
-        std::string   r_grasps_filename_;
-        std::string   l_grasps_filename_;
+        std::string                                r_grasps_filename_;
+        std::string                                l_grasps_filename_;
         // Filename of the object template library
-        std::string   ot_filename_;
+        std::string                                ot_filename_;
         // Filename of the stand pose library
-        std::string   stand_filename_;
-        tf::Transform gp_T_hand_;
+        std::string                                stand_filename_;
+        tf::Transform                              gp_T_hand_;
         std::map<unsigned int,VigirObjectTemplate> object_template_map_;
 
         robot_model_loader::RobotModelLoaderPtr    hand_model_loader_;
         robot_model::RobotModelPtr                 hand_robot_model_;
+        std::vector<std::string>                   hand_joint_names_;
+        std::vector<std::string>                   hand_link_names_;
 
         ros::Timer timer;
 
