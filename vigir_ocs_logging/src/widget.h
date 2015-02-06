@@ -40,7 +40,6 @@ public Q_SLOTS:
 
 
 private:
-    void getRobotLogs(boost::filesystem::path folder);
     void sendMsg(bool run);
     Ui::Widget *ui;
     ros::Publisher ocs_logging_pub_;

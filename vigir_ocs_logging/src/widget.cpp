@@ -71,7 +71,16 @@ void Widget::on_stopButton_clicked()
 
 void Widget::on_robotLogsButton_clicked()
 {
-    QRegExp rx("(\s\\\\)");
+    if(ui->spinBox->value() > 0)
+    {
+        std::cout << "Sending grab log command for " << ui->spinBox->value() << "seconds" << std::endl;
+        flor_ocs_msgs::OCSLogging msg;
+        msg.bdiLogTime = ui->spinBox->value();
+        ocs_logging_pub_.publish(msg);
+    }
+    else
+       std::cout << "Ignoring grab command since time requested is invalid" << std::endl;
+    /*QRegExp rx("(\s\\\\)");
     std::string expName = (ui->experimentName->text().replace(rx,tr("_"))).toStdString();
     std::cout << "Exp name is " << expName << std::endl;
     boost::filesystem::path folder (std::string("/home/vigir/Experiments/"+expName));
@@ -99,7 +108,7 @@ void Widget::on_robotLogsButton_clicked()
                 std::cout<< "Created new folder at " << folder.c_str() << std::endl;
             getRobotLogs(folder);
         }
-    }
+    }*/
 }
 
 void Widget::sendMsg(bool run)
@@ -120,11 +129,11 @@ void Widget::on_experimentName_textChanged(const QString &arg1)
         ui->startButton->setEnabled(true);
 }
 
-void Widget::getRobotLogs(boost::filesystem::path folder)
+/*void Widget::getRobotLogs(boost::filesystem::path folder)
 {
     std::cout << "Getting robot logs....\nFirst making sure on the right network." << std::endl;
     std::string systemCall = "python /home/vigir/vigir_repo/catkin_ws/src/vigir_ocs_common/vigir_ocs_logging/src/atlas_log_downloader.py 192.168.130.103 "+folder.string()+" "+boost::lexical_cast<std::string>(ui->spinBox->value());
     std::cout << "calling the following... " << systemCall << std::endl;
     system(systemCall.c_str());
     std::cout << "Done Grabbing logs!" << std::endl;
-}
+}*/
