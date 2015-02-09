@@ -722,8 +722,8 @@ bool TemplateNodelet::attachObjectTemplateSrv(vigir_object_template_msgs::SetAtt
     return true;
 }
 
-bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetStitchedObjectTemplate::Request& req,
-                                              vigir_object_template_msgs::SetStitchedObjectTemplate::Response& res)
+bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
+                                              vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res)
 {
     /* First, define the DETACH object message*/
     moveit_msgs::AttachedCollisionObject tmp_attached_object;
@@ -861,20 +861,36 @@ void TemplateNodelet::addCollisionObject(int index, std::string mesh_name, geome
     collision_object.id = boost::to_string((unsigned int)index);
     collision_object.header.frame_id = "world";
 
-    std::string mesh_path = "package://vigir_template_library/object_templates/"+mesh_name + ".ply";
-    ROS_INFO("1 mesh_path: %s", mesh_path.c_str());
-    shapes::Mesh* shape = shapes::createMeshFromResource(mesh_path);
-    shapes::ShapeMsg mesh_msg;
+    std::string path = ros::package::getPath("vigir_template_library") + "/object_templates/" + mesh_name + ".ply";
 
-    shapes::constructMsgFromShape(shape,mesh_msg);
-    shape_msgs::Mesh                        mesh_;
-    mesh_ = boost::get<shape_msgs::Mesh>(mesh_msg);
+    std::ifstream infile(path.c_str());
+    if(infile.good()){
+        std::string mesh_path = "package://vigir_template_library/object_templates/"+mesh_name + ".ply";
+        ROS_INFO("1 mesh_path: %s", mesh_path.c_str());
+        shapes::Mesh* shape = shapes::createMeshFromResource(mesh_path);
+        shapes::ShapeMsg mesh_msg;
 
-    collision_object.meshes.push_back(mesh_);
-    collision_object.mesh_poses.push_back(pose);
-    collision_object.operation = collision_object.ADD;
-    ROS_INFO("Adding the object: %s to the environment",collision_object.id.c_str());
-    co_pub_.publish(collision_object);
+        shapes::constructMsgFromShape(shape,mesh_msg);
+        shape_msgs::Mesh                        mesh_;
+        mesh_ = boost::get<shape_msgs::Mesh>(mesh_msg);
+
+//        collision_object.primitives.resize(1);
+//        collision_object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+//        collision_object.primitives[0].dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
+//        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.10;
+//        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 1.00;
+//        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.05;
+//        collision_object.primitive_poses.push_back(pose);
+
+
+        collision_object.meshes.push_back(mesh_);
+        collision_object.mesh_poses.push_back(pose);
+        collision_object.operation = collision_object.ADD;
+        ROS_INFO("Adding the object: %s to the environment",collision_object.id.c_str());
+        co_pub_.publish(collision_object);
+    }else{
+        ROS_ERROR("Mesh file: %s doesn't exists",path.c_str());
+    }
 }
 
 void TemplateNodelet::moveCollisionObject(int index, geometry_msgs::Pose pose){

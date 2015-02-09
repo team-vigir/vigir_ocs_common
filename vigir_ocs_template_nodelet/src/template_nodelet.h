@@ -30,6 +30,7 @@
 #include <geometric_shapes/shapes.h>
 #include <geometric_shapes/shape_messages.h>
 #include <geometric_shapes/shape_operations.h>
+#include <shape_tools/solid_primitive_dims.h>
 #include <moveit_msgs/Grasp.h>
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
@@ -89,8 +90,8 @@ namespace ocs_template
         bool attachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
                                      vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
 
-        bool stitchObjectTemplateSrv(vigir_object_template_msgs::SetStitchedObjectTemplate::Request& req,
-                                     vigir_object_template_msgs::SetStitchedObjectTemplate::Response& res);
+        bool stitchObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
+                                     vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
 
         bool detachObjectTemplateSrv(vigir_object_template_msgs::DetachObjectTemplate::Request& req,
                                      vigir_object_template_msgs::DetachObjectTemplate::Response& res);
