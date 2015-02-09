@@ -21,7 +21,6 @@
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
-#include <vigir_object_template_msgs/SetStitchedObjectTemplate.h>
 #include <vigir_object_template_msgs/DetachObjectTemplate.h>
 
 #include <geometry_msgs/PoseStamped.h>
