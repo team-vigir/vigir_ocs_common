@@ -90,9 +90,9 @@ namespace rviz
                     if(effort_circle_.find(joint_name) == effort_circle_.end())
                     {
                         effort_circle_[joint_name] = new rviz::BillboardLine( scene_manager_, frame_node_ );
-                        setRenderOrder(effort_circle_[joint_name]->getSceneNode());
+                        //setRenderOrder(effort_circle_[joint_name]->getSceneNode());
                         effort_arrow_[joint_name] = new rviz::Arrow( scene_manager_, frame_node_ );
-                        setRenderOrder(effort_arrow_[joint_name]->getSceneNode());
+                        //setRenderOrder(effort_arrow_[joint_name]->getSceneNode());
                         current_arrow_point_[joint_name] = 0;
 
                         setJointColor(0,1,0,joint_name);
@@ -174,19 +174,19 @@ namespace rviz
         arrow_directions_[jointName] = direction;
     }
 
-    void JointVisualCustom::setRenderOrder(Ogre::SceneNode* sceneNode)
-    {
-        for(int i =0;i<sceneNode->numAttachedObjects();i++)
-        {
-            Ogre::MovableObject* obj =  sceneNode->getAttachedObject(i);
-            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + 1);
-        }
-        //recurse for all potential children
-        for(int i =0;i<sceneNode->numChildren();i++)
-        {
-            setRenderOrder((Ogre::SceneNode*)sceneNode->getChild(i));
-        }
-    }
+//    void JointVisualCustom::setRenderOrder(Ogre::SceneNode* sceneNode)
+//    {
+//        for(int i =0;i<sceneNode->numAttachedObjects();i++)
+//        {
+//            Ogre::MovableObject* obj =  sceneNode->getAttachedObject(i);
+//            obj->setRenderQueueGroup(Ogre::RENDER_QUEUE_MAIN + 1);
+//        }
+//        //recurse for all potential children
+//        for(int i =0;i<sceneNode->numChildren();i++)
+//        {
+//            setRenderOrder((Ogre::SceneNode*)sceneNode->getChild(i));
+//        }
+//    }
 
     // Position and orientation are passed through to the SceneNode.
     void JointVisualCustom::setFramePosition( const Ogre::Vector3& position )

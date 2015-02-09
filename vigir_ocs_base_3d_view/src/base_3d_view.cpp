@@ -987,8 +987,8 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     //Means that currently doing
 
-    if(is_primary_view_ && occluded_robot_visible_)
-        setRenderOrder();
+    //if(is_primary_view_ && occluded_robot_visible_)
+    //    setRenderOrder();
 }
 
 void Base3DView::publishCameraTransform()
@@ -1158,12 +1158,12 @@ void Base3DView::robotOcclusionToggled(bool selected)
     if (!selected && is_primary_view_)
     {
         occluded_robot_visible_ = false;
-        disableRobotOccludedRender();
+        //disableRobotOccludedRender();
     }
     else if (is_primary_view_)
     {
         occluded_robot_visible_ = true;
-        setRobotOccludedRender();
+        //setRobotOccludedRender();
     }
 }
 
@@ -2911,7 +2911,7 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
 }
 
 //goes through all scene nodes and sets position in render queue based on object type
-void Base3DView::setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset)
+/*void Base3DView::setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset)
 {
     // warning: some rviz display may be disjointed and not have attached objects
     for(int i =0;i<sceneNode->numAttachedObjects();i++)
@@ -2957,10 +2957,10 @@ void Base3DView::setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOf
 
 void Base3DView::setRenderOrder()
 {
-    /*
-      Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
-                    +1  |  Transparent Objects
-    **/
+
+    //  Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
+    //                +1  |  Transparent Objects
+
     int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();
     for(int i = 0; i < num_displays; i++)
     {
@@ -2974,10 +2974,9 @@ void Base3DView::setRenderOrder()
 
 void Base3DView::resetRenderOrder()
 {
-    /*
-      Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
-                    +1  |  Transparent Objects
-    **/
+    //  Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
+    //                +1  |  Transparent Objects
+
     int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();
     for(int i = 0; i < num_displays; i++)
     {
@@ -3179,7 +3178,7 @@ void Base3DView::disableRobotOccludedRender()
        rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(i);
        setSceneNodeRenderGroup(display->getSceneNode(), 0);
    }
-}
+}*/
 
 void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr& states)
 {
