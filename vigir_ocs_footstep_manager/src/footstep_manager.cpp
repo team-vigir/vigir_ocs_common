@@ -868,16 +868,19 @@ void FootstepManager::feedbackStepPlanRequest(const vigir_footstep_planning_msgs
 
 void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::StepPlanRequestResultConstPtr& result)
 {
+    ROS_ERROR("StepPlanRequest: Got action response. %s", result->status.error_msg.c_str());
     ROS_INFO("StepPlanRequest: Got action response. %s", result->status.error_msg.c_str());
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
+        ROS_ERROR(" 0");
         if(result->step_plan.steps.size() == 0)
         {
-            ROS_INFO("StepPlanRequest: Received empty step plan.");
+            ROS_ERROR("StepPlanRequest: Received empty step plan.");
             return;
         }
 
+        ROS_ERROR(" 1");
         // we only change the current step lists if we receive a response
         if(result->step_plan.steps[0].step_index == 0)
             // This function will create a completely new plan, so we need to add a new empty list of plans to the stack
@@ -886,12 +889,16 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
             // This function will add a copy of the current step plan list to the stack, so we can change it
             addCopyPlanList();
 
+        ROS_ERROR(" 2");
         // add resulting plan to the top of the stack of plans, removing any extra steps
         extendPlanList(result->step_plan);
 
+        ROS_ERROR(" 3");
         publishFootsteps();
 
+        ROS_ERROR(" 4");
         publishGoalMarkerClear();
+        ROS_ERROR(" 5");
     }
 }
 
@@ -935,10 +942,21 @@ void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
+        if(result->step_plans.size() == 0)
+        {
+            ROS_ERROR("EditStep: Received no step plan.");
+            return;
+        }
+
+        if(result->step_plans[0].steps.size() == 0)
+        {
+            ROS_ERROR("EditStep: Received empty step plan.");
+            return;
+        }
+
         // first need to figure out which step plan contains the step index used in the result
         unsigned int step_plan_index;
         findStepPlan(result->step_plans[0].steps[0].step_index, step_plan_index);
-
         // save the index of the step plan
         std::vector<vigir_footstep_planning_msgs::StepPlan>::iterator step_plan_it = getStepPlanList().begin()+step_plan_index;
         // remove the plan
