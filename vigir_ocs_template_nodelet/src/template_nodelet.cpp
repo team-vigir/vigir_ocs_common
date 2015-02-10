@@ -37,11 +37,11 @@ void TemplateNodelet::onInit()
     // which file are we reading
     if (!nhp.hasParam("r_grasps_filename"))
     {
-        ROS_ERROR(" Did not find Right Grasp FILENAME parameter - using \"/vigir_template_library/grasp_templates/r_robotiq_grasp_library.csv\" as default");
+        ROS_ERROR(" Did not find Right Grasp FILENAME parameter - using %s/grasp_templates/r_robotiq_grasp_library.csv",ros::package::getPath("vigir_template_library").c_str());
     }
     if (!nhp.hasParam("l_grasps_filename"))
     {
-        ROS_ERROR(" Did not find Left Grasp FILENAME parameter - using \"/vigir_template_library/grasp_templates/l_robotiq_grasp_library.csv\" as default");
+        ROS_ERROR(" Did not find Left Grasp FILENAME parameter - using %s/grasp_templates/l_robotiq_grasp_library.csv",ros::package::getPath("vigir_template_library").c_str());
     }
     if (!nhp.hasParam("ot_filename"))
     {
@@ -71,7 +71,11 @@ void TemplateNodelet::onInit()
 
     ROS_INFO("Right Graspit to Palm tf set");
 
-    TemplateNodelet::loadGraspDatabase(this->r_grasps_filename_, "right");
+    //LOADING HAND MODEL FOR JOINT NAMES (SHOULD WORK FOR ANY HAND)
+    hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
+    hand_robot_model_ = hand_model_loader_->getModel();
+
+    TemplateNodelet::loadGraspDatabaseXML(this->r_grasps_filename_, "right");
 
     ROS_INFO("Right Grasp Database loaded");
 
@@ -82,7 +86,7 @@ void TemplateNodelet::onInit()
 
     ROS_INFO("Right Graspit to Palm tf set");
 
-    TemplateNodelet::loadGraspDatabase(this->l_grasps_filename_, "left");
+    TemplateNodelet::loadGraspDatabaseXML(this->l_grasps_filename_, "left");
 
     ROS_INFO("Left Grasp Database loaded");
 
@@ -298,12 +302,14 @@ std::vector< std::vector <std::string> > TemplateNodelet::readCSVFile(std::strin
     return db;
 }
 
-void TemplateNodelet::loadGraspDatabase(std::string& file_name, std::string hand_side){
-
-
-    //LOADING HAND MODEL FOR JOINT NAMES (SHOULD WORK FOR ANY HAND)
-    hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
-    hand_robot_model_ = hand_model_loader_->getModel();
+void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string hand_side)
+{
+    std::string path= file_name.substr(0,file_name.find_last_of(".")) + ".xml";
+    TiXmlDocument doc(path.c_str());
+    if (!doc.LoadFile()){
+        ROS_ERROR("Could not read file %s for %s hand", path.c_str(), hand_side.c_str());
+        return;
+    }
 
     if(hand_robot_model_->hasJointModelGroup(hand_side+"_hand"))
     {
@@ -318,92 +324,198 @@ void TemplateNodelet::loadGraspDatabase(std::string& file_name, std::string hand
     for(int i = 0; i < hand_joint_names_.size(); i++)
         ROS_INFO("Joint %d: %s",i,hand_joint_names_[i].c_str());
 
-    std::vector< std::vector <std::string> > db = readCSVFile(file_name);
+    TiXmlHandle hDoc(&doc);
+    TiXmlElement* pElem;
+    TiXmlHandle hRoot(0);
 
-    for(int i = 1; i < db.size(); i++) //STARTING FROM 1 SINCE FIRST LINE IS HEADER BEGINING WITH "#"
+    pElem=hDoc.FirstChildElement().Element();
+    // should always have a valid root but handle gracefully if it does
+    if (!pElem){
+        ROS_ERROR("File %s for %s hand read, but empty or not well formatted", path.c_str(), hand_side.c_str());
+        return;
+    }
+
+    // save this for later
+    hRoot=TiXmlHandle(pElem);
+    ROS_INFO("Reading %s for %s hand", pElem->Value(), hand_side.c_str());
+
+    TiXmlElement* pGrasps=hRoot.FirstChild( "Grasps" ).Element();
+    for( pGrasps; pGrasps; pGrasps=pGrasps->NextSiblingElement()) //Iterates thorugh all template types
     {
-        //ROS_INFO("Staring to read db line with %d elements",int(db[i].size()));
+        const char *pName=pGrasps->Attribute("template_name");
+        int template_type;
+        pGrasps->QueryIntAttribute("template_type", &template_type);
+        if (pName) ROS_INFO("Reading Grasps for %s type: %d",pName, template_type);
 
-        unsigned int idx = 0;
-        //ORDER IN FILE SHOULD MATCH ORDER IN READING
-        /* template type,
-         * grasp id,
-         * approaching direction (vector (x,y,z), desired, minimal),
-         * final grasp pose relative to template (x,y,z,qw,qx,qy,qz),
-         * pre-grasp pose relative to template (x,y,z,qw,qx,qy,qz),
-         * pre finger poses,
-         * final finger poses
-        */
+        TiXmlElement* pGrasp=pGrasps->FirstChildElement( "Grasp" );
+        for( pGrasp; pGrasp; pGrasp=pGrasp->NextSiblingElement( "Grasp" ) )   //Iterates thorugh all grasp IDs for this particular template type
+        {
+            moveit_msgs::Grasp grasp;
+            float x,y,z,qx,qy,qz,qw;
+            grasp.grasp_pose.header.frame_id = hand_side[0]+"_hand";
 
-        //TEMPLATE TYPE
-        //ROS_INFO("Staring template type idx: %d",idx);
-        unsigned int type = std::atoi(db[i][idx++].c_str());
+            const char *pID=pGrasp->Attribute("id");
+            if (pID) ROS_INFO("Found Grasp id: %s",pID);
+            grasp.id = std::string(pID);
 
-        //GRASP ID
-        //ROS_INFO("Staring grasp id idx: %d",idx);
-        moveit_msgs::Grasp grasp;
-        grasp.id                                           = db[i][idx++];
+            TiXmlElement* pPose=pGrasp->FirstChildElement( "final_pose" );       //Gets final grasp pose
+            if(!pPose){
+                ROS_WARN("Grasp ID: %s does not contain an final pose, setting identity",pID);
+                grasp.grasp_pose.pose.position.x    = 0.0;
+                grasp.grasp_pose.pose.position.y    = 0.0;
+                grasp.grasp_pose.pose.position.z    = 0.0;
+                grasp.grasp_pose.pose.orientation.x = 0.0;
+                grasp.grasp_pose.pose.orientation.y = 0.0;
+                grasp.grasp_pose.pose.orientation.z = 0.0;
+                grasp.grasp_pose.pose.orientation.w = 1.0;
+            }else{
+                pPose->QueryFloatAttribute("x",  &x);
+                pPose->QueryFloatAttribute("y",  &y);
+                pPose->QueryFloatAttribute("z",  &z);
+                pPose->QueryFloatAttribute("qx", &qx);
+                pPose->QueryFloatAttribute("qy", &qy);
+                pPose->QueryFloatAttribute("qz", &qz);
+                pPose->QueryFloatAttribute("qw", &qw);
 
-        //APPROACHING VECTOR
-        //ROS_INFO("Staring approaching vector idx: %d",idx);
-        grasp.pre_grasp_approach.direction.header.frame_id = hand_side[0]+"_hand"; //Should r_hand or l_hand also be a parameter?
-        grasp.pre_grasp_approach.direction.vector.x        = std::atof(db[i][idx++].c_str());
-        grasp.pre_grasp_approach.direction.vector.y        = std::atof(db[i][idx++].c_str());
-        grasp.pre_grasp_approach.direction.vector.z        = std::atof(db[i][idx++].c_str());
-        grasp.pre_grasp_approach.desired_distance          = std::atof(db[i][idx++].c_str());
-        grasp.pre_grasp_approach.min_distance              = std::atof(db[i][idx++].c_str());
+                grasp.grasp_pose.pose.position.x    = x;
+                grasp.grasp_pose.pose.position.y    = y;
+                grasp.grasp_pose.pose.position.z    = z;
+                grasp.grasp_pose.pose.orientation.x = qx;
+                grasp.grasp_pose.pose.orientation.y = qy;
+                grasp.grasp_pose.pose.orientation.z = qz;
+                grasp.grasp_pose.pose.orientation.w = qw;
 
-        //GRASP POSE
-        //ROS_INFO("Staring grasp pose idx: %d",idx);
-        grasp.grasp_pose.header.frame_id                   = hand_side[0]+"_hand";
-        grasp.grasp_pose.pose.position.x                   = std::atof(db[i][idx++].c_str());
-        grasp.grasp_pose.pose.position.y                   = std::atof(db[i][idx++].c_str());
-        grasp.grasp_pose.pose.position.z                   = std::atof(db[i][idx++].c_str());
-        grasp.grasp_pose.pose.orientation.w                = std::atof(db[i][idx++].c_str());
-        grasp.grasp_pose.pose.orientation.x                = std::atof(db[i][idx++].c_str());
-        grasp.grasp_pose.pose.orientation.y                = std::atof(db[i][idx++].c_str());
-        grasp.grasp_pose.pose.orientation.z                = std::atof(db[i][idx++].c_str());
+                grasp.grasp_pose.header.frame_id    = hand_side[0]+"_hand";
+            }
 
-        //Static transformation to parent link /[r/l]_hand
-        //staticTransform(grasp.grasp_pose.pose);
+            ROS_INFO_STREAM("Added grasp information id: " << grasp.id << " pose: " << std::endl << grasp.grasp_pose.pose);
 
-        //PRE FINGER JOINT POSTURE
-        //ROS_INFO("Staring pre finger joint posture idx: %d",idx);
-        if(hand_joint_names_.size() > 0){
-            grasp.pre_grasp_posture.joint_names.resize(hand_joint_names_.size());
-            for(int j=0; j<hand_joint_names_.size();j++)
-                grasp.pre_grasp_posture.joint_names[j] = hand_joint_names_.at(j);
+            TiXmlElement* pApproachingVector=pGrasp->FirstChildElement( "approaching_vector" );       //Gets approaching vector
+            if(!pApproachingVector){
+                ROS_WARN("Grasp ID: %s does not contain an approaching vector, setting default values",pID);
+                grasp.pre_grasp_approach.direction.vector.x = 0.00;
+                grasp.pre_grasp_approach.direction.vector.y = 1.00;
+                grasp.pre_grasp_approach.direction.vector.z = 0.00;
+                grasp.pre_grasp_approach.desired_distance   = 0.20;
+                grasp.pre_grasp_approach.min_distance       = 0.05;
+            }else{
+                grasp.pre_grasp_approach.direction.header.frame_id = hand_side[0]+"_hand"; //Should r_hand or l_hand also be a parameter?
+
+                pApproachingVector->QueryFloatAttribute("x", &x);
+                pApproachingVector->QueryFloatAttribute("y", &y);
+                pApproachingVector->QueryFloatAttribute("z", &z);
+
+                grasp.pre_grasp_approach.direction.vector.x = x;
+                grasp.pre_grasp_approach.direction.vector.y = y;
+                grasp.pre_grasp_approach.direction.vector.z = z;
+
+                pApproachingVector->QueryFloatAttribute("desired", &grasp.pre_grasp_approach.desired_distance);
+                pApproachingVector->QueryFloatAttribute("minimal", &grasp.pre_grasp_approach.min_distance);
+            }
+
+            ROS_INFO_STREAM("Added aproaching vector information id: " << grasp.id << " pose: " << std::endl << grasp.pre_grasp_approach);
+
             grasp.pre_grasp_posture.points.resize(1);
-            grasp.pre_grasp_posture.points[0].positions.resize(hand_joint_names_.size());
-            for(int j=0; j<hand_joint_names_.size();j++)
-                grasp.pre_grasp_posture.points[0].positions[j] = std::atof(db[i][idx++].c_str());
-
             grasp.pre_grasp_posture.points[0].time_from_start = ros::Duration(3.0);
 
-            //FINGER JOINT POSTURE
-            //ROS_INFO("Staring final finger joint posture idx: %d",idx);
-            grasp.grasp_posture.joint_names.resize(hand_joint_names_.size());
-            for(int j=0; j<hand_joint_names_.size();j++)
-                grasp.grasp_posture.joint_names[j] = hand_joint_names_.at(j);
+            TiXmlElement* pPrePosture=pGrasp->FirstChildElement( "pre_grasp_posture" );
+            if(!pPrePosture){
+                ROS_WARN("Grasp ID: %s does not contain a pregrasp posture, setting all %d joints to zeros",pID, (int)hand_joint_names_.size());
+                if(hand_joint_names_.size() > 0){
+                    grasp.pre_grasp_posture.joint_names.resize(hand_joint_names_.size());
+                    for(int j=0; j<hand_joint_names_.size();j++)
+                        grasp.pre_grasp_posture.joint_names[j] = hand_joint_names_.at(j);
+                    grasp.pre_grasp_posture.points[0].positions.resize(hand_joint_names_.size());
+                    for(int j=0; j<hand_joint_names_.size();j++)
+                        grasp.pre_grasp_posture.points[0].positions[j] = 0.0;  //Setting default joint values to zeros
+                }else{
+                    ROS_WARN("Grasp ID: %s does not contain a pregrasp posture and URDF shows no %s hand joints",pID, hand_side.c_str());
+                }
+            }else{
+                TiXmlElement* pFinger=pPrePosture->FirstChildElement( "finger" );       //Gets pre finger joints
+                if(!pFinger){
+                    ROS_WARN("Grasp ID: %s does not contain any finger, setting joints to zeros",pID);
+                }else{
+                    for( pFinger; pFinger; pFinger=pFinger->NextSiblingElement())   //Iterates thorugh all fingers for this particular pre posture
+                    {
+                        TiXmlElement* pJoint=pFinger->FirstChildElement( "joint" );       //Gets approaching vector
+                        if(!pJoint){
+                            ROS_WARN("Grasp ID: %s does not contain joints for finger %s",pID, pFinger->Attribute("idx"));
+                        }else{
+                            for( pJoint; pJoint; pJoint=pJoint->NextSiblingElement())   //Iterates thorugh all fingers for this particular pre posture
+                            {
+                                const char *pJointName=pJoint->Attribute("name");
+                                if (pJointName)
+                                    grasp.pre_grasp_posture.joint_names.push_back(pJointName);
+                                else
+                                    ROS_WARN("Found joint without name for finger %s",pFinger->Attribute("idx"));
+                                pJoint->QueryFloatAttribute("value", &x);
+                                grasp.pre_grasp_posture.points[0].positions.push_back(x);
+                            }
+                        }
+                    }
+
+                    ROS_INFO_STREAM("Added pre_grasp_posture information id: " << grasp.id << " pose: " << std::endl << grasp.pre_grasp_posture);
+                }
+            }
+
             grasp.grasp_posture.points.resize(1);
-            grasp.grasp_posture.points[0].positions.resize(hand_joint_names_.size());
-            for(int j=0; j<hand_joint_names_.size();j++)
-                grasp.grasp_posture.points[0].positions[j] = std::atof(db[i][idx++].c_str());
-
             grasp.grasp_posture.points[0].time_from_start = ros::Duration(3.0);
-        }
 
-        //RETREAT VECTOR (FIXING TO LIFT 10cm AFTER GRASPING)
-        //ROS_INFO("Staring retreat vector idx: %d",idx);
-        grasp.post_grasp_retreat.direction.header.frame_id = "world";
-        grasp.post_grasp_retreat.direction.vector.z        = 1.0;
-        grasp.post_grasp_retreat.min_distance              = 0.05;
-        grasp.post_grasp_retreat.desired_distance          = 0.1;
-        object_template_map_[type].grasps.insert(std::pair<unsigned int,moveit_msgs::Grasp>(std::atoi(grasp.id.c_str()),grasp));
+            TiXmlElement* pPosture=pGrasp->FirstChildElement( "grasp_posture" );
+            if(!pPosture){
+                ROS_WARN("Grasp ID: %s does not contain a grasp posture, setting all %d joints to zeros",pID, (int)hand_joint_names_.size());
+                if(hand_joint_names_.size() > 0){
+                    grasp.grasp_posture.joint_names.resize(hand_joint_names_.size());
+                    for(int j=0; j<hand_joint_names_.size();j++)
+                        grasp.grasp_posture.joint_names[j] = hand_joint_names_.at(j);
+                    grasp.grasp_posture.points[0].positions.resize(hand_joint_names_.size());
+                    for(int j=0; j<hand_joint_names_.size();j++)
+                        grasp.grasp_posture.points[0].positions[j] = 0.0;  //Setting default joint values to zeros
+                }else{
+                    ROS_WARN("Grasp ID: %s does not contain a grasp posture and URDF shows no %s hand joints",pID, hand_side.c_str());
+                }
+            }else{
+                TiXmlElement* pFinger=pPosture->FirstChildElement( "finger" );       //Gets final finger joints
+                if(!pFinger){
+                    ROS_WARN("Grasp ID: %s does not contain any finger, setting joints to zeros",pID);
+                }else{
+                    for( pFinger; pFinger; pFinger=pFinger->NextSiblingElement())   //Iterates thorugh all fingers for this particular posture
+                    {
+                        TiXmlElement* pJoint=pFinger->FirstChildElement( "joint" );       //Gets approaching vector
+                        if(!pJoint){
+                            ROS_WARN("Grasp ID: %s does not contain joints for finger %s",pID, pFinger->Attribute("idx"));
+                        }else{
+                            for( pJoint; pJoint; pJoint=pJoint->NextSiblingElement())   //Iterates thorugh all fingers for this particular posture
+                            {
+                                const char *pJointName=pJoint->Attribute("name");
+                                if (pJointName)
+                                    grasp.grasp_posture.joint_names.push_back(pJointName);
+                                else
+                                    ROS_WARN("Found joint without name for finger %s",pFinger->Attribute("idx"));
+                                pJoint->QueryFloatAttribute("value", &x);
+                                grasp.grasp_posture.points[0].positions.push_back(x);
+                            }
+                        }
+                    }
+
+                    ROS_INFO_STREAM("Added grasp_posture information id: " << grasp.id << " pose: " << std::endl << grasp.grasp_posture);
+                }
+            }
+
+            //RETREAT VECTOR (FIXING TO LIFT 10cm AFTER GRASPING)
+            //ROS_INFO("Staring retreat vector idx: %d",idx);
+            grasp.post_grasp_retreat.direction.header.frame_id = "world";
+            grasp.post_grasp_retreat.direction.vector.z        = 1.0;
+            grasp.post_grasp_retreat.min_distance              = 0.05;
+            grasp.post_grasp_retreat.desired_distance          = 0.1;
+
+            object_template_map_[template_type].grasps.insert(std::pair<unsigned int,moveit_msgs::Grasp>(std::atoi(grasp.id.c_str()),grasp));
+        }
     }
     for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it)
         for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it2=it->second.grasps.begin(); it2!=it->second.grasps.end(); ++it2)
-            ROS_INFO("OT Map, inside ot: %d -> Grasp id %s ", it->second.type, it2->second.id.c_str());    
+            ROS_INFO("OT Map, inside ot: %d -> Grasp id %s ", it->second.type, it2->second.id.c_str());
 }
 
 void TemplateNodelet::loadStandPosesDatabase(std::string& file_name){

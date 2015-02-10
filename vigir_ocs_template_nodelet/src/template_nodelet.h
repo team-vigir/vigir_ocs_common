@@ -37,6 +37,8 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
 
+#include <tinyxml.h>
+
 namespace ocs_template
 {
 
@@ -75,7 +77,7 @@ namespace ocs_template
         void publishTemplateList();
         std::vector< std::vector <std::string> > readCSVFile(std::string& file_name);
         void loadObjectTemplateDatabase(std::string& file_name);
-        void loadGraspDatabase(std::string& file_name, std::string hand_side);
+        void loadGraspDatabaseXML(std::string& file_name, std::string hand_side);
         void loadStandPosesDatabase(std::string& file_name);
         int  staticTransform(geometry_msgs::Pose& palm_pose);
         void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
