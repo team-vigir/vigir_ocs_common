@@ -35,13 +35,13 @@ void TemplateNodelet::onInit()
     ROS_INFO(" Start reading database files");
 
     // which file are we reading
-    if (!nhp.hasParam("r_grasps_filename"))
+    if (!nhp.getParam("/r_hand_library", this->r_grasps_filename_))
     {
-        ROS_ERROR(" Did not find Right Grasp FILENAME parameter - using %s/grasp_templates/r_robotiq_grasp_library.csv",ros::package::getPath("vigir_template_library").c_str());
+        ROS_ERROR(" Did not find Right Grasp Library parameter /r_hand_library");
     }
-    if (!nhp.hasParam("l_grasps_filename"))
+    if (!nhp.getParam("/l_hand_library", this->l_grasps_filename_))
     {
-        ROS_ERROR(" Did not find Left Grasp FILENAME parameter - using %s/grasp_templates/l_robotiq_grasp_library.csv",ros::package::getPath("vigir_template_library").c_str());
+        ROS_ERROR(" Did not find Left Grasp Library parameter /l_hand_library");
     }
     if (!nhp.hasParam("ot_filename"))
     {
@@ -51,9 +51,6 @@ void TemplateNodelet::onInit()
     {
         ROS_ERROR(" Did not find Ghost FILENAME parameter - using \"/vigir_template_library/robot_poses/atlas_v1_v3_joints_stand_poses.csv\" as default");
     }
-
-    nhp.param<std::string>("r_grasps_filename", this->r_grasps_filename_,  ros::package::getPath("vigir_template_library")+"/grasp_templates/r_robotiq_grasp_library.csv");
-    nhp.param<std::string>("l_grasps_filename", this->l_grasps_filename_,  ros::package::getPath("vigir_template_library")+"/grasp_templates/l_robotiq_grasp_library.csv");
     nhp.param<std::string>("ot_filename",       this->ot_filename_,        ros::package::getPath("vigir_template_library")+"/object_templates/object_templates.csv");
     nhp.param<std::string>("stand_filename",    this->stand_filename_,     ros::package::getPath("vigir_template_library")+"/robot_poses/atlas_v1_v3_joints_stand_poses.csv");
 
@@ -304,13 +301,7 @@ std::vector< std::vector <std::string> > TemplateNodelet::readCSVFile(std::strin
 
 void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string hand_side)
 {
-    std::string path= file_name.substr(0,file_name.find_last_of(".")) + ".xml";
-    TiXmlDocument doc(path.c_str());
-    if (!doc.LoadFile()){
-        ROS_ERROR("Could not read file %s for %s hand", path.c_str(), hand_side.c_str());
-        return;
-    }
-
+    //Getting joints for hand from URDF robot description
     if(hand_robot_model_->hasJointModelGroup(hand_side+"_hand"))
     {
         hand_joint_names_.clear();
@@ -324,6 +315,14 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
     for(int i = 0; i < hand_joint_names_.size(); i++)
         ROS_INFO("Joint %d: %s",i,hand_joint_names_[i].c_str());
 
+    //Creating XML document from parameter server string of grasp library
+    TiXmlDocument doc;
+    doc.Parse((const char*)file_name.c_str(), 0, TIXML_ENCODING_UTF8);
+    if (doc.ErrorId() != 0){
+        ROS_ERROR("Could not read file for %s hand",hand_side.c_str());
+        return;
+    }
+
     TiXmlHandle hDoc(&doc);
     TiXmlElement* pElem;
     TiXmlHandle hRoot(0);
@@ -331,7 +330,7 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
     pElem=hDoc.FirstChildElement().Element();
     // should always have a valid root but handle gracefully if it does
     if (!pElem){
-        ROS_ERROR("File %s for %s hand read, but empty or not well formatted", path.c_str(), hand_side.c_str());
+        ROS_ERROR("File for %s hand read, but empty or not well formatted", hand_side.c_str());
         return;
     }
 
@@ -339,7 +338,7 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
     hRoot=TiXmlHandle(pElem);
     ROS_INFO("Reading %s for %s hand", pElem->Value(), hand_side.c_str());
 
-    TiXmlElement* pGrasps=hRoot.FirstChild( "Grasps" ).Element();
+    TiXmlElement* pGrasps=hRoot.FirstChild( "grasps" ).Element();
     for( pGrasps; pGrasps; pGrasps=pGrasps->NextSiblingElement()) //Iterates thorugh all template types
     {
         const char *pName=pGrasps->Attribute("template_name");
@@ -347,8 +346,8 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
         pGrasps->QueryIntAttribute("template_type", &template_type);
         if (pName) ROS_INFO("Reading Grasps for %s type: %d",pName, template_type);
 
-        TiXmlElement* pGrasp=pGrasps->FirstChildElement( "Grasp" );
-        for( pGrasp; pGrasp; pGrasp=pGrasp->NextSiblingElement( "Grasp" ) )   //Iterates thorugh all grasp IDs for this particular template type
+        TiXmlElement* pGrasp=pGrasps->FirstChildElement( "grasp" );
+        for( pGrasp; pGrasp; pGrasp=pGrasp->NextSiblingElement( "grasp" ) )   //Iterates thorugh all grasp IDs for this particular template type
         {
             moveit_msgs::Grasp grasp;
             float x,y,z,qx,qy,qz,qw;
