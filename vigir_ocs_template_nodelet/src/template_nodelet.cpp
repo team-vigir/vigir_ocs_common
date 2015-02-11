@@ -330,7 +330,7 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
     pElem=hDoc.FirstChildElement().Element();
     // should always have a valid root but handle gracefully if it does
     if (!pElem){
-        ROS_ERROR("File for %s hand read, but empty or not well formatted", hand_side.c_str());
+        ROS_ERROR("File for %s hand read but empty", hand_side.c_str());
         return;
     }
 
