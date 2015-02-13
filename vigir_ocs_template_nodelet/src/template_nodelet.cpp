@@ -43,25 +43,22 @@ void TemplateNodelet::onInit()
     {
         ROS_ERROR(" Did not find Left Grasp Library parameter /l_hand_library");
     }
-    if (!nhp.hasParam("ot_filename"))
+    if (!nhp.getParam("/ot_library", this->ot_filename_))
     {
-        ROS_ERROR(" Did not find Object Template FILENAME parameter - using \"/vigir_template_library/object_templates/object_templates.csv\" as default");
+        ROS_ERROR(" Did not find Object Template Library parameter /ot_library");
     }
-    if (!nhp.hasParam("stand_filename"))
+    if (!nhp.getParam("/stand_poses_library", this->stand_filename_))
     {
-        ROS_ERROR(" Did not find Ghost FILENAME parameter - using \"/vigir_template_library/robot_poses/atlas_v1_v3_joints_stand_poses.csv\" as default");
+        ROS_ERROR(" Did not find Stand Poses parameter /stand_poses_library");
     }
-    nhp.param<std::string>("ot_filename",       this->ot_filename_,        ros::package::getPath("vigir_template_library")+"/object_templates/object_templates.csv");
-    nhp.param<std::string>("stand_filename",    this->stand_filename_,     ros::package::getPath("vigir_template_library")+"/robot_poses/atlas_v1_v3_joints_stand_poses.csv");
 
     XmlRpc::XmlRpcValue   gp_T_hand;
 
-    // Load the Object Template database
-    TemplateNodelet::loadObjectTemplateDatabase(this->ot_filename_);
+    TemplateNodelet::loadObjectTemplateDatabaseXML(this->ot_filename_);
 
     ROS_INFO("OT Database loaded");
 
-    // Load the right hand specific grasping database
+    // Load the right hand specific grasping transform
     nh.getParam("/r_hand_tf/gp_T_hand", gp_T_hand);
     gp_T_hand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
     gp_T_hand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
@@ -76,7 +73,7 @@ void TemplateNodelet::onInit()
 
     ROS_INFO("Right Grasp Database loaded");
 
-    // Load the left hand specific grasping database
+    // Load the left hand specific grasping transform
     nh.getParam("/l_hand_tf/gp_T_hand", gp_T_hand);
     gp_T_hand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
     gp_T_hand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
@@ -88,7 +85,7 @@ void TemplateNodelet::onInit()
     ROS_INFO("Left Grasp Database loaded");
 
     // Load the robot specific ghost_poses database
-    TemplateNodelet::loadStandPosesDatabase(this->stand_filename_);
+    TemplateNodelet::loadStandPosesDatabaseXML(this->stand_filename_);
 
     ROS_INFO("Stand Poses Database loaded");
     
@@ -339,7 +336,7 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
     ROS_INFO("Reading %s for %s hand", pElem->Value(), hand_side.c_str());
 
     TiXmlElement* pGrasps=hRoot.FirstChild( "grasps" ).Element();
-    for( pGrasps; pGrasps; pGrasps=pGrasps->NextSiblingElement()) //Iterates thorugh all template types
+    for( pGrasps; pGrasps; pGrasps=pGrasps->NextSiblingElement("grasps")) //Iterates thorugh all template types
     {
         const char *pName=pGrasps->Attribute("template_name");
         int template_type;
@@ -435,13 +432,13 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
                 if(!pFinger){
                     ROS_WARN("Grasp ID: %s does not contain any finger, setting joints to zeros",pID);
                 }else{
-                    for( pFinger; pFinger; pFinger=pFinger->NextSiblingElement())   //Iterates thorugh all fingers for this particular pre posture
+                    for( pFinger; pFinger; pFinger=pFinger->NextSiblingElement("finger"))   //Iterates thorugh all fingers for this particular pre posture
                     {
                         TiXmlElement* pJoint=pFinger->FirstChildElement( "joint" );       //Gets approaching vector
                         if(!pJoint){
                             ROS_WARN("Grasp ID: %s does not contain joints for finger %s",pID, pFinger->Attribute("idx"));
                         }else{
-                            for( pJoint; pJoint; pJoint=pJoint->NextSiblingElement())   //Iterates thorugh all fingers for this particular pre posture
+                            for( pJoint; pJoint; pJoint=pJoint->NextSiblingElement("joint"))   //Iterates thorugh all fingers for this particular pre posture
                             {
                                 const char *pJointName=pJoint->Attribute("name");
                                 if (pJointName)
@@ -479,13 +476,13 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
                 if(!pFinger){
                     ROS_WARN("Grasp ID: %s does not contain any finger, setting joints to zeros",pID);
                 }else{
-                    for( pFinger; pFinger; pFinger=pFinger->NextSiblingElement())   //Iterates thorugh all fingers for this particular posture
+                    for( pFinger; pFinger; pFinger=pFinger->NextSiblingElement("finger"))   //Iterates thorugh all fingers for this particular posture
                     {
                         TiXmlElement* pJoint=pFinger->FirstChildElement( "joint" );       //Gets approaching vector
                         if(!pJoint){
                             ROS_WARN("Grasp ID: %s does not contain joints for finger %s",pID, pFinger->Attribute("idx"));
                         }else{
-                            for( pJoint; pJoint; pJoint=pJoint->NextSiblingElement())   //Iterates thorugh all fingers for this particular posture
+                            for( pJoint; pJoint; pJoint=pJoint->NextSiblingElement("joint"))   //Iterates thorugh all fingers for this particular posture
                             {
                                 const char *pJointName=pJoint->Attribute("name");
                                 if (pJointName)
@@ -518,7 +515,7 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
             ROS_INFO("OT Map, inside ot: %d -> Grasp id %s ", it->second.type, it2->second.id.c_str());
 }
 
-void TemplateNodelet::loadStandPosesDatabase(std::string& file_name){
+void TemplateNodelet::loadStandPosesDatabaseXML(std::string& file_name){
     /*
      * Need to fill object_template_map_[type].stand_poses with the poses read from file
      *
@@ -528,87 +525,291 @@ void TemplateNodelet::loadStandPosesDatabase(std::string& file_name){
      * stand pose relative to template (x,y,z,qw,qx,qy,qz),
     */
     ROS_INFO("Loading Stand Poses...");
-   std::vector <std::vector <std::string> > db = readCSVFile(file_name);
-   
-	unsigned int template_type;
-	unsigned int stand_pose_id;
-	unsigned int j;
-    vigir_object_template_msgs::StandPose current_pose;
-	std::map<unsigned int, VigirObjectTemplate>::iterator current_template;
-	for (unsigned int i = 1; i < db.size(); ++i) {
-        template_type                        = std::atoi(db[i][0].c_str());
-        stand_pose_id                        = std::atoi(db[i][1].c_str());
-        current_pose.id                      = stand_pose_id;
-        current_pose.pose.header.frame_id    = "/world";
-        current_pose.pose.header.stamp       = ros::Time::now();
 
-        current_pose.pose.pose.position.x    = std::atof(db[i][2].c_str());
-        current_pose.pose.pose.position.y    = std::atof(db[i][3].c_str());
-        current_pose.pose.pose.position.z    = std::atof(db[i][4].c_str());
+    //Creating XML document from parameter server string of template library
+    TiXmlDocument doc;
+    doc.Parse((const char*)file_name.c_str(), 0, TIXML_ENCODING_UTF8);
+    if (doc.ErrorId() != 0){
+        ROS_ERROR("Could not read stand poses library file ");
+        return;
+    }
 
-        current_pose.pose.pose.orientation.w = std::atof(db[i][5].c_str());
-        current_pose.pose.pose.orientation.x = std::atof(db[i][6].c_str());
-        current_pose.pose.pose.orientation.y = std::atof(db[i][7].c_str());
-        current_pose.pose.pose.orientation.z = std::atof(db[i][8].c_str());
+    TiXmlHandle hDoc(&doc);
+    TiXmlElement* pElem;
+    TiXmlHandle hRoot(0);
 
-		current_template = object_template_map_.find(template_type);
-		if (current_template == object_template_map_.end()){
-			ROS_WARN_STREAM("Could not find associated template for stand pose. Template: "
-									<< template_type << " stand pose: " << stand_pose_id 
-									<< ". Adding stand pose regardless");
-			VigirObjectTemplate new_template;
-			current_template = object_template_map_.insert(std::pair<unsigned int, VigirObjectTemplate> (template_type, new_template)).first;
-		}
-		
-		if (current_template->second.stand_poses.find(stand_pose_id) != current_template->second.stand_poses.end()) {
-			ROS_WARN_STREAM("Duplicates in the stand pose list! Template " << template_type 
-									<< " has two stand poses of id: " << stand_pose_id << ". Ignoring second.");
-			continue;
-		}
-		
-        current_template->second.stand_poses.insert(std::pair<unsigned int, vigir_object_template_msgs::StandPose> (stand_pose_id, current_pose));
-        ROS_INFO_STREAM("Added stand information: type " << template_type << " pose id: " << stand_pose_id << " pose " << current_pose.pose);
-   }
+    pElem=hDoc.FirstChildElement().Element();
+    // should always have a valid root but handle gracefully if it does
+    if (!pElem){
+        ROS_ERROR("File for stand poses library empty");
+        return;
+    }
+
+    // save this for later
+    hRoot=TiXmlHandle(pElem);
+    ROS_INFO("Reading %s", pElem->Value());
+
+
+
+    TiXmlElement* pTemplate=hRoot.FirstChild( "template" ).Element();
+    for( pTemplate; pTemplate; pTemplate=pTemplate->NextSiblingElement("template")) //Iterates thorugh all template types
+    {
+        int template_type;
+        const char *pName=pTemplate->Attribute("template_name");
+        pTemplate->QueryIntAttribute("template_type", &template_type);
+        if (pName) ROS_INFO("Reading %s type: %d",pName, template_type);
+
+        TiXmlElement* pStandPose=pTemplate->FirstChildElement( "standpose" );
+        for( pStandPose; pStandPose; pStandPose=pStandPose->NextSiblingElement("standpose" )) //Iterates thorugh all template types
+        {
+            vigir_object_template_msgs::StandPose current_pose;
+            TiXmlElement* pPose=pStandPose->FirstChildElement("pose");
+            if(!pPose){
+                ROS_ERROR("Template ID: %d does not contain a  stand pose, skipping template",template_type);
+                continue;
+            }else{
+                double qx,qy,qz,qw;
+                std::string xyz = pPose->Attribute("xyz");
+                std::istringstream iss(xyz);
+                std::string word;
+                std::vector<std::string> tokens;
+                while ( iss >> word ) tokens.push_back( word );
+
+                pPose->QueryDoubleAttribute("qx",&qx);
+                pPose->QueryDoubleAttribute("qy",&qy);
+                pPose->QueryDoubleAttribute("qz",&qz);
+                pPose->QueryDoubleAttribute("qw",&qw);
+
+                current_pose.id                      = std::atoi(pStandPose->Attribute("id"));
+                current_pose.pose.header.frame_id    = "/world";
+                current_pose.pose.header.stamp       = ros::Time::now();
+                current_pose.pose.pose.position.x    = std::atof(tokens[0].c_str());
+                current_pose.pose.pose.position.y    = std::atof(tokens[1].c_str());
+                current_pose.pose.pose.position.z    = std::atof(tokens[2].c_str());
+                current_pose.pose.pose.orientation.x = qx;
+                current_pose.pose.pose.orientation.y = qy;
+                current_pose.pose.pose.orientation.z = qz;
+                current_pose.pose.pose.orientation.w = qw;
+
+                if(object_template_map_.find(template_type) != object_template_map_.end())   //Template Type exists
+                    object_template_map_[template_type].stand_poses.insert(std::pair<unsigned int,vigir_object_template_msgs::StandPose>(current_pose.id, current_pose));
+            }
+        }
+    }
+    for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it)
+        for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it2=it->second.stand_poses.begin(); it2!=it->second.stand_poses.end(); ++it2)
+            ROS_INFO("OT Map, inside ot: %d -> Stand pose id %d ", it->second.type, it2->second.id);
 }
 
-
-void TemplateNodelet::loadObjectTemplateDatabase(std::string& file_name)
+void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
 {
+    //Creating XML document from parameter server string of template library
+    TiXmlDocument doc;
+    doc.Parse((const char*)file_name.c_str(), 0, TIXML_ENCODING_UTF8);
+    if (doc.ErrorId() != 0){
+        ROS_ERROR("Could not read object library file ");
+        return;
+    }
 
-    std::vector< std::vector <std::string> > db = readCSVFile(file_name);
+    TiXmlHandle hDoc(&doc);
+    TiXmlElement* pElem;
+    TiXmlHandle hRoot(0);
 
-    for(int i = 1; i < db.size(); i++) //STARTING FROM 1 SINCE FIRST LINE IS HEADER BEGINING WITH "#"
+    pElem=hDoc.FirstChildElement().Element();
+    // should always have a valid root but handle gracefully if it does
+    if (!pElem){
+        ROS_ERROR("File for template library empty");
+        return;
+    }
+
+    // save this for later
+    hRoot=TiXmlHandle(pElem);
+    ROS_INFO("Reading %s", pElem->Value());
+
+    TiXmlElement* pTemplate=hRoot.FirstChild( "template" ).Element();
+    int count=0;
+    for( pTemplate; pTemplate; pTemplate=pTemplate->NextSiblingElement( "template"), count++) //Iterates thorugh all template types
     {
+        //Getting type and name
         VigirObjectTemplate object_template;
-        unsigned int type = std::atoi(db[i][0].c_str());
-        std::string  path = db[i][1];
+        const char *pName=pTemplate->Attribute("template_name");
+        const char *pGroup=pTemplate->Attribute("group");
+        int template_type;
+        pTemplate->QueryIntAttribute("template_type", &template_type);
+        if (pName) ROS_INFO("Reading %s type: %d",pName, template_type);
 
-        geometry_msgs::Point b_max;
-        geometry_msgs::Point b_min;
-        b_min.x = std::atof(db[i][2].c_str());
-        b_min.y = std::atof(db[i][3].c_str());
-        b_min.z = std::atof(db[i][4].c_str());
-        b_max.x = std::atof(db[i][5].c_str());
-        b_max.y = std::atof(db[i][6].c_str());
-        b_max.z = std::atof(db[i][7].c_str());
+        object_template.name = pName;
+        object_template.type = template_type;
+        object_template.id   = count;
+        object_template.path = std::string(pGroup) + "/" + std::string(pName);
 
-        geometry_msgs::Point com ;
-        com.x = std::atof(db[i][8].c_str());
-        com.y = std::atof(db[i][9].c_str());
-        com.z = std::atof(db[i][10].c_str());
+//        //Getting Mesh Path
+//        TiXmlElement* pMesh=pTemplate->FirstChildElement( "visual" )->FirstChildElement("geometry")->FirstChildElement("mesh");
+//        if(!pMesh){
+//            ROS_ERROR("Template ID: %d does not contain a mesh path, skipping template",template_type);
+//            continue;
+//        }else{
+//            object_template.path = pMesh->Attribute("filename");
+//        }
 
-        double mass = std::atof(db[i][11].c_str());
 
-        object_template.b_max = b_max;
-        object_template.b_min = b_min;
-        object_template.com   = com;
-        object_template.mass  = mass;
-        object_template.id    = i-1;
-        object_template.type  = type;
-        object_template.path  = path;
-        object_template.name  = path.substr(path.find_last_of("/")+1,path.size());
-        object_template_map_.insert(std::pair<unsigned int,VigirObjectTemplate>(type,object_template));
-        ROS_INFO(" Inserting Object template type: %d with id: %d, name %s", object_template_map_[type].type, object_template_map_[type].id, object_template_map_[type].name.c_str());
+        //Getting Mass
+        TiXmlElement* pMass=pTemplate->FirstChildElement( "inertial" )->FirstChildElement("mass");
+        if(!pMass){
+            ROS_WARN("Template ID: %d does not contain a mass value, setting to 0",template_type);
+            object_template.mass = 0;
+        }else{
+            object_template.mass = std::atof(pMass->Attribute("value"));
+        }
+
+        //Getting CoM
+        TiXmlElement* pCoM=pTemplate->FirstChildElement( "inertial" )->FirstChildElement("origin");
+        if(!pCoM){
+            ROS_WARN("Template ID: %d does not contain a mass value, setting to 0",template_type);
+            object_template.com.x = object_template.com.y = object_template.com.z = 0;
+        }else{
+            geometry_msgs::Point com;
+            std::string xyz = pCoM->Attribute("xyz");
+            std::istringstream iss(xyz);
+            std::string word;
+            std::vector<std::string> tokens;
+            while ( iss >> word ) tokens.push_back( word );
+
+            com.x = std::atof(tokens[0].c_str());
+            com.y = std::atof(tokens[1].c_str());
+            com.z = std::atof(tokens[2].c_str());
+
+            object_template.com = com;
+        }
+
+        //Getting Inertia
+        TiXmlElement* pInertia=pTemplate->FirstChildElement( "inertial" )->FirstChildElement("inertia");
+        if(!pInertia){
+            ROS_WARN("Template ID: %d does not contain an inertia tensor",template_type);
+        }else{
+            //object_template.inertia.ixx = std::atof(pInertia->Attribute("ixx"));
+            //object_template.inertia.ixy = std::atof(pInertia->Attribute("ixy"));
+            //object_template.inertia.ixz = std::atof(pInertia->Attribute("ixz"));
+            //object_template.inertia.iyy = std::atof(pInertia->Attribute("iyy"));
+            //object_template.inertia.iyz = std::atof(pInertia->Attribute("iyz"));
+            //object_template.inertia.izz = std::atof(pInertia->Attribute("izz"));
+        }
+
+        //Getting bounding box
+        TiXmlElement* pBoundingBox=pTemplate->FirstChildElement( "visual" )->FirstChildElement("geometry")->FirstChildElement("boundingbox");
+        if(!pBoundingBox){
+            ROS_WARN("Template ID: %d does not contain a  bounding box, setting to zeros",template_type);
+            object_template.b_max.x = object_template.b_max.y = object_template.b_max.z = 0;
+            object_template.b_min.x = object_template.b_min.y = object_template.b_min.z = 0;
+        }else{
+            geometry_msgs::Point b_max;
+            geometry_msgs::Point b_min;
+            std::string xyz = pBoundingBox->Attribute("min");
+            std::istringstream iss(xyz);
+            std::string word;
+            std::vector<std::string> tokens;
+            while ( iss >> word ) tokens.push_back( word );
+
+            b_min.x    = std::atof(tokens[0].c_str());
+            b_min.y    = std::atof(tokens[1].c_str());
+            b_min.z    = std::atof(tokens[2].c_str());
+
+            xyz = pBoundingBox->Attribute("max");
+            std::istringstream iss2(xyz);
+            tokens.clear();
+            while ( iss2 >> word ) tokens.push_back( word );
+
+            b_max.x    = std::atof(tokens[0].c_str());
+            b_max.y    = std::atof(tokens[1].c_str());
+            b_max.z    = std::atof(tokens[2].c_str());
+
+            object_template.b_max = b_max;
+            object_template.b_min = b_min;
+        }
+
+        //Getting usabilities
+        TiXmlElement* pUsability=pTemplate->FirstChildElement( "usability" );
+        for( pUsability; pUsability; pUsability=pUsability->NextSiblingElement("usability")) //Iterates thorugh all usabilities
+        {
+            vigir_object_template_msgs::Usability usability;
+            TiXmlElement* pPose=pUsability->FirstChildElement("pose");
+            if(!pPose){
+                ROS_ERROR("Template ID: %d does not contain a  pose in usability id: %s, skipping template",template_type,pUsability->Attribute("id"));
+                continue;
+            }else{
+                double qx,qy,qz,qw;
+                std::string xyz = pPose->Attribute("xyz");
+                std::istringstream iss(xyz);
+                std::string word;
+                std::vector<std::string> tokens;
+                while ( iss >> word ) tokens.push_back( word );
+
+                pPose->QueryDoubleAttribute("qx",&qx);
+                pPose->QueryDoubleAttribute("qy",&qy);
+                pPose->QueryDoubleAttribute("qz",&qz);
+                pPose->QueryDoubleAttribute("qw",&qw);
+
+                usability.id                      = std::atoi(pUsability->Attribute("id"));
+                usability.pose.header.frame_id    = "/world";
+                usability.pose.header.stamp       = ros::Time::now();
+                usability.pose.pose.position.x    = std::atof(tokens[0].c_str());
+                usability.pose.pose.position.y    = std::atof(tokens[1].c_str());
+                usability.pose.pose.position.z    = std::atof(tokens[2].c_str());
+                usability.pose.pose.orientation.x = qx;
+                usability.pose.pose.orientation.y = qy;
+                usability.pose.pose.orientation.z = qz;
+                usability.pose.pose.orientation.w = qw;
+
+                object_template.usabilities.insert(std::pair<unsigned int,vigir_object_template_msgs::Usability>(usability.id, usability));
+            }
+        }
+
+        //Getting Affordances
+        TiXmlElement* pAffordance=pTemplate->FirstChildElement( "affordance" );
+        for( pAffordance; pAffordance; pAffordance=pAffordance->NextSiblingElement("affordance")) //Iterates thorugh all affordances
+        {
+            vigir_object_template_msgs::Affordance affordance;
+            TiXmlElement* pPose=pAffordance->FirstChildElement("pose");
+            if(!pPose){
+                ROS_ERROR("Template ID: %d does not contain a  pose in affordance id: %s, skipping template",template_type,pAffordance->Attribute("id"));
+                continue;
+            }else{
+                double qx,qy,qz,qw;
+                std::string xyz = pPose->Attribute("xyz");
+                std::istringstream iss(xyz);
+                std::string word;
+                std::vector<std::string> tokens;
+                while ( iss >> word ) tokens.push_back( word );
+
+                pPose->QueryDoubleAttribute("qx",&qx);
+                pPose->QueryDoubleAttribute("qy",&qy);
+                pPose->QueryDoubleAttribute("qz",&qz);
+                pPose->QueryDoubleAttribute("qw",&qw);
+
+                affordance.id                      = std::atoi(pAffordance->Attribute("id"));
+                affordance.type                    = pAffordance->Attribute("type");
+                affordance.axis                    = pAffordance->Attribute("axis");
+                affordance.distance                = std::atof(pAffordance->Attribute("distance"));
+                affordance.pose.header.frame_id    = "/world";
+                affordance.pose.header.stamp       = ros::Time::now();
+                affordance.pose.pose.position.x    = std::atof(tokens[0].c_str());
+                affordance.pose.pose.position.y    = std::atof(tokens[1].c_str());
+                affordance.pose.pose.position.z    = std::atof(tokens[2].c_str());
+                affordance.pose.pose.orientation.x = qx;
+                affordance.pose.pose.orientation.y = qy;
+                affordance.pose.pose.orientation.z = qz;
+                affordance.pose.pose.orientation.w = qw;
+
+                object_template.affordances.insert(std::pair<unsigned int,vigir_object_template_msgs::Affordance>(affordance.id, affordance));
+            }
+        }
+
+        object_template_map_.insert(std::pair<unsigned int,VigirObjectTemplate>(template_type,object_template));
+        ROS_INFO(" Inserting Object template type: %d with id: %d, name %s and mesh path: %s, aff.distance: %f", object_template_map_[template_type].type
+                                                                                             , object_template_map_[template_type].id
+                                                                                             , object_template_map_[template_type].name.c_str()
+                                                                                             , object_template_map_[template_type].path.c_str()
+                                                                                             , object_template_map_[template_type].affordances[0].distance);
     }
 }
 

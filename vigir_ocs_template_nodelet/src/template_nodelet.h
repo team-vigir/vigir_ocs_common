@@ -82,9 +82,9 @@ namespace ocs_template
         void templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
         void publishTemplateList();
         std::vector< std::vector <std::string> > readCSVFile(std::string& file_name);
-        void loadObjectTemplateDatabase(std::string& file_name);
+        void loadObjectTemplateDatabaseXML(std::string& file_name);
         void loadGraspDatabaseXML(std::string& file_name, std::string hand_side);
-        void loadStandPosesDatabase(std::string& file_name);
+        void loadStandPosesDatabaseXML(std::string& file_name);
         int  staticTransform(geometry_msgs::Pose& palm_pose);
         void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
         void timerCallback(const ros::TimerEvent& event);
