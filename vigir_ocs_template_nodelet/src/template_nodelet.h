@@ -22,6 +22,9 @@
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
 #include <vigir_object_template_msgs/DetachObjectTemplate.h>
+#include <vigir_object_template_msgs/Affordance.h>
+#include <vigir_object_template_msgs/Usability.h>
+
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometric_shapes/mesh_operations.h>
@@ -55,8 +58,11 @@ namespace ocs_template
         std::string                                                  path;
         std::map<unsigned int,moveit_msgs::Grasp>                    grasps;
         std::map<unsigned int,vigir_object_template_msgs::StandPose> stand_poses;
+        std::map<unsigned int,vigir_object_template_msgs::Usability> usabilities;
+        std::map<unsigned int,vigir_object_template_msgs::Affordance>affordances;
 
         VigirObjectTemplate() : id(0),
+                                type(0),
                                 mass(0.0)
         {
             //com   = geometry_msgs::Point(0.0,0.0,0.0);

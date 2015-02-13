@@ -509,7 +509,8 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
             grasp.post_grasp_retreat.min_distance              = 0.05;
             grasp.post_grasp_retreat.desired_distance          = 0.1;
 
-            object_template_map_[template_type].grasps.insert(std::pair<unsigned int,moveit_msgs::Grasp>(std::atoi(grasp.id.c_str()),grasp));
+            if(object_template_map_.find(template_type) != object_template_map_.end())   //Template Type exists
+                object_template_map_[template_type].grasps.insert(std::pair<unsigned int,moveit_msgs::Grasp>(std::atoi(grasp.id.c_str()),grasp));
         }
     }
     for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it)
