@@ -789,7 +789,13 @@ void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
                 affordance.id                      = std::atoi(pAffordance->Attribute("id"));
                 affordance.type                    = pAffordance->Attribute("type");
                 affordance.axis                    = pAffordance->Attribute("axis");
-                affordance.distance                = std::atof(pAffordance->Attribute("distance"));
+
+                if(pAffordance->Attribute("distance"))
+                    affordance.distance                = std::atof(pAffordance->Attribute("distance"));
+                else{
+                    ROS_WARN("Affordance ID: %d has no distance attribute, setting to zero", affordance.id);
+                    affordance.distance = 0.0;
+                }
                 affordance.pose.header.frame_id    = "/world";
                 affordance.pose.header.stamp       = ros::Time::now();
                 affordance.pose.pose.position.x    = std::atof(tokens[0].c_str());
@@ -855,7 +861,7 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     /*Fill in the blanks of the response "res"
      * with the info of the template id in the request "req"
     */
-       //Find the template
+    //Find the template
 	unsigned int index = 0;
     unsigned int template_id;
 	for(; index < template_id_list_.size(); index++) {
@@ -891,8 +897,24 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     }
 
     //Transfer all known stand poses to response
-    for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it = object_template_map_[req.template_type].stand_poses.begin(); it != object_template_map_[req.template_type].stand_poses.end(); ++it) {
+    for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it =  object_template_map_[req.template_type].stand_poses.begin();
+                                                                                it != object_template_map_[req.template_type].stand_poses.end();
+                                                                                ++it) {
         res.template_type_information.stand_poses.push_back(it->second);
+    }
+
+    //Transfer all known usabilities to response
+    for (std::map<unsigned int,vigir_object_template_msgs::Usability>::iterator it =  object_template_map_[req.template_type].usabilities.begin();
+                                                                                it != object_template_map_[req.template_type].usabilities.end();
+                                                                                ++it) {
+        res.template_type_information.usabilities.push_back(it->second);
+    }
+
+    //Transfer all known usabilities to response
+    for (std::map<unsigned int,vigir_object_template_msgs::Affordance>::iterator it =  object_template_map_[req.template_type].affordances.begin();
+                                                                                 it != object_template_map_[req.template_type].affordances.end();
+                                                                                 ++it) {
+        res.template_type_information.affordances.push_back(it->second);
     }
 
 	//Compose a mesh marker
