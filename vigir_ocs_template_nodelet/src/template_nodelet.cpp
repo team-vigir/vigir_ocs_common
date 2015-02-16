@@ -1045,7 +1045,7 @@ bool TemplateNodelet::attachObjectTemplateSrv(vigir_object_template_msgs::SetAtt
         hand_side = "left";
 
     hand_link_names_ = hand_robot_model_->getJointModelGroup(hand_side+ "_hand")->getLinkModelNames();
-    attached_object.touch_links.push_back(hand_robot_model_->getJointModelGroup(hand_side+ "_hand")->getParentModel().getLinkModelNames().at(0));
+    attached_object.touch_links.push_back(hand_robot_model_->getJointModelGroup(hand_side+ "_hand")->getCommonRoot()->getParentLinkModel()->getName());
     for(int i = 0; i < hand_link_names_.size(); i++){
         ROS_INFO("Link %d: %s",i,hand_link_names_[i].c_str());
         attached_object.touch_links.push_back(hand_link_names_[i]);
