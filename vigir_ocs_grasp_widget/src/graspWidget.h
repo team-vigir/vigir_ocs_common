@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QWidget>
 #include <QRadioButton>
+#include <QPushButton>
 #include <QSpinBox>
 #include <QComboBox>
 #include <QStringList>
@@ -42,6 +43,7 @@
 #include <flor_grasp_msgs/GraspSelection.h>
 #include <flor_grasp_msgs/TemplateSelection.h>
 #include <flor_grasp_msgs/LinkState.h>
+#include <flor_planning_msgs/CircularMotionRequest.h>
 
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
@@ -57,7 +59,7 @@ class graspWidget : public QWidget
     Q_OBJECT
     
 public:
-    explicit graspWidget(QWidget *parent = 0, std::string hand = "left", std::string hand_type = "irobot");
+    explicit graspWidget(QWidget *parent = 0, std::string hand = "left", std::string hand_name = "l_hand");
     ~graspWidget();
 
     void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg);
@@ -133,8 +135,9 @@ private:
 
     bool templateMatchDone;
 
-    std::string hand_;
+    std::string hand_side_;
     std::string hand_type_;
+    std::string hand_name_;
     uint8_t currentGraspMode;
 
     // **************************
@@ -167,6 +170,11 @@ private:
     tf::Transform hand_T_palm_;   //describes palm in hand frame
     tf::Transform gp_T_palm_;     //describes palm in grasp pose frame
 
+    QWidget*        circular_config_widget_;
+    QCheckBox*      circular_use_collision_;
+    QCheckBox*      circular_keep_orientation_;
+    QDoubleSpinBox* circular_angle_;
+
     // get joint states
     ros::Subscriber link_states_sub_;
 
@@ -178,6 +186,8 @@ private:
     robot_model_loader::RobotModelLoaderPtr hand_model_loader_;
     robot_model::RobotModelPtr hand_robot_model_;
     robot_state::RobotStatePtr hand_robot_state_;
+
+    std::vector<std::string>   hand_joint_names_;
 
     moveit_msgs::DisplayRobotState display_state_msg_;
     ros::Publisher robot_state_vis_pub_;
@@ -195,8 +205,24 @@ private:
     ros::ServiceClient grasp_info_client_;
     ros::ServiceClient template_info_client_;
 
+
+    ros::Publisher circular_plan_request_pub_;
+    geometry_msgs::Pose circular_center_;
+
 protected:
     void timerEvent(QTimerEvent *event);
+    /**
+      * Context menu action for creating a circular target point
+      */
+    void createCircularContextMenu();
+    /**
+      * Context menu action for removing a circular target point
+      */
+    void removeCircularContextMenu();
+    /**
+      * Publishes the circular target pose
+      */
+    void sendCircularTarget();
 
 private:
     QBasicTimer timer;
