@@ -38,8 +38,6 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     currentGraspMode = 0;
     templateMatchDone = false;
 
-    ROS_ERROR("STARTING GRASP CONTROLLER FOR %s HAND name: %s", hand_side_.c_str(), hand_name_.c_str());
-
     std::string grasp_control_prefix = "/grasp_control/" + hand_name_;
     // initialize template subscribers and publishers
     template_list_sub_           = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",                    5, &graspWidget::processTemplateList, this );
@@ -60,7 +58,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     // create the window for circular motion
     circular_config_widget_ = new QWidget();
     circular_config_widget_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
-    circular_config_widget_->setWindowTitle(QString::fromStdString(hand_side_) + " Hand Circular Affordance");
+    circular_config_widget_->setWindowTitle((QString::fromStdString(hand_side_)).toUpper() + " Hand Circular Affordance");
 
     circular_use_collision_ = new QCheckBox("Use Collision Avoidance");
 
@@ -77,7 +75,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     circular_angle_layout_->addWidget(circular_angle_label_);
     circular_angle_layout_->addWidget(circular_angle_);
 
-    QPushButton* circular_send_ = new QPushButton(QString::fromStdString("Send to" + hand_side_ + "arm"));
+    QPushButton* circular_send_ = new QPushButton(QString::fromStdString("Send to " + hand_side_ + " arm"));
     QObject::connect(circular_send_, SIGNAL(clicked()), this, SLOT(sendCircularTarget()));
     circular_send_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
 //    QPushButton* circular_send_right_ = new QPushButton("Send to right arm");
@@ -163,6 +161,18 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
         gp_T_palm_.setOrigin(tf::Vector3(0,0,0));
         gp_T_palm_.setRotation(tf::Quaternion(0,0,0,1));
     }
+
+    if(nh_.getParam("/" + hand_name_ + "_tf/hand_T_marker", hand_T_palm))
+    {
+        hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
+        hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+    }
+    else
+    {
+        hand_T_marker_.setOrigin(tf::Vector3(0,0,0));
+        hand_T_marker_.setRotation(tf::Quaternion(0,0,0,1));
+    }
+
 
     if(hand_side_ == "left")
     {
@@ -268,8 +278,8 @@ void graspWidget::setUpButtons()
     ui->performButton->setFont(QFont ("Ubuntu", 10));
     ui->templateButton->setStyleSheet(btnStyle);
     ui->templateButton->setFont(QFont ("Ubuntu", 10));
-    ui->graspOffsetButton->setStyleSheet(btnStyle);
-    ui->graspOffsetButton->setFont(QFont ("Ubuntu", 10));
+    ui->affordanceButton->setStyleSheet(btnStyle);
+    ui->affordanceButton->setFont(QFont ("Ubuntu", 10));
     //put arrows on comboboxes
     QString styleSheet = ui->templateBox->styleSheet() + "\n" +
             "QComboBox::down-arrow {\n" +
@@ -833,13 +843,13 @@ void graspWidget::publishHandPose(unsigned int id)
             ROS_ERROR_STREAM("Template server response id: " << last_template_srv_.response.template_type_information.grasps[index].id << " while searching for id: " << id);
         else{
             // get the selected grasp pose
-            geometry_msgs::Pose grasp_transform;//geometry_msgs::PoseStamped grasp_transform;
-            grasp_transform = grasp_pose.pose;//grasp_transform.pose = grasp_db_[grasp_index].final_pose;
+            geometry_msgs::Pose template_T_palm;//geometry_msgs::PoseStamped grasp_transform;
+            template_T_palm = grasp_pose.pose;//grasp_transform.pose = grasp_db_[grasp_index].final_pose;
 
             if(!ui->show_grasp_radio->isChecked())  //Pre-Grasp pose
-                gripperTranslationToPreGraspPose(grasp_transform,trans);
+                gripperTranslationToPreGraspPose(template_T_palm,trans);
 
-            staticTransform(grasp_transform);
+            staticTransform(template_T_palm);
 
             unsigned int template_index;
             for(template_index = 0; template_index < last_template_list_.template_id_list.size(); template_index++)
@@ -848,16 +858,25 @@ void graspWidget::publishHandPose(unsigned int id)
 
             if(template_index == last_template_list_.template_id_list.size()) return;
 
-            geometry_msgs::PoseStamped template_transform;
-            template_transform.pose = last_template_list_.pose[template_index].pose;
             //ROS_ERROR("Template transform:     p=(%f, %f, %f) q=(%f, %f, %f, %f)",template_transform.pose.position.x,template_transform.pose.position.y,template_transform.pose.position.z,template_transform.pose.orientation.w,template_transform.pose.orientation.x,template_transform.pose.orientation.y,template_transform.pose.orientation.z);
 
+
             geometry_msgs::PoseStamped hand_transform;
-            calcWristTarget(grasp_transform, template_transform, hand_transform);
-            //ROS_ERROR("Hand transform:         p=(%f, %f, %f) q=(%f, %f, %f, %f)",hand_transform.pose.position.x,hand_transform.pose.position.y,hand_transform.pose.position.z,hand_transform.pose.orientation.w,hand_transform.pose.orientation.x,hand_transform.pose.orientation.y,hand_transform.pose.orientation.z);
+            if(last_template_list_.pose[template_index].header.frame_id == "/world"){
+                follow_ban_ = false;
+                frameid_T_template_.pose = last_template_list_.pose[template_index].pose;
+                calcWristTarget(template_T_palm, frameid_T_template_, hand_transform);
+            }else
+                if(!follow_ban_){
+                    follow_ban_=true;
+                    calcWristTarget(template_T_palm, frameid_T_template_, hand_transform);
+                }else{
+                    hand_transform.pose.position.z = 10000;
+                    hand_transform.pose.orientation.w = 1;
+                }
 
             hand_transform.header.stamp = ros::Time::now();
-            hand_transform.header.frame_id = "/world";
+            hand_transform.header.frame_id = last_template_list_.pose[template_index].header.frame_id;
 
             // publish
             ghost_hand_pub_.publish(hand_transform);
@@ -875,7 +894,7 @@ void graspWidget::publishHandPose(unsigned int id)
             publishHandJointStates(joints);
 
             geometry_msgs::PoseStamped planning_hand_target;
-            calcPlanningTarget(grasp_transform, template_transform, planning_hand_target);
+            calcPlanningTarget(template_T_palm, frameid_T_template_, planning_hand_target);
 
             planning_hand_target_pub_.publish(planning_hand_target);
         }
@@ -919,7 +938,6 @@ void graspWidget::publishHandJointStates(std::vector<float>& finger_joints)
 int graspWidget::calcWristTarget(const geometry_msgs::Pose& palm_pose, const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose)
 {
     // Transform wrist_pose into the template pose frame
-    //   @TODO        "wrist_target_pose.pose   = T(template_pose)*wrist_pose";
     tf::Transform wt_pose;
     tf::Transform tp_pose;
     tf::Transform target_pose;
@@ -999,6 +1017,32 @@ int graspWidget::staticTransform(geometry_msgs::Pose& palm_pose)
     palm_pose.orientation.z = hand_quat.getZ();
     palm_pose.orientation.w = hand_quat.getW();
 
+    return 0;
+}
+
+// transform endeffort to palm pose used by GraspIt
+int graspWidget::poseTransform(geometry_msgs::Pose& input_pose, tf::Transform transform)
+{
+    tf::Transform output_transform;    //describes hand in object's frame
+    tf::Transform input_transform;       //describes palm_from_graspit in object's frame
+
+    input_transform.setRotation(tf::Quaternion(input_pose.orientation.x,input_pose.orientation.y,input_pose.orientation.z,input_pose.orientation.w));
+    input_transform.setOrigin(tf::Vector3(input_pose.position.x,input_pose.position.y,input_pose.position.z) );
+
+    output_transform = input_transform * transform;
+
+    tf::Quaternion output_quat;
+    tf::Vector3    output_vector;
+    output_quat   = output_transform.getRotation();
+    output_vector = output_transform.getOrigin();
+
+    input_pose.position.x    = output_vector.getX();
+    input_pose.position.y    = output_vector.getY();
+    input_pose.position.z    = output_vector.getZ();
+    input_pose.orientation.x = output_quat.getX();
+    input_pose.orientation.y = output_quat.getY();
+    input_pose.orientation.z = output_quat.getZ();
+    input_pose.orientation.w = output_quat.getW();
     return 0;
 }
 
@@ -1173,12 +1217,8 @@ void graspWidget::on_verticalSlider_4_sliderReleased()
     this->on_userSlider_sliderReleased();
 }
 
-void graspWidget::on_pushButton_clicked()
+void graspWidget::on_affordanceButton_clicked()
 {
-//    ui2 = new handOffsetWidget;
-
-//    ui2->show();
-
     if(!circular_config_widget_->isVisible())
     {
         circular_config_widget_->move(QPoint(QCursor::pos().x()+5, QCursor::pos().y()+5));
@@ -1194,7 +1234,6 @@ QLayout* graspWidget::getMainLayout()
 {
     return ui->mainLayout;
 }
-
 
 void graspWidget::sendCircularTarget()
 {
@@ -1222,21 +1261,21 @@ void graspWidget::sendCircularTarget()
 //        transform(wrist_position, wrist_orientation, hand_name_.c_str(), "/world");
 
         // get position of the marker in world coordinates
-        geometry_msgs::PoseStamped hand, marker;
-        hand.pose.position.x = wrist_position.getX();
-        hand.pose.position.y = wrist_position.getY();
-        hand.pose.position.z = wrist_position.getZ();
-        hand.pose.orientation.x = wrist_orientation.getX();
-        hand.pose.orientation.y = wrist_orientation.getY();
-        hand.pose.orientation.z = wrist_orientation.getZ();
-        hand.pose.orientation.w = wrist_orientation.getW();
-//        calcWristTarget(hand,(hand_side_ == "right" ? r_hand_T_marker_ : l_hand_T_marker_),marker);
+        geometry_msgs::Pose hand;
+        hand.position.x = wrist_position.getX();
+        hand.position.y = wrist_position.getY();
+        hand.position.z = wrist_position.getZ();
+        hand.orientation.x = wrist_orientation.getX();
+        hand.orientation.y = wrist_orientation.getY();
+        hand.orientation.z = wrist_orientation.getZ();
+        hand.orientation.w = wrist_orientation.getW();
+        poseTransform(hand, hand_T_marker_);
 
         // calculate the difference between them
         tf::Vector3 diff_vector;
-        diff_vector.setX(wrist_position.getX() - marker.pose.position.x);
-        diff_vector.setY(wrist_position.getY() - marker.pose.position.y);
-        diff_vector.setZ(wrist_position.getZ() - marker.pose.position.z);
+        diff_vector.setX(wrist_position.getX() - hand.position.x);
+        diff_vector.setY(wrist_position.getY() - hand.position.y);
+        diff_vector.setZ(wrist_position.getZ() - hand.position.z);
 
         // apply the difference to the circular center
         pose.pose.position.x += diff_vector.getX();
@@ -1263,46 +1302,6 @@ void graspWidget::sendCircularTarget()
     circular_plan_request_pub_.publish(cmd);
 }
 
-void graspWidget::createCircularContextMenu()
-{
-
-
-//    std::string pose_string = std::string("/circular_pose"); // one for each template
-
-//    // Add cartesian marker
-//    circular_marker_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Circular Marker", true );
-//    circular_marker_->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
-//    circular_marker_->setEnabled( true );
-//    circular_marker_->subProp( "Show Axes" )->setValue( true );
-//    circular_marker_->subProp( "Show Visual Aids" )->setValue( true );
-
-//    // Add it in front of the robot
-//    geometry_msgs::PoseStamped pose;
-//    pose.pose.position.x = 1;
-//    pose.pose.position.y = 0;
-//    pose.pose.position.z = .2;
-//    pose.pose.orientation.x = 0;
-//    pose.pose.orientation.y = 0;
-//    pose.pose.orientation.z = 0;
-//    pose.pose.orientation.w = 1;
-//    pose.header.frame_id = "/pelvis";
-//    transform(base_frame_,pose);
-
-//    geometry_msgs::Point pos;
-//    pos.x = pose.pose.position.x;
-//    pos.y = pose.pose.position.y;
-//    pos.z = pose.pose.position.z;
-
-//    flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
-//    marker.name  = std::string("Center of Rotation");
-//    marker.topic = pose_string;
-//    marker.frame = base_frame_;
-//    marker.scale = 0.2;
-//    marker.point = pos;
-//    interactive_marker_add_pub_.publish(marker);
-
-//    circular_center_ = pose.pose;
-}
 
 void graspWidget::removeCircularContextMenu()
 {

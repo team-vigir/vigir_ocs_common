@@ -2151,18 +2151,6 @@ int Base3DView::calcWristTarget(const geometry_msgs::PoseStamped& end_effector_p
     ef_pose.setOrigin(tf::Vector3(end_effector_pose.pose.position.x,end_effector_pose.pose.position.y,end_effector_pose.pose.position.z) );
     target_pose = ef_pose * hand_T_palm;
 
-//    ROS_INFO("ef_pose: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-//             ef_pose.getOrigin().getX(),ef_pose.getOrigin().getY(),ef_pose.getOrigin().getZ(),
-//             ef_pose.getRotation().getW(),ef_pose.getRotation().getX(),ef_pose.getRotation().getY(),ef_pose.getRotation().getZ());
-
-//    ROS_INFO("hand_T_palm: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-//             hand_T_palm.getOrigin().getX(),hand_T_palm.getOrigin().getY(),hand_T_palm.getOrigin().getZ(),
-//             hand_T_palm.getRotation().getW(),hand_T_palm.getRotation().getX(),hand_T_palm.getRotation().getY(),hand_T_palm.getRotation().getZ());
-
-//    ROS_INFO("target_pose: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-//             target_pose.getOrigin().getX(),target_pose.getOrigin().getY(),target_pose.getOrigin().getZ(),
-//             target_pose.getRotation().getW(),target_pose.getRotation().getX(),target_pose.getRotation().getY(),target_pose.getRotation().getZ());
-
     tf::Quaternion tg_quat;
     tf::Vector3    tg_vector;
     tg_quat   = target_pose.getRotation();

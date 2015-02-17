@@ -83,7 +83,8 @@ public Q_SLOTS:
     void on_verticalSlider_3_sliderReleased();
     void on_verticalSlider_2_sliderReleased();
     void on_verticalSlider_4_sliderReleased();
-    void on_pushButton_clicked();
+    void on_affordanceButton_clicked();
+    void sendCircularTarget();
 
 private:
     void setProgressLevel(uint8_t level);
@@ -105,6 +106,7 @@ private:
     void calcPlanningTarget(const geometry_msgs::Pose& palm_pose, const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& planning_hand_pose);
     int hideHand();
     int staticTransform(geometry_msgs::Pose& palm_pose);
+    int poseTransform(geometry_msgs::Pose& input_pose, tf::Transform transform);
     void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
 
 
@@ -112,6 +114,7 @@ private:
     vigir_object_template_msgs::GetTemplateStateAndTypeInfo last_template_srv_;
 
     flor_ocs_msgs::OCSTemplateList last_template_list_;
+    geometry_msgs::PoseStamped     frameid_T_template_;
     int selected_template_id_;
     int selected_grasp_id_;
 
@@ -134,6 +137,7 @@ private:
     geometry_msgs::Pose feedbackPose;
 
     bool templateMatchDone;
+    bool follow_ban_;
 
     std::string hand_side_;
     std::string hand_type_;
@@ -169,6 +173,7 @@ private:
     tf::Transform hand_offset_pose_;
     tf::Transform hand_T_palm_;   //describes palm in hand frame
     tf::Transform gp_T_palm_;     //describes palm in grasp pose frame
+    tf::Transform hand_T_marker_; //describes marker in hand frame
 
     QWidget*        circular_config_widget_;
     QCheckBox*      circular_use_collision_;
@@ -207,22 +212,17 @@ private:
 
 
     ros::Publisher circular_plan_request_pub_;
-    geometry_msgs::Pose circular_center_;
 
 protected:
     void timerEvent(QTimerEvent *event);
     /**
       * Context menu action for creating a circular target point
       */
-    void createCircularContextMenu();
-    /**
-      * Context menu action for removing a circular target point
-      */
     void removeCircularContextMenu();
     /**
       * Publishes the circular target pose
       */
-    void sendCircularTarget();
+
 
 private:
     QBasicTimer timer;
