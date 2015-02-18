@@ -49,7 +49,7 @@ OverlayTextDisplay::OverlayTextDisplay() : Display(),
     line_width_(2),
     text_(""), font_(""),
     bg_color_(0, 0, 0, 0),
-    fg_color_(255, 255, 255, 255.0),
+    fg_color_(255, 255, 255, 255),
     require_update_texture_(false),
     overlay_text_(NULL)
 {

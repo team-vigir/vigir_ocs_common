@@ -356,6 +356,15 @@ void GhostControlWidget::on_planning_torso__clicked()
     publishState();
 }
 
+//public wrapper to be used with context menu callback,
+//returns state of use torso checkbox for convenience in main view and setting context menu item checked
+bool GhostControlWidget::useTorsoContextMenu()
+{
+    ui->planning_torso_->toggle();
+    return ui->planning_torso_->isChecked();
+    //on_planning_torso__clicked();
+}
+
 void GhostControlWidget::on_position_only_ik__clicked()
 {
     saveState();
@@ -599,6 +608,12 @@ void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::Co
         snapClicked();
 
     std::cout << "key code:" << key_event->keycode << std::endl;
+}
+
+//public wrapper for context menu callback
+void GhostControlWidget::snapContextMenu()
+{
+    snapClicked();
 }
 
 void GhostControlWidget::on_send_left_cartesian_button__clicked()

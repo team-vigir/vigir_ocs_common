@@ -65,7 +65,7 @@ void ContextMenuManager::buildContextMenuHeirarchy()
                 context_menu_items_[i]->action = action;
             }
         }
-        else // can guarantee parent has already been added provided elements were added in correct order to vector
+        else // can guarantee parent has already been added provided elements must be added in correct order to vector
         {
             if(context_menu_items_[i]->hasChildren)
             {
