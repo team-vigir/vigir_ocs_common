@@ -115,7 +115,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         view_id_ = manager_->addRenderPanel( render_panel_ );
 
         selection_3d_display_ = copy_from->getSelection3DDisplay();
-        overlay_display_ = copy_from->getOverlayDisplay();
+        notification_overlay_display_ = copy_from->getNotificationOverlayDisplay();
+        behavior_overlay_display_ = copy_from->getBehaviorOverlayDisplay();
         mouse_event_handler_ = copy_from->getMouseEventHander();
     }
     else
@@ -622,9 +623,12 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // initialize Render Order correctly
         //setRenderOrder();
 
-        // initialize notification system
-        overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
-        overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");      
+        // initialize notification systems
+        notification_overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
+        notification_overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
+
+        behavior_overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Behavior Notification System", true );
+        behavior_overlay_display_->subProp("Topic")->setValue("flor/ocs/behavior_overlay_text");
 
         //create visualizations for camera frustum
         //initializeFrustums("/flor/ocs/camera/atlas");
@@ -1382,7 +1386,7 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
                 else if(display_name.compare("Notification System") == 0)
                 {
                     //only toggle notification visibility
-                    overlay_display_->setEnabled(msg->visible[i]);
+                    notification_overlay_display_->setEnabled(msg->visible[i]);
                 }
                 else if(display_name.compare("Frustum Display") == 0)
                 {
@@ -1582,6 +1586,8 @@ void Base3DView::insertTemplate( QString path )
 
     //notify on ui
     NotificationSystem::Instance()->notifyPassive("Template Inserted");
+
+    BehaviorNotificationSystem::Instance()->notifyRequestResponse("remove");
 }
 
 void Base3DView::insertWaypoint()
@@ -1992,6 +1998,7 @@ void Base3DView::removeTemplate(int id)
 
     //notify
     NotificationSystem::Instance()->notifyPassive("Template Removed");
+    BehaviorNotificationSystem::Instance()->sendResponse("remove");
 }
 
 void Base3DView::emitQueryContext(int x,int y)
