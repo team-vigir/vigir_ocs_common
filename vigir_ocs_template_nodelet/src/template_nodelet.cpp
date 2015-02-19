@@ -102,21 +102,28 @@ void TemplateNodelet::timerCallback(const ros::TimerEvent& event)
 
 void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr& msg)
 {
-    std::cout << "Added template to list (id: " << (int)id_counter_ << ")" << std::endl;
-    template_id_list_.push_back(id_counter_++);
+    bool found = false;
 
     for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it){
         if(it->second.path == (msg->template_path).substr(0, (msg->template_path).find_last_of(".")) ){ //removing file extension
+
             template_type_list_.push_back(it->second.type);	//Add the type of the template to be instantiated
+            template_id_list_.push_back(id_counter_++);
+            template_name_list_.push_back(msg->template_path);
+            template_pose_list_.push_back(msg->pose);
+            template_status_list_.push_back(0);  //Normal Status
+            ROS_INFO("Added template to list with id: %d",(int)id_counter_);
+
+
+            //ADD TEMPLATE TO PLANNING SCENE
+            addCollisionObject(id_counter_-1,(msg->template_path).substr(0, (msg->template_path).find_last_of(".")),msg->pose.pose);
+            found = true;
             break;
         }
     }
-    template_name_list_.push_back(msg->template_path);
-    template_pose_list_.push_back(msg->pose);
-    template_status_list_.push_back(0);  //Normal Status
 
-    //ADD TEMPLATE TO PLANNING SCENE
-    addCollisionObject(id_counter_-1,(msg->template_path).substr(0, (msg->template_path).find_last_of(".")),msg->pose.pose);
+    if(!found)
+        ROS_ERROR("Template %s not found in library, ignoring", (msg->template_path).substr(0, (msg->template_path).find_last_of(".")).c_str());
 
     this->publishTemplateList();
 }
@@ -128,7 +135,11 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
     for(; index < template_id_list_.size(); index++)
         if(template_id_list_[index] == msg->template_id)
             break;
-    if(index < template_id_list_.size())
+    if(index < template_id_list_.size() && !template_id_list_.empty()
+                                        && !template_type_list_.empty()
+                                        && !template_name_list_.empty()
+                                        && !template_pose_list_.empty()
+                                        && !template_status_list_.empty())
     {
         std::cout << "Removed!" << std::endl;
         template_id_list_.erase(template_id_list_.begin()+index);
@@ -141,6 +152,11 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
         removeCollisionObject(msg->template_id);
 
         this->publishTemplateList();
+    }else{
+        if(index >= template_id_list_.size())
+            ROS_ERROR("Tried to remove template which is not inside the instantiated template list");
+        else
+            ROS_ERROR("Tried to remove a template when template list is empty");
     }
 }
 
