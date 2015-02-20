@@ -13,6 +13,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     , ui(new Ui::graspWidget)
     , selected_template_id_(-1)
     , selected_grasp_id_(-1)
+    , selected_affordance_id_(-1)
     , show_grasp_(false)
     , stitch_template_(false)
     , hand_side_(hand)
@@ -26,6 +27,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     ui->setupUi(this);
     ui->templateBox->setDisabled(true);
     ui->graspBox->setDisabled(true);
+    ui->affordanceBox->setDisabled(true);
     ui->performButton->setDisabled(true);
     ui->stitch_template->setDisabled(true);
     setUpButtons();
@@ -278,8 +280,6 @@ void graspWidget::setUpButtons()
     ui->performButton->setFont(QFont ("Ubuntu", 10));
     ui->templateButton->setStyleSheet(btnStyle);
     ui->templateButton->setFont(QFont ("Ubuntu", 10));
-    ui->affordanceButton->setStyleSheet(btnStyle);
-    ui->affordanceButton->setFont(QFont ("Ubuntu", 10));
     //put arrows on comboboxes
     QString styleSheet = ui->templateBox->styleSheet() + "\n" +
             "QComboBox::down-arrow {\n" +
@@ -287,6 +287,7 @@ void graspWidget::setUpButtons()
             "}";
     ui->templateBox->setStyleSheet(styleSheet);
     ui->graspBox->setStyleSheet(styleSheet);
+    ui->affordanceBox->setStyleSheet(styleSheet);
 }
 
 void graspWidget::templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr& feedback)
@@ -388,6 +389,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
     {
         //ui->templateBox->setDisabled(false);
         ui->graspBox->setDisabled(false);
+        ui->affordanceBox->setDisabled(false);
         ui->performButton->setDisabled(false);
     }
 
@@ -426,9 +428,12 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
     {
         hideHand();
         ui->graspBox->clear();
-        selected_template_id_ = -1;
-        selected_grasp_id_ = -1;
+        ui->affordanceBox->clear();
+        selected_template_id_   = -1;
+        selected_grasp_id_      = -1;
+        selected_affordance_id_ = -1;
         ui->graspBox->setEnabled(false);
+        ui->affordanceBox->setEnabled(false);
     }
     else
     {
@@ -452,6 +457,7 @@ void graspWidget::initTemplateMode()
     {
         //ui->templateBox->setDisabled(false);
         ui->graspBox->setDisabled(false);
+        ui->affordanceBox->setDisabled(false);
     }
 }
 
@@ -606,7 +612,9 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
     std::cout << "updating the grasp widget grasp selection box contents" << std::endl;
     // clean grasp box
     ui->graspBox->clear();
-    selected_grasp_id_ = -1;
+    ui->affordanceBox->clear();
+    selected_grasp_id_      = -1;
+    selected_affordance_id_ = -1;
 
 
     for(int index = 0; index < last_template_srv_.response.template_type_information.grasps.size(); index++)
@@ -616,8 +624,14 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
         if(hand_side_ == "right" && std::atoi(last_template_srv_.response.template_type_information.grasps[index].id.c_str()) <1000)
             ui->graspBox->addItem(QString(last_template_srv_.response.template_type_information.grasps[index].id.c_str()));
     }
-    if(ui->templateBox->count() > 0)
-        selected_grasp_id_ = ui->graspBox->itemText(0).toInt();
+    for(int index = 0; index < last_template_srv_.response.template_type_information.affordances.size(); index++)
+    {
+        ui->affordanceBox->addItem(QString(boost::to_string((int)last_template_srv_.response.template_type_information.affordances[index].id).c_str()));
+    }
+    if(ui->templateBox->count() > 0){
+        selected_grasp_id_      = ui->graspBox->itemText(0).toInt();
+        selected_affordance_id_ = ui->affordanceBox->itemText(0).toInt();
+    }
 
     if (ui->manualRadio->isChecked())
     {
@@ -656,6 +670,24 @@ void graspWidget::on_graspBox_activated(const QString &arg1)
     {
         selected_grasp_id_ = arg1.toInt();
         publishHandPose(arg1.toUInt());
+    }
+}
+
+void graspWidget::on_affordanceBox_activated(const QString &arg1)
+{
+    std::cout << " affordance selection = " << arg1.toStdString() << std::endl;
+    selected_affordance_id_ = arg1.toInt();
+    current_affordance_ = last_template_srv_.response.template_type_information.affordances[selected_affordance_id_];
+
+    if(current_affordance_.type == "circular"){
+        if(!circular_config_widget_->isVisible())
+        {
+            circular_config_widget_->move(QPoint(QCursor::pos().x()+5, QCursor::pos().y()+5));
+            circular_config_widget_->show();
+        }
+    }else{
+        if(circular_config_widget_->isVisible())
+            circular_config_widget_->hide();
     }
 }
 
@@ -1046,6 +1078,36 @@ int graspWidget::poseTransform(geometry_msgs::Pose& input_pose, tf::Transform tr
     return 0;
 }
 
+// transform endeffort to palm pose used by GraspIt
+int graspWidget::poseTransform(geometry_msgs::Pose& first_pose, geometry_msgs::Pose& second_pose)
+{
+    tf::Transform output_transform;
+    tf::Transform first_transform;
+    tf::Transform second_transform;
+
+    first_transform.setRotation(tf::Quaternion(first_pose.orientation.x,first_pose.orientation.y,first_pose.orientation.z,first_pose.orientation.w));
+    first_transform.setOrigin(tf::Vector3(first_pose.position.x,first_pose.position.y,first_pose.position.z) );
+
+    second_transform.setRotation(tf::Quaternion(second_pose.orientation.x,second_pose.orientation.y,second_pose.orientation.z,second_pose.orientation.w));
+    second_transform.setOrigin(tf::Vector3(second_pose.position.x,second_pose.position.y,second_pose.position.z) );
+
+    output_transform = first_transform * second_transform;
+
+    tf::Quaternion output_quat;
+    tf::Vector3    output_vector;
+    output_quat   = output_transform.getRotation();
+    output_vector = output_transform.getOrigin();
+
+    first_pose.position.x    = output_vector.getX();
+    first_pose.position.y    = output_vector.getY();
+    first_pose.position.z    = output_vector.getZ();
+    first_pose.orientation.x = output_quat.getX();
+    first_pose.orientation.y = output_quat.getY();
+    first_pose.orientation.z = output_quat.getZ();
+    first_pose.orientation.w = output_quat.getW();
+    return 0;
+}
+
 void graspWidget::gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans){
     geometry_msgs::Vector3Stamped direction = trans.direction;
     tf::Transform template_T_hand, vec_in, vec_out;
@@ -1142,6 +1204,7 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             // enable template marker
             //ui->templateBox->setDisabled(false);
             ui->graspBox->setDisabled(false);
+            ui->affordanceBox->setDisabled(false);
             ui->performButton->setDisabled(false);
             ui->stitch_template->setDisabled(false);
             std::vector<unsigned char>::iterator it;
@@ -1173,9 +1236,11 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             selected_template_id_ = -1;
             ui->templateBox->setCurrentIndex(-1);
             ui->graspBox->setCurrentIndex(-1);
+            ui->affordanceBox->setCurrentIndex(-1);
             on_templateRadio_clicked();
             //ui->templateBox->setDisabled(true);
             ui->graspBox->setDisabled(true);
+            ui->affordanceBox->setDisabled(true);
             ui->performButton->setDisabled(true);
             ui->stitch_template->setDisabled(true);
             }
@@ -1251,6 +1316,8 @@ void graspWidget::sendCircularTarget()
     if(template_index == last_template_list_.template_id_list.size()) return;
 
     pose.pose = last_template_list_.pose[template_index].pose;
+
+    poseTransform(pose.pose,current_affordance_.pose.pose);
 
     // calculating the rotation based on position of the markers
     if(circular_keep_orientation_->isChecked())
