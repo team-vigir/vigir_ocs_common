@@ -868,19 +868,16 @@ void FootstepManager::feedbackStepPlanRequest(const vigir_footstep_planning_msgs
 
 void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::StepPlanRequestResultConstPtr& result)
 {
-    ROS_ERROR("StepPlanRequest: Got action response. %s", result->status.error_msg.c_str());
     ROS_INFO("StepPlanRequest: Got action response. %s", result->status.error_msg.c_str());
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
-        ROS_ERROR(" 0");
         if(result->step_plan.steps.size() == 0)
         {
             ROS_ERROR("StepPlanRequest: Received empty step plan.");
             return;
         }
 
-        ROS_ERROR(" 1");
         // we only change the current step lists if we receive a response
         if(result->step_plan.steps[0].step_index == 0)
             // This function will create a completely new plan, so we need to add a new empty list of plans to the stack
@@ -889,16 +886,12 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
             // This function will add a copy of the current step plan list to the stack, so we can change it
             addCopyPlanList();
 
-        ROS_ERROR(" 2");
         // add resulting plan to the top of the stack of plans, removing any extra steps
         extendPlanList(result->step_plan);
 
-        ROS_ERROR(" 3");
         publishFootsteps();
 
-        ROS_ERROR(" 4");
         publishGoalMarkerClear();
-        ROS_ERROR(" 5");
     }
 }
 
