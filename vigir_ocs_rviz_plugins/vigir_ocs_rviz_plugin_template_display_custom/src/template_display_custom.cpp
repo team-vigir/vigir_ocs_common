@@ -262,7 +262,7 @@ void TemplateDisplayCustom::reset()
 
 void TemplateDisplayCustom::enableTemplateMarker( int i, bool enable )
 {
-//    ROS_ERROR("Enabling template marker %d", i);
+    ROS_INFO("Enabling template marker %d", i);
 
 //    for(int x = 0; x < template_id_list_.size(); x++)
 //    {
@@ -346,7 +346,7 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
 
 void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char id, Ogre::Vector3 pos)
 {
-    ROS_ERROR("Adding template marker %d",id);
+    ROS_INFO("Adding template marker %d",id);
     //std::cout << "Adding template marker " << id << std::endl;
     std::string template_pose_string = std::string("/template_")+boost::to_string((unsigned int)id)+std::string("_marker"); // one for each template
 

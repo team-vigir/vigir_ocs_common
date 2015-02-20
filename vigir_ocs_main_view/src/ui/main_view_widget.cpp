@@ -227,83 +227,65 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     graspContainer->setLayout(graspLayout);    
     graspContainer->hide();
 
-    // try to load grasp environment variables
-    std::string env_left_hand = getenv("FLOR_LEFT_HAND_TYPE");
-    if(env_left_hand.find("irobot") != std::string::npos || env_left_hand.find("sandia") != std::string::npos || env_left_hand.find("robotiq") != std::string::npos)
-    {
-        QWidget * leftGrasp = new QWidget(graspContainer);
-        QVBoxLayout * leftLayout = new QVBoxLayout();
-        leftLayout->setSpacing(0);
-        leftLayout->setMargin(0);
-        leftLayout->setContentsMargins(0,0,0,0);
-        QLabel * leftLabel = new QLabel("Left Hand");
-        leftLabel->setStyleSheet("font: 8pt \"Ubuntu\";");
-        leftLabel->setAlignment(Qt::AlignCenter);
-        leftLayout->addWidget(leftLabel);
+    //Left Grasp Widget
+    QWidget * leftGrasp = new QWidget(graspContainer);
+    QVBoxLayout * leftLayout = new QVBoxLayout();
+    leftLayout->setSpacing(0);
+    leftLayout->setMargin(0);
+    leftLayout->setContentsMargins(0,0,0,0);
+    QLabel * leftLabel = new QLabel("Left Hand");
+    leftLabel->setStyleSheet("font: 8pt \"Ubuntu\";");
+    leftLabel->setAlignment(Qt::AlignCenter);
+    leftLayout->addWidget(leftLabel);
+    leftGraspWidget = new graspWidget(graspContainer, "left", "l_hand");
+    leftGraspWidget->show();
+    leftLayout->addWidget(leftGraspWidget);
+    leftGrasp->setLayout(leftLayout);
 
-        if(env_left_hand.find("irobot") != std::string::npos)
-            leftGraspWidget = new graspWidget(graspContainer, "left", "irobot");
-        else if(env_left_hand.find("sandia") != std::string::npos)
-            leftGraspWidget = new graspWidget(graspContainer, "left", "sandia");
-        else if(env_left_hand.find("robotiq") != std::string::npos)
-            leftGraspWidget = new graspWidget(graspContainer, "left", "robotiq");
-        leftGraspWidget->show();
-        leftLayout->addWidget(leftGraspWidget);
-        leftGrasp->setLayout(leftLayout);
+    Qt::WindowFlags left_flags = leftGraspWidget->windowFlags();
+    //flags |= Qt::WindowStaysOnTopHint;
+    left_flags |= Qt::FramelessWindowHint;
+    left_flags |= Qt::Dialog;
+    graspContainer->setWindowFlags(left_flags);
 
-        Qt::WindowFlags flags = leftGraspWidget->windowFlags();
-        //flags |= Qt::WindowStaysOnTopHint;
-        flags |= Qt::FramelessWindowHint;
-        flags |= Qt::Dialog;
-        graspContainer->setWindowFlags(flags);
+    //set border color of left grasp widget
+    QFrame* leftFrame = new QFrame(graspContainer);
+    leftFrame->setLayout(leftLayout);
+    leftFrame->setFrameStyle(QFrame::Panel| QFrame::Plain);
+    leftFrame->setLineWidth(2);
+    leftFrame->setObjectName("leftFrame");
+    leftFrame->setStyleSheet("#leftFrame {color: yellow;}");
+    graspContainer->layout()->addWidget(leftFrame); //adds graspwidgets as well
 
-        //set border color of left grasp widget
-        QFrame* leftFrame = new QFrame(graspContainer);
-        leftFrame->setLayout(leftLayout);
-        leftFrame->setFrameStyle(QFrame::Panel| QFrame::Plain);
-        leftFrame->setLineWidth(2);
-        leftFrame->setObjectName("leftFrame");
-        leftFrame->setStyleSheet("#leftFrame {color: yellow;}");
-        graspContainer->layout()->addWidget(leftFrame); //adds graspwidgets as well
-    }
+    //Right Grasp Widget
+    QWidget * rightGrasp = new QWidget(graspContainer);
+    QVBoxLayout * rightLayout = new QVBoxLayout();
+    rightLayout->setSpacing(0);
+    rightLayout->setMargin(0);
+    rightLayout->setContentsMargins(0,0,0,0);
+    QLabel * rightLabel = new QLabel("Right Hand");
+    rightLabel->setStyleSheet("font: 8pt \"Ubuntu\";");
+    rightLabel->setAlignment(Qt::AlignCenter);
+    rightLayout->addWidget(rightLabel);
+    rightGraspWidget = new graspWidget(graspContainer, "right", "r_hand");
+    rightGraspWidget->show();
+    rightLayout->addWidget(rightGraspWidget);
+    rightGrasp->setLayout(rightLayout);
 
-    std::string env_right_hand = getenv("FLOR_RIGHT_HAND_TYPE");
-    if(env_right_hand.find("irobot") != std::string::npos || env_right_hand.find("sandia") != std::string::npos || env_right_hand.find("robotiq") != std::string::npos)
-    {
-        QWidget * rightGrasp = new QWidget(graspContainer);
-        QVBoxLayout * rightLayout = new QVBoxLayout();
-        rightLayout->setSpacing(0);
-        rightLayout->setMargin(0);
-        rightLayout->setContentsMargins(0,0,0,0);
-        QLabel * rightLabel = new QLabel("Right Hand");
-        rightLabel->setStyleSheet("font: 8pt \"Ubuntu\";");
-        rightLabel->setAlignment(Qt::AlignCenter);
-        rightLayout->addWidget(rightLabel);
-        if(env_right_hand.find("irobot") != std::string::npos)
-            rightGraspWidget = new graspWidget(graspContainer, "right", "irobot");
-        else if(env_right_hand.find("sandia") != std::string::npos)
-            rightGraspWidget = new graspWidget(graspContainer, "right", "sandia");
-        else if(env_right_hand.find("robotiq") != std::string::npos)
-            rightGraspWidget = new graspWidget(graspContainer, "right", "robotiq");
-        rightGraspWidget->show();
-        rightLayout->addWidget(rightGraspWidget);
-        rightGrasp->setLayout(rightLayout);
+    Qt::WindowFlags right_flags = rightGraspWidget->windowFlags();
+    //flags |= Qt::WindowStaysOnTopHint;
+    right_flags |= Qt::FramelessWindowHint;
+    right_flags |= Qt::Dialog;
+    graspContainer->setWindowFlags(right_flags);
 
-        Qt::WindowFlags flags = rightGraspWidget->windowFlags();
-        //flags |= Qt::WindowStaysOnTopHint;
-        flags |= Qt::FramelessWindowHint;
-        flags |= Qt::Dialog;
-        graspContainer->setWindowFlags(flags);
-
-        //set border color of right grasp widget
-        QFrame* rightFrame = new QFrame(graspContainer);
-        rightFrame->setLayout(rightLayout);
-        rightFrame->setFrameStyle(QFrame::WinPanel | QFrame::Plain);
-        rightFrame->setLineWidth(2);
-        rightFrame->setObjectName("rightFrame");
-        rightFrame->setStyleSheet("#rightFrame {color: cyan;}");
-        graspContainer->layout()->addWidget(rightFrame);
-    }
+    //set border color of right grasp widget
+    QFrame* rightFrame = new QFrame(graspContainer);
+    rightFrame->setLayout(rightLayout);
+    rightFrame->setFrameStyle(QFrame::WinPanel | QFrame::Plain);
+    rightFrame->setLineWidth(2);
+    rightFrame->setObjectName("rightFrame");
+    rightFrame->setStyleSheet("#rightFrame {color: cyan;}");
+    graspContainer->layout()->addWidget(rightFrame);
 
     graspFadeIn = new QPropertyAnimation(graspContainer, "windowOpacity");
     graspFadeIn->setEasingCurve(QEasingCurve::InOutQuad);

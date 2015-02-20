@@ -110,8 +110,8 @@ void BaseContextMenu::createContextMenuItems()
 
     contextMenuItem * circularMotionMenu = context_menu_manager_->addMenuItem("Circular Motion");
 
-    context_menu_manager_->addActionItem("Create Circular Motion Marker",boost::bind(&Base3DView::createCircularContextMenu,base_3d_view_),circularMotionMenu);
-    context_menu_manager_->addActionItem("Remove marker",boost::bind(&Base3DView::removeCircularContextMenu,base_3d_view_),circularMotionMenu);
+    //context_menu_manager_->addActionItem("Create Circular Motion Marker",boost::bind(&Base3DView::createCircularContextMenu,base_3d_view_),circularMotionMenu);
+    //context_menu_manager_->addActionItem("Remove marker",boost::bind(&Base3DView::removeCircularContextMenu,base_3d_view_),circularMotionMenu);
 
     context_menu_manager_->addSeparatorItem();
 }

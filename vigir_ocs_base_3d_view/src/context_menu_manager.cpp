@@ -197,16 +197,16 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
         setItemVisibility("Remove All Markers",true);
 
 
-    if(base_3d_view_->getCircularMarker() != NULL)
-    {
-        setItemVisibility("Create Circular Motion Marker",false);
-        setItemVisibility("Remove marker",true);
-    }
-    else if(base_3d_view_->getCircularMarker() == NULL)
-    {
-        setItemVisibility("Create Circular Motion Marker",true);
-        setItemVisibility("Remove marker",false);
-    }
+//    if(base_3d_view_->getCircularMarker() != NULL)
+//    {
+//        setItemVisibility("Create Circular Motion Marker",false);
+//        setItemVisibility("Remove marker",true);
+//    }
+//    else if(base_3d_view_->getCircularMarker() == NULL)
+//    {
+//        setItemVisibility("Create Circular Motion Marker",true);
+//        setItemVisibility("Remove marker",false);
+//    }
 
     if(initializing_context_menu_ == 1)
         processContextMenu(x, y);

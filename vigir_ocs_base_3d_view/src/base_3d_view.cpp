@@ -297,6 +297,16 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
             left_hand_robot_model_ = left_hand_model_loader_->getModel();
             left_hand_robot_state_.reset(new robot_state::RobotState(left_hand_robot_model_));
             left_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_left_hand",1, true);
+
+            if(left_hand_robot_model_->hasJointModelGroup("left_hand"))
+            {
+                left_hand_joint_names_.clear();
+                left_hand_joint_names_ = left_hand_robot_model_->getJointModelGroup("left_hand")->getActiveJointModelNames();
+            }else{
+                ROS_INFO("NO JOINTS FOUND FOR LEFT HAND");
+            }
+            for(int i = 0; i < left_hand_joint_names_.size(); i++)
+                ROS_INFO("Base 3d widget loading joint %d: %s",i,left_hand_joint_names_[i].c_str());
         }
         catch(...)
         {
@@ -341,6 +351,16 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
             right_hand_robot_model_ = right_hand_model_loader_->getModel();
             right_hand_robot_state_.reset(new robot_state::RobotState(right_hand_robot_model_));
             right_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_right_hand",1, true);
+
+            if(right_hand_robot_model_->hasJointModelGroup("right_hand"))
+            {
+                right_hand_joint_names_.clear();
+                right_hand_joint_names_ = right_hand_robot_model_->getJointModelGroup("right_hand")->getActiveJointModelNames();
+            }else{
+                ROS_INFO("NO JOINTS FOUND FOR RIGHT HAND");
+            }
+            for(int i = 0; i < right_hand_joint_names_.size(); i++)
+                ROS_INFO("Base 3d widget loading joint %d: %s",i,right_hand_joint_names_[i].c_str());
         }
         catch(...)
         {
@@ -1867,6 +1887,7 @@ void Base3DView::createCartesianContextMenu()
     // Add cartesian marker
     rviz::Display* cartesian_marker = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Cartesian Marker ")+boost::to_string((unsigned int)id)).c_str(), true );
     cartesian_marker->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
+   
     cartesian_marker->subProp( "Show Axes" )->setValue( true );
     cartesian_marker->subProp( "Show Visual Aids" )->setValue( true );
     cartesian_marker->setEnabled( true );
@@ -2216,50 +2237,12 @@ void Base3DView::publishHandJointStates(std::string hand)
     joint_states.header.stamp = ros::Time::now();
     joint_states.header.frame_id = std::string("/")+hand+std::string("_hand_model/")+hand+"_palm";
 
-    if(hand_type.find("irobot") != std::string::npos)
-    {
-        // must match the order used in the .grasp file
-        joint_states.name.push_back(hand+"_f0_j1");
-        joint_states.name.push_back(hand+"_f1_j1");
-        joint_states.name.push_back(hand+"_f2_j1");
-        joint_states.name.push_back(hand+"_f0_j0"); // .grasp finger position [4] -> IGNORE [3], use [4] for both
-        joint_states.name.push_back(hand+"_f1_j0"); // .grasp finger position [4]
-        joint_states.name.push_back(hand+"_f0_j2"); // 0 for now
-        joint_states.name.push_back(hand+"_f1_j2"); // 0 for now
-        joint_states.name.push_back(hand+"_f2_j2"); // 0 for now
-
-    }
-    else if(hand_type.find("robotiq") != std::string::npos)
-    {
-        // must match the order used in the .grasp file
-        joint_states.name.push_back(hand+"_f0_j1");
-        joint_states.name.push_back(hand+"_f1_j1");
-        joint_states.name.push_back(hand+"_f2_j1");
-        joint_states.name.push_back(hand+"_f1_j0"); // .grasp finger position [4] -> IGNORE [3], use [4] for both
-        joint_states.name.push_back(hand+"_f2_j0"); // .grasp finger position [4]
-        joint_states.name.push_back(hand+"_f0_j2"); // 0 for now
-        joint_states.name.push_back(hand+"_f1_j2"); // 0 for now
-        joint_states.name.push_back(hand+"_f2_j2"); // 0 for now
-        joint_states.name.push_back(hand+"_f0_j3");
-        joint_states.name.push_back(hand+"_f1_j3");
-        joint_states.name.push_back(hand+"_f2_j3");
-    }
-    else if(hand_type.find("sandia") != std::string::npos)
-    {
-        // must match those inside of the /sandia_hands/?_hand/joint_states/[right_/left_]+
-        joint_states.name.push_back(hand+"_f0_j0");
-        joint_states.name.push_back(hand+"_f0_j1");
-        joint_states.name.push_back(hand+"_f0_j2");
-        joint_states.name.push_back(hand+"_f1_j0");
-        joint_states.name.push_back(hand+"_f1_j1");
-        joint_states.name.push_back(hand+"_f1_j2");
-        joint_states.name.push_back(hand+"_f2_j0");
-        joint_states.name.push_back(hand+"_f2_j1");
-        joint_states.name.push_back(hand+"_f2_j2");
-        joint_states.name.push_back(hand+"_f3_j0");
-        joint_states.name.push_back(hand+"_f3_j1");
-        joint_states.name.push_back(hand+"_f3_j2");
-    }
+    if(hand == "left")
+        for(int i = 0; i < left_hand_joint_names_.size(); i++)
+            joint_states.name.push_back(left_hand_joint_names_[i]);
+    else
+        for(int i = 0; i < right_hand_joint_names_.size(); i++)
+            joint_states.name.push_back(right_hand_joint_names_[i]);
 
     joint_states.position.resize(joint_states.name.size());
     joint_states.effort.resize(joint_states.name.size());
@@ -2295,18 +2278,6 @@ int Base3DView::calcWristTarget(const geometry_msgs::PoseStamped& end_effector_p
     ef_pose.setRotation(tf::Quaternion(end_effector_pose.pose.orientation.x,end_effector_pose.pose.orientation.y,end_effector_pose.pose.orientation.z,end_effector_pose.pose.orientation.w));
     ef_pose.setOrigin(tf::Vector3(end_effector_pose.pose.position.x,end_effector_pose.pose.position.y,end_effector_pose.pose.position.z) );
     target_pose = ef_pose * hand_T_palm;
-
-//    ROS_INFO("ef_pose: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-//             ef_pose.getOrigin().getX(),ef_pose.getOrigin().getY(),ef_pose.getOrigin().getZ(),
-//             ef_pose.getRotation().getW(),ef_pose.getRotation().getX(),ef_pose.getRotation().getY(),ef_pose.getRotation().getZ());
-
-//    ROS_INFO("hand_T_palm: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-//             hand_T_palm.getOrigin().getX(),hand_T_palm.getOrigin().getY(),hand_T_palm.getOrigin().getZ(),
-//             hand_T_palm.getRotation().getW(),hand_T_palm.getRotation().getX(),hand_T_palm.getRotation().getY(),hand_T_palm.getRotation().getZ());
-
-//    ROS_INFO("target_pose: p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-//             target_pose.getOrigin().getX(),target_pose.getOrigin().getY(),target_pose.getOrigin().getZ(),
-//             target_pose.getRotation().getW(),target_pose.getRotation().getX(),target_pose.getRotation().getY(),target_pose.getRotation().getZ());
 
     tf::Quaternion tg_quat;
     tf::Vector3    tg_vector;
