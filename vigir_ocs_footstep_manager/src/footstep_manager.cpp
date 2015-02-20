@@ -265,8 +265,6 @@ void FootstepManager::feetToFootMarkerArray(vigir_footstep_planning_msgs::Feet& 
         marker.color.g = 1.0;
         marker.color.b = 1.0;
         marker.color.a = 1.0;
-
-
         foot_array_msg.markers.push_back(marker);
     }
 }
@@ -303,7 +301,6 @@ void FootstepManager::stepPlanToFootMarkerArray(std::vector<vigir_footstep_plann
             marker.color.g = 1.0;
             marker.color.b = 1.0;
             marker.color.a = 1.0;
-
             foot_array_msg.markers.push_back(marker);
         }
     }
@@ -360,7 +357,6 @@ void FootstepManager::stepPlanToBodyMarkerArray(std::vector<vigir_footstep_plann
             marker.color.g = input[i].mode == 4 ? 0.4 : 0.0;
             marker.color.b = input[i].mode == 4 ? 0.0 : 0.4;
             marker.color.a = 0.2;
-
             body_array_msg.markers.push_back(marker);
         }
     }
@@ -500,9 +496,9 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
     }
 
     // need to update feet poses
-    updateGoalVisMsgs();    
+    updateGoalVisMsgs();
 
-    // send        
+    // send
     plan_goal_array_pub_.publish(footstep_goal_array_);
 
     // and update the interactive markers
@@ -516,13 +512,18 @@ void FootstepManager::calculateGoal()
     double shift_x = -sin(end_yaw) * (0.5 * foot_separation);
     double shift_y =  cos(end_yaw) * (0.5 * foot_separation);
 
+    goal_.header.frame_id = "/world";
+    goal_.header.stamp = ros::Time::now();
+
     goal_.left.header.frame_id = "/world";
+    goal_.left.header.stamp = ros::Time::now();
     goal_.left.pose.position.x = goal_pose_.pose.position.x + shift_x;
     goal_.left.pose.position.y = goal_pose_.pose.position.y + shift_y;
     goal_.left.pose.position.z = lower_body_state_.left_foot_pose.position.z;//goal_pose_.pose.position.z;
     goal_.left.pose.orientation = goal_pose_.pose.orientation;
 
     goal_.right.header.frame_id = "/world";
+    goal_.right.header.stamp = ros::Time::now();
     goal_.right.pose.position.x = goal_pose_.pose.position.x - shift_x;
     goal_.right.pose.position.y = goal_pose_.pose.position.y - shift_y;
     goal_.right.pose.position.z = lower_body_state_.right_foot_pose.position.z;//goal_pose_.pose.position.z;
@@ -788,8 +789,7 @@ void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& sta
     ROS_INFO("UpdateFeet: Got action response. %s", result->status.error_msg.c_str());
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
-    {        
-
+    {
         // update the goal feet
         goal_ = result->feet;
 
@@ -828,7 +828,7 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     foot_pose_transformer_->transformToPlannerFrame(goal);
 
     request.header.frame_id = "/world";
-    request.header.stamp = ros::Time::now();            
+    request.header.stamp = ros::Time::now();
 
     request.start = start;
     request.goal = goal;
@@ -884,7 +884,7 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
     {
         if(result->step_plan.steps.size() == 0)
         {
-            ROS_INFO("StepPlanRequest: Received empty step plan.");
+            ROS_ERROR("StepPlanRequest: Received empty step plan.");
             return;
         }
 
@@ -954,7 +954,20 @@ void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
-        vigir_footstep_planning_msgs::EditStepResult result_copy = *result;
+        if(result->step_plans.size() == 0)
+        {
+            ROS_ERROR("EditStep: Received no step plan.");
+            return;
+        }
+
+        if(result->step_plans[0].steps.size() == 0)
+        {
+            ROS_ERROR("EditStep: Received empty step plan.");
+            return;
+        }
+
+
+		vigir_footstep_planning_msgs::EditStepResult result_copy = *result;
         //convert all step plans transforms to be relative to sole frame for visualization
         //Brian::can optimize to just transform one plan?
         for(int i=0;i<result_copy.step_plans.size();i++)

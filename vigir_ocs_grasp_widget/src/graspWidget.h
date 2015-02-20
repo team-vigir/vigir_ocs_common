@@ -43,6 +43,9 @@
 #include <flor_grasp_msgs/TemplateSelection.h>
 #include <flor_grasp_msgs/LinkState.h>
 
+#include <vigir_object_template_msgs/GetGraspInfo.h>
+#include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
+
 #define FINGER_EFFORTS 4
 
 namespace Ui {
@@ -84,9 +87,6 @@ private:
     void setProgressLevel(uint8_t level);
     void sendManualMsg(uint8_t level, int8_t thumb, int8_t left, int8_t right, int8_t spread);
     void initTemplateMode();
-    void initTemplateIdMap();
-    std::vector< std::vector<QString> > readTextDBFile(QString path);
-    void initGraspDB();
 
     QString icon_path_;
     void setUpButtons();
@@ -103,37 +103,12 @@ private:
     void calcPlanningTarget(const geometry_msgs::Pose& palm_pose, const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& planning_hand_pose);
     int hideHand();
     int staticTransform(geometry_msgs::Pose& palm_pose);
+    void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
 
-    QString template_dir_path_;
-    QString grasp_db_path_;
-    QString template_id_db_path_;
-
-    std::map<unsigned char,std::string> template_id_map_;
-    typedef struct
-    {
-        unsigned short grasp_id;
-        unsigned char template_type;
-        std::string template_name;
-        std::string hand;
-        std::string initial_grasp_type;
-        float finger_joints[12];
-        geometry_msgs::Pose final_pose;
-        geometry_msgs::Pose pre_grasp_pose;
-    } GraspDBItem;
-    std::vector<GraspDBItem> grasp_db_;
-
-    typedef struct
-    {
-        unsigned char        template_type;
-        geometry_msgs::Point b_max;
-        geometry_msgs::Point b_min;
-        geometry_msgs::Point com;
-        float                mass;
-        std::string          mesh_path;
-    } TemplateDBItem;
-    std::vector<TemplateDBItem> template_db_;
 
     // need to store updated template list and selected template id to calculate final position of the hand
+    vigir_object_template_msgs::GetTemplateStateAndTypeInfo last_template_srv_;
+
     flor_ocs_msgs::OCSTemplateList last_template_list_;
     int selected_template_id_;
     int selected_grasp_id_;
@@ -183,7 +158,7 @@ private:
 
     // publisher for the finger joints
     ros::Publisher ghost_hand_joint_state_pub_;
-    void publishHandJointStates(unsigned int grasp_index);
+    void publishHandJointStates(std::vector<float>&);
 
     tf::TransformListener tf_;
 
@@ -210,12 +185,15 @@ private:
     // Used to make setting virtual joint positions (-> hand pose) easier
     sensor_msgs::JointState virtual_link_joint_states_;
 
-    ros::Publisher select_object_pub_;
-    ros::Subscriber select_object_sub_;
+    ros::Publisher     select_object_pub_;
+    ros::Subscriber    select_object_sub_;
 
-    std::vector<int> keys_pressed_list_;
+    std::vector<int>   keys_pressed_list_;
 
-    ros::Subscriber key_event_sub_;
+    ros::Subscriber    key_event_sub_;
+
+    ros::ServiceClient grasp_info_client_;
+    ros::ServiceClient template_info_client_;
 
 protected:
     void timerEvent(QTimerEvent *event);

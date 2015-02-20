@@ -379,8 +379,8 @@ public Q_SLOTS:
       * Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
       *               +1  |  Transparent Objects
       */
-    void setRenderOrder();
-    void resetRenderOrder();
+    //void setRenderOrder();
+    //void resetRenderOrder();
 
 Q_SIGNALS:
     /**
@@ -587,15 +587,15 @@ protected:
     /**
       * Enables reordering of renderque
       */
-    void setRobotOccludedRender();
+    //void setRobotOccludedRender();
     /**
       * Disables rendering of robot occluded
       */
-    void disableRobotOccludedRender();
+    //void disableRobotOccludedRender();
     /**
       * Helper function for reordering the render queue
       */
-    void setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset);
+    //void setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset);
 
     bool disable_joint_markers_;
     //flag to disable extra calls to setting render order in timer function
