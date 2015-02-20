@@ -84,7 +84,6 @@ public Q_SLOTS:
     void on_verticalSlider_3_sliderReleased();
     void on_verticalSlider_2_sliderReleased();
     void on_verticalSlider_4_sliderReleased();
-    void on_affordanceButton_clicked();
     void sendCircularTarget();
 
 private:

@@ -1282,15 +1282,6 @@ void graspWidget::on_verticalSlider_4_sliderReleased()
     this->on_userSlider_sliderReleased();
 }
 
-void graspWidget::on_affordanceButton_clicked()
-{
-    if(!circular_config_widget_->isVisible())
-    {
-        circular_config_widget_->move(QPoint(QCursor::pos().x()+5, QCursor::pos().y()+5));
-        circular_config_widget_->show();
-    }
-}
-
 Ui::graspWidget * graspWidget::getUi()
 {
     return ui;
