@@ -71,6 +71,7 @@ public Q_SLOTS:
     void on_userSlider_sliderReleased();
     void on_templateBox_activated(const QString &arg1);
     void on_graspBox_activated(const QString &arg1);
+    void on_affordanceBox_activated(const QString &arg1);
     void on_performButton_clicked();
     void on_templateButton_clicked();
     void on_releaseButton_clicked();
@@ -83,7 +84,6 @@ public Q_SLOTS:
     void on_verticalSlider_3_sliderReleased();
     void on_verticalSlider_2_sliderReleased();
     void on_verticalSlider_4_sliderReleased();
-    void on_affordanceButton_clicked();
     void sendCircularTarget();
 
 private:
@@ -106,6 +106,7 @@ private:
     void calcPlanningTarget(const geometry_msgs::Pose& palm_pose, const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& planning_hand_pose);
     int hideHand();
     int staticTransform(geometry_msgs::Pose& palm_pose);
+    int poseTransform(geometry_msgs::Pose& first_pose, geometry_msgs::Pose& second_pose);
     int poseTransform(geometry_msgs::Pose& input_pose, tf::Transform transform);
     void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
 
@@ -113,10 +114,12 @@ private:
     // need to store updated template list and selected template id to calculate final position of the hand
     vigir_object_template_msgs::GetTemplateStateAndTypeInfo last_template_srv_;
 
-    flor_ocs_msgs::OCSTemplateList last_template_list_;
-    geometry_msgs::PoseStamped     frameid_T_template_;
+    flor_ocs_msgs::OCSTemplateList         last_template_list_;
+    geometry_msgs::PoseStamped             frameid_T_template_;
+    vigir_object_template_msgs::Affordance current_affordance_;
     int selected_template_id_;
     int selected_grasp_id_;
+    int selected_affordance_id_;
 
     ros::NodeHandle nh_;
     ros::Subscriber grasp_state_sub_;
