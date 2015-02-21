@@ -138,6 +138,7 @@ public:
     ContextMenuManager * getContextMenuManager(){return context_menu_manager_;}
     std::string getActiveContext(){return active_context_name_;}
     std::vector<rviz::Display*> getCartesianMarkerList(){return cartesian_marker_list_;}
+    rviz::Display* getCircularMarker(){return circular_marker_;}
     std::vector<unsigned char> getGhostPoseSource(){return ghost_pose_source_;}
     std::vector<unsigned char> getGhostWorldLock(){return ghost_world_lock_;}
 
@@ -354,6 +355,14 @@ public Q_SLOTS:
       * send pose to moveit and requests cartesian plan for right arm
       */
     void sendCartesianRight();
+    /**
+      * send pose and radius to moveit and requests circular plan for left arm
+      */
+    void sendCircularLeft();
+    /**
+      * send pose and radius to moveit and requests circular plan for right arm
+      */
+    void sendCircularRight();
 
     /**
       * Select object on double click
@@ -668,19 +677,39 @@ protected:
       */
     void removeCartesianContextMenu();
     /**
+      * Context menu action for creating a circular target point
+      */
+    void createCircularContextMenu();
+    /**
+      * Context menu action for removing a circular target point
+      */
+    void removeCircularContextMenu();
+    /**
       * Publishes the cartesial target
       */
     void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints);
+    /**
+      * Publishes the circular target pose
+      */
+    void sendCircularTarget(bool right_hand);
 
     std::vector<rviz::Display*> cartesian_marker_list_;
+    rviz::Display* circular_marker_;
 
     std::vector<geometry_msgs::Pose> cartesian_waypoint_list_;
+    geometry_msgs::Pose circular_center_;
 
     ros::Publisher cartesian_plan_request_pub_;
+    ros::Publisher circular_plan_request_pub_;
 
     QWidget* cartesian_config_widget_;
     QCheckBox* cartesian_use_collision_;
     QCheckBox* cartesian_keep_orientation_;
+
+    QWidget* circular_config_widget_;
+    QCheckBox* circular_use_collision_;
+    QCheckBox* circular_keep_orientation_;
+    QDoubleSpinBox* circular_angle_;
 
     ros::Subscriber send_cartesian_sub_;
 

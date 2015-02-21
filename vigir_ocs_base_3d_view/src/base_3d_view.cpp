@@ -89,6 +89,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     , left_marker_moveit_loopback_(true)
     , right_marker_moveit_loopback_(true)
     , position_only_ik_(false)
+    , circular_marker_(0)
     , visualize_grid_map_(true)
 {
     // Construct and lay out render panel.
@@ -548,6 +549,51 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // and necessary publisher
         cartesian_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CartesianMotionRequest>( "/flor/planning/upper_body/plan_cartesian_request", 1, false );
 
+        // create the window for circular motion
+        circular_config_widget_ = new QWidget();
+        circular_config_widget_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
+
+        circular_use_collision_ = new QCheckBox("Use Collision Avoidance");
+
+        circular_keep_orientation_ = new QCheckBox("Keep Endeffector Orientation");
+
+        QLabel* circular_angle_label_ = new QLabel("Rotation");
+        circular_angle_ = new QDoubleSpinBox();
+        circular_angle_->setDecimals(2);
+        circular_angle_->setMaximum(1080);
+        circular_angle_->setMinimum(-1080);
+
+        QHBoxLayout* circular_angle_layout_ = new QHBoxLayout();
+        circular_angle_layout_->setMargin(0);
+        circular_angle_layout_->addWidget(circular_angle_label_);
+        circular_angle_layout_->addWidget(circular_angle_);
+
+        QPushButton* circular_send_left_ = new QPushButton("Send to left arm");
+        QObject::connect(circular_send_left_, SIGNAL(clicked()), this, SLOT(sendCircularLeft()));
+        circular_send_left_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
+        QPushButton* circular_send_right_ = new QPushButton("Send to right arm");
+        QObject::connect(circular_send_right_, SIGNAL(clicked()), this, SLOT(sendCircularRight()));
+        circular_send_right_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
+
+        QHBoxLayout* circular_button_layout_ = new QHBoxLayout();
+        circular_button_layout_->setMargin(0);
+        circular_button_layout_->addWidget(circular_send_left_);
+        circular_button_layout_->addWidget(circular_send_right_);
+
+        QVBoxLayout* circular_layout_ = new QVBoxLayout();
+        circular_layout_->setMargin(3);
+        circular_layout_->setSpacing(3);
+        circular_layout_->addWidget(circular_use_collision_);
+        circular_layout_->addWidget(circular_keep_orientation_);
+        circular_layout_->addLayout(circular_angle_layout_);
+        circular_layout_->addLayout(circular_button_layout_);
+
+        circular_config_widget_->setLayout(circular_layout_);
+        circular_config_widget_->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+        circular_config_widget_->hide();
+
+        // and necessary publisher
+        circular_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request", 1, false );
 
         // subscribe to the topic sent by the ghost widget
         send_cartesian_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_cartesian", 5, &Base3DView::processSendCartesian, this );
@@ -1878,7 +1924,66 @@ void Base3DView::removeCartesianContextMenu()
     cartesian_waypoint_list_.clear();
 }
 
+void Base3DView::createCircularContextMenu()
+{
+    if(!circular_config_widget_->isVisible())
+    {
+        circular_config_widget_->move(QPoint(QCursor::pos().x()+5, QCursor::pos().y()+5));
+        circular_config_widget_->show();
+    }
 
+    std::string pose_string = std::string("/circular_pose"); // one for each template
+
+    // Add cartesian marker
+    circular_marker_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Circular Marker", true );
+    circular_marker_->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
+    circular_marker_->setEnabled( true );
+    circular_marker_->subProp( "Show Axes" )->setValue( true );
+    circular_marker_->subProp( "Show Visual Aids" )->setValue( true );
+
+    // Add it in front of the robot
+    geometry_msgs::PoseStamped pose;
+    pose.pose.position.x = 1;
+    pose.pose.position.y = 0;
+    pose.pose.position.z = .2;
+    pose.pose.orientation.x = 0;
+    pose.pose.orientation.y = 0;
+    pose.pose.orientation.z = 0;
+    pose.pose.orientation.w = 1;
+    pose.header.frame_id = "/pelvis";
+    transform(base_frame_,pose);
+
+    geometry_msgs::Point pos;
+    pos.x = pose.pose.position.x;
+    pos.y = pose.pose.position.y;
+    pos.z = pose.pose.position.z;
+
+    flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+    marker.name  = std::string("Center of Rotation");
+    marker.topic = pose_string;
+    marker.frame = base_frame_;
+    marker.scale = 0.2;
+    marker.point = pos;
+    interactive_marker_add_pub_.publish(marker);
+
+    circular_center_ = pose.pose;
+}
+
+void Base3DView::removeCircularContextMenu()
+{
+    circular_config_widget_->hide();
+
+    std_msgs::String topic;
+    topic.data = std::string("/circular_pose");
+    interactive_marker_remove_pub_.publish(topic);
+    // Displays can emit signals from other threads with self pointers.  We're
+    // freeing the display now, so ensure no one is listening to those signals.
+    circular_marker_->disconnect();
+    // Delete display later in case there are pending signals to it.
+    circular_marker_->deleteLater();
+    manager_->notifyConfigChanged();
+    circular_marker_ = NULL;
+}
 
 void Base3DView::removeTemplate(int id)
 {
@@ -2366,6 +2471,12 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
 
         return;
     }
+    else
+        if(msg.topic == "/circular_pose")
+        {
+            circular_center_ = joint_pose.pose;
+            return;
+        }
 
     end_effector_pose_list_[msg.topic] = joint_pose; //msg.pose;
 
@@ -3318,6 +3429,76 @@ void Base3DView::sendCartesianLeft()
 void Base3DView::sendCartesianRight()
 {
     sendCartesianTarget(1,cartesian_waypoint_list_);
+}
+
+void Base3DView::sendCircularTarget(bool right_hand)
+{
+    std::string prefix = (right_hand ? "r" : "l");
+    flor_planning_msgs::CircularMotionRequest cmd;
+
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = "/world";
+    pose.header.stamp = ros::Time::now();
+    pose.pose = circular_center_;
+
+    // calculating the rotation based on position of the markers
+    if(circular_keep_orientation_->isChecked())
+    {
+        // get position of the wrist in world coordinates
+        Ogre::Vector3 wrist_position(0,0,0);
+        Ogre::Quaternion wrist_orientation(1,0,0,0);
+        transform(wrist_position, wrist_orientation, (std::string("/")+prefix+"_hand").c_str(), "/world");
+
+        // get position of the marker in world coordinates
+        geometry_msgs::PoseStamped hand, marker;
+        hand.pose.position.x = wrist_position.x;
+        hand.pose.position.y = wrist_position.y;
+        hand.pose.position.z = wrist_position.z;
+        hand.pose.orientation.x = wrist_orientation.x;
+        hand.pose.orientation.y = wrist_orientation.y;
+        hand.pose.orientation.z = wrist_orientation.z;
+        hand.pose.orientation.w = wrist_orientation.w;
+        calcWristTarget(hand,(right_hand ? r_hand_T_marker_ : l_hand_T_marker_),marker);
+
+        // calculate the difference between them
+        Ogre::Vector3 diff_vector;
+        diff_vector.x = wrist_position.x - marker.pose.position.x;
+        diff_vector.y = wrist_position.y - marker.pose.position.y;
+        diff_vector.z = wrist_position.z - marker.pose.position.z;
+
+        // apply the difference to the circular center
+        pose.pose.position.x = circular_center_.position.x + diff_vector.x;
+        pose.pose.position.y = circular_center_.position.y + diff_vector.y;
+        pose.pose.position.z = circular_center_.position.z + diff_vector.z;
+    }
+
+    cmd.rotation_center_pose = pose;
+
+    cmd.rotation_angle = circular_angle_->value()*0.0174532925; // UI in deg, msg in rad
+
+    cmd.use_environment_obstacle_avoidance = circular_use_collision_->isChecked();
+
+    cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
+
+    if(!ghost_planning_group_[2]) // torso selected in the ghost widget
+        cmd.planning_group = prefix+"_arm_group";
+    else
+        cmd.planning_group = prefix+"_arm_with_torso_group";
+
+    if(position_only_ik_)
+        cmd.planning_group += "_position_only_ik";
+
+    circular_plan_request_pub_.publish(cmd);
+}
+
+void Base3DView::sendCircularLeft()
+{
+    sendCircularTarget(false);
+}
+
+void Base3DView::sendCircularRight()
+{
+    sendCircularTarget(true);
 }
 
 bool Base3DView::eventFilter( QObject * o, QEvent * e )
