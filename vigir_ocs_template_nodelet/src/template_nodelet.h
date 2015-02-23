@@ -22,6 +22,9 @@
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
 #include <vigir_object_template_msgs/DetachObjectTemplate.h>
+#include <vigir_object_template_msgs/Affordance.h>
+#include <vigir_object_template_msgs/Usability.h>
+
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometric_shapes/mesh_operations.h>
@@ -55,8 +58,11 @@ namespace ocs_template
         std::string                                                  path;
         std::map<unsigned int,moveit_msgs::Grasp>                    grasps;
         std::map<unsigned int,vigir_object_template_msgs::StandPose> stand_poses;
+        std::map<unsigned int,vigir_object_template_msgs::Usability> usabilities;
+        std::map<unsigned int,vigir_object_template_msgs::Affordance>affordances;
 
         VigirObjectTemplate() : id(0),
+                                type(0),
                                 mass(0.0)
         {
             //com   = geometry_msgs::Point(0.0,0.0,0.0);
@@ -76,9 +82,9 @@ namespace ocs_template
         void templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
         void publishTemplateList();
         std::vector< std::vector <std::string> > readCSVFile(std::string& file_name);
-        void loadObjectTemplateDatabase(std::string& file_name);
+        void loadObjectTemplateDatabaseXML(std::string& file_name);
         void loadGraspDatabaseXML(std::string& file_name, std::string hand_side);
-        void loadStandPosesDatabase(std::string& file_name);
+        void loadStandPosesDatabaseXML(std::string& file_name);
         int  staticTransform(geometry_msgs::Pose& palm_pose);
         void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
         void timerCallback(const ros::TimerEvent& event);
@@ -126,8 +132,9 @@ namespace ocs_template
       private:
         std::vector<unsigned char>                 template_id_list_;
         std::vector<unsigned char>                 template_type_list_;
-        std::vector<std::string>                   template_list_;
-        std::vector<geometry_msgs::PoseStamped>    pose_list_;
+        std::vector<std::string>                   template_name_list_;
+        std::vector<geometry_msgs::PoseStamped>    template_pose_list_;
+        std::vector<unsigned int>                  template_status_list_; //0-normal, 1-attached
         unsigned char                              id_counter_;
         // Filename of the grasping library
         std::string                                r_grasps_filename_;

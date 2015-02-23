@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QWidget>
 #include <QRadioButton>
+#include <QPushButton>
 #include <QSpinBox>
 #include <QComboBox>
 #include <QStringList>
@@ -42,6 +43,7 @@
 #include <flor_grasp_msgs/GraspSelection.h>
 #include <flor_grasp_msgs/TemplateSelection.h>
 #include <flor_grasp_msgs/LinkState.h>
+#include <flor_planning_msgs/CircularMotionRequest.h>
 
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
@@ -57,7 +59,7 @@ class graspWidget : public QWidget
     Q_OBJECT
     
 public:
-    explicit graspWidget(QWidget *parent = 0, std::string hand = "left", std::string hand_type = "irobot");
+    explicit graspWidget(QWidget *parent = 0, std::string hand = "left", std::string hand_name = "l_hand");
     ~graspWidget();
 
     void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg);
@@ -69,6 +71,7 @@ public Q_SLOTS:
     void on_userSlider_sliderReleased();
     void on_templateBox_activated(const QString &arg1);
     void on_graspBox_activated(const QString &arg1);
+    void on_affordanceBox_activated(const QString &arg1);
     void on_performButton_clicked();
     void on_templateButton_clicked();
     void on_releaseButton_clicked();
@@ -81,7 +84,7 @@ public Q_SLOTS:
     void on_verticalSlider_3_sliderReleased();
     void on_verticalSlider_2_sliderReleased();
     void on_verticalSlider_4_sliderReleased();
-    void on_pushButton_clicked();
+    void sendCircularTarget();
 
 private:
     void setProgressLevel(uint8_t level);
@@ -103,15 +106,20 @@ private:
     void calcPlanningTarget(const geometry_msgs::Pose& palm_pose, const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& planning_hand_pose);
     int hideHand();
     int staticTransform(geometry_msgs::Pose& palm_pose);
+    int poseTransform(geometry_msgs::Pose& first_pose, geometry_msgs::Pose& second_pose);
+    int poseTransform(geometry_msgs::Pose& input_pose, tf::Transform transform);
     void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
 
 
     // need to store updated template list and selected template id to calculate final position of the hand
     vigir_object_template_msgs::GetTemplateStateAndTypeInfo last_template_srv_;
 
-    flor_ocs_msgs::OCSTemplateList last_template_list_;
+    flor_ocs_msgs::OCSTemplateList         last_template_list_;
+    geometry_msgs::PoseStamped             frameid_T_template_;
+    vigir_object_template_msgs::Affordance current_affordance_;
     int selected_template_id_;
     int selected_grasp_id_;
+    int selected_affordance_id_;
 
     ros::NodeHandle nh_;
     ros::Subscriber grasp_state_sub_;
@@ -132,9 +140,11 @@ private:
     geometry_msgs::Pose feedbackPose;
 
     bool templateMatchDone;
+    bool follow_ban_;
 
-    std::string hand_;
+    std::string hand_side_;
     std::string hand_type_;
+    std::string hand_name_;
     uint8_t currentGraspMode;
 
     // **************************
@@ -166,6 +176,12 @@ private:
     tf::Transform hand_offset_pose_;
     tf::Transform hand_T_palm_;   //describes palm in hand frame
     tf::Transform gp_T_palm_;     //describes palm in grasp pose frame
+    tf::Transform hand_T_marker_; //describes marker in hand frame
+
+    QWidget*        circular_config_widget_;
+    QCheckBox*      circular_use_collision_;
+    QCheckBox*      circular_keep_orientation_;
+    QDoubleSpinBox* circular_angle_;
 
     // get joint states
     ros::Subscriber link_states_sub_;
@@ -178,6 +194,8 @@ private:
     robot_model_loader::RobotModelLoaderPtr hand_model_loader_;
     robot_model::RobotModelPtr hand_robot_model_;
     robot_state::RobotStatePtr hand_robot_state_;
+
+    std::vector<std::string>   hand_joint_names_;
 
     moveit_msgs::DisplayRobotState display_state_msg_;
     ros::Publisher robot_state_vis_pub_;
@@ -195,8 +213,19 @@ private:
     ros::ServiceClient grasp_info_client_;
     ros::ServiceClient template_info_client_;
 
+
+    ros::Publisher circular_plan_request_pub_;
+
 protected:
     void timerEvent(QTimerEvent *event);
+    /**
+      * Context menu action for creating a circular target point
+      */
+    void removeCircularContextMenu();
+    /**
+      * Publishes the circular target pose
+      */
+
 
 private:
     QBasicTimer timer;
