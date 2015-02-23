@@ -11,12 +11,6 @@ from flor_ocs_msgs.msg import OCSLogging
 
 class App(object):
 	def main(self):
-		if rospy.has_param('to_log'):
-			self.toLog = rospy.get_param('to_log')
-		if rospy.has_param('enable_Log_grabbing'):
-			self.enableBDILogging = rospy.get_param('enable_Log_grabbing')
-		if rospy.has_param("logging_location"):
-			self.logLocation = rospy.get_param('logging_location')
 		self.listener()
 
 	def __init__(self):
@@ -83,6 +77,26 @@ class App(object):
 		# setup call back for lgging
 		print "Starting listener..."
 		rospy.init_node('log_listener', anonymous=True)
+		
+		print "Looking for ros params..."
+		print rospy.search_param('logging_location')
+		print rospy.search_param('to_log')		
+		if rospy.has_param('~to_log'):
+			print "logging the following topics..."
+			self.toLog = rospy.get_param('~to_log')
+			print self.toLog
+		else:
+			print "Failed to find topics to log."
+		if rospy.has_param('~enable_Log_grabbing'):
+			self.enableBDILogging = rospy.get_param('~enable_Log_grabbing')
+		else:
+			print "Not setting up log grabbing"
+		if rospy.has_param("~logging_location"):
+			print "logging to the following location..."
+			self.logLocation = rospy.get_param('~logging_location')
+			print self.logLocation
+		else:
+			print "Using default logging location"
 		rospy.Subscriber('/vigir_logging', OCSLogging, self.callback)
 		rospy.spin()
 		
