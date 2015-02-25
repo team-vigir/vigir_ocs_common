@@ -21,12 +21,51 @@ Widget::Widget(QWidget *parent) :
     ui->setupUi(this);
     ros::NodeHandle nh;
     ocs_logging_pub_ = nh.advertise<flor_ocs_msgs::OCSLogging>("/vigir_logging",        1, false);
+    ocs_responce_sub_ = nh.subscribe<std_msgs::String>("/vigir_logging_responce", 10, &Widget::on_responce_recieved, this);
+    ocs_responce_pub_ = nh.advertise<std_msgs::String>("/vigir_logging_query", 1, false);
+	first = true;
     timer.start(33, this);
 }
 
 Widget::~Widget()
 {
     delete ui;
+}
+
+void Widget::on_responce_recieved(const std_msgs::String::ConstPtr& msg)
+{
+    std::cout << "Recieved " << msg->data << std::endl;    
+    if(msg->data ==       "video_start")
+    {
+        std::cout << "Video Start" << std::endl;
+        //change text and color of videoLogging to green
+    }
+    else if(msg->data == "video_stop")
+    {
+        //change text and color of videoLogging to red
+        std::cout << "Video Start" << std::endl;
+    }
+    else if(msg->data == "ocs_stop")
+    {
+        //change text and color of OCSLogging to red
+        std::cout << "OCS Start" << std::endl;
+    }
+    else if(msg->data == "ocs_stop")
+    {
+        //change text and color of OCSLogging to red
+        std::cout << "OCS Stop" << std::endl;
+    }
+    else if(msg->data == "onboard_stop")
+    {
+        //change text and color of onboardLogging to red
+        std::cout << "Onboard Start" << std::endl;
+    }
+    else if(msg->data == "onboard_stop")
+    {
+        //change text and color of onboardLogging to red
+        std::cout << "Onboard Stop" << std::endl;
+    }
+
 }
 
 void Widget::timerEvent(QTimerEvent *event)
@@ -37,6 +76,14 @@ void Widget::timerEvent(QTimerEvent *event)
 
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
+    if(first)
+    {
+        std::cout << "querying for the state of all children..." << std::endl;        
+        std_msgs::String query;
+        query.data = "?";
+        ocs_responce_pub_.publish(query);
+        first = false;
+    }
 }
 
 

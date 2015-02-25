@@ -5,6 +5,7 @@
 #include <QBasicTimer>
 #include <ros/ros.h>
 #include <flor_ocs_msgs/OCSLogging.h>
+#include <std_msgs/String.h>
 #include "boost/filesystem.hpp"
 
 namespace rviz
@@ -33,7 +34,7 @@ public Q_SLOTS:
     void on_startButton_clicked();
 
     void on_stopButton_clicked();
-
+    
 
     void on_robotLogsButton_clicked();
     void on_experimentName_textChanged(const QString &arg1);
@@ -43,8 +44,11 @@ private:
     void sendMsg(bool run);
     Ui::Widget *ui;
     ros::Publisher ocs_logging_pub_;
+    ros::Subscriber ocs_responce_sub_;
+    ros::Publisher ocs_responce_pub_;
     QBasicTimer timer;
-
+    bool first;
+	void on_responce_recieved(const std_msgs::String::ConstPtr& msg);
 
 };
 
