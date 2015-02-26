@@ -89,8 +89,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     , left_marker_moveit_loopback_(true)
     , right_marker_moveit_loopback_(true)
     , position_only_ik_(false)
-    , visualize_grid_map_(true)   
     , circular_marker_(0)
+    , visualize_grid_map_(true)
 {
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
@@ -1647,7 +1647,7 @@ void Base3DView::selectOnDoubleClick(int x, int y)
     else if(active_context_name_.find("footstep goal") != std::string::npos)
         selectFootstepGoal();
     else if(active_context_name_.find("footstep") != std::string::npos)
-        selectFootstep();        
+        selectFootstep();
 }
 
 //callback functions for context Menu
@@ -1713,7 +1713,7 @@ void Base3DView::selectTemplate()
     int id;
     if((id = findObjectContext("template")) != -1)
     {
-        //deselectAll();
+        deselectAll();
 
         flor_ocs_msgs::OCSObjectSelection cmd;
         cmd.type = flor_ocs_msgs::OCSObjectSelection::TEMPLATE;
@@ -1887,7 +1887,6 @@ void Base3DView::createCartesianContextMenu()
     // Add cartesian marker
     rviz::Display* cartesian_marker = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Cartesian Marker ")+boost::to_string((unsigned int)id)).c_str(), true );
     cartesian_marker->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
-   
     cartesian_marker->subProp( "Show Axes" )->setValue( true );
     cartesian_marker->subProp( "Show Visual Aids" )->setValue( true );
     cartesian_marker->setEnabled( true );
@@ -1954,9 +1953,9 @@ void Base3DView::createCircularContextMenu()
     // Add cartesian marker
     circular_marker_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Circular Marker", true );
     circular_marker_->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
+    circular_marker_->setEnabled( true );
     circular_marker_->subProp( "Show Axes" )->setValue( true );
     circular_marker_->subProp( "Show Visual Aids" )->setValue( true );
-    circular_marker_->setEnabled( true );
 
     // Add it in front of the robot
     geometry_msgs::PoseStamped pose;
@@ -2226,12 +2225,6 @@ void Base3DView::publishHandPose(std::string hand, const geometry_msgs::PoseStam
 
 void Base3DView::publishHandJointStates(std::string hand)
 {
-    std::string hand_type;
-    if(hand == "left")
-        hand_type = l_hand_type;
-    else
-        hand_type = r_hand_type;
-
     sensor_msgs::JointState joint_states;
 
     joint_states.header.stamp = ros::Time::now();

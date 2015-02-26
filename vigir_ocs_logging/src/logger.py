@@ -7,16 +7,11 @@ import signal
 import rospy
 import datetime
 import time
+from std_msgs.msg import String
 from flor_ocs_msgs.msg import OCSLogging
 
 class App(object):
 	def main(self):
-		if rospy.has_param('to_log'):
-			self.toLog = rospy.get_param('to_log')
-		if rospy.has_param('enable_Log_grabbing'):
-			self.enableBDILogging = rospy.get_param('enable_Log_grabbing')
-		if rospy.has_param("logging_location"):
-			self.logLocation = rospy.get_param('logging_location')
 		self.listener()
 
 	def __init__(self):
@@ -28,6 +23,9 @@ class App(object):
 		self.enableBDILogging = False
 		self.name = ''
 		self.logLocation = '/home/vigir/Experiments'
+		self.onboard = True
+		self.pub = ''
+		self.query = ""
 
 	def createExperiment(self, name, description):
 		print "Creating experiment..."+name
@@ -54,14 +52,23 @@ class App(object):
 		print output
 		return output
 
+	def state(self, data):
+		print data
+		if self.logging:
+			temp ="start"
+		else:
+			temp = "stop"
+		self.pub.publish(self.query + temp)
 
 	def startLogging(self):
 		print "Starting logs"
-		bashCommand = ["/bin/bash", "-i", "-c"]
+		bashCommand = ["/bin/bash", "--norc", "-c"]
 		bagCommand = "rosbag record -O /"+ self.folder + "/log.bag " + self.combined()
 		print bagCommand
 		self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE, preexec_fn=os.setsid)
 		self.logging = True
+		print self.query + "start"
+		self.pub.publish(self.query + "start")
 		
 	def killLogging(self, results):
 		print "Killing logs"
@@ -78,17 +85,49 @@ class App(object):
 		f.write('</Experiment>')
 		f.close()
 		self.folder = ''
+		print self.query + "stop"
+		self.pub.publish(self.query + "stop")
 			
 	def listener(self):
 		# setup call back for lgging
 		print "Starting listener..."
 		rospy.init_node('log_listener', anonymous=True)
+		
+		print "Looking for ros params..."
+		print rospy.search_param('logging_location')
+		print rospy.search_param('to_log')		
+		if rospy.has_param('~to_log'):
+			print "logging the following topics..."
+			self.toLog = rospy.get_param('~to_log')
+			print self.toLog
+		else:
+			print "Failed to find topics to log."
+		if rospy.has_param('~enable_Log_grabbing'):
+			self.enableBDILogging = rospy.get_param('~enable_Log_grabbing')
+		else:
+			print "Not setting up log grabbing"
+		if rospy.has_param("~logging_location"):
+			print "logging to the following location..."
+			self.logLocation = rospy.get_param('~logging_location')
+			print self.logLocation
+		else:
+			print "Using default logging location"
+		if rospy.has_param("~onboard"):
+			print "logging instance is onboard?"
+			self.onboard = rospy.get_param("~onboard")
+			print self.onboard
 		rospy.Subscriber('/vigir_logging', OCSLogging, self.callback)
+		rospy.Subscriber('/vigir_logging_query', String, self.state)
+		self.pub = rospy.Publisher('/vigir_logging_responce', String, queue_size=1)
+		if self.onboard:
+			self.query = "onboard_"
+		else:
+			self.query = "ocs_"
 		rospy.spin()
 		
 	def grabLogs(self, time):
 		print "Grabbing robot logs!!"
-		bashCommand = ["/bin/bash", "-i", "-c"]
+		bashCommand = ["/bin/bash", "--norc", "-c"]
 		if(not(self.folder == '')):
 			if not os.path.exists(self.folder):
 				os.makedirs(self.folder)
@@ -99,6 +138,7 @@ class App(object):
 			bagCommand = "python atlas_log_downloader.py 192.168.130.103 /" + self.logLocation + '/BDI_Logs ' + str(time)
 		print bagCommand
 		self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE, preexec_fn=os.setsid)
+		
 
 	def callback(self, data):
 		print "Recieved message!"
