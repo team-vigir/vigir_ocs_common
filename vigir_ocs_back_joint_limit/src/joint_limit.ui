@@ -348,7 +348,16 @@
    <item row="1" column="0">
     <widget class="QWidget" name="widget" native="true">
      <layout class="QGridLayout" name="gridLayout">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
       <item row="1" column="0">
@@ -407,16 +416,16 @@
          <number>3</number>
         </property>
         <property name="minimum">
-         <double>0.010000000000000</double>
+         <double>0.001000000000000</double>
         </property>
         <property name="maximum">
-         <double>100.000000000000000</double>
+         <double>1.000000000000000</double>
         </property>
         <property name="singleStep">
-         <double>0.010000000000000</double>
+         <double>0.001000000000000</double>
         </property>
         <property name="value">
-         <double>3.000000000000000</double>
+         <double>1.000000000000000</double>
         </property>
        </widget>
       </item>
