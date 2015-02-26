@@ -19,6 +19,8 @@
 #include <flor_ocs_msgs/OCSGhostControl.h>
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
+#include <vigir_object_template_msgs/GetGraspInfo.h>
+#include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int8.h>
@@ -49,8 +51,6 @@ public:
     void processState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
     void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list);    
     void publishState( bool snap=false );
-    void initPoseDB();
-    void initTemplateIdMap();
     int calcTargetPose(const geometry_msgs::Pose& pose_1, const geometry_msgs::Pose& pose_2, geometry_msgs::Pose& pose_result);
 
     void saveState();
@@ -59,6 +59,9 @@ public:
                    std::vector<unsigned char> world_lock=saved_state_world_lock_,
                    unsigned char collision_avoidance=saved_state_collision_avoidance_,
                    unsigned char lock_pelvis=saved_state_lock_pelvis_);
+
+    bool useTorsoContextMenu();
+    void snapContextMenu();
 
 protected:
     void timerEvent(QTimerEvent *event);
@@ -135,6 +138,9 @@ private:
     ros::Publisher send_ghost_cartesian_pub_;
     ros::Publisher send_template_to_behavior_pub_;
 
+    ros::ServiceClient grasp_info_client_;
+    ros::ServiceClient template_info_client_;
+
     // variables that hold saved state of the widget
     static std::vector<unsigned char> saved_state_planning_group_;
     static std::vector<unsigned char> saved_state_pose_source_;
@@ -145,28 +151,8 @@ private:
 
     flor_ocs_msgs::OCSTemplateList last_template_list_;
     int selected_template_id_;
-    int selected_grasp_id_;
-    QString template_dir_path_;
-    QString pose_db_path_;
-    QString template_id_db_path_;
+    int selected_pose_id_;
 
-    std::map<unsigned char,std::string> template_id_map_;
-    typedef struct
-    {
-        unsigned short pose_id;
-        unsigned char template_type;
-        std::string template_name;
-        geometry_msgs::Pose ghost_pose;
-    } PoseDBItem;
-    std::vector<PoseDBItem> pose_db_;
-
-    typedef struct
-    {
-        unsigned char        template_type;
-        geometry_msgs::Point com;
-        float                mass;
-    } TemplateDBItem;
-    std::vector<TemplateDBItem> template_db_;
 
     QBasicTimer timer;
 

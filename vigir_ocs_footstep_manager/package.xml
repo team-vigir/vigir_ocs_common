@@ -22,9 +22,9 @@
   <build_depend>nodelet</build_depend>
   <build_depend>vigir_footstep_planning_msgs</build_depend>
   <build_depend>vigir_global_footstep_planner</build_depend>
-  <build_depend>flor_footstep_planner_msgs</build_depend>
   <build_depend>actionlib</build_depend>
-  <build_depend>actionlib_msgs</build_depend>
+  <build_depend>actionlib_msgs</build_depend>  
+  <build_depend>vigir_foot_pose_transformer</build_depend>
 
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
@@ -39,10 +39,9 @@
   <run_depend>nodelet</run_depend>
   <run_depend>vigir_footstep_planning_msgs</run_depend>
   <run_depend>vigir_global_footstep_planner</run_depend>
-  <run_depend>flor_footstep_planner_msgs</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>actionlib_msgs</run_depend>
-
+  <run_depend>vigir_foot_pose_transformer</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

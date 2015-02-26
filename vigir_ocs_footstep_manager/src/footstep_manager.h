@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include <tf/tf.h>
 #include <nodelet/nodelet.h>
 #include <pluginlib/class_list_macros.h>
 
@@ -27,16 +28,11 @@
 
 #include <flor_state_msgs/LowerBodyState.h>
 
-#include <vigir_footstep_planning_msgs/UpdateFeetAction.h>
-#include <vigir_footstep_planning_msgs/StepPlanRequestAction.h>
-#include <vigir_footstep_planning_msgs/EditStepAction.h>
-#include <vigir_footstep_planning_msgs/StitchStepPlanAction.h>
-#include <vigir_footstep_planning_msgs/UpdateStepPlanAction.h>
-#include <vigir_footstep_planning_msgs/ExecuteStepPlanAction.h>
-#include <vigir_footstep_planning_msgs/GetAllParameterSetsAction.h>
-#include <vigir_footstep_planning_msgs/ParameterSet.h>
+#include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
+#include <vigir_footstep_planning_msgs/parameter_set.h>
 
-#include <vigir_global_footstep_planner/parameter_set.h>
+//#include <vigir_footstep_planning_lib/helper.h>
+#include <vigir_foot_pose_transformer/foot_pose_transformer.h>
 
 #include <actionlib/client/simple_action_client.h>
 
@@ -108,7 +104,7 @@ namespace ocs_footstep
     private:
         // send action goals
         void sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet& feet);
-        void sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_index = 0, const unsigned char start_foot = vigir_footstep_planning_msgs::StepPlanRequest::AUTO);
+        void sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_step_index = 0, const unsigned char start_foot = vigir_footstep_planning_msgs::StepPlanRequest::AUTO);
         void sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step, unsigned int plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_2D);
         void sendStitchStepPlanGoal(std::vector<vigir_footstep_planning_msgs::StepPlan>& step_plan_list);
         void sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan& step_plan);
@@ -220,6 +216,9 @@ namespace ocs_footstep
         ExecuteStepPlanClient* execute_step_plan_client_;
         GetAllParameterSetsClient* get_all_parameter_sets_client_;
 
-        ros::ServiceClient edit_step_service_client_;
+        // local instance of foot pose transformer
+        vigir_footstep_planning::FootPoseTransformer::Ptr foot_pose_transformer_;
+
+        //ros::ServiceClient edit_step_service_client_;
     };
 }

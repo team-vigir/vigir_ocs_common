@@ -16,6 +16,8 @@
   <build_depend>tf</build_depend>
   <build_depend>flor_ocs_msgs</build_depend>
   <build_depend>flor_grasp_msgs</build_depend>
+  <build_depend>flor_planning_msgs</build_depend>
+  <build_depend>vigir_object_template_msgs</build_depend>
   <build_depend>moveit_core</build_depend>
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>vigir_ocs_hotkey_manager</build_depend>
@@ -30,6 +32,8 @@
   <run_depend>tf</run_depend>
   <run_depend>flor_ocs_msgs</run_depend>
   <run_depend>flor_grasp_msgs</run_depend>
+  <run_depend>flor_planning_msgs</run_depend>
+  <run_depend>vigir_object_template_msgs</run_depend>
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>vigir_ocs_hotkey_manager</run_depend>

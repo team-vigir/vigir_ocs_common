@@ -11,6 +11,7 @@
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSControlMode.h>
 #include <std_msgs/Int8.h>
+#include <std_msgs/Float64.h>
 
 #include "statusBar.h"
 #include "graspWidget.h"
@@ -33,6 +34,8 @@
 #include "footstep_config.h"
 #include "notification_system.h"
 #include "main_context_menu.h"
+
+#include "ui/ghost_control_widget.h"
 
 namespace Ui
 {
@@ -58,6 +61,8 @@ public:
 
     vigir_ocs::Base3DView* getPrimaryView() {return primary_view_;}
     Ui::MainViewWidget* getUi(){return ui;}
+    GhostControlWidget* getGhostControlWidget() {return ghost_control_widget_;}
+    void useTorsoContextMenu();
 
 public Q_SLOTS:
     void oneViewToggle();
@@ -82,6 +87,7 @@ protected Q_SLOTS:
     void hideGraspWidgets();
     void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
     void toggleFootstepConfig();
+    void setLidarSpinRate(double spin_rate);
 
 
 
@@ -128,6 +134,7 @@ protected:
 
     ros::Subscriber ocs_sync_sub_;
 
+    ros::Publisher lidar_spin_rate_pub_;
 
 
     StatusBar * statusBar;
@@ -140,10 +147,7 @@ protected:
     QPropertyAnimation * graspFadeIn;
     QPropertyAnimation * graspFadeOut;
 
-
     QWidget *graspContainer;
-
-
 
     QSignalMapper* stop_mapper_;
 
@@ -151,6 +155,10 @@ protected:
 
     FootstepConfigure* footstep_configure_widget_;
     QMenu footstep_menu_;
+
+
+    GhostControlWidget * ghost_control_widget_;
+    bool use_torso_checked_;
 };
 
 #endif // MAIN_VIEW_WIDGET_H

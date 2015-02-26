@@ -417,6 +417,8 @@ void FootstepVisManager::updateInteractiveMarkers()
         // update interactive marker pose
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = pose_string;
+        //convert back to ankle??
+
         cmd.pose = footstep_list_.pose[i];
         interactive_marker_update_pub_.publish(cmd);
     }
@@ -460,6 +462,8 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
             int end_idx = msg.topic.substr(start_idx, msg.topic.size()-start_idx).find("_marker");
             cmd.step_plan_id = boost::lexical_cast<int>(msg.topic.substr(start_idx,end_idx).c_str());
             cmd.pose = msg.pose;
+            //convert back to ankle
+
             footstep_plan_update_pub_.publish(cmd);
         }
         catch( boost::bad_lexical_cast const& )
@@ -476,6 +480,8 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
             int end_idx = msg.topic.substr(start_idx, msg.topic.size()-start_idx).find("_marker");
             cmd.footstep_id = boost::lexical_cast<int>(msg.topic.substr(start_idx,end_idx).c_str());
             cmd.pose = msg.pose;
+            //convert back to ankle
+
             footstep_update_pub_.publish(cmd);
         }
         catch( boost::bad_lexical_cast const& )

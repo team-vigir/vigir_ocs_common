@@ -60,9 +60,6 @@
 namespace rviz
 {
 
-// initialize static class member
-std::vector<InteractiveMarkerServerCustom*> TemplateDisplayCustom::template_marker_list_;
-
 void linkUpdaterStatusFunction( StatusProperty::Level level,
                                 const std::string& link_name,
                                 const std::string& text,
@@ -169,7 +166,7 @@ void TemplateDisplayCustom::load()
         resourceManager.createResourceGroup(nameOfResourceGroup);
 
         // Use "templates" package.  @TODO make this a parameter
-        std::string template_path = ros::package::getPath("vigir_template_library")+"/";//vigir_grasp_control") + "/../templates/";
+        std::string template_path = ros::package::getPath("vigir_template_library")+"/object_templates/";//vigir_grasp_control") + "/../templates/";
         ROS_INFO("  Reading templates from <%s>", template_path.c_str());
         //template_dir_path_ = QString(template_path.c_str());
         Ogre::String templatePath = template_path;
@@ -265,16 +262,19 @@ void TemplateDisplayCustom::reset()
 
 void TemplateDisplayCustom::enableTemplateMarker( int i, bool enable )
 {
-    ROS_ERROR("Enabling template marker %d", i);
+    ROS_INFO("Enabling template marker %d", i);
 
-    for(int x = 0; x < template_id_list_.size(); x++)
-    {
-        if(template_id_list_[x] == i)
-        {
-            display_template_marker_list_[x]->setEnabled( enable );
+//    for(int x = 0; x < template_id_list_.size(); x++)
+//    {
+//        if(template_id_list_[x] == i)
+//        {
+//            //InteractiveMarkerServerCustom* server = template_marker_list_[i];
+//            //server->
 
-        }
-    }
+//            display_template_marker_list_[x]->setEnabled( enable );
+
+//        }
+//    }
 
 //    if(i >= 0 && i < display_template_marker_list_.size())
 //    {
@@ -284,11 +284,11 @@ void TemplateDisplayCustom::enableTemplateMarker( int i, bool enable )
 
 void TemplateDisplayCustom::enableTemplateMarkers( bool enable )
 {
-    //ROS_ERROR("Disabling the template markers");
-    for(int i = 0; i < display_template_marker_list_.size(); i++)
-    {
-        display_template_marker_list_[i]->setEnabled( enable );
-    }
+//    ROS_ERROR("Disabling the template markers %d",enable);
+//    for(int i = 0; i < display_template_marker_list_.size(); i++)
+//    {
+//        display_template_marker_list_[i]->setEnabled( enable );
+//    }
 }
 
 void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose)
@@ -346,14 +346,14 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
 
 void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char id, Ogre::Vector3 pos)
 {
-    ROS_ERROR("Adding template marker %d",id);
+    ROS_INFO("Adding template marker %d",id);
     //std::cout << "Adding template marker " << id << std::endl;
     std::string template_pose_string = std::string("/template_")+boost::to_string((unsigned int)id)+std::string("_marker"); // one for each template
 
     // Add template marker
     rviz::Display* interactive_marker_template = vis_manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker template ")+boost::to_string((unsigned int)id)).c_str(), true );
     interactive_marker_template->subProp( "Update Topic" )->setValue( (template_pose_string+std::string("/pose_marker/update")).c_str() );
-    interactive_marker_template->setEnabled( false );
+    //interactive_marker_template->setEnabled( false );
     display_template_marker_list_.push_back(interactive_marker_template);
 
     // initialize template interactive marker server if it doesn't exist yet

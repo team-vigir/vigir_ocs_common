@@ -32,7 +32,11 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui->insert_waypoint->hide();
 
     //subscribe to the global hotkey message
-   //key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainViewWidget::processNewKeyEvent, this );
+   // key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainViewWidget::processNewKeyEvent, this );
+
+    //setup lidar spin
+    lidar_spin_rate_pub_ = n_.advertise<std_msgs::Float64>("/multisense/set_spindle_speed",10,false);
+    QObject::connect(ui->lidar_spin_rate, SIGNAL(valueChanged(double)), this, SLOT(setLidarSpinRate(double)));
 
     QHBoxLayout* aux_layout;
 
@@ -111,8 +115,6 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
         {
             ((vigir_ocs::Base3DView*)iter->second)->updateRenderMask(false);
         }
-
-
     }
 
     std::string ip = ros::package::getPath("vigir_ocs_main_view")+"/icons/";
@@ -225,83 +227,65 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     graspContainer->setLayout(graspLayout);    
     graspContainer->hide();
 
-    // try to load grasp environment variables
-    std::string env_left_hand = getenv("FLOR_LEFT_HAND_TYPE");
-    if(env_left_hand.find("irobot") != std::string::npos || env_left_hand.find("sandia") != std::string::npos || env_left_hand.find("robotiq") != std::string::npos)
-    {
-        QWidget * leftGrasp = new QWidget(graspContainer);
-        QVBoxLayout * leftLayout = new QVBoxLayout();
-        leftLayout->setSpacing(0);
-        leftLayout->setMargin(0);
-        leftLayout->setContentsMargins(0,0,0,0);
-        QLabel * leftLabel = new QLabel("Left Hand");
-        leftLabel->setStyleSheet("font: 8pt \"Ubuntu\";");
-        leftLabel->setAlignment(Qt::AlignCenter);
-        leftLayout->addWidget(leftLabel);
+    //Left Grasp Widget
+    QWidget * leftGrasp = new QWidget(graspContainer);
+    QVBoxLayout * leftLayout = new QVBoxLayout();
+    leftLayout->setSpacing(0);
+    leftLayout->setMargin(0);
+    leftLayout->setContentsMargins(0,0,0,0);
+    QLabel * leftLabel = new QLabel("Left Hand");
+    leftLabel->setStyleSheet("font: 8pt \"Ubuntu\";");
+    leftLabel->setAlignment(Qt::AlignCenter);
+    leftLayout->addWidget(leftLabel);
+    leftGraspWidget = new graspWidget(graspContainer, "left", "l_hand");
+    leftGraspWidget->show();
+    leftLayout->addWidget(leftGraspWidget);
+    leftGrasp->setLayout(leftLayout);
 
-        if(env_left_hand.find("irobot") != std::string::npos)
-            leftGraspWidget = new graspWidget(graspContainer, "left", "irobot");
-        else if(env_left_hand.find("sandia") != std::string::npos)
-            leftGraspWidget = new graspWidget(graspContainer, "left", "sandia");
-        else if(env_left_hand.find("robotiq") != std::string::npos)
-            leftGraspWidget = new graspWidget(graspContainer, "left", "robotiq");
-        leftGraspWidget->show();
-        leftLayout->addWidget(leftGraspWidget);
-        leftGrasp->setLayout(leftLayout);
+    Qt::WindowFlags left_flags = leftGraspWidget->windowFlags();
+    //flags |= Qt::WindowStaysOnTopHint;
+    left_flags |= Qt::FramelessWindowHint;
+    left_flags |= Qt::Dialog;
+    graspContainer->setWindowFlags(left_flags);
 
-        Qt::WindowFlags flags = leftGraspWidget->windowFlags();
-        //flags |= Qt::WindowStaysOnTopHint;
-        flags |= Qt::FramelessWindowHint;
-        flags |= Qt::Dialog;
-        graspContainer->setWindowFlags(flags);
+    //set border color of left grasp widget
+    QFrame* leftFrame = new QFrame(graspContainer);
+    leftFrame->setLayout(leftLayout);
+    leftFrame->setFrameStyle(QFrame::Panel| QFrame::Plain);
+    leftFrame->setLineWidth(2);
+    leftFrame->setObjectName("leftFrame");
+    leftFrame->setStyleSheet("#leftFrame {color: yellow;}");
+    graspContainer->layout()->addWidget(leftFrame); //adds graspwidgets as well
 
-        //set border color of left grasp widget
-        QFrame* leftFrame = new QFrame(graspContainer);
-        leftFrame->setLayout(leftLayout);
-        leftFrame->setFrameStyle(QFrame::Panel| QFrame::Plain);
-        leftFrame->setLineWidth(2);
-        leftFrame->setObjectName("leftFrame");
-        leftFrame->setStyleSheet("#leftFrame {color: yellow;}");
-        graspContainer->layout()->addWidget(leftFrame); //adds graspwidgets as well
-    }
+    //Right Grasp Widget
+    QWidget * rightGrasp = new QWidget(graspContainer);
+    QVBoxLayout * rightLayout = new QVBoxLayout();
+    rightLayout->setSpacing(0);
+    rightLayout->setMargin(0);
+    rightLayout->setContentsMargins(0,0,0,0);
+    QLabel * rightLabel = new QLabel("Right Hand");
+    rightLabel->setStyleSheet("font: 8pt \"Ubuntu\";");
+    rightLabel->setAlignment(Qt::AlignCenter);
+    rightLayout->addWidget(rightLabel);
+    rightGraspWidget = new graspWidget(graspContainer, "right", "r_hand");
+    rightGraspWidget->show();
+    rightLayout->addWidget(rightGraspWidget);
+    rightGrasp->setLayout(rightLayout);
 
-    std::string env_right_hand = getenv("FLOR_RIGHT_HAND_TYPE");
-    if(env_right_hand.find("irobot") != std::string::npos || env_right_hand.find("sandia") != std::string::npos || env_right_hand.find("robotiq") != std::string::npos)
-    {
-        QWidget * rightGrasp = new QWidget(graspContainer);
-        QVBoxLayout * rightLayout = new QVBoxLayout();
-        rightLayout->setSpacing(0);
-        rightLayout->setMargin(0);
-        rightLayout->setContentsMargins(0,0,0,0);
-        QLabel * rightLabel = new QLabel("Right Hand");
-        rightLabel->setStyleSheet("font: 8pt \"Ubuntu\";");
-        rightLabel->setAlignment(Qt::AlignCenter);
-        rightLayout->addWidget(rightLabel);
-        if(env_right_hand.find("irobot") != std::string::npos)
-            rightGraspWidget = new graspWidget(graspContainer, "right", "irobot");
-        else if(env_right_hand.find("sandia") != std::string::npos)
-            rightGraspWidget = new graspWidget(graspContainer, "right", "sandia");
-        else if(env_right_hand.find("robotiq") != std::string::npos)
-            rightGraspWidget = new graspWidget(graspContainer, "right", "robotiq");
-        rightGraspWidget->show();
-        rightLayout->addWidget(rightGraspWidget);
-        rightGrasp->setLayout(rightLayout);
+    Qt::WindowFlags right_flags = rightGraspWidget->windowFlags();
+    //flags |= Qt::WindowStaysOnTopHint;
+    right_flags |= Qt::FramelessWindowHint;
+    right_flags |= Qt::Dialog;
+    graspContainer->setWindowFlags(right_flags);
 
-        Qt::WindowFlags flags = rightGraspWidget->windowFlags();
-        //flags |= Qt::WindowStaysOnTopHint;
-        flags |= Qt::FramelessWindowHint;
-        flags |= Qt::Dialog;
-        graspContainer->setWindowFlags(flags);
-
-        //set border color of right grasp widget
-        QFrame* rightFrame = new QFrame(graspContainer);
-        rightFrame->setLayout(rightLayout);
-        rightFrame->setFrameStyle(QFrame::WinPanel | QFrame::Plain);
-        rightFrame->setLineWidth(2);
-        rightFrame->setObjectName("rightFrame");
-        rightFrame->setStyleSheet("#rightFrame {color: cyan;}");
-        graspContainer->layout()->addWidget(rightFrame);
-    }
+    //set border color of right grasp widget
+    QFrame* rightFrame = new QFrame(graspContainer);
+    rightFrame->setLayout(rightLayout);
+    rightFrame->setFrameStyle(QFrame::WinPanel | QFrame::Plain);
+    rightFrame->setLineWidth(2);
+    rightFrame->setObjectName("rightFrame");
+    rightFrame->setStyleSheet("#rightFrame {color: cyan;}");
+    graspContainer->layout()->addWidget(rightFrame);
 
     graspFadeIn = new QPropertyAnimation(graspContainer, "windowOpacity");
     graspFadeIn->setEasingCurve(QEasingCurve::InOutQuad);
@@ -342,6 +326,11 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui->Template->hide();
 
 
+    //need local reference to ghost control to access some of its functionality for context menu
+    ghost_control_widget_ = new GhostControlWidget();
+    ghost_control_widget_->hide();
+    use_torso_checked_ = false;
+
     // connect emergency stop button to glancehub
     stop_mapper_ = new QSignalMapper(this);
     connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
@@ -365,7 +354,14 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     //create context menu and add to base3dview
     main_view_context_menu_ = new MainViewContextMenu(this);
+}
 
+void MainViewWidget::setLidarSpinRate(double spin_rate)
+{    
+    //published in radians directly from widget
+    std_msgs::Float64 msg;
+    msg.data = spin_rate;
+    lidar_spin_rate_pub_.publish(msg);
 }
 
 void MainViewWidget::toggleSidebarVisibility()
@@ -499,7 +495,6 @@ void MainViewWidget::hideGraspWidgets()
 }
 
 //callback functions for context menu
-
 void MainViewWidget::contextToggleWindow(int window)
 {
     switch(window)
@@ -581,53 +576,19 @@ void MainViewWidget::setObjectManipulationMode()
 void MainViewWidget::updateContextMenu()
 {
     //change default checkable values of context items.. must as they are created with menu
-    main_view_context_menu_->setAllCheckable();
+    //main_view_context_menu_->setAllCheckable();
 
     //update context menu elements with checks
-    if(!ui->joystickBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Joystick",false);
-    else
-        main_view_context_menu_->setItemCheckState("Joystick",true);
-
-    if(!ui->jointControlBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Joint Control",false);
-    else
-        main_view_context_menu_->setItemCheckState("Joint Control",true);
-
-    if(!ui->pelvisControlBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Pelvis Pose",false);
-    else
-        main_view_context_menu_->setItemCheckState("Pelvis Pose",true);
-
-    if(!ui->basicStepBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Basic Footstep Interface",false);
-    else
-        main_view_context_menu_->setItemCheckState("Basic Footstep Interface",true);
-
-    if(!ui->stepBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Advanced Footstep Interface",false);
-    else
-        main_view_context_menu_->setItemCheckState("Advanced Footstep Interface",true);
-
-    if(!ui->footstepParamBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Footstep Parameter Control",false);
-    else
-        main_view_context_menu_->setItemCheckState("Footstep Parameter Control",true);
-
-    if(!ui->ghostControlBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Ghost Control",false);
-    else
-        main_view_context_menu_->setItemCheckState("Ghost Control",true);
-
-    if(!ui->positionModeBtn->isChecked())
-         main_view_context_menu_->setItemCheckState("Position Mode",false);
-    else
-         main_view_context_menu_->setItemCheckState("Position Mode",true);
-
-    if(!ui->plannerConfigBtn->isChecked())
-       main_view_context_menu_->setItemCheckState("Planner Configuration",false);
-    else
-       main_view_context_menu_->setItemCheckState("Planner Configuration",true);
+    main_view_context_menu_->setItemCheckState("Joystick",ui->joystickBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Joint Control",ui->jointControlBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Pelvis Pose",ui->pelvisControlBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Basic Footstep Interface",ui->basicStepBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Advanced Footstep Interface",ui->stepBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Footstep Parameter Control",ui->footstepParamBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Ghost Control",ui->ghostControlBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Position Mode",ui->positionModeBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Planner Configuration",ui->plannerConfigBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Use Torso",use_torso_checked_);
 
     switch(ui->modeBox->currentIndex())
     {
@@ -646,7 +607,14 @@ void MainViewWidget::updateContextMenu()
         main_view_context_menu_->setItemCheckState("World",false);
         main_view_context_menu_->setItemCheckState("Camera",true);
         break;
-    }
+    }    
+
+}
+
+//need to coordinate checkbox in ghost widget and main view context menu, also call use torso function
+void MainViewWidget::useTorsoContextMenu()
+{
+    use_torso_checked_ = ghost_control_widget_->useTorsoContextMenu();
 }
 
 void MainViewWidget::setManipulationMode(int mode)
@@ -696,6 +664,8 @@ void MainViewWidget::graspWidgetToggle()
 MainViewWidget::~MainViewWidget()
 {
     delete ui;
+
+    delete ghost_control_widget_;
 }
 
 void MainViewWidget::timerEvent(QTimerEvent *event)
@@ -849,9 +819,21 @@ void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
 
 void MainViewWidget::toggleWindow(int window)
 {
-    std_msgs::Int8 cmd;
-    cmd.data = ((QPushButton*)toggle_mapper_->mapping(window))->isChecked() ? window : -window;
-    window_control_pub_.publish(cmd);
+    if(window == WINDOW_GHOST_CONFIG)
+    {
+        if(ghost_control_widget_->isVisible())
+            ghost_control_widget_->hide();
+        else
+            ghost_control_widget_->show();
+    }
+    else
+    {
+        std_msgs::Int8 cmd;
+        cmd.data = ((QPushButton*)toggle_mapper_->mapping(window))->isChecked() ? window : -window;
+        window_control_pub_.publish(cmd);
+    }
+
+
 }
 
 void MainViewWidget::oneViewToggle()

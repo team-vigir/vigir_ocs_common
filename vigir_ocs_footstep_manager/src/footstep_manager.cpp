@@ -8,8 +8,6 @@
 #include <vigir_footstep_planning_msgs/Foot.h>
 #include <vigir_footstep_planning_msgs/EditStepService.h>
 
-#include <flor_footstep_planner_msgs/flor_footstep_planner_msgs.h>
-
 namespace ocs_footstep
 {
 void FootstepManager::onInit()
@@ -82,16 +80,39 @@ void FootstepManager::onInit()
     execute_step_plan_client_ = new ExecuteStepPlanClient("execute_step_plan", true);
 
     //wait for servers to come online
-    update_feet_client_->waitForServer();
-    step_plan_request_client_->waitForServer();
-    edit_step_client_->waitForServer();
-    stitch_step_plan_client_->waitForServer();
-    update_step_plan_client_->waitForServer();
-    get_all_parameter_sets_client_->waitForServer();
-    //execute_step_plan_client_->waitForServer();
+    while(!update_feet_client_->waitForServer(ros::Duration(5.0)))
+    {
+        ROS_INFO("Waiting for the update_feet server to come up");
+    }
+    while(!step_plan_request_client_->waitForServer(ros::Duration(5.0)))
+    {
+        ROS_INFO("Waiting for the step_plan_request server to come up");
+    }
+    while(!edit_step_client_->waitForServer(ros::Duration(5.0)))
+    {
+        ROS_INFO("Waiting for the edit_step server to come up");
+    }
+    while(!stitch_step_plan_client_->waitForServer(ros::Duration(5.0)))
+    {
+        ROS_INFO("Waiting for the stitch_step_plan server to come up");
+    }
+    while(!update_step_plan_client_->waitForServer(ros::Duration(5.0)))
+    {
+        ROS_INFO("Waiting for the update_step_plan server to come up");
+    }
+    while(!get_all_parameter_sets_client_->waitForServer(ros::Duration(5.0)))
+    {
+        ROS_INFO("Waiting for the get_all_parameter_sets server to come up");
+    }
+    //while(!execute_step_plan_client_->waitForServer(ros::Duration(5.0)))
+    //{
+    //    ROS_INFO("Waiting for the execute_step_plan server to come up");
+    //}
+
+    ROS_INFO("FootstepManager initialized!");
 
     // initialize service for deleting footsteps
-    edit_step_service_client_ = nh.serviceClient<vigir_footstep_planning_msgs::EditStepService>("/vigir/global_footstep_planner/edit_step");
+    //edit_step_service_client_ = nh.serviceClient<vigir_footstep_planning_msgs::EditStepService>("/vigir/global_footstep_planner/edit_step");
 
     // request parameter sets
     sendGetAllParameterSetsGoal();
@@ -491,13 +512,18 @@ void FootstepManager::calculateGoal()
     double shift_x = -sin(end_yaw) * (0.5 * foot_separation);
     double shift_y =  cos(end_yaw) * (0.5 * foot_separation);
 
+    goal_.header.frame_id = "/world";
+    goal_.header.stamp = ros::Time::now();
+
     goal_.left.header.frame_id = "/world";
+    goal_.left.header.stamp = ros::Time::now();
     goal_.left.pose.position.x = goal_pose_.pose.position.x + shift_x;
     goal_.left.pose.position.y = goal_pose_.pose.position.y + shift_y;
     goal_.left.pose.position.z = lower_body_state_.left_foot_pose.position.z;//goal_pose_.pose.position.z;
     goal_.left.pose.orientation = goal_pose_.pose.orientation;
 
     goal_.right.header.frame_id = "/world";
+    goal_.right.header.stamp = ros::Time::now();
     goal_.right.pose.position.x = goal_pose_.pose.position.x - shift_x;
     goal_.right.pose.position.y = goal_pose_.pose.position.y - shift_y;
     goal_.right.pose.position.z = lower_body_state_.right_foot_pose.position.z;//goal_pose_.pose.position.z;
@@ -725,6 +751,9 @@ void FootstepManager::publishFootstepParameterSetList()
 // action goal for updatefeet
 void FootstepManager::sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet& feet)
 {
+    //convert to ankle for planner
+    foot_pose_transformer_->transformToPlannerFrame(feet);
+
     // Fill in goal here
     vigir_footstep_planning_msgs::UpdateFeetGoal action_goal;
     action_goal.feet = feet;
@@ -764,6 +793,9 @@ void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& sta
         // update the goal feet
         goal_ = result->feet;
 
+        //convert to sole for visualization
+        foot_pose_transformer_->transformToRobotFrame(goal_);
+
         // need to send visualization message
         updateGoalVisMsgs();
 
@@ -787,13 +819,20 @@ void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& sta
 }
 
 // action goal for StepPlanRequest
-void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_index, const unsigned char start_foot)
+void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_step_index, const unsigned char start_foot)
 {
     vigir_footstep_planning_msgs::StepPlanRequest request;
 
+    //convert transform to ankle for planner
+    foot_pose_transformer_->transformToPlannerFrame(start);
+    foot_pose_transformer_->transformToPlannerFrame(goal);
+
+    request.header.frame_id = "/world";
+    request.header.stamp = ros::Time::now();
+
     request.start = start;
     request.goal = goal;
-    request.start_index = start_index;
+    request.start_step_index = start_step_index;
 
     request.start_foot_selection = start_foot;
 
@@ -845,12 +884,17 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
     {
         if(result->step_plan.steps.size() == 0)
         {
-            ROS_INFO("StepPlanRequest: Received empty step plan.");
+            ROS_ERROR("StepPlanRequest: Received empty step plan.");
             return;
         }
 
+        vigir_footstep_planning_msgs::StepPlanRequestResult result_copy = *result;
+
+        //convert to sole for visualization
+        foot_pose_transformer_->transformToRobotFrame(result_copy.step_plan);
+
         // we only change the current step lists if we receive a response
-        if(result->step_plan.steps[0].step_index == 0)
+        if(result_copy.step_plan.steps[0].step_index == 0)
             // This function will create a completely new plan, so we need to add a new empty list of plans to the stack
             addNewPlanList();
         else
@@ -858,7 +902,7 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
             addCopyPlanList();
 
         // add resulting plan to the top of the stack of plans, removing any extra steps
-        extendPlanList(result->step_plan);
+        extendPlanList(result_copy.step_plan);
 
         publishFootsteps();
 
@@ -869,6 +913,10 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
 // action goal for EditStep
 void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step, unsigned int plan_mode)
 {
+    //convert to ankle for planner
+    foot_pose_transformer_->transformToPlannerFrame(step_plan);
+    foot_pose_transformer_->transformToPlannerFrame(step.foot);
+
     // Fill in goal here
     vigir_footstep_planning_msgs::EditStepGoal action_goal;
     action_goal.step_plan = step_plan;
@@ -906,9 +954,30 @@ void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state
 
     if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
     {
+        if(result->step_plans.size() == 0)
+        {
+            ROS_ERROR("EditStep: Received no step plan.");
+            return;
+        }
+
+        if(result->step_plans[0].steps.size() == 0)
+        {
+            ROS_ERROR("EditStep: Received empty step plan.");
+            return;
+        }
+
+
+		vigir_footstep_planning_msgs::EditStepResult result_copy = *result;
+        //convert all step plans transforms to be relative to sole frame for visualization
+        //Brian::can optimize to just transform one plan?
+        for(int i=0;i<result_copy.step_plans.size();i++)
+        {
+            foot_pose_transformer_->transformToRobotFrame(result_copy.step_plans[i]);
+        }
+
         // first need to figure out which step plan contains the step index used in the result
         unsigned int step_plan_index;
-        findStepPlan(result->step_plans[0].steps[0].step_index, step_plan_index);
+        findStepPlan(result_copy.step_plans[0].steps[0].step_index, step_plan_index);
 
         // save the index of the step plan
         std::vector<vigir_footstep_planning_msgs::StepPlan>::iterator step_plan_it = getStepPlanList().begin()+step_plan_index;
@@ -916,7 +985,7 @@ void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state
         getStepPlanList().erase(step_plan_it);
 
         // and add resulting plan(s) to the list again using the previous index
-        getStepPlanList().insert(getStepPlanList().begin()+step_plan_index, result->step_plans.begin(), result->step_plans.end());
+        getStepPlanList().insert(getStepPlanList().begin()+step_plan_index, result_copy.step_plans.begin(), result_copy.step_plans.end());
 
         publishFootsteps();
     }
@@ -927,6 +996,12 @@ void FootstepManager::sendStitchStepPlanGoal(std::vector<vigir_footstep_planning
 {
     if(step_plan_list.size() < 2)
         return;
+
+    //convert all step plans transforms to be relative to ankle frame for planner
+    for(int i=0;i<step_plan_list.size();i++)
+    {
+        foot_pose_transformer_->transformToPlannerFrame(step_plan_list[i]);
+    }
 
     // Fill in goal here
     vigir_footstep_planning_msgs::StitchStepPlanGoal action_goal;
@@ -966,8 +1041,12 @@ void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState&
         // create a new plan list for our stitched step plan
         addNewPlanList();
 
+        vigir_footstep_planning_msgs::StitchStepPlanResult result_copy = *result;
+        //convert step plan transform to be relative to sole frame for visualization
+        foot_pose_transformer_->transformToRobotFrame(result_copy.step_plan);
+
         // add new step plan to the list
-        getStepPlanList().push_back(result->step_plan);
+        getStepPlanList().push_back(result_copy.step_plan);
 
         // clear start step index
         start_step_index_ = -1;
@@ -979,6 +1058,9 @@ void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState&
 // action goal for pplan
 void FootstepManager::sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan& step_plan)
 {
+    //convert transform to ankle for planner
+    foot_pose_transformer_->transformToPlannerFrame(step_plan);
+
     // Fill in goal here
     vigir_footstep_planning_msgs::UpdateStepPlanGoal action_goal;
     action_goal.step_plan = step_plan;
@@ -1023,8 +1105,12 @@ void FootstepManager::sendExecuteStepPlanGoal()
         return;
 
     // Fill in goal here
-    vigir_footstep_planning_msgs::ExecuteStepPlanGoal action_goal;
+    vigir_footstep_planning_msgs::ExecuteStepPlanGoal action_goal;    
     action_goal.step_plan = getStepPlan();
+
+    //convert transform to ankle for planner, might be redundant here?
+    foot_pose_transformer_->transformToPlannerFrame(action_goal.step_plan);
+
     // and send it to the server
     if(execute_step_plan_client_->isServerConnected())
     {
@@ -1065,7 +1151,7 @@ void FootstepManager::doneExecuteStepPlan(const actionlib::SimpleClientGoalState
 void FootstepManager::sendGetAllParameterSetsGoal()
 {
     // Fill in goal here
-    vigir_footstep_planning_msgs::GetAllParameterSetsGoal action_goal;
+    vigir_footstep_planning_msgs::GetAllParameterSetsGoal action_goal;    
 
     // and send it to the server
     if(get_all_parameter_sets_client_->isServerConnected())
@@ -1179,9 +1265,9 @@ void FootstepManager::extendPlanList(const vigir_footstep_planning_msgs::StepPla
             {
                 // delete [j+1,end] since we already have these in the new plan
                 getStepPlanList()[i].steps.erase(getStepPlanList()[i].steps.begin()+j, getStepPlanList()[i].steps.end());
-                getStepPlanList()[i].cost.erase(getStepPlanList()[i].cost.begin()+j, getStepPlanList()[i].cost.end());
+                //getStepPlanList()[i].cost.erase(getStepPlanList()[i].cost.begin()+j, getStepPlanList()[i].cost.end());
                 new_step_plan_copy.steps.erase(new_step_plan_copy.steps.begin(), new_step_plan_copy.steps.begin()+1);
-                new_step_plan_copy.cost.erase(new_step_plan_copy.cost.begin(), new_step_plan_copy.cost.begin()+1);
+                //new_step_plan_copy.cost.erase(new_step_plan_copy.cost.begin(), new_step_plan_copy.cost.begin()+1);
                 // WHEN I UPDATE STEPPLAN MARKERS IN BETWEEN STEPPLANS, I WILL HAVE TO ADD THE LAST STEP OF PLAN A TO PLAN B
                 break;
             }

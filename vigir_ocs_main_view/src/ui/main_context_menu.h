@@ -11,6 +11,7 @@
 #include <QTreeWidget>
 #include <std_msgs/String.h>
 #include "context_menu_manager.h"
+#include "ui/ghost_control_widget.h"
 
 namespace ui
 {
@@ -30,7 +31,7 @@ public:
     virtual ~MainViewContextMenu();
     //contextMenuItem* getContextMenuItem();
     void setItemCheckState(std::string name, bool checkable);
-    void setAllCheckable();
+    //void setAllCheckable();
 
 public Q_SLOTS:
     //void updateContextMenu();
@@ -45,23 +46,9 @@ private:
 
     vigir_ocs::Base3DView* base_view_;
     ContextMenuManager* context_menu_manager_;
+    GhostControlWidget * ghost_control_widget_;
 
     std::map<std::string, contextMenuItem *> context_menu_items_map_;
-
-    //context item references for checking/unchecking in context menu
-    contextMenuItem * joystickContext;
-    contextMenuItem * positionContext;
-    contextMenuItem * graspContext;
-    contextMenuItem * jointControlContext;
-    contextMenuItem * pelvisContext;
-    contextMenuItem * ghostContext;
-    contextMenuItem * plannerContext;
-    contextMenuItem * footBasicContext;
-    contextMenuItem * footAdvancedContext;
-    contextMenuItem * footParameterContext;
-    contextMenuItem * objectContext;
-    contextMenuItem * worldContext;
-    contextMenuItem * cameraContext;
 
    //CALLBACKS///////////////////////////////////
     void systemCommandContext(std::string command);

@@ -4,14 +4,14 @@ project(vigir_ocs_main_view)
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
 
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_perspective_view vigir_ocs_ortho_view  vigir_ocs_status_bar vigir_ocs_grasp_widget vigir_ocs_notification_system )
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_perspective_view vigir_ocs_ortho_view  vigir_ocs_status_bar vigir_ocs_grasp_widget vigir_ocs_notification_system vigir_ocs_ghost_control_widget)
 
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS ${catkin_INCLUDE_DIRS} src
 	LIBRARIES ${PROJECT_NAME} 
 
-        CATKIN_DEPENDS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_perspective_view vigir_ocs_ortho_view  vigir_ocs_status_bar vigir_ocs_grasp_widget vigir_ocs_notification_system
+        CATKIN_DEPENDS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_perspective_view vigir_ocs_ortho_view  vigir_ocs_status_bar vigir_ocs_grasp_widget vigir_ocs_notification_system vigir_ocs_ghost_control_widget
 
 )
 
@@ -57,7 +57,7 @@ target_link_libraries(main_view ${catkin_LIBRARIES} ${QT_LIBRARIES})
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
-install( TARGETS
-    main_view
-    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+install( TARGETS ${PROJECT_NAME} main_view
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

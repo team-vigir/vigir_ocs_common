@@ -169,6 +169,12 @@ void jointList::updateList(const sensor_msgs::JointState::ConstPtr& states )
         joints_[i]->setBackgroundColor(3,Qt::white);
 
         const moveit::core::JointModel* joint =  robot_state->getJointModel(states->name[i]);
+
+        if (!joint){
+            ROS_WARN("Searching for joint %s in model returns null pointer! [#2443]", states->name[i].c_str());
+            continue;
+        }
+
         //ignore unnecessary joints
         if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
           continue;
