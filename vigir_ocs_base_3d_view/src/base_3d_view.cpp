@@ -1867,7 +1867,7 @@ void Base3DView::setTemplateGraspLock(int arm)
 
 void Base3DView::deselectAll()
 {   
-    ROS_ERROR("deselect");
+    //ROS_ERROR("deselect");
     //make all markers disappear
     flor_ocs_msgs::OCSMarkerVisibility msg;
     msg.all_markers = true;
