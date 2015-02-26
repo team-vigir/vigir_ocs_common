@@ -74,6 +74,7 @@ public Q_SLOTS:
     void on_affordanceBox_activated(const QString &arg1);
     void on_performButton_clicked();
     void on_templateButton_clicked();
+    void on_preGraspButton_clicked();
     void on_releaseButton_clicked();
     void on_manualRadio_clicked();
     void on_templateRadio_clicked();
@@ -131,6 +132,7 @@ private:
     ros::Publisher template_remove_pub_;
     ros::Publisher grasp_mode_command_pub_;
     ros::Publisher template_match_request_pub_;
+    ros::Publisher move_request_pub_;
     ros::Publisher template_stitch_request_pub_;
     ros::Publisher grasp_request_pub_;
     ros::Publisher grasp_release_pub_;

@@ -115,6 +115,8 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     //Publisher for template match rewuest for
     template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/" + hand_name_ + "_template_match_request", 1, false );
 
+    move_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/manipulation_control/" + hand_name_ + "/move_to_pose", 1, false );
+
     robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/" + hand_name_ + "/grasp_status",1, &graspWidget::robotStatusCB,  this );
     ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_" + hand_side_ + "_hand_pose",             1, false);
     //ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_" + hand_ + "_hand/joint_states",     1, false); // /ghost_" + hand_ + "_hand/joint_states
@@ -578,6 +580,25 @@ void graspWidget::on_templateButton_clicked()
     msg.pose.header.stamp = ros::Time::now();
     msg.pose.header.seq++;
     template_match_request_pub_.publish(msg);
+}
+
+void graspWidget::on_preGraspButton_clicked()
+{
+    if(ui->templateBox->count() < 1)
+    {
+        ROS_ERROR("Tried to move when no templates exsist");
+        return;
+    }
+    hideHand();
+    ROS_INFO("Hand move requested...");
+
+    flor_grasp_msgs::GraspSelection msg;
+    msg.template_type.data = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
+    msg.template_id.data   = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
+    msg.grasp_id.data      = ui->graspBox->currentText().toInt();
+    msg.final_pose         = false;
+
+    move_request_pub_.publish(msg);
 }
 
 void graspWidget::on_performButton_clicked()
