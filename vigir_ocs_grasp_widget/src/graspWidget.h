@@ -74,7 +74,7 @@ public Q_SLOTS:
     void on_affordanceBox_activated(const QString &arg1);
     void on_performButton_clicked();
     void on_templateButton_clicked();
-    void on_preGraspButton_clicked();
+    void on_moveToPoseButton_clicked();
     void on_releaseButton_clicked();
     void on_manualRadio_clicked();
     void on_templateRadio_clicked();

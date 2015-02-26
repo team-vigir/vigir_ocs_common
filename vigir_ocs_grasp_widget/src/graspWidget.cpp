@@ -582,7 +582,7 @@ void graspWidget::on_templateButton_clicked()
     template_match_request_pub_.publish(msg);
 }
 
-void graspWidget::on_preGraspButton_clicked()
+void graspWidget::on_moveToPoseButton_clicked()
 {
     if(ui->templateBox->count() < 1)
     {
@@ -596,7 +596,7 @@ void graspWidget::on_preGraspButton_clicked()
     msg.template_type.data = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
     msg.template_id.data   = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
     msg.grasp_id.data      = ui->graspBox->currentText().toInt();
-    msg.final_pose         = false;
+    msg.final_pose         = ui->show_grasp_radio->isChecked();
 
     move_request_pub_.publish(msg);
 }

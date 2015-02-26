@@ -537,16 +537,16 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="preGraspButton">
+           <widget class="QPushButton" name="moveToPoseButton">
             <property name="text">
-             <string>Pre Grasp</string>
+             <string>Move to Pose</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QPushButton" name="templateButton">
             <property name="text">
-             <string>Final Grasp</string>
+             <string>Move to Template</string>
             </property>
            </widget>
           </item>
