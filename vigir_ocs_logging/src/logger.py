@@ -7,6 +7,7 @@ import signal
 import rospy
 import datetime
 import time
+from std_msgs.msg import String
 from flor_ocs_msgs.msg import OCSLogging
 
 class App(object):
@@ -22,6 +23,9 @@ class App(object):
 		self.enableBDILogging = False
 		self.name = ''
 		self.logLocation = '/home/vigir/Experiments'
+		self.onboard = True
+		self.pub = ''
+		self.query = ""
 
 	def createExperiment(self, name, description):
 		print "Creating experiment..."+name
@@ -48,6 +52,13 @@ class App(object):
 		print output
 		return output
 
+	def state(self, data):
+		print data
+		if self.logging:
+			temp ="start"
+		else:
+			temp = "stop"
+		self.pub.publish(self.query + temp)
 
 	def startLogging(self):
 		print "Starting logs"
@@ -56,6 +67,8 @@ class App(object):
 		print bagCommand
 		self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE, preexec_fn=os.setsid)
 		self.logging = True
+		print self.query + "start"
+		self.pub.publish(self.query + "start")
 		
 	def killLogging(self, results):
 		print "Killing logs"
@@ -72,6 +85,8 @@ class App(object):
 		f.write('</Experiment>')
 		f.close()
 		self.folder = ''
+		print self.query + "stop"
+		self.pub.publish(self.query + "stop")
 			
 	def listener(self):
 		# setup call back for lgging
@@ -97,7 +112,17 @@ class App(object):
 			print self.logLocation
 		else:
 			print "Using default logging location"
+		if rospy.has_param("~onboard"):
+			print "logging instance is onboard?"
+			self.onboard = rospy.get_param("~onboard")
+			print self.onboard
 		rospy.Subscriber('/vigir_logging', OCSLogging, self.callback)
+		rospy.Subscriber('/vigir_logging_query', String, self.state)
+		self.pub = rospy.Publisher('/vigir_logging_responce', String, queue_size=1)
+		if self.onboard:
+			self.query = "onboard_"
+		else:
+			self.query = "ocs_"
 		rospy.spin()
 		
 	def grabLogs(self, time):
@@ -113,6 +138,7 @@ class App(object):
 			bagCommand = "python atlas_log_downloader.py 192.168.130.103 /" + self.logLocation + '/BDI_Logs ' + str(time)
 		print bagCommand
 		self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE, preexec_fn=os.setsid)
+		
 
 	def callback(self, data):
 		print "Recieved message!"
