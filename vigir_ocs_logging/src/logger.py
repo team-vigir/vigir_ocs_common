@@ -51,7 +51,7 @@ class App(object):
 
 	def startLogging(self):
 		print "Starting logs"
-		bashCommand = ["/bin/bash", "-i", "-c"]
+		bashCommand = ["/bin/bash", "--norc", "-c"]
 		bagCommand = "rosbag record -O /"+ self.folder + "/log.bag " + self.combined()
 		print bagCommand
 		self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE, preexec_fn=os.setsid)
@@ -102,7 +102,7 @@ class App(object):
 		
 	def grabLogs(self, time):
 		print "Grabbing robot logs!!"
-		bashCommand = ["/bin/bash", "-norc", "-c"]
+		bashCommand = ["/bin/bash", "--norc", "-c"]
 		if(not(self.folder == '')):
 			if not os.path.exists(self.folder):
 				os.makedirs(self.folder)
