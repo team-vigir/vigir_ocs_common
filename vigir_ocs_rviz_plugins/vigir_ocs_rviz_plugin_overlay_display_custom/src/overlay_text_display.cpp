@@ -50,7 +50,7 @@ OverlayTextDisplay::OverlayTextDisplay() : Display(),
     text_(""), font_(""),
     bg_color_(0, 0, 0, 0),
     fg_color_(255, 255, 255, 255),
-    require_update_texture_(false),
+    require_update_texture_(false),    
     overlay_text_(NULL)
 {
     update_topic_property_ = new rviz::RosTopicProperty(

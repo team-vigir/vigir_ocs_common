@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package>
+  <name>vigir_ocs_behavior_manager</name>
+  <version>0.1.0</version>
+  <description>Behavior Manager</description>
+  <maintainer email="bwright5@vt.edu">Brian Wright</maintainer>
+  <license>TORC</license>
+  <author email="bwright5@vt.edu">Brian Wright</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>roslib</build_depend>
+  <build_depend>flor_ocs_msgs</build_depend>
+  
+  <run_depend>rospy</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>roslib</run_depend>
+  <run_depend>flor_ocs_msgs</run_depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+  </export>
+</package>

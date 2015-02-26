@@ -45,7 +45,7 @@ OgreText::OgreText() :
     panel_->setMaterialName(material_->getName());
 
     overlay = overlay_manager_->create(std::string("GUI_OVERLAY")+boost::lexical_cast<std::string>(text_id));
-    overlay->add2D(panel_);
+    overlay->add2D(panel_);   
 
     sz_element = "element_"+StringConverter::toString(init);
     text_area_ = static_cast<TextAreaOverlayElement*>(overlay_manager_->createOverlayElement("TextArea",sz_element));
@@ -100,7 +100,7 @@ void OgreText::calculateTextPixelSize(DisplayString text, FontPtr mpFont, Real m
     Real vpWidth, vpHeight;
     vpWidth = (Real) (OverlayManager::getSingleton().getViewportWidth());
     vpHeight = (Real) (OverlayManager::getSingleton().getViewportHeight());
-    //ROS_ERROR("[viewport] w: %f h: %f",vpWidth,vpHeight);
+    //ROS_ERROR("[viewport] w: %f h: %f",vpWidth,vpHeight);   
 
     Real mViewportAspectCoef = vpHeight/vpWidth;
 

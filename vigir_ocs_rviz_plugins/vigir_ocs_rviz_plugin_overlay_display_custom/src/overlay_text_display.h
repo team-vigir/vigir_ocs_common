@@ -64,7 +64,7 @@ namespace jsk_rviz_plugin
     virtual void onDisable();
     virtual void update(float wall_dt, float ros_dt);
 
-    //OverlayObject::Ptr overlay_;
+    //OverlayObject::Ptr overlay_;    
     OgreText *overlay_text_;
 
     int texture_width_;
@@ -90,7 +90,7 @@ namespace jsk_rviz_plugin
     float fade_out_;
     float fade_in_timer_;
     float up_timer_;
-    float fade_out_timer_;
+    float fade_out_timer_;    
 
     ros::Subscriber sub_;
 
@@ -107,7 +107,7 @@ namespace jsk_rviz_plugin
     rviz::FloatProperty* bg_alpha_property_;
     rviz::ColorProperty* fg_color_property_;
     rviz::FloatProperty* fg_alpha_property_;
-    rviz::StringProperty* font_property_;
+    rviz::StringProperty* font_property_;    
   protected Q_SLOTS:
     void updateTopic();
     void updateOvertakeProperties();
@@ -122,6 +122,7 @@ namespace jsk_rviz_plugin
     void updateBGAlpha();
     void updateFont();
     void updateLineWidth();
+    void updateNotificationCount();
   private:
     void processMessage(const flor_ocs_msgs::OCSOverlayText::ConstPtr& msg);
     void setPositionFromAlignment();
