@@ -34,60 +34,51 @@ void TemplateNodelet::onInit()
 
     ROS_INFO(" Start reading database files");
 
-    // which file are we reading
-    if (!nhp.getParam("/r_hand_library", this->r_grasps_filename_))
-    {
-        ROS_ERROR(" Did not find Right Grasp Library parameter /r_hand_library");
-    }
-    if (!nhp.getParam("/l_hand_library", this->l_grasps_filename_))
-    {
-        ROS_ERROR(" Did not find Left Grasp Library parameter /l_hand_library");
-    }
-    if (!nhp.getParam("/ot_library", this->ot_filename_))
-    {
-        ROS_ERROR(" Did not find Object Template Library parameter /ot_library");
-    }
-    if (!nhp.getParam("/stand_poses_library", this->stand_filename_))
-    {
-        ROS_ERROR(" Did not find Stand Poses parameter /stand_poses_library");
-    }
-
-    XmlRpc::XmlRpcValue   gp_T_hand;
-
-    TemplateNodelet::loadObjectTemplateDatabaseXML(this->ot_filename_);
-
-    ROS_INFO("OT Database loaded");
-
-    // Load the right hand specific grasping transform
-    nh.getParam("/r_hand_tf/gp_T_hand", gp_T_hand);
-    gp_T_hand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
-    gp_T_hand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
-
-    ROS_INFO("Right Graspit to Palm tf set");
-
     //LOADING HAND MODEL FOR JOINT NAMES (SHOULD WORK FOR ANY HAND)
     hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
     hand_robot_model_ = hand_model_loader_->getModel();
 
-    TemplateNodelet::loadGraspDatabaseXML(this->r_grasps_filename_, "right");
+    XmlRpc::XmlRpcValue   gp_T_hand;
 
-    ROS_INFO("Right Grasp Database loaded");
+
+    // Load the right hand specific grasping transform
+    if (!nh.getParam("/r_hand_tf/gp_T_hand", gp_T_hand))
+        ROS_ERROR(" Did not find hand transform parameter /r_hand_tf/gp_T_hand ");
+    else{
+        gp_T_hand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
+        gp_T_hand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
+        ROS_INFO("Right Graspit to Palm tf set");
+    }
 
     // Load the left hand specific grasping transform
-    nh.getParam("/l_hand_tf/gp_T_hand", gp_T_hand);
-    gp_T_hand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
-    gp_T_hand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
+    if (!nh.getParam("/l_hand_tf/gp_T_hand", gp_T_hand))
+        ROS_ERROR(" Did not find hand transform parameter /l_hand_tf/gp_T_hand");
+    else{
+        gp_T_hand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
+        gp_T_hand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
+        ROS_INFO("Left Graspit to Palm tf set");
+    }
 
-    ROS_INFO("Right Graspit to Palm tf set");
+    if (!nhp.getParam("/ot_library", this->ot_filename_))
+        ROS_ERROR(" Did not find Object Template Library parameter /ot_library");
+    else
+        TemplateNodelet::loadObjectTemplateDatabaseXML(this->ot_filename_);
 
-    TemplateNodelet::loadGraspDatabaseXML(this->l_grasps_filename_, "left");
+    if (!nhp.getParam("/r_hand_library", this->r_grasps_filename_))
+        ROS_ERROR(" Did not find Right Grasp Library parameter /r_hand_library");
+    else
+        TemplateNodelet::loadGraspDatabaseXML(this->r_grasps_filename_, "right");
 
-    ROS_INFO("Left Grasp Database loaded");
+    if (!nhp.getParam("/l_hand_library", this->l_grasps_filename_))
+        ROS_ERROR(" Did not find Left Grasp Library parameter /l_hand_library");
+    else
+        TemplateNodelet::loadGraspDatabaseXML(this->l_grasps_filename_, "left");
 
     // Load the robot specific ghost_poses database
-    TemplateNodelet::loadStandPosesDatabaseXML(this->stand_filename_);
-
-    ROS_INFO("Stand Poses Database loaded");
+    if (!nhp.getParam("/stand_poses_library", this->stand_filename_))
+        ROS_ERROR(" Did not find Stand Poses parameter /stand_poses_library");
+    else
+        TemplateNodelet::loadStandPosesDatabaseXML(this->stand_filename_);
     
     id_counter_ = 0;
 
@@ -531,6 +522,9 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
     for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it)
         for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it2=it->second.grasps.begin(); it2!=it->second.grasps.end(); ++it2)
             ROS_INFO("OT Map, inside ot: %d -> Grasp id %s ", it->second.type, it2->second.id.c_str());
+
+    ROS_INFO("%s Grasp Database loaded",hand_side.c_str());
+
 }
 
 void TemplateNodelet::loadStandPosesDatabaseXML(std::string& file_name){
@@ -617,6 +611,8 @@ void TemplateNodelet::loadStandPosesDatabaseXML(std::string& file_name){
     for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it)
         for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it2=it->second.stand_poses.begin(); it2!=it->second.stand_poses.end(); ++it2)
             ROS_INFO("OT Map, inside ot: %d -> Stand pose id %d ", it->second.type, it2->second.id);
+
+    ROS_INFO("Stand Poses Database loaded");
 }
 
 void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
@@ -835,6 +831,8 @@ void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
                                                                                              , object_template_map_[template_type].path.c_str()
                                                                                              , object_template_map_[template_type].affordances[0].distance);
     }
+
+    ROS_INFO("OT Database loaded");
 }
 
 void TemplateNodelet::gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans){
@@ -957,19 +955,22 @@ bool TemplateNodelet::graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Req
     /*Fill in the blanks of the response "res"
      * with the info of the template id in the request "req"
     */
-    int i=0;
-    for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it2  = object_template_map_[req.template_type].grasps.begin();
-                                                             it2 != object_template_map_[req.template_type].grasps.end();
-                                                             ++it2, i++){
-        res.grasp_information.grasps.push_back(it2->second);
+    if(object_template_map_.size() > 0){
+        int i=0;
+        for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it2  = object_template_map_[req.template_type].grasps.begin();
+                                                                 it2 != object_template_map_[req.template_type].grasps.end();
+                                                                 ++it2, i++){
+            res.grasp_information.grasps.push_back(it2->second);
+        }
+        i=0;
+        for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it2  = object_template_map_[req.template_type].stand_poses.begin();
+                                                                         it2 != object_template_map_[req.template_type].stand_poses.end();
+                                                                         ++it2, i++){
+            res.grasp_information.stand_poses.push_back(it2->second);
+        }
+        return true;
     }
-    i=0;
-    for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it2  = object_template_map_[req.template_type].stand_poses.begin();
-                                                                     it2 != object_template_map_[req.template_type].stand_poses.end();
-                                                                     ++it2, i++){
-        res.grasp_information.stand_poses.push_back(it2->second);
-    }
-    return true;
+    return false;
 }
 
 bool TemplateNodelet::attachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
@@ -1244,24 +1245,25 @@ void TemplateNodelet::addCollisionObject(int index, std::string mesh_name, geome
     if(infile.good()){
         std::string mesh_path = "package://vigir_template_library/object_templates/"+mesh_name + ".ply";
         ROS_INFO("1 mesh_path: %s", mesh_path.c_str());
-        shapes::Mesh* shape = shapes::createMeshFromResource(mesh_path);
-        shapes::ShapeMsg mesh_msg;
 
+        shapes::Mesh* shape = shapes::createMeshFromResource(mesh_path);
+        shape_msgs::Mesh mesh_;
+        shapes::ShapeMsg mesh_msg = mesh_;
         shapes::constructMsgFromShape(shape,mesh_msg);
-        shape_msgs::Mesh                        mesh_;
         mesh_ = boost::get<shape_msgs::Mesh>(mesh_msg);
 
-//        collision_object.primitives.resize(1);
-//        collision_object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
-//        collision_object.primitives[0].dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
-//        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.10;
-//        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 1.00;
-//        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.05;
-//        collision_object.primitive_poses.push_back(pose);
+//        collision_object.meshes.push_back(mesh_);
+//        collision_object.mesh_poses.push_back(pose);
+
+        collision_object.primitives.resize(1);
+        collision_object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+        collision_object.primitives[0].dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
+        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.05;
+        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.05;
+        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.30;
+        collision_object.primitive_poses.push_back(pose);
 
 
-        collision_object.meshes.push_back(mesh_);
-        collision_object.mesh_poses.push_back(pose);
         collision_object.operation = collision_object.ADD;
         ROS_INFO("Adding the object: %s to the environment",collision_object.id.c_str());
         co_pub_.publish(collision_object);
@@ -1288,7 +1290,7 @@ void TemplateNodelet::moveCollisionObject(int index, geometry_msgs::Pose pose){
             moveit_msgs::CollisionObject collision_object;
             collision_object.id              = boost::to_string((unsigned int)index);
             collision_object.header.frame_id = "/world";
-            collision_object.primitive_poses.push_back(pose);
+            collision_object.mesh_poses.push_back(pose);
             collision_object.operation       = collision_object.MOVE;
             ROS_INFO("Moving the object in the environment");
             co_pub_.publish(collision_object);
