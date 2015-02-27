@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vigir_ocs_behavior_manager)
 
+
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
 find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib std_msgs sensor_msgs flor_ocs_msgs )# vigir_perception_msgs)
@@ -11,6 +12,8 @@ catkin_package(
     LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS roscpp rospy roslib std_msgs sensor_msgs flor_ocs_msgs 
 )
+
+catkin_python_setup()
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
@@ -24,7 +27,7 @@ add_definitions(-DQT_NO_KEYWORDS)
 ## Qt's meta-object compiler.
 
 qt4_wrap_cpp(MOC_FILES
-  src/behavior_manager.h
+  #src/behavior_manager.h
   src/behavior_notification.h
 )
 
@@ -40,25 +43,29 @@ qt4_wrap_ui(UIC_FILES
 
 set(SOURCE_FILES
   ${MOC_FILES}
-  src/main.cpp
+ # src/main.cpp
   src/behavior_confirm.cpp
-  src/behavior_manager.cpp
+ # src/behavior_manager.cpp
   src/behavior_notification.cpp
 )
 include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src)
 
-add_executable(vigir_ocs_behavior_manager_exe ${UIC_FILES} ${SOURCE_FILES})
-target_link_libraries(vigir_ocs_behavior_manager_exe ${catkin_LIBRARIES} ${QT_LIBRARIES})
-add_dependencies(vigir_ocs_behavior_manager_exe ${catkin_EXPORTED_TARGETS})
+#add_executable(vigir_ocs_behavior_manager_exe ${UIC_FILES} ${SOURCE_FILES})
+#target_link_libraries(vigir_ocs_behavior_manager_exe ${catkin_LIBRARIES} ${QT_LIBRARIES})
+#add_dependencies(vigir_ocs_behavior_manager_exe ${catkin_EXPORTED_TARGETS})
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
-install( TARGETS ${PROJECT_NAME} vigir_ocs_behavior_manager_exe
+install( TARGETS ${PROJECT_NAME} #vigir_ocs_behavior_manager_exe
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+# install executables
+install(PROGRAMS bin/behavior_input
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 

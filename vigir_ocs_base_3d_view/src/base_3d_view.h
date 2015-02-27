@@ -74,7 +74,6 @@
 
 #include "robot_state_manager.h"
 #include "notification_system.h"
-#include "behavior_notification_system.h"
 #include "context_menu_manager.h"
 
 
@@ -238,8 +237,7 @@ public:
     // functions needed for shared contexts
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }
     rviz::Display* getSelection3DDisplay() { return selection_3d_display_; }
-    rviz::Display* getNotificationOverlayDisplay() { return notification_overlay_display_; }
-    rviz::Display* getBehaviorOverlayDisplay() { return behavior_overlay_display_; }
+    rviz::Display* getNotificationOverlayDisplay() { return notification_overlay_display_; }    
     MouseEventHandler* getMouseEventHander() { return mouse_event_handler_; }    
 
 
@@ -473,8 +471,7 @@ protected:
     rviz::Display* region_point_cloud_viewer_;
     rviz::Display* stereo_point_cloud_viewer_;
     rviz::Display* selection_3d_display_;
-    rviz::Display * notification_overlay_display_;
-    rviz::Display * behavior_overlay_display_;
+    rviz::Display * notification_overlay_display_;    
     rviz::Display* template_display_;
     rviz::Display* waypoints_display_;
     rviz::Display* achieved_waypoints_display_;
