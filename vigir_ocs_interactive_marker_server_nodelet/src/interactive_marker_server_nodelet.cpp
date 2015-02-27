@@ -11,12 +11,16 @@ void InteractiveMarkerServerNodelet::onInit()
     interactive_marker_server_remove_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 100, &InteractiveMarkerServerNodelet::removeInteractiveMarker, this );
     interactive_marker_server_update_sub_ = nh.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 100, &InteractiveMarkerServerNodelet::updatePose, this );
     interactive_marker_server_mode_sub_ = nh.subscribe<flor_ocs_msgs::OCSControlMode>( "/flor/ocs/control_modes", 100, &InteractiveMarkerServerNodelet::setMode, this );
+    interactive_marker_server_visibility_sub_ = nh.subscribe<flor_ocs_msgs::OCSMarkerVisibility>("/flor/ocs/interactive_marker_server/visibility",5, &InteractiveMarkerServerNodelet::processMarkerVisibility,this);
 
     // related to object selection
     select_object_sub_ = nh.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &InteractiveMarkerServerNodelet::processObjectSelection, this );
     selected_object_update_pub_ = nh.advertise<flor_ocs_msgs::OCSSelectedObjectUpdate>( "/flor/ocs/interactive_marker_server/selected_object_update", 100, false);
 
     selected_object_topic_ = "";
+
+    //set all invisible as there is no selected on start
+    setEnabledMarkerVisible();
 
     timer_ = nh.createTimer(ros::Duration(0.033), &InteractiveMarkerServerNodelet::timerCallback, this);
 }
@@ -39,13 +43,31 @@ void InteractiveMarkerServerNodelet::publishSelectedObject()
 
 void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr &msg)
 {
+    //counter is currently workaround for first three interactive markers
+    static int counter = 0;
     // name, topic, frame, scale, pointOCSInteractiveMarkerAdd
     if (marker_map_.find(msg->topic) == marker_map_.end())
     {
+        counter++;
+
         //ROS_INFO("Adding marker %s", msg->topic.c_str());
         marker_map_[msg->topic] = new InteractiveMarkerServerCustom(msg->name, msg->topic, msg->mode, msg->frame, msg->scale, msg->point);
         marker_map_[msg->topic]->onFeedback = boost::bind(&InteractiveMarkerServerNodelet::onMarkerFeedback, this, _1, _2, _3);
+
+        if(counter >3)
+        {
+        marker_map_[msg->topic]->setVisible(false);
+        //set last added marker to be enabled
+        //selected_object_topic_ = msg->topic;
+        //setEnabledMarkerVisible();
+
+        }
+
+
+        //marker is invisible when created
+
     }
+
 }
 
 void InteractiveMarkerServerNodelet::removeInteractiveMarker( const std_msgs::String::ConstPtr& msg )
@@ -132,6 +154,46 @@ void InteractiveMarkerServerNodelet::setMode(const flor_ocs_msgs::OCSControlMode
             iter->second->setMode(msg->manipulationMode);
 }
 
+void InteractiveMarkerServerNodelet::processMarkerVisibility(const flor_ocs_msgs::OCSMarkerVisibility::ConstPtr &msg)
+{
+    ROS_ERROR("marker visibiilty");
+    //set visibility of different interactive markers
+    if(msg->all_markers)
+    {
+        std::map<std::string,InteractiveMarkerServerCustom*>::iterator iter;
+        for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
+        {
+            iter->second->setVisible(msg->all_markers_visibility);
+        }
+    }
+    //not worrying about selective visibility of markers for now
+//    else // just disable by type
+//    {
+//        std::map<std::string,InteractiveMarkerServerCustom*>::iterator iter;
+//        for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
+//        {
+//            //string comparison on the marker's topic to determine type
+//            std::string topic_name = iter->first;
+//            ROS_ERROR("marker topic %s",topic_name.c_str());
+//            //templates
+//            if(topic_name.find("/template"))
+//            {
+//                iter->second->setVisible(msg->template_visibility);
+//            }
+//            else if(topic_name.find("/footstep_"))
+//            {
+//                iter->second->setVisible(msg->template_visibility);
+//            }
+//            else if(topic_name.find("/footstep_goal_"))
+//            {
+//                iter->second->setVisible(msg->template_visibility);
+//            }
+//        }
+//    }
+
+
+}
+
 void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &msg)
 {
     // save the interactive marker topic
@@ -156,11 +218,35 @@ void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs:
             break;
     }
 
-    //ROS_ERROR("SELECTED OBJECT: %s", selected_object_topic_.c_str());
+    ROS_ERROR("SELECTED OBJECT: %s", selected_object_topic_.c_str());
 
     pose_map_[selected_object_topic_] = marker_map_[selected_object_topic_]->getPose();
+
+    setEnabledMarkerVisible();
+
     publishSelectedObject();
+
 }
+
+void InteractiveMarkerServerNodelet::setEnabledMarkerVisible()
+{
+    //toggle all markers off except for selected
+    std::map<std::string,InteractiveMarkerServerCustom*>::iterator iter;
+    for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
+    {
+        //not the selected marker server?
+        if(iter->second == marker_map_[selected_object_topic_])
+        {
+            iter->second->setVisible(true);
+        }
+//        else
+//        {
+//            iter->second->setVisible(false);
+//        }
+    }
+
+}
+
 
 }
 

@@ -42,7 +42,7 @@ void NotificationSystem::notifyPassive(std::string text)
     msg.bg_color.a = .5f;
     msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
     msg.fadeIn = 1.0f;
-    msg.fadeOut = 1.0f;
+   // msg.fadeOut = 1.0f;
     msg.upTime = 2.0f;
     msg.row = flor_ocs_msgs::OCSOverlayText::TOPROW;
     msg.column = flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
@@ -68,7 +68,7 @@ void NotificationSystem::notifyWarning(std::string text)
     msg.bg_color.a = .5f;
     msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
     msg.fadeIn = 1.0f;
-    msg.fadeOut = 1.0f;
+  //  msg.fadeOut = 1.0f;
     msg.upTime = 2.0f;
     msg.row = flor_ocs_msgs::OCSOverlayText::CENTERROW;
     msg.column = flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
@@ -93,7 +93,7 @@ void NotificationSystem::notifyError(std::string text)
     msg.bg_color.a = .5f;
     msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
     msg.fadeIn = 1.0f;
-    msg.fadeOut = 1.0f;
+//    msg.fadeOut = 1.0f;
     msg.upTime = 2.0f;
     msg.row = flor_ocs_msgs::OCSOverlayText::CENTERROW;
     msg.column = flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN;

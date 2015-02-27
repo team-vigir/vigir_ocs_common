@@ -115,8 +115,6 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
         {
             ((vigir_ocs::Base3DView*)iter->second)->updateRenderMask(false);
         }
-
-
     }
 
     std::string ip = ros::package::getPath("vigir_ocs_main_view")+"/icons/";
@@ -328,6 +326,10 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui->Template->hide();
 
 
+    //need local reference to ghost control to access some of its functionality for context menu
+    ghost_control_widget_ = new GhostControlWidget();
+    ghost_control_widget_->hide();
+    use_torso_checked_ = false;
 
     // connect emergency stop button to glancehub
     stop_mapper_ = new QSignalMapper(this);
@@ -352,13 +354,14 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     //create context menu and add to base3dview
     main_view_context_menu_ = new MainViewContextMenu(this);
-
 }
 
 void MainViewWidget::setLidarSpinRate(double spin_rate)
 {    
     //published in radians directly from widget
-    lidar_spin_rate_pub_.publish(spin_rate);
+    std_msgs::Float64 msg;
+    msg.data = spin_rate;
+    lidar_spin_rate_pub_.publish(msg);
 }
 
 void MainViewWidget::toggleSidebarVisibility()
@@ -492,7 +495,6 @@ void MainViewWidget::hideGraspWidgets()
 }
 
 //callback functions for context menu
-
 void MainViewWidget::contextToggleWindow(int window)
 {
     switch(window)
@@ -574,53 +576,19 @@ void MainViewWidget::setObjectManipulationMode()
 void MainViewWidget::updateContextMenu()
 {
     //change default checkable values of context items.. must as they are created with menu
-    main_view_context_menu_->setAllCheckable();
+    //main_view_context_menu_->setAllCheckable();
 
     //update context menu elements with checks
-    if(!ui->joystickBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Joystick",false);
-    else
-        main_view_context_menu_->setItemCheckState("Joystick",true);
-
-    if(!ui->jointControlBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Joint Control",false);
-    else
-        main_view_context_menu_->setItemCheckState("Joint Control",true);
-
-    if(!ui->pelvisControlBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Pelvis Pose",false);
-    else
-        main_view_context_menu_->setItemCheckState("Pelvis Pose",true);
-
-    if(!ui->basicStepBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Basic Footstep Interface",false);
-    else
-        main_view_context_menu_->setItemCheckState("Basic Footstep Interface",true);
-
-    if(!ui->stepBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Advanced Footstep Interface",false);
-    else
-        main_view_context_menu_->setItemCheckState("Advanced Footstep Interface",true);
-
-    if(!ui->footstepParamBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Footstep Parameter Control",false);
-    else
-        main_view_context_menu_->setItemCheckState("Footstep Parameter Control",true);
-
-    if(!ui->ghostControlBtn->isChecked())
-        main_view_context_menu_->setItemCheckState("Ghost Control",false);
-    else
-        main_view_context_menu_->setItemCheckState("Ghost Control",true);
-
-    if(!ui->positionModeBtn->isChecked())
-         main_view_context_menu_->setItemCheckState("Position Mode",false);
-    else
-         main_view_context_menu_->setItemCheckState("Position Mode",true);
-
-    if(!ui->plannerConfigBtn->isChecked())
-       main_view_context_menu_->setItemCheckState("Planner Configuration",false);
-    else
-       main_view_context_menu_->setItemCheckState("Planner Configuration",true);
+    main_view_context_menu_->setItemCheckState("Joystick",ui->joystickBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Joint Control",ui->jointControlBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Pelvis Pose",ui->pelvisControlBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Basic Footstep Interface",ui->basicStepBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Advanced Footstep Interface",ui->stepBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Footstep Parameter Control",ui->footstepParamBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Ghost Control",ui->ghostControlBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Position Mode",ui->positionModeBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Planner Configuration",ui->plannerConfigBtn->isChecked());
+    main_view_context_menu_->setItemCheckState("Use Torso",use_torso_checked_);
 
     switch(ui->modeBox->currentIndex())
     {
@@ -639,7 +607,14 @@ void MainViewWidget::updateContextMenu()
         main_view_context_menu_->setItemCheckState("World",false);
         main_view_context_menu_->setItemCheckState("Camera",true);
         break;
-    }
+    }    
+
+}
+
+//need to coordinate checkbox in ghost widget and main view context menu, also call use torso function
+void MainViewWidget::useTorsoContextMenu()
+{
+    use_torso_checked_ = ghost_control_widget_->useTorsoContextMenu();
 }
 
 void MainViewWidget::setManipulationMode(int mode)
@@ -689,6 +664,8 @@ void MainViewWidget::graspWidgetToggle()
 MainViewWidget::~MainViewWidget()
 {
     delete ui;
+
+    delete ghost_control_widget_;
 }
 
 void MainViewWidget::timerEvent(QTimerEvent *event)
@@ -830,7 +807,6 @@ void MainViewWidget::toggleFootstepConfig()
     ui->footstepConfigBtn->showMenu();
 }
 
-
 void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
 {
     QPixmap pixmap( icon_path_+ image_name );
@@ -842,9 +818,21 @@ void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
 
 void MainViewWidget::toggleWindow(int window)
 {
-    std_msgs::Int8 cmd;
-    cmd.data = ((QPushButton*)toggle_mapper_->mapping(window))->isChecked() ? window : -window;
-    window_control_pub_.publish(cmd);
+    if(window == WINDOW_GHOST_CONFIG)
+    {
+        if(ghost_control_widget_->isVisible())
+            ghost_control_widget_->hide();
+        else
+            ghost_control_widget_->show();
+    }
+    else
+    {
+        std_msgs::Int8 cmd;
+        cmd.data = ((QPushButton*)toggle_mapper_->mapping(window))->isChecked() ? window : -window;
+        window_control_pub_.publish(cmd);
+    }
+
+
 }
 
 void MainViewWidget::oneViewToggle()

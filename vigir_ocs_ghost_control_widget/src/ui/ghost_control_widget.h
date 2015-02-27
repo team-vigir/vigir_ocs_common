@@ -60,6 +60,9 @@ public:
                    unsigned char collision_avoidance=saved_state_collision_avoidance_,
                    unsigned char lock_pelvis=saved_state_lock_pelvis_);
 
+    bool useTorsoContextMenu();
+    void snapContextMenu();
+
 protected:
     void timerEvent(QTimerEvent *event);
     void closeEvent(QCloseEvent *event);

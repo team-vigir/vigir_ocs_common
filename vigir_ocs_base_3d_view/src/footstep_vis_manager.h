@@ -194,6 +194,7 @@ private:
     bool has_goal_;
     bool has_valid_step_plan_;
     unsigned int num_step_plans_;
+
 };
 
 }
