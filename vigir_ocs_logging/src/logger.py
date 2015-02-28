@@ -149,11 +149,11 @@ class App(object):
 			if(self.enableBDILogging):
 				self.grabLogs(data.bdiLogTime)
 			return
-		if(data.run & self.logging ):
+		if(not data.no_bags && data.run & self.logging ):
 			self.killLogging('')
 			self.createExperiment(data.experiment_name, data.description)
 			self.startLogging()
-		if(data.run & (not self.logging)):
+		if(not data.no_bags && data.run & (not self.logging)):
 			self.createExperiment(data.experiment_name, data.description)
 			self.startLogging()
 		if(not data.run & self.logging):
