@@ -14,6 +14,8 @@ void FootstepManager::onInit()
 {
     ros::NodeHandle& nh         = getNodeHandle();
 
+    foot_pose_transformer_.reset(new vigir_footstep_planning::FootPoseTransformer(nh));
+
     // TODO: Get them from footstep planner
     nh.param("foot/size/x", foot_size.x, 0.26);
     nh.param("foot/size/y", foot_size.y, 0.13);
@@ -967,7 +969,7 @@ void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state
         }
 
 
-		vigir_footstep_planning_msgs::EditStepResult result_copy = *result;
+    vigir_footstep_planning_msgs::EditStepResult result_copy = *result;
         //convert all step plans transforms to be relative to sole frame for visualization
         //Brian::can optimize to just transform one plan?
         for(int i=0;i<result_copy.step_plans.size();i++)
@@ -1105,7 +1107,7 @@ void FootstepManager::sendExecuteStepPlanGoal()
         return;
 
     // Fill in goal here
-    vigir_footstep_planning_msgs::ExecuteStepPlanGoal action_goal;    
+    vigir_footstep_planning_msgs::ExecuteStepPlanGoal action_goal;
     action_goal.step_plan = getStepPlan();
 
     //convert transform to ankle for planner, might be redundant here?
@@ -1151,7 +1153,7 @@ void FootstepManager::doneExecuteStepPlan(const actionlib::SimpleClientGoalState
 void FootstepManager::sendGetAllParameterSetsGoal()
 {
     // Fill in goal here
-    vigir_footstep_planning_msgs::GetAllParameterSetsGoal action_goal;    
+    vigir_footstep_planning_msgs::GetAllParameterSetsGoal action_goal;
 
     // and send it to the server
     if(get_all_parameter_sets_client_->isServerConnected())
