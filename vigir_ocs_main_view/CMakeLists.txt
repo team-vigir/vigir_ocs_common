@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs rviz vigir_ocs_bas
 
 ## Declare things to be passed to other projects
 catkin_package(	
-	INCLUDE_DIRS ${catkin_INCLUDE_DIRS} src
+        INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
 
         CATKIN_DEPENDS roscpp rospy std_msgs rviz vigir_ocs_base_3d_view vigir_ocs_perspective_view vigir_ocs_ortho_view  vigir_ocs_status_bar vigir_ocs_grasp_widget vigir_ocs_notification_system
@@ -44,8 +44,8 @@ qt4_wrap_ui(UIC_FILES
 set(SOURCE_FILES
   src/ui/main_view_widget.cpp
   src/ui/footstep_config.cpp
-  src/main.cpp
   src/ui/main_context_menu.cpp
+  src/main.cpp
   ${MOC_FILES}
 )
 

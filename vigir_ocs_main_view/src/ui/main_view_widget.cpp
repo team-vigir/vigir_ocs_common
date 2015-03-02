@@ -358,7 +358,9 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 void MainViewWidget::setLidarSpinRate(double spin_rate)
 {    
     //published in radians directly from widget
-    lidar_spin_rate_pub_.publish(spin_rate);
+    std_msgs::Float64 cmd;
+    cmd.data = spin_rate;
+    lidar_spin_rate_pub_.publish(cmd);
 }
 
 void MainViewWidget::toggleSidebarVisibility()
