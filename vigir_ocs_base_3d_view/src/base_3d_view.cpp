@@ -656,8 +656,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         frustum_display_->subProp("Topic")->setValue("/multisense_sl/left/camera_info");
         frustum_display_->subProp("alpha")->setValue("0.05");
         frustum_display_->setEnabled(false);
-
-        manager_->createDisplay("oculus_rviz_plugins/OculusDisplay","Oculus Display", true);
     }
 
     //initialize overall context menu
