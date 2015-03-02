@@ -159,7 +159,6 @@ private:
     std::vector<std::string> template_list_;
     std::vector<Ogre::SceneNode*> template_node_list_;
 
-    static std::vector<InteractiveMarkerServerCustom*> template_marker_list_;
     std::vector<rviz::Display*> display_template_marker_list_;
     //InteractiveMarkerServerCustom *template_marker_;
 

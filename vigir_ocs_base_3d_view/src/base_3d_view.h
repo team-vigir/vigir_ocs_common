@@ -57,6 +57,7 @@
 #include <flor_ocs_msgs/OCSControlMode.h>
 #include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include "flor_ocs_msgs/OCSSynchronize.h"
+#include <flor_ocs_msgs/OCSMarkerVisibility.h>
 #include <flor_perception_msgs/RaycastRequest.h>
 #include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
@@ -74,6 +75,8 @@
 #include "robot_state_manager.h"
 #include "notification_system.h"
 #include "context_menu_manager.h"
+
+
 
 // local includes
 #include "footstep_vis_manager.h"
@@ -530,6 +533,8 @@ protected:
 
     ros::Subscriber ocs_sync_sub_;
     ros::Publisher ocs_sync_pub_;
+
+    ros::Publisher interactive_marker_visibility_pub_;
 
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 

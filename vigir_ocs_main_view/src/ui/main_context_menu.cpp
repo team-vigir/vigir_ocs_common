@@ -1,4 +1,3 @@
-
 #include "main_context_menu.h"
 #include "main_view_widget.h"
 
@@ -7,30 +6,29 @@ MainViewContextMenu::MainViewContextMenu(MainViewWidget *main_view)
     main_view_ = main_view;
     base_view_ = main_view_->getPrimaryView();
     context_menu_manager_ = base_view_->getContextMenuManager();
+    ghost_control_widget_ = main_view_->getGhostControlWidget();
+
     //connect context menu elements to be updated by ui
     connect(context_menu_manager_,SIGNAL(updateMainViewItems()),main_view_,SLOT(updateContextMenu()));
     createContextMenu();
     sys_command_pub_ = n_.advertise<std_msgs::String>("/syscommand",1,false);
+
 }
 
 MainViewContextMenu::~MainViewContextMenu()
 {
 }
 
-void MainViewContextMenu::setAllCheckable()
-{
-    for (std::map<std::string ,contextMenuItem*>::iterator it=context_menu_items_map_.begin(); it!=context_menu_items_map_.end(); ++it)
-    {
-        contextMenuItem* item = it->second;
-        item->action->setCheckable(true);
-    }
-}
-
 void MainViewContextMenu::setItemCheckState(std::string name, bool checkable)
 {    
     //contains?
     if(context_menu_items_map_.find(name) != context_menu_items_map_.end())
+    {
+        //must enable the action to be checkable
         context_menu_items_map_[name]->action->setCheckable(checkable);
+        //can still set checked even if not checkable, no result though.
+        context_menu_items_map_[name]->action->setChecked(checkable);
+    }
     else
         ROS_ERROR("Context item in main view not found: %s\n", name.c_str());
 }
@@ -51,7 +49,7 @@ void MainViewContextMenu::createContextMenu()
     //manage windows-------------
     contextMenuItem * windowVisibility = context_menu_manager_->addMenuItem("Window Visibility");
 
-    context_menu_items_map_["Joystick"] =  context_menu_manager_->addActionItem("Joystick",boost::bind(&MainViewWidget::contextToggleWindow,main_view_, WINDOW_JOYSTICK),windowVisibility);
+    context_menu_items_map_["Joystick"] = context_menu_manager_->addActionItem("Joystick",boost::bind(&MainViewWidget::contextToggleWindow,main_view_, WINDOW_JOYSTICK),windowVisibility);
 
     context_menu_items_map_["Grasp"]= context_menu_manager_->addActionItem("Grasp",boost::bind(&MainViewWidget::graspWidgetToggle,main_view_), windowVisibility );
 
@@ -68,7 +66,7 @@ void MainViewContextMenu::createContextMenu()
     context_menu_items_map_["Advanced Footstep Interface"] = context_menu_manager_->addActionItem("Advanced Footstep Interface",boost::bind(&MainViewWidget::contextToggleWindow,main_view_,WINDOW_FOOTSTEP_ADVANCED), windowVisibility);
     context_menu_items_map_["Footstep Parameter Control"] = context_menu_manager_->addActionItem("Footstep Parameter Control",boost::bind(&MainViewWidget::contextToggleWindow,main_view_,WINDOW_FOOTSTEP_PARAMETER), windowVisibility);
 
-    //------------------------
+    //Manipulation modes
     context_menu_manager_->addSeparatorItem();
 
     contextMenuItem* manipulationModes = context_menu_manager_->addMenuItem("Manipulation Mode");
@@ -85,12 +83,18 @@ void MainViewContextMenu::createContextMenu()
 
     context_menu_manager_->addSeparatorItem();
 
+    //System commands
     contextMenuItem * systemCommands = context_menu_manager_->addMenuItem("System Commands");
 
     context_menu_manager_->addActionItem("Reset World Model",boost::bind(&MainViewContextMenu::systemCommandContext,this, "reset"), systemCommands);
     context_menu_manager_->addActionItem("Save Octomap",boost::bind(&MainViewContextMenu::systemCommandContext,this,"save_octomap"), systemCommands);
     context_menu_manager_->addActionItem("Save Pointcloud",boost::bind(&MainViewContextMenu::systemCommandContext,this,"save_pointcloud"), systemCommands);
 
+    //ghost widget functions
+    context_menu_manager_->addSeparatorItem();
+
+    context_menu_manager_->addActionItem("Snap Ghost to Robot",boost::bind(&GhostControlWidget::snapContextMenu,ghost_control_widget_), NULL);
+    context_menu_items_map_["Use Torso"] = context_menu_manager_->addActionItem("Use Torso",boost::bind(&MainViewWidget::useTorsoContextMenu,main_view_), NULL);
 }
 //CALLBACKS/////////////////////
 
