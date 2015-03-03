@@ -45,8 +45,8 @@ void TemplateNodelet::onInit()
     if (!nh.getParam("/r_hand_tf/gp_T_hand", gp_T_hand))
         ROS_ERROR(" Did not find hand transform parameter /r_hand_tf/gp_T_hand ");
     else{
-        gp_T_hand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
-        gp_T_hand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
+        gp_T_rhand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
+        gp_T_rhand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
         ROS_INFO("Right Graspit to Palm tf set");
     }
 
@@ -54,8 +54,8 @@ void TemplateNodelet::onInit()
     if (!nh.getParam("/l_hand_tf/gp_T_hand", gp_T_hand))
         ROS_ERROR(" Did not find hand transform parameter /l_hand_tf/gp_T_hand");
     else{
-        gp_T_hand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
-        gp_T_hand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
+        gp_T_lhand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
+        gp_T_lhand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
         ROS_INFO("Left Graspit to Palm tf set");
     }
 
@@ -107,7 +107,7 @@ void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPt
 
 
             //ADD TEMPLATE TO PLANNING SCENE
-            addCollisionObject(id_counter_-1,(msg->template_path).substr(0, (msg->template_path).find_last_of(".")),msg->pose.pose);
+            addCollisionObject(it->second.type,id_counter_-1,(msg->template_path).substr(0, (msg->template_path).find_last_of(".")),msg->pose.pose);
             found = true;
             break;
         }
@@ -879,56 +879,65 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     */
     //Find the template
 	unsigned int index = 0;
-    unsigned int template_id;
+    unsigned int template_type;
 	for(; index < template_id_list_.size(); index++) {
-        if(template_type_list_[index] == req.template_type){
-            template_id = template_type_list_[index];
-            ROS_INFO("Template Type found in server, index: %d, list: %d, requested: %d",index, template_type_list_[index], req.template_type);
+        if(template_id_list_[index] == req.template_id){
+            template_type = template_type_list_[index];
+            ROS_INFO("Template ID found in server, index: %d, list: %d, requested: %d",index, template_id_list_[index], req.template_id);
             break;
 		}
     }
 	
     if (index >= template_id_list_.size()){
-        //ROS_ERROR_STREAM("Service requested template id " << req.template_type.data << " when no such id has been instantiated. Callback returning false.");
-        ROS_ERROR("Service requested template type %d when no such type has been instantiated. Callback returning false.",req.template_type);
+        ROS_ERROR("Service requested template ID %d when no such template has been instantiated. Callback returning false.",req.template_id);
 		return false;
     }
 
-    res.template_state_information.template_type = req.template_type;
-    res.template_state_information.template_id   = template_id;
-    res.template_state_information.type_name 	 = object_template_map_[req.template_type].name;
+    res.template_state_information.template_type = template_type;
+    res.template_state_information.template_id   = req.template_id;
+    res.template_state_information.type_name 	 = object_template_map_[template_type].name;
     res.template_state_information.pose 		 = template_pose_list_[index];
 
-    res.template_type_information.type_name      = object_template_map_[req.template_type].name;
-    res.template_type_information.mass           = object_template_map_[req.template_type].mass;
-    res.template_type_information.center_of_mass = object_template_map_[req.template_type].com;
-    res.template_type_information.b_max          = object_template_map_[req.template_type].b_max;
-    res.template_type_information.b_min          = object_template_map_[req.template_type].b_min;
+    res.template_type_information.type_name      = object_template_map_[template_type].name;
+    res.template_type_information.mass           = object_template_map_[template_type].mass;
+    res.template_type_information.center_of_mass = object_template_map_[template_type].com;
+    res.template_type_information.b_max          = object_template_map_[template_type].b_max;
+    res.template_type_information.b_min          = object_template_map_[template_type].b_min;
 	
 	//Transfer all known grasps to response
-    for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it =  object_template_map_[req.template_type].grasps.begin();
-                                                             it != object_template_map_[req.template_type].grasps.end();
+    for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it =  object_template_map_[template_type].grasps.begin();
+                                                             it != object_template_map_[template_type].grasps.end();
                                                              ++it) {
-        res.template_type_information.grasps.push_back(it->second);
+        //Transform to world coordinate frame
+        moveit_msgs::Grasp grasp = it->second;
+        if(std::atoi(grasp.id.c_str()) >= 1000)
+            staticTransform(grasp.grasp_pose.pose,gp_T_lhand_);
+        else
+            staticTransform(grasp.grasp_pose.pose,gp_T_rhand_);
+        worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
+        res.template_type_information.grasps.push_back(grasp);
     }
 
     //Transfer all known stand poses to response
-    for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it =  object_template_map_[req.template_type].stand_poses.begin();
-                                                                                it != object_template_map_[req.template_type].stand_poses.end();
+    for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it =  object_template_map_[template_type].stand_poses.begin();
+                                                                                it != object_template_map_[template_type].stand_poses.end();
                                                                                 ++it) {
-        res.template_type_information.stand_poses.push_back(it->second);
+        //Transform to world coordinate frame
+        vigir_object_template_msgs::StandPose stand_pose = it->second;
+        worldPoseTransform(template_pose_list_[index],stand_pose.pose.pose,stand_pose.pose);
+        res.template_type_information.stand_poses.push_back(stand_pose);
     }
 
     //Transfer all known usabilities to response
-    for (std::map<unsigned int,vigir_object_template_msgs::Usability>::iterator it =  object_template_map_[req.template_type].usabilities.begin();
-                                                                                it != object_template_map_[req.template_type].usabilities.end();
+    for (std::map<unsigned int,vigir_object_template_msgs::Usability>::iterator it =  object_template_map_[template_type].usabilities.begin();
+                                                                                it != object_template_map_[template_type].usabilities.end();
                                                                                 ++it) {
         res.template_type_information.usabilities.push_back(it->second);
     }
 
     //Transfer all known usabilities to response
-    for (std::map<unsigned int,vigir_object_template_msgs::Affordance>::iterator it =  object_template_map_[req.template_type].affordances.begin();
-                                                                                 it != object_template_map_[req.template_type].affordances.end();
+    for (std::map<unsigned int,vigir_object_template_msgs::Affordance>::iterator it =  object_template_map_[template_type].affordances.begin();
+                                                                                 it != object_template_map_[template_type].affordances.end();
                                                                                  ++it) {
         res.template_type_information.affordances.push_back(it->second);
     }
@@ -943,7 +952,7 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     res.template_type_information.geometry_marker.scale.z         = 1;
     res.template_type_information.geometry_marker.lifetime        = ros::Duration(0);
     res.template_type_information.geometry_marker.frame_locked    = true;
-    res.template_type_information.geometry_marker.mesh_resource   = object_template_map_[req.template_type].path;
+    res.template_type_information.geometry_marker.mesh_resource   = object_template_map_[template_type].path;
     res.template_type_information.geometry_marker.pose            = template_pose_list_[index].pose;
 
   return true;
@@ -1204,8 +1213,40 @@ bool TemplateNodelet::detachObjectTemplateSrv(vigir_object_template_msgs::Detach
     aco_pub_.publish(detach_object);
 }
 
+int TemplateNodelet::worldPoseTransform(const geometry_msgs::PoseStamped& template_pose,const geometry_msgs::Pose& input_pose, geometry_msgs::PoseStamped& target_pose)
+{
+    tf::Transform template_T_wrist;
+    tf::Transform world_T_template;
+    tf::Transform world_T_wrist;
+
+    world_T_template.setRotation(tf::Quaternion(template_pose.pose.orientation.x,template_pose.pose.orientation.y,template_pose.pose.orientation.z,template_pose.pose.orientation.w));
+    world_T_template.setOrigin(tf::Vector3(template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z) );
+    template_T_wrist.setRotation(tf::Quaternion(input_pose.orientation.x,input_pose.orientation.y,input_pose.orientation.z,input_pose.orientation.w));
+    template_T_wrist.setOrigin(tf::Vector3(input_pose.position.x,input_pose.position.y,input_pose.position.z) );
+
+    world_T_wrist = world_T_template * template_T_wrist;
+
+    tf::Quaternion tg_quat;
+    tf::Vector3    tg_vector;
+    tg_quat   = world_T_wrist.getRotation();
+    tg_vector = world_T_wrist.getOrigin();
+
+    target_pose.pose.orientation.w = tg_quat.getW();
+    target_pose.pose.orientation.x = tg_quat.getX();
+    target_pose.pose.orientation.y = tg_quat.getY();
+    target_pose.pose.orientation.z = tg_quat.getZ();
+
+    target_pose.pose.position.x = tg_vector.getX();
+    target_pose.pose.position.y = tg_vector.getY();
+    target_pose.pose.position.z = tg_vector.getZ();
+
+    target_pose.header.frame_id = "/world";
+    target_pose.header.stamp    = template_pose.header.stamp;
+    return 0;
+}
+
 // transform endeffort to palm pose used by GraspIt
-int TemplateNodelet::staticTransform(geometry_msgs::Pose& palm_pose)
+int TemplateNodelet::staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform gp_T_hand)
 {
     tf::Transform o_T_hand;    //describes hand in object's frame
     tf::Transform o_T_pg;       //describes palm_from_graspit in object's frame
@@ -1213,7 +1254,7 @@ int TemplateNodelet::staticTransform(geometry_msgs::Pose& palm_pose)
     o_T_pg.setRotation(tf::Quaternion(palm_pose.orientation.x,palm_pose.orientation.y,palm_pose.orientation.z,palm_pose.orientation.w));
     o_T_pg.setOrigin(tf::Vector3(palm_pose.position.x,palm_pose.position.y,palm_pose.position.z) );
 
-    o_T_hand = o_T_pg * gp_T_hand_;
+    o_T_hand = o_T_pg * gp_T_hand;
 
     tf::Quaternion hand_quat;
     tf::Vector3    hand_vector;
@@ -1231,7 +1272,7 @@ int TemplateNodelet::staticTransform(geometry_msgs::Pose& palm_pose)
 }
 
 
-void TemplateNodelet::addCollisionObject(int index, std::string mesh_name, geometry_msgs::Pose pose){
+void TemplateNodelet::addCollisionObject(int type, int index, std::string mesh_name, geometry_msgs::Pose pose){
     //Add collision object with template pose and bounding box
 
     ROS_INFO("Add collision template started... ");
@@ -1258,9 +1299,12 @@ void TemplateNodelet::addCollisionObject(int index, std::string mesh_name, geome
         collision_object.primitives.resize(1);
         collision_object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
         collision_object.primitives[0].dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
-        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.05;
-        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.05;
-        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.30;
+        float x_size = object_template_map_[type].b_max.x - object_template_map_[type].b_min.x;
+        float y_size = object_template_map_[type].b_max.y - object_template_map_[type].b_min.y;
+        float z_size = object_template_map_[type].b_max.z - object_template_map_[type].b_min.z;
+        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = x_size;
+        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = y_size;
+        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = z_size;
         collision_object.primitive_poses.push_back(pose);
 
 

@@ -203,7 +203,7 @@ void GhostControlWidget::on_templateBox_activated(const QString &arg1)
 
     //CALLING THE TEMPLATE SERVER
     vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
-    srv.request.template_type = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
+    srv.request.template_id = selected_template_id_;
     if (!template_info_client_.call(srv))
     {
         ROS_ERROR("Failed to call service request grasp info");
@@ -703,7 +703,7 @@ void GhostControlWidget::on_send_ghost_to_template_button_clicked()
 
     //CALLING THE TEMPLATE SERVER
     vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
-    srv.request.template_type = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
+    srv.request.template_id = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
     if (!template_info_client_.call(srv))
     {
         ROS_ERROR("Failed to call service request grasp info");
@@ -717,13 +717,13 @@ void GhostControlWidget::on_send_ghost_to_template_button_clicked()
         }
         if(send_ghost_to_template_pub_)
         {
-            geometry_msgs::PoseStamped pose;
-            pose.header.frame_id = "/world";
-            pose.header.stamp = ros::Time::now();
-            calcTargetPose(last_template_list_.pose[ui->templateBox->currentIndex()].pose,
-                           stand_pose.pose,
-                           pose.pose);
-            send_ghost_to_template_pub_.publish(pose);
+//            geometry_msgs::PoseStamped pose;
+//            pose.header.frame_id = "/world";
+//            pose.header.stamp = ros::Time::now();
+//            calcTargetPose(last_template_list_.pose[ui->templateBox->currentIndex()].pose,
+//                           stand_pose.pose,
+//                           pose.pose);
+            send_ghost_to_template_pub_.publish(stand_pose);
         }
         else{
             ROS_ERROR("No Publisher for ghost to template pose");

@@ -112,6 +112,7 @@ private:
 
 
     // need to store updated template list and selected template id to calculate final position of the hand
+    vigir_object_template_msgs::GetGraspInfo                last_grasp_srv_;
     vigir_object_template_msgs::GetTemplateStateAndTypeInfo last_template_srv_;
 
     flor_ocs_msgs::OCSTemplateList         last_template_list_;
