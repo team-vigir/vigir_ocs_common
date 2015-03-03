@@ -6,6 +6,7 @@
 #include <ros/publisher.h>
 #include <ros/subscriber.h>
 #include <QtCore>
+#include <QMessageBox>
 
 namespace Ui
 {
@@ -18,14 +19,17 @@ class BehaviorNotification : public QMainWindow
 
 private:
     Ui::BehaviorNotification *ui;
+    bool confirmed_;
 
 
 public:
     ~BehaviorNotification();
     explicit BehaviorNotification(QWidget *parent = 0);
-    void setActionText(QString action_text);
+    bool getConfirmed() { return confirmed_; }
+    void setActionText(QString);
 
 public Q_SLOTS:
+    void confirm();
 
 
 private Q_SLOTS:

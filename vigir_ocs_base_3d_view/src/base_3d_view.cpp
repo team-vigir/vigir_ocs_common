@@ -620,11 +620,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // update render order whenever objects are added/ display changed
         //connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
         // initialize Render Order correctly
-        //setRenderOrder();
-
-        // initialize notification systems
-        notification_overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
-        notification_overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
+        //setRenderOrder();      
 
         //create visualizations for camera frustum
         //initializeFrustums("/flor/ocs/camera/atlas");
@@ -636,6 +632,13 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         frustum_display_->subProp("Topic")->setValue("/multisense_sl/left/camera_info");
         frustum_display_->subProp("alpha")->setValue("0.05");
         frustum_display_->setEnabled(false);
+
+        // initialize notification systems
+        notification_overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
+        notification_overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
+
+        behavior_relay_ = new BehaviorRelay(this);
+        connect(behavior_relay_,SIGNAL(updateUI()),this,SLOT(updateBehaviorNotifications()));
     }
 
     //initialize overall context menu
@@ -676,7 +679,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
    // reset_view_button_->move(0,300);
     QObject::connect(reset_view_button_, SIGNAL(clicked()), this, SLOT(resetView()));
 
-    stop_button_ = new QPushButton("STOP",this);
+    stop_button_ = new QPushButton("STOP",this);    
     stop_button_->setStyleSheet("font: 100pt \"MS Shell Dlg 2\";background-color: red;color: white;border-color: red;");
     stop_button_->setMaximumSize(400,300);
     stop_button_->adjustSize();
@@ -991,8 +994,31 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     //Means that currently doing
 
+    //REMOVE: only for ui testing without behavior implemented
+    if(is_primary_view_)
+        updateBehaviorNotifications();
+
     if(is_primary_view_ && occluded_robot_visible_)
         setRenderOrder();
+}
+
+void Base3DView::updateBehaviorNotifications()
+{    
+    //show certain amount of notifications in 3d view
+    int i=0;
+    int max_behavior_notifications = 3;
+    int top_offset = 0;        
+    while (i < (int)behavior_relay_->getNotifications().size() && i < max_behavior_notifications)
+    { 
+        BehaviorNotification* notification = behavior_relay_->getNotifications()[i];
+
+        //3px from top first time , then height + 3 afterwards for each notification
+        int top_offset = 3 + 3 * i + (i * notification->height());
+        //position widget near top right corner
+        notification->setGeometry(this->geometry().bottomRight().x() - 300,this->geometry().topRight().y() + top_offset,notification->width(),notification->height());
+        i++;
+    }
+
 }
 
 void Base3DView::publishCameraTransform()

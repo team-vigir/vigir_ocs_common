@@ -75,6 +75,7 @@
 #include "robot_state_manager.h"
 #include "notification_system.h"
 #include "context_menu_manager.h"
+#include "behavior_relay.h"
 
 
 
@@ -382,6 +383,8 @@ public Q_SLOTS:
     void setRenderOrder();
     void resetRenderOrder();
 
+    void updateBehaviorNotifications();
+
 Q_SIGNALS:
     /**
       * Sets the render panel
@@ -425,6 +428,8 @@ Q_SIGNALS:
     void sendFPS(int);
 
 
+
+
 protected:
     virtual void timerEvent(QTimerEvent *event);
 
@@ -458,6 +463,7 @@ protected:
     Ogre::Camera* getCamera();
 
     NotificationSystem* notification_system_;
+    BehaviorRelay * behavior_relay_;
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
