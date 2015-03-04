@@ -290,6 +290,11 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
 {
     //Getting joints for hand from URDF robot description
 
+    if(!hand_robot_model_->hasLinkModel(hand_side+"_palm")){
+        ROS_WARN("Hand model does not contain %s_palm, not adding grasps",hand_side.c_str());
+        return;
+    }
+
     robot_model::LinkTransformMap hand_palm_tf_map = hand_robot_model_->getLinkModel(hand_side+"_palm")->getAssociatedFixedTransforms();
     ROS_INFO("Requested linktransform for %s_palm",hand_side.c_str());
 
