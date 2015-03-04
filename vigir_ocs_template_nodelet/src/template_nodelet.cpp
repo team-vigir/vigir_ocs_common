@@ -38,27 +38,6 @@ void TemplateNodelet::onInit()
     hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
     hand_robot_model_ = hand_model_loader_->getModel();
 
-    XmlRpc::XmlRpcValue   gp_T_hand;
-
-
-    // Load the right hand specific grasping transform
-    if (!nh.getParam("/r_hand_tf/gp_T_hand", gp_T_hand))
-        ROS_ERROR(" Did not find hand transform parameter /r_hand_tf/gp_T_hand ");
-    else{
-        gp_T_rhand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
-        gp_T_rhand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
-        ROS_INFO("Right Graspit to Palm tf set");
-    }
-
-    // Load the left hand specific grasping transform
-    if (!nh.getParam("/l_hand_tf/gp_T_hand", gp_T_hand))
-        ROS_ERROR(" Did not find hand transform parameter /l_hand_tf/gp_T_hand");
-    else{
-        gp_T_lhand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
-        gp_T_lhand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
-        ROS_INFO("Left Graspit to Palm tf set");
-    }
-
     if (!nhp.getParam("/ot_library", this->ot_filename_))
         ROS_ERROR(" Did not find Object Template Library parameter /ot_library");
     else
@@ -308,6 +287,34 @@ std::vector< std::vector <std::string> > TemplateNodelet::readCSVFile(std::strin
 void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string hand_side)
 {
     //Getting joints for hand from URDF robot description
+
+    robot_model::LinkTransformMap hand_palm_tf_map = hand_robot_model_->getLinkModel(hand_side+"_palm")->getAssociatedFixedTransforms();
+    ROS_INFO("Requested linktransform for %s_palm",hand_side.c_str());
+
+    Eigen::Affine3d hand_palm_aff;
+    bool found = false;
+
+    for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
+        ROS_INFO("Getting links in map: %s and comparing to: %s", it->first->getName().c_str(), (hand_side.substr(0,1)+std::string("_hand")).c_str());
+        if(it->first->getName() == hand_side.substr(0,1)+std::string("_hand")){
+            ROS_INFO("Wrist %c_hand found!!!",hand_side[0]);
+            hand_palm_aff = it->second;
+            found = true;
+            break;
+        }
+    }
+
+    if(!found){
+        ROS_WARN("Wrist %c_hand NOT found!!!, setting to identity",hand_side[0]);
+        gp_T_lhand_.setIdentity();
+        gp_T_rhand_.setIdentity();
+    }else{
+        if(hand_side=="left")
+            tf::transformEigenToTF( hand_palm_aff,gp_T_lhand_);
+        else
+            tf::transformEigenToTF( hand_palm_aff,gp_T_rhand_);
+    }
+
     if(hand_robot_model_->hasJointModelGroup(hand_side+"_hand"))
     {
         hand_joint_names_.clear();
@@ -910,10 +917,13 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
                                                              ++it) {
         //Transform to world coordinate frame
         moveit_msgs::Grasp grasp = it->second;
-        if(std::atoi(grasp.id.c_str()) >= 1000)
+        if(std::atoi(grasp.id.c_str()) >= 1000){
             staticTransform(grasp.grasp_pose.pose,gp_T_lhand_);
-        else
+            //gripperTranslationToPreGraspPose(grasp.grasp_pose.pose,grasp.pre_grasp_approach);
+        }else{
             staticTransform(grasp.grasp_pose.pose,gp_T_rhand_);
+            //gripperTranslationToPreGraspPose(grasp.grasp_pose.pose,grasp.pre_grasp_approach);
+        }
         worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
         res.template_type_information.grasps.push_back(grasp);
     }

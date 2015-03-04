@@ -10,6 +10,8 @@
 #include <fstream>
 
 #include <tf/transform_broadcaster.h>
+#include <tf/transform_datatypes.h>
+#include <tf_conversions/tf_eigen.h>
 
 #include <flor_ocs_msgs/OCSTemplateAdd.h>
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
@@ -39,6 +41,7 @@
 
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model/link_model.h>
 
 #include <tinyxml.h>
 
