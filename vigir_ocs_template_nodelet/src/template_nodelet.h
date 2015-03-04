@@ -22,6 +22,7 @@
 #include <flor_grasp_msgs/TemplateSelection.h>
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
 #include <vigir_object_template_msgs/GetGraspInfo.h>
+#include <vigir_object_template_msgs/GetInstantiatedGraspInfo.h>
 #include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
 #include <vigir_object_template_msgs/DetachObjectTemplate.h>
 #include <vigir_object_template_msgs/Affordance.h>
@@ -98,6 +99,9 @@ namespace ocs_template
         bool graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Request& req,
                           vigir_object_template_msgs::GetGraspInfo::Response& res);
 
+        bool instantiatedGraspInfoSrv(vigir_object_template_msgs::GetInstantiatedGraspInfo::Request& req,
+                                      vigir_object_template_msgs::GetInstantiatedGraspInfo::Response& res);
+
         bool attachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
                                      vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
 
@@ -127,6 +131,7 @@ namespace ocs_template
 
         ros::ServiceServer template_info_server_;
         ros::ServiceServer grasp_info_server_;
+        ros::ServiceServer inst_grasp_info_server_;
         ros::ServiceServer attach_object_server_;
         ros::ServiceServer stitch_object_server_;
         ros::ServiceServer detach_object_server_;

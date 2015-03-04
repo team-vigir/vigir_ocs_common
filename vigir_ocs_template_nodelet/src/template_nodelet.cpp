@@ -25,6 +25,8 @@ void TemplateNodelet::onInit()
 
     grasp_info_server_           = nh_out.advertiseService("/grasp_info", &TemplateNodelet::graspInfoSrv, this);
 
+    inst_grasp_info_server_      = nh_out.advertiseService("/instantiated_grasp_info", &TemplateNodelet::instantiatedGraspInfoSrv, this);
+
     attach_object_server_        = nh_out.advertiseService("/attach_object_template", &TemplateNodelet::attachObjectTemplateSrv, this);
     stitch_object_server_        = nh_out.advertiseService("/stitch_object_template", &TemplateNodelet::stitchObjectTemplateSrv, this);
     detach_object_server_        = nh_out.advertiseService("/detach_object_template", &TemplateNodelet::detachObjectTemplateSrv, this);
@@ -990,6 +992,60 @@ bool TemplateNodelet::graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Req
         return true;
     }
     return false;
+}
+
+bool TemplateNodelet::instantiatedGraspInfoSrv(vigir_object_template_msgs::GetInstantiatedGraspInfo::Request& req,
+                                               vigir_object_template_msgs::GetInstantiatedGraspInfo::Response& res)
+{
+    /*Fill in the blanks of the response "res"
+     * with the info of the template id in the request "req"
+    */
+    unsigned int index = 0;
+    unsigned int template_type;
+    for(; index < template_id_list_.size(); index++) {
+        if(template_id_list_[index] == req.template_id){
+            template_type = template_type_list_[index];
+            ROS_INFO("Template ID found in server, index: %d, list: %d, requested: %d",index, template_id_list_[index], req.template_id);
+            break;
+        }
+    }
+
+    if (index >= template_id_list_.size()){
+        ROS_ERROR("Service requested template ID %d when no such template has been instantiated. Callback returning false.",req.template_id);
+        return false;
+    }
+    //Transfer all known grasps to response
+    for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it =  object_template_map_[template_type].grasps.begin();
+                                                             it != object_template_map_[template_type].grasps.end();
+                                                             ++it) {
+        //Transform to world coordinate frame
+        moveit_msgs::Grasp grasp = it->second;
+        moveit_msgs::Grasp pre_grasp = it->second;
+        if(std::atoi(grasp.id.c_str()) >= 1000){
+            staticTransform(grasp.grasp_pose.pose,gp_T_lhand_);
+            staticTransform(pre_grasp.grasp_pose.pose,gp_T_lhand_);
+        }else{
+            staticTransform(grasp.grasp_pose.pose,gp_T_rhand_);
+            staticTransform(pre_grasp.grasp_pose.pose,gp_T_rhand_);
+        }
+        gripperTranslationToPreGraspPose(pre_grasp.grasp_pose.pose,pre_grasp.pre_grasp_approach);
+        worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
+        worldPoseTransform(template_pose_list_[index],pre_grasp.grasp_pose.pose,pre_grasp.grasp_pose);
+        res.grasp_information.grasps.push_back(grasp);
+        res.pre_grasp_information.grasps.push_back(pre_grasp);
+    }
+
+    //Transfer all known stand poses to response
+    for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it =  object_template_map_[template_type].stand_poses.begin();
+                                                                                it != object_template_map_[template_type].stand_poses.end();
+                                                                                ++it) {
+        //Transform to world coordinate frame
+        vigir_object_template_msgs::StandPose stand_pose = it->second;
+        worldPoseTransform(template_pose_list_[index],stand_pose.pose.pose,stand_pose.pose);
+        res.grasp_information.stand_poses.push_back(stand_pose);
+        res.pre_grasp_information.stand_poses.push_back(stand_pose);
+    }
+    return true;
 }
 
 bool TemplateNodelet::attachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
