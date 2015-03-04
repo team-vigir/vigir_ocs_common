@@ -10,8 +10,6 @@
  */
 
 #include <QLabel>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QPoint>
 #include <QWidgetAction>
 #include <QSlider>
@@ -690,6 +688,19 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     main_layout->setSpacing(0);
   //  main_layout->addWidget(position_widget_);
 
+    notification_container_ = new QWidget(this);
+    //notification_container_->setAttribute(Qt::WA_TranslucentBackground);
+    //notification_container_->setStyleSheet("background:transparent;");
+    notification_container_->setMinimumHeight(55);
+    notification_container_->setMaximumHeight(55);
+    notification_container_->setMaximumWidth(255);
+    notification_container_->setMinimumWidth(255);
+    notification_container_->adjustSize();
+    notification_layout_ = new QVBoxLayout();
+    notification_layout_->setMargin(0);
+    notification_layout_->setSpacing(0);
+    notification_container_->setLayout(notification_layout_);
+
     XmlRpc::XmlRpcValue   hand_T_palm;
 
     nh_.getParam("/l_hand_tf/hand_T_palm", hand_T_palm);
@@ -994,28 +1005,35 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     //Means that currently doing
 
-    //REMOVE: only for ui testing without behavior implemented
     if(is_primary_view_)
-        updateBehaviorNotifications();
-
+    {
+        notification_container_->setGeometry(this->geometry().bottomRight().x() - 300,this->geometry().topRight().y() + 3,30,12);        
+    }
     if(is_primary_view_ && occluded_robot_visible_)
         setRenderOrder();
 }
 
 void Base3DView::updateBehaviorNotifications()
-{    
+{       
     //show certain amount of notifications in 3d view
     int i=0;
     int max_behavior_notifications = 3;
-    int top_offset = 0;        
+    //int top_offset = 0;
+    //old notifications may have been deleted, replace current notifications with top 3 from relay
     while (i < (int)behavior_relay_->getNotifications().size() && i < max_behavior_notifications)
     { 
-        BehaviorNotification* notification = behavior_relay_->getNotifications()[i];
-
+        BehaviorNotification* notification = behavior_relay_->getNotifications()[i];       
+        //this->setObjectName("hay");
+        //notification->setParent(this);
+        notification->show();
+        notification_layout_->addWidget(notification);
+        //this->layout()->addWidget(notification);
+        //ROS_ERROR("parent: %s",qPrintable(notification->parent()->objectName()));
         //3px from top first time , then height + 3 afterwards for each notification
-        int top_offset = 3 + 3 * i + (i * notification->height());
+        //int top_offset = 3 + 3 * i + (i * notification->height());
+        //ROS_ERROR("%d %d %d",this->geometry().bottomRight().x() - 300,this->geometry().topRight().y() + top_offset, top_offset);
         //position widget near top right corner
-        notification->setGeometry(this->geometry().bottomRight().x() - 300,this->geometry().topRight().y() + top_offset,notification->width(),notification->height());
+        //notification->setGeometry(0,this->geometry().bottomLeft().y() - notification->height(),notification->width(),notification->height());
         i++;
     }
 
@@ -1556,6 +1574,9 @@ void Base3DView::transform(const std::string& target_frame, geometry_msgs::PoseS
 
 void Base3DView::insertTemplate( QString path )
 {
+    //testt
+    updateBehaviorNotifications();
+
     //std::cout << "adding template" << std::endl;    
     if(!selected_)
     {

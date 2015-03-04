@@ -28,15 +28,17 @@ class BehaviorRelay: public QWidget
    private:
        BehaviorRelay(BehaviorRelay const&){};             // copy constructor is private
        BehaviorRelay& operator=(BehaviorRelay const&){};  // assignment operator is private
-       void processBehaviorGoalCB(const vigir_be_input::BehaviorInputAction &goal);
+       void processBehaviorGoalCB(BehaviorServer *server);
        void cleanNotifications();
 
        QWidget* parent_;
        ros::NodeHandle nh_;
        std::vector<BehaviorNotification*> behavior_notifications_;
-       BehaviorServer *behavior_server_;
+       BehaviorServer* behavior_server_;
 Q_SIGNALS:
        void updateUI();
 };
+
+
 
 #endif //BEHAVIOR_RELAY_H

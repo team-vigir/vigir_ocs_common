@@ -7,6 +7,7 @@
 #include <ros/subscriber.h>
 #include <QtCore>
 #include <QMessageBox>
+#include <QMouseEvent>
 
 namespace Ui
 {
@@ -17,16 +18,18 @@ class BehaviorNotification : public QMainWindow
 {
     Q_OBJECT
 
-private:
-    Ui::BehaviorNotification *ui;
-    bool confirmed_;
-
-
 public:
     ~BehaviorNotification();
     explicit BehaviorNotification(QWidget *parent = 0);
     bool getConfirmed() { return confirmed_; }
     void setActionText(QString);
+
+private:
+    bool eventFilter(QObject* object,QEvent* event);
+
+    Ui::BehaviorNotification *ui;
+    bool confirmed_;
+
 
 public Q_SLOTS:
     void confirm();

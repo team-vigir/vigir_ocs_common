@@ -24,6 +24,8 @@
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QTreeWidget>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
@@ -460,7 +462,11 @@ protected:
     bool shift_pressed_;
     int interactive_marker_mode_;
 
+
     Ogre::Camera* getCamera();
+
+    QWidget * notification_container_;
+    QVBoxLayout* notification_layout_;
 
     NotificationSystem* notification_system_;
     BehaviorRelay * behavior_relay_;
