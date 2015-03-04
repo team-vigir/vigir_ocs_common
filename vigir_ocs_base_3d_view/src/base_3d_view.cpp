@@ -1016,11 +1016,9 @@ void Base3DView::timerEvent(QTimerEvent *event)
 void Base3DView::updateBehaviorNotifications()
 {       
     //show certain amount of notifications in 3d view
-    int i=0;
-    int max_behavior_notifications = 3;
-    //int top_offset = 0;
+    int i=0;        
     //old notifications may have been deleted, replace current notifications with top 3 from relay
-    while (i < (int)behavior_relay_->getNotifications().size() && i < max_behavior_notifications)
+    while (i < (int)behavior_relay_->getNotifications().size() && i < behavior_relay_->getMaxNotificationsShown())
     { 
         BehaviorNotification* notification = behavior_relay_->getNotifications()[i];       
         //this->setObjectName("hay");

@@ -21,6 +21,7 @@ BehaviorNotification::BehaviorNotification(QWidget *parent) :
     //this->setStyleSheet("background:transparent;");
 
     connect(ui->confirm_button_,SIGNAL(clicked()), this, SLOT(confirm()));
+
     ui->confirm_button_->hide();
     confirmed_ = false;
     ui->centralWidget->setMouseTracking( true );
@@ -64,6 +65,7 @@ void BehaviorNotification::confirm()
 //                                    QMessageBox::Yes|QMessageBox::No);
 //    if (reply == QMessageBox::Yes)
         confirmed_ = true; // notification is now obselete, can be deleted
+        Q_EMIT sendConfirmation(ui->action_label_->text());
 }
 
 

@@ -43,8 +43,7 @@ class BehaviorManager():
 		self.relay_client_.wait_for_result()
 
 		#get result and reset pickle
-		result = BehaviorInputResult()
-		result = relay_ocs_client_.get_result()
+		result = self.relay_client_.get_result()
 
 		#get data for result based on msg
 		if(goal.msg == 'create point cloud'):	
@@ -52,7 +51,7 @@ class BehaviorManager():
 		else:
 			result.data = 'behavior not yet implemented'
 		#serialize with pickle
-			data_msg = result.data
+			data_msg = result.result.data
 			data_str = pickle.dumps(data_msg)
 			#create behavior result, necessary with
 		print 'yay'
@@ -65,12 +64,12 @@ class BehaviorManager():
 	def point_cloud_cb(self,data):
 		self.latest_3d_point = data
 
-if __name__ == '__main__':
-    rospy.init_node('vigir_ocs_behavior_manager')
-    be_input = BehaviorManager()
+#if __name__ == '__main__':
+#    rospy.init_node('vigir_ocs_behavior_manager')
+#    be_input = BehaviorManager()
 
     # Wait for ctrl-c to stop the application
-    rospy.spin()
+#    rospy.spin()
 
 
 

@@ -9,15 +9,16 @@ BehaviorRelay::BehaviorRelay(QWidget* parent)
     behavior_server_->start();
             //BehaviorServer::create(nh_, "/vigir/ocs/behavior_relay_ui", boost::bind(&BehaviorRelay::processBehaviorGoalCB,this,boost::ref(behavior_server_)), true);
     parent_ = parent;
+    max_notifications_shown = 3;
     //ui test only
-    BehaviorNotification* notification = new BehaviorNotification(parent_);
-    notification->setActionText("action_text 1");
-    BehaviorNotification* notification2 = new BehaviorNotification(parent_);
-    notification2->setActionText("action_text 2");
+//    BehaviorNotification* notification = new BehaviorNotification(parent_);
+//    notification->setActionText("action_text 1");
+//    BehaviorNotification* notification2 = new BehaviorNotification(parent_);
+//    notification2->setActionText("action_text 2");
 
-    behavior_notifications_.push_back(notification);
-    behavior_notifications_.push_back(notification2);
-    Q_EMIT updateUI();
+//    behavior_notifications_.push_back(notification);
+//    behavior_notifications_.push_back(notification2);
+//    Q_EMIT updateUI();
 }
 
 void BehaviorRelay::processBehaviorGoalCB(BehaviorServer* server)
@@ -28,29 +29,27 @@ void BehaviorRelay::processBehaviorGoalCB(BehaviorServer* server)
     //build appropriate string for ui
     QString action_text = QString::fromStdString(goal->msg);
 
-    BehaviorNotification* notification = new BehaviorNotification(parent_);
+    BehaviorNotification* notification = new BehaviorNotification(this);
+    connect(notification,SIGNAL(sendConfirmation(QString)),this,SLOT(reportConfirmation(QString)));
     notification->setActionText(action_text);
 
     behavior_notifications_.push_back(notification);
 
-    if(behavior_notifications_.size() < 3)
+    if(behavior_notifications_.size() < max_notifications_shown + 1)
         Q_EMIT updateUI();
 
-    //Blocking action.. confirm has been clicked?
-    while(!notification->getConfirmed())
-    {
-        //nothing just block
-    }
-    //behavior_server_->setSucceeded();
+
+}
+void BehaviorRelay::reportConfirmation(QString action_text)
+{
     vigir_be_input::BehaviorInputActionResult result;
     result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_OK;
     //result.status = result.status.SUCCEEDED; // even need status?
-    server->setSucceeded(result.result, goal->msg);
+    behavior_server_->setSucceeded(result.result, qPrintable(action_text));
 
     cleanNotifications();
     Q_EMIT updateUI(); //remove and enqueue new notification
 }
-
 
 
 

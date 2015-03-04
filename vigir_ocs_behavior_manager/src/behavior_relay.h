@@ -24,7 +24,7 @@ class BehaviorRelay: public QWidget
    public:
        explicit BehaviorRelay(QWidget *parent = 0);
        std::vector<BehaviorNotification*> getNotifications();
-
+       int getMaxNotificationsShown(){return max_notifications_shown;}
    private:
        BehaviorRelay(BehaviorRelay const&){};             // copy constructor is private
        BehaviorRelay& operator=(BehaviorRelay const&){};  // assignment operator is private
@@ -34,9 +34,12 @@ class BehaviorRelay: public QWidget
        QWidget* parent_;
        ros::NodeHandle nh_;
        std::vector<BehaviorNotification*> behavior_notifications_;
+       int max_notifications_shown;
        BehaviorServer* behavior_server_;
 Q_SIGNALS:
        void updateUI();
+public Q_SLOTS:
+    void reportConfirmation(QString);
 };
 
 
