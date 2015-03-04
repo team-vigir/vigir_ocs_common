@@ -1359,19 +1359,19 @@ void TemplateNodelet::addCollisionObject(int type, int index, std::string mesh_n
         shapes::constructMsgFromShape(shape,mesh_msg);
         mesh_ = boost::get<shape_msgs::Mesh>(mesh_msg);
 
-//        collision_object.meshes.push_back(mesh_);
-//        collision_object.mesh_poses.push_back(pose);
+        collision_object.meshes.push_back(mesh_);
+        collision_object.mesh_poses.push_back(pose);
 
-        collision_object.primitives.resize(1);
-        collision_object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
-        collision_object.primitives[0].dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
-        float x_size = object_template_map_[type].b_max.x - object_template_map_[type].b_min.x;
-        float y_size = object_template_map_[type].b_max.y - object_template_map_[type].b_min.y;
-        float z_size = object_template_map_[type].b_max.z - object_template_map_[type].b_min.z;
-        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = x_size;
-        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = y_size;
-        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = z_size;
-        collision_object.primitive_poses.push_back(pose);
+//        collision_object.primitives.resize(1);
+//        collision_object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+//        collision_object.primitives[0].dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
+//        float x_size = object_template_map_[type].b_max.x - object_template_map_[type].b_min.x;
+//        float y_size = object_template_map_[type].b_max.y - object_template_map_[type].b_min.y;
+//        float z_size = object_template_map_[type].b_max.z - object_template_map_[type].b_min.z;
+//        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = x_size;
+//        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = y_size;
+//        collision_object.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = z_size;
+//        collision_object.primitive_poses.push_back(pose);
 
 
         collision_object.operation = collision_object.ADD;
