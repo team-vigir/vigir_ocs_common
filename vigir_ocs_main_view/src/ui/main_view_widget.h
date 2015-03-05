@@ -7,7 +7,9 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-#include <ros/ros.h>
+
+//#include <ros/ros.h>
+
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSControlMode.h>
 #include <std_msgs/Int8.h>
@@ -35,6 +37,8 @@
 #include "notification_system.h"
 #include "main_context_menu.h"
 
+#include "ui/ghost_control_widget.h"
+
 namespace Ui
 {
     class MainViewWidget;
@@ -59,6 +63,8 @@ public:
 
     vigir_ocs::Base3DView* getPrimaryView() {return primary_view_;}
     Ui::MainViewWidget* getUi(){return ui;}
+    GhostControlWidget* getGhostControlWidget() {return ghost_control_widget_;}
+    void useTorsoContextMenu();
 
 public Q_SLOTS:
     void oneViewToggle();
@@ -143,10 +149,7 @@ protected:
     QPropertyAnimation * graspFadeIn;
     QPropertyAnimation * graspFadeOut;
 
-
     QWidget *graspContainer;
-
-
 
     QSignalMapper* stop_mapper_;
 
@@ -154,6 +157,10 @@ protected:
 
     FootstepConfigure* footstep_configure_widget_;
     QMenu footstep_menu_;
+
+
+    GhostControlWidget * ghost_control_widget_;
+    bool use_torso_checked_;
 };
 
 #endif // MAIN_VIEW_WIDGET_H

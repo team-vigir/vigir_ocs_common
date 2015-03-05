@@ -76,7 +76,7 @@ target_link_libraries(joint_list ${catkin_LIBRARIES} ${QT_LIBRARIES})
 add_dependencies(joint_list ${catkin_EXPORTED_TARGETS})
 
 add_executable(robot_status_widget ${SOURCE_ROBOT_WIDGET})
-target_link_libraries(robot_status_widget ${catkin_LIBRARIES} ${QT_LIBRARIES} flor_ocs_msgs)
+target_link_libraries(robot_status_widget ${catkin_LIBRARIES} ${QT_LIBRARIES})
 add_dependencies(robot_status_widget ${catkin_EXPORTED_TARGETS})
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})

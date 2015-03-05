@@ -638,12 +638,12 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
     selected_affordance_id_ = -1;
 
 
-    for(int index = 0; index < last_template_srv_.response.template_type_information.grasps.size(); index++)
+    for(int index = 0; index < last_grasp_srv_.response.grasp_information.grasps.size(); index++)
     {
-        if(hand_side_ == "left" && std::atoi(last_template_srv_.response.template_type_information.grasps[index].id.c_str()) >=1000)
-            ui->graspBox->addItem(QString(last_template_srv_.response.template_type_information.grasps[index].id.c_str()));
-        if(hand_side_ == "right" && std::atoi(last_template_srv_.response.template_type_information.grasps[index].id.c_str()) <1000)
-            ui->graspBox->addItem(QString(last_template_srv_.response.template_type_information.grasps[index].id.c_str()));
+        if(hand_side_ == "left" && std::atoi(last_grasp_srv_.response.grasp_information.grasps[index].id.c_str()) >=1000)
+            ui->graspBox->addItem(QString(last_grasp_srv_.response.grasp_information.grasps[index].id.c_str()));
+        if(hand_side_ == "right" && std::atoi(last_grasp_srv_.response.grasp_information.grasps[index].id.c_str()) <1000)
+            ui->graspBox->addItem(QString(last_grasp_srv_.response.grasp_information.grasps[index].id.c_str()));
     }
     for(int index = 0; index < last_template_srv_.response.template_type_information.affordances.size(); index++)
     {
@@ -874,7 +874,7 @@ void graspWidget::publishHandPose(unsigned int id)
 
     std::vector<float> joints;
 
-    size_t size = last_template_srv_.response.template_type_information.grasps.size();
+    size_t size = last_grasp_srv_.response.grasp_information.grasps.size();
 
     if(size == 0)
         ROS_ERROR_STREAM("No grasps found for this template");
@@ -882,18 +882,18 @@ void graspWidget::publishHandPose(unsigned int id)
         size_t index = 0;
         for(; index < size; ++index)
         {
-            if(std::atoi(last_template_srv_.response.template_type_information.grasps[index].id.c_str()) == id){
-                grasp_pose = last_template_srv_.response.template_type_information.grasps[index].grasp_pose;
-                joints.resize(last_template_srv_.response.template_type_information.grasps[index].grasp_posture.points[0].positions.size());
-                trans = last_template_srv_.response.template_type_information.grasps[index].pre_grasp_approach;
+            if(std::atoi(last_grasp_srv_.response.grasp_information.grasps[index].id.c_str()) == id){
+                grasp_pose = last_grasp_srv_.response.grasp_information.grasps[index].grasp_pose;
+                joints.resize(last_grasp_srv_.response.grasp_information.grasps[index].grasp_posture.points[0].positions.size());
+                trans = last_grasp_srv_.response.grasp_information.grasps[index].pre_grasp_approach;
                 for(int j=0; j<joints.size();j++)
-                    joints[j] = last_template_srv_.response.template_type_information.grasps[index].grasp_posture.points[0].positions[j];
+                    joints[j] = last_grasp_srv_.response.grasp_information.grasps[index].grasp_posture.points[0].positions[j];
                 break;
             }
         }
 
         if(index >= size)
-            ROS_ERROR_STREAM("Template server response id: " << last_template_srv_.response.template_type_information.grasps[index].id << " while searching for id: " << id);
+            ROS_ERROR_STREAM("Template server response id: " << last_grasp_srv_.response.grasp_information.grasps[index].id << " while searching for id: " << id);
         else{
             // get the selected grasp pose
             geometry_msgs::Pose template_T_palm;//geometry_msgs::PoseStamped grasp_transform;
@@ -1239,10 +1239,15 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
                 selected_template_id_ = tmp;
 
                 //CALL TEMPLATE SERVER ONCE, INSTEAD OF CALLING ON EACH CASE
-                last_template_srv_.request.template_type = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
-                if (!template_info_client_.call(last_template_srv_))
+                last_grasp_srv_.request.template_type = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
+                if (!grasp_info_client_.call(last_grasp_srv_))
                 {
                     ROS_ERROR("Failed to call service request grasp info");
+                }
+                last_template_srv_.request.template_id = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
+                if (!template_info_client_.call(last_template_srv_))
+                {
+                    ROS_ERROR("Failed to call service request template info");
                 }
                 on_templateBox_activated(ui->templateBox->itemText(tmp));
 

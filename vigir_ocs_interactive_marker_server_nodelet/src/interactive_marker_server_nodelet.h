@@ -17,6 +17,7 @@
 #include <flor_ocs_msgs/OCSControlMode.h>
 #include <flor_ocs_msgs/OCSObjectSelection.h>
 #include <flor_ocs_msgs/OCSSelectedObjectUpdate.h>
+#include <flor_ocs_msgs/OCSMarkerVisibility.h>
 
 #include <std_msgs/String.h>
 #include <std_msgs/Int8.h>
@@ -25,6 +26,7 @@
 
 namespace ocs_interactive_marker_server
 {
+
     class InteractiveMarkerServerNodelet : public nodelet::Nodelet
     {
       public:
@@ -37,19 +39,22 @@ namespace ocs_interactive_marker_server
         void setMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
         void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &obj);
         void timerCallback(const ros::TimerEvent& event);
+        void processMarkerVisibility(const flor_ocs_msgs::OCSMarkerVisibility::ConstPtr &msg);
 
       private:
         void publishSelectedObject();
+        void setEnabledMarkerVisible();
 
         ros::Publisher interactive_marker_server_feedback_pub_;
         ros::Subscriber interactive_marker_server_add_sub_;
         ros::Subscriber interactive_marker_server_remove_sub_;
         ros::Subscriber interactive_marker_server_update_sub_;
         ros::Subscriber interactive_marker_server_mode_sub_;
+        ros::Subscriber interactive_marker_server_visibility_sub_;
         ros::Subscriber select_object_sub_;
         ros::Publisher selected_object_update_pub_;
 
-        std::map<std::string,InteractiveMarkerServerCustom*> marker_map_;
+        std::map<std::string,InteractiveMarkerServerCustom*> marker_map_;        
         std::map<std::string,geometry_msgs::PoseStamped> pose_map_;
 
         boost::mutex interactive_marker_server_change_mutex_;

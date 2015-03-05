@@ -31,6 +31,9 @@
 #include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
 #include <vigir_footstep_planning_msgs/parameter_set.h>
 
+//#include <vigir_footstep_planning_lib/helper.h>
+#include <vigir_foot_pose_transformer/foot_pose_transformer.h>
+
 #include <actionlib/client/simple_action_client.h>
 
 namespace ocs_footstep
@@ -212,6 +215,9 @@ namespace ocs_footstep
         UpdateStepPlanClient* update_step_plan_client_;
         ExecuteStepPlanClient* execute_step_plan_client_;
         GetAllParameterSetsClient* get_all_parameter_sets_client_;
+
+        // local instance of foot pose transformer
+        vigir_footstep_planning::FootPoseTransformer::Ptr foot_pose_transformer_;
 
         //ros::ServiceClient edit_step_service_client_;
     };
