@@ -112,7 +112,9 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     //Publisher for template match rewuest for
     template_match_request_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/" + hand_name_ + "_template_match_request", 1, false );
 
-    move_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/manipulation_control/" + hand_name_ + "/move_to_pose", 1, false );
+    move_request_pub_  = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/manipulation_control/" + hand_name_ + "/move_to_pose",  1, false );
+    attach_object_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/manipulation_control/" + hand_name_ + "/attach_object", 1, false );
+    detach_object_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/manipulation_control/" + hand_name_ + "/detach_object", 1, false );
 
     robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/" + hand_name_ + "/grasp_status",1, &graspWidget::robotStatusCB,  this );
     ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_" + hand_side_ + "_hand_pose",             1, false);
@@ -297,9 +299,6 @@ void graspWidget::templateMatchFeedback (const flor_grasp_msgs::TemplateSelectio
 
 void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPtr& graspState)
 {
-    //std::cout << "Grasp State message received" << graspState << std::endl;
-    uint8_t mode  = (graspState->grasp_state.data&0xF0) >> 4;
-    uint8_t state = graspState->grasp_state.data&0x0F;
     setProgressLevel(graspState->grip.data);
 
     ui->userSlider->setValue(graspState->grip.data);
@@ -307,59 +306,7 @@ void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPt
     ui->verticalSlider_2->setValue(graspState->finger_effort[1].data);
     ui->verticalSlider_3->setValue(graspState->finger_effort[2].data);
     ui->verticalSlider_4->setValue(graspState->finger_effort[3].data);
-    //std::cout << "     mode=" << uint32_t(mode) << "   state="<< uint32_t(state) << std::endl;
-    switch(mode)
-    {
-    case flor_grasp_msgs::GraspState::GRASP_MODE_NONE:
-        ui->currentStateLabel->setText("idle");
-        currentGraspMode = 0;
-        break;
-    case flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE:
-        if(currentGraspMode != 1)
-        {
-            initTemplateMode();
-            currentGraspMode = 1;
-        }
-        switch(state)
-        {
-        case flor_grasp_msgs::GraspState::GRASP_STATE_NONE:
-            ui->currentStateLabel->setText("State Unknown");
-            break;
-        case flor_grasp_msgs::GraspState::GRASP_INIT:
-            ui->currentStateLabel->setText("init");
-            break;
-        case flor_grasp_msgs::GraspState::APPROACHING:
-            ui->currentStateLabel->setText("approaching");
-            break;
-        case flor_grasp_msgs::GraspState::SURROUNDING:
-            ui->currentStateLabel->setText("surrounding");
-            break;
-        case flor_grasp_msgs::GraspState::GRASPING:
-            ui->currentStateLabel->setText("grasping");
-            break;
-        case flor_grasp_msgs::GraspState::MONITORING:
-            ui->currentStateLabel->setText("monitoring");
-            break;
-        case flor_grasp_msgs::GraspState::OPENING:
-            ui->currentStateLabel->setText("opening");
-            break;
-        case flor_grasp_msgs::GraspState::GRASP_ERROR:
-        default:
-            ui->currentStateLabel->setText("template error");
-            break;
-        }
-        break;
-    case flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE:
-        if(currentGraspMode != 2)
-        {
-            currentGraspMode = 2;
-        }
-        ui->currentStateLabel->setText("manual");
-        break;
-    default:
-        ui->currentStateLabel->setText("MODE ERROR");
-        break;
-    }
+
 }
 
 
@@ -1184,4 +1131,20 @@ void graspWidget::removeCircularContextMenu()
 void graspWidget::on_fingerBox_toggled(bool checked)
 {
     ui->stackedWidget->setVisible(checked);
+}
+
+void graspWidget::on_attachButton_clicked()
+{
+    flor_grasp_msgs::TemplateSelection msg;
+    msg.template_id.data = selected_template_id_;
+    if(attach_object_pub_)
+        attach_object_pub_.publish(msg);
+}
+
+void graspWidget::on_detachButton_clicked()
+{
+    flor_grasp_msgs::TemplateSelection msg;
+    msg.template_id.data = selected_template_id_;
+    if(detach_object_pub_)
+        detach_object_pub_.publish(msg);
 }

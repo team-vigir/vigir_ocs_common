@@ -141,7 +141,7 @@ void TemplateNodelet::updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::C
             break;
     if(index < template_id_list_.size())
     {
-        std::cout << "Updated!" << std::endl;
+        //ROS_INFO("Updated!");
         template_pose_list_[index] = msg->pose;
 
 
@@ -1111,15 +1111,15 @@ bool TemplateNodelet::attachObjectTemplateSrv(vigir_object_template_msgs::SetAtt
     shape_msgs::Mesh mesh_;
     mesh_ = boost::get<shape_msgs::Mesh>(mesh_msg);
 
-    tf::Transform wt_pose;
-    tf::Transform tp_pose;
+    tf::Transform world_T_wrist;
+    tf::Transform world_T_template;
     tf::Transform target_pose;
-    wt_pose.setRotation(tf::Quaternion(req.pose.pose.orientation.x,req.pose.pose.orientation.y,req.pose.pose.orientation.z,req.pose.pose.orientation.w));
-    wt_pose.setOrigin(tf::Vector3(req.pose.pose.position.x,req.pose.pose.position.y,req.pose.pose.position.z) );
-    tp_pose.setRotation(tf::Quaternion(template_pose.pose.orientation.x,template_pose.pose.orientation.y,template_pose.pose.orientation.z,template_pose.pose.orientation.w));
-    tp_pose.setOrigin(tf::Vector3(template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z) );
+    world_T_wrist.setRotation(tf::Quaternion(req.pose.pose.orientation.x,req.pose.pose.orientation.y,req.pose.pose.orientation.z,req.pose.pose.orientation.w));
+    world_T_wrist.setOrigin(tf::Vector3(req.pose.pose.position.x,req.pose.pose.position.y,req.pose.pose.position.z) );
+    world_T_template.setRotation(tf::Quaternion(template_pose.pose.orientation.x,template_pose.pose.orientation.y,template_pose.pose.orientation.z,template_pose.pose.orientation.w));
+    world_T_template.setOrigin(tf::Vector3(template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z) );
 
-    target_pose = wt_pose.inverse() * tp_pose;
+    target_pose = world_T_wrist.inverse() * world_T_template;
 
     geometry_msgs::Pose pose;
     pose.orientation.x = target_pose.getRotation().getX();

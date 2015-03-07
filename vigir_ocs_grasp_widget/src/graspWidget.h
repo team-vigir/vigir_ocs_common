@@ -83,6 +83,8 @@ public Q_SLOTS:
     void on_verticalSlider_4_sliderReleased();
     void sendCircularTarget();
     void on_fingerBox_toggled(bool checked);
+    void on_attachButton_clicked();
+    void on_detachButton_clicked();
 
 
 private:
@@ -132,6 +134,8 @@ private:
     ros::Publisher grasp_command_pub_;
     ros::Publisher template_match_request_pub_;
     ros::Publisher move_request_pub_;
+    ros::Publisher attach_object_pub_;
+    ros::Publisher detach_object_pub_;
     ros::Publisher template_stitch_request_pub_;
     ros::Publisher grasp_request_pub_;
     ros::Publisher grasp_release_pub_;
