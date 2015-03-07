@@ -134,7 +134,7 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
 
 void TemplateNodelet::updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& msg)
 {
-    std::cout << "Updating template " << (unsigned int)msg->template_id << "... ";
+    //ROS_INFO("Updating template %d",(unsigned int)msg->template_id);
     int index = 0;
     for(; index < template_id_list_.size(); index++)
         if(template_id_list_[index] == msg->template_id)
@@ -1390,7 +1390,7 @@ void TemplateNodelet::addCollisionObject(int type, int index, std::string mesh_n
 void TemplateNodelet::moveCollisionObject(int index, geometry_msgs::Pose pose){
     //Add collision object with template pose and bounding box
 
-    ROS_INFO("Move collision template started... ");
+    //ROS_INFO("Move collision template started... ");
 
     unsigned int idx = 0;
     for(; idx < template_id_list_.size(); idx++) {
@@ -1407,7 +1407,7 @@ void TemplateNodelet::moveCollisionObject(int index, geometry_msgs::Pose pose){
             collision_object.header.frame_id = "/world";
             collision_object.mesh_poses.push_back(pose);
             collision_object.operation       = collision_object.MOVE;
-            ROS_INFO("Moving the object in the environment");
+            //ROS_INFO("Moving the object in the environment");
             co_pub_.publish(collision_object);
         }else
             ROS_INFO("Object Template %d attached to robot, cannot move!",index);

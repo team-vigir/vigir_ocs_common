@@ -28,7 +28,6 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     ui->templateBox->setDisabled(true);
     ui->graspBox->setDisabled(true);
     ui->affordanceBox->setDisabled(true);
-    ui->performButton->setDisabled(true);
     ui->stitch_template->setDisabled(true);
     setUpButtons();
 
@@ -48,7 +47,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
 
     grasp_selection_pub_         = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/grasp_selection",        1, false);
     grasp_release_pub_           = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/release_grasp" ,         1, false);
-    grasp_mode_command_pub_      = nh_.advertise<flor_grasp_msgs::GraspState>(        grasp_control_prefix+"/mode_command",     1, false);
+    grasp_command_pub_           = nh_.advertise<flor_grasp_msgs::GraspState>(        grasp_control_prefix+"/grasp_command",     1, false);
 
     grasp_info_client_           = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
     template_info_client_        = nh_.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
@@ -80,14 +79,10 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     QPushButton* circular_send_ = new QPushButton(QString::fromStdString("Send to " + hand_side_ + " arm"));
     QObject::connect(circular_send_, SIGNAL(clicked()), this, SLOT(sendCircularTarget()));
     circular_send_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
-//    QPushButton* circular_send_right_ = new QPushButton("Send to right arm");
-//    QObject::connect(circular_send_right_, SIGNAL(clicked()), this, SLOT(sendCircularRight()));
-//    circular_send_right_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
 
     QHBoxLayout* circular_button_layout_ = new QHBoxLayout();
     circular_button_layout_->setMargin(0);
     circular_button_layout_->addWidget(circular_send_);
-//    circular_button_layout_->addWidget(circular_send_right_);
 
     QVBoxLayout* circular_layout_ = new QVBoxLayout();
     circular_layout_->setMargin(3);
@@ -103,6 +98,8 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
 
     // and necessary publisher
     circular_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request", 1, false );
+
+    ui->stackedWidget->setVisible(false);
 
     if(hand_side_ == "right")
         hand_name_ = "r_hand";
@@ -280,8 +277,8 @@ void graspWidget::setUpButtons()
     ui->releaseButton->setFont(QFont ("Ubuntu", 10));
     ui->performButton->setStyleSheet(btnStyle);
     ui->performButton->setFont(QFont ("Ubuntu", 10));
-    ui->templateButton->setStyleSheet(btnStyle);
-    ui->templateButton->setFont(QFont ("Ubuntu", 10));
+    ui->moveToPoseButton->setStyleSheet(btnStyle);
+    ui->moveToPoseButton->setFont(QFont ("Ubuntu", 10));
     //put arrows on comboboxes
     QString styleSheet = ui->templateBox->styleSheet() + "\n" +
             "QComboBox::down-arrow {\n" +
@@ -295,16 +292,6 @@ void graspWidget::setUpButtons()
 void graspWidget::templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr& feedback)
 {
     // provide feedback about template grasp confidence by changing the color of the move to template button
-    QPalette pal = ui->templateButton->palette();
-    if(feedback->confidence.data >= 85)
-        pal.setColor(QPalette::Button,Qt::green);
-    else if(feedback->confidence.data >=60)
-        pal.setColor(QPalette::Button,Qt::yellow);
-    else
-        pal.setColor(QPalette::Button,Qt::red);
-    ui->templateButton->setPalette(pal);
-    ui->templateButton->setAutoFillBackground(true);
-    std::cout << "Template confidence received and found to be " << (int)feedback->confidence.data << std::endl;
     templateMatchDone = true; // is this still being used?
 }
 
@@ -330,8 +317,6 @@ void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPt
     case flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE:
         if(currentGraspMode != 1)
         {
-            ui->manualRadio->setChecked(false);
-            ui->templateRadio->setChecked(true);
             initTemplateMode();
             currentGraspMode = 1;
         }
@@ -367,8 +352,6 @@ void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPt
     case flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE:
         if(currentGraspMode != 2)
         {
-            ui->manualRadio->setChecked(true);
-            ui->templateRadio->setChecked(false);
             currentGraspMode = 2;
         }
         ui->currentStateLabel->setText("manual");
@@ -392,7 +375,6 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         //ui->templateBox->setDisabled(false);
         ui->graspBox->setDisabled(false);
         ui->affordanceBox->setDisabled(false);
-        ui->performButton->setDisabled(false);
     }
 
     bool was_empty = ui->templateBox->count() == 0 ? true : false;
@@ -444,7 +426,6 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
             //ROS_ERROR("Seleting template 0");
             ui->templateBox->setCurrentIndex(0);
             on_templateBox_activated(ui->templateBox->itemText(0));
-            on_templateRadio_clicked();
             selected_template_id_ = 0;
         }
 
@@ -461,125 +442,6 @@ void graspWidget::initTemplateMode()
         ui->graspBox->setDisabled(false);
         ui->affordanceBox->setDisabled(false);
     }
-}
-
-//currentStateLabel
-void graspWidget::setProgressLevel(uint8_t level)
-{
-    //std::cout << "setting fill level to be " << (int)level << std::endl;
-    if(level >=100)
-    {
-        ui->closedGraph->setValue(100);
-        ui->forceGraph->setValue((int)(level-100));
-    }
-    else
-    {
-        ui->closedGraph->setValue(level);
-        ui->forceGraph->setValue(0);
-    }
-}
-
-
-void graspWidget::sendManualMsg(uint8_t level, int8_t thumb,int8_t left,int8_t right ,int8_t spread)
-{
-    flor_grasp_msgs::GraspState cmd;
-    cmd.grip.data         = level;
-    cmd.finger_effort.resize(FINGER_EFFORTS);
-    cmd.finger_effort[0].data = thumb;
-    cmd.finger_effort[1].data = left;   //index for sandia
-    cmd.finger_effort[2].data = right;  //middle for sandia
-    cmd.finger_effort[3].data = spread; //Spread iRobot, Pinky for sandia
-    cmd.grasp_state.data = 4; // leave as current command
-    if (ui->graspBox->currentText() == QString("CYLINDRICAL"))  cmd.grasp_state.data = 0;
-    if (ui->graspBox->currentText() == QString("PRISMATIC"))    cmd.grasp_state.data = 1;
-    if (ui->graspBox->currentText() == QString("SPHERICAL"))    cmd.grasp_state.data = 2;
-    cmd.grasp_state.data += (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
-    grasp_mode_command_pub_.publish(cmd);
-    std::cout << "Sent Manual mode message ("<< uint32_t(cmd.grasp_state.data) << ") with " <<  uint32_t(cmd.grip.data) << " manual grip level and " <<
-                 int(cmd.finger_effort[0].data) << "," <<
-                 int(cmd.finger_effort[1].data) << "," <<
-                 int(cmd.finger_effort[2].data) << "," <<
-                 int(cmd.finger_effort[3].data) <<
-                 " finger efforts to " << hand_side_ << " hand" << std::endl;
-}
-
-void graspWidget::on_userSlider_sliderReleased()
-{
-    if(ui->manualRadio->isChecked())
-    {
-        setProgressLevel(ui->userSlider->value());
-        sendManualMsg(ui->userSlider->value(), ui->verticalSlider->value(), ui->verticalSlider_2->value(), ui->verticalSlider_3->value(), ui->verticalSlider_4->value());
-    }
-    else if (ui->templateRadio->isChecked())
-    {
-        flor_grasp_msgs::GraspState msg;
-        msg.finger_effort.resize(FINGER_EFFORTS);
-        msg.finger_effort[0].data= ui->verticalSlider->value();
-        msg.finger_effort[1].data= ui->verticalSlider_2->value();
-        msg.finger_effort[2].data= ui->verticalSlider_3->value();
-        msg.finger_effort[3].data= ui->verticalSlider_4->value();
-        msg.grasp_state.data = ((flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4) + 4;
-        if(ui->userSlider->value() > 100)
-        {
-            msg.grip.data        = ui->userSlider->value();
-            std::cout << "Adjust feedforward to " << int32_t(ui->userSlider->value()) << " with state=" << uint32_t(msg.grasp_state.data) << std::endl;
-        }
-        else
-        {
-            std::cout << "Only relevant in template mode if the feedforward is set!  New position is " << ui->userSlider->value() << std::endl;
-            msg.grip.data        = 100; // can't undo grasp closure in template mode, but need to send message to clear feedforward
-        }
-        grasp_mode_command_pub_.publish(msg);
-    }
-    else
-    {
-        std::cout << "slider changed while not in any control mode. New position is " << ui->userSlider->value() << std::endl;
-    }
-}
-
-void graspWidget::on_releaseButton_clicked()
-{
-    std::cout << "Release the grasp requested" << std::endl;
-    ui->userSlider->setValue(0);
-    ui->verticalSlider->setValue(0);
-    ui->verticalSlider_2->setValue(0);
-    ui->verticalSlider_3->setValue(0);
-    ui->verticalSlider_4->setValue(0);
-
-    flor_grasp_msgs::GraspSelection grasp_msg;
-    grasp_msg.header.stamp=ros::Time::now();
-    grasp_msg.grasp_id.data      = 0;
-    grasp_msg.template_id.data   = 0;
-    grasp_msg.template_type.data = 0;
-    grasp_release_pub_.publish(grasp_msg);
-    ui->stitch_template->setDisabled(true);
-}
-
-void graspWidget::on_templateButton_clicked()
-{
-    if(ui->templateBox->count() < 1)
-    {
-        ROS_ERROR("Tried to template match when no templates exsist");
-        return;
-    }
-    hideHand();
-    std::cout << "template match requested..." << std::endl;
-    flor_grasp_msgs::TemplateSelection msg;
-
-    msg.template_type.data = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
-
-    msg.bounding_max = last_template_srv_.response.template_type_information.b_max;
-    msg.bounding_min = last_template_srv_.response.template_type_information.b_min;
-    msg.com          = last_template_srv_.response.template_type_information.center_of_mass;
-    msg.mass.data    = last_template_srv_.response.template_type_information.mass;
-    msg.mesh_path    = last_template_srv_.response.template_type_information.geometry_marker.mesh_resource;
-
-    msg.template_id.data = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
-    msg.pose.pose = last_template_list_.pose[ui->templateBox->currentIndex()].pose;
-    msg.pose.header.frame_id = "/world";
-    msg.pose.header.stamp = ros::Time::now();
-    msg.pose.header.seq++;
-    template_match_request_pub_.publish(msg);
 }
 
 void graspWidget::on_moveToPoseButton_clicked()
@@ -603,25 +465,85 @@ void graspWidget::on_moveToPoseButton_clicked()
 
 void graspWidget::on_performButton_clicked()
 {
-    std::cout << "Performing grasp" << std::endl;
-    flor_grasp_msgs::GraspSelection msg;
-    msg.header.frame_id = "/world";
-    int graspID = ui->graspBox->currentText().toInt();
-    msg.grasp_id.data = graspID;
-    if(ui->templateBox->count() > 0)
+    ROS_INFO("Closing hand");
+    flor_grasp_msgs::GraspState cmd;
+    cmd.grip.data             = 200;
+    cmd.finger_effort.resize(FINGER_EFFORTS);
+    cmd.finger_effort[0].data = 0;
+    cmd.finger_effort[1].data = 0;   //index for sandia
+    cmd.finger_effort[2].data = 0;  //middle for sandia
+    cmd.finger_effort[3].data = 0; //Spread iRobot, Pinky for sandia
+
+    ui->userSlider->setValue(200);
+    ui->verticalSlider->setValue(0);
+    ui->verticalSlider_2->setValue(0);
+    ui->verticalSlider_3->setValue(0);
+    ui->verticalSlider_4->setValue(0);
+
+    setProgressLevel(ui->userSlider->value());
+
+    grasp_command_pub_.publish(cmd);
+}
+
+void graspWidget::on_releaseButton_clicked()
+{
+    flor_grasp_msgs::GraspState cmd;
+    cmd.grip.data             = 0;
+    cmd.finger_effort.resize(FINGER_EFFORTS);
+    cmd.finger_effort[0].data = 0;
+    cmd.finger_effort[1].data = 0;   //index for sandia
+    cmd.finger_effort[2].data = 0;  //middle for sandia
+    cmd.finger_effort[3].data = 0; //Spread iRobot, Pinky for sandia
+
+    ui->userSlider->setValue(0);
+    ui->verticalSlider->setValue(0);
+    ui->verticalSlider_2->setValue(0);
+    ui->verticalSlider_3->setValue(0);
+    ui->verticalSlider_4->setValue(0);
+
+    setProgressLevel(ui->userSlider->value());
+
+    grasp_command_pub_.publish(cmd);
+    ui->stitch_template->setDisabled(true);
+}
+
+void graspWidget::on_userSlider_sliderReleased()
+{
+        setProgressLevel(ui->userSlider->value());
+        sendManualMsg(ui->userSlider->value(), ui->verticalSlider->value(), ui->verticalSlider_2->value(), ui->verticalSlider_3->value(), ui->verticalSlider_4->value());
+}
+
+//currentStateLabel
+void graspWidget::setProgressLevel(uint8_t level)
+{
+    //std::cout << "setting fill level to be " << (int)level << std::endl;
+    if(level >=100)
     {
-        ui->stitch_template->setDisabled(false);
-        on_templateButton_clicked();
-        msg.template_id.data   = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
-        msg.template_type.data = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
+        ui->closedGraph->setValue(100);
+        ui->forceGraph->setValue((int)(level-100));
     }
     else
     {
-        msg.template_id.data = 0;
-        msg.template_type.data = 0;
+        ui->closedGraph->setValue(level);
+        ui->forceGraph->setValue(0);
     }
-    grasp_selection_pub_.publish(msg);
 }
+
+void graspWidget::sendManualMsg(uint8_t level, int8_t thumb,int8_t left,int8_t right ,int8_t spread)
+{
+    flor_grasp_msgs::GraspState cmd;
+    cmd.grip.data             = level;
+    cmd.finger_effort.resize(FINGER_EFFORTS);
+    cmd.finger_effort[0].data = thumb;
+    cmd.finger_effort[1].data = left;   //index for sandia
+    cmd.finger_effort[2].data = right;  //middle for sandia
+    cmd.finger_effort[3].data = spread; //Spread iRobot, Pinky for sandia
+    cmd.grasp_state.data = 4; // leave as current command
+    cmd.grasp_state.data += (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
+    grasp_command_pub_.publish(cmd);
+}
+
+
 
 void graspWidget::on_templateBox_activated(const QString &arg1)
 {
@@ -653,45 +575,12 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
         selected_grasp_id_      = ui->graspBox->itemText(0).toInt();
         selected_affordance_id_ = ui->affordanceBox->itemText(0).toInt();
     }
-
-    if (ui->manualRadio->isChecked())
-    {
-        ui->graspBox->addItem(QString("CYLINDRICAL"));
-        ui->graspBox->addItem(QString("PRISMATIC"));
-        ui->graspBox->addItem(QString("SPHERICAL"));
-    }
 }
 
 void graspWidget::on_graspBox_activated(const QString &arg1)
 {
-    std::cout << " grasp selection = " << arg1.toStdString() << std::endl;
-    if (ui->manualRadio->isChecked())
-    {
-        flor_grasp_msgs::GraspState msg;
-        msg.grasp_state.data = 4; // leave as current command
-        if (arg1 == QString("CYLINDRICAL"))  msg.grasp_state.data = 0;
-        if (arg1 == QString("PRISMATIC"))    msg.grasp_state.data = 1;
-        if (arg1 == QString("SPHERICAL"))    msg.grasp_state.data = 2;
-        msg.grasp_state.data += (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
-        msg.grip.data         = ui->userSlider->value();
-        msg.finger_effort.resize(FINGER_EFFORTS);
-        msg.finger_effort[0].data = ui->verticalSlider->value();
-        msg.finger_effort[1].data = ui->verticalSlider_2->value();
-        msg.finger_effort[2].data = ui->verticalSlider_3->value();
-        msg.finger_effort[3].data = ui->verticalSlider_4->value();
-        grasp_mode_command_pub_.publish(msg);
-        std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " <<
-                     int8_t(msg.finger_effort[0].data) << "," <<
-                     int8_t(msg.finger_effort[1].data) << "," <<
-                     int8_t(msg.finger_effort[2].data) << "," <<
-                     int8_t(msg.finger_effort[3].data) <<
-                     " finger efforts effort to " << hand_side_ << " hand" << std::endl;
-    }
-    else
-    {
         selected_grasp_id_ = arg1.toInt();
         publishHandPose(arg1.toUInt());
-    }
 }
 
 void graspWidget::on_affordanceBox_activated(const QString &arg1)
@@ -710,101 +599,6 @@ void graspWidget::on_affordanceBox_activated(const QString &arg1)
         if(circular_config_widget_->isVisible())
             circular_config_widget_->hide();
     }
-}
-
-void graspWidget::on_noneRadio_clicked()
-{
-    ui->performButton->setDisabled(true);
-
-    flor_grasp_msgs::GraspState msg;
-    msg.grasp_state.data  = (flor_grasp_msgs::GraspState::GRASP_MODE_NONE)<<4;
-    msg.grip.data         = 0;
-
-    grasp_mode_command_pub_.publish(msg);
-}
-
-void graspWidget::on_templateRadio_clicked()
-{
-    for (uint32_t ndx=0; ndx < ui->graspBox->count(); ++ndx)
-    {
-        if ( (ui->graspBox->itemText(ndx) == QString("CYLINDRICAL")) ||
-             (ui->graspBox->itemText(ndx) == QString("PRISMATIC")) ||
-             (ui->graspBox->itemText(ndx) == QString("SPHERICAL")) ||
-             (ui->graspBox->itemText(ndx) == QString("CURRENT")))
-        {
-
-            std::string str = ui->graspBox->itemText(ndx).toStdString();
-            ROS_INFO(" Removing item at %d (%s)", ndx, str.c_str());
-            ui->graspBox->removeItem(ndx);
-            --ndx;
-        }
-    }
-    selected_template_id_ = -1;
-    if (ui->graspBox->count() < 1)
-    {
-        ui->graspBox->setDisabled(true); // nothing to select
-        ui->performButton->setDisabled(true);
-    }
-    else
-    {
-        ui->performButton->setDisabled(false);
-    }
-    flor_grasp_msgs::GraspState msg;
-    msg.grasp_state.data  = (flor_grasp_msgs::GraspState::TEMPLATE_GRASP_MODE)<<4;
-    msg.grip.data         = ui->userSlider->value();
-    msg.finger_effort.resize(FINGER_EFFORTS);
-    msg.finger_effort[0].data = ui->verticalSlider->value();
-    msg.finger_effort[1].data = ui->verticalSlider_2->value();
-    msg.finger_effort[2].data = ui->verticalSlider_3->value();
-    msg.finger_effort[3].data = ui->verticalSlider_4->value();
-    grasp_mode_command_pub_.publish(msg);
-    std::cout << "Sent Template mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " <<
-                 int8_t(msg.finger_effort[0].data) << "," <<
-                 int8_t(msg.finger_effort[1].data) << "," <<
-                 int8_t(msg.finger_effort[2].data) << "," <<
-                 int8_t(msg.finger_effort[3].data) <<
-                 " finger efforts effort to " << hand_side_ << " hand" << std::endl;
-
-}
-
-void graspWidget::on_manualRadio_clicked()
-{
-    bool addCylindrical= true;
-    bool addPrismatic  = true;
-    bool addSpherical  = true;
-    bool addCurrent    = true;
-
-    for (uint32_t ndx=0; ndx < ui->graspBox->count(); ++ndx)
-    {
-        if (ui->graspBox->itemText(ndx) == QString("CYLINDRICAL"))  addCylindrical= false;
-        if (ui->graspBox->itemText(ndx) == QString("PRISMATIC"))    addPrismatic  = false;
-        if (ui->graspBox->itemText(ndx) == QString("SPHERICAL"))    addSpherical  = false;
-        if (ui->graspBox->itemText(ndx) == QString("CURRENT"))      addCurrent    = false;
-    }
-    if (addCylindrical) ui->graspBox->addItem(QString("CYLINDRICAL"));
-    if (addPrismatic)   ui->graspBox->addItem(QString("PRISMATIC"));
-    if (addSpherical)   ui->graspBox->addItem(QString("SPHERICAL"));
-    if (addCurrent)     ui->graspBox->addItem(QString("CURRENT"));
-    ui->graspBox->setDisabled(false);
-
-    ui->performButton->setDisabled(false);
-
-    flor_grasp_msgs::GraspState msg;
-    msg.grasp_state.data  = (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
-    msg.grasp_state.data += 4; // no grasp type chosen (force selection) (default to keeping old terminal values)
-    msg.grip.data         = ui->userSlider->value();
-    msg.finger_effort.resize(FINGER_EFFORTS);
-    msg.finger_effort[0].data = ui->verticalSlider->value();
-    msg.finger_effort[1].data = ui->verticalSlider_2->value();
-    msg.finger_effort[2].data = ui->verticalSlider_3->value();
-    msg.finger_effort[3].data = ui->verticalSlider_4->value();
-    grasp_mode_command_pub_.publish(msg);
-    std::cout << "Sent Manual mode message ("<< uint32_t(msg.grasp_state.data) << ") with " <<  uint32_t(msg.grip.data) << " manual grip level and " <<
-                 int8_t(msg.finger_effort[0].data) << "," <<
-                 int8_t(msg.finger_effort[1].data) << "," <<
-                 int8_t(msg.finger_effort[2].data) << "," <<
-                 int8_t(msg.finger_effort[3].data) <<
-                 " finger efforts effort to " << hand_side_ << " hand" << std::endl;
 }
 
 void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
@@ -1226,7 +1020,6 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             //ui->templateBox->setDisabled(false);
             ui->graspBox->setDisabled(false);
             ui->affordanceBox->setDisabled(false);
-            ui->performButton->setDisabled(false);
             ui->stitch_template->setDisabled(false);
             std::vector<unsigned char>::iterator it;
             it = std::find(last_template_list_.template_id_list.begin(), last_template_list_.template_id_list.end(), msg->id);
@@ -1235,7 +1028,6 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
                 int tmp = std::distance(last_template_list_.template_id_list.begin(),it);
                 ui->templateBox->setCurrentIndex(tmp);
                 on_templateBox_activated(ui->templateBox->itemText(tmp));
-                on_templateRadio_clicked();
                 selected_template_id_ = tmp;
 
                 //CALL TEMPLATE SERVER ONCE, INSTEAD OF CALLING ON EACH CASE
@@ -1263,11 +1055,8 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             ui->templateBox->setCurrentIndex(-1);
             ui->graspBox->setCurrentIndex(-1);
             ui->affordanceBox->setCurrentIndex(-1);
-            on_templateRadio_clicked();
-            //ui->templateBox->setDisabled(true);
             ui->graspBox->setDisabled(true);
             ui->affordanceBox->setDisabled(true);
-            ui->performButton->setDisabled(true);
             ui->stitch_template->setDisabled(true);
             }
             break;
@@ -1390,4 +1179,9 @@ void graspWidget::sendCircularTarget()
 void graspWidget::removeCircularContextMenu()
 {
     circular_config_widget_->hide();
+}
+
+void graspWidget::on_fingerBox_toggled(bool checked)
+{
+    ui->stackedWidget->setVisible(checked);
 }

@@ -73,12 +73,8 @@ public Q_SLOTS:
     void on_graspBox_activated(const QString &arg1);
     void on_affordanceBox_activated(const QString &arg1);
     void on_performButton_clicked();
-    void on_templateButton_clicked();
     void on_moveToPoseButton_clicked();
     void on_releaseButton_clicked();
-    void on_manualRadio_clicked();
-    void on_templateRadio_clicked();
-    void on_noneRadio_clicked();
     void on_show_grasp_toggled(bool checked);
     void on_stitch_template_toggled(bool checked);
     void on_verticalSlider_sliderReleased();
@@ -86,6 +82,8 @@ public Q_SLOTS:
     void on_verticalSlider_2_sliderReleased();
     void on_verticalSlider_4_sliderReleased();
     void sendCircularTarget();
+    void on_fingerBox_toggled(bool checked);
+
 
 private:
     void setProgressLevel(uint8_t level);
@@ -131,7 +129,7 @@ private:
     ros::Subscriber template_match_feedback_sub_;
     ros::Publisher grasp_selection_pub_;
     ros::Publisher template_remove_pub_;
-    ros::Publisher grasp_mode_command_pub_;
+    ros::Publisher grasp_command_pub_;
     ros::Publisher template_match_request_pub_;
     ros::Publisher move_request_pub_;
     ros::Publisher template_stitch_request_pub_;
@@ -228,7 +226,6 @@ protected:
     /**
       * Publishes the circular target pose
       */
-
 
 private:
     QBasicTimer timer;
