@@ -754,7 +754,7 @@ void FootstepManager::publishFootstepParameterSetList()
 void FootstepManager::sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet& feet)
 {
     //convert to ankle for planner
-    foot_pose_transformer_->transformToPlannerFrame(feet);
+    foot_pose_transformer_->transformToRobotFrame(feet);
 
     // Fill in goal here
     vigir_footstep_planning_msgs::UpdateFeetGoal action_goal;
@@ -796,7 +796,7 @@ void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& sta
         goal_ = result->feet;
 
         //convert to sole for visualization
-        foot_pose_transformer_->transformToRobotFrame(goal_);
+        foot_pose_transformer_->transformToPlannerFrame(goal_);
 
         // need to send visualization message
         updateGoalVisMsgs();
@@ -826,8 +826,8 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     vigir_footstep_planning_msgs::StepPlanRequest request;
 
     //convert transform to ankle for planner
-    foot_pose_transformer_->transformToPlannerFrame(start);
-    foot_pose_transformer_->transformToPlannerFrame(goal);
+    foot_pose_transformer_->transformToRobotFrame(start);
+    foot_pose_transformer_->transformToRobotFrame(goal);
 
     request.header.frame_id = "/world";
     request.header.stamp = ros::Time::now();
@@ -893,7 +893,7 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
         vigir_footstep_planning_msgs::StepPlanRequestResult result_copy = *result;
 
         //convert to sole for visualization
-        foot_pose_transformer_->transformToRobotFrame(result_copy.step_plan);
+        foot_pose_transformer_->transformToPlannerFrame(result_copy.step_plan);
 
         // we only change the current step lists if we receive a response
         if(result_copy.step_plan.steps[0].step_index == 0)
@@ -916,8 +916,8 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
 void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step, unsigned int plan_mode)
 {
     //convert to ankle for planner
-    foot_pose_transformer_->transformToPlannerFrame(step_plan);
-    foot_pose_transformer_->transformToPlannerFrame(step.foot);
+    foot_pose_transformer_->transformToRobotFrame(step_plan);
+    foot_pose_transformer_->transformToRobotFrame(step.foot);
 
     // Fill in goal here
     vigir_footstep_planning_msgs::EditStepGoal action_goal;
@@ -974,7 +974,7 @@ void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state
         //Brian::can optimize to just transform one plan?
         for(int i=0;i<result_copy.step_plans.size();i++)
         {
-            foot_pose_transformer_->transformToRobotFrame(result_copy.step_plans[i]);
+            foot_pose_transformer_->transformToPlannerFrame(result_copy.step_plans[i]);
         }
 
         // first need to figure out which step plan contains the step index used in the result
@@ -1002,7 +1002,7 @@ void FootstepManager::sendStitchStepPlanGoal(std::vector<vigir_footstep_planning
     //convert all step plans transforms to be relative to ankle frame for planner
     for(int i=0;i<step_plan_list.size();i++)
     {
-        foot_pose_transformer_->transformToPlannerFrame(step_plan_list[i]);
+        foot_pose_transformer_->transformToRobotFrame(step_plan_list[i]);
     }
 
     // Fill in goal here
@@ -1045,7 +1045,7 @@ void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState&
 
         vigir_footstep_planning_msgs::StitchStepPlanResult result_copy = *result;
         //convert step plan transform to be relative to sole frame for visualization
-        foot_pose_transformer_->transformToRobotFrame(result_copy.step_plan);
+        foot_pose_transformer_->transformToPlannerFrame(result_copy.step_plan);
 
         // add new step plan to the list
         getStepPlanList().push_back(result_copy.step_plan);
@@ -1061,7 +1061,7 @@ void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState&
 void FootstepManager::sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan& step_plan)
 {
     //convert transform to ankle for planner
-    foot_pose_transformer_->transformToPlannerFrame(step_plan);
+    foot_pose_transformer_->transformToRobotFrame(step_plan);
 
     // Fill in goal here
     vigir_footstep_planning_msgs::UpdateStepPlanGoal action_goal;
@@ -1111,7 +1111,7 @@ void FootstepManager::sendExecuteStepPlanGoal()
     action_goal.step_plan = getStepPlan();
 
     //convert transform to ankle for planner, might be redundant here?
-    foot_pose_transformer_->transformToPlannerFrame(action_goal.step_plan);
+    foot_pose_transformer_->transformToRobotFrame(action_goal.step_plan);
 
     // and send it to the server
     if(execute_step_plan_client_->isServerConnected())
