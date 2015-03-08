@@ -393,13 +393,8 @@ void FootstepManager::processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPl
     // uses goal pose to request
     goal_pose_ = plan_goal->goal_pose;
 
-    ROS_INFO("goal_pose: %.2f %.2f %.2f", goal_pose_.pose.position.x, goal_pose_.pose.position.y, goal_pose_.pose.position.z);
-
     // and then the end feet poses
     calculateGoal();
-
-    ROS_INFO("  goal_left:  %.2f %.2f %.2f", goal_.left.pose.position.x, goal_.left.pose.position.y, goal_.left.pose.position.z);
-    ROS_INFO("  goal_right: %.2f %.2f %.2f", goal_.right.pose.position.x, goal_.right.pose.position.y, goal_.right.pose.position.z);
 
     // then update feet using the footstep planner
     sendUpdateFeetGoal(goal_);
@@ -765,7 +760,7 @@ void FootstepManager::publishFootstepParameterSetList()
 }
 
 // action goal for updatefeet
-void FootstepManager::sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet& feet)
+void FootstepManager::sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet feet)
 {
     // convert to ankle for planner
     foot_pose_transformer_->transformToRobotFrame(feet);
@@ -927,7 +922,7 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
 }
 
 // action goal for EditStep
-void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan& step_plan, vigir_footstep_planning_msgs::Step& step, unsigned int plan_mode)
+void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan step_plan, vigir_footstep_planning_msgs::Step step, unsigned int plan_mode)
 {
     //convert to ankle for planner
     foot_pose_transformer_->transformToRobotFrame(step_plan);
@@ -983,7 +978,7 @@ void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state
         }
 
 
-    vigir_footstep_planning_msgs::EditStepResult result_copy = *result;
+        vigir_footstep_planning_msgs::EditStepResult result_copy = *result;
         //convert all step plans transforms to be relative to sole frame for visualization
         //Brian::can optimize to just transform one plan?
         for(int i=0;i<result_copy.step_plans.size();i++)
