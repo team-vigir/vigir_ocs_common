@@ -768,7 +768,7 @@ void FootstepManager::sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet feet
     // Fill in goal here
     vigir_footstep_planning_msgs::UpdateFeetGoal action_goal;
     action_goal.feet = feet;
-    action_goal.mode.mode = vigir_footstep_planning_msgs::UpdateMode::UPDATE_MODE_3D;
+    action_goal.update_mode.mode = vigir_footstep_planning_msgs::UpdateMode::UPDATE_MODE_3D;
 
     // and send it to the server
     if(update_feet_client_->isServerConnected())
@@ -1076,7 +1076,7 @@ void FootstepManager::sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepP
     vigir_footstep_planning_msgs::UpdateStepPlanGoal action_goal;
     action_goal.step_plan = step_plan;
     action_goal.parameter_set_name.data = selected_footstep_parameter_set_;
-    action_goal.mode.mode = vigir_footstep_planning_msgs::UpdateMode::UPDATE_MODE_REPLAN;
+    action_goal.update_mode.mode = vigir_footstep_planning_msgs::UpdateMode::UPDATE_MODE_REPLAN;
 
     // and send it to the server
     if(update_step_plan_client_->isServerConnected())
