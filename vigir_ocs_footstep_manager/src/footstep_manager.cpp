@@ -393,8 +393,13 @@ void FootstepManager::processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPl
     // uses goal pose to request
     goal_pose_ = plan_goal->goal_pose;
 
+    ROS_INFO("goal_pose: %.2f %.2f %.2f", goal_pose_.pose.position.x, goal_pose_.pose.position.y, goal_pose_.pose.position.z);
+
     // and then the end feet poses
     calculateGoal();
+
+    ROS_INFO("  goal_left:  %.2f %.2f %.2f", goal_.left.pose.position.x, goal_.left.pose.position.y, goal_.left.pose.position.z);
+    ROS_INFO("  goal_right: %.2f %.2f %.2f", goal_.right.pose.position.x, goal_.right.pose.position.y, goal_.right.pose.position.z);
 
     // then update feet using the footstep planner
     sendUpdateFeetGoal(goal_);
@@ -530,6 +535,9 @@ void FootstepManager::calculateGoal()
     goal_.right.pose.position.y = goal_pose_.pose.position.y - shift_y;
     goal_.right.pose.position.z = lower_body_state_.right_foot_pose.position.z;//goal_pose_.pose.position.z;
     goal_.right.pose.orientation = goal_pose_.pose.orientation;
+
+    // since feet poses are reported in robot feet frame (ankle), transform from ankle to sole
+    foot_pose_transformer_->transformToPlannerFrame(goal_);
 }
 
 void FootstepManager::processFootstepPlanUpdate(const flor_ocs_msgs::OCSFootstepPlanUpdate::ConstPtr& msg)
@@ -610,6 +618,9 @@ void FootstepManager::requestStepPlanFromRobot()
     start.right.foot_index = vigir_footstep_planning_msgs::Foot::RIGHT;
     start.right.pose = lower_body_state_.right_foot_pose;
 
+    // since lower body state reports feet in robot frame (ankle), need to transform it to planner frame
+    foot_pose_transformer_->transformToPlannerFrame(start);
+
     sendStepPlanRequestGoal(start, goal_);
 }
 
@@ -634,6 +645,9 @@ void FootstepManager::requestStepPlanFromStep(vigir_footstep_planning_msgs::Step
         start_foot = vigir_footstep_planning_msgs::StepPlanRequest::LEFT;
     else
         start_foot = vigir_footstep_planning_msgs::StepPlanRequest::RIGHT;
+
+    // since lower body state reports feet in robot frame (ankle), need to transform it to planner frame
+    foot_pose_transformer_->transformToPlannerFrame(start);
 
     sendStepPlanRequestGoal(start, goal_, next_step.step_index, start_foot);
 }
@@ -753,7 +767,7 @@ void FootstepManager::publishFootstepParameterSetList()
 // action goal for updatefeet
 void FootstepManager::sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet& feet)
 {
-    //convert to ankle for planner
+    // convert to ankle for planner
     foot_pose_transformer_->transformToRobotFrame(feet);
 
     // Fill in goal here
