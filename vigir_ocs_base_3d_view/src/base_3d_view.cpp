@@ -1219,7 +1219,7 @@ void Base3DView::cameraToggled( bool selected )
         // enable robot IK widget_name_.compare("MainView") == 0markers
         for( int i = 0; i < im_ghost_robot_.size(); i++ )
         {
-           // im_ghost_robot_[i]->setEnabled( false );
+            im_ghost_robot_[i]->setEnabled( false );
         }
 
         // disable template marker
@@ -1267,7 +1267,7 @@ void Base3DView::markerTemplateToggled( bool selected )
         // disable robot IK markers
         for( int i = 0; i < im_ghost_robot_.size(); i++ )
         {
-           // im_ghost_robot_[i]->setEnabled( false );
+            im_ghost_robot_[i]->setEnabled( false );
         }
         // enable template markers
         Q_EMIT enableTemplateMarkers( true );
@@ -1800,36 +1800,36 @@ void Base3DView::setTemplateGraspLock(int arm)
 
 void Base3DView::deselectAll()
 {   
-    ROS_ERROR("deselect");
-    //make all markers disappear
-    flor_ocs_msgs::OCSMarkerVisibility msg;
-    msg.all_markers = true;
-    msg.all_markers_visibility = false;
+//    ROS_ERROR("deselect");
+//    //make all markers disappear
+//    flor_ocs_msgs::OCSMarkerVisibility msg;
+//    msg.all_markers = true;
+//    msg.all_markers_visibility = false;
 
-    interactive_marker_visibility_pub_.publish(msg);
+//    interactive_marker_visibility_pub_.publish(msg);
 
-    //force this message to be called back before object selection is processed
-    ros::spinOnce();
+//    //force this message to be called back before object selection is processed
+//    ros::spinOnce();
 
-//    // disable all template markers
-//    Q_EMIT enableTemplateMarkers( false );
+    // disable all template markers
+    Q_EMIT enableTemplateMarkers( false );
 
-//    // disable all footstep markers
-//    footstep_vis_manager_->enableFootstepMarkers( false );
+    // disable all footstep markers
+    footstep_vis_manager_->enableFootstepMarkers( false );
 
-//    // disable all robot IK markers
-//    for( int i = 0; i < im_ghost_robot_.size(); i++ )
-//    {
-//        //im_ghost_robot_[i]->setEnabled( false );
-//    }
+    // disable all robot IK markers
+    for( int i = 0; i < im_ghost_robot_.size(); i++ )
+    {
+        im_ghost_robot_[i]->setEnabled( false );
+    }
 
-//    // enable stepplan markers
-//    footstep_vis_manager_->enableStepPlanMarkers( true );
+    // enable stepplan markers
+    footstep_vis_manager_->enableStepPlanMarkers( true );
 }
 
 void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
 {
-    //deselectAll();
+    deselectAll();
     //can assume everything deselected by this point
 
     // enable loopback for both arms

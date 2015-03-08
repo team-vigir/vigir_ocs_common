@@ -264,31 +264,31 @@ void TemplateDisplayCustom::enableTemplateMarker( int i, bool enable )
 {
     ROS_INFO("Enabling template marker %d", i);
 
-//    for(int x = 0; x < template_id_list_.size(); x++)
-//    {
-//        if(template_id_list_[x] == i)
-//        {
-//            //InteractiveMarkerServerCustom* server = template_marker_list_[i];
-//            //server->
+    for(int x = 0; x < template_id_list_.size(); x++)
+    {
+        if(template_id_list_[x] == i)
+        {
+            //InteractiveMarkerServerCustom* server = template_marker_list_[i];
+            //server->
 
-//            display_template_marker_list_[x]->setEnabled( enable );
+            display_template_marker_list_[x]->setEnabled( enable );
 
-//        }
-//    }
+        }
+    }
 
-//    if(i >= 0 && i < display_template_marker_list_.size())
-//    {
-//        display_template_marker_list_[i]->setEnabled( enable );
-//    }
+    if(i >= 0 && i < display_template_marker_list_.size())
+    {
+        display_template_marker_list_[i]->setEnabled( enable );
+    }
 }
 
 void TemplateDisplayCustom::enableTemplateMarkers( bool enable )
 {
-//    ROS_ERROR("Disabling the template markers %d",enable);
-//    for(int i = 0; i < display_template_marker_list_.size(); i++)
-//    {
-//        display_template_marker_list_[i]->setEnabled( enable );
-//    }
+   // ROS_ERROR("Disabling the template markers %d",enable);
+    for(int i = 0; i < display_template_marker_list_.size(); i++)
+    {
+        display_template_marker_list_[i]->setEnabled( enable );
+    }
 }
 
 void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose)

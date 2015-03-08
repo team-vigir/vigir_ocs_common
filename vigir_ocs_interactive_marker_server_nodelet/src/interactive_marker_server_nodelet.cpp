@@ -56,7 +56,7 @@ void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::O
 
         if(counter >3)
         {
-        marker_map_[msg->topic]->setVisible(false);
+        //marker_map_[msg->topic]->setVisible(false);
         //set last added marker to be enabled
         //selected_object_topic_ = msg->topic;
         //setEnabledMarkerVisible();
@@ -166,6 +166,7 @@ void InteractiveMarkerServerNodelet::processMarkerVisibility(const flor_ocs_msgs
             iter->second->setVisible(msg->all_markers_visibility);
         }
     }
+    //TODO:: change markers to have visibility set via changing markers, not enable/disable
     //not worrying about selective visibility of markers for now
 //    else // just disable by type
 //    {
@@ -221,8 +222,9 @@ void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs:
     ROS_ERROR("SELECTED OBJECT: %s", selected_object_topic_.c_str());
 
     pose_map_[selected_object_topic_] = marker_map_[selected_object_topic_]->getPose();
+    //marker_map_[selected_object_topic_]->setEnabled(true);
 
-    setEnabledMarkerVisible();
+   // setEnabledMarkerVisible();
 
     publishSelectedObject();
 
