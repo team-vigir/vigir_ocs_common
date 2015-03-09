@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>598</width>
+    <width>651</width>
     <height>264</height>
    </rect>
   </property>
@@ -144,6 +144,9 @@
           </item>
           <item>
            <widget class="QCheckBox" name="stitch_template">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Stitch</string>
             </property>
@@ -229,6 +232,9 @@
           </item>
           <item>
            <widget class="QCheckBox" name="show_grasp">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Show</string>
             </property>
@@ -295,6 +301,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="moveToPoseButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Move to Pose</string>
             </property>
@@ -411,6 +420,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="attachButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Attach</string>
             </property>
@@ -431,6 +443,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="detachButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Detach</string>
             </property>
@@ -487,6 +502,9 @@
           </item>
           <item>
            <widget class="QComboBox" name="affordanceBox">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
               <horstretch>0</horstretch>

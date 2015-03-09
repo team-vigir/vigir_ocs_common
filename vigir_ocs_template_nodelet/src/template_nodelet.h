@@ -108,8 +108,8 @@ namespace ocs_template
         bool stitchObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
                                      vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
 
-        bool detachObjectTemplateSrv(vigir_object_template_msgs::DetachObjectTemplate::Request& req,
-                                     vigir_object_template_msgs::DetachObjectTemplate::Response& res);
+        bool detachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
+                                     vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
 
         //Planning Scene
         void addCollisionObject(int type, int index, std::string mesh_name, geometry_msgs::Pose pose);
@@ -143,7 +143,7 @@ namespace ocs_template
         std::vector<unsigned char>                 template_type_list_;
         std::vector<std::string>                   template_name_list_;
         std::vector<geometry_msgs::PoseStamped>    template_pose_list_;
-        std::vector<unsigned int>                  template_status_list_; //0-normal, 1-attached
+        std::vector<unsigned char>                 template_status_list_; //0-normal, 1-attached
         unsigned char                              id_counter_;
         // Filename of the grasping library
         std::string                                r_grasps_filename_;

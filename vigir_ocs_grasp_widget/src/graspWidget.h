@@ -90,7 +90,6 @@ public Q_SLOTS:
 private:
     void setProgressLevel(uint8_t level);
     void sendManualMsg(uint8_t level, int8_t thumb, int8_t left, int8_t right, int8_t spread);
-    void initTemplateMode();
 
     QString icon_path_;
     void setUpButtons();

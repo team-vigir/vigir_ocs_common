@@ -222,10 +222,11 @@ void TemplateNodelet::publishTemplateList()
     //std::cout << "timer" << std::endl;
     flor_ocs_msgs::OCSTemplateList cmd;
 
-    cmd.template_id_list   = template_id_list_;
-    cmd.template_list      = template_name_list_;
-    cmd.template_type_list = template_type_list_;
-    cmd.pose               = template_pose_list_;
+    cmd.template_id_list     = template_id_list_;
+    cmd.template_list        = template_name_list_;
+    cmd.template_type_list   = template_type_list_;
+    cmd.template_status_list = template_status_list_;
+    cmd.pose                 = template_pose_list_;
 
     // publish complete list of templates and poses
     template_list_pub_.publish( cmd );
@@ -1154,7 +1155,7 @@ bool TemplateNodelet::attachObjectTemplateSrv(vigir_object_template_msgs::SetAtt
         attached_object.touch_links.push_back(hand_link_names_[i]);
     }
 
-    ROS_INFO("Attaching the object to the %s link", req.pose.header.frame_id.c_str());
+    ROS_INFO("Attaching the object to the %s link, template %d status: %d", req.pose.header.frame_id.c_str(), index, template_status_list_[index]);
     aco_pub_.publish(attached_object);
 
     return true;
@@ -1263,22 +1264,55 @@ bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetAtt
 
 }
 
-bool TemplateNodelet::detachObjectTemplateSrv(vigir_object_template_msgs::DetachObjectTemplate::Request& req,
-                                              vigir_object_template_msgs::DetachObjectTemplate::Response& res)
+bool TemplateNodelet::detachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
+                                              vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res)
 {
     /* First, define the DETACH object message*/
     moveit_msgs::AttachedCollisionObject detach_object;
     detach_object.object.id = boost::to_string(req.template_id);
     detach_object.object.operation = detach_object.object.REMOVE;
 
+    geometry_msgs::PoseStamped template_pose;
+
     unsigned int index = 0;
     for(; index < template_id_list_.size(); index++) {
         if(template_id_list_[index] == req.template_id){
-            template_pose_list_[index].header.frame_id = "/world";
-            template_status_list_[index]               = 0; //Deattached from robot
+            template_pose                              = template_pose_list_[index];
             break;
         }
     }
+
+    if (index >= template_id_list_.size()){
+        //ROS_ERROR_STREAM("Service requested template id " << req.template_type.data << " when no such id has been instantiated. Callback returning false.");
+        ROS_ERROR("Service requested template id %d when no such id has been instantiated. Callback returning false.",req.template_id);
+        return false;
+    }
+
+    if(template_pose.header.frame_id != "/world"){
+
+        tf::Transform world_T_wrist;
+        tf::Transform wrist_T_template;
+        tf::Transform world_T_template;
+        world_T_wrist.setRotation(tf::Quaternion(req.pose.pose.orientation.x,req.pose.pose.orientation.y,req.pose.pose.orientation.z,req.pose.pose.orientation.w));
+        world_T_wrist.setOrigin(tf::Vector3(req.pose.pose.position.x,req.pose.pose.position.y,req.pose.pose.position.z) );
+        wrist_T_template.setRotation(tf::Quaternion(template_pose.pose.orientation.x,template_pose.pose.orientation.y,template_pose.pose.orientation.z,template_pose.pose.orientation.w));
+        wrist_T_template.setOrigin(tf::Vector3(template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z) );
+
+        world_T_template = world_T_wrist * wrist_T_template;
+
+        geometry_msgs::Pose pose;
+        pose.orientation.x = world_T_template.getRotation().getX();
+        pose.orientation.y = world_T_template.getRotation().getY();
+        pose.orientation.z = world_T_template.getRotation().getZ();
+        pose.orientation.w = world_T_template.getRotation().getW();
+        pose.position.x    = world_T_template.getOrigin().getX();
+        pose.position.y    = world_T_template.getOrigin().getY();
+        pose.position.z    = world_T_template.getOrigin().getZ();
+
+        template_pose_list_[index].header.frame_id = "/world"; //Attaches the OCS template to world
+        template_pose_list_[index].pose            = pose;     //Pose of the template in world
+    }
+    template_status_list_[index]               = 0;        //Detached from robot
 
     ROS_INFO("Dettaching the object %s",detach_object.object.id.c_str());
     aco_pub_.publish(detach_object);
@@ -1410,8 +1444,12 @@ void TemplateNodelet::moveCollisionObject(int index, geometry_msgs::Pose pose){
             //ROS_INFO("Moving the object in the environment");
             co_pub_.publish(collision_object);
         }else
-            ROS_INFO("Object Template %d attached to robot, cannot move!",index);
+            if(template_status_list_[index] == 1)
+                ROS_INFO("Object Template %d attached to robot, cannot move!",index);
+            else
+                ROS_ERROR("Something is not OK with template %d status! status: %d, should be 1 or 0", index, template_status_list_[index]);
     }
+
 }
 
 void TemplateNodelet::removeCollisionObject(int index){
