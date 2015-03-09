@@ -1245,6 +1245,19 @@ bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetAtt
     // the corresponding operation to be specified as an ADD operation
     tmp_attached_object.object.operation = tmp_attached_object.object.ADD;
 
+    std::string hand_side;
+    if(req.pose.header.frame_id == "r_hand")
+        hand_side = "right";
+    else
+        hand_side = "left";
+
+    hand_link_names_ = hand_robot_model_->getJointModelGroup(hand_side+ "_hand")->getLinkModelNames();
+    hand_link_names_.push_back(hand_robot_model_->getJointModelGroup(hand_side+ "_hand")->getCommonRoot()->getChildLinkModel()->getName());
+    for(int i = 0; i < hand_link_names_.size(); i++){
+        ROS_INFO("Link %d: %s",i,hand_link_names_[i].c_str());
+        tmp_attached_object.touch_links.push_back(hand_link_names_[i]);
+    }
+
     ros::Duration(0.5).sleep();
 
     ROS_INFO("Removing collision object :%s started",tmp_attached_object.object.id.c_str());

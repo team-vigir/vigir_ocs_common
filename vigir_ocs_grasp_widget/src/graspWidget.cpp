@@ -430,6 +430,8 @@ void graspWidget::on_performButton_clicked()
     setProgressLevel(ui->userSlider->value());
 
     grasp_command_pub_.publish(cmd);
+
+    ui->stitch_template->setEnabled(true);
 }
 
 void graspWidget::on_releaseButton_clicked()
