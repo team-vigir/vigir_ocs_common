@@ -156,7 +156,7 @@ void InteractiveMarkerServerNodelet::setMode(const flor_ocs_msgs::OCSControlMode
 
 void InteractiveMarkerServerNodelet::processMarkerVisibility(const flor_ocs_msgs::OCSMarkerVisibility::ConstPtr &msg)
 {
-    ROS_ERROR("marker visibiilty");
+    //ROS_ERROR("marker visibiilty");
     //set visibility of different interactive markers
     if(msg->all_markers)
     {
