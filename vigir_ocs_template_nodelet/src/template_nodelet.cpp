@@ -36,9 +36,9 @@ void TemplateNodelet::onInit()
 
     ROS_INFO(" Start reading database files");
 
-    //LOADING HAND MODEL FOR JOINT NAMES (SHOULD WORK FOR ANY HAND)
-    hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
-    hand_robot_model_ = hand_model_loader_->getModel();
+    //LOADING ROBOT MODEL FOR JOINT NAMES
+    robot_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
+    robot_model_ = robot_model_loader_->getModel();
 
     if (!nhp.getParam("/ot_library", this->ot_filename_))
         ROS_ERROR(" Did not find Object Template Library parameter /ot_library");
@@ -102,7 +102,7 @@ void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPt
 
 void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg)
 {
-    std::cout << "Removing template " << (unsigned int)msg->template_id << " from list... ";
+    ROS_INFO("Removing template %d from list",(unsigned int)msg->template_id );
     int index = 0;
     for(; index < template_id_list_.size(); index++)
         if(template_id_list_[index] == msg->template_id)
@@ -113,15 +113,16 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
                                         && !template_pose_list_.empty()
                                         && !template_status_list_.empty())
     {
-        std::cout << "Removed!" << std::endl;
+        //REMOVE TEMPLATE FROM THE PLANING SCENE
+        ROS_INFO("Calling function to remove template %d attachment status: %d ",template_id_list_[index],template_status_list_[index]);
+        removeCollisionObject(msg->template_id);
+
         template_id_list_.erase(template_id_list_.begin()+index);
         template_type_list_.erase(template_type_list_.begin()+index);	//Remove it
         template_name_list_.erase(template_name_list_.begin()+index);
         template_pose_list_.erase(template_pose_list_.begin()+index);
         template_status_list_.erase(template_status_list_.begin()+index);
-
-        //REMOVE TEMPLATE FROM THE PLANING SCENE
-        removeCollisionObject(msg->template_id);
+        ROS_INFO("Removed! ");
 
         this->publishTemplateList();
     }else{
@@ -291,12 +292,12 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
 {
     //Getting joints for hand from URDF robot description
 
-    if(!hand_robot_model_->hasLinkModel(hand_side+"_palm")){
+    if(!robot_model_->hasLinkModel(hand_side+"_palm")){
         ROS_WARN("Hand model does not contain %s_palm, not adding grasps",hand_side.c_str());
         return;
     }
 
-    robot_model::LinkTransformMap hand_palm_tf_map = hand_robot_model_->getLinkModel(hand_side+"_palm")->getAssociatedFixedTransforms();
+    robot_model::LinkTransformMap hand_palm_tf_map = robot_model_->getLinkModel(hand_side+"_palm")->getAssociatedFixedTransforms();
     ROS_INFO("Requested linktransform for %s_palm",hand_side.c_str());
 
     Eigen::Affine3d hand_palm_aff;
@@ -323,15 +324,15 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
             tf::transformEigenToTF( hand_palm_aff,gp_T_rhand_);
     }
 
-    if(hand_robot_model_->hasJointModelGroup(hand_side+"_hand"))
+    if(robot_model_->hasJointModelGroup(hand_side+"_hand"))
     {
         hand_joint_names_.clear();
-        hand_joint_names_ = hand_robot_model_->getJointModelGroup(hand_side+"_hand")->getActiveJointModelNames();
+        hand_joint_names_ = robot_model_->getJointModelGroup(hand_side+"_hand")->getActiveJointModelNames();
     }else{
         ROS_WARN("NO JOINTS FOUND FOR %s HAND",hand_side.c_str());
     }
 
-    ROS_INFO("%s %s hand model gotten, #actuated joints: %ld ",hand_side.c_str(), hand_robot_model_->getName().c_str(),hand_joint_names_.size() );
+    ROS_INFO("%s %s hand model gotten, #actuated joints: %ld ",hand_side.c_str(), robot_model_->getName().c_str(),hand_joint_names_.size() );
 
     for(int i = 0; i < hand_joint_names_.size(); i++)
         ROS_INFO("Joint %d: %s",i,hand_joint_names_[i].c_str());
@@ -1148,14 +1149,14 @@ bool TemplateNodelet::attachObjectTemplateSrv(vigir_object_template_msgs::SetAtt
     else
         hand_side = "left";
 
-    hand_link_names_ = hand_robot_model_->getJointModelGroup(hand_side+ "_hand")->getLinkModelNames();
-    hand_link_names_.push_back(hand_robot_model_->getJointModelGroup(hand_side+ "_hand")->getCommonRoot()->getChildLinkModel()->getName());
+    hand_link_names_ = robot_model_->getJointModelGroup(hand_side+ "_hand")->getLinkModelNames();
+    hand_link_names_.push_back(robot_model_->getJointModelGroup(hand_side+ "_hand")->getCommonRoot()->getChildLinkModel()->getName());
     for(int i = 0; i < hand_link_names_.size(); i++){
         ROS_INFO("Link %d: %s",i,hand_link_names_[i].c_str());
         attached_object.touch_links.push_back(hand_link_names_[i]);
     }
 
-    ROS_INFO("Attaching the object to the %s link, template %d status: %d", req.pose.header.frame_id.c_str(), index, template_status_list_[index]);
+    ROS_INFO("Attaching the object to the %s link, template %d status: %d", req.pose.header.frame_id.c_str(), template_id_list_[index], template_status_list_[index]);
     aco_pub_.publish(attached_object);
 
     return true;
@@ -1251,8 +1252,8 @@ bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetAtt
     else
         hand_side = "left";
 
-    hand_link_names_ = hand_robot_model_->getJointModelGroup(hand_side+ "_hand")->getLinkModelNames();
-    hand_link_names_.push_back(hand_robot_model_->getJointModelGroup(hand_side+ "_hand")->getCommonRoot()->getChildLinkModel()->getName());
+    hand_link_names_ = robot_model_->getJointModelGroup(hand_side+ "_hand")->getLinkModelNames();
+    hand_link_names_.push_back(robot_model_->getJointModelGroup(hand_side+ "_hand")->getCommonRoot()->getChildLinkModel()->getName());
     for(int i = 0; i < hand_link_names_.size(); i++){
         ROS_INFO("Link %d: %s",i,hand_link_names_[i].c_str());
         tmp_attached_object.touch_links.push_back(hand_link_names_[i]);
@@ -1434,51 +1435,70 @@ void TemplateNodelet::addCollisionObject(int type, int index, std::string mesh_n
     }
 }
 
-void TemplateNodelet::moveCollisionObject(int index, geometry_msgs::Pose pose){
+void TemplateNodelet::moveCollisionObject(int template_id, geometry_msgs::Pose pose){
     //Add collision object with template pose and bounding box
 
     //ROS_INFO("Move collision template started... ");
 
     unsigned int idx = 0;
     for(; idx < template_id_list_.size(); idx++) {
-        if(template_id_list_[idx] == index){
+        if(template_id_list_[idx] == template_id){
             break;
         }
     }
     if(idx >= template_id_list_.size()){
-        ROS_ERROR("Collision Object %d not found!", index);
+        ROS_ERROR("Collision Object %d not found!", template_id);
     }else{
-        if(template_status_list_[index] == 0){
+        if(template_status_list_[idx] == 0){
             moveit_msgs::CollisionObject collision_object;
-            collision_object.id              = boost::to_string((unsigned int)index);
+            collision_object.id              = boost::to_string((unsigned int)template_id);
             collision_object.header.frame_id = "/world";
             collision_object.mesh_poses.push_back(pose);
             collision_object.operation       = collision_object.MOVE;
             //ROS_INFO("Moving the object in the environment");
             co_pub_.publish(collision_object);
         }else
-            if(template_status_list_[index] == 1)
-                ROS_INFO("Object Template %d attached to robot, cannot move!",index);
+            if(template_status_list_[idx] == 1)
+                ROS_INFO("Object Template %d attached to robot, cannot move!",template_id);
             else
-                ROS_ERROR("Something is not OK with template %d status! status: %d, should be 1 or 0", index, template_status_list_[index]);
+                ROS_ERROR("Something is not OK with template %d status! status: %d, should be 1 or 0", template_id_list_[idx], template_status_list_[idx]);
     }
 
 }
 
-void TemplateNodelet::removeCollisionObject(int index){
+void TemplateNodelet::removeCollisionObject(int template_id){
     //Add collision object with template pose and bounding box
 
-    ROS_INFO("Remove collision template started... ");
-    moveit_msgs::CollisionObject collision_object;
-    collision_object.id              = boost::to_string((unsigned int)index);
-    collision_object.header.frame_id = "/world";
-    collision_object.operation       = collision_object.REMOVE;
-    ROS_INFO("Removing the object %d from the environment", index);
-    co_pub_.publish(collision_object);
+    unsigned int idx = 0;
+    for(; idx < template_id_list_.size(); idx++) {
+        if(template_id_list_[idx] == template_id){
+            break;
+        }
+    }
+    if(idx >= template_id_list_.size()){
+        ROS_ERROR("Object ID: %d not found!", template_id);
+    }else{
+        ROS_INFO("Template %d attachment status: %d ",template_id,template_status_list_[idx]);
+
+        if(template_status_list_[idx] == 1){ //Attached to robot
+            /* First, define the DETACH object message*/
+            moveit_msgs::AttachedCollisionObject detach_object;
+            detach_object.object.id = boost::to_string((unsigned int)template_id);
+            detach_object.object.operation = detach_object.object.REMOVE;
+
+            ROS_INFO("Detaching the object %s from robot ",detach_object.object.id.c_str());
+            aco_pub_.publish(detach_object);
+            ros::spinOnce();
+        }
+        moveit_msgs::CollisionObject collision_object;
+        collision_object.id              = boost::to_string((unsigned int)template_id);
+        collision_object.header.frame_id = "/world";
+        collision_object.operation       = collision_object.REMOVE;
+
+        ROS_INFO("Removing the object %d from the environment", template_id);
+        co_pub_.publish(collision_object);
+    }
 }
-
-
-
 }
 
 PLUGINLIB_DECLARE_CLASS (vigir_ocs_template_nodelet, TemplateNodelet, ocs_template::TemplateNodelet, nodelet::Nodelet);

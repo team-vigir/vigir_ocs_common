@@ -113,8 +113,8 @@ namespace ocs_template
 
         //Planning Scene
         void addCollisionObject(int type, int index, std::string mesh_name, geometry_msgs::Pose pose);
-        void moveCollisionObject(int index, geometry_msgs::Pose pose);
-        void removeCollisionObject(int index);
+        void moveCollisionObject(int template_id, geometry_msgs::Pose pose);
+        void removeCollisionObject(int template_id);
 
       protected:
         ros::Subscriber template_update_sub_;
@@ -156,8 +156,8 @@ namespace ocs_template
         tf::Transform                              gp_T_rhand_;
         std::map<unsigned int,VigirObjectTemplate> object_template_map_;
 
-        robot_model_loader::RobotModelLoaderPtr    hand_model_loader_;
-        robot_model::RobotModelPtr                 hand_robot_model_;
+        robot_model_loader::RobotModelLoaderPtr    robot_model_loader_;
+        robot_model::RobotModelPtr                 robot_model_;
         std::vector<std::string>                   hand_joint_names_;
         std::vector<std::string>                   hand_link_names_;
 

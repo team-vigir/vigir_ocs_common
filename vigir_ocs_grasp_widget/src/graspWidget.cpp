@@ -55,10 +55,6 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     grasp_info_client_           = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
     template_info_client_        = nh_.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
 
-    // create subscribers for grasp status
-    std::stringstream finger_joint_name;
-    XmlRpc::XmlRpcValue   hand_T_palm;
-
     // create the window for circular motion
     circular_config_widget_ = new QWidget();
     circular_config_widget_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
@@ -145,6 +141,9 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
 
     template_stitch_pose_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/manipulation_control/" + hand_name_ + "/template_stitch_pose",1, &graspWidget::templateStitchPoseCallback,  this );
     template_stitch_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/manipulation_control/" + hand_name_ + "/template_stitch_request", 1, false );
+
+    // create subscribers for grasp status
+    XmlRpc::XmlRpcValue   hand_T_palm;
 
     if(nh_.getParam("/" + hand_name_ + "_tf/hand_T_palm", hand_T_palm))
     {
