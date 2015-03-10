@@ -820,11 +820,11 @@ void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
                 affordance.type                    = pAffordance->Attribute("type");
                 affordance.axis                    = pAffordance->Attribute("axis");
 
-                if(pAffordance->Attribute("distance"))
-                    affordance.distance                = std::atof(pAffordance->Attribute("distance"));
+                if(pAffordance->Attribute("displacement"))
+                    affordance.displacement        = std::atof(pAffordance->Attribute("displacement"));
                 else{
-                    ROS_WARN("Affordance ID: %d has no distance attribute, setting to zero", affordance.id);
-                    affordance.distance = 0.0;
+                    ROS_WARN("Affordance ID: %d has no displacement attribute, setting to zero", affordance.id);
+                    affordance.displacement = 0.0;
                 }
                 affordance.pose.header.frame_id    = "/world";
                 affordance.pose.header.stamp       = ros::Time::now();
@@ -845,7 +845,7 @@ void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
                                                                                              , object_template_map_[template_type].id
                                                                                              , object_template_map_[template_type].name.c_str()
                                                                                              , object_template_map_[template_type].path.c_str()
-                                                                                             , object_template_map_[template_type].affordances[0].distance);
+                                                                                             , object_template_map_[template_type].affordances[0].displacement);
     }
 
     ROS_INFO("OT Database loaded");
