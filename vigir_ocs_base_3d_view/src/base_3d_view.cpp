@@ -404,26 +404,26 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         im_left_arm->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/pose_marker/update" );
         im_left_arm->subProp( "Show Axes" )->setValue( true );
         im_left_arm->subProp( "Show Visual Aids" )->setValue( true );
-        im_left_arm->setEnabled(true);
+        //im_left_arm->setEnabled(true);
         im_ghost_robot_.push_back(im_left_arm);
         rviz::Display* im_right_arm = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - right arm", false );
         im_right_arm->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/pose_marker/update" );
         im_right_arm->subProp( "Show Axes" )->setValue( true );
         im_right_arm->subProp( "Show Visual Aids" )->setValue( true );
-        im_right_arm->setEnabled(true);
+        //im_right_arm->setEnabled(true);
         im_ghost_robot_.push_back(im_right_arm);
         rviz::Display* im_pelvis = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - pelvis", false );
         im_pelvis->subProp( "Update Topic" )->setValue( "/pelvis_pose_marker/pose_marker/update" );
         im_pelvis->subProp( "Show Axes" )->setValue( true );
         im_pelvis->subProp( "Show Visual Aids" )->setValue( true );
-        im_pelvis->setEnabled(true);
+        //im_pelvis->setEnabled(true);
         im_ghost_robot_.push_back(im_pelvis);
 
         interactive_marker_add_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, false );
         interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
         interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );
         interactive_marker_remove_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
-        interactive_marker_visibility_pub_ = nh_.advertise<flor_ocs_msgs::OCSMarkerVisibility>("/flor/ocs/interactive_marker_server/visibility",5,false);
+        //interactive_marker_visibility_pub_ = nh_.advertise<flor_ocs_msgs::OCSMarkerVisibility>("/flor/ocs/interactive_marker_server/visibility",5,false);
 
         //Publisher/Subscriber to the IM mode
         interactive_marker_server_mode_pub_ = nh_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1,false);
@@ -1219,7 +1219,7 @@ void Base3DView::cameraToggled( bool selected )
         // enable robot IK widget_name_.compare("MainView") == 0markers
         for( int i = 0; i < im_ghost_robot_.size(); i++ )
         {
-           // im_ghost_robot_[i]->setEnabled( false );
+            im_ghost_robot_[i]->setEnabled( false );
         }
 
         // disable template marker
@@ -1267,7 +1267,7 @@ void Base3DView::markerTemplateToggled( bool selected )
         // disable robot IK markers
         for( int i = 0; i < im_ghost_robot_.size(); i++ )
         {
-           // im_ghost_robot_[i]->setEnabled( false );
+            im_ghost_robot_[i]->setEnabled( false );
         }
         // enable template markers
         Q_EMIT enableTemplateMarkers( true );
@@ -1800,36 +1800,36 @@ void Base3DView::setTemplateGraspLock(int arm)
 
 void Base3DView::deselectAll()
 {   
-    ROS_ERROR("deselect");
-    //make all markers disappear
-    flor_ocs_msgs::OCSMarkerVisibility msg;
-    msg.all_markers = true;
-    msg.all_markers_visibility = false;
+//    ROS_ERROR("deselect");
+//    //make all markers disappear
+//    flor_ocs_msgs::OCSMarkerVisibility msg;
+//    msg.all_markers = true;
+//    msg.all_markers_visibility = false;
 
-    interactive_marker_visibility_pub_.publish(msg);
+//    interactive_marker_visibility_pub_.publish(msg);
 
-    //force this message to be called back before object selection is processed
-    ros::spinOnce();
+//    //force this message to be called back before object selection is processed
+//    ros::spinOnce();
 
-//    // disable all template markers
-//    Q_EMIT enableTemplateMarkers( false );
+    // disable all template markers
+    Q_EMIT enableTemplateMarkers( false );
 
-//    // disable all footstep markers
-//    footstep_vis_manager_->enableFootstepMarkers( false );
+    // disable all footstep markers
+    footstep_vis_manager_->enableFootstepMarkers( false );
 
-//    // disable all robot IK markers
-//    for( int i = 0; i < im_ghost_robot_.size(); i++ )
-//    {
-//        //im_ghost_robot_[i]->setEnabled( false );
-//    }
+    // disable all robot IK markers
+    for( int i = 0; i < im_ghost_robot_.size(); i++ )
+    {
+        im_ghost_robot_[i]->setEnabled( false );
+    }
 
-//    // enable stepplan markers
-//    footstep_vis_manager_->enableStepPlanMarkers( true );
+    // enable stepplan markers
+    footstep_vis_manager_->enableStepPlanMarkers( true );
 }
 
 void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
 {
-    //deselectAll();
+    deselectAll();
     //can assume everything deselected by this point
 
     // enable loopback for both arms

@@ -161,6 +161,12 @@ void jointList::updateList(const sensor_msgs::JointState::ConstPtr& states )
 
     for(int i = 0; i < states->name.size(); i++)
     {
+
+        if (! (i < joints_.size())){
+          ROS_ERROR_THROTTLE(10,"Attempt to insert joint index larger than tree widget, aborting! This error is throttled.");
+          return;
+        }
+
         //Update the table
         joints_[i]->setText(1,QString::number(states->position.size() > i ? states->position[i] : 0.0));
         joints_[i]->setText(2,QString::number(states->velocity.size() > i ? states->velocity[i] : 0.0));
