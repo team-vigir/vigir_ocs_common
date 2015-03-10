@@ -262,33 +262,33 @@ void TemplateDisplayCustom::reset()
 
 void TemplateDisplayCustom::enableTemplateMarker( int i, bool enable )
 {
-//    ROS_ERROR("Enabling template marker %d", i);
+    ROS_INFO("Enabling template marker %d", i);
 
-//    for(int x = 0; x < template_id_list_.size(); x++)
-//    {
-//        if(template_id_list_[x] == i)
-//        {
-//            //InteractiveMarkerServerCustom* server = template_marker_list_[i];
-//            //server->
+    for(int x = 0; x < template_id_list_.size(); x++)
+    {
+        if(template_id_list_[x] == i)
+        {
+            //InteractiveMarkerServerCustom* server = template_marker_list_[i];
+            //server->
 
-//            display_template_marker_list_[x]->setEnabled( enable );
+            display_template_marker_list_[x]->setEnabled( enable );
 
-//        }
-//    }
+        }
+    }
 
-//    if(i >= 0 && i < display_template_marker_list_.size())
-//    {
-//        display_template_marker_list_[i]->setEnabled( enable );
-//    }
+    if(i >= 0 && i < display_template_marker_list_.size())
+    {
+        display_template_marker_list_[i]->setEnabled( enable );
+    }
 }
 
 void TemplateDisplayCustom::enableTemplateMarkers( bool enable )
 {
-//    ROS_ERROR("Disabling the template markers %d",enable);
-//    for(int i = 0; i < display_template_marker_list_.size(); i++)
-//    {
-//        display_template_marker_list_[i]->setEnabled( enable );
-//    }
+   // ROS_ERROR("Disabling the template markers %d",enable);
+    for(int i = 0; i < display_template_marker_list_.size(); i++)
+    {
+        display_template_marker_list_[i]->setEnabled( enable );
+    }
 }
 
 void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose)
@@ -346,7 +346,7 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
 
 void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char id, Ogre::Vector3 pos)
 {
-    ROS_ERROR("Adding template marker %d",id);
+    ROS_INFO("Adding template marker %d",id);
     //std::cout << "Adding template marker " << id << std::endl;
     std::string template_pose_string = std::string("/template_")+boost::to_string((unsigned int)id)+std::string("_marker"); // one for each template
 

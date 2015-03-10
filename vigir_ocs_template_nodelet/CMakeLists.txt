@@ -3,13 +3,16 @@ project(vigir_ocs_template_nodelet)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy tf pluginlib std_msgs geometry_msgs flor_ocs_msgs flor_grasp_msgs nodelet)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy tf tf_conversions pluginlib std_msgs geometry_msgs moveit_core moveit_ros_planning shape_msgs flor_ocs_msgs flor_grasp_msgs nodelet cmake_modules)
+
+find_package(TinyXML REQUIRED)
 
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-        CATKIN_DEPENDS roscpp rospy tf pluginlib std_msgs geometry_msgs flor_ocs_msgs flor_grasp_msgs nodelet
+        CATKIN_DEPENDS roscpp rospy tf tf_conversions pluginlib std_msgs geometry_msgs moveit_core moveit_ros_planning shape_msgs flor_ocs_msgs flor_grasp_msgs nodelet
+        DEPENDS TinyXML
 )
 
 ## Here we specify the list of source files, including the output of
@@ -22,10 +25,10 @@ set(SOURCE_FILES_LIB
   src/template_nodelet.cpp
 )
 
-include_directories(${catkin_INCLUDE_DIRS} src)
+include_directories(${catkin_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS} src ${TinyXML_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES_LIB})
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${TinyXML_LIBRARIES})
 
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 

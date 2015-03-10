@@ -381,8 +381,8 @@ public Q_SLOTS:
       * Render Queue Main |  PointClouds, Robot (opaque parts) ,opaque objects
       *               +1  |  Transparent Objects
       */
-    void setRenderOrder();
-    void resetRenderOrder();
+    //void setRenderOrder();
+    //void resetRenderOrder();
 
 
 
@@ -594,15 +594,15 @@ protected:
     /**
       * Enables reordering of renderque
       */
-    void setRobotOccludedRender();
+    //void setRobotOccludedRender();
     /**
       * Disables rendering of robot occluded
       */
-    void disableRobotOccludedRender();
+    //void disableRobotOccludedRender();
     /**
       * Helper function for reordering the render queue
       */
-    void setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset);
+    //void setSceneNodeRenderGroup(Ogre::SceneNode* sceneNode, int queueOffset);
 
     bool disable_joint_markers_;
     //flag to disable extra calls to setting render order in timer function
@@ -797,6 +797,7 @@ protected:
     robot_model_loader::RobotModelLoaderPtr left_hand_model_loader_;
     robot_model::RobotModelPtr left_hand_robot_model_;
     robot_state::RobotStatePtr left_hand_robot_state_;
+    std::vector<std::string>   left_hand_joint_names_;
     moveit_msgs::DisplayRobotState left_display_state_msg_;
     ros::Publisher left_hand_robot_state_vis_pub_;
     // Used to make setting virtual joint positions (-> hand pose) easier
@@ -806,6 +807,7 @@ protected:
     robot_model_loader::RobotModelLoaderPtr right_hand_model_loader_;
     robot_model::RobotModelPtr right_hand_robot_model_;
     robot_state::RobotStatePtr right_hand_robot_state_;
+    std::vector<std::string>   right_hand_joint_names_;
     moveit_msgs::DisplayRobotState right_display_state_msg_;
     ros::Publisher right_hand_robot_state_vis_pub_;
     // Used to make setting virtual joint positions (-> hand pose) easier

@@ -7,7 +7,9 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-#include <ros/ros.h>
+
+//#include <ros/ros.h>
+
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSControlMode.h>
 #include <std_msgs/Int8.h>

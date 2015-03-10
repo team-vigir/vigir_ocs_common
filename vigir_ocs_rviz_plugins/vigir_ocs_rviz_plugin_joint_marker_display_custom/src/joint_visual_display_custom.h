@@ -83,7 +83,7 @@ public:
 
 
 private:
-    void setRenderOrder(Ogre::SceneNode* sceneNode);
+//    void setRenderOrder(Ogre::SceneNode* sceneNode);
 
     //stores directions for all arrows, can be 1 or -1 to indicate direction, can be modified externally
     std::map<std::string,int> arrow_directions_;
