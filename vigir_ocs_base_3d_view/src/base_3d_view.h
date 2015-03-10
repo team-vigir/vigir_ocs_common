@@ -77,7 +77,6 @@
 #include "robot_state_manager.h"
 #include "notification_system.h"
 #include "context_menu_manager.h"
-#include "behavior_relay.h"
 
 
 
@@ -385,7 +384,7 @@ public Q_SLOTS:
     void setRenderOrder();
     void resetRenderOrder();
 
-    void updateBehaviorNotifications();
+
 
 Q_SIGNALS:
     /**
@@ -465,11 +464,7 @@ protected:
 
     Ogre::Camera* getCamera();
 
-    QWidget * notification_container_;
-    QVBoxLayout* notification_layout_;
-
-    NotificationSystem* notification_system_;
-    BehaviorRelay * behavior_relay_;
+    NotificationSystem* notification_system_;   
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;

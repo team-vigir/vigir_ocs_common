@@ -1234,7 +1234,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-149</y>
+           <y>0</y>
            <width>212</width>
            <height>1598</height>
           </rect>
@@ -1506,9 +1506,6 @@
               </widget>
              </item>
             </layout>
-            <zorder>laser_scan_2</zorder>
-            <zorder>lidar_spin_rate</zorder>
-            <zorder>label_8</zorder>
            </widget>
           </item>
           <item>

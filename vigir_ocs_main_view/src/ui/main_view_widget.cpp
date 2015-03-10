@@ -334,7 +334,26 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     sidebar_toggle_->setIcon(Btn);
     sidebar_toggle_->setIconSize(pix.rect().size() / 8);
 
-    connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));  
+    connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));
+
+    //initialize behavior relay with notifications
+    notification_container_ = new QWidget(this);
+    //notification_container_->setAttribute(Qt::WA_TranslucentBackground);
+    //notification_container_->setStyleSheet("background:transparent;");
+    notification_container_->setMinimumHeight(55);
+    notification_container_->setMaximumHeight(55);
+    notification_container_->setMaximumWidth(255);
+    notification_container_->setMinimumWidth(255);
+    notification_container_->adjustSize();
+    notification_layout_ = new QVBoxLayout();
+    notification_layout_->setMargin(0);
+    notification_layout_->setSpacing(0);
+    notification_container_->setLayout(notification_layout_);
+
+    behavior_relay_ = new BehaviorRelay(this);
+    connect(behavior_relay_,SIGNAL(updateUI()),this,SLOT(updateBehaviorNotifications()));
+
+
 
     timer.start(100, this);
 
@@ -372,6 +391,21 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     //create context menu and add to base3dview
     main_view_context_menu_ = new MainViewContextMenu(this);
+}
+
+
+void MainViewWidget::updateBehaviorNotifications()
+{
+    //show certain amount of notifications in 3d view
+    int i=0;
+    //old notifications may have been deleted, replace current notifications with top 3 from relay
+    while (i < (int)behavior_relay_->getNotifications().size() && i < behavior_relay_->getMaxNotificationsShown())
+    {
+        BehaviorNotification* notification = behavior_relay_->getNotifications()[i];
+        notification->show();
+        notification_layout_->addWidget(notification);
+        i++;
+    }
 }
 
 void MainViewWidget::setLidarSpinRate(double spin_rate)
@@ -693,7 +727,10 @@ void MainViewWidget::timerEvent(QTimerEvent *event)
     graspContainer->setGeometry(ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x() - graspContainer->geometry().width()/2 - ui->view_stack_->geometry().width()/2,
                                 ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).y() - graspContainer->geometry().height(),
                                 graspContainer->geometry().width(),graspContainer->geometry().height());
-
+    //position top right
+    notification_container_->setGeometry(ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().topRight()).x() - notification_container_->geometry().width()/2 - ui->view_stack_->geometry().width()/4,
+                                         ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().topRight()).y(),
+                                         notification_container_->geometry().width(),notification_container_->geometry().height());
 }
 
 

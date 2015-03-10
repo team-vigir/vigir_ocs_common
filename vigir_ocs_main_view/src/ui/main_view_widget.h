@@ -34,6 +34,7 @@
 #include "footstep_config.h"
 #include "notification_system.h"
 #include "main_context_menu.h"
+#include "behavior_relay.h"
 
 #include "ui/ghost_control_widget.h"
 
@@ -81,6 +82,7 @@ public Q_SLOTS:
     void graspWidgetToggle();
     void setCameraMode();
     void setWorldMode();
+    void updateBehaviorNotifications();
 
 protected Q_SLOTS:
     void toggleSidebarVisibility();    
@@ -105,6 +107,11 @@ protected:
     flor_ocs_msgs::OCSControlMode controlModes;
 
     vigir_ocs::Base3DView* primary_view_;
+
+    QWidget * notification_container_;
+    QVBoxLayout* notification_layout_;
+    BehaviorRelay* behavior_relay_;
+
 
     Ui::MainViewWidget *ui;
     MainViewContextMenu* main_view_context_menu_;
