@@ -108,13 +108,13 @@ namespace ocs_template
         bool stitchObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
                                      vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
 
-        bool detachObjectTemplateSrv(vigir_object_template_msgs::DetachObjectTemplate::Request& req,
-                                     vigir_object_template_msgs::DetachObjectTemplate::Response& res);
+        bool detachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
+                                     vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
 
         //Planning Scene
         void addCollisionObject(int type, int index, std::string mesh_name, geometry_msgs::Pose pose);
-        void moveCollisionObject(int index, geometry_msgs::Pose pose);
-        void removeCollisionObject(int index);
+        void moveCollisionObject(int template_id, geometry_msgs::Pose pose);
+        void removeCollisionObject(int template_id);
 
       protected:
         ros::Subscriber template_update_sub_;
@@ -143,7 +143,7 @@ namespace ocs_template
         std::vector<unsigned char>                 template_type_list_;
         std::vector<std::string>                   template_name_list_;
         std::vector<geometry_msgs::PoseStamped>    template_pose_list_;
-        std::vector<unsigned int>                  template_status_list_; //0-normal, 1-attached
+        std::vector<unsigned char>                 template_status_list_; //0-normal, 1-attached
         unsigned char                              id_counter_;
         // Filename of the grasping library
         std::string                                r_grasps_filename_;
@@ -156,8 +156,8 @@ namespace ocs_template
         tf::Transform                              gp_T_rhand_;
         std::map<unsigned int,VigirObjectTemplate> object_template_map_;
 
-        robot_model_loader::RobotModelLoaderPtr    hand_model_loader_;
-        robot_model::RobotModelPtr                 hand_robot_model_;
+        robot_model_loader::RobotModelLoaderPtr    robot_model_loader_;
+        robot_model::RobotModelPtr                 robot_model_;
         std::vector<std::string>                   hand_joint_names_;
         std::vector<std::string>                   hand_link_names_;
 
