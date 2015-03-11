@@ -48,55 +48,14 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>("/grasp_control/template_selection", 1, &graspWidget::templateMatchFeedback, this );
     grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(       grasp_control_prefix+"/active_state",            1, &graspWidget::graspStateReceived,  this );
 
-    grasp_selection_pub_         = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/grasp_selection",        1, false);
-    grasp_release_pub_           = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/release_grasp" ,         1, false);
-    grasp_command_pub_           = nh_.advertise<flor_grasp_msgs::GraspState>(        grasp_control_prefix+"/grasp_command",     1, false);
+    grasp_selection_pub_         = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/grasp_selection",                            1, false);
+    grasp_release_pub_           = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/release_grasp" ,                             1, false);
+    grasp_command_pub_           = nh_.advertise<flor_grasp_msgs::GraspState>(        grasp_control_prefix+"/grasp_command",                              1, false);
+    affordance_selection_pub_    = nh_.advertise<vigir_object_template_msgs::Affordance>( "/manipulation_control/" + hand_name_ + "/affordance_command",  1, false);
 
     grasp_info_client_           = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
     template_info_client_        = nh_.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
 
-    // create the window for circular motion
-    circular_config_widget_ = new QWidget();
-    circular_config_widget_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
-    circular_config_widget_->setWindowTitle((QString::fromStdString(hand_side_)).toUpper() + " Hand Circular Affordance");
-
-    circular_use_collision_ = new QCheckBox("Use Collision Avoidance");
-
-    circular_keep_orientation_ = new QCheckBox("Keep Endeffector Orientation");
-
-    QLabel* circular_angle_label_ = new QLabel("Rotation");
-    circular_angle_ = new QDoubleSpinBox();
-    circular_angle_->setDecimals(2);
-    circular_angle_->setMaximum(1080);
-    circular_angle_->setMinimum(-1080);
-
-    QHBoxLayout* circular_angle_layout_ = new QHBoxLayout();
-    circular_angle_layout_->setMargin(0);
-    circular_angle_layout_->addWidget(circular_angle_label_);
-    circular_angle_layout_->addWidget(circular_angle_);
-
-    QPushButton* circular_send_ = new QPushButton(QString::fromStdString("Send to " + hand_side_ + " arm"));
-    QObject::connect(circular_send_, SIGNAL(clicked()), this, SLOT(sendCircularTarget()));
-    circular_send_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
-
-    QHBoxLayout* circular_button_layout_ = new QHBoxLayout();
-    circular_button_layout_->setMargin(0);
-    circular_button_layout_->addWidget(circular_send_);
-
-    QVBoxLayout* circular_layout_ = new QVBoxLayout();
-    circular_layout_->setMargin(3);
-    circular_layout_->setSpacing(3);
-    circular_layout_->addWidget(circular_use_collision_);
-    circular_layout_->addWidget(circular_keep_orientation_);
-    circular_layout_->addLayout(circular_angle_layout_);
-    circular_layout_->addLayout(circular_button_layout_);
-
-    circular_config_widget_->setLayout(circular_layout_);
-    circular_config_widget_->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-    circular_config_widget_->hide();
-
-    // and necessary publisher
-    circular_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request", 1, false );
 
     ui->stackedWidget->setVisible(false);
 
@@ -522,11 +481,18 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
 
     for(index = 0; index < last_template_srv_.response.template_type_information.affordances.size(); index++)
     {
-        ui->affordanceBox->addItem(QString(boost::to_string((int)last_template_srv_.response.template_type_information.affordances[index].id).c_str()));
+        ui->affordanceBox->addItem(QString(last_template_srv_.response.template_type_information.affordances[index].name.c_str()));
+        ui->affordanceButton->setEnabled(true);
+        ui->keepOrientationBox->setEnabled(true);
+        ui->displacementBox->setEnabled(true);
+        ui->keepOrientationBox->setChecked(last_template_srv_.response.template_type_information.affordances[index].keep_orientation);
+        ui->displacementBox->setValue(last_template_srv_.response.template_type_information.affordances[index].displacement);
     }
 
-    if(index >0)
+    if(index >0){
         ui->affordanceBox->setEnabled(true);
+        current_affordance_ = last_template_srv_.response.template_type_information.affordances[0];
+    }
 
     if(ui->templateBox->count() > 0){
         selected_grasp_id_      = ui->graspBox->itemText(0).toInt();
@@ -544,18 +510,11 @@ void graspWidget::on_affordanceBox_activated(const QString &arg1)
 {
     std::cout << " affordance selection = " << arg1.toStdString() << std::endl;
     selected_affordance_id_ = arg1.toInt();
+
     current_affordance_ = last_template_srv_.response.template_type_information.affordances[selected_affordance_id_];
 
-    if(current_affordance_.type == "circular"){
-        if(!circular_config_widget_->isVisible())
-        {
-            circular_config_widget_->move(QPoint(QCursor::pos().x()+5, QCursor::pos().y()+5));
-            circular_config_widget_->show();
-        }
-    }else{
-        if(circular_config_widget_->isVisible())
-            circular_config_widget_->hide();
-    }
+    ui->keepOrientationBox->setChecked(current_affordance_.keep_orientation);
+    ui->displacementBox->setValue(current_affordance_.displacement);
 }
 
 void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
@@ -1027,6 +986,9 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             ui->show_grasp->setChecked(false);
             ui->show_grasp_radio->setEnabled(false);
             ui->show_pre_grasp_radio->setEnabled(false);
+            ui->affordanceButton->setEnabled(false);
+            ui->keepOrientationBox->setEnabled(false);
+            ui->displacementBox->setEnabled(false);
             }
             break;
     }
@@ -1075,81 +1037,6 @@ QLayout* graspWidget::getMainLayout()
     return ui->mainLayout;
 }
 
-void graspWidget::sendCircularTarget()
-{
-    flor_planning_msgs::CircularMotionRequest cmd;
-
-    geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = "/world";
-    pose.header.stamp = ros::Time::now();
-
-    unsigned int template_index;
-    for(template_index = 0; template_index < last_template_list_.template_id_list.size(); template_index++)
-        if(last_template_list_.template_id_list[template_index] == selected_template_id_)
-            break;
-
-    if(template_index == last_template_list_.template_id_list.size()) return;
-
-    pose.pose = last_template_list_.pose[template_index].pose;
-
-    poseTransform(pose.pose,current_affordance_.pose.pose);
-
-    // calculating the rotation based on position of the markers
-    if(circular_keep_orientation_->isChecked())
-    {
-        // get position of the wrist in world coordinates
-        tf::Vector3 wrist_position(0,0,0);
-        tf::Quaternion wrist_orientation(0,0,0,1);
-//        transform(wrist_position, wrist_orientation, hand_name_.c_str(), "/world");
-
-        // get position of the marker in world coordinates
-        geometry_msgs::Pose hand;
-        hand.position.x = wrist_position.getX();
-        hand.position.y = wrist_position.getY();
-        hand.position.z = wrist_position.getZ();
-        hand.orientation.x = wrist_orientation.getX();
-        hand.orientation.y = wrist_orientation.getY();
-        hand.orientation.z = wrist_orientation.getZ();
-        hand.orientation.w = wrist_orientation.getW();
-        poseTransform(hand, hand_T_marker_);
-
-        // calculate the difference between them
-        tf::Vector3 diff_vector;
-        diff_vector.setX(wrist_position.getX() - hand.position.x);
-        diff_vector.setY(wrist_position.getY() - hand.position.y);
-        diff_vector.setZ(wrist_position.getZ() - hand.position.z);
-
-        // apply the difference to the circular center
-        pose.pose.position.x += diff_vector.getX();
-        pose.pose.position.y += diff_vector.getY();
-        pose.pose.position.z += diff_vector.getZ();
-    }
-
-    cmd.rotation_center_pose = pose;
-
-    cmd.rotation_angle = circular_angle_->value()*0.0174532925; // UI in deg, msg in rad
-
-    cmd.use_environment_obstacle_avoidance = circular_use_collision_->isChecked();
-
-    cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
-
-//    if(!ghost_planning_group_[2]) // torso selected in the ghost widget
-        cmd.planning_group = hand_side_ == "left" ? "l_arm_group" : "r_arm_group";
-//    else
-//        cmd.planning_group = hand_side_ == "left" ? "l_arm_with_torso_group" : "r_arm_with_torso_group";
-
-//    if(position_only_ik_)
-//        cmd.planning_group += "_position_only_ik";
-
-    circular_plan_request_pub_.publish(cmd);
-}
-
-
-void graspWidget::removeCircularContextMenu()
-{
-    circular_config_widget_->hide();
-}
-
 void graspWidget::on_fingerBox_toggled(bool checked)
 {
     ui->stackedWidget->setVisible(checked);
@@ -1177,3 +1064,29 @@ void graspWidget::on_detachButton_clicked()
     if(detach_object_pub_)
         detach_object_pub_.publish(msg);
 }
+
+void graspWidget::on_displacementBox_valueChanged(double value){
+    //Set displacement value on afordance msg
+    current_affordance_.displacement = value*0.0174532925; //To radians
+}
+
+void graspWidget::on_keepOrientationBox_toggled(bool checked){
+    //set keep orientation on affordance msg
+    current_affordance_.keep_orientation = checked;
+}
+
+void graspWidget::on_affordanceButton_clicked()
+{
+    //Create message for manipulation controller
+    last_template_srv_.request.template_id = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
+    if (!template_info_client_.call(last_template_srv_))
+    {
+        ROS_ERROR("Failed to call service request template info");
+    }
+    current_affordance_.pose = last_template_srv_.response.template_type_information.affordances[current_affordance_.id].pose;
+
+    if(affordance_selection_pub_)
+        affordance_selection_pub_.publish(current_affordance_);
+}
+
+

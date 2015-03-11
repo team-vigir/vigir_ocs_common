@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>651</width>
+    <width>775</width>
     <height>264</height>
    </rect>
   </property>
@@ -142,16 +142,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QCheckBox" name="stitch_template">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Stitch</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </item>
         <item>
@@ -230,16 +220,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QCheckBox" name="show_grasp">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Show</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </item>
         <item>
@@ -247,19 +227,6 @@
           <property name="spacing">
            <number>2</number>
           </property>
-          <item>
-           <spacer name="horizontalSpacer_8">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
           <item>
            <widget class="QRadioButton" name="show_pre_grasp_radio">
             <property name="enabled">
@@ -287,6 +254,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="show_grasp">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Show</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="horizontalSpacer">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -309,19 +286,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <spacer name="horizontalSpacer_9">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
          </layout>
         </item>
         <item>
@@ -329,19 +293,6 @@
           <property name="spacing">
            <number>2</number>
           </property>
-          <item>
-           <spacer name="horizontalSpacer_6">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
           <item>
            <widget class="QPushButton" name="releaseButton">
             <property name="text">
@@ -406,19 +357,6 @@
            <number>2</number>
           </property>
           <item>
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
            <widget class="QPushButton" name="attachButton">
             <property name="enabled">
              <bool>false</bool>
@@ -464,6 +402,16 @@
             </property>
            </spacer>
           </item>
+          <item>
+           <widget class="QCheckBox" name="stitch_template">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Stitch</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
         <item>
@@ -480,19 +428,6 @@
           <property name="bottomMargin">
            <number>2</number>
           </property>
-          <item>
-           <spacer name="horizontalSpacer_17">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
           <item>
            <widget class="QLabel" name="label_7">
             <property name="text">
@@ -579,6 +514,49 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="displacementBox">
+            <property name="decimals">
+             <number>0</number>
+            </property>
+            <property name="minimum">
+             <double>-1080.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1080.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="keepOrientationBox">
+            <property name="text">
+             <string>Keep Orientation</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_9">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="affordanceButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Execute</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>

@@ -43,7 +43,6 @@
 #include <flor_grasp_msgs/GraspSelection.h>
 #include <flor_grasp_msgs/TemplateSelection.h>
 #include <flor_grasp_msgs/LinkState.h>
-#include <flor_planning_msgs/CircularMotionRequest.h>
 
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
@@ -81,10 +80,12 @@ public Q_SLOTS:
     void on_verticalSlider_3_sliderReleased();
     void on_verticalSlider_2_sliderReleased();
     void on_verticalSlider_4_sliderReleased();
-    void sendCircularTarget();
     void on_fingerBox_toggled(bool checked);
     void on_attachButton_clicked();
     void on_detachButton_clicked();
+    void on_affordanceButton_clicked();
+    void on_displacementBox_valueChanged(double value);
+    void on_keepOrientationBox_toggled(bool checked);
 
 
 private:
@@ -138,6 +139,7 @@ private:
     ros::Publisher template_stitch_request_pub_;
     ros::Publisher grasp_request_pub_;
     ros::Publisher grasp_release_pub_;
+    ros::Publisher affordance_selection_pub_;
 
     ros::Publisher planning_hand_target_pub_;
 
@@ -182,11 +184,6 @@ private:
     tf::Transform gp_T_palm_;     //describes palm in grasp pose frame
     tf::Transform hand_T_marker_; //describes marker in hand frame
 
-    QWidget*        circular_config_widget_;
-    QCheckBox*      circular_use_collision_;
-    QCheckBox*      circular_keep_orientation_;
-    QDoubleSpinBox* circular_angle_;
-
     // get joint states
     ros::Subscriber link_states_sub_;
 
@@ -217,18 +214,8 @@ private:
     ros::ServiceClient grasp_info_client_;
     ros::ServiceClient template_info_client_;
 
-
-    ros::Publisher circular_plan_request_pub_;
-
 protected:
     void timerEvent(QTimerEvent *event);
-    /**
-      * Context menu action for creating a circular target point
-      */
-    void removeCircularContextMenu();
-    /**
-      * Publishes the circular target pose
-      */
 
 private:
     QBasicTimer timer;

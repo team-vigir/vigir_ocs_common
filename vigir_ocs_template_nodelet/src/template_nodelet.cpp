@@ -796,9 +796,18 @@ void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
 
         //Getting Affordances
         TiXmlElement* pAffordance=pTemplate->FirstChildElement( "affordance" );
+        unsigned int aff_idx = 100;
         for( pAffordance; pAffordance; pAffordance=pAffordance->NextSiblingElement("affordance")) //Iterates thorugh all affordances
         {
             vigir_object_template_msgs::Affordance affordance;
+            if(pAffordance->Attribute("id")){
+                affordance.id = std::atoi(pAffordance->Attribute("id"));
+            }else{
+                ROS_WARN("Affordance ID not found, setting to %d",aff_idx);
+                affordance.id = aff_idx;
+                aff_idx++;
+            }
+
             TiXmlElement* pPose=pAffordance->FirstChildElement("pose");
             if(!pPose){
                 ROS_ERROR("Template ID: %d does not contain a  pose in affordance id: %s, skipping template",template_type,pAffordance->Attribute("id"));
@@ -816,16 +825,45 @@ void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
                 pPose->QueryDoubleAttribute("qz",&qz);
                 pPose->QueryDoubleAttribute("qw",&qw);
 
-                affordance.id                      = std::atoi(pAffordance->Attribute("id"));
-                affordance.type                    = pAffordance->Attribute("type");
-                affordance.axis                    = pAffordance->Attribute("axis");
+                if(pAffordance->Attribute("name"))
+                    affordance.name = pAffordance->Attribute("name");
+                else{
+                    ROS_WARN("Affordance ID: %d has no name attribute, setting to no_name", affordance.id);
+                    affordance.name = "aff_" + boost::to_string(affordance.id);
+                }
+
+                if(pAffordance->Attribute("type"))
+                    affordance.type = pAffordance->Attribute("type");
+                else{
+                    ROS_WARN("Affordance ID: %d has no type attribute, setting to no_type", affordance.id);
+                    affordance.type = "no_type";
+                }
+
+                if(pAffordance->Attribute("axis"))
+                    affordance.axis = pAffordance->Attribute("axis");
+                else{
+                    ROS_WARN("Affordance ID: %d has no axis attribute, setting to no_axis", affordance.id);
+                    affordance.axis = "no_axis";
+                }
 
                 if(pAffordance->Attribute("displacement"))
-                    affordance.displacement        = std::atof(pAffordance->Attribute("displacement"));
+                    affordance.displacement = std::atof(pAffordance->Attribute("displacement"));
                 else{
                     ROS_WARN("Affordance ID: %d has no displacement attribute, setting to zero", affordance.id);
                     affordance.displacement = 0.0;
                 }
+
+                if(pAffordance->Attribute("keeporientation")){
+                    if(pAffordance->Attribute("keeporientation") == "true")
+                        affordance.keep_orientation = true;
+                    else
+                        affordance.keep_orientation = false;
+
+                }else{
+                    ROS_WARN("Affordance ID: %d has no keeporientation attribute, setting to false", affordance.id);
+                    affordance.keep_orientation     = false;
+                }
+
                 affordance.pose.header.frame_id    = "/world";
                 affordance.pose.header.stamp       = ros::Time::now();
                 affordance.pose.pose.position.x    = std::atof(tokens[0].c_str());
@@ -841,11 +879,12 @@ void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
         }
 
         object_template_map_.insert(std::pair<unsigned int,VigirObjectTemplate>(template_type,object_template));
-        ROS_INFO(" Inserting Object template type: %d with id: %d, name %s and mesh path: %s, aff.distance: %f", object_template_map_[template_type].type
+        ROS_INFO(" Inserting Object template type: %d with id: %d, name %s and mesh path: %s, aff.name: %s, aff.displacement: %f", object_template_map_[template_type].type
                                                                                              , object_template_map_[template_type].id
                                                                                              , object_template_map_[template_type].name.c_str()
                                                                                              , object_template_map_[template_type].path.c_str()
-                                                                                             , object_template_map_[template_type].affordances[0].displacement);
+                                                                                             , object_template_map_[template_type].affordances[1].name.c_str()
+                                                                                             , object_template_map_[template_type].affordances[1].displacement);
     }
 
     ROS_INFO("OT Database loaded");
@@ -933,7 +972,12 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
             staticTransform(grasp.grasp_pose.pose,gp_T_rhand_);
             //gripperTranslationToPreGraspPose(grasp.grasp_pose.pose,grasp.pre_grasp_approach);
         }
-        worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
+        if(template_pose_list_[index].header.frame_id == "/world")
+            worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
+        else{
+            ROS_ERROR("Template not in /world frame, detach from robot!");
+            return false;
+        }
         res.template_type_information.grasps.push_back(grasp);
     }
 
@@ -943,7 +987,12 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
                                                                                 ++it) {
         //Transform to world coordinate frame
         vigir_object_template_msgs::StandPose stand_pose = it->second;
-        worldPoseTransform(template_pose_list_[index],stand_pose.pose.pose,stand_pose.pose);
+        if(template_pose_list_[index].header.frame_id == "/world")
+            worldPoseTransform(template_pose_list_[index],stand_pose.pose.pose,stand_pose.pose);
+        else{
+            ROS_ERROR("Template not in /world frame, detach from robot!");
+            return false;
+        }
         res.template_type_information.stand_poses.push_back(stand_pose);
     }
 
@@ -951,14 +1000,28 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     for (std::map<unsigned int,vigir_object_template_msgs::Usability>::iterator it =  object_template_map_[template_type].usabilities.begin();
                                                                                 it != object_template_map_[template_type].usabilities.end();
                                                                                 ++it) {
-        res.template_type_information.usabilities.push_back(it->second);
+        vigir_object_template_msgs::Usability usability = it->second;
+        if(template_pose_list_[index].header.frame_id == "/world")
+            worldPoseTransform(template_pose_list_[index],usability.pose.pose,usability.pose);
+        else{
+            ROS_ERROR("Template not in /world frame, detach from robot!");
+            return false;
+        }
+        res.template_type_information.usabilities.push_back(usability);
     }
 
     //Transfer all known usabilities to response
     for (std::map<unsigned int,vigir_object_template_msgs::Affordance>::iterator it =  object_template_map_[template_type].affordances.begin();
                                                                                  it != object_template_map_[template_type].affordances.end();
                                                                                  ++it) {
-        res.template_type_information.affordances.push_back(it->second);
+        vigir_object_template_msgs::Affordance affordance = it->second;
+        if(template_pose_list_[index].header.frame_id == "/world")
+            worldPoseTransform(template_pose_list_[index],affordance.pose.pose,affordance.pose);
+        else{
+            ROS_ERROR("Template not in /world frame, detach from robot!");
+            return false;
+        }
+        res.template_type_information.affordances.push_back(affordance);
     }
 
 	//Compose a mesh marker
@@ -1361,6 +1424,35 @@ int TemplateNodelet::worldPoseTransform(const geometry_msgs::PoseStamped& templa
 
     target_pose.header.frame_id = "/world";
     target_pose.header.stamp    = template_pose.header.stamp;
+    return 0;
+}
+
+int TemplateNodelet::poseTransform(geometry_msgs::Pose& first_pose, geometry_msgs::Pose& second_pose)
+{
+    tf::Transform output_transform;
+    tf::Transform first_transform;
+    tf::Transform second_transform;
+
+    first_transform.setRotation(tf::Quaternion(first_pose.orientation.x,first_pose.orientation.y,first_pose.orientation.z,first_pose.orientation.w));
+    first_transform.setOrigin(tf::Vector3(first_pose.position.x,first_pose.position.y,first_pose.position.z) );
+
+    second_transform.setRotation(tf::Quaternion(second_pose.orientation.x,second_pose.orientation.y,second_pose.orientation.z,second_pose.orientation.w));
+    second_transform.setOrigin(tf::Vector3(second_pose.position.x,second_pose.position.y,second_pose.position.z) );
+
+    output_transform = first_transform * second_transform;
+
+    tf::Quaternion output_quat;
+    tf::Vector3    output_vector;
+    output_quat   = output_transform.getRotation();
+    output_vector = output_transform.getOrigin();
+
+    first_pose.position.x    = output_vector.getX();
+    first_pose.position.y    = output_vector.getY();
+    first_pose.position.z    = output_vector.getZ();
+    first_pose.orientation.x = output_quat.getX();
+    first_pose.orientation.y = output_quat.getY();
+    first_pose.orientation.z = output_quat.getZ();
+    first_pose.orientation.w = output_quat.getW();
     return 0;
 }
 

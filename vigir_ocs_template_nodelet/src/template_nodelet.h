@@ -90,6 +90,7 @@ namespace ocs_template
         void loadGraspDatabaseXML(std::string& file_name, std::string hand_side);
         void loadStandPosesDatabaseXML(std::string& file_name);
         int  worldPoseTransform(const geometry_msgs::PoseStamped& template_pose, const geometry_msgs::Pose &input_pose, geometry_msgs::PoseStamped &target_pose);
+        int  poseTransform(geometry_msgs::Pose& first_pose, geometry_msgs::Pose& second_pose);
         int  staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform gp_T_hand);
         void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
         void timerCallback(const ros::TimerEvent& event);
