@@ -14,7 +14,7 @@ namespace Ui
     class BehaviorNotification; //window name
 }
 
-class BehaviorNotification : public QMainWindow
+class BehaviorNotification : public QWidget
 {
     Q_OBJECT
 
@@ -33,6 +33,7 @@ private:
 
 public Q_SLOTS:
     void confirm();
+    void abort();
 
 
 private Q_SLOTS:
@@ -40,6 +41,7 @@ private Q_SLOTS:
 
 Q_SIGNALS:
     void sendConfirmation(QString);
+    void sendAbort(QString);
 };
 
 

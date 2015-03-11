@@ -40,6 +40,7 @@ Q_SIGNALS:
        void updateUI();
 public Q_SLOTS:
     void reportConfirmation(QString);
+    void reportAbort(QString action_text);
 };
 
 

@@ -320,19 +320,21 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     //initialize behavior relay with notifications
     notification_container_ = new QWidget(this);
+    notification_container_->setStyleSheet("background-color: rgb(30, 30, 30);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
+    notification_container_->setWindowOpacity(0.1);
     //notification_container_->setAttribute(Qt::WA_TranslucentBackground);
     //notification_container_->setStyleSheet("background:transparent;");
-    notification_container_->setMinimumHeight(55);
-    notification_container_->setMaximumHeight(55);
-    notification_container_->setMaximumWidth(255);
-    notification_container_->setMinimumWidth(255);
+    notification_container_->setMinimumHeight(70);
+    notification_container_->setMaximumHeight(70);
+    notification_container_->setMaximumWidth(340);
+    notification_container_->setMinimumWidth(340);
     notification_container_->adjustSize();
     notification_layout_ = new QVBoxLayout();
     notification_layout_->setMargin(0);
     notification_layout_->setSpacing(0);
-    notification_container_->setLayout(notification_layout_);
+    notification_container_->setLayout(notification_layout_);    
 
-    behavior_relay_ = new BehaviorRelay(this);
+    behavior_relay_ = new BehaviorRelay();
     connect(behavior_relay_,SIGNAL(updateUI()),this,SLOT(updateBehaviorNotifications()));
 
 
@@ -706,14 +708,16 @@ void MainViewWidget::timerEvent(QTimerEvent *event)
     grasp_toggle_button_->setGeometry(ui->view_stack_->geometry().bottomRight().x() - 60,ui->view_stack_->geometry().bottom() + 22,60,22);
     sidebar_toggle_->setGeometry(ui->view_stack_->geometry().topRight().x() - 25 ,ui->view_stack_->geometry().top() + 43,25,25);
 
+    //top right 3/4 of width just offset from top
+    notification_container_->setGeometry(ui->view_stack_->geometry().topRight().x() - notification_container_->geometry().width()/2 - ui->view_stack_->geometry().width()/4,
+                                         ui->view_stack_->geometry().topRight().y() + notification_container_->geometry().height() - 15,
+                                         notification_container_->geometry().width(),notification_container_->geometry().height());
+
     //must be global, as it is treated as dialog window
     graspContainer->setGeometry(ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x() - graspContainer->geometry().width()/2 - ui->view_stack_->geometry().width()/2,
                                 ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).y() - graspContainer->geometry().height(),
                                 graspContainer->geometry().width(),graspContainer->geometry().height());
-    //position top right
-    notification_container_->setGeometry(ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().topRight()).x() - notification_container_->geometry().width()/2 - ui->view_stack_->geometry().width()/4,
-                                         ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().topRight()).y(),
-                                         notification_container_->geometry().width(),notification_container_->geometry().height());
+
 }
 
 

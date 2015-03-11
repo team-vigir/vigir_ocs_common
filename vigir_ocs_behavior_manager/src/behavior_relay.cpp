@@ -31,6 +31,7 @@ void BehaviorRelay::processBehaviorGoalCB(BehaviorServer* server)
 
     BehaviorNotification* notification = new BehaviorNotification(this);
     connect(notification,SIGNAL(sendConfirmation(QString)),this,SLOT(reportConfirmation(QString)));
+    connect(notification,SIGNAL(sendAbort(QString)),this,SLOT(reportAbort(QString)));
     notification->setActionText(action_text);
 
     behavior_notifications_.push_back(notification);
@@ -40,10 +41,24 @@ void BehaviorRelay::processBehaviorGoalCB(BehaviorServer* server)
 
 
 }
+
 void BehaviorRelay::reportConfirmation(QString action_text)
 {
+    ROS_ERROR("confirm! %s", qPrintable(action_text));
     vigir_be_input::BehaviorInputActionResult result;
     result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_OK;
+    //result.status = result.status.SUCCEEDED; // even need status?
+    behavior_server_->setSucceeded(result.result, qPrintable(action_text));
+
+    cleanNotifications();
+    Q_EMIT updateUI(); //remove and enqueue new notification
+}
+
+void BehaviorRelay::reportAbort(QString action_text)
+{
+    ROS_ERROR("abort! %s", qPrintable(action_text));
+    vigir_be_input::BehaviorInputActionResult result;
+    result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_ABORTED;
     //result.status = result.status.SUCCEEDED; // even need status?
     behavior_server_->setSucceeded(result.result, qPrintable(action_text));
 
