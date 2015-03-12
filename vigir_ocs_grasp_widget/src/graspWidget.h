@@ -17,6 +17,7 @@
 #include <ros/ros.h>
 
 #include "tf/transform_listener.h"
+#include <tf_conversions/tf_eigen.h>
 
 #include "handOffsetWidget.h"
 
@@ -157,12 +158,10 @@ private:
     // show robot status messages
     ros::Subscriber robot_status_sub_;
     ros::Subscriber template_stitch_pose_sub_;
-    ros::Subscriber hand_offset_sub_;
     RobotStatusCodes robot_status_codes_;
 
     void robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
     void templateStitchPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
-    void handOffsetCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
 
     // publisher to color fingers/hand
     ros::Publisher hand_link_color_pub_;
@@ -182,7 +181,6 @@ private:
     tf::Transform hand_offset_pose_;
     tf::Transform hand_T_palm_;   //describes palm in hand frame
     tf::Transform gp_T_palm_;     //describes palm in grasp pose frame
-    tf::Transform hand_T_marker_; //describes marker in hand frame
 
     // get joint states
     ros::Subscriber link_states_sub_;
@@ -193,8 +191,10 @@ private:
     bool stitch_template_;
 
     robot_model_loader::RobotModelLoaderPtr hand_model_loader_;
-    robot_model::RobotModelPtr hand_robot_model_;
-    robot_state::RobotStatePtr hand_robot_state_;
+    robot_model::RobotModelPtr              hand_robot_model_;
+    robot_state::RobotStatePtr              hand_robot_state_;
+    robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
+    robot_model::RobotModelPtr              robot_model_;
 
     std::vector<std::string>   hand_joint_names_;
 

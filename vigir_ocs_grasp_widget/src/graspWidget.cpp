@@ -36,7 +36,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
 
     this->stitch_template_pose_.setIdentity();
 
-    this->hand_offset_pose_.setIdentity();
+    this->hand_T_palm_.setIdentity();
 
     // initialize variables
     currentGraspMode = 0;
@@ -78,20 +78,56 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_" + hand_side_ + "_hand_pose",             1, false);
     //ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_" + hand_ + "_hand/joint_states",     1, false); // /ghost_" + hand_ + "_hand/joint_states
 
+
+    //Start hand model operations
     hand_model_loader_.reset(new robot_model_loader::RobotModelLoader(hand_side_ + "_hand_robot_description"));
     hand_robot_model_ = hand_model_loader_->getModel();
+    hand_robot_state_.reset(new robot_state::RobotState(hand_robot_model_));
+    //Finish hand model operations
 
-    if(hand_robot_model_->hasJointModelGroup(hand_side_+"_hand"))
+    //Start robot model operations
+    robot_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
+    robot_model_ = robot_model_loader_->getModel();
+
+    if(robot_model_->hasJointModelGroup(hand_side_+"_hand"))
     {
         hand_joint_names_.clear();
-        hand_joint_names_ = hand_robot_model_->getJointModelGroup(hand_side_+"_hand")->getActiveJointModelNames();
+        hand_joint_names_ = robot_model_->getJointModelGroup(hand_side_+"_hand")->getActiveJointModelNames();
     }else{
-        ROS_INFO("NO JOINTS FOUND FOR %s HAND",hand_side_.c_str());
+        ROS_WARN("NO JOINTS FOUND FOR %s HAND",hand_side_.c_str());
     }
     for(int i = 0; i < hand_joint_names_.size(); i++)
         ROS_INFO("Grasp widget loading joint %d: %s",i,hand_joint_names_[i].c_str());
 
-    hand_robot_state_.reset(new robot_state::RobotState(hand_robot_model_));
+    if(!robot_model_->hasLinkModel(hand_side_+"_palm")){
+        ROS_WARN("Hand model does not contain %s_palm",hand_side_.c_str());
+    }else{
+        robot_model::LinkTransformMap hand_palm_tf_map = robot_model_->getLinkModel(hand_side_+"_palm")->getAssociatedFixedTransforms();
+        ROS_INFO("Requested linktransform for %s_palm",hand_side_.c_str());
+
+        Eigen::Affine3d hand_palm_aff;
+        bool found = false;
+
+        for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
+            ROS_INFO("Getting links in map: %s and comparing to: %s", it->first->getName().c_str(), (hand_side_.substr(0,1)+std::string("_hand")).c_str());
+            if(it->first->getName() == hand_side_.substr(0,1)+std::string("_hand")){
+                ROS_INFO("Wrist %c_hand found!!!",hand_side_[0]);
+                hand_palm_aff = it->second;
+                found = true;
+                break;
+            }
+        }
+
+        if(!found){
+            ROS_WARN("Wrist %c_hand NOT found!!!, setting to identity",hand_side_[0]);
+        }else{
+            tf::transformEigenToTF( hand_palm_aff,hand_T_palm_);
+            hand_T_palm_ = hand_T_palm_.inverse();
+        }
+    }
+    //Finish robot model operations
+
+
     // Publisher for hand position/state
     robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_" + hand_side_ + "_hand",1, true);
 
@@ -101,40 +137,17 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     template_stitch_pose_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/manipulation_control/" + hand_name_ + "/template_stitch_pose",1, &graspWidget::templateStitchPoseCallback,  this );
     template_stitch_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/manipulation_control/" + hand_name_ + "/template_stitch_request", 1, false );
 
-    // create subscribers for grasp status
-    XmlRpc::XmlRpcValue   hand_T_palm;
+    XmlRpc::XmlRpcValue   gp_T_palm;
 
-    if(nh_.getParam("/" + hand_name_ + "_tf/hand_T_palm", hand_T_palm))
+    if(nh_.getParam("/" + hand_name_ + "_tf/gp_T_palm", gp_T_palm))
     {
-        hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-        hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
-    }
-    else
-    {
-        hand_T_palm_.setOrigin(tf::Vector3(0,0,0));
-        hand_T_palm_.setRotation(tf::Quaternion(0,0,0,1));
-    }
-
-    if(nh_.getParam("/" + hand_name_ + "_tf/gp_T_palm", hand_T_palm))
-    {
-        gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-        gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+        gp_T_palm_.setOrigin(tf::Vector3(static_cast<double>(gp_T_palm[0]),static_cast<double>(gp_T_palm[1]),static_cast<double>(gp_T_palm[2])));
+        gp_T_palm_.setRotation(tf::Quaternion(static_cast<double>(gp_T_palm[3]),static_cast<double>(gp_T_palm[4]),static_cast<double>(gp_T_palm[5]),static_cast<double>(gp_T_palm[6])));
     }
     else
     {
         gp_T_palm_.setOrigin(tf::Vector3(0,0,0));
         gp_T_palm_.setRotation(tf::Quaternion(0,0,0,1));
-    }
-
-    if(nh_.getParam("/" + hand_name_ + "_tf/hand_T_marker", hand_T_palm))
-    {
-        hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-        hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
-    }
-    else
-    {
-        hand_T_marker_.setOrigin(tf::Vector3(0,0,0));
-        hand_T_marker_.setRotation(tf::Quaternion(0,0,0,1));
     }
 
 
@@ -150,9 +163,6 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     }
 
     planning_hand_target_pub_   = nh_.advertise<geometry_msgs::PoseStamped>( "/grasp_control/" + hand_name_ + "/planning_target_pose", 1, false );
-
-    hand_offset_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/template/" + hand_name_ + "_template_offset",1, &graspWidget::handOffsetCallback,  this );
-
 
     // this is for publishing the hand position in world coordinates for moveit
     virtual_link_joint_states_.name.push_back("world_virtual_joint/trans_x");
@@ -173,7 +183,9 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     robot_status_codes_.loadErrorMessages(code_path_);
 
     // change color of the ghost template hands
-    const std::vector<std::string>& link_names = hand_robot_model_->getLinkModelNames();
+    std::vector<std::string> link_names = robot_model_->getJointModelGroup(hand_side_+ "_hand")->getLinkModelNames();
+    link_names.push_back(robot_model_->getJointModelGroup(hand_side_+ "_hand")->getCommonRoot()->getChildLinkModel()->getName());
+
 
     for (size_t i = 0; i < link_names.size(); ++i)
     {
@@ -533,12 +545,6 @@ void graspWidget::templateStitchPoseCallback(const geometry_msgs::PoseStamped::C
         this->stitch_template_pose_.setRotation(tf::Quaternion(msg->pose.orientation.x,msg->pose.orientation.y,msg->pose.orientation.z,msg->pose.orientation.w));
         this->stitch_template_pose_.setOrigin(tf::Vector3(msg->pose.position.x,msg->pose.position.y,msg->pose.position.z) );
     }
-}
-
-void graspWidget::handOffsetCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
-{
-    this->hand_offset_pose_.setRotation(tf::Quaternion(msg->pose.orientation.x,msg->pose.orientation.y,msg->pose.orientation.z,msg->pose.orientation.w));
-    this->hand_offset_pose_.setOrigin(tf::Vector3(msg->pose.position.x,msg->pose.position.y,msg->pose.position.z) );
 }
 
 void graspWidget::linkStatesCB( const flor_grasp_msgs::LinkState::ConstPtr& link_states )

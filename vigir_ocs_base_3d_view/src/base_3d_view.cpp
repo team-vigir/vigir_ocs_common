@@ -707,23 +707,82 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     main_layout->setSpacing(0);
   //  main_layout->addWidget(position_widget_);
 
-    XmlRpc::XmlRpcValue   hand_T_palm;
 
-    nh_.getParam("/l_hand_tf/hand_T_palm", hand_T_palm);
-    l_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-    l_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+    //Getting hand_T_palm transforms from URDF
+    robot_urdf_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
+    robot_urdf_model_ = robot_urdf_model_loader_->getModel();
 
-    nh_.getParam("/r_hand_tf/hand_T_palm", hand_T_palm);
-    r_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-    r_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+    //Getting left side
+    if(!robot_urdf_model_->hasLinkModel("left_palm")){
+        ROS_WARN("Hand model does not contain left_palm, not geting transform");
+    }
 
-    nh_.getParam("/l_hand_tf/hand_T_marker", hand_T_palm);
-    l_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-    l_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+    robot_model::LinkTransformMap hand_palm_tf_map = robot_urdf_model_->getLinkModel("left_palm")->getAssociatedFixedTransforms();
+    ROS_INFO("Requested linktransform for left_palm");
 
-    nh_.getParam("/r_hand_tf/hand_T_marker", hand_T_palm);
-    r_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-    r_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+    Eigen::Affine3d hand_palm_aff;
+    bool found = false;
+
+    for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
+        if(it->first->getName() == "l_hand"){
+            ROS_INFO("Wrist l_hand found!!!");
+            hand_palm_aff = it->second;
+            found = true;
+            break;
+        }
+    }
+    if(!found){
+        ROS_WARN("Wrist l_hand NOT found!!!, setting to identity");
+        l_hand_T_palm_.setIdentity();
+    }else{
+        tf::transformEigenToTF( hand_palm_aff,l_hand_T_palm_);
+        l_hand_T_palm_   = l_hand_T_palm_.inverse();
+        l_hand_T_marker_ = l_hand_T_palm_;
+    }
+
+    //Getting right side
+    if(!robot_urdf_model_->hasLinkModel("right_palm")){
+        ROS_WARN("Hand model does not contain right_palm, not geting transform");
+    }
+
+    hand_palm_tf_map = robot_urdf_model_->getLinkModel("right_palm")->getAssociatedFixedTransforms();
+    ROS_INFO("Requested linktransform for right_palm");
+
+    found = false;
+
+    for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
+        if(it->first->getName() == "r_hand"){
+            ROS_INFO("Wrist r_hand found!!!");
+            hand_palm_aff = it->second;
+            found = true;
+            break;
+        }
+    }
+    if(!found){
+        ROS_WARN("Wrist r_hand NOT found!!!, setting to identity");
+        r_hand_T_palm_.setIdentity();
+    }else{
+        tf::transformEigenToTF( hand_palm_aff,r_hand_T_palm_);
+        r_hand_T_palm_   = r_hand_T_palm_.inverse();
+        r_hand_T_marker_ = r_hand_T_palm_;
+    }
+    //Finished getting hand transform
+
+    XmlRpc::XmlRpcValue   hand_T_marker;
+
+    if (!nh_.getParam("/l_hand_tf/hand_T_marker", hand_T_marker))
+        ROS_ERROR(" Did not find hand_T_marker parameter, setting to palm ");
+    else{
+        l_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_marker[0]),static_cast<double>(hand_T_marker[1]),static_cast<double>(hand_T_marker[2])));
+        l_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_marker[3]),static_cast<double>(hand_T_marker[4]),static_cast<double>(hand_T_marker[5]),static_cast<double>(hand_T_marker[6])));
+    }
+
+    if (!nh_.getParam("/r_hand_tf/hand_T_marker", hand_T_marker))
+        ROS_ERROR(" Did not find hand_T_marker parameter, setting to palm ");
+    else{
+        r_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_marker[0]),static_cast<double>(hand_T_marker[1]),static_cast<double>(hand_T_marker[2])));
+        r_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_marker[3]),static_cast<double>(hand_T_marker[4]),static_cast<double>(hand_T_marker[5]),static_cast<double>(hand_T_marker[6])));
+    }
 
     nh_.getParam("/l_hand_type", l_hand_type);
     nh_.getParam("/r_hand_type", r_hand_type);
