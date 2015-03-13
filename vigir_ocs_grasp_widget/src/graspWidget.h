@@ -71,7 +71,7 @@ public Q_SLOTS:
     void on_userSlider_sliderReleased();
     void on_templateBox_activated(const QString &arg1);
     void on_graspBox_activated(const QString &arg1);
-    void on_affordanceBox_activated(const QString &arg1);
+    void on_affordanceBox_activated(const int &arg1);
     void on_performButton_clicked();
     void on_moveToPoseButton_clicked();
     void on_releaseButton_clicked();

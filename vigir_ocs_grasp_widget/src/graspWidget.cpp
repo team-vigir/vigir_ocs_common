@@ -497,13 +497,13 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
         ui->affordanceButton->setEnabled(true);
         ui->keepOrientationBox->setEnabled(true);
         ui->displacementBox->setEnabled(true);
-        ui->keepOrientationBox->setChecked(last_template_srv_.response.template_type_information.affordances[index].keep_orientation);
-        ui->displacementBox->setValue(last_template_srv_.response.template_type_information.affordances[index].displacement);
     }
 
     if(index >0){
         ui->affordanceBox->setEnabled(true);
         current_affordance_ = last_template_srv_.response.template_type_information.affordances[0];
+        ui->keepOrientationBox->setChecked(current_affordance_.keep_orientation);
+        ui->displacementBox->setValue(current_affordance_.displacement);
     }
 
     if(ui->templateBox->count() > 0){
@@ -518,10 +518,10 @@ void graspWidget::on_graspBox_activated(const QString &arg1)
         publishHandPose(arg1.toUInt());
 }
 
-void graspWidget::on_affordanceBox_activated(const QString &arg1)
+void graspWidget::on_affordanceBox_activated(const int &arg1)
 {
-    std::cout << " affordance selection = " << arg1.toStdString() << std::endl;
-    selected_affordance_id_ = arg1.toInt();
+    std::cout << " affordance selection = " << arg1 << std::endl;
+    selected_affordance_id_ = arg1;
 
     current_affordance_ = last_template_srv_.response.template_type_information.affordances[selected_affordance_id_];
 
@@ -1089,7 +1089,7 @@ void graspWidget::on_affordanceButton_clicked()
     {
         ROS_ERROR("Failed to call service request template info");
     }
-    current_affordance_.pose = last_template_srv_.response.template_type_information.affordances[current_affordance_.id].pose;
+    current_affordance_.waypoints = last_template_srv_.response.template_type_information.affordances[current_affordance_.id].waypoints;
 
     if(affordance_selection_pub_)
         affordance_selection_pub_.publish(current_affordance_);

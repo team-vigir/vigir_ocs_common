@@ -813,22 +813,42 @@ void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
                 ROS_ERROR("Template ID: %d does not contain a  pose in affordance id: %s, skipping template",template_type,pAffordance->Attribute("id"));
                 continue;
             }else{
-                double qx,qy,qz,qw;
-                std::string xyz = pPose->Attribute("xyz");
-                std::istringstream iss(xyz);
-                std::string word;
-                std::vector<std::string> tokens;
-                while ( iss >> word ) tokens.push_back( word );
+                ROS_INFO("Getting poses for affordance %d", affordance.id);
+                for(pPose; pPose; pPose=pPose->NextSiblingElement("pose")){
 
-                pPose->QueryDoubleAttribute("qx",&qx);
-                pPose->QueryDoubleAttribute("qy",&qy);
-                pPose->QueryDoubleAttribute("qz",&qz);
-                pPose->QueryDoubleAttribute("qw",&qw);
+                    double qx,qy,qz,qw;
+                    std::string xyz = pPose->Attribute("xyz");
+                    std::istringstream iss(xyz);
+                    std::string word;
+                    std::vector<std::string> tokens;
+                    while ( iss >> word ) tokens.push_back( word );
+
+                    pPose->QueryDoubleAttribute("qx",&qx);
+                    pPose->QueryDoubleAttribute("qy",&qy);
+                    pPose->QueryDoubleAttribute("qz",&qz);
+                    pPose->QueryDoubleAttribute("qw",&qw);
+
+                    geometry_msgs::PoseStamped waypoint;
+
+                    waypoint.header.frame_id    = "/world";
+                    waypoint.header.stamp       = ros::Time::now();
+                    waypoint.pose.position.x    = std::atof(tokens[0].c_str());
+                    waypoint.pose.position.y    = std::atof(tokens[1].c_str());
+                    waypoint.pose.position.z    = std::atof(tokens[2].c_str());
+                    waypoint.pose.orientation.x = qx;
+                    waypoint.pose.orientation.y = qy;
+                    waypoint.pose.orientation.z = qz;
+                    waypoint.pose.orientation.w = qw;
+                    affordance.waypoints.push_back(waypoint);
+                    ROS_INFO("Getting %d waypoints", (int)affordance.waypoints.size());
+                }
+                ROS_INFO("Finished getting poses");
+
 
                 if(pAffordance->Attribute("name"))
                     affordance.name = pAffordance->Attribute("name");
                 else{
-                    ROS_WARN("Affordance ID: %d has no name attribute, setting to no_name", affordance.id);
+                    ROS_WARN("Affordance ID: %d has no name attribute, setting to aff_%d", affordance.id, affordance.id);
                     affordance.name = "aff_" + boost::to_string(affordance.id);
                 }
 
@@ -854,25 +874,15 @@ void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
                 }
 
                 if(pAffordance->Attribute("keeporientation")){
-                    if(pAffordance->Attribute("keeporientation") == "true")
+                    if(std::string(pAffordance->Attribute("keeporientation")) == std::string("true"))
                         affordance.keep_orientation = true;
                     else
                         affordance.keep_orientation = false;
 
                 }else{
-                    ROS_WARN("Affordance ID: %d has no keeporientation attribute, setting to false", affordance.id);
-                    affordance.keep_orientation     = false;
+                    ROS_WARN("Affordance ID: %d has no keeporientation attribute, setting to true", affordance.id);
+                    affordance.keep_orientation     = true;
                 }
-
-                affordance.pose.header.frame_id    = "/world";
-                affordance.pose.header.stamp       = ros::Time::now();
-                affordance.pose.pose.position.x    = std::atof(tokens[0].c_str());
-                affordance.pose.pose.position.y    = std::atof(tokens[1].c_str());
-                affordance.pose.pose.position.z    = std::atof(tokens[2].c_str());
-                affordance.pose.pose.orientation.x = qx;
-                affordance.pose.pose.orientation.y = qy;
-                affordance.pose.pose.orientation.z = qz;
-                affordance.pose.pose.orientation.w = qw;
 
                 object_template.affordances.insert(std::pair<unsigned int,vigir_object_template_msgs::Affordance>(affordance.id, affordance));
             }
@@ -1016,7 +1026,8 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
                                                                                  ++it) {
         vigir_object_template_msgs::Affordance affordance = it->second;
         if(template_pose_list_[index].header.frame_id == "/world")
-            worldPoseTransform(template_pose_list_[index],affordance.pose.pose,affordance.pose);
+            for(int waypoint=0; waypoint < affordance.waypoints.size(); waypoint++)
+                worldPoseTransform(template_pose_list_[index],affordance.waypoints[waypoint].pose,affordance.waypoints[waypoint]);
         else{
             ROS_ERROR("Template not in /world frame, detach from robot!");
             return false;
