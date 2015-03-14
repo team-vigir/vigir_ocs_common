@@ -93,38 +93,54 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     {
         hand_joint_names_.clear();
         hand_joint_names_ = robot_model_->getJointModelGroup(hand_side_+"_hand")->getActiveJointModelNames();
+
+        for(int i = 0; i < hand_joint_names_.size(); i++)
+            ROS_INFO("Grasp widget loading joint %d: %s",i,hand_joint_names_[i].c_str());
+
+        if(!robot_model_->hasLinkModel(hand_side_+"_palm")){
+            ROS_WARN("Hand model does not contain %s_palm",hand_side_.c_str());
+        }else{
+            robot_model::LinkTransformMap hand_palm_tf_map = robot_model_->getLinkModel(hand_side_+"_palm")->getAssociatedFixedTransforms();
+            ROS_INFO("Requested linktransform for %s_palm",hand_side_.c_str());
+
+            Eigen::Affine3d hand_palm_aff;
+            bool found = false;
+
+            for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
+                ROS_INFO("Getting links in map: %s and comparing to: %s", it->first->getName().c_str(), (hand_side_.substr(0,1)+std::string("_hand")).c_str());
+                if(it->first->getName() == hand_side_.substr(0,1)+std::string("_hand")){
+                    ROS_INFO("Wrist %c_hand found!!!",hand_side_[0]);
+                    hand_palm_aff = it->second;
+                    found = true;
+                    break;
+                }
+            }
+
+            if(!found){
+                ROS_WARN("Wrist %c_hand NOT found!!!, setting to identity",hand_side_[0]);
+            }else{
+                tf::transformEigenToTF( hand_palm_aff,hand_T_palm_);
+                hand_T_palm_ = hand_T_palm_.inverse();
+            }
+        }
+        // change color of the ghost template hands
+        std::vector<std::string> link_names = robot_model_->getJointModelGroup(hand_side_+ "_hand")->getLinkModelNames();
+        link_names.push_back(robot_model_->getJointModelGroup(hand_side_+ "_hand")->getCommonRoot()->getChildLinkModel()->getName());
+
+        for (size_t i = 0; i < link_names.size(); ++i)
+        {
+            moveit_msgs::ObjectColor tmp;
+            tmp.id = link_names[i];
+            tmp.color.a = 0.5f;
+            tmp.color.r = color_r;
+            tmp.color.g = color_g;
+            tmp.color.b = color_b;
+            display_state_msg_.highlight_links.push_back(tmp);
+        }
     }else{
         ROS_WARN("NO JOINTS FOUND FOR %s HAND",hand_side_.c_str());
     }
-    for(int i = 0; i < hand_joint_names_.size(); i++)
-        ROS_INFO("Grasp widget loading joint %d: %s",i,hand_joint_names_[i].c_str());
 
-    if(!robot_model_->hasLinkModel(hand_side_+"_palm")){
-        ROS_WARN("Hand model does not contain %s_palm",hand_side_.c_str());
-    }else{
-        robot_model::LinkTransformMap hand_palm_tf_map = robot_model_->getLinkModel(hand_side_+"_palm")->getAssociatedFixedTransforms();
-        ROS_INFO("Requested linktransform for %s_palm",hand_side_.c_str());
-
-        Eigen::Affine3d hand_palm_aff;
-        bool found = false;
-
-        for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
-            ROS_INFO("Getting links in map: %s and comparing to: %s", it->first->getName().c_str(), (hand_side_.substr(0,1)+std::string("_hand")).c_str());
-            if(it->first->getName() == hand_side_.substr(0,1)+std::string("_hand")){
-                ROS_INFO("Wrist %c_hand found!!!",hand_side_[0]);
-                hand_palm_aff = it->second;
-                found = true;
-                break;
-            }
-        }
-
-        if(!found){
-            ROS_WARN("Wrist %c_hand NOT found!!!, setting to identity",hand_side_[0]);
-        }else{
-            tf::transformEigenToTF( hand_palm_aff,hand_T_palm_);
-            hand_T_palm_ = hand_T_palm_.inverse();
-        }
-    }
     //Finish robot model operations
 
 
@@ -182,21 +198,6 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     std::cout << code_path_ << std::endl;
     robot_status_codes_.loadErrorMessages(code_path_);
 
-    // change color of the ghost template hands
-    std::vector<std::string> link_names = robot_model_->getJointModelGroup(hand_side_+ "_hand")->getLinkModelNames();
-    link_names.push_back(robot_model_->getJointModelGroup(hand_side_+ "_hand")->getCommonRoot()->getChildLinkModel()->getName());
-
-
-    for (size_t i = 0; i < link_names.size(); ++i)
-    {
-        moveit_msgs::ObjectColor tmp;
-        tmp.id = link_names[i];
-        tmp.color.a = 0.5f;
-        tmp.color.r = color_r;
-        tmp.color.g = color_g;
-        tmp.color.b = color_b;
-        display_state_msg_.highlight_links.push_back(tmp);
-    }
 
     // create publisher and subscriber for object selection
     // PUBLISHER WILL BE USED BY THE RIGHT/DOUBLE CLICK TO INFORM WHICH TEMPLATE/HAND/OBJECT HAS BEEN selected

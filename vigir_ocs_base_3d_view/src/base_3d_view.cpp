@@ -712,59 +712,61 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     robot_urdf_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
     robot_urdf_model_ = robot_urdf_model_loader_->getModel();
 
+    r_hand_T_palm_.setIdentity();
+    l_hand_T_palm_.setIdentity();
+
     //Getting left side
     if(!robot_urdf_model_->hasLinkModel("left_palm")){
         ROS_WARN("Hand model does not contain left_palm, not geting transform");
-    }
-
-    robot_model::LinkTransformMap hand_palm_tf_map = robot_urdf_model_->getLinkModel("left_palm")->getAssociatedFixedTransforms();
-    ROS_INFO("Requested linktransform for left_palm");
-
-    Eigen::Affine3d hand_palm_aff;
-    bool found = false;
-
-    for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
-        if(it->first->getName() == "l_hand"){
-            ROS_INFO("Wrist l_hand found!!!");
-            hand_palm_aff = it->second;
-            found = true;
-            break;
-        }
-    }
-    if(!found){
-        ROS_WARN("Wrist l_hand NOT found!!!, setting to identity");
-        l_hand_T_palm_.setIdentity();
     }else{
-        tf::transformEigenToTF( hand_palm_aff,l_hand_T_palm_);
-        l_hand_T_palm_   = l_hand_T_palm_.inverse();
-        l_hand_T_marker_ = l_hand_T_palm_;
+
+        robot_model::LinkTransformMap hand_palm_tf_map = robot_urdf_model_->getLinkModel("left_palm")->getAssociatedFixedTransforms();
+        ROS_INFO("Requested linktransform for left_palm");
+
+        Eigen::Affine3d hand_palm_aff;
+        bool found = false;
+
+        for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
+            if(it->first->getName() == "l_hand"){
+                ROS_INFO("Wrist l_hand found!!!");
+                hand_palm_aff = it->second;
+                found = true;
+                break;
+            }
+        }
+        if(found){
+            tf::transformEigenToTF( hand_palm_aff,l_hand_T_palm_);
+            l_hand_T_palm_   = l_hand_T_palm_.inverse();
+            l_hand_T_marker_ = l_hand_T_palm_;
+        }
     }
 
     //Getting right side
     if(!robot_urdf_model_->hasLinkModel("right_palm")){
         ROS_WARN("Hand model does not contain right_palm, not geting transform");
-    }
-
-    hand_palm_tf_map = robot_urdf_model_->getLinkModel("right_palm")->getAssociatedFixedTransforms();
-    ROS_INFO("Requested linktransform for right_palm");
-
-    found = false;
-
-    for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
-        if(it->first->getName() == "r_hand"){
-            ROS_INFO("Wrist r_hand found!!!");
-            hand_palm_aff = it->second;
-            found = true;
-            break;
-        }
-    }
-    if(!found){
-        ROS_WARN("Wrist r_hand NOT found!!!, setting to identity");
-        r_hand_T_palm_.setIdentity();
     }else{
-        tf::transformEigenToTF( hand_palm_aff,r_hand_T_palm_);
-        r_hand_T_palm_   = r_hand_T_palm_.inverse();
-        r_hand_T_marker_ = r_hand_T_palm_;
+
+        Eigen::Affine3d hand_palm_aff;
+        bool found = false;
+
+        robot_model::LinkTransformMap hand_palm_tf_map = robot_urdf_model_->getLinkModel("right_palm")->getAssociatedFixedTransforms();
+        ROS_INFO("Requested linktransform for right_palm");
+
+        found = false;
+
+        for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
+            if(it->first->getName() == "r_hand"){
+                ROS_INFO("Wrist r_hand found!!!");
+                hand_palm_aff = it->second;
+                found = true;
+                break;
+            }
+        }
+        if(found){
+            tf::transformEigenToTF( hand_palm_aff,r_hand_T_palm_);
+            r_hand_T_palm_   = r_hand_T_palm_.inverse();
+            r_hand_T_marker_ = r_hand_T_palm_;
+        }
     }
     //Finished getting hand transform
 
