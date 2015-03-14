@@ -62,8 +62,18 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     if(hand_side_ == "right")
         hand_name_ = "r_hand";
 
-
     float color_r, color_g, color_b;
+
+    if(hand_side_ == "left")
+    {
+        color_r = 1.0f;
+        color_g = 1.0f;
+        color_b = 0.0f;
+    }else{
+        color_r = 0.0f;
+        color_g = 1.0f;
+        color_b = 1.0f;
+    }
 
     this->setWindowTitle(QString::fromStdString(hand_side_ + " Hand Grasp Widget"));
 
@@ -167,16 +177,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     }
 
 
-    if(hand_side_ == "left")
-    {
-        color_r = 1.0f;
-        color_g = 1.0f;
-        color_b = 0.0f;
-    }else{
-        color_r = 0.0f;
-        color_g = 1.0f;
-        color_b = 1.0f;
-    }
+
 
     planning_hand_target_pub_   = nh_.advertise<geometry_msgs::PoseStamped>( "/grasp_control/" + hand_name_ + "/planning_target_pose", 1, false );
 
