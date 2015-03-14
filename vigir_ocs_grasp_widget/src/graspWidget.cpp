@@ -15,7 +15,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     , selected_grasp_id_(-1)
     , selected_affordance_id_(-1)
     , show_grasp_(false)
-    , stitch_template_(false)
+    , follow_ban_(false)
     , hand_side_(hand)
     , hand_name_(hand_name)
 {
@@ -30,7 +30,6 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     ui->affordanceBox->setDisabled(true);
     ui->attachButton->setDisabled(true);
     ui->detachButton->setDisabled(true);
-    ui->stitch_template->setDisabled(true);
     ui->show_grasp->setDisabled(true);
     setUpButtons();
 
@@ -344,7 +343,6 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         ui->affordanceBox->setEnabled(false);
         ui->show_grasp->setChecked(false);
         ui->show_grasp->setEnabled(false);
-        ui->stitch_template->setEnabled(false);
         ui->attachButton->setEnabled(false);
         ui->detachButton->setEnabled(false);
     }
@@ -402,8 +400,6 @@ void graspWidget::on_performButton_clicked()
     setProgressLevel(ui->userSlider->value());
 
     grasp_command_pub_.publish(cmd);
-
-    ui->stitch_template->setEnabled(true);
 }
 
 void graspWidget::on_releaseButton_clicked()
@@ -425,7 +421,6 @@ void graspWidget::on_releaseButton_clicked()
     setProgressLevel(ui->userSlider->value());
 
     grasp_command_pub_.publish(cmd);
-    ui->stitch_template->setEnabled(false);
 }
 
 void graspWidget::on_userSlider_sliderReleased()
@@ -541,12 +536,8 @@ void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& m
 
 void graspWidget::templateStitchPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 {
-    this->stitch_template_pose_.setIdentity();
-    if(stitch_template_)
-    {
-        this->stitch_template_pose_.setRotation(tf::Quaternion(msg->pose.orientation.x,msg->pose.orientation.y,msg->pose.orientation.z,msg->pose.orientation.w));
-        this->stitch_template_pose_.setOrigin(tf::Vector3(msg->pose.position.x,msg->pose.position.y,msg->pose.position.z) );
-    }
+    this->stitch_template_pose_.setRotation(tf::Quaternion(msg->pose.orientation.x,msg->pose.orientation.y,msg->pose.orientation.z,msg->pose.orientation.w));
+    this->stitch_template_pose_.setOrigin(tf::Vector3(msg->pose.position.x,msg->pose.position.y,msg->pose.position.z) );
 }
 
 void graspWidget::linkStatesCB( const flor_grasp_msgs::LinkState::ConstPtr& link_states )
@@ -628,20 +619,15 @@ void graspWidget::publishHandPose(unsigned int id)
 
             //ROS_ERROR("Template transform:     p=(%f, %f, %f) q=(%f, %f, %f, %f)",template_transform.pose.position.x,template_transform.pose.position.y,template_transform.pose.position.z,template_transform.pose.orientation.w,template_transform.pose.orientation.x,template_transform.pose.orientation.y,template_transform.pose.orientation.z);
 
-
             geometry_msgs::PoseStamped hand_transform;
             if(last_template_list_.pose[template_index].header.frame_id == "/world"){
                 follow_ban_ = false;
                 frameid_T_template_.pose = last_template_list_.pose[template_index].pose;
                 calcWristTarget(template_T_palm, frameid_T_template_, hand_transform);
-            }else
-                if(!follow_ban_){
-                    follow_ban_=true;
-                    calcWristTarget(template_T_palm, frameid_T_template_, hand_transform);
-                }else{
-                    hand_transform.pose.position.z = 10000;
-                    hand_transform.pose.orientation.w = 1;
-                }
+            }else{
+                follow_ban_  = true;
+                calcWristTarget(template_T_palm, frameid_T_template_, hand_transform);
+            }
 
             hand_transform.header.stamp = ros::Time::now();
             hand_transform.header.frame_id = last_template_list_.pose[template_index].header.frame_id;
@@ -916,21 +902,6 @@ void graspWidget::on_show_grasp_toggled(bool checked)
     robot_state_vis_pub_.publish(display_state_msg_);
 }
 
-void graspWidget::on_stitch_template_toggled(bool checked)
-{
-    this->stitch_template_ = checked;
-    ROS_INFO("template stitch requested...");
-    flor_grasp_msgs::GraspSelection msg;
-    msg.template_type.data = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
-    msg.template_id.data   = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
-    msg.grasp_id.data      = ui->graspBox->currentText().toInt();
-    if(checked)
-        msg.final_pose        = true;  //using final_pose as is_stitched?
-    else
-        msg.final_pose        = false;
-    template_stitch_request_pub_.publish(msg);
-}
-
 void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
 {
     switch(msg->type)
@@ -940,7 +911,6 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             // enable template marker
             //ui->templateBox->setDisabled(false);
             ui->graspBox->setDisabled(false);
-            ui->stitch_template->setDisabled(false);
             std::vector<unsigned char>::iterator it;
             it = std::find(last_template_list_.template_id_list.begin(), last_template_list_.template_id_list.end(), msg->id);
             if(it != last_template_list_.template_id_list.end())
@@ -986,7 +956,6 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             ui->affordanceBox->setCurrentIndex(-1);
             ui->graspBox->setDisabled(true);
             ui->affordanceBox->setDisabled(true);
-            ui->stitch_template->setDisabled(true);
             ui->moveToPoseButton->setDisabled(true);
             ui->attachButton->setDisabled(true);
             ui->detachButton->setDisabled(true);
@@ -1052,21 +1021,20 @@ void graspWidget::on_fingerBox_toggled(bool checked)
 
 void graspWidget::on_attachButton_clicked()
 {
-    ui->attachButton->setEnabled(false);
     ui->detachButton->setEnabled(true);
-    ui->stitch_template->setEnabled(true);
-    flor_grasp_msgs::TemplateSelection msg;
-    msg.template_id.data = selected_template_id_;
-    if(attach_object_pub_)
-        attach_object_pub_.publish(msg);
+    flor_grasp_msgs::GraspSelection msg;
+    msg.template_type.data = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
+    msg.template_id.data   = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
+    msg.grasp_id.data      = ui->graspBox->currentText().toInt();
+    msg.final_pose         = true;  //using final_pose as is_stitched?
+    template_stitch_request_pub_.publish(msg);
 }
 
 void graspWidget::on_detachButton_clicked()
 {
     ui->attachButton->setEnabled(true);
     ui->detachButton->setEnabled(false);
-    ui->stitch_template->setChecked(false);
-    ui->stitch_template->setEnabled(false);
+    this->stitch_template_pose_.setIdentity();
     flor_grasp_msgs::TemplateSelection msg;
     msg.template_id.data = selected_template_id_;
     if(detach_object_pub_)

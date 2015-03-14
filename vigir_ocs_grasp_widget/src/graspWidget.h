@@ -76,7 +76,6 @@ public Q_SLOTS:
     void on_moveToPoseButton_clicked();
     void on_releaseButton_clicked();
     void on_show_grasp_toggled(bool checked);
-    void on_stitch_template_toggled(bool checked);
     void on_verticalSlider_sliderReleased();
     void on_verticalSlider_3_sliderReleased();
     void on_verticalSlider_2_sliderReleased();
@@ -188,7 +187,6 @@ private:
     void linkStatesCB(const flor_grasp_msgs::LinkState::ConstPtr& link_states);
 
     bool show_grasp_;
-    bool stitch_template_;
 
     robot_model_loader::RobotModelLoaderPtr hand_model_loader_;
     robot_model::RobotModelPtr              hand_robot_model_;

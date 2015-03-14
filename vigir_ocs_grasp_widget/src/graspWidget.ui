@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>776</width>
+    <width>791</width>
     <height>264</height>
    </rect>
   </property>
@@ -403,12 +403,12 @@
            </spacer>
           </item>
           <item>
-           <widget class="QCheckBox" name="stitch_template">
+           <widget class="QPushButton" name="snapTemplateButton">
             <property name="enabled">
              <bool>false</bool>
             </property>
             <property name="text">
-             <string>Stitch</string>
+             <string>Snap Template</string>
             </property>
            </widget>
           </item>
