@@ -45,12 +45,13 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     // initialize template subscribers and publishers
     template_list_sub_           = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",                    5, &graspWidget::processTemplateList, this );
     template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>("/grasp_control/template_selection", 1, &graspWidget::templateMatchFeedback, this );
-    grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(       grasp_control_prefix+"/active_state",            1, &graspWidget::graspStateReceived,  this );
+    grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(      grasp_control_prefix+"/active_state", 1, &graspWidget::graspStateReceived,  this );
 
     grasp_selection_pub_         = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/grasp_selection",                            1, false);
     grasp_release_pub_           = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/release_grasp" ,                             1, false);
     grasp_command_pub_           = nh_.advertise<flor_grasp_msgs::GraspState>(        grasp_control_prefix+"/grasp_command",                              1, false);
     affordance_selection_pub_    = nh_.advertise<vigir_object_template_msgs::Affordance>( "/manipulation_control/" + hand_name_ + "/affordance_command",  1, false);
+    snap_template_pub_           = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/snap",                                                   1, false);
 
     grasp_info_client_           = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
     template_info_client_        = nh_.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
@@ -259,6 +260,10 @@ void graspWidget::setUpButtons()
     ui->attachButton->setFont(QFont ("Ubuntu", 10));
     ui->detachButton->setStyleSheet(btnStyle);
     ui->detachButton->setFont(QFont ("Ubuntu", 10));
+    ui->snapTemplateButton->setStyleSheet(btnStyle);
+    ui->snapTemplateButton->setFont(QFont ("Ubuntu", 10));
+    ui->affordanceButton->setStyleSheet(btnStyle);
+    ui->affordanceButton->setFont(QFont ("Ubuntu", 10));
     //put arrows on comboboxes
     QString styleSheet = ui->templateBox->styleSheet() + "\n" +
             "QComboBox::down-arrow {\n" +
@@ -344,6 +349,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         ui->show_grasp->setChecked(false);
         ui->show_grasp->setEnabled(false);
         ui->attachButton->setEnabled(false);
+        ui->snapTemplateButton->setEnabled(false);
         ui->detachButton->setEnabled(false);
     }
     else
@@ -625,8 +631,16 @@ void graspWidget::publishHandPose(unsigned int id)
                 frameid_T_template_.pose = last_template_list_.pose[template_index].pose;
                 calcWristTarget(template_T_palm, frameid_T_template_, hand_transform);
             }else{
-                follow_ban_  = true;
-                calcWristTarget(template_T_palm, frameid_T_template_, hand_transform);
+                if(follow_ban_){
+                    hand_transform.pose.position.x = 0;
+                    hand_transform.pose.position.y = 0;
+                    hand_transform.pose.position.z = 10000;
+                    hand_transform.pose.orientation.x = 0;
+                    hand_transform.pose.orientation.y = 0;
+                    hand_transform.pose.orientation.z = 0;
+                    hand_transform.pose.orientation.w = 1;
+                }else
+                    calcWristTarget(template_T_palm, frameid_T_template_, hand_transform);
             }
 
             hand_transform.header.stamp = ros::Time::now();
@@ -922,10 +936,12 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
 
                 if(last_template_list_.template_status_list[ui->templateBox->currentIndex()] == 1) {//is attached
                     ui->attachButton->setEnabled(false);
+                    ui->snapTemplateButton->setEnabled(true);
                     ui->detachButton->setEnabled(true);
                 }else{
                     ui->attachButton->setEnabled(true);
                     ui->detachButton->setEnabled(false);
+                    ui->snapTemplateButton->setEnabled(false);
                 }
 
 
@@ -966,6 +982,7 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             ui->affordanceButton->setEnabled(false);
             ui->keepOrientationBox->setEnabled(false);
             ui->displacementBox->setEnabled(false);
+            ui->snapTemplateButton->setEnabled(false);
             }
             break;
     }
@@ -1022,6 +1039,7 @@ void graspWidget::on_fingerBox_toggled(bool checked)
 void graspWidget::on_attachButton_clicked()
 {
     ui->detachButton->setEnabled(true);
+    ui->snapTemplateButton->setEnabled(true);
     flor_grasp_msgs::GraspSelection msg;
     msg.template_type.data = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
     msg.template_id.data   = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
@@ -1034,6 +1052,7 @@ void graspWidget::on_detachButton_clicked()
 {
     ui->attachButton->setEnabled(true);
     ui->detachButton->setEnabled(false);
+    ui->snapTemplateButton->setEnabled(false);
     this->stitch_template_pose_.setIdentity();
     flor_grasp_msgs::TemplateSelection msg;
     msg.template_id.data = selected_template_id_;
@@ -1063,6 +1082,15 @@ void graspWidget::on_affordanceButton_clicked()
 
     if(affordance_selection_pub_)
         affordance_selection_pub_.publish(current_affordance_);
+}
+
+void graspWidget::on_snapTemplateButton_clicked()
+{
+    flor_grasp_msgs::TemplateSelection msg;
+    msg.template_id.data = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
+    if(snap_template_pub_)
+        snap_template_pub_.publish(msg);
+    follow_ban_ = true;
 }
 
 

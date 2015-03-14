@@ -81,6 +81,7 @@ namespace ocs_template
         void addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr& msg);
         void removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
         void updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& msg);
+        void snapTemplateCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
         void graspRequestCb(const flor_grasp_msgs::GraspSelection::ConstPtr& msg);
         void graspStateFeedbackCb(const flor_grasp_msgs::GraspState::ConstPtr& msg);
         void templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
@@ -124,6 +125,7 @@ namespace ocs_template
         ros::Subscriber grasp_request_sub_;
         ros::Subscriber grasp_state_feedback_sub_;
         ros::Subscriber template_match_feedback_sub_;
+        ros::Subscriber template_snap_sub_;
         ros::Publisher  template_list_pub_;
         ros::Publisher  grasp_selected_pub_;
         ros::Publisher  grasp_selected_state_pub_;
@@ -146,6 +148,7 @@ namespace ocs_template
         std::vector<geometry_msgs::PoseStamped>    template_pose_list_;
         std::vector<unsigned char>                 template_status_list_; //0-normal, 1-attached
         unsigned char                              id_counter_;
+        geometry_msgs::PoseStamped                 last_attached_pose_;
         // Filename of the grasping library
         std::string                                r_grasps_filename_;
         std::string                                l_grasps_filename_;

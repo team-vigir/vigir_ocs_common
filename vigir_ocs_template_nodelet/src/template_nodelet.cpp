@@ -17,6 +17,7 @@ void TemplateNodelet::onInit()
     template_add_sub_            = nh_out.subscribe<flor_ocs_msgs::OCSTemplateAdd>( "add", 1, &TemplateNodelet::addTemplateCb, this );
     template_remove_sub_         = nh_out.subscribe<flor_ocs_msgs::OCSTemplateRemove>( "remove", 1, &TemplateNodelet::removeTemplateCb, this );
     template_update_sub_         = nh_out.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( "update", 1, &TemplateNodelet::updateTemplateCb, this );
+    template_snap_sub_           = nh_out.subscribe<flor_grasp_msgs::TemplateSelection>( "snap", 1, &TemplateNodelet::snapTemplateCb, this );
     template_match_feedback_sub_ = nh_out.subscribe<flor_grasp_msgs::TemplateSelection>( "template_match_feedback", 1, &TemplateNodelet::templateMatchFeedbackCb, this );
     grasp_request_sub_           = nh_out.subscribe<flor_grasp_msgs::GraspSelection>( "grasp_request", 1, &TemplateNodelet::graspRequestCb, this );
     grasp_state_feedback_sub_    = nh_out.subscribe<flor_grasp_msgs::GraspState>( "grasp_state_feedback", 1, &TemplateNodelet::graspStateFeedbackCb, this );
@@ -148,6 +149,20 @@ void TemplateNodelet::updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::C
 
         //UPDATE TEMPLATE POSE IN THE PLANNING SCENE
         moveCollisionObject(msg->template_id,msg->pose.pose);
+    }
+    this->publishTemplateList();
+}
+
+void TemplateNodelet::snapTemplateCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg)
+{
+    //ROS_INFO("Updating template %d",(unsigned int)msg->template_id);
+    int index = 0;
+    for(; index < template_id_list_.size(); index++)
+        if(template_id_list_[index] == msg->template_id.data)
+            break;
+    if(index < template_id_list_.size())
+    {
+        template_pose_list_[index] = last_attached_pose_;
     }
     this->publishTemplateList();
 }
@@ -1213,6 +1228,8 @@ bool TemplateNodelet::attachObjectTemplateSrv(vigir_object_template_msgs::SetAtt
     template_pose_list_[index].pose            = pose;
     template_status_list_[index]               = 1; //Attached to robot
 
+    last_attached_pose_ = template_pose_list_[index];
+
     // Note that attaching an object to the robot requires
     // the corresponding operation to be specified as an ADD operation
     attached_object.object.operation = attached_object.object.ADD;
@@ -1315,6 +1332,8 @@ bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetAtt
     template_pose_list_[index].header.frame_id = req.pose.header.frame_id; //Attaches the OCS template to the robot hand
     template_pose_list_[index].pose            = pose;
     template_status_list_[index]               = 1; //Attached to robot
+
+    last_attached_pose_ = template_pose_list_[index];
 
     // Note that attaching an object to the robot requires
     // the corresponding operation to be specified as an ADD operation
