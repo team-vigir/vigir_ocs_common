@@ -321,7 +321,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //initialize behavior relay with notifications
     notification_container_ = new QWidget(this);
     notification_container_->setStyleSheet("background-color: rgb(30, 30, 30);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
-    notification_container_->setWindowOpacity(0.1);
+    notification_container_->setWindowOpacity(0);
     //notification_container_->setAttribute(Qt::WA_TranslucentBackground);
     //notification_container_->setStyleSheet("background:transparent;");
     notification_container_->setMinimumHeight(70);
@@ -332,7 +332,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     notification_layout_ = new QVBoxLayout();
     notification_layout_->setMargin(0);
     notification_layout_->setSpacing(0);
-    notification_container_->setLayout(notification_layout_);    
+    notification_container_->setLayout(notification_layout_);
+    notification_container_->hide();
 
     behavior_relay_ = new BehaviorRelay();
     connect(behavior_relay_,SIGNAL(updateUI()),this,SLOT(updateBehaviorNotifications()));
@@ -385,11 +386,16 @@ void MainViewWidget::updateBehaviorNotifications()
     //old notifications may have been deleted, replace current notifications with top 3 from relay
     while (i < (int)behavior_relay_->getNotifications().size() && i < behavior_relay_->getMaxNotificationsShown())
     {
-        BehaviorNotification* notification = behavior_relay_->getNotifications()[i];
-        notification->show();
+        BehaviorNotification* notification = behavior_relay_->getNotifications()[i];       
+        notification->show();        
         notification_layout_->addWidget(notification);
         i++;
     }
+    //togglie visibility of behavior container in ui
+    if(notification_layout_->count() == 0)
+        notification_container_->hide();
+    else
+        notification_container_->show();
 }
 
 void MainViewWidget::setLidarSpinRate(double spin_rate)

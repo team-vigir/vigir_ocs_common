@@ -2,7 +2,7 @@
 #include "behavior_notification.h"
 
 BehaviorNotification::BehaviorNotification(QWidget *parent) :
-    QWidget(parent),
+    //QWidget(parent),
     ui(new Ui::BehaviorNotification)
 {
     ui->setupUi(this);  
@@ -30,7 +30,7 @@ BehaviorNotification::BehaviorNotification(QWidget *parent) :
     ui->central_widget_->setMouseTracking( true );
     ui->central_widget_->installEventFilter(this);
 
-    //this->setStyleSheet();
+    this->setStyleSheet("background-color:rgba(255,255,255,200);");
 }
 
 bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)

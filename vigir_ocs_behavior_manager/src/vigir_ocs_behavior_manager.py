@@ -9,7 +9,7 @@ from vigir_be_input.msg import BehaviorInputAction , BehaviorInputFeedback, Beha
 from python_qt_binding.QtCore import Slot, Signal
 from python_qt_binding.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QDoubleSpinBox, QCheckBox
 from geometry_msgs.msg import Point
-from flor_ocs_msgs.msg import OCSObjectSelection
+from flor_ocs_msgs.msg import OCSObjectSelection, OCSTemplateList
 
 '''
 Created on 02/26/2015
@@ -27,6 +27,7 @@ class BehaviorManager():
 		#sub to grab latest data that may be required
 		self.point_sub = rospy.Subscriber('/new_point_cloud_request', Point, self.point_cloud_cb)
 		self.object_sub = rospy.Subscriber('/flor/ocs/object_selection', OCSObjectSelection, self.object_cb)
+		self.template_sub = rospy.Subscriber('/template/list', OCSTemplateList,self.template_cb)
 
 
 		#server to communicate with Behavior system and send serialized data
@@ -38,6 +39,7 @@ class BehaviorManager():
 		#variables to store latest published data		
 		self.latest_3d_point = Point()
 		self.selected_object = OCSObjectSelection()
+		self.template_list = OCSTemplateList()
 
  
 	def receive_behavior_cb(self,goal):
@@ -80,9 +82,12 @@ class BehaviorManager():
 	def point_cloud_cb(self,data):
 		self.latest_3d_point = data
 
-	def object_cb(self,data):
-		print "new selection"
+	def object_cb(self,data):		
 		self.selected_object = data
+
+	def template_cb(self,data):
+		#use selected template to grab pose in list?
+		self.template_list = data
 
 #if __name__ == '__main__':
 #    rospy.init_node('vigir_ocs_behavior_manager')

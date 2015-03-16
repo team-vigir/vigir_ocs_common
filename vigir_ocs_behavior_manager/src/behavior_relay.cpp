@@ -2,12 +2,11 @@
 
 
 BehaviorRelay::BehaviorRelay(QWidget* parent)
-{
-   // edit_step_as = SimpleActionServer<msgs::EditStepAction>::create(nh, "edit_step", boost::bind(&GlobalFootstepPlannerNode::editStepAction, this, boost::ref(edit_step_as)), true);
+{   
     behavior_server_ = new BehaviorServer(nh_,"/vigir/ocs/behavior_relay_ui",false);
     behavior_server_ ->registerGoalCallback(boost::bind(&BehaviorRelay::processBehaviorGoalCB,this,behavior_server_));
     behavior_server_->start();
-            //BehaviorServer::create(nh_, "/vigir/ocs/behavior_relay_ui", boost::bind(&BehaviorRelay::processBehaviorGoalCB,this,boost::ref(behavior_server_)), true);
+
     parent_ = parent;
     max_notifications_shown = 3;
     //ui test only
@@ -23,13 +22,13 @@ BehaviorRelay::BehaviorRelay(QWidget* parent)
 
 void BehaviorRelay::processBehaviorGoalCB(BehaviorServer* server)
 {
-    ROS_ERROR("got a goal!");
     const vigir_be_input::BehaviorInputGoalConstPtr& goal(server->acceptNewGoal());
+   // ROS_ERROR("got a goal! %s", goal->msg.c_str());
 
     //build appropriate string for ui
     QString action_text = QString::fromStdString(goal->msg);
 
-    BehaviorNotification* notification = new BehaviorNotification(this);
+    BehaviorNotification* notification = new BehaviorNotification();
     connect(notification,SIGNAL(sendConfirmation(QString)),this,SLOT(reportConfirmation(QString)));
     connect(notification,SIGNAL(sendAbort(QString)),this,SLOT(reportAbort(QString)));
     notification->setActionText(action_text);
@@ -43,11 +42,9 @@ void BehaviorRelay::processBehaviorGoalCB(BehaviorServer* server)
 }
 
 void BehaviorRelay::reportConfirmation(QString action_text)
-{
-    ROS_ERROR("confirm! %s", qPrintable(action_text));
+{ 
     vigir_be_input::BehaviorInputActionResult result;
-    result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_OK;
-    //result.status = result.status.SUCCEEDED; // even need status?
+    result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_OK;    
     behavior_server_->setSucceeded(result.result, qPrintable(action_text));
 
     cleanNotifications();
@@ -56,10 +53,8 @@ void BehaviorRelay::reportConfirmation(QString action_text)
 
 void BehaviorRelay::reportAbort(QString action_text)
 {
-    ROS_ERROR("abort! %s", qPrintable(action_text));
     vigir_be_input::BehaviorInputActionResult result;
-    result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_ABORTED;
-    //result.status = result.status.SUCCEEDED; // even need status?
+    result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_ABORTED;    
     behavior_server_->setSucceeded(result.result, qPrintable(action_text));
 
     cleanNotifications();
@@ -67,8 +62,6 @@ void BehaviorRelay::reportAbort(QString action_text)
 }
 
 
-
-//TODO:: MAKE SURE THIS IS SAFE
 void BehaviorRelay::cleanNotifications()
 {
     //store valid notifications
