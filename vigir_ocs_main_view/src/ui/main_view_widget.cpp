@@ -664,7 +664,6 @@ void MainViewWidget::graspWidgetToggle()
 MainViewWidget::~MainViewWidget()
 {
     delete ui;
-
     delete ghost_control_widget_;
 }
 

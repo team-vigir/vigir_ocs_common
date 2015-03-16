@@ -10,6 +10,8 @@
 #include <fstream>
 
 #include <tf/transform_broadcaster.h>
+#include <tf/transform_datatypes.h>
+#include <tf_conversions/tf_eigen.h>
 
 #include <flor_ocs_msgs/OCSTemplateAdd.h>
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
@@ -20,6 +22,7 @@
 #include <flor_grasp_msgs/TemplateSelection.h>
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
 #include <vigir_object_template_msgs/GetGraspInfo.h>
+#include <vigir_object_template_msgs/GetInstantiatedGraspInfo.h>
 #include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
 #include <vigir_object_template_msgs/DetachObjectTemplate.h>
 #include <vigir_object_template_msgs/Affordance.h>
@@ -39,6 +42,7 @@
 
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model/link_model.h>
 
 #include <tinyxml.h>
 
@@ -85,7 +89,8 @@ namespace ocs_template
         void loadObjectTemplateDatabaseXML(std::string& file_name);
         void loadGraspDatabaseXML(std::string& file_name, std::string hand_side);
         void loadStandPosesDatabaseXML(std::string& file_name);
-        int  staticTransform(geometry_msgs::Pose& palm_pose);
+        int  worldPoseTransform(const geometry_msgs::PoseStamped& template_pose, const geometry_msgs::Pose &input_pose, geometry_msgs::PoseStamped &target_pose);
+        int  staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform gp_T_hand);
         void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
         void timerCallback(const ros::TimerEvent& event);
         bool templateInfoSrv(vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Request& req,
@@ -93,6 +98,9 @@ namespace ocs_template
 
         bool graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Request& req,
                           vigir_object_template_msgs::GetGraspInfo::Response& res);
+
+        bool instantiatedGraspInfoSrv(vigir_object_template_msgs::GetInstantiatedGraspInfo::Request& req,
+                                      vigir_object_template_msgs::GetInstantiatedGraspInfo::Response& res);
 
         bool attachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
                                      vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
@@ -104,7 +112,7 @@ namespace ocs_template
                                      vigir_object_template_msgs::DetachObjectTemplate::Response& res);
 
         //Planning Scene
-        void addCollisionObject(int index, std::string mesh_name, geometry_msgs::Pose pose);
+        void addCollisionObject(int type, int index, std::string mesh_name, geometry_msgs::Pose pose);
         void moveCollisionObject(int index, geometry_msgs::Pose pose);
         void removeCollisionObject(int index);
 
@@ -123,6 +131,7 @@ namespace ocs_template
 
         ros::ServiceServer template_info_server_;
         ros::ServiceServer grasp_info_server_;
+        ros::ServiceServer inst_grasp_info_server_;
         ros::ServiceServer attach_object_server_;
         ros::ServiceServer stitch_object_server_;
         ros::ServiceServer detach_object_server_;
@@ -143,7 +152,8 @@ namespace ocs_template
         std::string                                ot_filename_;
         // Filename of the stand pose library
         std::string                                stand_filename_;
-        tf::Transform                              gp_T_hand_;
+        tf::Transform                              gp_T_lhand_;
+        tf::Transform                              gp_T_rhand_;
         std::map<unsigned int,VigirObjectTemplate> object_template_map_;
 
         robot_model_loader::RobotModelLoaderPtr    hand_model_loader_;
