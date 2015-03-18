@@ -8,7 +8,7 @@ import actionlib
 from vigir_be_input.msg import BehaviorInputAction , BehaviorInputFeedback, BehaviorInputResult, BehaviorInputGoal
 from python_qt_binding.QtCore import Slot, Signal
 from python_qt_binding.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QDoubleSpinBox, QCheckBox
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point, PoseStamped#, JointState
 from flor_ocs_msgs.msg import OCSObjectSelection, OCSTemplateList
 
 '''
@@ -28,7 +28,13 @@ class BehaviorManager():
 		self.point_sub = rospy.Subscriber('/new_point_cloud_request', Point, self.point_cloud_cb)
 		self.object_sub = rospy.Subscriber('/flor/ocs/object_selection', OCSObjectSelection, self.object_cb)
 		self.template_sub = rospy.Subscriber('/template/list', OCSTemplateList,self.template_cb)
+		self.goal_waypoint_sub = rospy.Subscriber('/flor/ocs/footstep/goal_pose',PoseStamped,self.goal_waypoint_cb)	
+		#self.ghost_joint_state_sub = rospy.Subscriber('/flor/ghost/get_joint_states',JointState, self.ghost_joint_state_cb)	
 
+	 #"/flor/ghost/pose/left_hand"
+         #"/flor/ghost/pose/right_hand"
+         #"/flor/ghost/pose/robot"
+		
 
 		#server to communicate with Behavior system and send serialized data
 		self.serial_server_ = actionlib.SimpleActionServer('/vigir/ocs/behavior_ocs', BehaviorInputAction, execute_cb=self.receive_behavior_cb, auto_start = False)
@@ -40,6 +46,8 @@ class BehaviorManager():
 		self.latest_3d_point = Point()
 		self.selected_object = OCSObjectSelection()
 		self.template_list = OCSTemplateList()
+		self.goal_waypoint_pose = PoseStamped()
+		#self.ghost_joint_state = JointState()
 
  
 	def receive_behavior_cb(self,goal):
@@ -56,6 +64,7 @@ class BehaviorManager():
 		result = BehaviorInputResult()
 		result = relay_client_.get_result()
 	
+		#dont grab data if aborted
 		if(result.result_code == BehaviorInputResult.RESULT_ABORTED):
 			self.serial_server_.set_succeeded(BehaviorInputResult(result_code=result.result_code, data="Aborted"))
 			return
@@ -63,8 +72,10 @@ class BehaviorManager():
 		#get data for result based on msg		
 		if(goal.request_type == BehaviorInputGoal.POINT_LOCATION):	
 			result.data = self.latest_3d_point
-		elif(goal.request_type == BehaviorInputGoal.SELECTED_OBJECT):
+		elif(goal.request_type == BehaviorInputGoal.SELECTED_OBJECT_ID):
 			result.data = self.selected_object
+		elif(goal.request_type == BehaviorInputGoal.WAYPOINT_GOAL_POSE):
+			result.data = self.goal_waypoint_pose
 		else:
 			print 'behavior not yet implemented'
 			result.data = 'behavior not yet implemented'
@@ -86,15 +97,16 @@ class BehaviorManager():
 		self.selected_object = data
 
 	def template_cb(self,data):
-		#use selected template to grab pose in list?
+		#use selected object to grab pose in list?
 		self.template_list = data
 
-#if __name__ == '__main__':
-#    rospy.init_node('vigir_ocs_behavior_manager')
-#    be_input = BehaviorManager()
+	def goal_waypoint_cb(self,data):	
+		self.goal_waypoint_pose = data
 
-    # Wait for ctrl-c to stop the application
-#    rospy.spin()
+	#def ghost_joint_state_cb(self,data):
+		#self.ghost_joint_state = data
+
+
 
 
 

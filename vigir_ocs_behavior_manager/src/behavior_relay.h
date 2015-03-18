@@ -1,6 +1,7 @@
 #ifndef BEHAVIOR_RELAY_H
 #define BEHAVIOR_RELAY_H
 
+#include <stdlib.h>
 #include <ros/ros.h>
 #include "flor_ocs_msgs/OCSOverlayText.h"
 #include "behavior_notification.h"
@@ -25,6 +26,7 @@ class BehaviorRelay: public QWidget
        explicit BehaviorRelay(QWidget *parent = 0);
        std::vector<BehaviorNotification*> getNotifications();
        int getMaxNotificationsShown(){return max_notifications_shown;}
+
    private:
        BehaviorRelay(BehaviorRelay const&){};             // copy constructor is private
        BehaviorRelay& operator=(BehaviorRelay const&){};  // assignment operator is private
@@ -36,8 +38,10 @@ class BehaviorRelay: public QWidget
        std::vector<BehaviorNotification*> behavior_notifications_;
        int max_notifications_shown;
        BehaviorServer* behavior_server_;
+
 Q_SIGNALS:
        void updateUI();
+
 public Q_SLOTS:
     void reportConfirmation(QString);
     void reportAbort(QString action_text);

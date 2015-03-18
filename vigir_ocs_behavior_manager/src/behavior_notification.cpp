@@ -7,22 +7,10 @@ BehaviorNotification::BehaviorNotification(QWidget *parent) :
 {
     ui->setupUi(this);  
 
-    //remove window border and set on top
-//    Qt::WindowFlags flags = this->windowFlags();
-//    flags |= Qt::WindowStaysOnTopHint;
-//    flags |= Qt::FramelessWindowHint;
-//    flags |= Qt::Widget;
-//    flags |= Qt::Dialog; // //ensure as a dialog box, not a seperate window/tab
-//    this->setWindowFlags(flags);
-
     this->hide();
-    //make background transparent
-    //this->setAttribute(Qt::WA_TranslucentBackground);
-    //this->setStyleSheet("background:transparent;");
 
     connect(ui->confirm_button_,SIGNAL(clicked()), this, SLOT(confirm()));
     connect(ui->abort_button_,SIGNAL(clicked()), this, SLOT(abort()));
-
 
     ui->confirm_button_->hide();
     ui->abort_button_->hide();
