@@ -1,7 +1,8 @@
 #include "joint_limit.h"
 #include "ui_joint_limit.h"
 #include <ros/package.h>
-#include <flor_planning_msgs/PlannerConfiguration.h>
+#include <vigir_planning_msgs/PlannerConfiguration.h>
+
 #include <flor_ocs_msgs/WindowCodes.h>
 
 joint_limit::joint_limit(QWidget *parent) :
@@ -10,7 +11,7 @@ joint_limit::joint_limit(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    constraints_pub_ = nh_.advertise<flor_planning_msgs::PlannerConfiguration>( "/flor/planning/upper_body/configuration",1,false);
+    constraints_pub_ = nh_.advertise<vigir_planning_msgs::PlannerConfiguration>( "/flor/planning/upper_body/configuration",1,false);
     lbzMinVal = -0.610865;
     lbzMaxVal = 0.610865;
 
@@ -134,30 +135,32 @@ void joint_limit::on_ubxMax_sliderReleased()
 
 void joint_limit::on_apply_clicked()
 {
-    flor_planning_msgs::PlannerConfiguration msg;
+    vigir_planning_msgs::PlannerConfiguration msg;
+
+    msg.joint_position_constraints.resize(3);
 
     if (!ui->lock_yaw_->isChecked()){
-      msg.joint_position_constraints.back_bkz_max.data = (float)lbzMaxVal;
-      msg.joint_position_constraints.back_bkz_min.data = (float)lbzMinVal;
+      msg.joint_position_constraints[0].joint_max = (float)lbzMaxVal;
+      msg.joint_position_constraints[0].joint_min = (float)lbzMinVal;
     }else{
-      msg.joint_position_constraints.back_bkz_max.data = 100.0f;
-      msg.joint_position_constraints.back_bkz_min.data = 100.0f;
+      msg.joint_position_constraints[0].joint_max = 100.0f;
+      msg.joint_position_constraints[0].joint_min = 100.0f;
     }
 
     if (!ui->lock_pitch_->isChecked()){
-      msg.joint_position_constraints.back_bky_max.data = (float)mbyMaxVal;
-      msg.joint_position_constraints.back_bky_min.data = (float)mbyMinVal;
+      msg.joint_position_constraints[1].joint_max = (float)mbyMaxVal;
+      msg.joint_position_constraints[1].joint_min = (float)mbyMinVal;
     }else{
-      msg.joint_position_constraints.back_bky_max.data = 100.0f;
-      msg.joint_position_constraints.back_bky_min.data = 100.0f;
+      msg.joint_position_constraints[1].joint_max = 100.0f;
+      msg.joint_position_constraints[1].joint_min = 100.0f;
     }
 
     if (!ui->lock_roll_->isChecked()){
-      msg.joint_position_constraints.back_bkx_max.data = (float)ubxMaxVal;
-      msg.joint_position_constraints.back_bkx_min.data = (float)ubxMinVal;
+      msg.joint_position_constraints[2].joint_max = (float)ubxMaxVal;
+      msg.joint_position_constraints[2].joint_min = (float)ubxMinVal;
     }else{
-      msg.joint_position_constraints.back_bkx_max.data = 100.0f;
-      msg.joint_position_constraints.back_bkx_min.data = 100.0f;
+      msg.joint_position_constraints[2].joint_max = 100.0f;
+      msg.joint_position_constraints[2].joint_min = 100.0f;
     }
 
     /*
@@ -167,13 +170,13 @@ void joint_limit::on_apply_clicked()
     std::cout << "ubx: max = " << ui->ubxMax->value() << " min = " << ui->ubxMin->value() << std::endl << std::endl;
     */
 
-    msg.disable_collision_avoidance.data = !ui->collision_avoidance_->isChecked();
+    msg.disable_collision_avoidance = !ui->collision_avoidance_->isChecked();
     msg.disable_left_hand_collision_avoidance = !ui->left_hand_collision_avoidance_->isChecked();
     msg.disable_right_hand_collision_avoidance = !ui->right_hand_collision_avoidance_->isChecked();
-    msg.robot_collision_padding.data = ui->padding_->value();
-    msg.trajectory_time_factor.data = ui->time_factor_->value();
-    msg.octomap_max_height.data = ui->octomap_height_->value();
-    msg.goal_cube_clearance.data = ui->octomap_clearance_cube_dimensions_->value();
+    msg.robot_collision_padding = ui->padding_->value();
+    msg.trajectory_time_factor = ui->time_factor_->value();
+    msg.octomap_max_height = ui->octomap_height_->value();
+    msg.goal_cube_clearance = ui->octomap_clearance_cube_dimensions_->value();
 
 
     constraints_pub_.publish(msg);
