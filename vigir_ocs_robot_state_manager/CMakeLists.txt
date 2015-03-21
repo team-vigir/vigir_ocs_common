@@ -5,14 +5,14 @@ project(vigir_ocs_robot_state_manager)
 ## this package depends at build time
 find_package(PCL REQUIRED QUIET COMPONENTS common)
 
-find_package(catkin REQUIRED COMPONENTS pcl_ros roscpp rospy flor_moveit_ocs_model )
+find_package(catkin REQUIRED COMPONENTS pcl_ros roscpp rospy vigir_ocs_robot_model )
 
 
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-    CATKIN_DEPENDS pcl_ros roscpp rospy flor_moveit_ocs_model
+    CATKIN_DEPENDS pcl_ros roscpp rospy vigir_ocs_robot_model
 
 )
 
