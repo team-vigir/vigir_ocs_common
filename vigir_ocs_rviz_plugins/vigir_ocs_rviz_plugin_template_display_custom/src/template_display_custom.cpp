@@ -168,7 +168,7 @@ void TemplateDisplayCustom::load()
         // Use "templates" package.  @TODO make this a parameter
         std::string template_path = ros::package::getPath("vigir_template_library")+"/object_templates/";//vigir_grasp_control") + "/../templates/";
 
-        if (template_path.empty()){
+        if (!template_path.empty()){
           ROS_INFO("  Reading templates from <%s>", template_path.c_str());
           //template_dir_path_ = QString(template_path.c_str());
           Ogre::String templatePath = template_path;
