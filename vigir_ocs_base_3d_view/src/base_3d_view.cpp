@@ -295,25 +295,30 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         {
             left_hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("left_hand_robot_description"));
             left_hand_robot_model_ = left_hand_model_loader_->getModel();
-            left_hand_robot_state_.reset(new robot_state::RobotState(left_hand_robot_model_));
-            left_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_left_hand",1, true);
 
-            if(left_hand_robot_model_->hasJointModelGroup("left_hand"))
-            {
+            if (left_hand_robot_model_.get()){
+              left_hand_robot_state_.reset(new robot_state::RobotState(left_hand_robot_model_));
+              left_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_left_hand",1, true);
+
+              if(left_hand_robot_model_->hasJointModelGroup("left_hand"))
+              {
                 left_hand_joint_names_.clear();
                 left_hand_joint_names_ = left_hand_robot_model_->getJointModelGroup("left_hand")->getActiveJointModelNames();
-            }else{
+              }else{
                 ROS_INFO("NO JOINTS FOUND FOR LEFT HAND");
-            }
-            for(int i = 0; i < left_hand_joint_names_.size(); i++)
+              }
+              for(int i = 0; i < left_hand_joint_names_.size(); i++)
                 ROS_INFO("Base 3d widget loading joint %d: %s",i,left_hand_joint_names_[i].c_str());
+            }else{
+              ROS_ERROR("Left hand robot model null pointer!");
+            }
         }
         catch(...)
         {
             ROS_ERROR("Base3DView: MoveIt! failed to load left hand robot description.");
         }
 
-        {
+        if (left_hand_robot_model_.get()){
             // change color of the ghost template hands
             const std::vector<std::string>& link_names = left_hand_robot_model_->getLinkModelNames();
 
@@ -349,25 +354,30 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         {
             right_hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("right_hand_robot_description"));
             right_hand_robot_model_ = right_hand_model_loader_->getModel();
-            right_hand_robot_state_.reset(new robot_state::RobotState(right_hand_robot_model_));
-            right_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_right_hand",1, true);
 
-            if(right_hand_robot_model_->hasJointModelGroup("right_hand"))
-            {
+            if (right_hand_robot_model_.get()){
+              right_hand_robot_state_.reset(new robot_state::RobotState(right_hand_robot_model_));
+              right_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_right_hand",1, true);
+
+              if(right_hand_robot_model_->hasJointModelGroup("right_hand"))
+              {
                 right_hand_joint_names_.clear();
                 right_hand_joint_names_ = right_hand_robot_model_->getJointModelGroup("right_hand")->getActiveJointModelNames();
-            }else{
+              }else{
                 ROS_INFO("NO JOINTS FOUND FOR RIGHT HAND");
-            }
-            for(int i = 0; i < right_hand_joint_names_.size(); i++)
+              }
+              for(int i = 0; i < right_hand_joint_names_.size(); i++)
                 ROS_INFO("Base 3d widget loading joint %d: %s",i,right_hand_joint_names_[i].c_str());
+            }else{
+              ROS_ERROR("Right hand robot model null pointer!");
+            }
         }
         catch(...)
         {
             ROS_ERROR("Base3DView: MoveIt! failed to load right hand robot description.");
         }
 
-        {
+        if (right_hand_robot_model_.get()){
             // change color of the ghost template hands
             const std::vector<std::string>& link_names = right_hand_robot_model_->getLinkModelNames();
 
@@ -2254,6 +2264,11 @@ void Base3DView::publishHandPose(std::string hand, const geometry_msgs::PoseStam
     geometry_msgs::PoseStamped hand_transform; // the first hand transform is really where I want the palm to be, or identity in this case
     if(hand == "left")
     {
+        if ((left_hand_virtual_link_joint_states_.position.size() == 0) || !left_hand_robot_state_.get()){
+          ROS_ERROR_THROTTLE(10.0, "Hand not properly set up, unable to publish hand pose. This message is throttled.");
+          return;
+        }
+
         calcWristTarget(end_effector_transform, l_hand_T_palm_, hand_transform);
 
         left_hand_virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
@@ -2268,6 +2283,11 @@ void Base3DView::publishHandPose(std::string hand, const geometry_msgs::PoseStam
     }
     else
     {
+      if ((right_hand_virtual_link_joint_states_.position.size() == 0) || !right_hand_robot_state_.get()){
+        ROS_ERROR_THROTTLE(10.0, "Hand not properly set up, unable to publish hand pose. This message is throttled.");
+        return;
+      }
+
         calcWristTarget(end_effector_transform, r_hand_T_palm_, hand_transform);
 
         right_hand_virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
