@@ -1068,7 +1068,7 @@ void graspWidget::on_detachButton_clicked()
 
 void graspWidget::on_displacementBox_valueChanged(double value){
     //Set displacement value on afordance msg
-    current_affordance_.displacement = value*0.0174532925; //To radians
+    current_affordance_.displacement = value;
 }
 
 void graspWidget::on_keepOrientationBox_toggled(bool checked){
