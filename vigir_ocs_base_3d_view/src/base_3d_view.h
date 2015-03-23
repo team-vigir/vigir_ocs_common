@@ -77,7 +77,9 @@
 #include "context_menu_manager.h"
 #include "hotkey_manager.h"
 
-
+#include <tf_conversions/tf_eigen.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_model/robot_model.h>
 
 // local includes
 #include "footstep_vis_manager.h"
@@ -821,6 +823,10 @@ protected:
     ros::Publisher right_hand_robot_state_vis_pub_;
     // Used to make setting virtual joint positions (-> hand pose) easier
     sensor_msgs::JointState right_hand_virtual_link_joint_states_;
+
+    //Whole robot model
+    robot_model_loader::RobotModelLoaderPtr    robot_urdf_model_loader_;
+    robot_model::RobotModelPtr                 robot_urdf_model_;
 
     rviz::Display* left_hand_bounding_box_;
     rviz::Display* right_hand_bounding_box_;

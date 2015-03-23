@@ -3,13 +3,13 @@ project(vigir_ocs_grasp_widget)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib tf std_msgs sensor_msgs rviz flor_ocs_msgs flor_grasp_msgs moveit_core moveit_ros_planning vigir_ocs_hotkey_manager)# vigir_perception_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib tf tf_conversions std_msgs sensor_msgs rviz flor_ocs_msgs flor_grasp_msgs flor_planning_msgs vigir_object_template_msgs moveit_core moveit_ros_planning vigir_ocs_hotkey_manager)# vigir_perception_msgs)
 
 ## Declare things to be passed to other projects
 catkin_package(
     INCLUDE_DIRS src
     LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS roscpp rospy roslib tf std_msgs sensor_msgs rviz flor_ocs_msgs flor_grasp_msgs moveit_core moveit_ros_planning vigir_ocs_hotkey_manager
+    CATKIN_DEPENDS roscpp rospy roslib tf tf_conversions std_msgs sensor_msgs rviz flor_ocs_msgs flor_grasp_msgs flor_planning_msgs vigir_object_template_msgs moveit_core moveit_ros_planning vigir_ocs_hotkey_manager
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
@@ -50,16 +50,18 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} s
 
 add_executable(grasp_widget ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(grasp_widget ${catkin_LIBRARIES} ${QT_LIBRARIES})
-
 add_dependencies(grasp_widget ${catkin_EXPORTED_TARGETS})
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
-
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 install( TARGETS ${PROJECT_NAME} grasp_widget
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install ( DIRECTORY launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 

@@ -81,6 +81,7 @@ namespace ocs_template
         void addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr& msg);
         void removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
         void updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& msg);
+        void snapTemplateCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
         void graspRequestCb(const flor_grasp_msgs::GraspSelection::ConstPtr& msg);
         void graspStateFeedbackCb(const flor_grasp_msgs::GraspState::ConstPtr& msg);
         void templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
@@ -90,6 +91,7 @@ namespace ocs_template
         void loadGraspDatabaseXML(std::string& file_name, std::string hand_side);
         void loadStandPosesDatabaseXML(std::string& file_name);
         int  worldPoseTransform(const geometry_msgs::PoseStamped& template_pose, const geometry_msgs::Pose &input_pose, geometry_msgs::PoseStamped &target_pose);
+        int  poseTransform(geometry_msgs::Pose& first_pose, geometry_msgs::Pose& second_pose);
         int  staticTransform(geometry_msgs::Pose& palm_pose, tf::Transform gp_T_hand);
         void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
         void timerCallback(const ros::TimerEvent& event);
@@ -108,13 +110,13 @@ namespace ocs_template
         bool stitchObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
                                      vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
 
-        bool detachObjectTemplateSrv(vigir_object_template_msgs::DetachObjectTemplate::Request& req,
-                                     vigir_object_template_msgs::DetachObjectTemplate::Response& res);
+        bool detachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
+                                     vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
 
         //Planning Scene
         void addCollisionObject(int type, int index, std::string mesh_name, geometry_msgs::Pose pose);
-        void moveCollisionObject(int index, geometry_msgs::Pose pose);
-        void removeCollisionObject(int index);
+        void moveCollisionObject(int template_id, geometry_msgs::Pose pose);
+        void removeCollisionObject(int template_id);
 
       protected:
         ros::Subscriber template_update_sub_;
@@ -123,6 +125,7 @@ namespace ocs_template
         ros::Subscriber grasp_request_sub_;
         ros::Subscriber grasp_state_feedback_sub_;
         ros::Subscriber template_match_feedback_sub_;
+        ros::Subscriber template_snap_sub_;
         ros::Publisher  template_list_pub_;
         ros::Publisher  grasp_selected_pub_;
         ros::Publisher  grasp_selected_state_pub_;
@@ -143,8 +146,9 @@ namespace ocs_template
         std::vector<unsigned char>                 template_type_list_;
         std::vector<std::string>                   template_name_list_;
         std::vector<geometry_msgs::PoseStamped>    template_pose_list_;
-        std::vector<unsigned int>                  template_status_list_; //0-normal, 1-attached
+        std::vector<unsigned char>                 template_status_list_; //0-normal, 1-attached
         unsigned char                              id_counter_;
+        geometry_msgs::PoseStamped                 last_attached_pose_;
         // Filename of the grasping library
         std::string                                r_grasps_filename_;
         std::string                                l_grasps_filename_;
@@ -156,8 +160,8 @@ namespace ocs_template
         tf::Transform                              gp_T_rhand_;
         std::map<unsigned int,VigirObjectTemplate> object_template_map_;
 
-        robot_model_loader::RobotModelLoaderPtr    hand_model_loader_;
-        robot_model::RobotModelPtr                 hand_robot_model_;
+        robot_model_loader::RobotModelLoaderPtr    robot_model_loader_;
+        robot_model::RobotModelPtr                 robot_model_;
         std::vector<std::string>                   hand_joint_names_;
         std::vector<std::string>                   hand_link_names_;
 

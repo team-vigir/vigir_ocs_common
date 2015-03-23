@@ -49,9 +49,8 @@ target_link_libraries(motion_selector ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 add_dependencies(motion_selector ${catkin_EXPORTED_TARGETS})
 
-install( TARGETS
-    motion_selector
-    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-
+install(TARGETS motion_selector
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  )
