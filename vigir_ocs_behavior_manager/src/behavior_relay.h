@@ -8,6 +8,7 @@
 
 #include <actionlib/server/simple_action_server.h>
 #include <vigir_be_input/BehaviorInputAction.h>
+#include "complex_action_server.h"
 
 /**
  * Subscribe to different topics in order to process whether a required action has been processed.
@@ -16,7 +17,7 @@
  *
  */
 
-typedef actionlib::SimpleActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
+typedef actionlib::ComplexActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
 
 class BehaviorRelay: public QWidget
 {

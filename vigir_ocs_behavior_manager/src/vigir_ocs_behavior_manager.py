@@ -5,6 +5,8 @@ import rospy
 import pickle
 import actionlib
 
+from complex_action_server import ComplexActionServer
+
 from vigir_be_input.msg import BehaviorInputAction , BehaviorInputFeedback, BehaviorInputResult, BehaviorInputGoal
 from python_qt_binding.QtCore import Slot, Signal
 from python_qt_binding.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QDoubleSpinBox, QCheckBox
@@ -37,7 +39,7 @@ class BehaviorManager():
 		
 
 		#server to communicate with Behavior system and send serialized data
-		self.serial_server_ = actionlib.SimpleActionServer('/vigir/ocs/behavior_ocs', BehaviorInputAction, execute_cb=self.receive_behavior_cb, auto_start = False)
+		self.serial_server_ = ComplexActionServer('/vigir/ocs/behavior_ocs', BehaviorInputAction, execute_cb=self.receive_behavior_cb, auto_start = False)
 		self.serial_server_.start()
 
 
@@ -50,7 +52,7 @@ class BehaviorManager():
 		#self.ghost_joint_state = JointState()
 
  
-	def receive_behavior_cb(self,goal):
+	def receive_behavior_cb(goal):
 		print 'received'
 		#take goal, send ui wait for the behavior to be completed	
 		#client to communicate with relay and create notifications in ui

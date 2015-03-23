@@ -3,8 +3,8 @@
 
 BehaviorRelay::BehaviorRelay(QWidget* parent)
 {       
-    behavior_server_ = new BehaviorServer(nh_,"/vigir/ocs/behavior_relay_ui",false);
-    behavior_server_ ->registerGoalCallback(boost::bind(&BehaviorRelay::processBehaviorGoalCB,this,behavior_server_));
+    behavior_server_ = new BehaviorServer(nh_,"/vigir/ocs/behavior_relay_ui",boost::bind(&BehaviorRelay::processBehaviorGoalCB,this,behavior_server_),false);
+    //behavior_server_ ->registerGoalCallback(boost::bind(&BehaviorRelay::processBehaviorGoalCB,this,behavior_server_));
     behavior_server_->start();
 
     parent_ = parent;

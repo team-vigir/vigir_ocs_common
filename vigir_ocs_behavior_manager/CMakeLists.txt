@@ -31,6 +31,7 @@ add_definitions(-DQT_NO_KEYWORDS)
 qt4_wrap_cpp(MOC_FILES
   src/behavior_relay.h
   src/behavior_notification.h
+  src/complex_action_server.h
   #src/behavior_confirmation.h
 )
 
@@ -49,6 +50,8 @@ set(SOURCE_FILES
   src/behavior_relay.cpp
   src/behavior_notification.cpp
   src/main.cpp
+
+  src/complex_action_server_imp.h
 
 )
 include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src)
