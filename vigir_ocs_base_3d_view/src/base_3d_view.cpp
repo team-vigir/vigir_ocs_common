@@ -725,6 +725,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     r_hand_T_palm_.setIdentity();
     l_hand_T_palm_.setIdentity();
 
+    r_hand_T_marker_.setIdentity();
+    l_hand_T_marker_.setIdentity();
+
     //Getting left side
     if(!robot_urdf_model_->hasLinkModel("left_palm")){
         ROS_WARN("Hand model does not contain left_palm, not geting transform");
