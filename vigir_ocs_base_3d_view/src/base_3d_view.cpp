@@ -489,7 +489,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         global_selection_pos_pub_ = nh_.advertise<geometry_msgs::Point>( "/new_point_cloud_request", 1, false );
         global_selection_pos_sub_ = nh_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
 
-        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "atlas/joint_states", 2, &Base3DView::processJointStates, this );
+        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>("joint_states", 2, &Base3DView::processJointStates, this );
 
         // advertise pointcloud request
         pointcloud_request_world_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
@@ -3253,6 +3253,8 @@ void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr
     for(int i = 0; i < states->name.size(); i++)
     {
         //ignore finger joints on atlas ghost
+        //@TODO This does not generalize and shouldn't be done like this.
+        //Can instead be done by checking if state is part of whole body group.
         if(states->name[i].find("_f") != std::string::npos && states->name[i].find("_j")!= std::string::npos && ghost_robot_state->getRobotName().find("atlas") != std::string::npos )
         {
             continue;
