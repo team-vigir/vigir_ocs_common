@@ -86,7 +86,6 @@ class BehaviorManager():
 		#serialize with pickle
 		data_msg = result.data
 		data_str = pickle.dumps(data_msg)
-		#create behavior result, necessary with
 					
 		self.serial_server_.set_succeeded(BehaviorInputResult(result_code=result.result_code, data=data_str))
 
