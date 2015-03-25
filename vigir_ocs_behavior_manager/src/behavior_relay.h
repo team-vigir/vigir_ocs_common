@@ -17,6 +17,7 @@
  *
  */
 
+//typedef actionlib::SimpleActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
 typedef actionlib::ComplexActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
 
 class BehaviorRelay: public QWidget

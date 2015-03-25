@@ -31,15 +31,12 @@ add_definitions(-DQT_NO_KEYWORDS)
 qt4_wrap_cpp(MOC_FILES
   src/behavior_relay.h
   src/behavior_notification.h
-  src/complex_action_server.h
-  #src/behavior_confirmation.h
 )
 
 
 ## Here we add QtCreator ui files
 qt4_wrap_ui(UIC_FILES
   src/behavior_notification.ui
- # src/behavior_confirmation.ui
 )
 
 ## Here we specify the list of source files, including the output of
@@ -50,7 +47,7 @@ set(SOURCE_FILES
   src/behavior_relay.cpp
   src/behavior_notification.cpp
   src/main.cpp
-
+  src/complex_action_server.h
   src/complex_action_server_imp.h
 
 )
