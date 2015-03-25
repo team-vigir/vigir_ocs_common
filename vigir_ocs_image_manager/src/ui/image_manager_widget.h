@@ -27,6 +27,8 @@
 
 #include <ros/ros.h>
 
+#include "hotkey_manager.h"
+
 namespace rviz
 {
 class RenderPanel;
@@ -71,9 +73,10 @@ private:
     ros::Subscriber image_added_sub_;
     ros::Subscriber image_selected_sub_;
 
-    std::vector<int> keys_pressed_list_;
+    ///Hotkey
+    void addHotKeys();
+    void toggleImageManagerHotkey();
 
-    ros::Subscriber key_event_sub_;
 
 
 protected:

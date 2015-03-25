@@ -26,14 +26,14 @@ ImageManagerWidget::ImageManagerWidget(QWidget *parent) :
 
     image_added_sub_    = nh_.subscribe<flor_ocs_msgs::OCSImageAdd>(  "/flor/ocs/image_history/add",  5, &ImageManagerWidget::processImageAdd,  this );
     image_list_sub_     = nh_.subscribe<flor_ocs_msgs::OCSImageList>( "/flor/ocs/image_history/list", 100, &ImageManagerWidget::processImageList, this );
-    image_selected_sub_ = nh_.subscribe<sensor_msgs::Image>( "/flor/ocs/history/image_raw", 5, &ImageManagerWidget::processSelectedImage, this );
-
-    key_event_sub_      = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &ImageManagerWidget::processNewKeyEvent, this );
+    image_selected_sub_ = nh_.subscribe<sensor_msgs::Image>( "/flor/ocs/history/image_raw", 5, &ImageManagerWidget::processSelectedImage, this );   
 
     //connect(ui->tableWidget, SIGNAL(cellClicked(int,int)), this, SLOT(editSlot(int, int)));
     std_msgs::Bool list_request;
     list_request.data = true;
     image_list_request_pub_.publish(list_request);
+
+    //addHotKeys();
 
     timer.start(33, this);
 
@@ -218,28 +218,21 @@ QString ImageManagerWidget::timeFromMsg(const ros::Time& stamp)
     return QString::fromStdString(stream.str());
 }
 
-void ImageManagerWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
-{
-    // store key state
-    if(key_event->state)
-        keys_pressed_list_.push_back(key_event->keycode);
-    else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
+//void ImageManagerWidget::addHotKeys()
+//{
+//    HotkeyManager::Instance()->addHotkeyFunction("ctrl+6",boost::bind(&ImageManagerWidget::toggleImageManagerHotkey,this));
+//}
 
-    // process hotkeys
-    std::vector<int>::iterator key_is_pressed;
+//void ImageManagerWidget::toggleImageManagerHotkey()
+//{
+//    if(this->isVisible())
+//    {
+//        this->hide();
+//    }
+//    else
+//    {
+//        //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+//        this->show();
+//    }
+//}
 
-    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    if(key_event->keycode == 15 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+6
-    {
-        if(this->isVisible())
-        {
-            this->hide();
-        }
-        else
-        {
-            //this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
-            this->show();
-        }
-    }
-}

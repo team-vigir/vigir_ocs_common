@@ -152,6 +152,7 @@ int jointList::getNumWarn()
 
 void jointList::updateList(const sensor_msgs::JointState::ConstPtr& states )
 {
+    /*
     //joint states are updated in base3dview only
     MoveItOcsModel* robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
 
@@ -228,6 +229,7 @@ void jointList::updateList(const sensor_msgs::JointState::ConstPtr& states )
             warnCount++;
         }
     }
+    */
 }
 
 

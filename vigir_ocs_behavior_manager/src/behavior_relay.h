@@ -17,8 +17,8 @@
  *
  */
 
-//typedef actionlib::SimpleActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
-typedef actionlib::ComplexActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
+typedef actionlib::SimpleActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
+//typedef actionlib::ComplexActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
 
 class BehaviorRelay: public QWidget
 {
@@ -32,7 +32,7 @@ class BehaviorRelay: public QWidget
    private:
        BehaviorRelay(BehaviorRelay const&){};             // copy constructor is private
        BehaviorRelay& operator=(BehaviorRelay const&){};  // assignment operator is private
-       void processBehaviorGoalCB(BehaviorServer *server);
+       void processBehaviorGoalCB(BehaviorServer *server/*,const vigir_be_input::BehaviorInputGoalConstPtr goal*/);
        void cleanNotifications();
 
        QWidget* parent_;
@@ -40,13 +40,16 @@ class BehaviorRelay: public QWidget
        std::vector<BehaviorNotification*> behavior_notifications_;
        int max_notifications_shown;
        BehaviorServer* behavior_server_;
+       QString latest_behavior_action_text_;
 
 Q_SIGNALS:
        void updateUI();
+       void signalCreateNotification(QString);
 
 public Q_SLOTS:
     void reportConfirmation(QString);
     void reportAbort(QString action_text);
+    void createNotification(QString);
 };
 
 

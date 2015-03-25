@@ -213,6 +213,7 @@ void ComplexActionServer<ActionSpec>::setSucceeded(const Result& result, const s
     boost::recursive_mutex::scoped_lock lock(lock_);
     ROS_DEBUG_NAMED("actionlib", "Setting the current goal as succeeded");
     current_goal_.setSucceeded(result, text);
+
 }
 
 
@@ -367,7 +368,7 @@ void ComplexActionServer<ActionSpec>::executeLoop()
             //for each goal that has been received call it's callback
             //for(int i=0;i<goals_received_.size();i++)
             //    execute_callback_(goal);
-            boost::thread* goal_thread = new boost::thread(boost::bind(&ComplexActionServer::runGoal, goal));
+            boost::thread* goal_thread(boost::bind(&ComplexActionServer::runGoal, goal));
 
 
             lock.lock();
@@ -385,7 +386,7 @@ void ComplexActionServer<ActionSpec>::executeLoop()
 }
 
 template <class ActionSpec>
-void ComplexActionServer<ActionSpec>::runGoal(GoalConstPtr goal)
+void ComplexActionServer<ActionSpec>::runGoal(GoalConstPtr goal )
 {
     execute_callback_(goal);
 }

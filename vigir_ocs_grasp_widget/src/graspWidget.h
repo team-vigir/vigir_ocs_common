@@ -17,6 +17,7 @@
 #include <ros/ros.h>
 
 #include "tf/transform_listener.h"
+#include <tf_conversions/tf_eigen.h>
 
 #include "handOffsetWidget.h"
 
@@ -43,7 +44,6 @@
 #include <flor_grasp_msgs/GraspSelection.h>
 #include <flor_grasp_msgs/TemplateSelection.h>
 #include <flor_grasp_msgs/LinkState.h>
-#include <flor_planning_msgs/CircularMotionRequest.h>
 
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
@@ -63,7 +63,7 @@ public:
     ~graspWidget();
 
     void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg);
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    //void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
     Ui::graspWidget * getUi();
     QLayout * getMainLayout();
@@ -71,25 +71,27 @@ public Q_SLOTS:
     void on_userSlider_sliderReleased();
     void on_templateBox_activated(const QString &arg1);
     void on_graspBox_activated(const QString &arg1);
-    void on_affordanceBox_activated(const QString &arg1);
+    void on_affordanceBox_activated(const int &arg1);
     void on_performButton_clicked();
-    void on_templateButton_clicked();
+    void on_moveToPoseButton_clicked();
     void on_releaseButton_clicked();
-    void on_manualRadio_clicked();
-    void on_templateRadio_clicked();
-    void on_noneRadio_clicked();
     void on_show_grasp_toggled(bool checked);
-    void on_stitch_template_toggled(bool checked);
     void on_verticalSlider_sliderReleased();
     void on_verticalSlider_3_sliderReleased();
     void on_verticalSlider_2_sliderReleased();
     void on_verticalSlider_4_sliderReleased();
-    void sendCircularTarget();
+    void on_fingerBox_toggled(bool checked);
+    void on_attachButton_clicked();
+    void on_detachButton_clicked();
+    void on_affordanceButton_clicked();
+    void on_displacementBox_valueChanged(double value);
+    void on_keepOrientationBox_toggled(bool checked);
+    void on_snapTemplateButton_clicked();
+
 
 private:
     void setProgressLevel(uint8_t level);
     void sendManualMsg(uint8_t level, int8_t thumb, int8_t left, int8_t right, int8_t spread);
-    void initTemplateMode();
 
     QString icon_path_;
     void setUpButtons();
@@ -130,11 +132,16 @@ private:
     ros::Subscriber template_match_feedback_sub_;
     ros::Publisher grasp_selection_pub_;
     ros::Publisher template_remove_pub_;
-    ros::Publisher grasp_mode_command_pub_;
+    ros::Publisher grasp_command_pub_;
     ros::Publisher template_match_request_pub_;
+    ros::Publisher move_request_pub_;
+    ros::Publisher attach_object_pub_;
+    ros::Publisher detach_object_pub_;
     ros::Publisher template_stitch_request_pub_;
     ros::Publisher grasp_request_pub_;
     ros::Publisher grasp_release_pub_;
+    ros::Publisher affordance_selection_pub_;
+    ros::Publisher snap_template_pub_;
 
     ros::Publisher planning_hand_target_pub_;
 
@@ -152,12 +159,10 @@ private:
     // show robot status messages
     ros::Subscriber robot_status_sub_;
     ros::Subscriber template_stitch_pose_sub_;
-    ros::Subscriber hand_offset_sub_;
     RobotStatusCodes robot_status_codes_;
 
     void robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
     void templateStitchPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
-    void handOffsetCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
 
     // publisher to color fingers/hand
     ros::Publisher hand_link_color_pub_;
@@ -177,12 +182,6 @@ private:
     tf::Transform hand_offset_pose_;
     tf::Transform hand_T_palm_;   //describes palm in hand frame
     tf::Transform gp_T_palm_;     //describes palm in grasp pose frame
-    tf::Transform hand_T_marker_; //describes marker in hand frame
-
-    QWidget*        circular_config_widget_;
-    QCheckBox*      circular_use_collision_;
-    QCheckBox*      circular_keep_orientation_;
-    QDoubleSpinBox* circular_angle_;
 
     // get joint states
     ros::Subscriber link_states_sub_;
@@ -190,11 +189,12 @@ private:
     void linkStatesCB(const flor_grasp_msgs::LinkState::ConstPtr& link_states);
 
     bool show_grasp_;
-    bool stitch_template_;
 
     robot_model_loader::RobotModelLoaderPtr hand_model_loader_;
-    robot_model::RobotModelPtr hand_robot_model_;
-    robot_state::RobotStatePtr hand_robot_state_;
+    robot_model::RobotModelPtr              hand_robot_model_;
+    robot_state::RobotStatePtr              hand_robot_state_;
+    robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
+    robot_model::RobotModelPtr              robot_model_;
 
     std::vector<std::string>   hand_joint_names_;
 
@@ -214,19 +214,8 @@ private:
     ros::ServiceClient grasp_info_client_;
     ros::ServiceClient template_info_client_;
 
-
-    ros::Publisher circular_plan_request_pub_;
-
 protected:
     void timerEvent(QTimerEvent *event);
-    /**
-      * Context menu action for creating a circular target point
-      */
-    void removeCircularContextMenu();
-    /**
-      * Publishes the circular target pose
-      */
-
 
 private:
     QBasicTimer timer;

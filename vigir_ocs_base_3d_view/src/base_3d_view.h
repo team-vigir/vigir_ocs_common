@@ -77,8 +77,11 @@
 #include "robot_state_manager.h"
 #include "notification_system.h"
 #include "context_menu_manager.h"
+#include "hotkey_manager.h"
 
-
+#include <tf_conversions/tf_eigen.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_model/robot_model.h>
 
 // local includes
 #include "footstep_vis_manager.h"
@@ -434,6 +437,8 @@ Q_SIGNALS:
 protected:
     virtual void timerEvent(QTimerEvent *event);
 
+    void updateGhostRobotOpacity();
+
     /**
       * Adds joint disks that visualize the current state of the joints
       */
@@ -678,6 +683,19 @@ protected:
     int findObjectContext(std::string obj_type);
 
 
+    ////////Hot key/////////////////////
+    void addHotkeys();
+    //Callbacks
+    void resetEverythingHotkey();
+    void showEStopHotkey();
+    void resetPointCloudsHotkey();
+    void rainbowColorHotkey();
+    void pointcloudIntensityHotkey();
+    void requestStepPlanHotkey();
+    void executeStepPlanHotkey();
+    void lockTranslationHotkey();
+
+
     ////////////////////
     // Cartesian/circular moveit
     /**
@@ -813,9 +831,16 @@ protected:
     // Used to make setting virtual joint positions (-> hand pose) easier
     sensor_msgs::JointState right_hand_virtual_link_joint_states_;
 
+    //Whole robot model
+    robot_model_loader::RobotModelLoaderPtr    robot_urdf_model_loader_;
+    robot_model::RobotModelPtr                 robot_urdf_model_;
+
     rviz::Display* left_hand_bounding_box_;
     rviz::Display* right_hand_bounding_box_;
     rviz::Display* pelvis_hand_bounding_box_;
+
+    moveit_msgs::DisplayRobotState ghost_display_state_msg_;
+    ros::Publisher ghost_robot_state_vis_pub_;    
 
     /**
       * Callback for setting im mode

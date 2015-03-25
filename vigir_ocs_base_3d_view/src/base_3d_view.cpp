@@ -89,8 +89,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     , left_marker_moveit_loopback_(true)
     , right_marker_moveit_loopback_(true)
     , position_only_ik_(false)
-    , visualize_grid_map_(true)   
     , circular_marker_(0)
+    , visualize_grid_map_(true)
 {
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
@@ -625,12 +625,15 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
         joint_arrows_->subProp("Width")->setValue("0.015");
         joint_arrows_->subProp("Scale")->setValue("1.2");        
+        joint_arrows_->subProp("isGhost")->setValue(false);
 
         ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", false );
         ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
         ghost_joint_arrows_->subProp("Width")->setValue("0.015");
         ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
         ghost_joint_arrows_->subProp("isGhost")->setValue(true);
+
+        ghost_joint_arrows_->setEnabled(false);
 
         disable_joint_markers_ = false;
         occluded_robot_visible_ = false;        
@@ -652,10 +655,14 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         frustum_display_->subProp("alpha")->setValue("0.05");
         frustum_display_->setEnabled(false);
 
-        // initialize notification systems
+		// initialize notification systems
         notification_overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
         notification_overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
 
+        ghost_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/robot_state_vis",1, true);        
+
+        //initialize hotkeys
+        addHotkeys();
     }
 
     //initialize overall context menu
@@ -707,23 +714,84 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     main_layout->setSpacing(0);
   //  main_layout->addWidget(position_widget_);
 
-    XmlRpc::XmlRpcValue   hand_T_palm;
 
-    nh_.getParam("/l_hand_tf/hand_T_palm", hand_T_palm);
-    l_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-    l_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+    //Getting hand_T_palm transforms from URDF
+    robot_urdf_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
+    robot_urdf_model_ = robot_urdf_model_loader_->getModel();
 
-    nh_.getParam("/r_hand_tf/hand_T_palm", hand_T_palm);
-    r_hand_T_palm_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-    r_hand_T_palm_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+    r_hand_T_palm_.setIdentity();
+    l_hand_T_palm_.setIdentity();
 
-    nh_.getParam("/l_hand_tf/hand_T_marker", hand_T_palm);
-    l_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-    l_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+    //Getting left side
+    if(!robot_urdf_model_->hasLinkModel("left_palm")){
+        ROS_WARN("Hand model does not contain left_palm, not geting transform");
+    }else{
 
-    nh_.getParam("/r_hand_tf/hand_T_marker", hand_T_palm);
-    r_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_palm[0]),static_cast<double>(hand_T_palm[1]),static_cast<double>(hand_T_palm[2])));
-    r_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_palm[3]),static_cast<double>(hand_T_palm[4]),static_cast<double>(hand_T_palm[5]),static_cast<double>(hand_T_palm[6])));
+        robot_model::LinkTransformMap hand_palm_tf_map = robot_urdf_model_->getLinkModel("left_palm")->getAssociatedFixedTransforms();
+        ROS_INFO("Requested linktransform for left_palm");
+
+        Eigen::Affine3d hand_palm_aff;
+        bool found = false;
+
+        for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
+            if(it->first->getName() == "l_hand"){
+                ROS_INFO("Wrist l_hand found!!!");
+                hand_palm_aff = it->second;
+                found = true;
+                break;
+            }
+        }
+        if(found){
+            tf::transformEigenToTF( hand_palm_aff,l_hand_T_palm_);
+            l_hand_T_palm_   = l_hand_T_palm_.inverse();
+            l_hand_T_marker_ = l_hand_T_palm_;
+        }
+    }
+
+    //Getting right side
+    if(!robot_urdf_model_->hasLinkModel("right_palm")){
+        ROS_WARN("Hand model does not contain right_palm, not geting transform");
+    }else{
+
+        Eigen::Affine3d hand_palm_aff;
+        bool found = false;
+
+        robot_model::LinkTransformMap hand_palm_tf_map = robot_urdf_model_->getLinkModel("right_palm")->getAssociatedFixedTransforms();
+        ROS_INFO("Requested linktransform for right_palm");
+
+        found = false;
+
+        for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
+            if(it->first->getName() == "r_hand"){
+                ROS_INFO("Wrist r_hand found!!!");
+                hand_palm_aff = it->second;
+                found = true;
+                break;
+            }
+        }
+        if(found){
+            tf::transformEigenToTF( hand_palm_aff,r_hand_T_palm_);
+            r_hand_T_palm_   = r_hand_T_palm_.inverse();
+            r_hand_T_marker_ = r_hand_T_palm_;
+        }
+    }
+    //Finished getting hand transform
+
+    XmlRpc::XmlRpcValue   hand_T_marker;
+
+    if (!nh_.getParam("/l_hand_tf/hand_T_marker", hand_T_marker))
+        ROS_ERROR(" Did not find hand_T_marker parameter, setting to palm ");
+    else{
+        l_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_marker[0]),static_cast<double>(hand_T_marker[1]),static_cast<double>(hand_T_marker[2])));
+        l_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_marker[3]),static_cast<double>(hand_T_marker[4]),static_cast<double>(hand_T_marker[5]),static_cast<double>(hand_T_marker[6])));
+    }
+
+    if (!nh_.getParam("/r_hand_tf/hand_T_marker", hand_T_marker))
+        ROS_ERROR(" Did not find hand_T_marker parameter, setting to palm ");
+    else{
+        r_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_marker[0]),static_cast<double>(hand_T_marker[1]),static_cast<double>(hand_T_marker[2])));
+        r_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_marker[3]),static_cast<double>(hand_T_marker[4]),static_cast<double>(hand_T_marker[5]),static_cast<double>(hand_T_marker[6])));
+    }
 
     nh_.getParam("/l_hand_type", l_hand_type);
     nh_.getParam("/r_hand_type", r_hand_type);
@@ -1011,8 +1079,67 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     //Means that currently doing
 
-    //if(is_primary_view_ && occluded_robot_visible_)
-    //    setRenderOrder();
+    if(is_primary_view_)
+    {
+        //if(occluded_robot_visible_)
+        //    setRenderOrder();
+        if(ghost_robot_model_->isEnabled())
+            updateGhostRobotOpacity();
+    }
+
+
+}
+
+//hide ghost parts if ghost position == robot position
+void Base3DView::updateGhostRobotOpacity()
+{    
+    MoveItOcsModel* robot_model = RobotStateManager::Instance()->getRobotStateSingleton();
+    MoveItOcsModel* ghost_robot_model = RobotStateManager::Instance()->getGhostRobotStateSingleton();
+    //compare the links of every joint in robot to ghost
+    std::vector<std::string> link_names = robot_model->getLinkNames();
+
+    //grab current root pose of ghost, necessary as publishing robot state will somehow reset ghost pose
+    geometry_msgs::PoseStamped ghost_root_pose;
+    ghost_root_pose.pose = ghost_root_pose_;
+
+    for(int i=0;i<link_names.size();i++)
+    {
+       std::string link_name = link_names[i];
+       //get poses of links
+       geometry_msgs::Pose robot_pose;
+       geometry_msgs::Pose ghost_pose;       
+       if(!robot_model->getLinkPose(link_name,robot_pose) || !ghost_robot_model->getLinkPose(link_name,ghost_pose))
+       {
+          //ROS_ERROR("mismatch link? %s %d", link_name.c_str(),i);
+          break;
+       }
+       moveit_msgs::ObjectColor tmp;
+       tmp.id = link_name;
+
+       //5cm and 2deg tolerance
+       if(checkPoseMatch(robot_pose,ghost_pose,0.005f,2.0f))
+       {         
+           //hide link
+           tmp.color.a = 0.0f;                      
+       }
+       else
+       {
+           //show link, (could have previously been hidden so we need to update based on posematch)
+           tmp.color.a = 0.5f;
+           tmp.color.r = 0.0f;
+           tmp.color.g = 1.0f;
+           tmp.color.b = 0.0f;
+       }
+       ghost_display_state_msg_.highlight_links.push_back(tmp);
+    }
+
+    robot_state::robotStateToRobotStateMsg(*ghost_robot_model->getState(), ghost_display_state_msg_.state);
+
+    //TODO: figure out why ghost root pose will change on this line
+    ghost_robot_state_vis_pub_.publish(ghost_display_state_msg_);
+
+    //reset root pose back to position before publishing
+    ghost_robot_model->setRootTransform(ghost_root_pose);
 }
 
 void Base3DView::publishCameraTransform()
@@ -3529,6 +3656,86 @@ bool Base3DView::eventFilter( QObject * o, QEvent * e )
     return QWidget::eventFilter( o, e );
 }
 
+void Base3DView::addHotkeys()
+{
+    //adds all hotkey functions to HotkeyManager
+    //some functions are only one line, so the boost bind can pass a paramater to a function call
+    //callbacks are made for multiline functionality or property set
+
+    //reset everything
+    HotkeyManager::Instance()->addHotkeyFunction("esc",boost::bind(&Base3DView::resetEverythingHotkey,this));    
+    //robot visibility
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+q",boost::bind(&Base3DView::robotModelToggled,this,!robot_model_->isEnabled()));    
+    //ghost visibility
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+w",boost::bind(&Base3DView::simulationRobotToggled,this,!ghost_robot_model_->isEnabled()));    
+    //pointcloud reset
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+1",boost::bind(&Base3DView::resetPointCloudsHotkey,this));    
+    //rainbow color on region pointcloud
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+9",boost::bind(&Base3DView::rainbowColorHotkey,this));    
+    //Intensity
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+0",boost::bind(&Base3DView::pointcloudIntensityHotkey,this));    
+    //define step goal
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+g",boost::bind(&Base3DView::defineFootstepGoal,this));   
+    //request footstep plan
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+h",boost::bind(&Base3DView::requestStepPlanHotkey,this));    
+    //execute footstep plan
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+j",boost::bind(&Base3DView::executeStepPlanHotkey,this));    
+    //E-Stop
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+alt",boost::bind(&Base3DView::showEStopHotkey,this));    
+
+    HotkeyManager::Instance()->addHotkeyFunction("shift",boost::bind(&Base3DView::lockTranslationHotkey,this));
+}
+
+///Callbacks for Hotkeys//////////////
+void Base3DView::resetEverythingHotkey()
+{
+    // reset everything
+    deselectAll();
+    manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
+}
+void Base3DView::showEStopHotkey()
+{
+    stop_button_->setVisible(true);
+    stop_button_->setGeometry(this->geometry().bottomRight().x()/2 - 200,this->geometry().bottomRight().y()/2 - 150,400,300);
+}
+void Base3DView::resetPointCloudsHotkey()
+{
+    clearPointCloudRaycastRequests();
+    clearPointCloudRegionRequests();
+    clearPointCloudStereoRequests();
+}
+void Base3DView::rainbowColorHotkey()
+{
+    //set Region pointcloud to rainbow color
+    region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+}
+void Base3DView::pointcloudIntensityHotkey()
+{
+    region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
+}
+void Base3DView::requestStepPlanHotkey()
+{
+   if(footstep_vis_manager_->hasGoal())
+      footstep_vis_manager_->requestStepPlan();
+}
+void Base3DView::executeStepPlanHotkey()
+{
+    if(footstep_vis_manager_->hasValidStepPlan())
+       footstep_vis_manager_->requestExecuteStepPlan();
+}
+
+void Base3DView::lockTranslationHotkey()
+{
+    //Lock translation during rotation
+    flor_ocs_msgs::OCSControlMode msgMode;
+    if(interactive_marker_mode_ < IM_MODE_OFFSET)
+        msgMode.manipulationMode = interactive_marker_mode_ + IM_MODE_OFFSET;
+    else
+        msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
+    interactive_marker_server_mode_pub_.publish(msgMode);
+    shift_pressed_ = true;
+}
+
 void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 {
     // store key state
@@ -3542,88 +3749,19 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
     bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Shift_") != keys_pressed_list_.end());
     bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Alt_") != keys_pressed_list_.end());
 
-    if(key_event->keystr == "Escape" && key_event->state) // 'esc'
+    //Default actions that occur when hotkeys aren't pressed(such as restoring non hotkey state)
+    stop_button_->setVisible(false);
+
+    //Unlock translation during rotation
+    if(shift_pressed_)
     {
-        // reset everything
-        deselectAll();
-        manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
-    }
-    else if(key_event->keystr == "q" && key_event->state && ctrl_is_pressed) // ctrl+q
-    {
-        // robot model visibility
-        robotModelToggled(!robot_model_->isEnabled());
-    }
-    else if(key_event->keystr == "w" && key_event->state && ctrl_is_pressed) // ctrl+w
-    {
-        // ghost visibility
-        simulationRobotToggled(!ghost_robot_model_->isEnabled());
-    }
-    else if(key_event->keystr == "1" && key_event->state && ctrl_is_pressed) // ctrl+1
-    {
-        // reset point clouds
-        clearPointCloudRaycastRequests();
-        clearPointCloudRegionRequests();
-        clearPointCloudStereoRequests();
-    }
-    else if(key_event->keystr == "9" && key_event->state && ctrl_is_pressed) // ctrl+9
-    {
-        // rainbow color
-        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-    }
-    else if(key_event->keystr == "0" && key_event->state && ctrl_is_pressed) // ctrl+0
-    {
-        // intensity
-        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
-    }
-    else if(key_event->keystr == "g" && key_event->state && ctrl_is_pressed) // ctrl+g
-    {
-        // define a step goal
-        defineFootstepGoal();
-    }
-    else if(key_event->keystr == "h" && key_event->state && ctrl_is_pressed) // ctrl+h
-    {
-        // request plan
-        if(footstep_vis_manager_->hasGoal())
-            footstep_vis_manager_->requestStepPlan();
-    }
-    else if(key_event->keystr == "j" && key_event->state && ctrl_is_pressed) // ctrl+j
-    {
-        // request plan
-        if(footstep_vis_manager_->hasValidStepPlan())
-            footstep_vis_manager_->requestExecuteStepPlan();
-    }
-    else if(ctrl_is_pressed && alt_is_pressed) //emergency stop
-    {
-        stop_button_->setVisible(true);
-        stop_button_->setGeometry(this->geometry().bottomRight().x()/2 - 200,this->geometry().bottomRight().y()/2 - 150,400,300);
-    }
-    else if(shift_is_pressed && !shift_pressed_)
-    {
-        //Lock translation during rotation
         flor_ocs_msgs::OCSControlMode msgMode;
-        if(interactive_marker_mode_ < IM_MODE_OFFSET)
-            msgMode.manipulationMode = interactive_marker_mode_ + IM_MODE_OFFSET;
-        else
+        if(interactive_marker_mode_ < IM_MODE_OFFSET)//Check if mode is 0, 1 or 2
+            msgMode.manipulationMode = interactive_marker_mode_;
+        else//means that shift is pressed
             msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
         interactive_marker_server_mode_pub_.publish(msgMode);
-        shift_pressed_ = true;
-    }
-    else
-    {
-        stop_button_->setVisible(false);
-
-        //Unclock translation during rotation
-        if(shift_pressed_)
-        {
-            flor_ocs_msgs::OCSControlMode msgMode;
-            if(interactive_marker_mode_ < IM_MODE_OFFSET)//Check if mode is 0, 1 or 2
-                msgMode.manipulationMode = interactive_marker_mode_;
-            else//means that shift is pressed
-                msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
-            interactive_marker_server_mode_pub_.publish(msgMode);
-            shift_pressed_ = false;
-        }
-
+        shift_pressed_ = false;
     }
 
 }

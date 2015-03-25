@@ -39,7 +39,8 @@ class BehaviorManager():
 		
 
 		#server to communicate with Behavior system and send serialized data
-		self.serial_server_ = ComplexActionServer('/vigir/ocs/behavior_ocs', BehaviorInputAction, execute_cb=self.receive_behavior_cb, auto_start = False)
+		#self.serial_server_ = ComplexActionServer('/vigir/ocs/behavior_ocs', BehaviorInputAction, execute_cb=self.receive_behavior_cb, auto_start = False)
+		self.serial_server_ = actionlib.SimpleActionServer('/vigir/ocs/behavior_ocs', BehaviorInputAction, execute_cb=self.receive_behavior_cb, auto_start = False)
 		self.serial_server_.start()
 
 
@@ -52,7 +53,7 @@ class BehaviorManager():
 		#self.ghost_joint_state = JointState()
 
  
-	def receive_behavior_cb(goal):
+	def receive_behavior_cb(self,goal):
 		print 'received'
 		#take goal, send ui wait for the behavior to be completed	
 		#client to communicate with relay and create notifications in ui
@@ -61,7 +62,7 @@ class BehaviorManager():
 		#send to relay
 		relay_client_.send_goal(goal)
 		relay_client_.wait_for_result()
-
+		print 'got result'
 		#get result and reset pickle
 		result = BehaviorInputResult()
 		result = relay_client_.get_result()

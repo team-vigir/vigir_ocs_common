@@ -19,6 +19,7 @@ BehaviorNotification::BehaviorNotification(QWidget *parent) :
     ui->central_widget_->installEventFilter(this);
 
     this->setStyleSheet("background-color:rgba(255,255,255,200);");
+
 }
 
 bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
@@ -26,7 +27,7 @@ bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
     if (object == ui->central_widget_)
     {
         //lighten as hovered over
-        this->setStyleSheet("background-color:rgba(235,235,235,200);");
+        //this->setStyleSheet("background-color:rgba(235,235,235,200);");
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
         if(mouseEvent->button() == 1 && mouseEvent->type() == QEvent::MouseButtonPress)
         {
@@ -45,7 +46,7 @@ bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
 
     }
     //reset color
-    this->setStyleSheet("background-color:rgba(255,255,255,200);");
+    //this->setStyleSheet("background-color:rgba(255,255,255,200);");
     //propagate
     return QWidget::eventFilter(object,event);
 }
@@ -58,7 +59,7 @@ BehaviorNotification::~BehaviorNotification()
 
 void BehaviorNotification::setActionText(QString action_text)
 {
-    ui->action_label_->setText(action_text);
+    ui->action_label_->setText(action_text);    
 }
 
 void BehaviorNotification::confirm()

@@ -13,6 +13,7 @@
 #include <QPropertyAnimation>
 #include "flor_ocs_msgs/OCSSynchronize.h"
 #include "notification_system.h"
+#include "hotkey_manager.h"
 
 namespace Ui
 {
@@ -27,9 +28,7 @@ public:
     explicit MapViewWidget(QWidget *parent = 0);
     ~MapViewWidget();
 
-    virtual bool eventFilter( QObject * o, QEvent * e );
-
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    virtual bool eventFilter( QObject * o, QEvent * e );   
 
 public Q_SLOTS:
     void hideWaypointButton();
@@ -45,13 +44,10 @@ private Q_SLOTS:
     
 private:
     Ui::MapViewWidget *ui;
-    StatusBar * statusBar;
-    std::vector<int> keys_pressed_list_;
+    StatusBar * statusBar;    
 
     QBasicTimer timer;
-    ros::NodeHandle n_;
-
-    ros::Subscriber key_event_sub_;
+    ros::NodeHandle n_;   
 
     void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
     void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
@@ -76,6 +72,12 @@ private:
     QMenu mapMenu;
 
     QPushButton* sidebar_toggle_;
+
+    //Hotkey stuff
+    void addHotkeys();
+    void unfilteredHotkey();
+    void stereoHotkey();
+
 
 
 };
