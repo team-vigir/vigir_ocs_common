@@ -1125,18 +1125,35 @@ bool TemplateNodelet::instantiatedGraspInfoSrv(vigir_object_template_msgs::GetIn
         //Transform to world coordinate frame
         moveit_msgs::Grasp grasp = it->second;
         moveit_msgs::Grasp pre_grasp = it->second;
-        if(std::atoi(grasp.id.c_str()) >= 1000){
+        grasp.grasp_posture.header.frame_id                = "/world";
+        grasp.post_grasp_retreat.direction.header.frame_id = "/world";
+        grasp.post_place_retreat.direction.header.frame_id = "/world";
+        grasp.pre_grasp_approach.direction.header.frame_id = "/world";
+        grasp.pre_grasp_posture.header.frame_id            = "/world";
+        pre_grasp.grasp_posture.header.frame_id                = "/world";
+        pre_grasp.post_grasp_retreat.direction.header.frame_id = "/world";
+        pre_grasp.post_place_retreat.direction.header.frame_id = "/world";
+        pre_grasp.pre_grasp_approach.direction.header.frame_id = "/world";
+        pre_grasp.pre_grasp_posture.header.frame_id            = "/world";
+        if(std::atoi(grasp.id.c_str()) >= 1000 && (req.hand_side == req.LEFT_HAND || req.hand_side == req.BOTH_HANDS)){
             staticTransform(grasp.grasp_pose.pose,gp_T_lhand_);
             staticTransform(pre_grasp.grasp_pose.pose,gp_T_lhand_);
-        }else{
+            gripperTranslationToPreGraspPose(pre_grasp.grasp_pose.pose,pre_grasp.pre_grasp_approach);
+            worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
+            worldPoseTransform(template_pose_list_[index],pre_grasp.grasp_pose.pose,pre_grasp.grasp_pose);
+            res.grasp_information.grasps.push_back(grasp);
+            res.pre_grasp_information.grasps.push_back(pre_grasp);
+        }
+        if(std::atoi(grasp.id.c_str()) < 1000 && (req.hand_side == req.RIGHT_HAND || req.hand_side == req.BOTH_HANDS)){
             staticTransform(grasp.grasp_pose.pose,gp_T_rhand_);
             staticTransform(pre_grasp.grasp_pose.pose,gp_T_rhand_);
+            gripperTranslationToPreGraspPose(pre_grasp.grasp_pose.pose,pre_grasp.pre_grasp_approach);
+            worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
+            worldPoseTransform(template_pose_list_[index],pre_grasp.grasp_pose.pose,pre_grasp.grasp_pose);
+            res.grasp_information.grasps.push_back(grasp);
+            res.pre_grasp_information.grasps.push_back(pre_grasp);
         }
-        gripperTranslationToPreGraspPose(pre_grasp.grasp_pose.pose,pre_grasp.pre_grasp_approach);
-        worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
-        worldPoseTransform(template_pose_list_[index],pre_grasp.grasp_pose.pose,pre_grasp.grasp_pose);
-        res.grasp_information.grasps.push_back(grasp);
-        res.pre_grasp_information.grasps.push_back(pre_grasp);
+
     }
 
     //Transfer all known stand poses to response
