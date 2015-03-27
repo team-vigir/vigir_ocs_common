@@ -996,6 +996,11 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
                                                              ++it) {
         //Transform to world coordinate frame
         moveit_msgs::Grasp grasp = it->second;
+        grasp.grasp_posture.header.frame_id                = "/world";
+        grasp.post_grasp_retreat.direction.header.frame_id = "/world";
+        grasp.post_place_retreat.direction.header.frame_id = "/world";
+        grasp.pre_grasp_approach.direction.header.frame_id = "/world";
+        grasp.pre_grasp_posture.header.frame_id            = "/world";
         if(std::atoi(grasp.id.c_str()) >= 1000 && (req.hand_side == req.LEFT_HAND || req.hand_side == req.BOTH_HANDS)){
             staticTransform(grasp.grasp_pose.pose,gp_T_lhand_);
             worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
