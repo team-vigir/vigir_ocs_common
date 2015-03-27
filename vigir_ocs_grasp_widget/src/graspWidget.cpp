@@ -952,6 +952,7 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
                     ROS_ERROR("Failed to call service request grasp info");
                 }
                 last_template_srv_.request.template_id = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
+                last_template_srv_.request.hand_side = last_template_srv_.request.BOTH_HANDS;
                 if (!template_info_client_.call(last_template_srv_))
                 {
                     ROS_ERROR("Failed to call service request template info");
@@ -1074,6 +1075,7 @@ void graspWidget::on_affordanceButton_clicked()
 {
     //Create message for manipulation controller
     last_template_srv_.request.template_id = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
+    last_template_srv_.request.hand_side   = last_template_srv_.request.BOTH_HANDS;
     if (!template_info_client_.call(last_template_srv_))
     {
         ROS_ERROR("Failed to call service request template info");

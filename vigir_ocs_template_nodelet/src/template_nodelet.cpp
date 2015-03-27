@@ -957,6 +957,7 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     /*Fill in the blanks of the response "res"
      * with the info of the template id in the request "req"
     */
+
     //Find the template
 	unsigned int index = 0;
     unsigned int template_type;
@@ -971,6 +972,11 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     if (index >= template_id_list_.size()){
         ROS_ERROR("Service requested template ID %d when no such template has been instantiated. Callback returning false.",req.template_id);
 		return false;
+    }
+
+    if(template_pose_list_[index].header.frame_id != "/world"){
+        ROS_ERROR("Template not in /world frame, detach from robot!");
+        return false;
     }
 
     res.template_state_information.template_type = template_type;
@@ -990,20 +996,17 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
                                                              ++it) {
         //Transform to world coordinate frame
         moveit_msgs::Grasp grasp = it->second;
-        if(std::atoi(grasp.id.c_str()) >= 1000){
+        if(std::atoi(grasp.id.c_str()) >= 1000 && (req.hand_side == req.LEFT_HAND || req.hand_side == req.BOTH_HANDS)){
             staticTransform(grasp.grasp_pose.pose,gp_T_lhand_);
-            //gripperTranslationToPreGraspPose(grasp.grasp_pose.pose,grasp.pre_grasp_approach);
-        }else{
-            staticTransform(grasp.grasp_pose.pose,gp_T_rhand_);
-            //gripperTranslationToPreGraspPose(grasp.grasp_pose.pose,grasp.pre_grasp_approach);
-        }
-        if(template_pose_list_[index].header.frame_id == "/world")
             worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
-        else{
-            ROS_ERROR("Template not in /world frame, detach from robot!");
-            return false;
+            res.template_type_information.grasps.push_back(grasp);
         }
-        res.template_type_information.grasps.push_back(grasp);
+        if(std::atoi(grasp.id.c_str()) < 1000 && (req.hand_side == req.RIGHT_HAND || req.hand_side == req.BOTH_HANDS)){
+            staticTransform(grasp.grasp_pose.pose,gp_T_rhand_);
+            worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
+            res.template_type_information.grasps.push_back(grasp);
+        }
+
     }
 
     //Transfer all known stand poses to response
