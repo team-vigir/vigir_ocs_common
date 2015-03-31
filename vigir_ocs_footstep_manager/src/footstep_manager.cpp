@@ -830,7 +830,7 @@ void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& sta
 }
 
 // action goal for StepPlanRequest
-void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_step_index, const unsigned char start_foot)
+void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet start, vigir_footstep_planning_msgs::Feet goal, const unsigned int start_step_index, const unsigned char start_foot)
 {
     vigir_footstep_planning_msgs::StepPlanRequest request;
 
@@ -917,7 +917,7 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
 
         publishFootsteps();
 
-        publishGoalMarkerClear();
+        //publishGoalMarkerClear();
     }
 }
 
@@ -1067,7 +1067,7 @@ void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState&
 }
 
 // action goal for pplan
-void FootstepManager::sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan& step_plan)
+void FootstepManager::sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan step_plan)
 {
     //convert transform to ankle for planner
     foot_pose_transformer_->transformToRobotFrame(step_plan);
