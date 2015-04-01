@@ -39,8 +39,8 @@ class BehaviorManager():
 		
 
 		#server to communicate with Behavior system and send serialized data
-		self.serial_server_ = ComplexActionServer('/vigir/ocs/behavior_ocs', BehaviorInputAction, execute_cb=self.receive_behavior_cb, auto_start = False)
-		#self.serial_server_ = actionlib.SimpleActionServer('/vigir/ocs/behavior_ocs', BehaviorInputAction, execute_cb=self.receive_behavior_cb, auto_start = False)
+		#self.serial_server_ = ComplexActionServer('/vigir/ocs/behavior_ocs', BehaviorInputAction, execute_cb=self.receive_behavior_cb, auto_start = False)
+		self.serial_server_ = actionlib.SimpleActionServer('/vigir/ocs/behavior_ocs', BehaviorInputAction, execute_cb=self.receive_behavior_cb, auto_start = False)
 		self.serial_server_.start()
 
 
@@ -53,7 +53,7 @@ class BehaviorManager():
 		#self.ghost_joint_state = JointState()
 
  
-	def receive_behavior_cb(self,goal, goal_handle):
+	def receive_behavior_cb(self,goal):
 		print 'received'
 		#take goal, send ui wait for the behavior to be completed	
 		#client to communicate with relay and create notifications in ui
@@ -69,7 +69,7 @@ class BehaviorManager():
 	
 		#dont grab data if aborted
 		if(result.result_code == BehaviorInputResult.RESULT_ABORTED):
-			self.serial_server_.set_succeeded(BehaviorInputResult(result_code=result.result_code, data="Aborted"),"Aborted",goal_handle)
+			self.serial_server_.set_succeeded(BehaviorInputResult(result_code=result.result_code, data="Aborted"))
 			return
 
 		#get data for result based on msg		
@@ -86,8 +86,9 @@ class BehaviorManager():
 		#serialize with pickle
 		data_msg = result.data
 		data_str = pickle.dumps(data_msg)
+		#create behavior result, necessary with
 					
-		self.serial_server_.set_succeeded(BehaviorInputResult(result_code=result.result_code, data=data_str),"ok",goal_handle)
+		self.serial_server_.set_succeeded(BehaviorInputResult(result_code=result.result_code, data=data_str))
 
 
 
