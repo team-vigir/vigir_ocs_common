@@ -7,7 +7,7 @@ import actionlib
 
 from complex_action_server import ComplexActionServer
 
-from vigir_be_input.msg import BehaviorInputAction , BehaviorInputFeedback, BehaviorInputResult, BehaviorInputGoal
+from vigir_be_msgs.msg import BehaviorInputAction , BehaviorInputFeedback, BehaviorInputResult, BehaviorInputGoal
 from python_qt_binding.QtCore import Slot, Signal
 from python_qt_binding.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QDoubleSpinBox, QCheckBox
 from geometry_msgs.msg import Point, PoseStamped#, JointState
