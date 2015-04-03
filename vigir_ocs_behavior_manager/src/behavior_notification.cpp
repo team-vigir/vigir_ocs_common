@@ -5,7 +5,7 @@ BehaviorNotification::BehaviorNotification(QWidget *parent) :
     //QWidget(parent),
     ui(new Ui::BehaviorNotification)
 {
-    ui->setupUi(this);  
+    ui->setupUi(this);
 
     this->hide();
 
@@ -59,20 +59,26 @@ BehaviorNotification::~BehaviorNotification()
 
 void BehaviorNotification::setActionText(QString action_text)
 {
-    ui->action_label_->setText(action_text);    
+    ui->action_label_->setText(action_text);
 }
+
+void BehaviorNotification::setGoal(BehaviorServer::GoalHandlePtr goal_handle)
+{
+    //not great to pass goal along with notification, but im going to live with it for now
+    goal_ = goal_handle;
+}
+
+
 
 void BehaviorNotification::confirm()
 {
     confirmed_ = true; // notification is now obselete, can be deleted
-    Q_EMIT sendConfirmation(ui->action_label_->text());
+    Q_EMIT sendConfirmation(ui->action_label_->text(),goal_);
 }
 
 void BehaviorNotification::abort()
 {
     //this action isn't confirmed, but it still needs to be deleted
     confirmed_ = true;
-    Q_EMIT sendAbort(ui->action_label_->text());
+    Q_EMIT sendAbort(ui->action_label_->text(),goal_);
 }
-
-

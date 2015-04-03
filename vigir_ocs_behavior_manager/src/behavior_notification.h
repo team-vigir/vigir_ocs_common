@@ -8,11 +8,17 @@
 #include <QtCore>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <vigir_be_input/BehaviorInputAction.h>
+#include "complex_action_server.h"
+
+//typedef typename ActionServer<ActionSpec>::GoalHandlePtr GoalHandlePtr;
 
 namespace Ui
 {
     class BehaviorNotification; //window name
 }
+
+typedef actionlib::ComplexActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
 
 class BehaviorNotification : public QWidget
 {
@@ -23,12 +29,14 @@ public:
     explicit BehaviorNotification(QWidget *parent = 0);
     bool getConfirmed() { return confirmed_; }
     void setActionText(QString);
+    void setGoal(BehaviorServer::GoalHandlePtr );
 
 private:
     bool eventFilter(QObject* object,QEvent* event);
 
     Ui::BehaviorNotification *ui;
     bool confirmed_;
+    BehaviorServer::GoalHandlePtr goal_;
 
 
 public Q_SLOTS:
@@ -40,10 +48,9 @@ private Q_SLOTS:
 
 
 Q_SIGNALS:
-    void sendConfirmation(QString);
-    void sendAbort(QString);
+    void sendConfirmation(QString,const BehaviorServer::GoalHandlePtr);
+    void sendAbort(QString,const BehaviorServer::GoalHandlePtr);
 };
 
 
 #endif // BEHAVIOR_NOTIFICATION_H
-
