@@ -3,73 +3,75 @@
 
 BehaviorRelay::BehaviorRelay(QWidget* parent)
 {       
-    //cannot seem to get execute callback to compile with arguments being passed, alternative is to use goal callback and grab params with acceptNewGoal
-    //behavior_server_ = new BehaviorServer(nh_,"/vigir/ocs/behavior_relay_ui",boost::bind(&BehaviorRelay::processBehaviorGoalCB,this,_1,_2),false);
-    behavior_server_ = new BehaviorServer(nh_,"/vigir/ocs/behavior_relay_ui",false);
-    //behavior_server_ ->registerGoalCallback(boost::bind(&BehaviorRelay::processBehaviorGoalCB,this));
+   //behavior_server_ = new BehaviorServer(nh_,"/vigir/ocs/behavior_relay_ui",boost::bind(&BehaviorRelay::processBehaviorGoalCB,this,_1),false);
+    behavior_server_ = new BehaviorServer(nh_,"/vigir/ocs/behavior_relay_ui",NULL,false);
+    behavior_server_ ->registerGoalCallback(boost::bind(&BehaviorRelay::processBehaviorGoalCB,this, behavior_server_));
     behavior_server_->start();
 
     parent_ = parent;
-    max_notifications_shown_ = 3;
+    max_notifications_shown = 3;
 
-    //connect execute thread to gui thread
-    connect(this,SIGNAL(signalCreateNotification(QString,BehaviorServer::GoalHandlePtr)),this,SLOT(createNotification(QString,BehaviorServer::GoalHandlePtr)));
+    connect(this,SIGNAL(signalCreateNotification(QString)),this,SLOT(createNotification(QString)));
 
-
-    //createNotification("heres a notificatino",NULL);
-    //Q_EMIT updateUI();
+    latest_behavior_action_text_ = "";
 }
 
 //this is being run on a seperate thread by the behavior server
-void BehaviorRelay::processBehaviorGoalCB(vigir_be_input::BehaviorInputGoalConstPtr goal, BehaviorServer::GoalHandlePtr goal_handle)
+void BehaviorRelay::processBehaviorGoalCB(BehaviorServer* server/*, const vigir_be_input::BehaviorInputGoalConstPtr goal*/)
 {   
-   //BehaviorServer::GoalHandlePtr goal_handle = behavior_server_->acceptNewGoal();
-   //const vigir_be_input::BehaviorInputGoalConstPtr& goal = goal_handle->getGoal();
+    const vigir_be_input::BehaviorInputGoalConstPtr& goal(server->acceptNewGoal());
    // ROS_ERROR("got a goal! %s", goal->msg.c_str());
 
     //build appropriate string for ui
     QString action_text = QString::fromStdString(goal->msg);
 
     //notify gui thread to build stuff, cant build in this thread
-    Q_EMIT signalCreateNotification(action_text , goal_handle);
+    Q_EMIT signalCreateNotification(action_text);
 
-    boost::recursive_mutex::scoped_lock lock(lock_);
-    lock.lock();
-
-    if(behavior_notifications_.size() <= max_notifications_shown_)
+    if(behavior_notifications_.size() < max_notifications_shown + 1)
         Q_EMIT updateUI();
 
-    lock.unlock();
+//    while(action_text != latest_behavior_action_text_)
+//    {
+//        //do nothing
+//    }
+
+//    vigir_be_input::BehaviorInputActionResult result;
+//    result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_OK;
+//    behavior_server_->setSucceeded(result.result, qPrintable(action_text));
+
+//    cleanNotifications();
+//    Q_EMIT updateUI(); //remove and enqueue new notification
+
 }
 
-void BehaviorRelay::createNotification(QString action_text, const BehaviorServer::GoalHandlePtr goal_handle)
+void BehaviorRelay::createNotification(QString action_text)
 {
     BehaviorNotification* notification = new BehaviorNotification();
-    connect(notification,SIGNAL(sendConfirmation(QString,BehaviorServer::GoalHandlePtr)),this,SLOT(reportConfirmation(QString,BehaviorServer::GoalHandlePtr)));
-    connect(notification,SIGNAL(sendAbort(QString,BehaviorServer::GoalHandlePtr)),this,SLOT(reportAbort(QString,BehaviorServer::GoalHandlePtr)));
+    connect(notification,SIGNAL(sendConfirmation(QString)),this,SLOT(reportConfirmation(QString)));
+    connect(notification,SIGNAL(sendAbort(QString)),this,SLOT(reportAbort(QString)));
     notification->setActionText(action_text);
-    notification->setGoal(goal_handle);
 
     behavior_notifications_.push_back(notification);
 }
 
-void BehaviorRelay::reportConfirmation(QString action_text,BehaviorServer::GoalHandlePtr goal_handle)
+void BehaviorRelay::reportConfirmation(QString action_text)
 { 
     latest_behavior_action_text_ = action_text;
 
     vigir_be_input::BehaviorInputActionResult result;
     result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_OK;
-    behavior_server_->setSucceeded(result.result, qPrintable(action_text), goal_handle);
+    behavior_server_->setSucceeded(result.result, qPrintable(action_text));
 
     cleanNotifications();
     Q_EMIT updateUI(); //remove and enqueue new notification
 }
 
-void BehaviorRelay::reportAbort(QString action_text, BehaviorServer::GoalHandlePtr goal_handle)
+void BehaviorRelay::reportAbort(QString action_text)
 {
     vigir_be_input::BehaviorInputActionResult result;
     result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_ABORTED;    
-    behavior_server_->setAborted(result.result, qPrintable(action_text),goal_handle);
+    behavior_server_->setAborted(result.result, qPrintable(action_text));
 
     cleanNotifications();
     Q_EMIT updateUI(); //remove and enqueue new notification

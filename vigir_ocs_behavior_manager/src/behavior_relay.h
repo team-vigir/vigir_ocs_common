@@ -17,11 +17,8 @@
  *
  */
 
-
-/**
- server is defined in the behavior notification
- typedef actionlib::SimpleActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
-**/
+typedef actionlib::SimpleActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
+//typedef actionlib::ComplexActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
 
 class BehaviorRelay: public QWidget
 {
@@ -30,31 +27,29 @@ class BehaviorRelay: public QWidget
    public:
        explicit BehaviorRelay(QWidget *parent = 0);
        std::vector<BehaviorNotification*> getNotifications();
-       int getMaxNotificationsShown(){return max_notifications_shown_;}
+       int getMaxNotificationsShown(){return max_notifications_shown;}
 
    private:
        BehaviorRelay(BehaviorRelay const&){};             // copy constructor is private
        BehaviorRelay& operator=(BehaviorRelay const&){};  // assignment operator is private
-       void processBehaviorGoalCB(vigir_be_input::BehaviorInputGoalConstPtr goal, BehaviorServer::GoalHandlePtr goal_handle);
+       void processBehaviorGoalCB(BehaviorServer *server/*,const vigir_be_input::BehaviorInputGoalConstPtr goal*/);
        void cleanNotifications();
-
-       boost::recursive_mutex lock_;
 
        QWidget* parent_;
        ros::NodeHandle nh_;
        std::vector<BehaviorNotification*> behavior_notifications_;
-       int max_notifications_shown_;
+       int max_notifications_shown;
        BehaviorServer* behavior_server_;
        QString latest_behavior_action_text_;
 
 Q_SIGNALS:
        void updateUI();
-       void signalCreateNotification(QString,BehaviorServer::GoalHandlePtr);
+       void signalCreateNotification(QString);
 
 public Q_SLOTS:
-    void reportConfirmation(QString, BehaviorServer::GoalHandlePtr goal_handle);
-    void reportAbort(QString action_text, BehaviorServer::GoalHandlePtr goal_handle);
-    void createNotification(QString, BehaviorServer::GoalHandlePtr goal_handle);
+    void reportConfirmation(QString);
+    void reportAbort(QString action_text);
+    void createNotification(QString);
 };
 
 

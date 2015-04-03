@@ -54,9 +54,7 @@ public:
     //generates typedefs that we'll use to make our lives easier
     ACTION_DEFINITION(ActionSpec);
     typedef typename ActionServer<ActionSpec>::GoalHandle GoalHandle;
-    typedef boost::shared_ptr<typename ActionServer<ActionSpec>::GoalHandle> GoalHandlePtr;
-    typedef boost::function<void (GoalConstPtr, GoalHandlePtr)> ExecuteCallback;
-    //typedef boost::function<void (const GoalConstPtr&/*,GoalHandlePtr*/)> ExecuteCallback;
+    typedef boost::function<void (const GoalConstPtr&)> ExecuteCallback;
     /**
     * @brief Constructor for a ComplexActionServer
     * @param name A name for the action server
@@ -118,7 +116,7 @@ public:
     * sure the new goal does not have a pending preempt request.
     * @return A shared_ptr to the new goal.
     */
-    boost::shared_ptr<GoalHandle> acceptNewGoal();
+    boost::shared_ptr<const Goal> acceptNewGoal();
     /**
     * @brief Allows polling implementations to query about the availability of a new goal
     * @return True if a new goal is available, false otherwise
@@ -128,7 +126,7 @@ public:
     * @brief Allows polling implementations to query about preempt requests
     * @return True if a preempt is requested, false otherwise
     */
-    bool isPreemptRequested();
+  //  bool isPreemptRequested();
     /**
     * @brief Allows polling implementations to query about the status of the current goal
     * @return True if a goal is active, false otherwise
@@ -139,13 +137,13 @@ public:
     * @param result An optional result to send back to any clients of the goal
     * @param result An optional text message to send back to any clients of the goal
     */
-    void setSucceeded(const Result& result = Result(), const std::string& text = std::string(""), GoalHandlePtr goal = NULL);
+    void setSucceeded(const Result& result = Result(), const std::string& text = std::string(""));
     /**
     * @brief Sets the status of the active goal to aborted
     * @param result An optional result to send back to any clients of the goal
     * @param result An optional text message to send back to any clients of the goal
     */
-    void setAborted(const Result& result = Result(), const std::string& text = std::string(""), GoalHandlePtr goal = NULL);
+    void setAborted(const Result& result = Result(), const std::string& text = std::string(""));
     /**
     * @brief Publishes feedback for a given goal
     * @param feedback Shared pointer to the feedback to publish
@@ -161,7 +159,7 @@ public:
     * @param result An optional result to send back to any clients of the goal
     * @param result An optional text message to send back to any clients of the goal
     */
-    void setPreempted(const Result& result = Result(), const std::string& text = std::string(""));
+    //void setPreempted(const Result& result = Result(), const std::string& text = std::string(""));
     /**
     * @brief Allows users to register a callback to be invoked when a new goal is available
     * @param cb The callback to be invoked
@@ -171,7 +169,7 @@ public:
     * @brief Allows users to register a callback to be invoked when a new preempt request is available
     * @param cb The callback to be invoked
     */
-    void registerPreemptCallback(boost::function<void ()> cb);
+    //void registerPreemptCallback(boost::function<void ()> cb);
     /**
     * @brief Explicitly start the action server, used it auto_start is set to false
     */
@@ -194,7 +192,7 @@ private:
     */
     void executeLoop();
 
-    void runGoal(GoalConstPtr goal, GoalHandlePtr goal_handle);
+    void runGoal(GoalConstPtr goal);
 
     ros::NodeHandle n_;
     boost::shared_ptr<ActionServer<ActionSpec> > as_;
