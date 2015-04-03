@@ -572,6 +572,8 @@ protected:
     QPushButton* stop_button_;
 
     QBasicTimer timer;
+    int ghost_opacity_update_counter_;
+    int ghost_opacity_update_frequency_;
 
     int view_id_;
 

@@ -809,6 +809,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     shift_pressed_ = false;
     interactive_marker_mode_ = 0;
 
+    //used within timer event to make sure updating ghost robot opacity is called every
+    ghost_opacity_update_counter_ = 0;
+    ghost_opacity_update_frequency_ = 20; //didn't want to create seperate timer event
+
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
 }
@@ -1084,7 +1088,15 @@ void Base3DView::timerEvent(QTimerEvent *event)
         //if(occluded_robot_visible_)
         //    setRenderOrder();
         if(ghost_robot_model_->isEnabled())
-            updateGhostRobotOpacity();
+        {
+            ghost_opacity_update_counter_++;
+            //only update ghost robot opacity occasionally, can cause performance issues if called on every timer event
+            if(ghost_opacity_update_counter_ >= ghost_opacity_update_frequency_)
+            {
+                updateGhostRobotOpacity();
+                ghost_opacity_update_counter_= 0;//reset counter
+            }
+        }
     }
 
 

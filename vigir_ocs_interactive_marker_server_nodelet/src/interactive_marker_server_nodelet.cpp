@@ -219,7 +219,7 @@ void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs:
             break;
     }
 
-    ROS_ERROR("SELECTED OBJECT: %s", selected_object_topic_.c_str());
+    ROS_INFO("SELECTED OBJECT: %s", selected_object_topic_.c_str());
 
     pose_map_[selected_object_topic_] = marker_map_[selected_object_topic_]->getPose();
     //marker_map_[selected_object_topic_]->setEnabled(true);
