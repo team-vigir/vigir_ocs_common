@@ -99,6 +99,10 @@ namespace ocs_footstep
         void feedbackGetAllParameterSets(const vigir_footstep_planning_msgs::GetAllParameterSetsFeedbackConstPtr& feedback);
         void doneGetAllParameterSets(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::GetAllParameterSetsResultConstPtr& result);
 
+        // callbacks for onboard actions
+        void processOnboardStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request);
+        void processOnboardStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan);
+
         void timerCallback(const ros::TimerEvent& event);
 
     private:
@@ -177,6 +181,10 @@ namespace ocs_footstep
 
         // footstep plan request
         ros::Subscriber set_goal_sub_;
+
+        // onboard planners
+        ros::Subscriber onboard_step_plan_request_sub_;
+        ros::Subscriber onboard_step_plan_sub_;
 
         std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> > footstep_plans_undo_stack_;
         std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> > footstep_plans_redo_stack_;
