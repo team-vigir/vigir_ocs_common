@@ -19,9 +19,11 @@
 
 
 /**
- server is defined in the behavior notification
+ server is defined in the behavior notification to circumvent circular dependency
  typedef actionlib::SimpleActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
 **/
+
+Q_DECLARE_METATYPE(BehaviorServer::GoalHandlePtr);
 
 class BehaviorRelay: public QWidget
 {
@@ -46,6 +48,8 @@ class BehaviorRelay: public QWidget
        int max_notifications_shown_;
        BehaviorServer* behavior_server_;
        QString latest_behavior_action_text_;
+
+       std::vector<BehaviorServer::GoalHandlePtr> all_goals_;
 
 Q_SIGNALS:
        void updateUI();

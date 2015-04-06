@@ -114,9 +114,9 @@ class ComplexActionServer:
     ## @return A shared_ptr to the new goal.
     def accept_new_goal(self):
         with self.action_server.lock, self.lock:
-            if not self.new_goal or not self.next_goal.get_goal():
-                rospy.logerr("Attempting to accept the next goal when a new goal is not available");
-                return None;
+         #   if not self.new_goal or not self.next_goal.get_goal():
+          #      rospy.logerr("Attempting to accept the next goal when a new goal is not available");
+           #     return None;
 
             #check if we need to send a preempted message for the goal that we're currently pursuing
 #            if self.is_active() and self.current_goal.get_goal() and self.current_goal != self.next_goal:
@@ -135,7 +135,7 @@ class ComplexActionServer:
             #set the status of the current goal to be active
             self.current_goal.set_accepted("This goal has been accepted by the simple action server");
 
-            return self.current_goal.get_goal();
+            return self.current_goal#.get_goal();
 
 
     ## @brief Allows  polling implementations to query about the availability of a new goal
@@ -160,19 +160,21 @@ class ComplexActionServer:
 
     ## @brief Sets the status of the active goal to succeeded
     ## @param  result An optional result to send back to any clients of the goal
-    def set_succeeded(self,result=None, text=""):
+    def set_succeeded(self,result=None, text="", goal_handle=None):
       with self.action_server.lock, self.lock:
           if not result:
               result=self.get_default_result();
-          self.current_goal.set_succeeded(result, text);
+          #self.current_goal.set_succeeded(result, text);
+          goal_handle.set_succeeded(result,text)	
 
     ## @brief Sets the status of the active goal to aborted
     ## @param  result An optional result to send back to any clients of the goal
-    def set_aborted(self, result = None, text=""):
+    def set_aborted(self, result = None, text="" , goal_handle=None):
         with self.action_server.lock, self.lock:
             if not result:
                 result=self.get_default_result();
-            self.current_goal.set_aborted(result, text);
+            #self.current_goal.set_aborted(result, text);
+            goal_handle.set_aborted(result,text)
 
     ## @brief Publishes feedback for a given goal
     ## @param  feedback Shared pointer to the feedback to publish
@@ -224,7 +226,7 @@ class ComplexActionServer:
                   #if next_goal has not been accepted already... its going to get bumped, but we need to let the client know we're preempting
               #    if(self.next_goal.get_goal() and (not self.current_goal.get_goal() or self.next_goal != self.current_goal)):
               #        self.next_goal.set_canceled(None, "This goal was canceled because another goal was received by the simple action server");
-
+              print "got a goal"
               self.next_goal = goal;
               self.new_goal = True;
               #    self.new_goal_preempt_request = False;
@@ -293,7 +295,7 @@ class ComplexActionServer:
 
               if (self.is_new_goal_available()):
                   # accept_new_goal() is performing its own locking
-                  goal = self.accept_new_goal();
+                  goal_handle = self.accept_new_goal();
                   if not self.execute_callback:
                       rospy.logerr("execute_callback_ must exist. This is a bug in ComplexActionServer");
                       return
@@ -301,7 +303,10 @@ class ComplexActionServer:
                   try:
                   	
                       #self.execute_callback(goal)
-		      		  self.run_goal(goal)
+		      		  #self.run_goal(goal_handle.get_goal(),goal_handle)
+                      print "run new executecb"
+                      thread = threading.Thread(target=self.run_goal,args=(goal_handle.get_goal(),goal_handle));
+                      thread.start()
 
                       #if self.is_active():
                          # rospy.logwarn("Your executeCallback did not set the goal to a terminal status.  " +
@@ -319,6 +324,9 @@ class ComplexActionServer:
                   
                   
                   
-    def run_goal(self,goal):
+    def run_goal(self,goal, goal_handle):
        print 'new thread'
-       thread = threading.Thread(None, self.execute_callback(),self,goal);                  
+       self.execute_callback(goal,goal_handle);      
+
+
+            

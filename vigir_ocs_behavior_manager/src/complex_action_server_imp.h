@@ -158,10 +158,10 @@ template <class ActionSpec>
 boost::shared_ptr< typename ActionServer<ActionSpec>::GoalHandle> ComplexActionServer<ActionSpec>::acceptNewGoal()
 {
     boost::recursive_mutex::scoped_lock lock(lock_);
-    if(!new_goal_ || !next_goal_.getGoal()){
-        ROS_ERROR_NAMED("actionlib", "Attempting to accept the next goal when a new goal is not available");
-        return boost::shared_ptr<GoalHandle>();
-    }
+//    if(!new_goal_ || !next_goal_.getGoal()){
+//        ROS_ERROR_NAMED("actionlib", "Attempting to accept the next goal when a new goal is not available");
+//        return boost::shared_ptr<GoalHandle>();
+//    }
 //    //check if we need to send a preempted message for the goal that we're currently pursuing
 //    if(isActive()
 //            && current_goal_.getGoal()
@@ -169,6 +169,7 @@ boost::shared_ptr< typename ActionServer<ActionSpec>::GoalHandle> ComplexActionS
 //        current_goal_.setCanceled(Result(), "This goal was canceled because another goal was recieved by the Complex action server");
 //    }
     ROS_DEBUG_NAMED("actionlib", "Accepting a new goal");
+
     //accept the next goal
     current_goal_ = next_goal_;
     //goals_received_.push_back(current_goal_.getGoal);
@@ -180,6 +181,7 @@ boost::shared_ptr< typename ActionServer<ActionSpec>::GoalHandle> ComplexActionS
     //set the status of the current goal to be active
     current_goal_.setAccepted("This goal has been accepted by the Complex action server");
     boost::shared_ptr<GoalHandle> goal_ptr(&current_goal_);//.getGoal();
+    //current_goal.
     return goal_ptr;
 }
 
@@ -217,6 +219,7 @@ void ComplexActionServer<ActionSpec>::setSucceeded(const Result& result, const s
     boost::recursive_mutex::scoped_lock lock(lock_);
     //ROS_DEBUG_NAMED("actionlib", "Setting the current goal as succeeded");
     //current_goal_.setSucceeded(result, text);
+
     goal->setSucceeded(result, text);
 
 }
@@ -228,22 +231,9 @@ void ComplexActionServer<ActionSpec>::setAborted(const Result& result, const std
     boost::recursive_mutex::scoped_lock lock(lock_);
     //ROS_DEBUG_NAMED("actionlib", "Setting the current goal as aborted");
     //current_goal_.setAborted(result, text);
-    goal.get()->setAborted(result,text);
+
+    goal->setAborted(result,text);
 }
-
-//template <class ActionSpec>
-//void ComplexActionServer<ActionSpec>::findGoal(GoalConstPtr goal)
-//{
-//    for(int i=0;i<goals_received_.size();++i)
-//    {
-//        if(goal == goals_received_[i])
-//        {
-
-//            return goals_received_[i]; //
-//        }
-//    }
-//}
-
 
 
 template <class ActionSpec>
@@ -311,7 +301,12 @@ void ComplexActionServer<ActionSpec>::goalCallback(GoalHandle goal)
         next_goal_ = goal;
         new_goal_ = true;
 
-        ROS_ERROR("goal callback\n");
+        //ROS_ERROR("goal callback\n");
+
+
+        //run execute to accept goal and run
+        execute_condition_.notify_all();
+
         //goals_received_.push_back(goal);
 
       //  new_goal_preempt_request_ = false;
@@ -325,17 +320,15 @@ void ComplexActionServer<ActionSpec>::goalCallback(GoalHandle goal)
 
 
         //if the user has defined a goal callback, we'll call it now
-       if(goal_callback_)
-       {
-           lock.unlock();
+       //if(goal_callback_)
+      // {
+        //   lock.unlock();
 
            //boost::thread goal_thread(boost::bind(&goal_callback_,this));
 
-           lock.lock();
-       }
+          // lock.lock();
+      // }
 
-        //run execute to accept goal and run
-        execute_condition_.notify_all();
 
 
 //    }
@@ -370,17 +363,16 @@ void ComplexActionServer<ActionSpec>::preemptCallback(GoalHandle preempt)
 
 template <class ActionSpec>
 void ComplexActionServer<ActionSpec>::executeLoop()
-{
+{    
     ros::Duration loop_duration = ros::Duration().fromSec(.1);
     while (n_.ok())
-    {
+    {    
         {
             boost::mutex::scoped_lock terminate_lock(terminate_mutex_);
             if (need_to_terminate_)
                 break;
         }
-        boost::recursive_mutex::scoped_lock lock(lock_);
-
+        boost::recursive_mutex::scoped_lock lock(lock_);        
         //if (isActive())
             //ROS_ERROR_NAMED("actionlib", "Should never reach this code with an active goal");
 
@@ -392,12 +384,12 @@ void ComplexActionServer<ActionSpec>::executeLoop()
             ROS_FATAL_COND(!execute_callback_, "execute_callback_ must exist. This is a bug in ComplexActionServer");
 
             // Make sure we're not locked when we call execute
-            lock.unlock();
+            //lock.unlock();
 
             //spin new thread with this goal
             boost::thread goal_thread(boost::bind(&ComplexActionServer::runGoal,this, goal_handle->getGoal(),goal_handle));
 
-            lock.lock();
+            //lock.lock();
 //            if (isActive())
 //            {
 //                ROS_WARN_NAMED("actionlib", "Your executeCallback did not set the goal to a terminal status.\n"
@@ -407,7 +399,9 @@ void ComplexActionServer<ActionSpec>::executeLoop()
 //            }
         }
         else
+        {            
             execute_condition_.timed_wait(lock, boost::posix_time::milliseconds(loop_duration.toSec() * 1000.0f));
+        }
     }
 }
 

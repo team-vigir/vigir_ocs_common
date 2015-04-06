@@ -53,7 +53,7 @@ bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
 
 
 BehaviorNotification::~BehaviorNotification()
-{
+{    
     delete ui;
 }
 
