@@ -20,7 +20,7 @@ joint_limit::joint_limit(QWidget *parent) :
 
     ubxMinVal = -0.790809;
     ubxMaxVal = 0.790809;
-    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &joint_limit::processNewKeyEvent, this );
+    //key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &joint_limit::processNewKeyEvent, this );
 
     window_control_sub = nh_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &joint_limit::processWindowControl, this );
     window_control_pub = nh_.advertise<std_msgs::Int8>("/flor/ocs/window_control", 1, false);
@@ -246,31 +246,31 @@ void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
     ui->ubxMaxLabel->setText(QString::number(ubxMaxVal,'g',6));
 }
 
-void joint_limit::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
-{
-    // store key state
-    if(key_event->state)
-        keys_pressed_list_.push_back(key_event->keycode);
-    else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
+//void joint_limit::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+//{
+//    // store key state
+//    if(key_event->state)
+//        keys_pressed_list_.push_back(key_event->keycode);
+//    else
+//        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
 
-    // process hotkeys
-    std::vector<int>::iterator key_is_pressed;
+//    // process hotkeys
+//    std::vector<int>::iterator key_is_pressed;
 
-    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-    /*if(key_event->keycode == 13 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+4
-    {
-        if(this->isVisible())
-        {
-            this->hide();
-        }
-        else
-        {
-            this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
-            this->show();
-        }
-    }*/
-}
+//    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
+//    /*if(key_event->keycode == 13 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+4
+//    {
+//        if(this->isVisible())
+//        {
+//            this->hide();
+//        }
+//        else
+//        {
+//            this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
+//            this->show();
+//        }
+//    }*/
+//}
 
 void joint_limit::on_lock_yaw__toggled(bool checked)
 {

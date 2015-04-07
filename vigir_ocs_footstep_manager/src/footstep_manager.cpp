@@ -111,6 +111,10 @@ void FootstepManager::onInit()
     //    ROS_INFO("Waiting for the execute_step_plan server to come up");
     //}
 
+    // also subscribe to the onboard planners in case something generates behaviors on the onboard side
+    onboard_step_plan_request_sub_ = nh.subscribe<vigir_footstep_planning_msgs::StepPlanRequest>( "onboard_step_plan_request", 1, &FootstepManager::processOnboardStepPlanRequest, this );
+    onboard_step_plan_sub_ = nh.subscribe<vigir_footstep_planning_msgs::StepPlan>( "onboard_step_plan", 1, &FootstepManager::processOnboardStepPlan, this );
+
     ROS_INFO("FootstepManager initialized!");
 
     // initialize service for deleting footsteps
@@ -830,7 +834,7 @@ void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& sta
 }
 
 // action goal for StepPlanRequest
-void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet& start, vigir_footstep_planning_msgs::Feet& goal, const unsigned int start_step_index, const unsigned char start_foot)
+void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet start, vigir_footstep_planning_msgs::Feet goal, const unsigned int start_step_index, const unsigned char start_foot)
 {
     vigir_footstep_planning_msgs::StepPlanRequest request;
 
@@ -917,7 +921,7 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
 
         publishFootsteps();
 
-        publishGoalMarkerClear();
+        //publishGoalMarkerClear();
     }
 }
 
@@ -1067,7 +1071,7 @@ void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState&
 }
 
 // action goal for pplan
-void FootstepManager::sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan& step_plan)
+void FootstepManager::sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan step_plan)
 {
     //convert transform to ankle for planner
     foot_pose_transformer_->transformToRobotFrame(step_plan);
@@ -1203,6 +1207,41 @@ void FootstepManager::doneGetAllParameterSets(const actionlib::SimpleClientGoalS
 
         this->publishFootstepParameterSetList();
     }
+}
+
+// onboard action callbacks
+void FootstepManager::processOnboardStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request)
+{
+
+}
+
+void FootstepManager::processOnboardStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan)
+{
+    vigir_footstep_planning_msgs::StepPlan plan = *step_plan;
+
+    if(plan.steps.size() == 0)
+    {
+        ROS_ERROR("Onboard StepPlanRequest: Received empty step plan.");
+        return;
+    }
+
+    //convert to sole for visualization
+    foot_pose_transformer_->transformToPlannerFrame(plan);
+
+    // we only change the current step lists if we receive a response
+    if(plan.steps[0].step_index == 0)
+        // This function will create a completely new plan, so we need to add a new empty list of plans to the stack
+        addNewPlanList();
+    else
+        // This function will add a copy of the current step plan list to the stack, so we can change it
+        addCopyPlanList();
+
+    // add resulting plan to the top of the stack of plans, removing any extra steps
+    extendPlanList(plan);
+
+    publishFootsteps();
+
+    //publishGoalMarkerClear();
 }
 
 // utilities

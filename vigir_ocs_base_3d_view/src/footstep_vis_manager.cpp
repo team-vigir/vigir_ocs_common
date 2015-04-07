@@ -332,7 +332,7 @@ void FootstepVisManager::updateInteractiveMarkers()
     for(int i = 0; i < footstep_list_.footstep_id_list.size(); i++)
     {
         // also check step plan ID so that we always have markers for the end points of step plans
-        if((i+1 < footstep_list_.footstep_id_list.size() && footstep_list_.step_plan_id_list[i] != footstep_list_.step_plan_id_list[i+1]) || i == footstep_list_.footstep_id_list.size()-1)
+        if((i+1 < footstep_list_.footstep_id_list.size() && footstep_list_.step_plan_id_list[i] != footstep_list_.step_plan_id_list[i+1]))// || i == footstep_list_.footstep_id_list.size()-1)
         {
             // only do something if it's a new step plan
             std::string step_pose_string = "/step_plan_"+boost::lexical_cast<std::string>(num_step_plans_++)+"_marker";

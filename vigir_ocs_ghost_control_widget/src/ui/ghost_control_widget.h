@@ -26,6 +26,7 @@
 #include <std_msgs/Int8.h>
 #include <ros/ros.h>
 #include <tf/tf.h>
+#include "hotkey_manager.h"
 
 namespace rviz
 {
@@ -48,8 +49,7 @@ public:
     void processWindowControl(const std_msgs::Int8::ConstPtr& msg);
 
     void processState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
-    void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list);
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list);    
     void publishState( bool snap=false );
     int calcTargetPose(const geometry_msgs::Pose& pose_1, const geometry_msgs::Pose& pose_2, geometry_msgs::Pose& pose_result);
 
@@ -156,9 +156,7 @@ private:
 
     QBasicTimer timer;
 
-    std::vector<int> keys_pressed_list_;
-
-    ros::Subscriber key_event_sub_;
+    void addHotkeys();
 };
 
 #endif // GhostControlWidget_H

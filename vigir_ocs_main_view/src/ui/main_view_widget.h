@@ -54,7 +54,7 @@ public:
 
     virtual bool eventFilter( QObject * o, QEvent * e );
 
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+   // void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
     // process window control messages to update toggle buttons
     void processWindowControl(const std_msgs::Int8::ConstPtr& visible);
@@ -121,12 +121,12 @@ protected:
 
     QString icon_path_;
 
-    std::vector<int> keys_pressed_list_;
+    //std::vector<int> keys_pressed_list_;
 
     ros::NodeHandle n_;
     ros::Subscriber window_control_sub_;
     ros::Publisher window_control_pub_;
-    ros::Subscriber key_event_sub_;
+    //ros::Subscriber key_event_sub_;
     ros::Publisher ft_zero_pub_;
 
 

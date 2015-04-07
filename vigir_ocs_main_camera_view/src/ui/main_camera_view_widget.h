@@ -13,6 +13,7 @@
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <std_msgs/Float32.h>
 #include "notification_system.h"
+#include "hotkey_manager.h"
 
 namespace Ui
 {
@@ -32,7 +33,6 @@ public:
 
     virtual bool eventFilter( QObject * o, QEvent * e );
 
-    virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
     virtual void updatePitch( const std_msgs::Float32::ConstPtr &pitch);
     std::map<std::string,QWidget*> getViewsList(){return views_list_;}
 
@@ -67,13 +67,10 @@ private:
     QPushButton* four_view_button_;
     QPushButton* one_view_button_;
 
-    QString icon_path_;
-
-    std::vector<int> keys_pressed_list_;
+    QString icon_path_;   
 
     ros::NodeHandle nh_;
 
-    ros::Subscriber key_event_sub_;
     ros::Subscriber neck_pos_sub_;
 
 
@@ -88,6 +85,14 @@ private:
     QSignalMapper* stop_mapper_;
 
     QPushButton* sidebar_toggle_;
+
+
+    //Hotkey
+    void addHotkeys();
+    void getSingleImageMainViewHotkey();
+    void setMainView5FPSHotkey();
+    void closeSelectedHotkey();
+
 
 };
 

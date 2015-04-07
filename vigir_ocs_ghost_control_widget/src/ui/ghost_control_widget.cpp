@@ -49,9 +49,7 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     send_inverse_rechability_req_pub_ = nh_.advertise<flor_ocs_msgs::OCSInverseReachability>( "/flor/ocs/ghost/inverse_rechability", 1, false );
 
     send_ghost_to_template_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/set_pose", 1, false );
-    send_template_to_behavior_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/behavior_pose", 1, false );;
-
-    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &GhostControlWidget::processNewKeyEvent, this );
+    send_template_to_behavior_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/behavior_pose", 1, false );;   
 
     timer.start(33, this);
 
@@ -72,6 +70,8 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     this->geometry_ = this->geometry();
     // create docks, toolbars, etc...
     //this->restoreState(settings.value("mainWindowState").toByteArray());
+
+    addHotkeys();
 }
 
 GhostControlWidget::~GhostControlWidget()
@@ -204,6 +204,7 @@ void GhostControlWidget::on_templateBox_activated(const QString &arg1)
     //CALLING THE TEMPLATE SERVER
     vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
     srv.request.template_id = selected_template_id_;
+    srv.request.hand_side   = srv.request.BOTH_HANDS;
     if (!template_info_client_.call(srv))
     {
         ROS_ERROR("Failed to call service request grasp info");
@@ -562,46 +563,15 @@ void GhostControlWidget::on_send_right_ghost_hand_button__clicked()
     send_inverse_rechability_req_pub_.publish(cmd);
 }
 
-void GhostControlWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+
+void GhostControlWidget::addHotkeys()
 {
-    // store key state
-    if(key_event->state)
-        keys_pressed_list_.push_back(key_event->keycode);
-    else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
-
-    // process hotkeys
-    bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37) != keys_pressed_list_.end());
-    bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
-    bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
-
-    /*if(key_event->keycode == 12 && key_event->state && key_is_pressed != keys_pressed_list_.end()) // ctrl+3
-    {
-        if(this->isVisible())
-        {
-            this->hide();
-        }
-        else
-        {
-            this->move(QPoint(key_event->cursor_x+5, key_event->cursor_y+5));
-            this->show();
-        }
-    }*/
-
-    if(key_event->keycode == 26 && key_event->state && ctrl_is_pressed && shift_is_pressed)
-            on_send_left_cartesian_button__clicked();
-    else if(key_event->keycode == 27 && key_event->state && ctrl_is_pressed && shift_is_pressed)
-        on_send_right_cartesian_button__clicked();
-    else if(key_event->keycode == 26 && key_event->state && ctrl_is_pressed)
-        on_send_left_configuration_button__clicked();
-    else if(key_event->keycode == 27 && key_event->state && ctrl_is_pressed)
-        on_send_right_configuration_button__clicked();
-    else if(key_event->keycode == 41 && key_event->state && ctrl_is_pressed)
-        on_send_upper_body_button__clicked();
-    else if(key_event->keycode == 39 && key_event->state && ctrl_is_pressed)
-        snapClicked();
-
-    std::cout << "key code:" << key_event->keycode << std::endl;
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+shift+e",boost::bind(&GhostControlWidget::on_send_left_cartesian_button__clicked,this));
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+shift+r",boost::bind(&GhostControlWidget::on_send_right_cartesian_button__clicked,this));
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+e",boost::bind(&GhostControlWidget::on_send_left_configuration_button__clicked,this));
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+r",boost::bind(&GhostControlWidget::on_send_right_configuration_button__clicked,this));
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+f",boost::bind(&GhostControlWidget::on_send_upper_body_button__clicked,this));
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+s",boost::bind(&GhostControlWidget::snapClicked,this));
 }
 
 //public wrapper for context menu callback

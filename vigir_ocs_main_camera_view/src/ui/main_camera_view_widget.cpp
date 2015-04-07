@@ -169,7 +169,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     fourViewToggle();
 
-    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
+    //key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
     neck_pos_sub_ = nh_.subscribe<std_msgs::Float32> ( "/flor/neck_controller/current_position" , 2, &MainCameraViewWidget::updatePitch, this );
 
     //send template list to views for context menu
@@ -226,6 +226,8 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     //build and add Context menu to base3dview
     main_camera_context_menu_ = new MainCameraContextMenu(this);
+
+    addHotkeys();
 
     timer.start(100, this);
 }
@@ -459,28 +461,26 @@ void MainCameraViewWidget::cameraInitialized()
         oneViewToggle();
 }
 
-void MainCameraViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+void MainCameraViewWidget::addHotkeys()
 {
-    // store key state
-    if(key_event->state)
-        keys_pressed_list_.push_back(key_event->keycode);
-    else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
-
-    bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37) != keys_pressed_list_.end());
-    bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 50) != keys_pressed_list_.end());
-    bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 64) != keys_pressed_list_.end());
-
-    // process hotkeys
-    if(key_event->keycode == 13 && key_event->state && ctrl_is_pressed) // '4' - get single image in the main view
-        ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->requestSingleFeedImage();
-    else if(key_event->keycode == 14 && key_event->state && ctrl_is_pressed) // '5' - set main view to 5 fps
-    {
-        ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderChanged(5);
-        ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderReleased();
-    }
-    else if(key_event->keycode == 15 && key_event->state && ctrl_is_pressed) // '6' - close selected
-    {
-        ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->closeSelectedArea();
-    }
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+4",boost::bind(&MainCameraViewWidget::getSingleImageMainViewHotkey,this));
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+5",boost::bind(&MainCameraViewWidget::setMainView5FPSHotkey,this));
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+6",boost::bind(&MainCameraViewWidget::closeSelectedHotkey,this));
 }
+
+void MainCameraViewWidget::getSingleImageMainViewHotkey()
+{
+    ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->requestSingleFeedImage();
+}
+
+void MainCameraViewWidget::setMainView5FPSHotkey()
+{
+    ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderChanged(5);
+    ((CameraViewWidget*)views_list_["Top Left"])->imageFeedSliderReleased();
+}
+
+void MainCameraViewWidget::closeSelectedHotkey()
+{
+    ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->closeSelectedArea();
+}
+

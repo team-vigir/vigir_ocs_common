@@ -75,6 +75,7 @@
 #include "robot_state_manager.h"
 #include "notification_system.h"
 #include "context_menu_manager.h"
+#include "hotkey_manager.h"
 
 #include <tf_conversions/tf_eigen.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
@@ -430,6 +431,8 @@ Q_SIGNALS:
 protected:
     virtual void timerEvent(QTimerEvent *event);
 
+    void updateGhostRobotOpacity();
+
     /**
       * Adds joint disks that visualize the current state of the joints
       */
@@ -562,6 +565,8 @@ protected:
     QPushButton* stop_button_;
 
     QBasicTimer timer;
+    int ghost_opacity_update_counter_;
+    int ghost_opacity_update_frequency_;
 
     int view_id_;
 
@@ -671,6 +676,19 @@ protected:
       * Gives object context on right click
       */
     int findObjectContext(std::string obj_type);
+
+
+    ////////Hot key/////////////////////
+    void addHotkeys();
+    //Callbacks
+    void resetEverythingHotkey();
+    void showEStopHotkey();
+    void resetPointCloudsHotkey();
+    void rainbowColorHotkey();
+    void pointcloudIntensityHotkey();
+    void requestStepPlanHotkey();
+    void executeStepPlanHotkey();
+    void lockTranslationHotkey();
 
 
     ////////////////////
@@ -815,6 +833,9 @@ protected:
     rviz::Display* left_hand_bounding_box_;
     rviz::Display* right_hand_bounding_box_;
     rviz::Display* pelvis_hand_bounding_box_;
+
+    moveit_msgs::DisplayRobotState ghost_display_state_msg_;
+    ros::Publisher ghost_robot_state_vis_pub_;    
 
     /**
       * Callback for setting im mode

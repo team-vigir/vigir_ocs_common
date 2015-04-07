@@ -98,6 +98,9 @@ JointMarkerDisplayCustom::JointMarkerDisplayCustom()
                                    this,SLOT(updateGhost()));
 
     ghost_root_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/robot", 5, &JointMarkerDisplayCustom::processPelvisEndEffector, this );
+
+    //properties will not necessarily init members they are associated with
+    is_ghost_ = false;
 }
 
 JointMarkerDisplayCustom::~JointMarkerDisplayCustom()
@@ -327,7 +330,7 @@ void JointMarkerDisplayCustom::processMessage( const sensor_msgs::JointState::Co
         int joint_type = joint->type;
         if (joint_type == urdf::Joint::REVOLUTE)
         {
-            if ( !is_ghost_ )
+            if (!is_ghost_)
             {
                 // we expect that parent_link_name equals to frame_id.
                 std::string parent_link_name = joint->child_link_name;
@@ -361,8 +364,9 @@ void JointMarkerDisplayCustom::processMessage( const sensor_msgs::JointState::Co
                 visual_->setFramePosition( joint_name, position );
                 visual_->setFrameOrientation( joint_name, joint_orientation );
             }
-            else if (is_ghost_)
+            else
             {
+                //ROS_ERROR("ghost joint marker");
                 //evaluate ghost joint positions
                 std::string link_name = joint->child_link_name;
                 Ogre::Quaternion orientation;

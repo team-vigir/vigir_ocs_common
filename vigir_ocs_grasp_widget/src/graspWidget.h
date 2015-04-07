@@ -63,7 +63,7 @@ public:
     ~graspWidget();
 
     void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg);
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    //void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
     Ui::graspWidget * getUi();
     QLayout * getMainLayout();

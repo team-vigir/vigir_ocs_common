@@ -172,8 +172,6 @@ CameraViewWidget::CameraViewWidget(QWidget *parent, vigir_ocs::Base3DView* copy_
     ui->feed_resolution->setStyleSheet(stylesheet);
     ui->selected_resolution->setStyleSheet(stylesheet);
 
-    key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &CameraViewWidget::processNewKeyEvent, this );
-
 }
 
 CameraViewWidget::~CameraViewWidget()
@@ -413,13 +411,3 @@ bool CameraViewWidget::eventFilter( QObject * o, QEvent * e )
     return QWidget::eventFilter( o, e );
 }
 
-void CameraViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
-{
-    // store key state
-    if(key_event->state)
-        keys_pressed_list_.push_back(key_event->keycode);
-    else
-        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
-
-    // process hotkeys
-}
