@@ -55,9 +55,8 @@ public:
     //generates typedefs that we'll use to make our lives easier
     ACTION_DEFINITION(ActionSpec);
     typedef typename ActionServer<ActionSpec>::GoalHandle GoalHandle;
-    typedef boost::shared_ptr<typename ActionServer<ActionSpec>::GoalHandle> GoalHandlePtr;
+    //typedef boost::shared_ptr<typename ActionServer<ActionSpec>::GoalHandle> GoalHandlePtr;
     typedef boost::function<void (GoalConstPtr, GoalHandle)> ExecuteCallback;
-    //typedef boost::function<void (const GoalConstPtr&/*,GoalHandlePtr*/)> ExecuteCallback;
     /**
     * @brief Constructor for a ComplexActionServer
     * @param name A name for the action server
@@ -212,10 +211,10 @@ private:
     boost::thread* execute_thread_;
     boost::mutex terminate_mutex_;
     bool need_to_terminate_;
-    int goals_received_;
+    int current_goals_to_process_;
     int goal_index_;
 
-    std::vector<GoalHandle> all_goals_;
+    std::queue<GoalHandle> goal_queue_;
 };
 };
 //include the implementation here

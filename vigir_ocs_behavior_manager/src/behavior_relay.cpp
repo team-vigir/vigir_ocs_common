@@ -27,12 +27,6 @@ void BehaviorRelay::processBehaviorGoalCB(vigir_be_input::BehaviorInputGoalConst
     //notify gui thread to build stuff, cant build in this thread
     Q_EMIT signalCreateNotification(action_text , goal_handle);
 
-    //store reference to goal to preserve it for server
-    //must add to reference count of this shared ptr as it will otherwise preemptively free our goal
-    //which needs to be used by server? This shared ptr may be dangling.
-    all_goals_.push_back(goal_handle);
-
-
     if(behavior_notifications_.size() <= max_notifications_shown_)
         Q_EMIT updateUI();
 
@@ -51,11 +45,11 @@ void BehaviorRelay::createNotification(QString action_text, const BehaviorServer
 }
 
 void BehaviorRelay::reportConfirmation(QString action_text,BehaviorServer::GoalHandle goal_handle)
-{
-    //ROS_ERROR("confirm 0 addr: %p", goal_handle.get());
+{    
+    //build result
     vigir_be_input::BehaviorInputActionResult result;
-    result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_OK;    
-    //ROS_ERROR("confirm 0 addr: %p", goal_handle.get());
+    result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_OK;
+    //notify server to set goal to succeed
     behavior_server_->setSucceeded(result.result, qPrintable(action_text), goal_handle);
 
     cleanNotifications();    

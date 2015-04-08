@@ -5,7 +5,7 @@ import rospy
 import pickle
 import actionlib
 
-from complex_action_server import ComplexActionServer
+from vigir_be_input.complex_action_server import ComplexActionServer
 
 from vigir_be_msgs.msg import BehaviorInputAction , BehaviorInputFeedback, BehaviorInputResult, BehaviorInputGoal
 #from python_qt_binding.QtCore import Slot, Signal

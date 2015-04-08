@@ -3,7 +3,7 @@ project(vigir_ocs_behavior_manager)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib std_msgs sensor_msgs geometry_msgs flor_ocs_msgs vigir_be_input message_runtime actionlib actionlib_msgs)# vigir_perception_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib std_msgs sensor_msgs geometry_msgs flor_ocs_msgs vigir_be_input message_runtime actionlib actionlib_msgs vigir_be_input)# vigir_perception_msgs)
 
 
 catkin_python_setup()
@@ -12,7 +12,7 @@ catkin_python_setup()
 catkin_package(
     INCLUDE_DIRS src
     LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS roscpp rospy roslib std_msgs sensor_msgs geometry_msgs flor_ocs_msgs vigir_be_input message_runtime actionlib actionlib_msgs 
+    CATKIN_DEPENDS roscpp rospy roslib std_msgs sensor_msgs geometry_msgs flor_ocs_msgs vigir_be_input message_runtime actionlib actionlib_msgs vigir_be_input
 )
 
 

@@ -54,6 +54,7 @@ bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
 BehaviorNotification::~BehaviorNotification()
 {    
     delete ui;
+    //delete goal_;
 }
 
 void BehaviorNotification::setActionText(QString action_text)
