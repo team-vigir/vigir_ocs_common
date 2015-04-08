@@ -34,6 +34,8 @@ import rospy
 import threading
 import traceback
 
+import Queue
+
 from actionlib_msgs.msg import *
 
 from actionlib import ActionServer
@@ -62,6 +64,9 @@ class ComplexActionServer:
     ## @param  auto_start A boolean value that tells the ActionServer wheteher or not to start publishing as soon as it comes up. THIS SHOULD ALWAYS BE SET TO FALSE TO AVOID RACE CONDITIONS and start() should be called after construction of the server.
     def __init__(self, name, ActionSpec, execute_cb = None, auto_start = True):
 
+        self.goals_received_ = 0;
+        self.goal_queue_ = Queue.Queue()
+
         self.new_goal = False
 #        self.preempt_request = False
 #        self.new_goal_preempt_request = False
@@ -89,6 +94,7 @@ class ComplexActionServer:
             self.execute_thread.start();
         else:
             self.execute_thread = None
+        
 
         #create the action server
         self.action_server = ActionServer(name, ActionSpec, self.internal_goal_callback,self.internal_preempt_callback,auto_start);
@@ -125,23 +131,30 @@ class ComplexActionServer:
             rospy.logdebug("Accepting a new goal");
 
             #accept the next goal
-            self.current_goal = self.next_goal;
-            self.new_goal = False;
+            #self.current_goal = self.next_goal;
+            #self.new_goal = False;
+            self.goals_received_ -= 1;
+
+			#get from queue 
+            current_goal = self.goal_queue_.get() 
 
             #set preempt to request to equal the preempt state of the new goal
 #            self.preempt_request = self.new_goal_preempt_request;
 #            self.new_goal_preempt_request = False;
 
             #set the status of the current goal to be active
-            self.current_goal.set_accepted("This goal has been accepted by the simple action server");
+            current_goal.set_accepted("This goal has been accepted by the simple action server");
 
-            return self.current_goal#.get_goal();
+            return current_goal#.get_goal();
 
 
     ## @brief Allows  polling implementations to query about the availability of a new goal
     ## @return True if a new goal is available, false otherwise
     def is_new_goal_available(self):
-        return self.new_goal;
+        return self.goals_received_ > 0
+#           return True
+#        else:
+#           return False;
 
 
     ## @brief Allows  polling implementations to query about preempt requests
@@ -229,6 +242,11 @@ class ComplexActionServer:
               print "got a goal"
               self.next_goal = goal;
               self.new_goal = True;
+              self.goals_received_ += 1
+				
+              #add goal to queue
+              self.goal_queue_.put(goal)
+
               #    self.new_goal_preempt_request = False;
 
                   #if the server is active, we'll want to call the preempt callback for the current goal

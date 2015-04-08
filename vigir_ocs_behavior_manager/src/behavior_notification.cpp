@@ -19,7 +19,6 @@ BehaviorNotification::BehaviorNotification(QWidget *parent) :
     ui->central_widget_->installEventFilter(this);
 
     this->setStyleSheet("background-color:rgba(255,255,255,200);");
-
 }
 
 bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
@@ -62,7 +61,7 @@ void BehaviorNotification::setActionText(QString action_text)
     ui->action_label_->setText(action_text);
 }
 
-void BehaviorNotification::setGoal(BehaviorServer::GoalHandlePtr goal_handle)
+void BehaviorNotification::setGoal(BehaviorServer::GoalHandle goal_handle)
 {
     //not great to pass goal along with notification, but im going to live with it for now
     goal_ = goal_handle;
@@ -72,7 +71,7 @@ void BehaviorNotification::setGoal(BehaviorServer::GoalHandlePtr goal_handle)
 
 void BehaviorNotification::confirm()
 {
-    confirmed_ = true; // notification is now obselete, can be deleted
+    confirmed_ = true; // notification is now obselete, can be deleted    
     Q_EMIT sendConfirmation(ui->action_label_->text(),goal_);
 }
 

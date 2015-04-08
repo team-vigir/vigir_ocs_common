@@ -385,15 +385,17 @@ void MainViewWidget::updateBehaviorNotifications()
     int i=0;
     //old notifications may have been deleted, replace current notifications with top 3 from relay
     while (i < (int)behavior_relay_->getNotifications().size() && i < behavior_relay_->getMaxNotificationsShown())
-    {     
+    {
         BehaviorNotification* notification = behavior_relay_->getNotifications()[i];       
         notification->show();        
-        notification_layout_->addWidget(notification);
+        notification_layout_->insertWidget(0,notification);//insert top down
         i++;
     }    
     //toggle visibility of behavior container in ui
     if(notification_layout_->count() == 0)
+    {
         notification_container_->hide();
+    }
     else
         notification_container_->show();
 }

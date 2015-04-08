@@ -29,14 +29,14 @@ public:
     explicit BehaviorNotification(QWidget *parent = 0);
     bool getConfirmed() { return confirmed_; }
     void setActionText(QString);
-    void setGoal(BehaviorServer::GoalHandlePtr );
+    void setGoal(BehaviorServer::GoalHandle );
 
 private:
     bool eventFilter(QObject* object,QEvent* event);
 
     Ui::BehaviorNotification *ui;
     bool confirmed_;
-    BehaviorServer::GoalHandlePtr goal_;
+    BehaviorServer::GoalHandle goal_;
 
 
 public Q_SLOTS:
@@ -48,8 +48,8 @@ private Q_SLOTS:
 
 
 Q_SIGNALS:
-    void sendConfirmation(QString,const BehaviorServer::GoalHandlePtr);
-    void sendAbort(QString,const BehaviorServer::GoalHandlePtr);
+    void sendConfirmation(QString,const BehaviorServer::GoalHandle);
+    void sendAbort(QString,const BehaviorServer::GoalHandle);
 };
 
 

@@ -23,7 +23,7 @@
  typedef actionlib::SimpleActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
 **/
 
-Q_DECLARE_METATYPE(BehaviorServer::GoalHandlePtr);
+Q_DECLARE_METATYPE(BehaviorServer::GoalHandle);
 
 class BehaviorRelay: public QWidget
 {
@@ -37,7 +37,7 @@ class BehaviorRelay: public QWidget
    private:
        BehaviorRelay(BehaviorRelay const&){};             // copy constructor is private
        BehaviorRelay& operator=(BehaviorRelay const&){};  // assignment operator is private
-       void processBehaviorGoalCB(vigir_be_input::BehaviorInputGoalConstPtr goal, BehaviorServer::GoalHandlePtr goal_handle);
+       void processBehaviorGoalCB(vigir_be_input::BehaviorInputGoalConstPtr goal, BehaviorServer::GoalHandle goal_handle);
        void cleanNotifications();
 
        boost::recursive_mutex lock_;
@@ -49,16 +49,16 @@ class BehaviorRelay: public QWidget
        BehaviorServer* behavior_server_;
        QString latest_behavior_action_text_;
 
-       std::vector<BehaviorServer::GoalHandlePtr> all_goals_;
+       std::vector<BehaviorServer::GoalHandle> all_goals_;
 
 Q_SIGNALS:
        void updateUI();
-       void signalCreateNotification(QString,BehaviorServer::GoalHandlePtr);
+       void signalCreateNotification(QString,BehaviorServer::GoalHandle);
 
 public Q_SLOTS:
-    void reportConfirmation(QString, BehaviorServer::GoalHandlePtr goal_handle);
-    void reportAbort(QString action_text, BehaviorServer::GoalHandlePtr goal_handle);
-    void createNotification(QString, BehaviorServer::GoalHandlePtr goal_handle);
+    void reportConfirmation(QString, BehaviorServer::GoalHandle goal_handle);
+    void reportAbort(QString action_text, BehaviorServer::GoalHandle goal_handle);
+    void createNotification(QString, BehaviorServer::GoalHandle goal_handle);
 };
 
 

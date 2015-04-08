@@ -40,6 +40,7 @@
 #include <ros/ros.h>
 #include <actionlib/server/action_server.h>
 #include <actionlib/action_definition.h>
+#include <queue>
 
 namespace actionlib {
 /** @class
@@ -55,7 +56,7 @@ public:
     ACTION_DEFINITION(ActionSpec);
     typedef typename ActionServer<ActionSpec>::GoalHandle GoalHandle;
     typedef boost::shared_ptr<typename ActionServer<ActionSpec>::GoalHandle> GoalHandlePtr;
-    typedef boost::function<void (GoalConstPtr, GoalHandlePtr)> ExecuteCallback;
+    typedef boost::function<void (GoalConstPtr, GoalHandle)> ExecuteCallback;
     //typedef boost::function<void (const GoalConstPtr&/*,GoalHandlePtr*/)> ExecuteCallback;
     /**
     * @brief Constructor for a ComplexActionServer
@@ -118,7 +119,7 @@ public:
     * sure the new goal does not have a pending preempt request.
     * @return A shared_ptr to the new goal.
     */
-    boost::shared_ptr<GoalHandle> acceptNewGoal();
+    GoalHandle acceptNewGoal();
     /**
     * @brief Allows polling implementations to query about the availability of a new goal
     * @return True if a new goal is available, false otherwise
@@ -139,13 +140,13 @@ public:
     * @param result An optional result to send back to any clients of the goal
     * @param result An optional text message to send back to any clients of the goal
     */
-    void setSucceeded(const Result& result = Result(), const std::string& text = std::string(""), GoalHandlePtr goal = NULL);
+    void setSucceeded(const Result& result = Result(), const std::string& text = std::string(""), GoalHandle goal = NULL);
     /**
     * @brief Sets the status of the active goal to aborted
     * @param result An optional result to send back to any clients of the goal
     * @param result An optional text message to send back to any clients of the goal
     */
-    void setAborted(const Result& result = Result(), const std::string& text = std::string(""), GoalHandlePtr goal = NULL);
+    void setAborted(const Result& result = Result(), const std::string& text = std::string(""), GoalHandle goal = NULL);
     /**
     * @brief Publishes feedback for a given goal
     * @param feedback Shared pointer to the feedback to publish
@@ -194,7 +195,7 @@ private:
     */
     void executeLoop();
 
-    void runGoal(GoalConstPtr goal, GoalHandlePtr goal_handle);
+    void runGoal(GoalConstPtr goal, GoalHandle goal_handle);
 
     ros::NodeHandle n_;
     boost::shared_ptr<ActionServer<ActionSpec> > as_;
@@ -211,8 +212,10 @@ private:
     boost::thread* execute_thread_;
     boost::mutex terminate_mutex_;
     bool need_to_terminate_;
+    int goals_received_;
+    int goal_index_;
 
-    std::vector<GoalHandle> goals_received_;
+    std::vector<GoalHandle> all_goals_;
 };
 };
 //include the implementation here

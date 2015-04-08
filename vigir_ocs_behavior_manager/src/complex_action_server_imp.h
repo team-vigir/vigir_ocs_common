@@ -41,6 +41,8 @@ template <class ActionSpec>
 ComplexActionServer<ActionSpec>::ComplexActionServer(std::string name, ExecuteCallback execute_callback, bool auto_start)
     : new_goal_(false), preempt_request_(false), new_goal_preempt_request_(false), execute_callback_(execute_callback), execute_thread_(NULL), need_to_terminate_(false)
 {
+    goals_received_ = 0;
+    goal_index_ = 0;
     if (execute_callback_ != NULL)
     {
         execute_thread_ = new boost::thread(boost::bind(&ComplexActionServer::executeLoop, this));
@@ -56,6 +58,8 @@ template <class ActionSpec>
 ComplexActionServer<ActionSpec>::ComplexActionServer(std::string name, bool auto_start)
     : new_goal_(false), preempt_request_(false), new_goal_preempt_request_(false), execute_callback_(NULL), need_to_terminate_(false)
 {
+    goals_received_ = 0;
+    goal_index_ = 0;
     //create the action server
     as_ = boost::shared_ptr<ActionServer<ActionSpec> >(new ActionServer<ActionSpec>(n_, name,
                                                                                     boost::bind(&ComplexActionServer::goalCallback, this, _1),
@@ -71,6 +75,8 @@ template <class ActionSpec>
 ComplexActionServer<ActionSpec>::ComplexActionServer(std::string name, ExecuteCallback execute_callback)
     : new_goal_(false), preempt_request_(false), new_goal_preempt_request_(false), execute_callback_(execute_callback), need_to_terminate_(false)
 {
+    goals_received_ = 0;
+    goal_index_ = 0;
     //create the action server
     as_ = boost::shared_ptr<ActionServer<ActionSpec> >(new ActionServer<ActionSpec>(n_, name,
                                                                                     boost::bind(&ComplexActionServer::goalCallback, this, _1),
@@ -86,6 +92,8 @@ template <class ActionSpec>
 ComplexActionServer<ActionSpec>::ComplexActionServer(ros::NodeHandle n, std::string name, ExecuteCallback execute_callback, bool auto_start)
     : n_(n), new_goal_(false), preempt_request_(false), new_goal_preempt_request_(false), execute_callback_(execute_callback), need_to_terminate_(false)
 {
+    goals_received_ = 0;
+    goal_index_ = 0;
     //create the action server
     as_ = boost::shared_ptr<ActionServer<ActionSpec> >(new ActionServer<ActionSpec>(n, name,
                                                                                     boost::bind(&ComplexActionServer::goalCallback, this, _1),
@@ -101,6 +109,8 @@ template <class ActionSpec>
 ComplexActionServer<ActionSpec>::ComplexActionServer(ros::NodeHandle n, std::string name, bool auto_start)
     : n_(n), new_goal_(false), preempt_request_(false), new_goal_preempt_request_(false), execute_callback_(NULL), need_to_terminate_(false)
 {
+    goals_received_ = 0;
+    goal_index_ = 0;
     //create the action server
     as_ = boost::shared_ptr<ActionServer<ActionSpec> >(new ActionServer<ActionSpec>(n, name,
                                                                                     boost::bind(&ComplexActionServer::goalCallback, this, _1),
@@ -116,6 +126,8 @@ template <class ActionSpec>
 ComplexActionServer<ActionSpec>::ComplexActionServer(ros::NodeHandle n, std::string name, ExecuteCallback execute_callback)
     : n_(n), new_goal_(false), preempt_request_(false), new_goal_preempt_request_(false), execute_callback_(execute_callback), need_to_terminate_(false)
 {
+    goals_received_ = 0;
+    goal_index_ = 0;
     //create the action server
     as_ = boost::shared_ptr<ActionServer<ActionSpec> >(new ActionServer<ActionSpec>(n, name,
                                                                                     boost::bind(&ComplexActionServer::goalCallback, this, _1),
@@ -155,40 +167,34 @@ void ComplexActionServer<ActionSpec>::shutdown()
 //called after receiving a goal
 template <class ActionSpec>
 //boost::shared_ptr<const typename ComplexActionServer<ActionSpec>::Goal> ComplexActionServer<ActionSpec>::acceptNewGoal()
-boost::shared_ptr< typename ActionServer<ActionSpec>::GoalHandle> ComplexActionServer<ActionSpec>::acceptNewGoal()
+typename ActionServer<ActionSpec>::GoalHandle ComplexActionServer<ActionSpec>::acceptNewGoal()
 {
     boost::recursive_mutex::scoped_lock lock(lock_);
-//    if(!new_goal_ || !next_goal_.getGoal()){
-//        ROS_ERROR_NAMED("actionlib", "Attempting to accept the next goal when a new goal is not available");
-//        return boost::shared_ptr<GoalHandle>();
-//    }
-//    //check if we need to send a preempted message for the goal that we're currently pursuing
-//    if(isActive()
-//            && current_goal_.getGoal()
-//            && current_goal_ != next_goal_){
-//        current_goal_.setCanceled(Result(), "This goal was canceled because another goal was recieved by the Complex action server");
-//    }
+
     ROS_DEBUG_NAMED("actionlib", "Accepting a new goal");
 
     //accept the next goal
-    current_goal_ = next_goal_;
+    //current_goal_ = next_goal_;
     //goals_received_.push_back(current_goal_.getGoal);
-    new_goal_ = false;
-//    //set preempt to request to equal the preempt state of the new goal
-//    preempt_request_ = new_goal_preempt_request_;
-//    new_goal_preempt_request_ = false;
+    //new_goal_ = false;
 
+    goals_received_--;
+    //cannot use member to manage goals, as we would need a member for every new goal
+    GoalHandle current_goal = all_goals_[goal_index_];
     //set the status of the current goal to be active
-    current_goal_.setAccepted("This goal has been accepted by the Complex action server");
-    boost::shared_ptr<GoalHandle> goal_ptr(&current_goal_);//.getGoal();
-    //current_goal.
-    return goal_ptr;
+    current_goal.setAccepted("This goal has been accepted by the Complex action server");
+    //cannot use local var to make shared pointer, will free preemptively
+    ROS_ERROR("goal index %d",goal_index_);;
+    goal_index_++;//will now grab next goal on next iteration
+
+    //ROS_ERROR("server goal address %p",goal_ptr.get());
+    return current_goal;
 }
 
 
 template <class ActionSpec>
 bool ComplexActionServer<ActionSpec>::isNewGoalAvailable(){
-    return new_goal_;
+    return goals_received_ > 0;
 }
 
 
@@ -203,36 +209,29 @@ bool ComplexActionServer<ActionSpec>::isPreemptRequested()
 template <class ActionSpec>
 bool ComplexActionServer<ActionSpec>::isActive()
 {
-    return goals_received_.size() > 0;
-
-    //if(!current_goal_.getGoal())
-     //   return false;
-
-    //unsigned int status = current_goal_.getGoalStatus().status;
-    //return status == actionlib_msgs::GoalStatus::ACTIVE || status == actionlib_msgs::GoalStatus::PREEMPTING;
+    return goals_received_  > 0;
 }
 
 
 template <class ActionSpec>
-void ComplexActionServer<ActionSpec>::setSucceeded(const Result& result, const std::string& text, GoalHandlePtr  goal)
-{
+void ComplexActionServer<ActionSpec>::setSucceeded(const Result& result, const std::string& text, GoalHandle goal)
+{    
     boost::recursive_mutex::scoped_lock lock(lock_);
     //ROS_DEBUG_NAMED("actionlib", "Setting the current goal as succeeded");
-    //current_goal_.setSucceeded(result, text);
+    //current_goal_.setSucceeded(result, text); 
 
-    goal->setSucceeded(result, text);
-
+    goal.setSucceeded(result, text);
 }
 
 
 template <class ActionSpec>
-void ComplexActionServer<ActionSpec>::setAborted(const Result& result, const std::string& text, GoalHandlePtr  goal)
+void ComplexActionServer<ActionSpec>::setAborted(const Result& result, const std::string& text, GoalHandle goal)
 {
     boost::recursive_mutex::scoped_lock lock(lock_);
     //ROS_DEBUG_NAMED("actionlib", "Setting the current goal as aborted");
     //current_goal_.setAborted(result, text);
 
-    goal->setAborted(result,text);
+    goal.setAborted(result,text);
 }
 
 
@@ -287,77 +286,19 @@ void ComplexActionServer<ActionSpec>::goalCallback(GoalHandle goal)
     boost::recursive_mutex::scoped_lock lock(lock_);
     ROS_DEBUG_NAMED("actionlib", "A new goal has been received by the single goal action server");
 
+    goals_received_++;
 
-    //check that the timestamp is past or equal to that of the current goal and the next goal
-//    if((!current_goal_.getGoal() || goal.getGoalID().stamp >= current_goal_.getGoalID().stamp)
-//            && (!next_goal_.getGoal() || goal.getGoalID().stamp >= next_goal_.getGoalID().stamp))
-//    {
+    all_goals_.push_back(goal);
 
-        //if next_goal has not been accepted already... its going to get bumped, but we need to let the client know we're preempting
-//        if(next_goal_.getGoal() && (!current_goal_.getGoal() || next_goal_ != current_goal_)){
-//            next_goal_.setCanceled(Result(), "This goal was canceled because another goal was recieved by the Complex action server");
-//      }
-
-        next_goal_ = goal;
-        new_goal_ = true;
-
-        //ROS_ERROR("goal callback\n");
-
-
-        //run execute to accept goal and run
-        execute_condition_.notify_all();
-
-        //goals_received_.push_back(goal);
-
-      //  new_goal_preempt_request_ = false;
-        //if the server is active, we'll want to call the preempt callback for the current goal
-//        if(isActive()){
-//            preempt_request_ = true;
-//            //if the user has registered a preempt callback, we'll call it now
-//            if(preempt_callback_)
-//                preempt_callback_();
-//        }
-
-
-        //if the user has defined a goal callback, we'll call it now
-       //if(goal_callback_)
-      // {
-        //   lock.unlock();
-
-           //boost::thread goal_thread(boost::bind(&goal_callback_,this));
-
-          // lock.lock();
-      // }
-
-
-
-//    }
-//    else{
-//        //the goal requested has already been preempted by a different goal, so we're not going to execute it
-//        goal.setCanceled(Result(), "This goal was canceled because another goal was recieved by the Complex action server");
-//    }
+    //run execute to accept goal and run
+    execute_condition_.notify_all();
 }
 
 
 template <class ActionSpec>
 void ComplexActionServer<ActionSpec>::preemptCallback(GoalHandle preempt)
 {
-     return;
-//    boost::recursive_mutex::scoped_lock lock(lock_);
-//    ROS_DEBUG_NAMED("actionlib", "A preempt has been received by the ComplexActionServer");
-//    //if the preempt is for the current goal, then we'll set the preemptRequest flag and call the user's preempt callback
-//    if(preempt == current_goal_){
-//        ROS_DEBUG_NAMED("actionlib", "Setting preempt_request bit for the current goal to TRUE and invoking callback");
-//        preempt_request_ = true;
-//        //if the user has registered a preempt callback, we'll call it now
-//        if(preempt_callback_)
-//            preempt_callback_();
-//    }
-//    //if the preempt applies to the next goal, we'll set the preempt bit for that
-//    else if(preempt == next_goal_){
-//        ROS_DEBUG_NAMED("actionlib", "Setting preempt request bit for the next goal to TRUE");
-//        new_goal_preempt_request_ = true;
-//    }
+     return;// preempt not supported
 }
 
 
@@ -373,30 +314,16 @@ void ComplexActionServer<ActionSpec>::executeLoop()
                 break;
         }
         boost::recursive_mutex::scoped_lock lock(lock_);        
-        //if (isActive())
-            //ROS_ERROR_NAMED("actionlib", "Should never reach this code with an active goal");
 
         //need to spin new thread for each goal callback to execute
-
         if (isNewGoalAvailable())
-        {
-            GoalHandlePtr goal_handle = acceptNewGoal();
+        {            
+            GoalHandle goal_handle = acceptNewGoal();
             ROS_FATAL_COND(!execute_callback_, "execute_callback_ must exist. This is a bug in ComplexActionServer");
 
-            // Make sure we're not locked when we call execute
-            //lock.unlock();
-
             //spin new thread with this goal
-            boost::thread goal_thread(boost::bind(&ComplexActionServer::runGoal,this, goal_handle->getGoal(),goal_handle));
+            boost::thread goal_thread(boost::bind(&ComplexActionServer::runGoal,this, goal_handle.getGoal(),goal_handle));
 
-            //lock.lock();
-//            if (isActive())
-//            {
-//                ROS_WARN_NAMED("actionlib", "Your executeCallback did not set the goal to a terminal status.\n"
-//                               "This is a bug in your ActionServer implementation. Fix your code!\n"
-//                               "For now, the ActionServer will set this goal to aborted");
-//                setAborted(Result(), "This goal was aborted by the Complex action server. The user should have set a terminal status on this goal and did not");
-//            }
         }
         else
         {            
@@ -406,9 +333,9 @@ void ComplexActionServer<ActionSpec>::executeLoop()
 }
 
 template <class ActionSpec>
-void ComplexActionServer<ActionSpec>::runGoal(GoalConstPtr goal,GoalHandlePtr goal_handle)
-{
-    execute_callback_(goal, goal_handle);
+void ComplexActionServer<ActionSpec>::runGoal(GoalConstPtr goal,GoalHandle goal_handle)
+{    
+    execute_callback_(goal, goal_handle); 
 }
 
 
