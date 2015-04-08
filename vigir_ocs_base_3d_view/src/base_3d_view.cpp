@@ -295,25 +295,30 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         {
             left_hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("left_hand_robot_description"));
             left_hand_robot_model_ = left_hand_model_loader_->getModel();
-            left_hand_robot_state_.reset(new robot_state::RobotState(left_hand_robot_model_));
-            left_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_left_hand",1, true);
 
-            if(left_hand_robot_model_->hasJointModelGroup("left_hand"))
-            {
+            if (left_hand_robot_model_.get()){
+              left_hand_robot_state_.reset(new robot_state::RobotState(left_hand_robot_model_));
+              left_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_left_hand",1, true);
+
+              if(left_hand_robot_model_->hasJointModelGroup("left_hand"))
+              {
                 left_hand_joint_names_.clear();
                 left_hand_joint_names_ = left_hand_robot_model_->getJointModelGroup("left_hand")->getActiveJointModelNames();
-            }else{
+              }else{
                 ROS_INFO("NO JOINTS FOUND FOR LEFT HAND");
-            }
-            for(int i = 0; i < left_hand_joint_names_.size(); i++)
+              }
+              for(int i = 0; i < left_hand_joint_names_.size(); i++)
                 ROS_INFO("Base 3d widget loading joint %d: %s",i,left_hand_joint_names_[i].c_str());
+            }else{
+              ROS_ERROR("Left hand robot model null pointer!");
+            }
         }
         catch(...)
         {
             ROS_ERROR("Base3DView: MoveIt! failed to load left hand robot description.");
         }
 
-        {
+        if (left_hand_robot_model_.get()){
             // change color of the ghost template hands
             const std::vector<std::string>& link_names = left_hand_robot_model_->getLinkModelNames();
 
@@ -349,25 +354,30 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         {
             right_hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("right_hand_robot_description"));
             right_hand_robot_model_ = right_hand_model_loader_->getModel();
-            right_hand_robot_state_.reset(new robot_state::RobotState(right_hand_robot_model_));
-            right_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_right_hand",1, true);
 
-            if(right_hand_robot_model_->hasJointModelGroup("right_hand"))
-            {
+            if (right_hand_robot_model_.get()){
+              right_hand_robot_state_.reset(new robot_state::RobotState(right_hand_robot_model_));
+              right_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_right_hand",1, true);
+
+              if(right_hand_robot_model_->hasJointModelGroup("right_hand"))
+              {
                 right_hand_joint_names_.clear();
                 right_hand_joint_names_ = right_hand_robot_model_->getJointModelGroup("right_hand")->getActiveJointModelNames();
-            }else{
+              }else{
                 ROS_INFO("NO JOINTS FOUND FOR RIGHT HAND");
-            }
-            for(int i = 0; i < right_hand_joint_names_.size(); i++)
+              }
+              for(int i = 0; i < right_hand_joint_names_.size(); i++)
                 ROS_INFO("Base 3d widget loading joint %d: %s",i,right_hand_joint_names_[i].c_str());
+            }else{
+              ROS_ERROR("Right hand robot model null pointer!");
+            }
         }
         catch(...)
         {
             ROS_ERROR("Base3DView: MoveIt! failed to load right hand robot description.");
         }
 
-        {
+        if (right_hand_robot_model_.get()){
             // change color of the ghost template hands
             const std::vector<std::string>& link_names = right_hand_robot_model_->getLinkModelNames();
 
@@ -479,7 +489,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         global_selection_pos_pub_ = nh_.advertise<geometry_msgs::Point>( "/new_point_cloud_request", 1, false );
         global_selection_pos_sub_ = nh_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
 
-        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>( "atlas/joint_states", 2, &Base3DView::processJointStates, this );
+        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>("joint_states", 2, &Base3DView::processJointStates, this );
 
         // advertise pointcloud request
         pointcloud_request_world_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
@@ -723,6 +733,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     r_hand_T_palm_.setIdentity();
     l_hand_T_palm_.setIdentity();
 
+    r_hand_T_marker_.setIdentity();
+    l_hand_T_marker_.setIdentity();
+
     //Getting left side
     if(!robot_urdf_model_->hasLinkModel("left_palm")){
         ROS_WARN("Hand model does not contain left_palm, not geting transform");
@@ -809,6 +822,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     //Initialize shift_pressed_ to false and set interactive_marker_mode_ to default
     shift_pressed_ = false;
     interactive_marker_mode_ = 0;
+
+    //used within timer event to make sure updating ghost robot opacity is called every
+    ghost_opacity_update_counter_ = 0;
+    ghost_opacity_update_frequency_ = 20; //didn't want to create seperate timer event
 
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
@@ -1085,7 +1102,15 @@ void Base3DView::timerEvent(QTimerEvent *event)
         //if(occluded_robot_visible_)
         //    setRenderOrder();
         if(ghost_robot_model_->isEnabled())
-            updateGhostRobotOpacity();
+        {
+            ghost_opacity_update_counter_++;
+            //only update ghost robot opacity occasionally, can cause performance issues if called on every timer event
+            if(ghost_opacity_update_counter_ >= ghost_opacity_update_frequency_)
+            {
+                updateGhostRobotOpacity();
+                ghost_opacity_update_counter_= 0;//reset counter
+            }
+        }
     }
 
 
@@ -2321,6 +2346,11 @@ void Base3DView::publishHandPose(std::string hand, const geometry_msgs::PoseStam
     geometry_msgs::PoseStamped hand_transform; // the first hand transform is really where I want the palm to be, or identity in this case
     if(hand == "left")
     {
+        if ((left_hand_virtual_link_joint_states_.position.size() == 0) || !left_hand_robot_state_.get()){
+          ROS_ERROR_THROTTLE(10.0, "Hand not properly set up, unable to publish hand pose. This message is throttled.");
+          return;
+        }
+
         calcWristTarget(end_effector_transform, l_hand_T_palm_, hand_transform);
 
         left_hand_virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
@@ -2335,6 +2365,11 @@ void Base3DView::publishHandPose(std::string hand, const geometry_msgs::PoseStam
     }
     else
     {
+      if ((right_hand_virtual_link_joint_states_.position.size() == 0) || !right_hand_robot_state_.get()){
+        ROS_ERROR_THROTTLE(10.0, "Hand not properly set up, unable to publish hand pose. This message is throttled.");
+        return;
+      }
+
         calcWristTarget(end_effector_transform, r_hand_T_palm_, hand_transform);
 
         right_hand_virtual_link_joint_states_.position[0] = hand_transform.pose.position.x;
@@ -3300,6 +3335,8 @@ void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr
     for(int i = 0; i < states->name.size(); i++)
     {
         //ignore finger joints on atlas ghost
+        //@TODO This does not generalize and shouldn't be done like this.
+        //Can instead be done by checking if state is part of whole body group.
         if(states->name[i].find("_f") != std::string::npos && states->name[i].find("_j")!= std::string::npos && ghost_robot_state->getRobotName().find("atlas") != std::string::npos )
         {
             continue;

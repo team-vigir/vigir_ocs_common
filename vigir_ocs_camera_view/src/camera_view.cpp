@@ -200,7 +200,8 @@ void CameraView::timerEvent(QTimerEvent *event)
 
 void CameraView::loadCameraTopics(std::string prefix)
 {
-    // get cameras parameters and setup local structure
+  try
+  {
     XmlRpc::XmlRpcValue camera_topic_prefix, camera_name, camera_width, camera_height;
 
     nh_.getParam(prefix+"/topic_prefix", camera_topic_prefix);
@@ -210,13 +211,19 @@ void CameraView::loadCameraTopics(std::string prefix)
 
     for(int i = 0; i < camera_topic_prefix.size(); i++)
     {
-        Camera c;
-        c.topic_prefix = static_cast<std::string>(camera_topic_prefix[i]);
-        c.name = static_cast<std::string>(camera_name[i]);
-        c.width = static_cast<int>(camera_width[i]);
-        c.height = static_cast<int>(camera_height[i]);
-        camera_.push_back(c);
+      Camera c;
+      c.topic_prefix = static_cast<std::string>(camera_topic_prefix[i]);
+      c.name = static_cast<std::string>(camera_name[i]);
+      c.width = static_cast<int>(camera_width[i]);
+      c.height = static_cast<int>(camera_height[i]);
+      camera_.push_back(c);
     }
+  }
+  catch(...)
+  {
+    ROS_ERROR("Exception during loading of camera topics!");
+  }
+
 }
 
 int CameraView::getDefaultCamera()

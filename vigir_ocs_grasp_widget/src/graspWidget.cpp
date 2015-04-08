@@ -92,6 +92,12 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     //Start hand model operations
     hand_model_loader_.reset(new robot_model_loader::RobotModelLoader(hand_side_ + "_hand_robot_description"));
     hand_robot_model_ = hand_model_loader_->getModel();
+
+    if (!hand_robot_model_.get()){
+      ROS_ERROR("Error loading hand robot model in GraspWidget, will not work correctly!");
+      return;
+    }
+
     hand_robot_state_.reset(new robot_state::RobotState(hand_robot_model_));
     //Finish hand model operations
 

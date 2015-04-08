@@ -167,16 +167,22 @@ void TemplateDisplayCustom::load()
 
         // Use "templates" package.  @TODO make this a parameter
         std::string template_path = ros::package::getPath("vigir_template_library")+"/object_templates/";//vigir_grasp_control") + "/../templates/";
-        ROS_INFO("  Reading templates from <%s>", template_path.c_str());
-        //template_dir_path_ = QString(template_path.c_str());
-        Ogre::String templatePath = template_path;
+
+        if (!template_path.empty()){
+          ROS_INFO("  Reading templates from <%s>", template_path.c_str());
+          //template_dir_path_ = QString(template_path.c_str());
+          Ogre::String templatePath = template_path;
 
 
-        //Ogre::String templatePath = "/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/";
-        resourceManager.addResourceLocation(templatePath, "FileSystem", nameOfResourceGroup, false);
+          //Ogre::String templatePath = "/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/";
+          resourceManager.addResourceLocation(templatePath, "FileSystem", nameOfResourceGroup, false);
 
-        // parse scripts
-        resourceManager.initialiseResourceGroup(nameOfResourceGroup);
+          // parse scripts
+          resourceManager.initialiseResourceGroup(nameOfResourceGroup);
+        }else{
+          ROS_ERROR("Path to package vigir_template_library not found, cannot load templates! Aborting init of TemplateDisplayCustom.");
+          return;
+        }
     }
     // loads files into our resource manager
     resourceManager.loadResourceGroup(nameOfResourceGroup);
