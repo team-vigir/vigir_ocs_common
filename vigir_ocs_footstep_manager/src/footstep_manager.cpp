@@ -801,10 +801,14 @@ void FootstepManager::feedbackUpdateFeet(const vigir_footstep_planning_msgs::Upd
 
 void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::UpdateFeetResultConstPtr& result)
 {
-    ROS_INFO("UpdateFeet: Got action response. %s", result->status.error_msg.c_str());
-
-    if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
+    if (vigir_footstep_planning::hasError(result->status) && result->status.error != vigir_footstep_planning_msgs::ErrorStatus::ERR_INVALID_TERRAIN_MODEL)
     {
+        ROS_ERROR("UpdateFeet: Error occured!\n%s", vigir_footstep_planning::toString(result->status).c_str());
+    }
+    else
+    {
+        ROS_INFO("UpdateFeet: Got action response.\n%s", vigir_footstep_planning::toString(result->status).c_str());
+
         // update the goal feet
         goal_ = result->feet;
 
@@ -895,7 +899,7 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
 {
     ROS_INFO("StepPlanRequest: Got action response. %s", result->status.error_msg.c_str());
 
-    if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
+    if(!vigir_footstep_planning::hasError(result->status))
     {
         if(result->step_plan.steps.size() == 0)
         {
@@ -967,7 +971,7 @@ void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state
 {
     ROS_INFO("EditStep: Got action response. %s", result->status.error_msg.c_str());
 
-    if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
+    if(!vigir_footstep_planning::hasError(result->status))
     {
         if(result->step_plans.size() == 0)
         {
@@ -1051,7 +1055,7 @@ void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState&
 {
     ROS_INFO("StitchStepPlan: Got action response. %s", result->status.error_msg.c_str());
 
-    if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
+    if(!vigir_footstep_planning::hasError(result->status))
     {
         // create a new plan list for our stitched step plan
         addNewPlanList();
