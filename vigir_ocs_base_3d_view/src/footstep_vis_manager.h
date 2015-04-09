@@ -180,6 +180,8 @@ private:
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
     rviz::Display* footsteps_path_body_array_;
+    rviz::Display* planner_terrain_classifier_cloud_processed_;
+    rviz::Display* planner_plan_request_feedback_cloud_;
 
     int start_step_index_;
 

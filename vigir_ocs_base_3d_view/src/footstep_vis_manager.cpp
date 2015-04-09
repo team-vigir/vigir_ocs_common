@@ -35,6 +35,13 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     planned_path_ = manager_->createDisplay( "rviz/Path", "Planned path", true );
     planned_path_->subProp( "Topic" )->setValue( "/flor/ocs/footstep/path" );
 
+    // footstep planner feedback topics
+    planner_terrain_classifier_cloud_processed_ = manager_->createDisplay( "rviz/PointCloud2", "Terrain classifier (OCS) cloud processed", true );
+    planner_terrain_classifier_cloud_processed_->subProp( "Topic" )->setValue( "/vigir/ocs/terrain_classifier/cloud_processed" );
+
+    planner_plan_request_feedback_cloud_ = manager_->createDisplay( "rviz/PointCloud2", "Terrain classifier (OCS) cloud processed", true );
+    planner_plan_request_feedback_cloud_->subProp( "Topic" )->setValue( "/flor/ocs/footstep/plan_request_feedback" );
+
     // creates publishers and subscribers for the interaction loop
     footstep_update_pub_      = nh_.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/step_update", 1, false );
     footstep_list_sub_        = nh_.subscribe<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 5, &FootstepVisManager::processFootstepList, this );

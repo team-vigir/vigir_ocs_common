@@ -99,9 +99,14 @@ namespace ocs_footstep
         void feedbackGetAllParameterSets(const vigir_footstep_planning_msgs::GetAllParameterSetsFeedbackConstPtr& feedback);
         void doneGetAllParameterSets(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::GetAllParameterSetsResultConstPtr& result);
 
+        // used to process new step plans whenever and however they arrive
+        void processNewStepPlan(vigir_footstep_planning_msgs::StepPlan& step_plan);
         // callbacks for onboard actions
         void processOnboardStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request);
         void processOnboardStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan);
+        // callback for the ocs planner feedback
+        void processOCSStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request);
+        void processOCSStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan);
 
         void timerCallback(const ros::TimerEvent& event);
 
@@ -109,7 +114,7 @@ namespace ocs_footstep
         // send action goals
         void sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet feet);
         void sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet start, vigir_footstep_planning_msgs::Feet goal, const unsigned int start_step_index = 0, const unsigned char start_foot = vigir_footstep_planning_msgs::StepPlanRequest::AUTO);
-        void sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan step_plan, vigir_footstep_planning_msgs::Step step, unsigned int plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_2D);
+        void sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan step_plan, vigir_footstep_planning_msgs::Step step, unsigned int plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_FULL);
         void sendStitchStepPlanGoal(std::vector<vigir_footstep_planning_msgs::StepPlan>& step_plan_list);
         void sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan step_plan);
         void sendExecuteStepPlanGoal();
@@ -182,9 +187,16 @@ namespace ocs_footstep
         // footstep plan request
         ros::Subscriber set_goal_sub_;
 
-        // onboard planners
+        // onboard planners feedback
         ros::Subscriber onboard_step_plan_request_sub_;
         ros::Subscriber onboard_step_plan_sub_;
+
+        // ocs planner feedback
+        ros::Subscriber ocs_step_plan_request_sub_;
+        ros::Subscriber ocs_step_plan_sub_;
+
+        // step plan request feedback
+        ros::Publisher planner_plan_request_feedback_cloud_pub_;
 
         std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> > footstep_plans_undo_stack_;
         std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> > footstep_plans_redo_stack_;
