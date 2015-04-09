@@ -47,18 +47,18 @@ void TemplateNodelet::onInit()
         TemplateNodelet::loadObjectTemplateDatabaseXML(this->ot_filename_);
 
     if (!nhp.getParam("/r_hand_library", this->r_grasps_filename_))
-        ROS_ERROR(" Did not find Right Grasp Library parameter /r_hand_library");
+        ROS_WARN(" Did not find Right Grasp Library parameter /r_hand_library, not using right grasps");
     else
         TemplateNodelet::loadGraspDatabaseXML(this->r_grasps_filename_, "right");
 
     if (!nhp.getParam("/l_hand_library", this->l_grasps_filename_))
-        ROS_ERROR(" Did not find Left Grasp Library parameter /l_hand_library");
+        ROS_WARN(" Did not find Left Grasp Library parameter /l_hand_library, not using right grasps");
     else
         TemplateNodelet::loadGraspDatabaseXML(this->l_grasps_filename_, "left");
 
     // Load the robot specific ghost_poses database
     if (!nhp.getParam("/stand_poses_library", this->stand_filename_))
-        ROS_ERROR(" Did not find Stand Poses parameter /stand_poses_library");
+        ROS_WARN(" Did not find Stand Poses parameter /stand_poses_library, not using stand poses for robot");
     else
         TemplateNodelet::loadStandPosesDatabaseXML(this->stand_filename_);
     

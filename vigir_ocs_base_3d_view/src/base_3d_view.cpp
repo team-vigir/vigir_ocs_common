@@ -305,7 +305,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
                 left_hand_joint_names_.clear();
                 left_hand_joint_names_ = left_hand_robot_model_->getJointModelGroup("left_hand")->getActiveJointModelNames();
               }else{
-                ROS_INFO("NO JOINTS FOUND FOR LEFT HAND");
+                ROS_WARN("NO JOINTS FOUND FOR LEFT HAND");
               }
               for(int i = 0; i < left_hand_joint_names_.size(); i++)
                 ROS_INFO("Base 3d widget loading joint %d: %s",i,left_hand_joint_names_[i].c_str());
@@ -364,7 +364,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
                 right_hand_joint_names_.clear();
                 right_hand_joint_names_ = right_hand_robot_model_->getJointModelGroup("right_hand")->getActiveJointModelNames();
               }else{
-                ROS_INFO("NO JOINTS FOUND FOR RIGHT HAND");
+                ROS_WARN("NO JOINTS FOUND FOR RIGHT HAND");
               }
               for(int i = 0; i < right_hand_joint_names_.size(); i++)
                 ROS_INFO("Base 3d widget loading joint %d: %s",i,right_hand_joint_names_[i].c_str());
@@ -794,14 +794,14 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     XmlRpc::XmlRpcValue   hand_T_marker;
 
     if (!nh_.getParam("/l_hand_tf/hand_T_marker", hand_T_marker))
-        ROS_ERROR(" Did not find hand_T_marker parameter, setting to palm ");
+        ROS_WARN(" Did not find /l_hand_tf/hand_T_marker parameter, setting to left palm ");
     else{
         l_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_marker[0]),static_cast<double>(hand_T_marker[1]),static_cast<double>(hand_T_marker[2])));
         l_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_marker[3]),static_cast<double>(hand_T_marker[4]),static_cast<double>(hand_T_marker[5]),static_cast<double>(hand_T_marker[6])));
     }
 
     if (!nh_.getParam("/r_hand_tf/hand_T_marker", hand_T_marker))
-        ROS_ERROR(" Did not find hand_T_marker parameter, setting to palm ");
+        ROS_WARN(" Did not find /r_hand_tf/hand_T_marker parameter, setting to right palm ");
     else{
         r_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_marker[0]),static_cast<double>(hand_T_marker[1]),static_cast<double>(hand_T_marker[2])));
         r_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_marker[3]),static_cast<double>(hand_T_marker[4]),static_cast<double>(hand_T_marker[5]),static_cast<double>(hand_T_marker[6])));
@@ -2639,7 +2639,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         try
         {
             int id = boost::lexical_cast<int>(id_str);
-            ROS_INFO("cartesian number %d",id);
+            //ROS_INFO("cartesian number %d",id);
             if(id < cartesian_waypoint_list_.size())
                 cartesian_waypoint_list_[id] = joint_pose.pose;
         }
