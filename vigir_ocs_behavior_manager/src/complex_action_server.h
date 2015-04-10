@@ -46,7 +46,7 @@ namespace actionlib {
 /** @class
  * Action Server that allows for the acceptance and use of multiple goals
  * Will run goals concurrently
- * Reimplemented from simple action server, not sure if all functionality is preserved
+ * Reimplemented from simple action server, will not support preempting
 */
 template <class ActionSpec>
 class ComplexActionServer

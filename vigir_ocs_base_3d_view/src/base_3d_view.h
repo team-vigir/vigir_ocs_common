@@ -282,6 +282,7 @@ public Q_SLOTS:
     void footstepPlanningToggled( bool );
     void simulationRobotToggled( bool );
     void notificationSystemToggled(bool);
+    void updateGhostRobotOpacityToggled(bool);
     void cameraFrustumToggled(bool);
     // tools
     // enables/disables use of rviz tools
@@ -438,6 +439,7 @@ protected:
     virtual void timerEvent(QTimerEvent *event);
 
     void updateGhostRobotOpacity();
+    void showAllGhost();
 
     /**
       * Adds joint disks that visualize the current state of the joints
@@ -574,6 +576,7 @@ protected:
     QBasicTimer timer;
     int ghost_opacity_update_counter_;
     int ghost_opacity_update_frequency_;
+    bool ghost_opacity_update_;
 
     int view_id_;
 

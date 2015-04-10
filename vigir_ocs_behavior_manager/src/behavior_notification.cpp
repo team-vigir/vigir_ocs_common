@@ -18,15 +18,16 @@ BehaviorNotification::BehaviorNotification(QWidget *parent) :
     ui->central_widget_->setMouseTracking( true );
     ui->central_widget_->installEventFilter(this);
 
-    this->setStyleSheet("background-color:rgba(255,255,255,200);");
+    this->setStyleSheet("QWidget{background-color:rgba(255,255,255,200);}"
+                        "QWidget:hover{background-color:rgba(235,235,235,200);}"
+                        );
+
 }
 
 bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
 {
     if (object == ui->central_widget_)
-    {
-        //lighten as hovered over
-        //this->setStyleSheet("background-color:rgba(235,235,235,200);");
+    {     
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
         if(mouseEvent->button() == 1 && mouseEvent->type() == QEvent::MouseButtonPress)
         {
@@ -43,9 +44,7 @@ bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
             return true;
         }
 
-    }
-    //reset color
-    //this->setStyleSheet("background-color:rgba(255,255,255,200);");
+    }           
     //propagate
     return QWidget::eventFilter(object,event);
 }
