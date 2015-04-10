@@ -2978,6 +2978,13 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
     for(int i = 0; i < states->name.size(); i++)
     {
         const moveit::core::JointModel* joint =  robot_state->getJointModel(states->name[i]);
+
+        if(!joint)
+        {
+            ROS_ERROR_THROTTLE(5.0,"Null joint %s in B3DView processJointStates, not using. This message is throttled.", states->name[i].c_str());
+            continue;
+        }
+
         //ignore unnecessary joints
         if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
           continue;
