@@ -84,6 +84,13 @@ namespace rviz
             {
                 std::string joint_name = joint_msg_->name[i];
                 const urdf::Joint* joint = urdf_model_->getJoint(joint_name).get();
+
+                if(!joint)
+                {
+                    ROS_ERROR_THROTTLE(5.0,"Null joint %s in JointVisualCustom update, not using. This message is throttled.", joint_name.c_str());
+                    continue;
+                }
+
                 int joint_type = joint->type;
                 if ( joint_type == urdf::Joint::REVOLUTE )
                 {

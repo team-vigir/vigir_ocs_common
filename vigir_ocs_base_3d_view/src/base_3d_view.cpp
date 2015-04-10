@@ -476,6 +476,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_hand_left_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_left_hand_pose", 5, &Base3DView::processLeftGhostHandPose, this );
         ghost_hand_right_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_right_hand_pose", 5, &Base3DView::processRightGhostHandPose, this );
 
+
+        // check if whole-body movements are to be used
+        use_drake_ik_ = false;
+
         // initialize ghost control config
         ghost_planning_group_.push_back(0);
         ghost_planning_group_.push_back(1);
@@ -2779,6 +2783,30 @@ void Base3DView::publishGhostPoses()
     if(position_only_ik_ && !(left && right && torso) && !(left && right && !torso))
         cmd.planning_group.data += "_position_only_ik";
 
+    if(use_drake_ik_) {
+        cmd.planning_group.data = "whole_body_group";
+
+        if ( left ) {
+            std_msgs::String target_link_name;
+            target_link_name.data = "l_hand";
+            cmd.target_link_names.push_back(target_link_name);
+        }
+
+
+        if ( right ) {
+            std_msgs::String target_link_name;
+            target_link_name.data = "r_hand";
+            cmd.target_link_names.push_back(target_link_name);
+        }
+
+        if ( ghost_lock_pelvis_ ) {
+            std_msgs::String target_link_name;
+            target_link_name.data = "pelvis";
+            cmd.target_link_names.push_back(target_link_name);
+            cmd.target_poses.push_back(end_effector_pose_list_["/pelvis_pose_marker"]);
+        }
+    }
+
     if(left || right)
         end_effector_pub_.publish(cmd);
 
@@ -2817,13 +2845,13 @@ void Base3DView::publishGhostPoses()
 
         pelvis_marker_pose_pub_.publish(pose);
     }
-    else
+    /*else
     {
         // how do I set world lock for torso?
         ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
         pelvis_marker_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
-    }
+    }*/
 }
 
 void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::ConstPtr &msg)
@@ -2849,6 +2877,7 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
     right_marker_moveit_loopback_ = msg->right_moveit_marker_loopback;
 
     position_only_ik_ = msg->position_only_ik;
+    use_drake_ik_ = msg->use_drake_ik;
 }
 
 void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose, double effortPercent, double boundPercent, bool ghost, int arrowDirection)
@@ -3001,6 +3030,13 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
     for(int i = 0; i < states->name.size(); i++)
     {
         const moveit::core::JointModel* joint =  robot_state->getJointModel(states->name[i]);
+
+        if(!joint)
+        {
+            ROS_ERROR_THROTTLE(5.0,"Null joint %s in B3DView processJointStates, not using. This message is throttled.", states->name[i].c_str());
+            continue;
+        }
+
         //ignore unnecessary joints
         if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
           continue;
@@ -3366,6 +3402,13 @@ void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr
         }
 
         const moveit::core::JointModel* joint =  ghost_robot_state->getJointModel(states->name[i]);
+
+        if(!joint)
+        {
+            ROS_ERROR_THROTTLE(5.0,"Null joint %s in B3DView processGhostJointStates, not using. This message is throttled.", states->name[i].c_str());
+            continue;
+        }
+
         //ignore unnecessary joints
         if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
           continue;

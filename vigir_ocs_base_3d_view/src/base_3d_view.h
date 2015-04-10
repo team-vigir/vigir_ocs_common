@@ -889,6 +889,8 @@ protected:
     ///////////////////
     // new managers
     FootstepVisManager* footstep_vis_manager_;
+
+    bool use_drake_ik_;
 };
 }
 #endif // BASE_3D_VIEW_H
