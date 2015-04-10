@@ -2696,9 +2696,8 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
             marker_published_++;
     }
 
-    //else
     //ROS_ERROR("ghost_world_lock 0: %d, ghost_world_lock_ 1: %d ",ghost_world_lock_[0],ghost_world_lock_[1]);
-    //if(ghost_world_lock_[0] == 0 && ghost_world_lock_[1] == 0)
+    if(ghost_world_lock_[0] == 0 && ghost_world_lock_[1] == 0)
         publishGhostPoses();
 }
 
