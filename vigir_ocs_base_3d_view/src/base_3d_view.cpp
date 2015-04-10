@@ -326,12 +326,12 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
               if(left_hand_robot_model_->hasJointModelGroup(left_hand_group_))
               {
                 left_hand_joint_names_.clear();
-                left_hand_joint_names_ = left_hand_robot_model_->getJointModelGroup(left_hand_group_)->getActiveJointModelNames();
+                left_hand_joint_names_ = left_hand_robot_model_->getJointModelGroup(left_hand_group_)->getJointModelNames();// getActiveJointModelNames();
               }else{
-                ROS_WARN("NO JOINTS FOUND FOR LEFT HAND");
+                ROS_ERROR("NO JOINTS FOUND FOR GHOST LEFT HAND USING: %s",left_hand_group_.c_str());
               }
               for(int i = 0; i < left_hand_joint_names_.size(); i++)
-                ROS_INFO("Base 3d widget loading joint %d: %s",i,left_hand_joint_names_[i].c_str());
+                ROS_INFO("Base 3d widget loading left joint %d: %s",i,left_hand_joint_names_[i].c_str());
             }else{
               ROS_ERROR("Left hand robot model null pointer!");
             }
@@ -385,12 +385,12 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
               if(right_hand_robot_model_->hasJointModelGroup(right_hand_group_))
               {
                 right_hand_joint_names_.clear();
-                right_hand_joint_names_ = right_hand_robot_model_->getJointModelGroup(right_hand_group_)->getActiveJointModelNames();
+                right_hand_joint_names_ = right_hand_robot_model_->getJointModelGroup(right_hand_group_)->getJointModelNames();// getActiveJointModelNames();
               }else{
-                ROS_WARN("NO JOINTS FOUND FOR RIGHT HAND");
+                ROS_ERROR("NO JOINTS FOUND FOR GHOST RIGHT HAND USING: %s",right_hand_group_.c_str());
               }
               for(int i = 0; i < right_hand_joint_names_.size(); i++)
-                ROS_INFO("Base 3d widget loading joint %d: %s",i,right_hand_joint_names_[i].c_str());
+                ROS_INFO("Base 3d widget loading right joint %d: %s",i,right_hand_joint_names_[i].c_str());
             }else{
               ROS_ERROR("Right hand robot model null pointer!");
             }
@@ -1954,20 +1954,20 @@ void Base3DView::setTemplateGraspLock(int arm)
     {
         selectTemplate();
 
-        ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] = false;
-        ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] = false;
+        ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] = 0;
+        ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] = 0;
 
 
-        ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] = false;
-        ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] = false;
+        ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] = 0;
+        ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] = 0;
         return;
     }
     else if(id != -1) //locks arm
     {
         selectTemplate();
 
-        ghost_pose_source_[arm] = true;
-        ghost_world_lock_[arm] = true;
+        ghost_pose_source_[arm] = 1;
+        ghost_world_lock_[arm] = 1;
     }
 
 }
@@ -2267,9 +2267,9 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
 
         l_arm_marker_pose_pub_.publish(wrist_pose);
 
-        //ROS_ERROR("LEFT ARM POSE:");
-        //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
-        //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
+//        ROS_ERROR("PROCESS LEFT ARM END EFFECTOR:");
+//        ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
+//        ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
 
         // doesn't happen if in template lock mode
         if(!moving_pelvis_ && ghost_pose_source_[0] == 0)
@@ -2477,16 +2477,15 @@ int Base3DView::calcWristTarget(const geometry_msgs::PoseStamped& end_effector_p
 // callback for the grasp widget left hand pose
 void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
-    //ROS_INFO("LEFT GHOST HAND POSE:");
-    //ROS_INFO("  position: %.2f %.2f %.2f",pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
-    //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",pose->pose.orientation.w,pose->pose.orientation.x,pose->pose.orientation.y,pose->pose.orientation.z);
-
     // will only process this if in template lock
     if(!moving_pelvis_ && ghost_world_lock_[0] == 1)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
         staticTransform(transformed_pose, l_hand_T_palm_);
         end_effector_pose_list_["/l_arm_pose_marker"].pose = transformed_pose;
+//        ROS_ERROR("PROCESS LEFT GHOST HAND ");
+//        ROS_ERROR("  position: %.2f %.2f %.2f",end_effector_pose_list_["/l_arm_pose_marker"].pose.position.x,end_effector_pose_list_["/l_arm_pose_marker"].pose.position.y,end_effector_pose_list_["/l_arm_pose_marker"].pose.position.z);
+//        ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.w,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.x,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.y,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.z);
         publishGhostPoses();
     }
 }
@@ -2610,9 +2609,9 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_l_arm_ = true;
         moving_r_arm_ = false;
 
-        //ROS_INFO("LEFT GHOST HAND POSE:");
-        //ROS_INFO("  position: %.2f %.2f %.2f",msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.position.z);
-        //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg.pose.pose.orientation.w,msg.pose.pose.orientation.x,msg.pose.pose.orientation.y,msg.pose.pose.orientation.z);
+//        ROS_INFO("ON MARKER FEEDBACK LEFT GHOST HAND POSE:");
+//        ROS_INFO("  position: %.2f %.2f %.2f",msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.position.z);
+//        ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",msg.pose.pose.orientation.w,msg.pose.pose.orientation.x,msg.pose.pose.orientation.y,msg.pose.pose.orientation.z);
 
         // this will publish the iron man hand position based on the left arm marker pose
         calcWristTarget(msg.pose,l_hand_T_marker_.inverse(),joint_pose);
@@ -2694,8 +2693,9 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
     }
 
     //else
-    //    ROS_ERROR("Marker feedback on topic %s, have no markers instantiated",msg.topic.c_str());
-    publishGhostPoses();
+    //ROS_ERROR("ghost_world_lock 0: %d, ghost_world_lock_ 1: %d ",ghost_world_lock_[0],ghost_world_lock_[1]);
+    //if(ghost_world_lock_[0] == 0 && ghost_world_lock_[1] == 0)
+        publishGhostPoses();
 }
 
 // sends marker poses and so on to moveit
@@ -2745,7 +2745,7 @@ void Base3DView::publishGhostPoses()
     if(left && end_effector_pose_list_.find( "/l_arm_pose_marker") != end_effector_pose_list_.end())
     {
         cmd.target_poses.push_back(end_effector_pose_list_["/l_arm_pose_marker"]);
-//        ROS_ERROR("PUBLISHING LEFT ARM POSE:");
+//        ROS_ERROR("PUBLISHING LEFT GHOST ARM POSE:");
 //        ROS_ERROR("  position: %.2f %.2f %.2f",end_effector_pose_list_["/l_arm_pose_marker"].pose.position.x,end_effector_pose_list_["/l_arm_pose_marker"].pose.position.y,end_effector_pose_list_["/l_arm_pose_marker"].pose.position.z);
 //        ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.w,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.x,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.y,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.z);
     }
