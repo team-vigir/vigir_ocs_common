@@ -37,6 +37,28 @@ void TemplateNodelet::onInit()
 
     ROS_INFO(" Start reading database files");
 
+    //Get hand parameters from server
+    left_wrist_link_ = "l_hand";
+    left_palm_link_  = "l_palm";
+    left_hand_group_ = "l_hand_group";
+    right_wrist_link_ = "r_hand";
+    right_palm_link_  = "r_palm";
+    right_hand_group_ = "r_hand_group";
+
+    if(!nhp.getParam("/left_wrist_link", left_wrist_link_))
+        ROS_WARN("No left wrist link defined, using l_hand as default");
+    if(!nhp.getParam("/left_palm_link",  left_palm_link_))
+        ROS_WARN("No left palm link defined, using l_palm as default");
+    if(!nhp.getParam("/left_hand_group", left_hand_group_))
+        ROS_WARN("No left hand group defined, using l_hand_group as default");
+
+    if(!nhp.getParam("/right_wrist_link", right_wrist_link_))
+        ROS_WARN("No right wrist link defined, using r_hand as default");
+    if(!nhp.getParam("/right_palm_link",  right_palm_link_))
+        ROS_WARN("No right palm link defined, using r_palm as default");
+    if(!nhp.getParam("/right_hand_group", right_hand_group_))
+        ROS_WARN("No right hand group defined, using r_hand_group as default");
+
     //LOADING ROBOT MODEL FOR JOINT NAMES
     robot_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
     robot_model_ = robot_model_loader_->getModel();
@@ -61,7 +83,7 @@ void TemplateNodelet::onInit()
         ROS_WARN(" Did not find Stand Poses parameter /stand_poses_library, not using stand poses for robot");
     else
         TemplateNodelet::loadStandPosesDatabaseXML(this->stand_filename_);
-    
+
     id_counter_ = 0;
 
     timer = nh_out.createTimer(ros::Duration(0.033), &TemplateNodelet::timerCallback, this);
@@ -305,23 +327,34 @@ std::vector< std::vector <std::string> > TemplateNodelet::readCSVFile(std::strin
 
 void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string hand_side)
 {
+    if(hand_side == "left")
+    {
+        palm_link_  = left_palm_link_;
+        wrist_link_ = left_wrist_link_;
+        hand_group_ = left_hand_group_;
+    }else{
+        palm_link_  = right_palm_link_;
+        wrist_link_ = right_wrist_link_;
+        hand_group_ = right_hand_group_;
+    }
+
     //Getting joints for hand from URDF robot description
 
-    if(!robot_model_->hasLinkModel(hand_side+"_palm")){
-        ROS_WARN("Hand model does not contain %s_palm, not adding grasps",hand_side.c_str());
+    if(!robot_model_->hasLinkModel(palm_link_)){
+        ROS_WARN("Hand model does not contain %s, not adding grasps",palm_link_.c_str());
         return;
     }
 
-    robot_model::LinkTransformMap hand_palm_tf_map = robot_model_->getLinkModel(hand_side+"_palm")->getAssociatedFixedTransforms();
-    ROS_INFO("Requested linktransform for %s_palm",hand_side.c_str());
+    robot_model::LinkTransformMap hand_palm_tf_map = robot_model_->getLinkModel(palm_link_)->getAssociatedFixedTransforms();
+    ROS_INFO("Requested linktransform for %s",palm_link_.c_str());
 
     Eigen::Affine3d hand_palm_aff;
     bool found = false;
 
     for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
-        ROS_INFO("Getting links in map: %s and comparing to: %s", it->first->getName().c_str(), (hand_side.substr(0,1)+std::string("_hand")).c_str());
-        if(it->first->getName() == hand_side.substr(0,1)+std::string("_hand")){
-            ROS_INFO("Wrist %c_hand found!!!",hand_side[0]);
+        ROS_INFO("Getting links in map: %s and comparing to: %s", it->first->getName().c_str(), wrist_link_.c_str());
+        if(it->first->getName() == wrist_link_){
+            ROS_INFO("Wrist %s found!!!",wrist_link_.c_str());
             hand_palm_aff = it->second;
             found = true;
             break;
@@ -329,7 +362,7 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
     }
 
     if(!found){
-        ROS_WARN("Wrist %c_hand NOT found!!!, setting to identity",hand_side[0]);
+        ROS_WARN("Wrist %s NOT found!!!, setting to identity",wrist_link_.c_str());
         gp_T_lhand_.setIdentity();
         gp_T_rhand_.setIdentity();
     }else{
@@ -339,10 +372,10 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
             tf::transformEigenToTF( hand_palm_aff,gp_T_rhand_);
     }
 
-    if(robot_model_->hasJointModelGroup(hand_side+"_hand"))
+    if(robot_model_->hasJointModelGroup(hand_group_))
     {
         hand_joint_names_.clear();
-        hand_joint_names_ = robot_model_->getJointModelGroup(hand_side+"_hand")->getActiveJointModelNames();
+        hand_joint_names_ = robot_model_->getJointModelGroup(hand_group_)->getActiveJointModelNames();
     }else{
         ROS_WARN("NO JOINTS FOUND FOR %s HAND",hand_side.c_str());
     }
@@ -388,7 +421,7 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
         {
             moveit_msgs::Grasp grasp;
             float x,y,z,qx,qy,qz,qw;
-            grasp.grasp_pose.header.frame_id = hand_side[0]+"_hand";
+            grasp.grasp_pose.header.frame_id = wrist_link_;
 
             const char *pID=pGrasp->Attribute("id");
             if (pID) ROS_INFO("Found Grasp id: %s",pID);
@@ -421,7 +454,7 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
                 grasp.grasp_pose.pose.orientation.z = qz;
                 grasp.grasp_pose.pose.orientation.w = qw;
 
-                grasp.grasp_pose.header.frame_id    = hand_side[0]+"_hand";
+                grasp.grasp_pose.header.frame_id    = wrist_link_;
             }
 
             ROS_INFO_STREAM("Added grasp information id: " << grasp.id << " pose: " << std::endl << grasp.grasp_pose.pose);
@@ -435,7 +468,7 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
                 grasp.pre_grasp_approach.desired_distance   = 0.20;
                 grasp.pre_grasp_approach.min_distance       = 0.05;
             }else{
-                grasp.pre_grasp_approach.direction.header.frame_id = hand_side[0]+"_hand"; //Should r_hand or l_hand also be a parameter?
+                grasp.pre_grasp_approach.direction.header.frame_id = wrist_link_;
 
                 pApproachingVector->QueryFloatAttribute("x", &x);
                 pApproachingVector->QueryFloatAttribute("y", &y);
@@ -939,6 +972,7 @@ void TemplateNodelet::gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose
 
     template_T_hand.setRotation(tf::Quaternion(pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w));
     template_T_hand.setOrigin(tf::Vector3(0,0,0));
+
     vec_in.setOrigin(tf::Vector3(direction.vector.x,direction.vector.y,direction.vector.z));
     vec_in.setRotation(tf::Quaternion(0,0,0,1));
 
@@ -1137,8 +1171,8 @@ bool TemplateNodelet::instantiatedGraspInfoSrv(vigir_object_template_msgs::GetIn
         pre_grasp.pre_grasp_posture.header.frame_id            = "/world";
         if(std::atoi(grasp.id.c_str()) >= 1000 && (req.hand_side == req.LEFT_HAND || req.hand_side == req.BOTH_HANDS)){
             staticTransform(grasp.grasp_pose.pose,gp_T_lhand_);
-            staticTransform(pre_grasp.grasp_pose.pose,gp_T_lhand_);
             gripperTranslationToPreGraspPose(pre_grasp.grasp_pose.pose,pre_grasp.pre_grasp_approach);
+            staticTransform(pre_grasp.grasp_pose.pose,gp_T_lhand_);
             worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
             worldPoseTransform(template_pose_list_[index],pre_grasp.grasp_pose.pose,pre_grasp.grasp_pose);
             res.grasp_information.grasps.push_back(grasp);
@@ -1146,8 +1180,8 @@ bool TemplateNodelet::instantiatedGraspInfoSrv(vigir_object_template_msgs::GetIn
         }
         if(std::atoi(grasp.id.c_str()) < 1000 && (req.hand_side == req.RIGHT_HAND || req.hand_side == req.BOTH_HANDS)){
             staticTransform(grasp.grasp_pose.pose,gp_T_rhand_);
-            staticTransform(pre_grasp.grasp_pose.pose,gp_T_rhand_);
             gripperTranslationToPreGraspPose(pre_grasp.grasp_pose.pose,pre_grasp.pre_grasp_approach);
+            staticTransform(pre_grasp.grasp_pose.pose,gp_T_rhand_);
             worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
             worldPoseTransform(template_pose_list_[index],pre_grasp.grasp_pose.pose,pre_grasp.grasp_pose);
             res.grasp_information.grasps.push_back(grasp);
@@ -1259,14 +1293,15 @@ bool TemplateNodelet::attachObjectTemplateSrv(vigir_object_template_msgs::SetAtt
     // the corresponding operation to be specified as an ADD operation
     attached_object.object.operation = attached_object.object.ADD;
 
-    std::string hand_side;
-    if(req.pose.header.frame_id == "r_hand")
-        hand_side = "right";
-    else
-        hand_side = "left";
+    if(req.pose.header.frame_id == right_wrist_link_){
+        hand_link_names_ = robot_model_->getJointModelGroup(right_hand_group_)->getLinkModelNames();
+        hand_link_names_.push_back(right_palm_link_);
+    }else{
+        hand_link_names_ = robot_model_->getJointModelGroup(left_hand_group_)->getLinkModelNames();
+        hand_link_names_.push_back(left_palm_link_);
+    }
 
-    hand_link_names_ = robot_model_->getJointModelGroup(hand_side+ "_hand")->getLinkModelNames();
-    hand_link_names_.push_back(robot_model_->getJointModelGroup(hand_side+ "_hand")->getCommonRoot()->getChildLinkModel()->getName());
+
     for(int i = 0; i < hand_link_names_.size(); i++){
         ROS_INFO("Link %d: %s",i,hand_link_names_[i].c_str());
         attached_object.touch_links.push_back(hand_link_names_[i]);
@@ -1364,14 +1399,14 @@ bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetAtt
     // the corresponding operation to be specified as an ADD operation
     tmp_attached_object.object.operation = tmp_attached_object.object.ADD;
 
-    std::string hand_side;
-    if(req.pose.header.frame_id == "r_hand")
-        hand_side = "right";
-    else
-        hand_side = "left";
+    if(req.pose.header.frame_id == right_wrist_link_){
+        hand_link_names_ = robot_model_->getJointModelGroup(right_hand_group_)->getLinkModelNames();
+        hand_link_names_.push_back(right_palm_link_);
+    }else{
+        hand_link_names_ = robot_model_->getJointModelGroup(left_hand_group_)->getLinkModelNames();
+        hand_link_names_.push_back(left_palm_link_);
+    }
 
-    hand_link_names_ = robot_model_->getJointModelGroup(hand_side+ "_hand")->getLinkModelNames();
-    hand_link_names_.push_back(robot_model_->getJointModelGroup(hand_side+ "_hand")->getCommonRoot()->getChildLinkModel()->getName());
     for(int i = 0; i < hand_link_names_.size(); i++){
         ROS_INFO("Link %d: %s",i,hand_link_names_[i].c_str());
         tmp_attached_object.touch_links.push_back(hand_link_names_[i]);

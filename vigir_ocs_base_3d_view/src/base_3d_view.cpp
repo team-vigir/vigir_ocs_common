@@ -91,6 +91,12 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     , position_only_ik_(false)
     , circular_marker_(0)
     , visualize_grid_map_(true)
+    , left_wrist_link_("l_hand")
+    , right_wrist_link_("r_hand")
+    , left_palm_link_("l_palm")
+    , right_palm_link_("r_palm")
+    , left_hand_group_("l_hand_group")
+    , right_hand_group_("r_hand_group")
 {
     // Construct and lay out render panel.
     render_panel_ = new rviz::RenderPanelCustom();
@@ -291,6 +297,23 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         left_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
         left_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
 
+
+        //Get hand parameters from server
+        if(!nh_.getParam("/left_wrist_link", left_wrist_link_))
+            ROS_WARN("No left wrist link defined, using l_hand as default");
+        if(!nh_.getParam("/left_palm_link",  left_palm_link_))
+            ROS_WARN("No left palm link defined, using l_palm as default");
+        if(!nh_.getParam("/left_hand_group", left_hand_group_))
+            ROS_WARN("No left hand group defined, using l_hand_group as default");
+
+        if(!nh_.getParam("/right_wrist_link", right_wrist_link_))
+            ROS_WARN("No right wrist link defined, using r_hand as default");
+        if(!nh_.getParam("/right_palm_link",  right_palm_link_))
+            ROS_WARN("No right palm link defined, using r_palm as default");
+        if(!nh_.getParam("/right_hand_group", right_hand_group_))
+            ROS_WARN("No right hand group defined, using r_hand_group as default");
+
+
         try
         {
             left_hand_model_loader_.reset(new robot_model_loader::RobotModelLoader("left_hand_robot_description"));
@@ -300,10 +323,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
               left_hand_robot_state_.reset(new robot_state::RobotState(left_hand_robot_model_));
               left_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_left_hand",1, true);
 
-              if(left_hand_robot_model_->hasJointModelGroup("left_hand"))
+              if(left_hand_robot_model_->hasJointModelGroup(left_hand_group_))
               {
                 left_hand_joint_names_.clear();
-                left_hand_joint_names_ = left_hand_robot_model_->getJointModelGroup("left_hand")->getActiveJointModelNames();
+                left_hand_joint_names_ = left_hand_robot_model_->getJointModelGroup(left_hand_group_)->getActiveJointModelNames();
               }else{
                 ROS_WARN("NO JOINTS FOUND FOR LEFT HAND");
               }
@@ -359,10 +382,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
               right_hand_robot_state_.reset(new robot_state::RobotState(right_hand_robot_model_));
               right_hand_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/marker_right_hand",1, true);
 
-              if(right_hand_robot_model_->hasJointModelGroup("right_hand"))
+              if(right_hand_robot_model_->hasJointModelGroup(right_hand_group_))
               {
                 right_hand_joint_names_.clear();
-                right_hand_joint_names_ = right_hand_robot_model_->getJointModelGroup("right_hand")->getActiveJointModelNames();
+                right_hand_joint_names_ = right_hand_robot_model_->getJointModelGroup(right_hand_group_)->getActiveJointModelNames();
               }else{
                 ROS_WARN("NO JOINTS FOUND FOR RIGHT HAND");
               }
@@ -737,19 +760,19 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     l_hand_T_marker_.setIdentity();
 
     //Getting left side
-    if(!robot_urdf_model_->hasLinkModel("left_palm")){
-        ROS_WARN("Hand model does not contain left_palm, not geting transform");
+    if(!robot_urdf_model_->hasLinkModel(left_palm_link_)){
+        ROS_WARN("Hand model does not contain %s, not geting transform",left_palm_link_.c_str());
     }else{
 
-        robot_model::LinkTransformMap hand_palm_tf_map = robot_urdf_model_->getLinkModel("left_palm")->getAssociatedFixedTransforms();
-        ROS_INFO("Requested linktransform for left_palm");
+        robot_model::LinkTransformMap hand_palm_tf_map = robot_urdf_model_->getLinkModel(left_palm_link_)->getAssociatedFixedTransforms();
+        ROS_INFO("Requested linktransform for %s",left_palm_link_.c_str());
 
         Eigen::Affine3d hand_palm_aff;
         bool found = false;
 
         for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
-            if(it->first->getName() == "l_hand"){
-                ROS_INFO("Wrist l_hand found!!!");
+            if(it->first->getName() == left_wrist_link_){
+                ROS_INFO("Wrist %s found!!!",left_wrist_link_.c_str());
                 hand_palm_aff = it->second;
                 found = true;
                 break;
@@ -763,21 +786,21 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     }
 
     //Getting right side
-    if(!robot_urdf_model_->hasLinkModel("right_palm")){
-        ROS_WARN("Hand model does not contain right_palm, not geting transform");
+    if(!robot_urdf_model_->hasLinkModel(right_palm_link_)){
+        ROS_WARN("Hand model does not contain %s, not geting transform",right_palm_link_.c_str());
     }else{
 
         Eigen::Affine3d hand_palm_aff;
         bool found = false;
 
-        robot_model::LinkTransformMap hand_palm_tf_map = robot_urdf_model_->getLinkModel("right_palm")->getAssociatedFixedTransforms();
-        ROS_INFO("Requested linktransform for right_palm");
+        robot_model::LinkTransformMap hand_palm_tf_map = robot_urdf_model_->getLinkModel(right_palm_link_)->getAssociatedFixedTransforms();
+        ROS_INFO("Requested linktransform for %s",right_palm_link_.c_str());
 
         found = false;
 
         for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
-            if(it->first->getName() == "r_hand"){
-                ROS_INFO("Wrist r_hand found!!!");
+            if(it->first->getName() == right_wrist_link_){
+                ROS_INFO("Wrist %s found!!!",right_wrist_link_.c_str());
                 hand_palm_aff = it->second;
                 found = true;
                 break;
@@ -790,6 +813,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         }
     }
     //Finished getting hand transform
+
 
     XmlRpc::XmlRpcValue   hand_T_marker;
 
@@ -806,9 +830,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         r_hand_T_marker_.setOrigin(tf::Vector3(static_cast<double>(hand_T_marker[0]),static_cast<double>(hand_T_marker[1]),static_cast<double>(hand_T_marker[2])));
         r_hand_T_marker_.setRotation(tf::Quaternion(static_cast<double>(hand_T_marker[3]),static_cast<double>(hand_T_marker[4]),static_cast<double>(hand_T_marker[5]),static_cast<double>(hand_T_marker[6])));
     }
-
-    nh_.getParam("/l_hand_type", l_hand_type);
-    nh_.getParam("/r_hand_type", r_hand_type);
 
     // set background color to rviz default
     render_panel_->getViewport()->setBackgroundColour(rviz::qtToOgre(QColor(48,48,48)));
@@ -2391,14 +2412,16 @@ void Base3DView::publishHandJointStates(std::string hand)
     sensor_msgs::JointState joint_states;
 
     joint_states.header.stamp = ros::Time::now();
-    joint_states.header.frame_id = std::string("/")+hand+std::string("_hand_model/")+hand+"_palm";
 
-    if(hand == "left")
+    if(hand == "left"){
+        joint_states.header.frame_id = std::string("/")+hand+std::string("_hand_model/")+left_palm_link_;
         for(int i = 0; i < left_hand_joint_names_.size(); i++)
             joint_states.name.push_back(left_hand_joint_names_[i]);
-    else
+    }else{
+        joint_states.header.frame_id = std::string("/")+hand+std::string("_hand_model/")+right_palm_link_;
         for(int i = 0; i < right_hand_joint_names_.size(); i++)
             joint_states.name.push_back(right_hand_joint_names_[i]);
+    }
 
     joint_states.position.resize(joint_states.name.size());
     joint_states.effort.resize(joint_states.name.size());
@@ -3539,7 +3562,7 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
     // get position of the wrist in world coordinates
     Ogre::Vector3 wrist_position(0,0,0);
     Ogre::Quaternion wrist_orientation(1,0,0,0);
-    transform(wrist_position, wrist_orientation, (std::string("/")+prefix+"_hand").c_str(), "/world");
+    transform(wrist_position, wrist_orientation, (std::string("/")+(right_hand ? right_wrist_link_ : left_wrist_link_)).c_str(), "/world");
 
     // get position of the marker in world coordinates
     geometry_msgs::PoseStamped hand, marker;
@@ -3627,7 +3650,7 @@ void Base3DView::sendCircularTarget(bool right_hand)
         // get position of the wrist in world coordinates
         Ogre::Vector3 wrist_position(0,0,0);
         Ogre::Quaternion wrist_orientation(1,0,0,0);
-        transform(wrist_position, wrist_orientation, (std::string("/")+prefix+"_hand").c_str(), "/world");
+        transform(wrist_position, wrist_orientation, (std::string("/")+(right_hand ? right_wrist_link_ : left_wrist_link_)).c_str(), "/world");
 
         // get position of the marker in world coordinates
         geometry_msgs::PoseStamped hand, marker;

@@ -800,7 +800,10 @@ protected:
     tf::Transform l_hand_T_marker_;
     tf::Transform r_hand_T_marker_;
 
-    std::string l_hand_type, r_hand_type;
+    std::string left_wrist_link_, right_wrist_link_;
+    std::string left_palm_link_,  right_palm_link_;
+    std::string left_hand_group_, right_hand_group_;
+
     std::vector<rviz::Display*> im_ghost_robot_;
 
     rviz::Display* left_grasp_hand_model_;
