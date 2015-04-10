@@ -58,7 +58,8 @@ public:
                    std::vector<unsigned char> pose_source=saved_state_pose_source_,
                    std::vector<unsigned char> world_lock=saved_state_world_lock_,
                    unsigned char collision_avoidance=saved_state_collision_avoidance_,
-                   unsigned char lock_pelvis=saved_state_lock_pelvis_);
+                   unsigned char lock_pelvis=saved_state_lock_pelvis_,
+                   unsigned char use_drake_ik=saved_state_use_drake_ik_);
 
     bool useTorsoContextMenu();
     void snapContextMenu();
@@ -87,6 +88,7 @@ private Q_SLOTS:
     //void on_pose_torso__currentIndexChanged(int index);
     //void on_pose_right__currentIndexChanged(int index);
     void on_lock_pelvis__clicked();
+    void on_use_drake_ik__clicked();
     void on_send_left_pose_button__clicked();
     //void on_send_left_torso_pose_button__clicked();
     void on_send_right_pose_button__clicked();
@@ -104,6 +106,7 @@ private Q_SLOTS:
     void on_send_right_configuration_button__clicked();
     //void on_send_right_torso_configuration_button__clicked();
     void on_send_upper_body_button__clicked();
+    void on_send_whole_body_button__clicked();
     //void on_left_moveit_marker_lock_clicked();
     //void on_right_moveit_marker_lock_clicked();
     void on_pushButton_clicked();
@@ -148,6 +151,7 @@ private:
     static unsigned char saved_state_collision_avoidance_;
     static unsigned char saved_state_lock_pelvis_;
     static unsigned char saved_state_position_only_ik_;
+    static unsigned char saved_state_use_drake_ik_;
 
     flor_ocs_msgs::OCSTemplateList last_template_list_;
     int selected_template_id_;
