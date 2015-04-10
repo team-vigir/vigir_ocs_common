@@ -339,11 +339,11 @@ void GhostControlWidget::resetPelvisClicked()
     reset_pelvis_pub_.publish(cmd);
 }
 
-void GhostControlWidget::on_planning_left__clicked()
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_planning_left__clicked()
+//{
+//    saveState();
+//    publishState();
+//}
 
 void GhostControlWidget::on_planning_torso__clicked()
 {
@@ -366,47 +366,47 @@ void GhostControlWidget::on_position_only_ik__clicked()
     publishState();
 }
 
-void GhostControlWidget::on_planning_right__clicked()
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_planning_right__clicked()
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_lock_left__clicked()
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_lock_left__clicked()
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_lock_torso__clicked()
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_lock_torso__clicked()
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_lock_right__clicked()
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_lock_right__clicked()
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_pose_left__currentIndexChanged(int index)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_pose_left__currentIndexChanged(int index)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_pose_torso__currentIndexChanged(int index)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_pose_torso__currentIndexChanged(int index)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_pose_right__currentIndexChanged(int index)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_pose_right__currentIndexChanged(int index)
+//{
+//    saveState();
+//    publishState();
+//}
 
 void GhostControlWidget::on_lock_pelvis__clicked()
 {
@@ -426,14 +426,12 @@ void GhostControlWidget::on_send_left_pose_button__clicked()
     set_to_target_pose_pub_.publish(cmd);
 }
 
-void GhostControlWidget::on_send_left_torso_pose_button__clicked()
-{
-    std_msgs::String cmd;
-
-    cmd.data = "l_arm_with_torso_group";
-
-    set_to_target_pose_pub_.publish(cmd);
-}
+//void GhostControlWidget::on_send_left_torso_pose_button__clicked()
+//{
+//    std_msgs::String cmd;
+//    cmd.data = "l_arm_with_torso_group";
+//    set_to_target_pose_pub_.publish(cmd);
+//}
 
 void GhostControlWidget::on_send_right_pose_button__clicked()
 {
@@ -447,14 +445,12 @@ void GhostControlWidget::on_send_right_pose_button__clicked()
     set_to_target_pose_pub_.publish(cmd);
 }
 
-void GhostControlWidget::on_send_right_torso_pose_button__clicked()
-{
-    std_msgs::String cmd;
-
-    cmd.data = "r_arm_with_torso_group";
-
-    set_to_target_pose_pub_.publish(cmd);
-}
+//void GhostControlWidget::on_send_right_torso_pose_button__clicked()
+//{
+//    std_msgs::String cmd;
+//    cmd.data = "r_arm_with_torso_group";
+//    set_to_target_pose_pub_.publish(cmd);
+//}
 
 //void GhostControlWidget::on_left_no_lock_toggled(bool checked)
 //{
@@ -504,14 +500,12 @@ void GhostControlWidget::on_send_left_configuration_button__clicked()
     set_to_target_config_pub_.publish(cmd);
 }
 
-void GhostControlWidget::on_send_left_torso_configuration_button__clicked()
-{
-    std_msgs::String cmd;
-
-    cmd.data = "l_arm_with_torso_group";
-
-    set_to_target_config_pub_.publish(cmd);
-}
+//void GhostControlWidget::on_send_left_torso_configuration_button__clicked()
+//{
+//    std_msgs::String cmd;
+//    cmd.data = "l_arm_with_torso_group";
+//    set_to_target_config_pub_.publish(cmd);
+//}
 
 void GhostControlWidget::on_send_right_configuration_button__clicked()
 {
@@ -525,21 +519,17 @@ void GhostControlWidget::on_send_right_configuration_button__clicked()
     set_to_target_config_pub_.publish(cmd);
 }
 
-void GhostControlWidget::on_send_right_torso_configuration_button__clicked()
-{
-    std_msgs::String cmd;
-
-    cmd.data = "r_arm_with_torso_group";
-
-    set_to_target_config_pub_.publish(cmd);
-}
+//void GhostControlWidget::on_send_right_torso_configuration_button__clicked()
+//{
+//    std_msgs::String cmd;
+//    cmd.data = "r_arm_with_torso_group";
+//    set_to_target_config_pub_.publish(cmd);
+//}
 
 void GhostControlWidget::on_send_upper_body_button__clicked()
 {
     std_msgs::String cmd;
-
     cmd.data = "both_arms_with_torso_group";
-
     set_to_target_config_pub_.publish(cmd);
 }
 

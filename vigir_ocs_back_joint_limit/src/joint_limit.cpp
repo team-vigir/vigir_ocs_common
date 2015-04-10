@@ -151,9 +151,8 @@ void joint_limit::timerEvent(QTimerEvent *event)
     ros::spinOnce();
 }
 
-void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
+/*void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
 {
-  /*
     switch(index){
     case 0:
         lbzMinVal = -0.610865;
@@ -189,9 +188,7 @@ void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
         break;
     default: break;
     }
-    */
 
-    /*
     ui->lbzMin->setValue(lbzMinVal*1000000.0);
     ui->lbzMinLabel->setText(QString::number(lbzMinVal,'g',6));
     ui->lbzMax->setValue(lbzMaxVal*1000000.0);
@@ -206,8 +203,8 @@ void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
     ui->ubxMinLabel->setText(QString::number(ubxMinVal,'g',6));
     ui->ubxMax->setValue(ubxMaxVal*1000000.0);
     ui->ubxMaxLabel->setText(QString::number(ubxMaxVal,'g',6));
-    */
-}
+
+}*/
 
 //void joint_limit::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 //{

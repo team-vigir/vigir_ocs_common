@@ -243,7 +243,7 @@ private:
 public Q_SLOTS:
     void on_apply_clicked();
 
-    void on_Presets_comboBox_currentIndexChanged(int index);
+    //void on_Presets_comboBox_currentIndexChanged(int index);
 
 protected Q_SLOTS:
     void timerEvent(QTimerEvent *event);

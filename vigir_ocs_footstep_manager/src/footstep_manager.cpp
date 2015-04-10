@@ -8,6 +8,8 @@
 #include <vigir_footstep_planning_msgs/Foot.h>
 #include <vigir_footstep_planning_msgs/EditStepService.h>
 
+#include <sensor_msgs/PointCloud2.h>
+
 namespace ocs_footstep
 {
 void FootstepManager::onInit()
@@ -111,9 +113,16 @@ void FootstepManager::onInit()
     //    ROS_INFO("Waiting for the execute_step_plan server to come up");
     //}
 
-    // also subscribe to the onboard planners in case something generates behaviors on the onboard side
+    // subscribe to the onboard planner in case something generates behaviors on the onboard side
     onboard_step_plan_request_sub_ = nh.subscribe<vigir_footstep_planning_msgs::StepPlanRequest>( "onboard_step_plan_request", 1, &FootstepManager::processOnboardStepPlanRequest, this );
     onboard_step_plan_sub_ = nh.subscribe<vigir_footstep_planning_msgs::StepPlan>( "onboard_step_plan", 1, &FootstepManager::processOnboardStepPlan, this );
+
+    // also subscribe to the ocs planner
+    ocs_step_plan_request_sub_ = nh.subscribe<vigir_footstep_planning_msgs::StepPlanRequest>( "ocs_step_plan_request", 1, &FootstepManager::processOCSStepPlanRequest, this );
+    ocs_step_plan_sub_ = nh.subscribe<vigir_footstep_planning_msgs::StepPlan>( "ocs_step_plan", 1, &FootstepManager::processOCSStepPlan, this );
+
+    // point cloud visualization for plan request feedback
+    planner_plan_request_feedback_cloud_pub_ = nh.advertise<sensor_msgs::PointCloud2>( "/flor/ocs/footstep/plan_request_feedback", 1, true );
 
     ROS_INFO("FootstepManager initialized!");
 
@@ -288,8 +297,8 @@ void FootstepManager::stepPlanToFootMarkerArray(std::vector<vigir_footstep_plann
             stepToMarker(input[i].steps[j], marker);
 
             marker.id = foot_array_msg.markers.size();
-            marker.color.r = 0.0;
-            marker.color.g = start_step_index_ == input[i].steps[j].step_index ? 0.0 : 0.6;
+            marker.color.r = input[i].steps[j].risk/0.5 * 0.6;
+            marker.color.g = start_step_index_ == input[i].steps[j].step_index ? 0.0 : fabs(0.5-input[i].steps[j].risk)/0.5 * 0.6;
             marker.color.b = start_step_index_ == input[i].steps[j].step_index ? 0.6 : 0.0;
             marker.color.a = 0.5;
             marker.ns = std::string("footstep");
@@ -801,10 +810,14 @@ void FootstepManager::feedbackUpdateFeet(const vigir_footstep_planning_msgs::Upd
 
 void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::UpdateFeetResultConstPtr& result)
 {
-    ROS_INFO("UpdateFeet: Got action response. %s", result->status.error_msg.c_str());
-
-    if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
+    if (vigir_footstep_planning::hasError(result->status) && result->status.error != vigir_footstep_planning_msgs::ErrorStatus::ERR_INVALID_TERRAIN_MODEL)
     {
+        ROS_ERROR("UpdateFeet: Error occured!\n%s", vigir_footstep_planning::toString(result->status).c_str());
+    }
+    else
+    {
+        ROS_INFO("UpdateFeet: Got action response.\n%s", vigir_footstep_planning::toString(result->status).c_str());
+
         // update the goal feet
         goal_ = result->feet;
 
@@ -889,39 +902,18 @@ void FootstepManager::activeStepPlanRequest()
 void FootstepManager::feedbackStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequestFeedbackConstPtr& feedback)
 {
     ROS_INFO("StepPlanRequest: Feedback received.");
+
+    //planner_plan_request_feedback_cloud_pub_.publish(feedback.cloud);
 }
 
 void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::StepPlanRequestResultConstPtr& result)
 {
     ROS_INFO("StepPlanRequest: Got action response. %s", result->status.error_msg.c_str());
 
-    if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
+    if(!vigir_footstep_planning::hasError(result->status))
     {
-        if(result->step_plan.steps.size() == 0)
-        {
-            ROS_ERROR("StepPlanRequest: Received empty step plan.");
-            return;
-        }
-
         vigir_footstep_planning_msgs::StepPlanRequestResult result_copy = *result;
-
-        //convert to sole for visualization
-        foot_pose_transformer_->transformToPlannerFrame(result_copy.step_plan);
-
-        // we only change the current step lists if we receive a response
-        if(result_copy.step_plan.steps[0].step_index == 0)
-            // This function will create a completely new plan, so we need to add a new empty list of plans to the stack
-            addNewPlanList();
-        else
-            // This function will add a copy of the current step plan list to the stack, so we can change it
-            addCopyPlanList();
-
-        // add resulting plan to the top of the stack of plans, removing any extra steps
-        extendPlanList(result_copy.step_plan);
-
-        publishFootsteps();
-
-        //publishGoalMarkerClear();
+        processNewStepPlan(result_copy.step_plan);
     }
 }
 
@@ -967,7 +959,7 @@ void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state
 {
     ROS_INFO("EditStep: Got action response. %s", result->status.error_msg.c_str());
 
-    if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
+    if(!vigir_footstep_planning::hasError(result->status))
     {
         if(result->step_plans.size() == 0)
         {
@@ -1051,7 +1043,7 @@ void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState&
 {
     ROS_INFO("StitchStepPlan: Got action response. %s", result->status.error_msg.c_str());
 
-    if(result->status.error == vigir_footstep_planning_msgs::ErrorStatus::NO_ERROR)
+    if(!vigir_footstep_planning::hasError(result->status))
     {
         // create a new plan list for our stitched step plan
         addNewPlanList();
@@ -1209,6 +1201,33 @@ void FootstepManager::doneGetAllParameterSets(const actionlib::SimpleClientGoalS
     }
 }
 
+void FootstepManager::processNewStepPlan(vigir_footstep_planning_msgs::StepPlan& step_plan)
+{
+    if(step_plan.steps.size() == 0)
+    {
+        ROS_ERROR("processNewStepPlan: Received empty step plan.");
+        return;
+    }
+
+    //convert to sole for visualization
+    foot_pose_transformer_->transformToPlannerFrame(step_plan);
+
+    // we only change the current step lists if we receive a response
+    if(step_plan.steps[0].step_index == 0)
+        // This function will create a completely new plan, so we need to add a new empty list of plans to the stack
+        addNewPlanList();
+    else
+        // This function will add a copy of the current step plan list to the stack, so we can change it
+        addCopyPlanList();
+
+    // add resulting plan to the top of the stack of plans, removing any extra steps
+    extendPlanList(step_plan);
+
+    publishFootsteps();
+
+    //publishGoalMarkerClear();
+}
+
 // onboard action callbacks
 void FootstepManager::processOnboardStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request)
 {
@@ -1218,30 +1237,19 @@ void FootstepManager::processOnboardStepPlanRequest(const vigir_footstep_plannin
 void FootstepManager::processOnboardStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan)
 {
     vigir_footstep_planning_msgs::StepPlan plan = *step_plan;
+    processNewStepPlan(plan);
+}
 
-    if(plan.steps.size() == 0)
-    {
-        ROS_ERROR("Onboard StepPlanRequest: Received empty step plan.");
-        return;
-    }
+// onboard action callbacks
+void FootstepManager::processOCSStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request)
+{
 
-    //convert to sole for visualization
-    foot_pose_transformer_->transformToPlannerFrame(plan);
+}
 
-    // we only change the current step lists if we receive a response
-    if(plan.steps[0].step_index == 0)
-        // This function will create a completely new plan, so we need to add a new empty list of plans to the stack
-        addNewPlanList();
-    else
-        // This function will add a copy of the current step plan list to the stack, so we can change it
-        addCopyPlanList();
-
-    // add resulting plan to the top of the stack of plans, removing any extra steps
-    extendPlanList(plan);
-
-    publishFootsteps();
-
-    //publishGoalMarkerClear();
+void FootstepManager::processOCSStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan)
+{
+    vigir_footstep_planning_msgs::StepPlan plan = *step_plan;
+    processNewStepPlan(plan);
 }
 
 // utilities
