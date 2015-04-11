@@ -912,8 +912,19 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
 
     if(!vigir_footstep_planning::hasError(result->status))
     {
-        vigir_footstep_planning_msgs::StepPlanRequestResult result_copy = *result;
-        processNewStepPlan(result_copy.step_plan);
+        boost::mutex::scoped_lock lock(step_plan_mutex_);
+
+        if(result->step_plan.header.stamp.nsec != last_ocs_step_plan_stamp_.nsec || result->step_plan.header.stamp.sec != last_ocs_step_plan_stamp_.sec)
+        {
+            vigir_footstep_planning_msgs::StepPlan plan = result->step_plan;
+            processNewStepPlan(plan);
+
+            last_ocs_step_plan_stamp_ = result->step_plan.header.stamp;
+        }
+        else
+        {
+            ROS_INFO("processOnboardStepPlan: Ignoring repeated plan (%d, %d).", result->step_plan.header.stamp.sec, result->step_plan.header.stamp.nsec);
+        }
     }
 }
 
@@ -1203,6 +1214,8 @@ void FootstepManager::doneGetAllParameterSets(const actionlib::SimpleClientGoalS
 
 void FootstepManager::processNewStepPlan(vigir_footstep_planning_msgs::StepPlan& step_plan)
 {
+    ROS_INFO("processNewStepPlan: Processing new step plan (%d, %d).", step_plan.header.stamp.sec, step_plan.header.stamp.nsec);
+
     if(step_plan.steps.size() == 0)
     {
         ROS_ERROR("processNewStepPlan: Received empty step plan.");
@@ -1236,8 +1249,19 @@ void FootstepManager::processOnboardStepPlanRequest(const vigir_footstep_plannin
 
 void FootstepManager::processOnboardStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan)
 {
-    vigir_footstep_planning_msgs::StepPlan plan = *step_plan;
-    processNewStepPlan(plan);
+    boost::mutex::scoped_lock lock(step_plan_mutex_);
+
+    if(step_plan->header.stamp.nsec != last_onboard_step_plan_stamp_.nsec || step_plan->header.stamp.sec != last_onboard_step_plan_stamp_.sec)
+    {
+        vigir_footstep_planning_msgs::StepPlan plan = *step_plan;
+        processNewStepPlan(plan);
+
+        last_onboard_step_plan_stamp_ = step_plan->header.stamp;
+    }
+    else
+    {
+        ROS_INFO("processOnboardStepPlan: Ignoring repeated plan (%d, %d).", step_plan->header.stamp.sec, step_plan->header.stamp.nsec);
+    }
 }
 
 // onboard action callbacks
@@ -1248,8 +1272,19 @@ void FootstepManager::processOCSStepPlanRequest(const vigir_footstep_planning_ms
 
 void FootstepManager::processOCSStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan)
 {
-    vigir_footstep_planning_msgs::StepPlan plan = *step_plan;
-    processNewStepPlan(plan);
+    boost::mutex::scoped_lock lock(step_plan_mutex_);
+
+    if(step_plan->header.stamp.nsec != last_ocs_step_plan_stamp_.nsec || step_plan->header.stamp.sec != last_ocs_step_plan_stamp_.sec)
+    {
+        vigir_footstep_planning_msgs::StepPlan plan = *step_plan;
+        processNewStepPlan(plan);
+
+        last_ocs_step_plan_stamp_ = step_plan->header.stamp;
+    }
+    else
+    {
+        ROS_INFO("processOnboardStepPlan: Ignoring repeated plan (%d, %d).", step_plan->header.stamp.sec, step_plan->header.stamp.nsec);
+    }
 }
 
 // utilities
