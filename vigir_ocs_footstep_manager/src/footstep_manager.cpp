@@ -22,10 +22,6 @@ void FootstepManager::onInit()
     nh.param("foot/size/x", foot_size.x, 0.26);
     nh.param("foot/size/y", foot_size.y, 0.13);
     nh.param("foot/size/z", foot_size.z, 0.05);
-    nh.param("foot/origin_shift/x", foot_origin_shift.x, 0.0);
-    nh.param("foot/origin_shift/y", foot_origin_shift.y, 0.0);
-    nh.param("foot/origin_shift/z", foot_origin_shift.z, 0.0);
-    nh.param("foot/separation", foot_separation, 0.23);
 
     nh.param("upper_body/size/x", upper_body_size.x, 0.7);
     nh.param("upper_body/size/y", upper_body_size.y, 1.1);
@@ -63,9 +59,6 @@ void FootstepManager::onInit()
     footstep_body_bb_array_pub_ = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_path_body_array", 1, true );
     footstep_path_pub_          = nh.advertise<nav_msgs::Path>( "/flor/ocs/footstep/path", 1, true );
     plan_goal_array_pub_        = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/plan_goal_array", 1, true );
-
-    // use this to track current feet pose
-    lower_body_state_sub_       = nh.subscribe("/flor/state/lower_body_world", 1, &FootstepManager::processLowerBodyState, this);
 
     // initialize all ros action clients
     //update feet considering intial goal
@@ -123,6 +116,9 @@ void FootstepManager::onInit()
 
     // point cloud visualization for plan request feedback
     planner_plan_request_feedback_cloud_pub_ = nh.advertise<sensor_msgs::PointCloud2>( "/flor/ocs/footstep/plan_request_feedback", 1, true );
+
+    // client for feet pose generator
+    generate_feet_pose_client = nh.serviceClient<vigir_footstep_planning_msgs::GenerateFeetPoseService>("generate_feet_pose");
 
     ROS_INFO("FootstepManager initialized!");
 
@@ -333,11 +329,6 @@ void FootstepManager::stepPlanToFootPath(std::vector<vigir_footstep_planning_msg
     }
 }
 
-void FootstepManager::processLowerBodyState(const flor_state_msgs::LowerBodyState::ConstPtr& lower_body_state)
-{
-    lower_body_state_ = *lower_body_state;
-}
-
 void FootstepManager::processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal)
 {
     // uses goal pose to request
@@ -347,7 +338,7 @@ void FootstepManager::processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPl
     calculateGoal();
 
     // then update feet using the footstep planner
-    sendUpdateFeetGoal(goal_);
+    sendUpdateFeetGoal(goal_); /// TODO: Could be already done in calculateGoal within one single request
 }
 
 void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalUpdate::ConstPtr& plan_goal)
@@ -459,27 +450,18 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
 
 void FootstepManager::calculateGoal()
 {
-    //end estimates for foot distance
-    double end_yaw = tf::getYaw(goal_pose_.pose.orientation);
-    double shift_x = -sin(end_yaw) * (0.5 * foot_separation);
-    double shift_y =  cos(end_yaw) * (0.5 * foot_separation);
+    vigir_footstep_planning_msgs::GenerateFeetPoseService feet_pose_service;
+    feet_pose_service.request.request.header = goal_pose_.header;
+    feet_pose_service.request.request.pose = goal_pose_.pose;
+    feet_pose_service.request.request.flags = vigir_footstep_planning_msgs::FeetPoseRequest::FLAG_CURRENT_Z;
 
-    goal_.header.frame_id = "/world";
-    goal_.header.stamp = ros::Time::now();
+    if (!generate_feet_pose_client.call(feet_pose_service.request, feet_pose_service.response))
+    {
+      ROS_ERROR("Can't call 'FeetPoseGenerator'!");
+      return;
+    }
 
-    goal_.left.header.frame_id = "/world";
-    goal_.left.header.stamp = ros::Time::now();
-    goal_.left.pose.position.x = goal_pose_.pose.position.x + shift_x;
-    goal_.left.pose.position.y = goal_pose_.pose.position.y + shift_y;
-    goal_.left.pose.position.z = lower_body_state_.left_foot_pose.position.z;//goal_pose_.pose.position.z;
-    goal_.left.pose.orientation = goal_pose_.pose.orientation;
-
-    goal_.right.header.frame_id = "/world";
-    goal_.right.header.stamp = ros::Time::now();
-    goal_.right.pose.position.x = goal_pose_.pose.position.x - shift_x;
-    goal_.right.pose.position.y = goal_pose_.pose.position.y - shift_y;
-    goal_.right.pose.position.z = lower_body_state_.right_foot_pose.position.z;//goal_pose_.pose.position.z;
-    goal_.right.pose.orientation = goal_pose_.pose.orientation;
+    goal_ = feet_pose_service.response.feet;
 
     // since feet poses are reported in robot feet frame (ankle), transform from ankle to sole
     foot_pose_transformer_->transformToPlannerFrame(goal_);
@@ -550,23 +532,34 @@ void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootste
 
 void FootstepManager::requestStepPlanFromRobot()
 {
-    // first we calculate start feet poses
-    vigir_footstep_planning_msgs::Feet start;
+    // get start feet pose
+    vigir_footstep_planning_msgs::GenerateFeetPoseService feet_pose_service;
+    feet_pose_service.request.request.header.frame_id = "/world";
+    feet_pose_service.request.request.header.stamp = ros::Time::now();
+    feet_pose_service.request.request.flags = vigir_footstep_planning_msgs::FeetPoseRequest::FLAG_CURRENT;
 
-    start.header = lower_body_state_.header;
-    //start left
-    start.left.header = lower_body_state_.header;
-    start.left.foot_index = vigir_footstep_planning_msgs::Foot::LEFT;
-    start.left.pose = lower_body_state_.left_foot_pose;
-    //start right
-    start.right.header = lower_body_state_.header;
-    start.right.foot_index = vigir_footstep_planning_msgs::Foot::RIGHT;
-    start.right.pose = lower_body_state_.right_foot_pose;
+    if (!generate_feet_pose_client.call(feet_pose_service.request, feet_pose_service.response))
+    {
+      ROS_ERROR("Can't call 'FeetPoseGenerator'!");
+      return;
+    }
 
-    // since lower body state reports feet in robot frame (ankle), need to transform it to planner frame
-    foot_pose_transformer_->transformToPlannerFrame(start);
+    // check result
+    if (vigir_footstep_planning::hasError(feet_pose_service.response.status))
+    {
+      ROS_ERROR("Error occured while requesting current feet pose:\n%s", vigir_footstep_planning::toString(feet_pose_service.response.status).c_str());
+      return;
+    }
+    else if (vigir_footstep_planning::hasWarning(feet_pose_service.response.status))
+    {
+      ROS_ERROR("Warning occured while requesting current feet pose:\n%s", vigir_footstep_planning::toString(feet_pose_service.response.status).c_str());
+      return;
+    }
 
-    sendStepPlanRequestGoal(start, goal_);
+    // since feet is reported in robot frame (ankle), need to transform it to planner frame
+    foot_pose_transformer_->transformToPlannerFrame(feet_pose_service.response.feet);
+
+    sendStepPlanRequestGoal(feet_pose_service.response.feet, goal_);
 }
 
 void FootstepManager::requestStepPlanFromStep(vigir_footstep_planning_msgs::Step& step)

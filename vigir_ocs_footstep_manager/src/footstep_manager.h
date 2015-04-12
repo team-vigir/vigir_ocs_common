@@ -28,8 +28,6 @@
 #include <flor_ocs_msgs/OCSFootstepPlanUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
 
-#include <flor_state_msgs/LowerBodyState.h>
-
 #include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
 #include <vigir_footstep_planning_msgs/parameter_set.h>
 
@@ -67,9 +65,6 @@ namespace ocs_footstep
         void processExecuteFootstepRequest(const std_msgs::Bool::ConstPtr& msg);
         void processStitchPlansRequest(const std_msgs::Bool::ConstPtr& msg);
         void processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg);
-
-        // get the current and goal poses to be used when requesting a footstep plan
-        void processLowerBodyState(const flor_state_msgs::LowerBodyState::ConstPtr& lower_body_state);
 
         // callbacks for actions
         //updatefeet
@@ -183,7 +178,6 @@ namespace ocs_footstep
         ros::Subscriber footstep_plan_goal_sub_;
         ros::Subscriber footstep_plan_request_sub_;
         ros::Subscriber footstep_plan_update_sub_;
-        ros::Subscriber lower_body_state_sub_;
 
         // footstep plan request
         ros::Subscriber set_goal_sub_;
@@ -199,6 +193,9 @@ namespace ocs_footstep
         // step plan request feedback
         ros::Publisher planner_plan_request_feedback_cloud_pub_;
 
+        // feet pose generator client
+        ros::ServiceClient generate_feet_pose_client;
+
         std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> > footstep_plans_undo_stack_;
         std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> > footstep_plans_redo_stack_;
         visualization_msgs::MarkerArray footstep_array_;
@@ -212,14 +209,11 @@ namespace ocs_footstep
 
         // Parameters
         geometry_msgs::Vector3 foot_size;
-        geometry_msgs::Vector3 foot_origin_shift;
-        double foot_separation;
 
         geometry_msgs::Vector3 upper_body_size;
         geometry_msgs::Vector3 upper_body_origin_shift;
 
         // used to calculate feet poses for start/end of footstep plan
-        flor_state_msgs::LowerBodyState lower_body_state_;
         geometry_msgs::PoseStamped goal_pose_;
         vigir_footstep_planning_msgs::Feet goal_;
 
