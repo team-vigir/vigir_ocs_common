@@ -3780,7 +3780,7 @@ void Base3DView::addHotkeys()
     //define step goal
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+g",boost::bind(&Base3DView::defineFootstepGoal,this));   
     //request footstep plan
-    HotkeyManager::Instance()->addHotkeyFunction("ctrl+h",boost::bind(&Base3DView::requestStepPlanHotkey,this));    
+    //HotkeyManager::Instance()->addHotkeyFunction("ctrl+h",boost::bind(&Base3DView::requestStepPlanHotkey,this));
     //execute footstep plan
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+j",boost::bind(&Base3DView::executeStepPlanHotkey,this));    
     //E-Stop
@@ -3816,11 +3816,11 @@ void Base3DView::pointcloudIntensityHotkey()
 {
     region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
 }
-void Base3DView::requestStepPlanHotkey()
-{
-   if(footstep_vis_manager_->hasGoal())
-      footstep_vis_manager_->requestStepPlan();
-}
+//void Base3DView::requestStepPlanHotkey()
+//{
+//   if(footstep_vis_manager_->hasGoal())
+//      footstep_vis_manager_->requestStepPlan();
+//}
 void Base3DView::executeStepPlanHotkey()
 {
     if(footstep_vis_manager_->hasValidStepPlan())

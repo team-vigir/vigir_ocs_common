@@ -42,7 +42,7 @@ void ContextMenuManager::addSeparatorItem()
 }
 
 //builds entire context menu including specific widgets
-void ContextMenuManager::buildContextMenuHeirarchy()
+void ContextMenuManager::buildContextMenuHierarchy()
 {
     for(int i=0;i<context_menu_items_.size();i++)
     {
@@ -101,7 +101,7 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     // first we need to query the 3D scene to retrieve the context
     base_3d_view_->emitQueryContext(x,y);
 
-    buildContextMenuHeirarchy();
+    buildContextMenuHierarchy();
 
     //toggle visibility of context items for a base view
 
@@ -124,17 +124,17 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     //remove footstep-related items if context is not footstep
     if(base_3d_view_->getActiveContext().find("footstep") == std::string::npos || base_3d_view_->getActiveContext().find("footstep goal") != std::string::npos)
     {
-        setItemVisibility("Select Footstep",false);
-        setItemVisibility("Lock Footstep",false);
-        setItemVisibility("Unlock Footstep",false);
-        setItemVisibility("Remove Footstep",false);
         setItemVisibility("Set Starting Footstep",false);
+        setItemVisibility("Select Footstep",false);
     }
+
+    //setItemVisibility("Lock Footstep",false);
+    //setItemVisibility("Unlock Footstep",false);
+    //setItemVisibility("Remove Footstep",false);
 
     //footstep goal is still technically a footstep but need seperate case
     if(base_3d_view_->getActiveContext().find("footstep goal") == std::string::npos)
     {
-        //context_menu_->removeAction(selectFootstepGoalMenu->action);
         setItemVisibility("Select Footstep Goal",false);
     }
 
@@ -142,19 +142,18 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     //if(!base_3d_view_->getFootstepVisManager()->hasGoal())
     //{
         //setItemVisibility("Request Step Plan",false);
-        setItemVisibility("Request Step Plan...",false);
+        //setItemVisibility("Request Step Plan...",false);
     //}
 
     //cannot execute without footstep plan
-    //if(!footstep_vis_manager_->hasValidStepPlan())
-    //{
-    //    context_menu_.removeAction(executeFootstepPlanMenu->action);
-    //}
+    if(!base_3d_view_->getFootstepVisManager()->hasValidStepPlan())
+    {
+        setItemVisibility("Execute Step Plan",false);
+    }
 
     if(!base_3d_view_->getFootstepVisManager()->hasStartingFootstep())
     {
         setItemVisibility("Clear Starting Footstep",false);
-       //context_menu_.removeAction(clearStartFootstepMenu->action);
     }
 
     // context is stored in the active_context_ variable

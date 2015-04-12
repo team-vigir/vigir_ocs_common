@@ -686,7 +686,7 @@ protected:
     void resetPointCloudsHotkey();
     void rainbowColorHotkey();
     void pointcloudIntensityHotkey();
-    void requestStepPlanHotkey();
+    //void requestStepPlanHotkey();
     void executeStepPlanHotkey();
     void lockTranslationHotkey();
 

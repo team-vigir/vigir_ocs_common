@@ -75,6 +75,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     interaction_mode_ = 0;
     pattern_generation_enabled_ = 0;
     start_step_index_ = -1;
+    need_plan_update_ = false;
 
     // initialize displays for goals
     display_goal_marker_ = NULL;
@@ -217,6 +218,8 @@ void FootstepVisManager::requestExecuteStepPlan()
 
 void FootstepVisManager::requestStepPlan()
 {
+    need_plan_update_ = false;
+
     flor_ocs_msgs::OCSFootstepPlanRequest cmd;
     //set footstep paramaters from ui
     cmd.max_time = max_time_;
@@ -225,7 +228,6 @@ void FootstepVisManager::requestStepPlan()
     cmd.interaction_mode = interaction_mode_;
     cmd.pattern_generation_enabled = pattern_generation_enabled_;
     ROS_INFO("PLAN time:%f steps:%d ratio:%f intmode:%d pattern:%d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
-
     footstep_plan_request_pub_.publish(cmd);
 
     NotificationSystem::Instance()->notifyPassive("Planning Footsteps");
@@ -237,6 +239,9 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
     has_goal_ = true;
     enableFootstepGoalDisplays( false, true, true );
 
+    // enable update of footstep plan
+    need_plan_update_ = true;
+
     flor_ocs_msgs::OCSFootstepPlanGoal cmd;
     cmd.goal_pose = *pose;
     footstep_plan_goal_pub_.publish(cmd);
@@ -247,6 +252,9 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
     // only do something if we're getting feedback
     if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::FEEDBACK)
     {
+        if(need_plan_update_)
+            requestStepPlan();
+
         // create/update step plan goal marker
         {
         std::string step_pose_string = "/step_plan_goal_marker";
@@ -383,10 +391,13 @@ void FootstepVisManager::updateInteractiveMarkers()
             cmd.pose.pose.orientation.z = qr.z;
             interactive_marker_update_pub_.publish(cmd);
         }
+        // even though we don't add the intermediate marker to the end, we still need to account for it
+        if(i == footstep_list_.footstep_id_list.size()-1)
+            num_step_plans_++;
     }
 
     // check if we need to disable any step plan markers
-    for(int i = num_step_plans_; i < display_step_plan_marker_list_.size(); i++)
+    for(int i = num_step_plans_-1; i < display_step_plan_marker_list_.size(); i++)
         display_step_plan_marker_list_[i]->setEnabled( false );
 
     // check if it is possible to execute footstep plan without specifying a plan
@@ -496,6 +507,10 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
             ROS_ERROR("Error: input string was not valid");
         }
     }
+
+    // on mouse release, update plan
+    if(msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP)
+        need_plan_update_ = true;
 }
 
 void FootstepVisManager::updateFootstepParamaters(double maxTime,int maxSteps,double pathLengthRatio,int interactionMode,bool patternGeneration)

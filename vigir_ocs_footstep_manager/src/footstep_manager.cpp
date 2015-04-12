@@ -584,9 +584,6 @@ void FootstepManager::requestStepPlanFromStep(vigir_footstep_planning_msgs::Step
     else
         start_foot = vigir_footstep_planning_msgs::StepPlanRequest::RIGHT;
 
-    // since lower body state reports feet in robot frame (ankle), need to transform it to planner frame
-    foot_pose_transformer_->transformToPlannerFrame(start);
-
     sendStepPlanRequestGoal(start, goal_, next_step.step_index, start_foot);
 }
 
@@ -781,7 +778,7 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
 {
     vigir_footstep_planning_msgs::StepPlanRequest request;
 
-    //convert transform to ankle for planner
+    //convert transform to ankle for planner, but only transform start pose if start is 0
     foot_pose_transformer_->transformToRobotFrame(start);
     foot_pose_transformer_->transformToRobotFrame(goal);
 

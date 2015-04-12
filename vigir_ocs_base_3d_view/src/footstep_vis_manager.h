@@ -195,6 +195,7 @@ private:
     // variables that determine the state of the footstep plan
     bool has_goal_;
     bool has_valid_step_plan_;
+    bool need_plan_update_;
     unsigned int num_step_plans_;
 
 };
