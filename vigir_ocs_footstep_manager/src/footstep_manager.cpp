@@ -453,7 +453,10 @@ void FootstepManager::calculateGoal()
     vigir_footstep_planning_msgs::GenerateFeetPoseService feet_pose_service;
     feet_pose_service.request.request.header = goal_pose_.header;
     feet_pose_service.request.request.pose = goal_pose_.pose;
+    // this is for 3D interaction
     feet_pose_service.request.request.flags = vigir_footstep_planning_msgs::FeetPoseRequest::FLAG_CURRENT_Z;
+    // this is for 2D interaction
+    //feet_pose_service.request.request.flags = vigir_footstep_planning_msgs::FeetPoseRequest::FLAG_MOVE;
 
     if (!generate_feet_pose_client.call(feet_pose_service.request, feet_pose_service.response))
     {

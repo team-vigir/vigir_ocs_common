@@ -32,6 +32,7 @@
 #include <boost/bind.hpp>
 #include <vector>
 #include <map>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <stdlib.h>
 #include "notification_system.h"
 
@@ -198,6 +199,9 @@ private:
     bool need_plan_update_;
     unsigned int num_step_plans_;
 
+    // avoid detecting double click as dragging interactive marker
+    boost::posix_time::ptime double_click_timer_;
+    bool button_down_;
 };
 
 }

@@ -82,6 +82,9 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     display_goal_footstep_marker_[0] = NULL;
     display_goal_footstep_marker_[1] = NULL;
     has_goal_ = false;
+
+    //
+    button_down_ = false;
 }
 
 FootstepVisManager::~FootstepVisManager()
@@ -227,7 +230,7 @@ void FootstepVisManager::requestStepPlan()
     cmd.path_length_ratio = path_length_ratio_;
     cmd.interaction_mode = interaction_mode_;
     cmd.pattern_generation_enabled = pattern_generation_enabled_;
-    ROS_INFO("PLAN time:%f steps:%d ratio:%f intmode:%d pattern:%d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
+    //ROS_INFO("PLAN time:%f steps:%d ratio:%f intmode:%d pattern:%d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
     footstep_plan_request_pub_.publish(cmd);
 
     NotificationSystem::Instance()->notifyPassive("Planning Footsteps");
@@ -347,7 +350,8 @@ void FootstepVisManager::updateInteractiveMarkers()
     for(int i = 0; i < footstep_list_.footstep_id_list.size(); i++)
     {
         // also check step plan ID so that we always have markers for the end points of step plans
-        if((i+1 < footstep_list_.footstep_id_list.size() && footstep_list_.step_plan_id_list[i] != footstep_list_.step_plan_id_list[i+1]))// || i == footstep_list_.footstep_id_list.size()-1)
+        //if(i == footstep_list_.footstep_id_list.size()-1 || footstep_list_.step_plan_id_list[i] != footstep_list_.step_plan_id_list[i+1]) // to create a marker for the last steps as well
+        if(footstep_list_.step_plan_id_list[i] != footstep_list_.step_plan_id_list[i+1] && i+1 < footstep_list_.footstep_id_list.size()) // to use the specialized goal marker at the end
         {
             // only do something if it's a new step plan
             std::string step_pose_string = "/step_plan_"+boost::lexical_cast<std::string>(num_step_plans_++)+"_marker";
@@ -397,7 +401,7 @@ void FootstepVisManager::updateInteractiveMarkers()
     }
 
     // check if we need to disable any step plan markers
-    for(int i = num_step_plans_-1; i < display_step_plan_marker_list_.size(); i++)
+    for(int i = num_step_plans_; i < display_step_plan_marker_list_.size(); i++)
         display_step_plan_marker_list_[i]->setEnabled( false );
 
     // check if it is possible to execute footstep plan without specifying a plan
@@ -509,8 +513,16 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
     }
 
     // on mouse release, update plan
-    if(msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP)
+    if(msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_DOWN)
+    {
+        double_click_timer_ = boost::posix_time::second_clock::local_time();
+        button_down_ = true;
+    }
+    else if(button_down_ && msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP && (boost::posix_time::second_clock::local_time()-double_click_timer_).total_milliseconds() > 0.1)
+    {
         need_plan_update_ = true;
+        button_down_ = false;
+    }
 }
 
 void FootstepVisManager::updateFootstepParamaters(double maxTime,int maxSteps,double pathLengthRatio,int interactionMode,bool patternGeneration)
