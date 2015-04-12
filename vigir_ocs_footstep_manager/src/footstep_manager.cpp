@@ -968,10 +968,14 @@ void FootstepManager::feedbackEditStep(const vigir_footstep_planning_msgs::EditS
 
 void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::EditStepResultConstPtr& result)
 {
-    ROS_INFO("EditStep: Got action response. %s", result->status.error_msg.c_str());
-
-    if(!vigir_footstep_planning::hasError(result->status))
+    if (vigir_footstep_planning::hasError(result->status) && result->status.error != vigir_footstep_planning_msgs::ErrorStatus::ERR_INVALID_TERRAIN_MODEL)
     {
+        ROS_ERROR("EditStep: Error occured!\n%s", vigir_footstep_planning::toString(result->status).c_str());
+    }
+    else
+    {
+        ROS_INFO("EditStep: Got action response.\n%s", vigir_footstep_planning::toString(result->status).c_str());
+
         if(result->step_plans.size() == 0)
         {
             ROS_ERROR("EditStep: Received no step plan.");
