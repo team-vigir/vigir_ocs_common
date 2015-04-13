@@ -32,6 +32,7 @@
 #include <boost/bind.hpp>
 #include <vector>
 #include <map>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <stdlib.h>
 #include "notification_system.h"
 
@@ -180,6 +181,8 @@ private:
     rviz::Display* planner_start_;
     rviz::Display* planned_path_;
     rviz::Display* footsteps_path_body_array_;
+    rviz::Display* planner_terrain_classifier_cloud_processed_;
+    rviz::Display* planner_plan_request_feedback_cloud_;
 
     int start_step_index_;
 
@@ -193,8 +196,12 @@ private:
     // variables that determine the state of the footstep plan
     bool has_goal_;
     bool has_valid_step_plan_;
+    bool need_plan_update_;
     unsigned int num_step_plans_;
 
+    // avoid detecting double click as dragging interactive marker
+    boost::posix_time::ptime double_click_timer_;
+    bool button_down_;
 };
 
 }

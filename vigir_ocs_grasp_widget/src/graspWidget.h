@@ -153,7 +153,14 @@ private:
     std::string hand_side_;
     std::string hand_type_;
     std::string hand_name_;
+    std::string palm_link_;
+    std::string wrist_link_;
+    std::string hand_group_;
     uint8_t currentGraspMode;
+
+    std::string left_wrist_link_, right_wrist_link_;
+    std::string left_palm_link_,  right_palm_link_;
+    std::string left_hand_group_, right_hand_group_;
 
     // **************************
     // show robot status messages

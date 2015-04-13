@@ -18,6 +18,9 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     , follow_ban_(false)
     , hand_side_(hand)
     , hand_name_(hand_name)
+    , wrist_link_("l_hand")
+    , palm_link_("l_palm")
+    , hand_group_("l_hand_group")
 {
 
     std::string ip = ros::package::getPath("vigir_ocs_grasp_widget")+"/icons/";
@@ -56,11 +59,29 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     grasp_info_client_           = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
     template_info_client_        = nh_.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
 
+    //Get hand parameters from server
+    left_wrist_link_ = "l_hand";
+    left_palm_link_  = "l_palm";
+    left_hand_group_ = "l_hand_group";
+    right_wrist_link_ = "r_hand";
+    right_palm_link_  = "r_palm";
+    right_hand_group_ = "r_hand_group";
+
+    if(!nh_.getParam("/left_wrist_link", left_wrist_link_))
+        ROS_WARN("No left wrist link defined, using l_hand as default");
+    if(!nh_.getParam("/left_palm_link",  left_palm_link_))
+        ROS_WARN("No left palm link defined, using l_palm as default");
+    if(!nh_.getParam("/left_hand_group", left_hand_group_))
+        ROS_WARN("No left hand group defined, using l_hand_group as default");
+
+    if(!nh_.getParam("/right_wrist_link", right_wrist_link_))
+        ROS_WARN("No right wrist link defined, using r_hand as default");
+    if(!nh_.getParam("/right_palm_link",  right_palm_link_))
+        ROS_WARN("No right palm link defined, using r_palm as default");
+    if(!nh_.getParam("/right_hand_group", right_hand_group_))
+        ROS_WARN("No right hand group defined, using r_hand_group as default");
 
     ui->stackedWidget->setVisible(false);
-
-    if(hand_side_ == "right")
-        hand_name_ = "r_hand";
 
     float color_r, color_g, color_b;
 
@@ -69,10 +90,18 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
         color_r = 1.0f;
         color_g = 1.0f;
         color_b = 0.0f;
+
+        palm_link_  = left_palm_link_;
+        wrist_link_ = left_wrist_link_;
+        hand_group_ = left_hand_group_;
     }else{
         color_r = 0.0f;
         color_g = 1.0f;
         color_b = 1.0f;
+
+        palm_link_  = right_palm_link_;
+        wrist_link_ = right_wrist_link_;
+        hand_group_ = right_hand_group_;
     }
 
     this->setWindowTitle(QString::fromStdString(hand_side_ + " Hand Grasp Widget"));
@@ -92,6 +121,12 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     //Start hand model operations
     hand_model_loader_.reset(new robot_model_loader::RobotModelLoader(hand_side_ + "_hand_robot_description"));
     hand_robot_model_ = hand_model_loader_->getModel();
+
+    if (!hand_robot_model_.get()){
+      ROS_ERROR("Error loading hand robot model in GraspWidget, will not work correctly!");
+      return;
+    }
+
     hand_robot_state_.reset(new robot_state::RobotState(hand_robot_model_));
     //Finish hand model operations
 
@@ -99,27 +134,27 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     robot_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
     robot_model_ = robot_model_loader_->getModel();
 
-    if(robot_model_->hasJointModelGroup(hand_side_+"_hand"))
+    if(robot_model_->hasJointModelGroup(hand_group_))
     {
         hand_joint_names_.clear();
-        hand_joint_names_ = robot_model_->getJointModelGroup(hand_side_+"_hand")->getActiveJointModelNames();
+        hand_joint_names_ = robot_model_->getJointModelGroup(hand_group_)->getActiveJointModelNames();
 
         for(int i = 0; i < hand_joint_names_.size(); i++)
             ROS_INFO("Grasp widget loading joint %d: %s",i,hand_joint_names_[i].c_str());
 
-        if(!robot_model_->hasLinkModel(hand_side_+"_palm")){
-            ROS_WARN("Hand model does not contain %s_palm",hand_side_.c_str());
+        if(!robot_model_->hasLinkModel(palm_link_)){
+            ROS_WARN("Hand model does not contain %s",palm_link_.c_str());
         }else{
-            robot_model::LinkTransformMap hand_palm_tf_map = robot_model_->getLinkModel(hand_side_+"_palm")->getAssociatedFixedTransforms();
-            ROS_INFO("Requested linktransform for %s_palm",hand_side_.c_str());
+            robot_model::LinkTransformMap hand_palm_tf_map = robot_model_->getLinkModel(palm_link_)->getAssociatedFixedTransforms();
+            ROS_INFO("Requested linktransform for %s",palm_link_.c_str());
 
             Eigen::Affine3d hand_palm_aff;
             bool found = false;
 
             for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
-                ROS_INFO("Getting links in map: %s and comparing to: %s", it->first->getName().c_str(), (hand_side_.substr(0,1)+std::string("_hand")).c_str());
-                if(it->first->getName() == hand_side_.substr(0,1)+std::string("_hand")){
-                    ROS_INFO("Wrist %c_hand found!!!",hand_side_[0]);
+                ROS_INFO("Getting links in map: %s and comparing to: %s", it->first->getName().c_str(), wrist_link_.c_str());
+                if(it->first->getName() == wrist_link_){
+                    ROS_INFO("Wrist %s found!!!",wrist_link_.c_str());
                     hand_palm_aff = it->second;
                     found = true;
                     break;
@@ -134,8 +169,8 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
             }
         }
         // change color of the ghost template hands
-        std::vector<std::string> link_names = robot_model_->getJointModelGroup(hand_side_+ "_hand")->getLinkModelNames();
-        link_names.push_back(robot_model_->getJointModelGroup(hand_side_+ "_hand")->getCommonRoot()->getChildLinkModel()->getName());
+        std::vector<std::string> link_names = robot_model_->getJointModelGroup(hand_group_)->getLinkModelNames();
+        link_names.push_back(palm_link_);
 
         for (size_t i = 0; i < link_names.size(); ++i)
         {
@@ -611,10 +646,10 @@ void graspWidget::publishHandPose(unsigned int id)
             geometry_msgs::Pose template_T_palm;//geometry_msgs::PoseStamped grasp_transform;
             template_T_palm = grasp_pose.pose;//grasp_transform.pose = grasp_db_[grasp_index].final_pose;
 
-            if(!ui->show_grasp_radio->isChecked())  //Pre-Grasp pose
-                gripperTranslationToPreGraspPose(template_T_palm,trans);
-
             staticTransform(template_T_palm);
+
+            if(!ui->show_grasp_radio->isChecked())  //Pre-Grasp pose
+                gripperTranslationToPreGraspPose(template_T_palm,trans);            
 
             unsigned int template_index;
             for(template_index = 0; template_index < last_template_list_.template_id_list.size(); template_index++)
@@ -860,8 +895,8 @@ void graspWidget::gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, mo
         direction.vector.z = 0 ;
     }
 
-    direction.vector.x *= hand_side_ == "left" ? -trans.desired_distance : trans.desired_distance;  //Change due to Atlas specifics, hand axis are reflected
-    direction.vector.y *= hand_side_ == "left" ? -trans.desired_distance : trans.desired_distance;  //Change due to Atlas specifics, hand axis are reflected
+    direction.vector.x *= -trans.desired_distance; //hand_side_ == "left" ? -trans.desired_distance : trans.desired_distance;  //Change due to Atlas specifics, hand axis are reflected
+    direction.vector.y *= -trans.desired_distance; //hand_side_ == "left" ? -trans.desired_distance : trans.desired_distance;  //Change due to Atlas specifics, hand axis are reflected
     direction.vector.z *= -trans.desired_distance;
 
     ROS_INFO("setting trans; dx: %f, dy: %f, dz: %f", direction.vector.x, direction.vector.y, direction.vector.z);

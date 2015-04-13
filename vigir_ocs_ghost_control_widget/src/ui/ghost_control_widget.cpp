@@ -20,6 +20,7 @@ std::vector<unsigned char> GhostControlWidget::saved_state_world_lock_;
 unsigned char GhostControlWidget::saved_state_collision_avoidance_;
 unsigned char GhostControlWidget::saved_state_lock_pelvis_;
 unsigned char GhostControlWidget::saved_state_position_only_ik_;
+unsigned char GhostControlWidget::saved_state_use_drake_ik_;
 
 GhostControlWidget::GhostControlWidget(QWidget *parent) :
     QWidget(parent)
@@ -119,7 +120,7 @@ void GhostControlWidget::timerEvent(QTimerEvent *event)
 void GhostControlWidget::processState(const flor_ocs_msgs::OCSGhostControl::ConstPtr &msg)
 {
     // apply state coming from message
-    loadState(msg->planning_group,msg->pose_source,msg->world_lock,msg->collision_avoidance,msg->lock_pelvis);
+    loadState(msg->planning_group,msg->pose_source,msg->world_lock,msg->collision_avoidance,msg->lock_pelvis, msg->use_drake_ik);
 
     // save as the last used state
     saveState();
@@ -234,6 +235,7 @@ void GhostControlWidget::publishState( bool snap )
     cmd.lock_pelvis = saved_state_lock_pelvis_;
     cmd.snap = snap;
     cmd.position_only_ik = saved_state_position_only_ik_;
+    cmd.use_drake_ik = saved_state_use_drake_ik_;
 
     state_pub_.publish(cmd);
 }
@@ -270,6 +272,7 @@ void GhostControlWidget::saveState()
         //saved_state_world_lock_.push_back(ui->right_marker_lock->isChecked());
     }
 
+    saved_state_use_drake_ik_ = ui->use_drake_ik_->isChecked();
     saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();
     saved_state_position_only_ik_ = ui->position_only_ik_->isChecked();
 }
@@ -277,7 +280,7 @@ void GhostControlWidget::saveState()
 // default arguments are class members for saved state
 void GhostControlWidget::loadState(std::vector<unsigned char> planning_group, std::vector<unsigned char> pose_source,
                                    std::vector<unsigned char> world_lock, unsigned char collision_avoidance,
-                                   unsigned char lock_pelvis)
+                                   unsigned char lock_pelvis, unsigned char use_drake_ik)
 {
     /*ui->planning_left_->setChecked(planning_group[0]);
     ui->planning_right_->setChecked(planning_group[1]);
@@ -293,7 +296,8 @@ void GhostControlWidget::loadState(std::vector<unsigned char> planning_group, st
 
     //ui->collision_->setChecked(collision_avoidance);
 
-    ui->lock_pelvis_->setChecked(lock_pelvis);*/
+    ui->lock_pelvis_->setChecked(lock_pelvis);
+    ui->use_drake_ik_->setChecked(use_drake_ik)*/
 }
 
 void GhostControlWidget::applyClicked()
@@ -339,11 +343,11 @@ void GhostControlWidget::resetPelvisClicked()
     reset_pelvis_pub_.publish(cmd);
 }
 
-void GhostControlWidget::on_planning_left__clicked()
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_planning_left__clicked()
+//{
+//    saveState();
+//    publishState();
+//}
 
 void GhostControlWidget::on_planning_torso__clicked()
 {
@@ -366,49 +370,55 @@ void GhostControlWidget::on_position_only_ik__clicked()
     publishState();
 }
 
-void GhostControlWidget::on_planning_right__clicked()
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_planning_right__clicked()
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_lock_left__clicked()
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_lock_left__clicked()
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_lock_torso__clicked()
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_lock_torso__clicked()
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_lock_right__clicked()
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_lock_right__clicked()
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_pose_left__currentIndexChanged(int index)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_pose_left__currentIndexChanged(int index)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_pose_torso__currentIndexChanged(int index)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_pose_torso__currentIndexChanged(int index)
+//{
+//    saveState();
+//    publishState();
+//}
 
-void GhostControlWidget::on_pose_right__currentIndexChanged(int index)
-{
-    saveState();
-    publishState();
-}
+//void GhostControlWidget::on_pose_right__currentIndexChanged(int index)
+//{
+//    saveState();
+//    publishState();
+//}
 
 void GhostControlWidget::on_lock_pelvis__clicked()
+{
+    saveState();
+    publishState();
+}
+
+void GhostControlWidget::on_use_drake_ik__clicked()
 {
     saveState();
     publishState();
@@ -426,14 +436,12 @@ void GhostControlWidget::on_send_left_pose_button__clicked()
     set_to_target_pose_pub_.publish(cmd);
 }
 
-void GhostControlWidget::on_send_left_torso_pose_button__clicked()
-{
-    std_msgs::String cmd;
-
-    cmd.data = "l_arm_with_torso_group";
-
-    set_to_target_pose_pub_.publish(cmd);
-}
+//void GhostControlWidget::on_send_left_torso_pose_button__clicked()
+//{
+//    std_msgs::String cmd;
+//    cmd.data = "l_arm_with_torso_group";
+//    set_to_target_pose_pub_.publish(cmd);
+//}
 
 void GhostControlWidget::on_send_right_pose_button__clicked()
 {
@@ -447,14 +455,12 @@ void GhostControlWidget::on_send_right_pose_button__clicked()
     set_to_target_pose_pub_.publish(cmd);
 }
 
-void GhostControlWidget::on_send_right_torso_pose_button__clicked()
-{
-    std_msgs::String cmd;
-
-    cmd.data = "r_arm_with_torso_group";
-
-    set_to_target_pose_pub_.publish(cmd);
-}
+//void GhostControlWidget::on_send_right_torso_pose_button__clicked()
+//{
+//    std_msgs::String cmd;
+//    cmd.data = "r_arm_with_torso_group";
+//    set_to_target_pose_pub_.publish(cmd);
+//}
 
 //void GhostControlWidget::on_left_no_lock_toggled(bool checked)
 //{
@@ -504,14 +510,12 @@ void GhostControlWidget::on_send_left_configuration_button__clicked()
     set_to_target_config_pub_.publish(cmd);
 }
 
-void GhostControlWidget::on_send_left_torso_configuration_button__clicked()
-{
-    std_msgs::String cmd;
-
-    cmd.data = "l_arm_with_torso_group";
-
-    set_to_target_config_pub_.publish(cmd);
-}
+//void GhostControlWidget::on_send_left_torso_configuration_button__clicked()
+//{
+//    std_msgs::String cmd;
+//    cmd.data = "l_arm_with_torso_group";
+//    set_to_target_config_pub_.publish(cmd);
+//}
 
 void GhostControlWidget::on_send_right_configuration_button__clicked()
 {
@@ -525,20 +529,26 @@ void GhostControlWidget::on_send_right_configuration_button__clicked()
     set_to_target_config_pub_.publish(cmd);
 }
 
-void GhostControlWidget::on_send_right_torso_configuration_button__clicked()
-{
-    std_msgs::String cmd;
-
-    cmd.data = "r_arm_with_torso_group";
-
-    set_to_target_config_pub_.publish(cmd);
-}
+//void GhostControlWidget::on_send_right_torso_configuration_button__clicked()
+//{
+//    std_msgs::String cmd;
+//    cmd.data = "r_arm_with_torso_group";
+//    set_to_target_config_pub_.publish(cmd);
+//}
 
 void GhostControlWidget::on_send_upper_body_button__clicked()
 {
     std_msgs::String cmd;
-
     cmd.data = "both_arms_with_torso_group";
+
+    set_to_target_config_pub_.publish(cmd);
+}
+
+void GhostControlWidget::on_send_whole_body_button__clicked()
+{
+    std_msgs::String cmd;
+
+    cmd.data = "whole_body_group";
 
     set_to_target_config_pub_.publish(cmd);
 }

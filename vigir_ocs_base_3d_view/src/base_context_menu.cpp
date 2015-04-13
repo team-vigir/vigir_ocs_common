@@ -68,9 +68,9 @@ void BaseContextMenu::createContextMenuItems()
 
     context_menu_manager_->addActionItem("Select Footstep Goal",boost::bind(&Base3DView::selectFootstepGoal,base_3d_view_),NULL);
     context_menu_manager_->addActionItem("Select Footstep",boost::bind(&Base3DView::selectFootstep,base_3d_view_),NULL);
-    context_menu_manager_->addActionItem("Lock Footstep",boost::bind(&Base3DView::lockFootstep,base_3d_view_),NULL);
-    context_menu_manager_->addActionItem("Unlock Footstep",boost::bind(&Base3DView::unlockFootstep,base_3d_view_),NULL);
-    context_menu_manager_->addActionItem("Remove Footstep",boost::bind(&Base3DView::removeFootstep,base_3d_view_),NULL);
+    //context_menu_manager_->addActionItem("Lock Footstep",boost::bind(&Base3DView::lockFootstep,base_3d_view_),NULL);
+    //context_menu_manager_->addActionItem("Unlock Footstep",boost::bind(&Base3DView::unlockFootstep,base_3d_view_),NULL);
+    //context_menu_manager_->addActionItem("Remove Footstep",boost::bind(&Base3DView::removeFootstep,base_3d_view_),NULL);
     context_menu_manager_->addActionItem("Set Starting Footstep",boost::bind(&Base3DView::setStartingFootstep,base_3d_view_),NULL);
     context_menu_manager_->addActionItem("Clear Starting Footstep",boost::bind(&FootstepVisManager::clearStartingFootstep,footstep_vis_manager_),NULL);
     context_menu_manager_->addActionItem("Stitch Plans",boost::bind(&FootstepVisManager::requestStitchFootstepPlans,footstep_vis_manager_),NULL);
@@ -80,12 +80,9 @@ void BaseContextMenu::createContextMenuItems()
     context_menu_manager_->addActionItem("Snap Hand to Ghost",boost::bind(&Base3DView::snapHandGhost,base_3d_view_),NULL);
 
     context_menu_manager_->addActionItem("Create Step Plan Goal",boost::bind(&Base3DView::defineFootstepGoal,base_3d_view_), NULL);
-//    context_menu_manager_->addActionItem("Request Step Plan",boost::bind(&FootstepVisManager::requestStepPlan,footstep_vis_manager_,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL);
-//                                                                                                                                            //custom plan?? TO DO
-//    context_menu_manager_->addActionItem("Request Step Plan...",boost::bind(&FootstepVisManager::requestStepPlan,footstep_vis_manager_,flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN), NULL);
-    context_menu_manager_->addActionItem("Request Step Plan",boost::bind(&FootstepVisManager::requestStepPlan,footstep_vis_manager_), NULL);
+    //context_menu_manager_->addActionItem("Request Step Plan",boost::bind(&FootstepVisManager::requestStepPlan,footstep_vis_manager_), NULL);
                                                                                         //will be custom plan?
-    context_menu_manager_->addActionItem("Request Step Plan...",boost::bind(&FootstepVisManager::requestStepPlan,footstep_vis_manager_), NULL);
+    //context_menu_manager_->addActionItem("Request Step Plan...",boost::bind(&FootstepVisManager::requestStepPlan,footstep_vis_manager_), NULL);
     context_menu_manager_->addActionItem("Execute Step Plan",boost::bind(&FootstepVisManager::requestExecuteStepPlan,footstep_vis_manager_),NULL);
     context_menu_manager_->addActionItem("Undo Step Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL);
     context_menu_manager_->addActionItem("Redo Step Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL);

@@ -1,7 +1,7 @@
 #ifndef ROBOT_STATE_MANAGER_H
 #define ROBOT_STATE_MANAGER_H
 
-#include <flor_moveit_ocs_model/moveit_ocs_model.h>
+#include <vigir_ocs_robot_model/moveit_ocs_model.h>
 //temp fix. need to fix so install will install the h files.?
 //#include<flor_moveit_ocs_model/../../../src/flor_control/flor_moveit_ocs_model/include/flor_moveit_ocs_model/moveit_ocs_model.h>
 

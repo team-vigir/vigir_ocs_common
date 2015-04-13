@@ -1,7 +1,8 @@
 #include "joint_limit.h"
 #include "ui_joint_limit.h"
 #include <ros/package.h>
-#include <flor_planning_msgs/PlannerConfiguration.h>
+#include <vigir_planning_msgs/PlannerConfiguration.h>
+
 #include <flor_ocs_msgs/WindowCodes.h>
 
 joint_limit::joint_limit(QWidget *parent) :
@@ -10,16 +11,50 @@ joint_limit::joint_limit(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    constraints_pub_ = nh_.advertise<flor_planning_msgs::PlannerConfiguration>( "/flor/planning/upper_body/configuration",1,false);
-    lbzMinVal = -0.610865;
-    lbzMaxVal = 0.610865;
+    ros::NodeHandle pnh("~");
 
-    mbyMinVal = -1.2;
-    mbyMaxVal = 1.28;
+    robot_model_loader_.reset(new robot_model_loader::RobotModelLoader());
+    robot_model_ = robot_model_loader_->getModel();
 
-    ubxMinVal = -0.790809;
-    ubxMaxVal = 0.790809;
+    constraints_pub_ = nh_.advertise<vigir_planning_msgs::PlannerConfiguration>( "/flor/planning/upper_body/configuration",1,false);
+
     //key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &joint_limit::processNewKeyEvent, this );
+
+    std::vector<std::string> joints;
+    std::vector<std::string> joint_descriptions;
+
+    //joints.push_back("waist_pan");
+    //joints.push_back("waist_tilt");
+
+    std::string joint_list;
+    std::string joint_description_list;
+    pnh.param("joint_names", joint_list, std::string(""));
+    pnh.param("joint_name_descriptions", joint_description_list, std::string(""));
+
+    boost::algorithm::split(joints, joint_list, boost::is_any_of("\t "));
+    boost::algorithm::split(joint_descriptions, joint_description_list, boost::is_any_of("\t "));
+
+    bool use_descriptions = true;
+
+    if (joints.size() != joint_descriptions.size()){
+      ROS_WARN("Size of joint names list not same as joint name descriptions list! Not using descriptions!");
+      use_descriptions = false;
+    }
+
+    if ((joints.size() > 0) && (joints[0].length() > 0)){
+
+      for (size_t i = 0; i < joints.size(); ++i)
+      {
+        boost::shared_ptr<JointSettingControls> tmp;
+        tmp.reset(new JointSettingControls(ui->horizontalLayout,
+                                           joints[i],
+                                           use_descriptions ? joint_descriptions[i] : joints[i],
+                                           *robot_model_));
+
+        joint_controls_.push_back(tmp);
+
+      }
+    }
 
     window_control_sub = nh_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &joint_limit::processWindowControl, this );
     window_control_pub = nh_.advertise<std_msgs::Int8>("/flor/ocs/window_control", 1, false);
@@ -66,115 +101,42 @@ void joint_limit::moveEvent(QMoveEvent * event)
     //settings.setValue("mainWindowState", this->saveState());
 
 }
-void joint_limit::on_lbzMin_sliderReleased()
-{
-    if(ui->lbzMin->value() >= lbzMaxVal*1000000.0)
-        ui->lbzMin->setValue(lbzMinVal*1000000.0);
-    else
-    {
-        lbzMinVal = (float)ui->lbzMin->value()/1000000.0;
-        ui->lbzMinLabel->setText(QString::number(lbzMinVal,'g',6));
-    }
-}
-
-void joint_limit::on_lbzMax_sliderReleased()
-{
-    if(ui->lbzMax->value() <= lbzMinVal*1000000.0)
-        ui->lbzMax->setValue(lbzMaxVal*1000000.0);
-    else
-    {
-        lbzMaxVal = (float)ui->lbzMax->value()/1000000.0;
-        ui->lbzMaxLabel->setText(QString::number(lbzMaxVal,'g',6));
-    }
-}
-
-void joint_limit::on_mbyMin_sliderReleased()
-{
-    if(ui->mbyMin->value() >= mbyMaxVal*100.0)
-        ui->mbyMin->setValue(mbyMinVal*100.0);
-    else
-    {
-        mbyMinVal = (float)ui->mbyMin->value()/100.0;
-        ui->mbyMinLabel->setText(QString::number(mbyMinVal,'g',6));
-    }
-}
-
-void joint_limit::on_mbyMax_sliderReleased()
-{
-    if(ui->mbyMax->value() <= mbyMinVal*100.0)
-        ui->mbyMax->setValue(mbyMaxVal*100.0);
-    else
-    {
-        mbyMaxVal = (float)ui->mbyMax->value()/100.0;
-        ui->mbyMaxLabel->setText(QString::number(mbyMaxVal,'g',6));
-    }
-}
-
-void joint_limit::on_ubxMin_sliderReleased()
-{
-    if(ui->ubxMin->value() >= ubxMaxVal*1000000.0)
-        ui->ubxMin->setValue(ubxMinVal*1000000.0);
-    else
-    {
-        ubxMinVal = (float)ui->ubxMin->value()/1000000.0;
-        ui->ubxMinLabel->setText(QString::number(ubxMinVal,'g',6));
-    }
-}
-
-void joint_limit::on_ubxMax_sliderReleased()
-{
-    if(ui->ubxMax->value() <= ubxMinVal*1000000.0)
-        ui->ubxMax->setValue(ubxMaxVal*1000000.0);
-    else
-    {
-        ubxMaxVal = (float)ui->ubxMax->value()/1000000.0;
-        ui->ubxMaxLabel->setText(QString::number(ubxMaxVal,'g',6));
-    }
-}
 
 void joint_limit::on_apply_clicked()
 {
-    flor_planning_msgs::PlannerConfiguration msg;
+    vigir_planning_msgs::PlannerConfiguration msg;
 
-    if (!ui->lock_yaw_->isChecked()){
-      msg.joint_position_constraints.back_bkz_max.data = (float)lbzMaxVal;
-      msg.joint_position_constraints.back_bkz_min.data = (float)lbzMinVal;
-    }else{
-      msg.joint_position_constraints.back_bkz_max.data = 100.0f;
-      msg.joint_position_constraints.back_bkz_min.data = 100.0f;
+    for (size_t i = 0; i < joint_controls_.size(); ++i){
+
+      // If locked, set both limits to same value
+      if (joint_controls_[i]->isLocked()){
+        vigir_planning_msgs::JointPositionConstraint constraint;
+        constraint.joint_index = joint_controls_[i]->getJointIndex();
+
+        constraint.joint_max = 100.0;
+        constraint.joint_min = constraint.joint_max;
+
+        msg.joint_position_constraints.push_back(constraint);
+
+      //Only add constraint if bounds are different from limits
+      }else if(joint_controls_[i]->constraintsDifferFromModelBounds()){
+        vigir_planning_msgs::JointPositionConstraint constraint;
+
+        constraint.joint_index = joint_controls_[i]->getJointIndex();
+        constraint.joint_max = joint_controls_[i]->getMax();
+        constraint.joint_min = joint_controls_[i]->getMin();
+
+        msg.joint_position_constraints.push_back(constraint);
+      }
     }
 
-    if (!ui->lock_pitch_->isChecked()){
-      msg.joint_position_constraints.back_bky_max.data = (float)mbyMaxVal;
-      msg.joint_position_constraints.back_bky_min.data = (float)mbyMinVal;
-    }else{
-      msg.joint_position_constraints.back_bky_max.data = 100.0f;
-      msg.joint_position_constraints.back_bky_min.data = 100.0f;
-    }
-
-    if (!ui->lock_roll_->isChecked()){
-      msg.joint_position_constraints.back_bkx_max.data = (float)ubxMaxVal;
-      msg.joint_position_constraints.back_bkx_min.data = (float)ubxMinVal;
-    }else{
-      msg.joint_position_constraints.back_bkx_max.data = 100.0f;
-      msg.joint_position_constraints.back_bkx_min.data = 100.0f;
-    }
-
-    /*
-    std::cout << "The following values were set:" <<std::endl;
-    std::cout << "lbz: max = " << ui->lbzMax->value() << " min = " << ui->lbzMin->value() << std::endl;
-    std::cout << "mby: max = " << ui->mbyMax->value() << " min = " << ui->mbyMin->value() << std::endl;
-    std::cout << "ubx: max = " << ui->ubxMax->value() << " min = " << ui->ubxMin->value() << std::endl << std::endl;
-    */
-
-    msg.disable_collision_avoidance.data = !ui->collision_avoidance_->isChecked();
+    msg.disable_collision_avoidance = !ui->collision_avoidance_->isChecked();
     msg.disable_left_hand_collision_avoidance = !ui->left_hand_collision_avoidance_->isChecked();
     msg.disable_right_hand_collision_avoidance = !ui->right_hand_collision_avoidance_->isChecked();
-    msg.robot_collision_padding.data = ui->padding_->value();
-    msg.trajectory_time_factor.data = ui->time_factor_->value();
-    msg.octomap_max_height.data = ui->octomap_height_->value();
-    msg.goal_cube_clearance.data = ui->octomap_clearance_cube_dimensions_->value();
-
+    msg.robot_collision_padding = ui->padding_->value();
+    msg.trajectory_time_factor = ui->time_factor_->value();
+    msg.octomap_max_height = ui->octomap_height_->value();
+    msg.goal_cube_clearance = ui->octomap_clearance_cube_dimensions_->value();
 
     constraints_pub_.publish(msg);
 }
@@ -189,7 +151,7 @@ void joint_limit::timerEvent(QTimerEvent *event)
     ros::spinOnce();
 }
 
-void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
+/*void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
 {
     switch(index){
     case 0:
@@ -241,7 +203,8 @@ void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
     ui->ubxMinLabel->setText(QString::number(ubxMinVal,'g',6));
     ui->ubxMax->setValue(ubxMaxVal*1000000.0);
     ui->ubxMaxLabel->setText(QString::number(ubxMaxVal,'g',6));
-}
+
+}*/
 
 //void joint_limit::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 //{
@@ -268,24 +231,6 @@ void joint_limit::on_Presets_comboBox_currentIndexChanged(int index)
 //        }
 //    }*/
 //}
-
-void joint_limit::on_lock_yaw__toggled(bool checked)
-{
-    ui->lbzMin->setEnabled(!checked);
-    ui->lbzMax->setEnabled(!checked);
-}
-
-void joint_limit::on_lock_pitch__toggled(bool checked)
-{
-    ui->mbyMin->setEnabled(!checked);
-    ui->mbyMax->setEnabled(!checked);
-}
-
-void joint_limit::on_lock_roll__toggled(bool checked)
-{
-    ui->ubxMin->setEnabled(!checked);
-    ui->ubxMax->setEnabled(!checked);
-}
 
 void joint_limit::processWindowControl(const std_msgs::Int8::ConstPtr& msg)
 {

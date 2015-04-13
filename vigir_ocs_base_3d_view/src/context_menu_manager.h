@@ -64,7 +64,7 @@ private:
     ContextMenuManager(ContextMenuManager const&){};             // copy constructor is private
     ContextMenuManager& operator=(ContextMenuManager const&){};  // assignment operator is private    
 
-    void buildContextMenuHeirarchy();
+    void buildContextMenuHierarchy();
     void resetMenu();
 
     void processContextMenu(int x, int y);

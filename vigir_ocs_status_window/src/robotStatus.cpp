@@ -59,7 +59,7 @@ robotStatus::robotStatus(QWidget *parent) :
     else
         messagesPath = (ros::package::getPath("flor_ocs_msgs"))+"/include/flor_ocs_msgs/messages.csv";
 
-    std::cerr << "Reading messages from <" << messagesPath << ">" << std::endl;
+    std::cout << "Reading messages from <" << messagesPath << ">" << std::endl;
     loadFile();
 
     rosSubscriber = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &robotStatus::receivedMessage, this );
