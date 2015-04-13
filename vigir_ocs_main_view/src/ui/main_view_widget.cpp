@@ -517,12 +517,12 @@ void MainViewWidget::contextToggleWindow(int window)
         else
             ui->pelvisControlBtn->setChecked(false);
         break;
-    case WINDOW_FOOTSTEP_BASIC:
-        if(!ui->basicStepBtn->isChecked())
-            ui->basicStepBtn->setChecked(true);
-        else
-            ui->basicStepBtn->setChecked(false);
-        break;
+//    case WINDOW_FOOTSTEP_BASIC:
+//        if(!ui->basicStepBtn->isChecked())
+//            ui->basicStepBtn->setChecked(true);
+//        else
+//            ui->basicStepBtn->setChecked(false);
+//        break;
     case WINDOW_FOOTSTEP_ADVANCED:
         if(!ui->stepBtn->isChecked())
             ui->stepBtn->setChecked(true);
@@ -582,7 +582,7 @@ void MainViewWidget::updateContextMenu()
     main_view_context_menu_->setItemCheckState("Joystick",ui->joystickBtn->isChecked());
     main_view_context_menu_->setItemCheckState("Joint Control",ui->jointControlBtn->isChecked());
     main_view_context_menu_->setItemCheckState("Pelvis Pose",ui->pelvisControlBtn->isChecked());
-    main_view_context_menu_->setItemCheckState("Basic Footstep Interface",ui->basicStepBtn->isChecked());
+    //main_view_context_menu_->setItemCheckState("Basic Footstep Interface",ui->basicStepBtn->isChecked());
     main_view_context_menu_->setItemCheckState("Advanced Footstep Interface",ui->stepBtn->isChecked());
     main_view_context_menu_->setItemCheckState("Footstep Parameter Control",ui->footstepParamBtn->isChecked());
     main_view_context_menu_->setItemCheckState("Ghost Control",ui->ghostControlBtn->isChecked());
@@ -705,41 +705,15 @@ void MainViewWidget::setupToolbar()
     connect(ui->footstepConfigBtn,SIGNAL(clicked()),this,SLOT(toggleFootstepConfig()));
 
     //place graphic on joystick toggle
-    loadButtonIcon(ui->joystickBtn, "controllerIcon.png");
-    loadButtonIcon(ui->jointControlBtn, "jointIcon.png");
-    loadButtonIcon(ui->pelvisControlBtn, "pelvis.png");
-    loadButtonIcon(ui->ghostControlBtn, "ghostIcon.png");
-    loadButtonIcon(ui->positionModeBtn, "positionIcon.png");
-    loadButtonIcon(ui->basicStepBtn, "footBasicIcon.png");
-    loadButtonIcon(ui->stepBtn, "footAdvancedIcon.png");
-    loadButtonIcon(ui->footstepParamBtn, "footParamIcon.png");
-    loadButtonIcon(ui->footstepConfigBtn,"configIcon.png");
-
-    //set button style
-    QString btnStyle = QString("QPushButton  { ") +
-                               " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                               " border-style: solid;" +
-                               " border-width: 1px;" +
-                               " border-radius: 1px;" +
-                               " border-color: gray;" +
-                               " padding: 0px;" +
-                               " image-position: top left"
-                               "}" +
-                               "QPushButton:checked  {" +
-                               " padding-top:1px; padding-left:1px;" +
-                               " background-color: rgb(180,180,180);" +
-                               " border-style: inset;" +
-                               "}";
-    ui->joystickBtn->setStyleSheet(btnStyle);
-    ui->jointControlBtn->setStyleSheet(btnStyle);
-    ui->pelvisControlBtn->setStyleSheet(btnStyle);
-    ui->basicStepBtn->setStyleSheet(btnStyle);
-    ui->stepBtn->setStyleSheet(btnStyle);
-    ui->footstepParamBtn->setStyleSheet(btnStyle);
-    ui->ghostControlBtn->setStyleSheet(btnStyle);
-    ui->positionModeBtn->setStyleSheet(btnStyle);
-    ui->plannerConfigBtn->setStyleSheet(btnStyle);
-    ui->footstepConfigBtn->setStyleSheet(btnStyle);
+    loadButtonIconAndStyle(ui->joystickBtn, "controllerIcon.png");
+    loadButtonIconAndStyle(ui->jointControlBtn, "jointIcon.png");
+    loadButtonIconAndStyle(ui->pelvisControlBtn, "pelvis.png");
+    loadButtonIconAndStyle(ui->ghostControlBtn, "ghostIcon.png");
+    loadButtonIconAndStyle(ui->positionModeBtn, "positionIcon.png");
+    //loadButtonIconAndStyle(ui->basicStepBtn, "footBasicIcon.png");
+    loadButtonIconAndStyle(ui->stepBtn, "footAdvancedIcon.png");
+    loadButtonIconAndStyle(ui->footstepParamBtn, "footParamIcon.png");
+    loadButtonIconAndStyle(ui->footstepConfigBtn,"configIcon.png");
 
     //use signalmapper to avoid having one function for each one of the toggle buttons
     toggle_mapper_ = new QSignalMapper(this);
@@ -749,7 +723,7 @@ void MainViewWidget::setupToolbar()
     toggle_mapper_->setMapping(this->ui->joystickBtn,WINDOW_JOYSTICK);
     toggle_mapper_->setMapping(this->ui->jointControlBtn,WINDOW_JOINT_CONTROL);
     toggle_mapper_->setMapping(this->ui->pelvisControlBtn,WINDOW_BDI_PELVIS_POSE);
-    toggle_mapper_->setMapping(this->ui->basicStepBtn,WINDOW_FOOTSTEP_BASIC);
+    //toggle_mapper_->setMapping(this->ui->basicStepBtn,WINDOW_FOOTSTEP_BASIC);
     toggle_mapper_->setMapping(this->ui->stepBtn,WINDOW_FOOTSTEP_ADVANCED);
     toggle_mapper_->setMapping(this->ui->footstepParamBtn,WINDOW_FOOTSTEP_PARAMETER);
     toggle_mapper_->setMapping(this->ui->ghostControlBtn,WINDOW_GHOST_CONFIG);
@@ -760,7 +734,7 @@ void MainViewWidget::setupToolbar()
     connect(ui->joystickBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->jointControlBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->pelvisControlBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
-    connect(ui->basicStepBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
+    //connect(ui->basicStepBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->stepBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->footstepParamBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->ghostControlBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
@@ -806,14 +780,24 @@ void MainViewWidget::toggleFootstepConfig()
     ui->footstepConfigBtn->showMenu();
 }
 
-
-void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
+void MainViewWidget::loadButtonIconAndStyle(QPushButton* btn, QString image_name)
 {
-    QPixmap pixmap( icon_path_+ image_name );
-    QIcon icon(pixmap);
-    btn->setIcon(icon);
-    QSize size(btn->size());
-    btn->setIconSize(size);
+    btn->setStyleSheet(QString("QPushButton  { ") +
+                       " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                       " border-style: solid;" +
+                       " border-width: 1px;" +
+                       " border-radius: 1px;" +
+                       " border-color: gray;" +
+                       " padding: 0px;" +
+                       " image: url(" + icon_path_ + image_name + ");" +
+                       " image-position: top left"
+                       "}" +
+                       "QPushButton:pressed  {" +
+                       " padding-top:1px; padding-left:1px;" +
+                       " background-color: rgb(180,180,180);" +
+                       " border-style: inset;" +
+                       " image: url(" + icon_path_ + image_name + ");" +
+                       "}");
 }
 
 void MainViewWidget::toggleWindow(int window)
@@ -942,7 +926,7 @@ void MainViewWidget::processWindowControl(const std_msgs::Int8::ConstPtr &visibl
             ui->joystickBtn->setChecked(false);
             ui->jointControlBtn->setChecked(false);
             ui->pelvisControlBtn->setChecked(false);
-            ui->basicStepBtn->setChecked(false);
+            //ui->basicStepBtn->setChecked(false);
             ui->stepBtn->setChecked(false);
             ui->footstepParamBtn->setChecked(false);
             ui->ghostControlBtn->setChecked(false);
@@ -950,7 +934,7 @@ void MainViewWidget::processWindowControl(const std_msgs::Int8::ConstPtr &visibl
             ui->plannerConfigBtn->setChecked(false);
             break;
         case WINDOW_FOOTSTEP_BASIC:
-            ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
+            //ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
             break;
         case WINDOW_FOOTSTEP_ADVANCED:
             ui->stepBtn->setChecked(visibility > 0 ? true : false);

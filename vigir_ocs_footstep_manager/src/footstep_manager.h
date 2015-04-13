@@ -97,6 +97,7 @@ namespace ocs_footstep
         void doneGetAllParameterSets(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::GetAllParameterSetsResultConstPtr& result);
 
         // used to process new step plans whenever and however they arrive
+        void processNewStepPlanGoal(vigir_footstep_planning_msgs::Feet& goal);
         void processNewStepPlan(vigir_footstep_planning_msgs::StepPlan& step_plan);
         // callbacks for onboard actions
         void processOnboardStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request);

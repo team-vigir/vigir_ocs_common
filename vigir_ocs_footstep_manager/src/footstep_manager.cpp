@@ -749,30 +749,12 @@ void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& sta
         ROS_INFO("UpdateFeet: Got action response.\n%s", vigir_footstep_planning::toString(result->status).c_str());
 
         // update the goal feet
-        goal_ = result->feet;
+        vigir_footstep_planning_msgs::Feet goal = result->feet;
 
         //convert to sole for visualization
-        foot_pose_transformer_->transformToPlannerFrame(goal_);
+        foot_pose_transformer_->transformToPlannerFrame(goal);
 
-        // need to send visualization message
-        updateGoalVisMsgs();
-
-        plan_goal_array_pub_.publish(footstep_goal_array_);
-
-        // update goal pose - should I be doing this?
-        goal_pose_.pose.position.x = (goal_.left.pose.position.x+goal_.right.pose.position.x)/2.0;
-        goal_pose_.pose.position.y = (goal_.left.pose.position.y+goal_.right.pose.position.y)/2.0;
-        goal_pose_.pose.position.z = (goal_.left.pose.position.z+goal_.right.pose.position.z)/2.0;
-        Ogre::Quaternion q1(goal_.left.pose.orientation.w,goal_.left.pose.orientation.x,goal_.left.pose.orientation.y,goal_.left.pose.orientation.z);
-        Ogre::Quaternion q2(goal_.right.pose.orientation.w,goal_.right.pose.orientation.x,goal_.right.pose.orientation.y,goal_.right.pose.orientation.z);
-        Ogre::Quaternion qr = Ogre::Quaternion::Slerp(0.5,q1,q2);
-        goal_pose_.pose.orientation.w = qr.w;
-        goal_pose_.pose.orientation.x = qr.x;
-        goal_pose_.pose.orientation.y = qr.y;
-        goal_pose_.pose.orientation.z = qr.z;
-
-        // and update the interactive markers
-        publishGoalMarkerFeedback();
+        processNewStepPlanGoal(goal);
     }
 }
 
@@ -1146,6 +1128,32 @@ void FootstepManager::doneGetAllParameterSets(const actionlib::SimpleClientGoalS
     }
 }
 
+void FootstepManager::processNewStepPlanGoal(vigir_footstep_planning_msgs::Feet& goal)
+{
+    // update the goal feet
+    goal_ = goal;
+
+    // need to send visualization message
+    updateGoalVisMsgs();
+
+    plan_goal_array_pub_.publish(footstep_goal_array_);
+
+    // update goal pose - should I be doing this?
+    goal_pose_.pose.position.x = (goal_.left.pose.position.x+goal_.right.pose.position.x)/2.0;
+    goal_pose_.pose.position.y = (goal_.left.pose.position.y+goal_.right.pose.position.y)/2.0;
+    goal_pose_.pose.position.z = (goal_.left.pose.position.z+goal_.right.pose.position.z)/2.0;
+    Ogre::Quaternion q1(goal_.left.pose.orientation.w,goal_.left.pose.orientation.x,goal_.left.pose.orientation.y,goal_.left.pose.orientation.z);
+    Ogre::Quaternion q2(goal_.right.pose.orientation.w,goal_.right.pose.orientation.x,goal_.right.pose.orientation.y,goal_.right.pose.orientation.z);
+    Ogre::Quaternion qr = Ogre::Quaternion::Slerp(0.5,q1,q2);
+    goal_pose_.pose.orientation.w = qr.w;
+    goal_pose_.pose.orientation.x = qr.x;
+    goal_pose_.pose.orientation.y = qr.y;
+    goal_pose_.pose.orientation.z = qr.z;
+
+    // and update the interactive markers
+    publishGoalMarkerFeedback();
+}
+
 void FootstepManager::processNewStepPlan(vigir_footstep_planning_msgs::StepPlan& step_plan)
 {
     ROS_INFO("processNewStepPlan: Processing new step plan (%d, %d).", step_plan.header.stamp.sec, step_plan.header.stamp.nsec);
@@ -1173,6 +1181,16 @@ void FootstepManager::processNewStepPlan(vigir_footstep_planning_msgs::StepPlan&
     publishFootsteps();
 
     //publishGoalMarkerClear();
+
+    vigir_footstep_planning_msgs::Feet goal;
+    goal.header = getStepPlan().steps[getStepPlan().steps.size()-1].header;
+    goal.left = getStepPlan().steps[getStepPlan().steps.size()-1].foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ?
+                getStepPlan().steps[getStepPlan().steps.size()-1].foot :
+                getStepPlan().steps[getStepPlan().steps.size()-2].foot;
+    goal.right = getStepPlan().steps[getStepPlan().steps.size()-1].foot.foot_index == vigir_footstep_planning_msgs::Foot::RIGHT ?
+                 getStepPlan().steps[getStepPlan().steps.size()-1].foot :
+                 getStepPlan().steps[getStepPlan().steps.size()-2].foot;
+    processNewStepPlanGoal(goal);
 }
 
 // onboard action callbacks

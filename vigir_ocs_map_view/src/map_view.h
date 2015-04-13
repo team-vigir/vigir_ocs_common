@@ -18,6 +18,7 @@
 #include "ortho_view.h"
 #include "interaction_tool_custom.h"
 #include "notification_system.h"
+#include <ui/footstep_config.h>
 
 
 

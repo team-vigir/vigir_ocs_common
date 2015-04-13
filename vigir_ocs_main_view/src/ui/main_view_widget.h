@@ -33,7 +33,7 @@
 #include <rviz/views_panel.h>
 #include <QPropertyAnimation>
 #include <flor_ocs_msgs/WindowCodes.h>
-#include "footstep_config.h"
+#include <ui/footstep_config.h>
 #include "notification_system.h"
 #include "main_context_menu.h"
 
@@ -96,7 +96,7 @@ protected Q_SLOTS:
 protected:
     void setupToolbar();
     void systemCommandContext(std::string command);
-    void loadButtonIcon(QPushButton* btn, QString image_name);
+    void loadButtonIconAndStyle(QPushButton* btn, QString image_name);
     void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
     void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
     void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
