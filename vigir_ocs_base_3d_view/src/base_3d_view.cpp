@@ -121,7 +121,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         view_id_ = manager_->addRenderPanel( render_panel_ );
 
         selection_3d_display_ = copy_from->getSelection3DDisplay();
-        overlay_display_ = copy_from->getOverlayDisplay();
+        notification_overlay_display_ = copy_from->getNotificationOverlayDisplay();        
         mouse_event_handler_ = copy_from->getMouseEventHander();
     }
     else
@@ -680,11 +680,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // update render order whenever objects are added/ display changed
         //connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
         // initialize Render Order correctly
-        //setRenderOrder();
-
-        // initialize notification system
-        overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
-        overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");      
 
         //create visualizations for camera frustum
         //initializeFrustums("/flor/ocs/camera/atlas");
@@ -697,7 +692,16 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         frustum_display_->subProp("alpha")->setValue("0.05");
         frustum_display_->setEnabled(false);
 
+		// initialize notification systems
+        notification_overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
+        notification_overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
+
         ghost_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/robot_state_vis",1, true);        
+
+        //used within timer event to make sure updating ghost robot opacity is called every
+        ghost_opacity_update_counter_ = 0;
+        ghost_opacity_update_frequency_ = 20; //didn't want to create seperate timer event
+        ghost_opacity_update_ = true; // update ghost robot opacity by default
 
         //initialize hotkeys
         addHotkeys();
@@ -741,7 +745,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
    // reset_view_button_->move(0,300);
     QObject::connect(reset_view_button_, SIGNAL(clicked()), this, SLOT(resetView()));
 
-    stop_button_ = new QPushButton("STOP",this);
+    stop_button_ = new QPushButton("STOP",this);    
     stop_button_->setStyleSheet("font: 100pt \"MS Shell Dlg 2\";background-color: red;color: white;border-color: red;");
     stop_button_->setMaximumSize(400,300);
     stop_button_->adjustSize();
@@ -848,10 +852,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     shift_pressed_ = false;
     interactive_marker_mode_ = 0;
 
-    //used within timer event to make sure updating ghost robot opacity is called every
-    ghost_opacity_update_counter_ = 0;
-    ghost_opacity_update_frequency_ = 20; //didn't want to create seperate timer event
-
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
 }
@@ -954,10 +954,6 @@ void Base3DView::blurRender()
                   "gl_FragColor = sum;\n"
 
                 "}\n";
-
-
-
-
 
 
         Ogre::HighLevelGpuProgramPtr removeMagentaFP = Ogre::HighLevelGpuProgramManager::getSingleton()
@@ -1126,7 +1122,9 @@ void Base3DView::timerEvent(QTimerEvent *event)
     {
         //if(occluded_robot_visible_)
         //    setRenderOrder();
-        if(ghost_robot_model_->isEnabled())
+
+        //only update opacity if ghost is on and update is allowed
+        if(ghost_robot_model_->isEnabled() && ghost_opacity_update_)
         {
             ghost_opacity_update_counter_++;
             //only update ghost robot opacity occasionally, can cause performance issues if called on every timer event
@@ -1181,6 +1179,41 @@ void Base3DView::updateGhostRobotOpacity()
            tmp.color.g = 1.0f;
            tmp.color.b = 0.0f;
        }
+       ghost_display_state_msg_.highlight_links.push_back(tmp);
+    }
+
+    robot_state::robotStateToRobotStateMsg(*ghost_robot_model->getState(), ghost_display_state_msg_.state);
+
+    //TODO: figure out why ghost root pose will change on this line
+    ghost_robot_state_vis_pub_.publish(ghost_display_state_msg_);
+
+    //reset root pose back to position before publishing
+    ghost_robot_model->setRootTransform(ghost_root_pose);
+}
+
+//reset ghost to have all parts visible, necessary if we have updated certain segments to disappear
+void Base3DView::showAllGhost()
+{
+    MoveItOcsModel* robot_model = RobotStateManager::Instance()->getRobotStateSingleton();
+    MoveItOcsModel* ghost_robot_model = RobotStateManager::Instance()->getGhostRobotStateSingleton();
+
+    std::vector<std::string> link_names = robot_model->getLinkNames();
+    //grab current root pose of ghost, necessary as publishing robot state will somehow reset ghost pose
+    geometry_msgs::PoseStamped ghost_root_pose;
+    ghost_root_pose.pose = ghost_root_pose_;
+
+    for(int i=0;i<link_names.size();i++)
+    {
+       std::string link_name = link_names[i];
+       moveit_msgs::ObjectColor tmp;
+       tmp.id = link_name;
+
+       //show link, (could have previously been hidden so we need to update based on posematch)
+       tmp.color.a = 0.5f;
+       tmp.color.r = 0.0f;
+       tmp.color.g = 1.0f;
+       tmp.color.b = 0.0f;
+
        ghost_display_state_msg_.highlight_links.push_back(tmp);
     }
 
@@ -1316,6 +1349,15 @@ void Base3DView::notificationSystemToggled(bool selected)
 {
     flor_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("Notification System");
+    msg.reset.push_back(false);
+    msg.visible.push_back(selected);
+    ocs_sync_pub_.publish(msg);
+}
+
+void Base3DView::updateGhostRobotOpacityToggled(bool selected)
+{    
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("Update Ghost Opacity");
     msg.reset.push_back(false);
     msg.visible.push_back(selected);
     ocs_sync_pub_.publish(msg);
@@ -1497,13 +1539,24 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
     {        
         bool groundMapReset = false;
         int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();
+
+        //special case for non rviz displays that are being synced across views
+        if(msg->properties[i].compare("Update Ghost Opacity") == 0)
+        {
+            //toggle ghost opacity update
+            ghost_opacity_update_ = msg->visible[i];
+            //reset ghost opacity if necessary
+            if(!ghost_opacity_update_)
+                showAllGhost();
+        }
+
         for(int j = 0; j < num_displays; j++)
         {
             rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(j);
-            std::string display_name = display->getNameStd();
+            std::string display_name = display->getNameStd();           
 
             if(msg->properties[i].compare(display_name) == 0)
-            {                
+            {
                 if(display_name.compare("Stereo Point Cloud") == 0)
                 {
                     if(msg->reset[i]) //reset case
@@ -1580,7 +1633,7 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
                 else if(display_name.compare("Notification System") == 0)
                 {
                     //only toggle notification visibility
-                    overlay_display_->setEnabled(msg->visible[i]);
+                    notification_overlay_display_->setEnabled(msg->visible[i]);
                 }
                 else if(display_name.compare("Frustum Display") == 0)
                 {
@@ -1591,8 +1644,7 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
                         frustum_display->setEnabled(msg->visible[i]);
                     }
                     frustum_display_->setEnabled(msg->visible[i]);
-                }
-
+                }                
             }
         }
         if(groundMapReset)
@@ -1727,7 +1779,7 @@ void Base3DView::transform(const std::string& target_frame, geometry_msgs::PoseS
 }
 
 void Base3DView::insertTemplate( QString path )
-{
+{        
     //std::cout << "adding template" << std::endl;    
     if(!selected_)
     {
@@ -1825,7 +1877,7 @@ void Base3DView::selectOnDoubleClick(int x, int y)
     else if(active_context_name_.find("footstep goal") != std::string::npos)
         selectFootstepGoal();
     else if(active_context_name_.find("footstep") != std::string::npos)
-        selectFootstep();
+        selectFootstep();        
 }
 
 //callback functions for context Menu
@@ -2189,7 +2241,7 @@ void Base3DView::removeTemplate(int id)
     template_remove_pub_.publish( cmd );
 
     //notify
-    NotificationSystem::Instance()->notifyPassive("Template Removed");
+    NotificationSystem::Instance()->notifyPassive("Template Removed");    
 }
 
 void Base3DView::emitQueryContext(int x,int y)

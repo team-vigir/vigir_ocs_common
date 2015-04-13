@@ -13,6 +13,8 @@
 #include "OgreHardwarePixelBuffer.h"
 #include <OgreFontManager.h>
 
+
+
 using namespace Ogre;
 
 #ifndef __OgreText_H__
@@ -24,8 +26,9 @@ using namespace Ogre;
  #define UNICODE_SPACE 0x0020
  #define UNICODE_ZERO 0x0030
 
+
 class OgreText
-{
+{    
 public:
     OgreText();
     ~OgreText();
@@ -46,5 +49,6 @@ private:
     Ogre::MaterialPtr material_;
     Ogre::TexturePtr texture_;
     float padding_;
+
 };
 #endif

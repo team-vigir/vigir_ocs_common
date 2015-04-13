@@ -285,6 +285,12 @@
          </property>
          <item>
           <widget class="QLabel" name="label_8">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>20</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <pointsize>-1</pointsize>
@@ -1402,6 +1408,16 @@ color: rgb(255, 26, 26);</string>
               </widget>
              </item>
              <item>
+              <widget class="QCheckBox" name="update_ghost_opacity">
+               <property name="text">
+                <string>Update Ghost Robot Opacity</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QCheckBox" name="camera_frustum">
                <property name="text">
                 <string>Camera Frustums</string>
@@ -1491,6 +1507,7 @@ color: rgb(255, 26, 26);</string>
     <slot>clearPointCloudStereoRequests()</slot>
     <slot>notificationSystemToggled(bool)</slot>
     <slot>cameraFrustumToggled(bool)</slot>
+    <slot>updateGhostRobotOpacityToggled(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -1504,7 +1521,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>-300</y>
+     <y>-205</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1520,7 +1537,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>-414</y>
+     <y>-313</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1552,7 +1569,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>-462</y>
+     <y>-361</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1584,7 +1601,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>-246</y>
+     <y>-151</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1600,7 +1617,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>74</y>
+     <y>195</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1616,7 +1633,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>98</y>
+     <y>219</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1632,7 +1649,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>917</x>
-     <y>272</y>
+     <y>393</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1648,7 +1665,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>170</y>
+     <y>291</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1696,7 +1713,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>-384</y>
+     <y>-289</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1712,7 +1729,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>218</y>
+     <y>339</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>
@@ -1728,7 +1745,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>194</y>
+     <y>315</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>
@@ -1744,7 +1761,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>917</x>
-     <y>296</y>
+     <y>417</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>
@@ -1760,7 +1777,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>368</y>
+     <y>489</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1776,7 +1793,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>242</y>
+     <y>363</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1792,7 +1809,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>917</x>
-     <y>344</y>
+     <y>465</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1808,7 +1825,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>917</x>
-     <y>320</y>
+     <y>441</y>
     </hint>
     <hint type="destinationlabel">
      <x>256</x>
@@ -1824,7 +1841,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>273</y>
+     <y>394</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>
@@ -1840,7 +1857,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>306</y>
+     <y>418</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>
@@ -1856,7 +1873,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>-216</y>
+     <y>-121</y>
     </hint>
     <hint type="destinationlabel">
      <x>276</x>
@@ -1888,7 +1905,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>321</y>
+     <y>442</y>
     </hint>
     <hint type="destinationlabel">
      <x>341</x>
@@ -1904,7 +1921,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>345</y>
+     <y>466</y>
     </hint>
     <hint type="destinationlabel">
      <x>341</x>
@@ -1920,7 +1937,7 @@ color: rgb(255, 26, 26);</string>
    <hints>
     <hint type="sourcelabel">
      <x>963</x>
-     <y>395</y>
+     <y>513</y>
     </hint>
     <hint type="destinationlabel">
      <x>378</x>
@@ -1935,8 +1952,24 @@ color: rgb(255, 26, 26);</string>
    <slot>cameraFrustumToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
+     <x>963</x>
+     <y>561</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>378</x>
+     <y>376</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>update_ghost_opacity</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>map_view_</receiver>
+   <slot>updateGhostRobotOpacityToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
      <x>871</x>
-     <y>426</y>
+     <y>547</y>
     </hint>
     <hint type="destinationlabel">
      <x>378</x>

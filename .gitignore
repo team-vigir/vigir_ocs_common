@@ -6,4 +6,5 @@ msg_gen
 srv_gen
 qtcreator-build
 *~
+*.pyc
 *.user

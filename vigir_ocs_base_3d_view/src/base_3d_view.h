@@ -24,6 +24,8 @@
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QTreeWidget>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
@@ -240,7 +242,7 @@ public:
     // functions needed for shared contexts
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }
     rviz::Display* getSelection3DDisplay() { return selection_3d_display_; }
-    rviz::Display* getOverlayDisplay() { return overlay_display_; }
+    rviz::Display* getNotificationOverlayDisplay() { return notification_overlay_display_; }    
     MouseEventHandler* getMouseEventHander() { return mouse_event_handler_; }    
 
 
@@ -280,6 +282,7 @@ public Q_SLOTS:
     void footstepPlanningToggled( bool );
     void simulationRobotToggled( bool );
     void notificationSystemToggled(bool);
+    void updateGhostRobotOpacityToggled(bool);
     void cameraFrustumToggled(bool);
     // tools
     // enables/disables use of rviz tools
@@ -385,6 +388,8 @@ public Q_SLOTS:
     //void setRenderOrder();
     //void resetRenderOrder();
 
+
+
 Q_SIGNALS:
     /**
       * Sets the render panel
@@ -428,10 +433,13 @@ Q_SIGNALS:
     void sendFPS(int);
 
 
+
+
 protected:
     virtual void timerEvent(QTimerEvent *event);
 
     void updateGhostRobotOpacity();
+    void showAllGhost();
 
     /**
       * Adds joint disks that visualize the current state of the joints
@@ -460,9 +468,10 @@ protected:
     bool shift_pressed_;
     int interactive_marker_mode_;
 
+
     Ogre::Camera* getCamera();
 
-    NotificationSystem* notification_system_;
+    NotificationSystem* notification_system_;   
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
@@ -476,7 +485,7 @@ protected:
     rviz::Display* region_point_cloud_viewer_;
     rviz::Display* stereo_point_cloud_viewer_;
     rviz::Display* selection_3d_display_;
-    rviz::Display * overlay_display_;
+    rviz::Display * notification_overlay_display_;    
     rviz::Display* template_display_;
     rviz::Display* waypoints_display_;
     rviz::Display* achieved_waypoints_display_;
@@ -567,6 +576,7 @@ protected:
     QBasicTimer timer;
     int ghost_opacity_update_counter_;
     int ghost_opacity_update_frequency_;
+    bool ghost_opacity_update_;
 
     int view_id_;
 

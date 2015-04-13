@@ -193,6 +193,16 @@ void MapViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize
                     changeCheckBoxState(ui->notification_system,Qt::Unchecked);
             }
         }
+        else if(msg->properties[i].compare("Update Ghost Opacity") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->update_ghost_opacity,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->update_ghost_opacity,Qt::Unchecked);
+            }
+        }
         else if(msg->properties[i].compare("Frustum Display") == 0)
         {
             if(!msg->reset[i])

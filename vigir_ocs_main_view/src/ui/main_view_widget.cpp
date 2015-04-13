@@ -109,6 +109,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             QObject::connect(ui->robot_joint_markers,SIGNAL(toggled(bool)), iter->second, SLOT(robotJointMarkerToggled(bool)));
             QObject::connect(ui->robot_occlusion_rendering,SIGNAL(toggled(bool)), iter->second, SLOT(robotOcclusionToggled(bool)));            
             QObject::connect(ui->notification_system,SIGNAL(toggled(bool)), iter->second, SLOT(notificationSystemToggled(bool)));
+            QObject::connect(ui->update_ghost_opacity,SIGNAL(toggled(bool)), iter->second, SLOT(updateGhostRobotOpacityToggled(bool)));
             QObject::connect(ui->camera_frustum,SIGNAL(toggled(bool)), iter->second, SLOT(cameraFrustumToggled(bool)));
         }
         else
@@ -316,7 +317,29 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     sidebar_toggle_->setIcon(Btn);
     sidebar_toggle_->setIconSize(pix.rect().size() / 8);
 
-    connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));  
+    connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));
+
+    //initialize behavior relay with notifications
+    notification_container_ = new QWidget(this);
+    notification_container_->setStyleSheet("background-color: rgb(30, 30, 30);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
+    notification_container_->setWindowOpacity(0);
+    //notification_container_->setAttribute(Qt::WA_TranslucentBackground);
+    //notification_container_->setStyleSheet("background:transparent;");
+    notification_container_->setMinimumHeight(70);
+    notification_container_->setMaximumHeight(70);
+    notification_container_->setMaximumWidth(340);
+    notification_container_->setMinimumWidth(340);
+    notification_container_->adjustSize();
+    notification_layout_ = new QVBoxLayout();
+    notification_layout_->setMargin(0);
+    notification_layout_->setSpacing(0);
+    notification_container_->setLayout(notification_layout_);
+    notification_container_->hide();
+
+    behavior_relay_ = new BehaviorRelay();
+    connect(behavior_relay_,SIGNAL(updateUI()),this,SLOT(updateBehaviorNotifications()));
+
+
 
     timer.start(100, this);
 
@@ -354,6 +377,28 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     //create context menu and add to base3dview
     main_view_context_menu_ = new MainViewContextMenu(this);
+}
+
+
+void MainViewWidget::updateBehaviorNotifications()
+{
+    //show certain amount of notifications in 3d view
+    int i=0;
+    //old notifications may have been deleted, replace current notifications with top 3 from relay
+    while (i < (int)behavior_relay_->getNotifications().size() && i < behavior_relay_->getMaxNotificationsShown())
+    {
+        BehaviorNotification* notification = behavior_relay_->getNotifications()[i];       
+        notification->show();        
+        notification_layout_->insertWidget(0,notification);//insert top down
+        i++;
+    }    
+    //toggle visibility of behavior container in ui
+    if(notification_layout_->count() == 0)
+    {
+        notification_container_->hide();
+    }
+    else
+        notification_container_->show();
 }
 
 void MainViewWidget::setLidarSpinRate(double spin_rate)
@@ -442,6 +487,16 @@ void MainViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchroniz
                     changeCheckBoxState(ui->notification_system,Qt::Checked);
                 else
                     changeCheckBoxState(ui->notification_system,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Update Ghost Opacity") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->update_ghost_opacity,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->update_ghost_opacity,Qt::Unchecked);
             }
         }
         else if(msg->properties[i].compare("Frustum Display") == 0)
@@ -671,6 +726,11 @@ void MainViewWidget::timerEvent(QTimerEvent *event)
 {
     grasp_toggle_button_->setGeometry(ui->view_stack_->geometry().bottomRight().x() - 60,ui->view_stack_->geometry().bottom() + 22,60,22);
     sidebar_toggle_->setGeometry(ui->view_stack_->geometry().topRight().x() - 25 ,ui->view_stack_->geometry().top() + 43,25,25);
+
+    //top right 3/4 of width just offset from top
+    notification_container_->setGeometry(ui->view_stack_->geometry().topRight().x() - notification_container_->geometry().width()/2 - ui->view_stack_->geometry().width()/4,
+                                         ui->view_stack_->geometry().topRight().y() + notification_container_->geometry().height() - 15,
+                                         notification_container_->geometry().width(),notification_container_->geometry().height());
 
     //must be global, as it is treated as dialog window
     graspContainer->setGeometry(ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x() - graspContainer->geometry().width()/2 - ui->view_stack_->geometry().width()/2,

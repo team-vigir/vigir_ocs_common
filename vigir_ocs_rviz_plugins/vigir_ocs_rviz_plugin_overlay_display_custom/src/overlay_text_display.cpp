@@ -50,7 +50,7 @@ OverlayTextDisplay::OverlayTextDisplay() : Display(),
     text_(""), font_(""),
     bg_color_(0, 0, 0, 0),
     fg_color_(255, 255, 255, 255),
-    require_update_texture_(false),
+    require_update_texture_(false),    
     overlay_text_(NULL)
 {
     update_topic_property_ = new rviz::RosTopicProperty(
@@ -244,13 +244,13 @@ void OverlayTextDisplay::setPositionFromAlignment()
     switch(column_)
     {
     case flor_ocs_msgs::OCSOverlayText::LEFTCOLUMN:
-        left_ = 5; //minimal space from edge
+        left_ = (viewport_width_ / 4); //1/4 of view port to the right
         break;
     case flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN:
         left_ = (viewport_width_ /2);
         break;
     case flor_ocs_msgs::OCSOverlayText::RIGHTCOLUMN:
-        left_ = viewport_width_ - texture_width_ -5;
+        left_ = (viewport_width_ / 4) * 3;
         break;
     }
 
