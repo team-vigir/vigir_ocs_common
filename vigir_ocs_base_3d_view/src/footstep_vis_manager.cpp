@@ -35,6 +35,13 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     planned_path_ = manager_->createDisplay( "rviz/Path", "Planned path", true );
     planned_path_->subProp( "Topic" )->setValue( "/flor/ocs/footstep/path" );
 
+    // footstep planner feedback topics
+    planner_terrain_classifier_cloud_processed_ = manager_->createDisplay( "rviz/PointCloud2", "Terrain classifier (OCS) cloud processed", true );
+    planner_terrain_classifier_cloud_processed_->subProp( "Topic" )->setValue( "/vigir/ocs/terrain_classifier/cloud_processed" );
+
+    planner_plan_request_feedback_cloud_ = manager_->createDisplay( "rviz/PointCloud2", "Terrain classifier (OCS) cloud processed", true );
+    planner_plan_request_feedback_cloud_->subProp( "Topic" )->setValue( "/flor/ocs/footstep/plan_request_feedback" );
+
     // creates publishers and subscribers for the interaction loop
     footstep_update_pub_      = nh_.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/step_update", 1, false );
     footstep_list_sub_        = nh_.subscribe<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 5, &FootstepVisManager::processFootstepList, this );
@@ -68,12 +75,16 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     interaction_mode_ = 0;
     pattern_generation_enabled_ = 0;
     start_step_index_ = -1;
+    need_plan_update_ = false;
 
     // initialize displays for goals
     display_goal_marker_ = NULL;
     display_goal_footstep_marker_[0] = NULL;
     display_goal_footstep_marker_[1] = NULL;
     has_goal_ = false;
+
+    //
+    button_down_ = false;
 }
 
 FootstepVisManager::~FootstepVisManager()
@@ -210,6 +221,8 @@ void FootstepVisManager::requestExecuteStepPlan()
 
 void FootstepVisManager::requestStepPlan()
 {
+    need_plan_update_ = false;
+
     flor_ocs_msgs::OCSFootstepPlanRequest cmd;
     //set footstep paramaters from ui
     cmd.max_time = max_time_;
@@ -217,8 +230,7 @@ void FootstepVisManager::requestStepPlan()
     cmd.path_length_ratio = path_length_ratio_;
     cmd.interaction_mode = interaction_mode_;
     cmd.pattern_generation_enabled = pattern_generation_enabled_;
-    ROS_INFO("PLAN time:%f steps:%d ratio:%f intmode:%d pattern:%d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
-
+    //ROS_INFO("PLAN time:%f steps:%d ratio:%f intmode:%d pattern:%d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
     footstep_plan_request_pub_.publish(cmd);
 
     NotificationSystem::Instance()->notifyPassive("Planning Footsteps");
@@ -230,6 +242,9 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
     has_goal_ = true;
     enableFootstepGoalDisplays( false, true, true );
 
+    // enable update of footstep plan
+    need_plan_update_ = true;
+
     flor_ocs_msgs::OCSFootstepPlanGoal cmd;
     cmd.goal_pose = *pose;
     footstep_plan_goal_pub_.publish(cmd);
@@ -240,6 +255,9 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
     // only do something if we're getting feedback
     if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::FEEDBACK)
     {
+        if(need_plan_update_)
+            requestStepPlan();
+
         // create/update step plan goal marker
         {
         std::string step_pose_string = "/step_plan_goal_marker";
@@ -332,7 +350,8 @@ void FootstepVisManager::updateInteractiveMarkers()
     for(int i = 0; i < footstep_list_.footstep_id_list.size(); i++)
     {
         // also check step plan ID so that we always have markers for the end points of step plans
-        if((i+1 < footstep_list_.footstep_id_list.size() && footstep_list_.step_plan_id_list[i] != footstep_list_.step_plan_id_list[i+1]))// || i == footstep_list_.footstep_id_list.size()-1)
+        //if(i == footstep_list_.footstep_id_list.size()-1 || footstep_list_.step_plan_id_list[i] != footstep_list_.step_plan_id_list[i+1]) // to create a marker for the last steps as well
+        if(footstep_list_.step_plan_id_list[i] != footstep_list_.step_plan_id_list[i+1] && i+1 < footstep_list_.footstep_id_list.size()) // to use the specialized goal marker at the end
         {
             // only do something if it's a new step plan
             std::string step_pose_string = "/step_plan_"+boost::lexical_cast<std::string>(num_step_plans_++)+"_marker";
@@ -376,6 +395,9 @@ void FootstepVisManager::updateInteractiveMarkers()
             cmd.pose.pose.orientation.z = qr.z;
             interactive_marker_update_pub_.publish(cmd);
         }
+        // even though we don't add the intermediate marker to the end, we still need to account for it
+        if(i == footstep_list_.footstep_id_list.size()-1)
+            num_step_plans_++;
     }
 
     // check if we need to disable any step plan markers
@@ -488,6 +510,18 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
         {
             ROS_ERROR("Error: input string was not valid");
         }
+    }
+
+    // on mouse release, update plan
+    if(msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_DOWN)
+    {
+        double_click_timer_ = boost::posix_time::second_clock::local_time();
+        button_down_ = true;
+    }
+    else if(button_down_ && msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP && (boost::posix_time::second_clock::local_time()-double_click_timer_).total_milliseconds() > 0.1)
+    {
+        need_plan_update_ = true;
+        button_down_ = false;
     }
 }
 

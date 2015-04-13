@@ -156,6 +156,14 @@ namespace ocs_template
         std::string                                ot_filename_;
         // Filename of the stand pose library
         std::string                                stand_filename_;
+        // Hand parameters
+        std::string palm_link_;
+        std::string wrist_link_;
+        std::string hand_group_;
+        std::string left_wrist_link_, right_wrist_link_;
+        std::string left_palm_link_,  right_palm_link_;
+        std::string left_hand_group_, right_hand_group_;
+
         tf::Transform                              gp_T_lhand_;
         tf::Transform                              gp_T_rhand_;
         std::map<unsigned int,VigirObjectTemplate> object_template_map_;
