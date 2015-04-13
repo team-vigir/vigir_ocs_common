@@ -16,7 +16,7 @@ BehaviorRelay::BehaviorRelay(QWidget* parent)
 }
 
 //this is being run on a seperate thread by the complex behavior server
-void BehaviorRelay::processBehaviorGoalCB(vigir_be_input::BehaviorInputGoalConstPtr goal, BehaviorServer::GoalHandle goal_handle)
+void BehaviorRelay::processBehaviorGoalCB(vigir_be_msgs::BehaviorInputGoalConstPtr goal, BehaviorServer::GoalHandle goal_handle)
 {    
     //build appropriate string for ui
     QString action_text = QString::fromStdString(goal->msg);
@@ -47,8 +47,8 @@ void BehaviorRelay::createNotification(QString action_text, const BehaviorServer
 void BehaviorRelay::reportConfirmation(QString action_text,BehaviorServer::GoalHandle goal_handle)
 {    
     //build result
-    vigir_be_input::BehaviorInputActionResult result;
-    result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_OK;
+    vigir_be_msgs::BehaviorInputActionResult result;
+    result.result.result_code = vigir_be_msgs::BehaviorInputResult::RESULT_OK;
     //notify server to set goal to succeed
     behavior_server_->setSucceeded(result.result, qPrintable(action_text), goal_handle);
 
@@ -58,8 +58,8 @@ void BehaviorRelay::reportConfirmation(QString action_text,BehaviorServer::GoalH
 
 void BehaviorRelay::reportAbort(QString action_text, BehaviorServer::GoalHandle goal_handle)
 {
-    vigir_be_input::BehaviorInputActionResult result;
-    result.result.result_code = vigir_be_input::BehaviorInputResult::RESULT_ABORTED;
+    vigir_be_msgs::BehaviorInputActionResult result;
+    result.result.result_code = vigir_be_msgs::BehaviorInputResult::RESULT_ABORTED;
     behavior_server_->setAborted(result.result, qPrintable(action_text),goal_handle);
 
     cleanNotifications();

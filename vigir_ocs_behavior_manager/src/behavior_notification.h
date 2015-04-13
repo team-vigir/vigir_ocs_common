@@ -8,7 +8,7 @@
 #include <QtCore>
 #include <QMessageBox>
 #include <QMouseEvent>
-#include <vigir_be_input/BehaviorInputAction.h>
+#include <vigir_be_msgs/BehaviorInputAction.h>
 #include "complex_action_server.h"
 
 //typedef typename ActionServer<ActionSpec>::GoalHandlePtr GoalHandlePtr;
@@ -18,7 +18,7 @@ namespace Ui
     class BehaviorNotification; //window name
 }
 
-typedef actionlib::ComplexActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
+typedef actionlib::ComplexActionServer<vigir_be_msgs::BehaviorInputAction> BehaviorServer;
 
 class BehaviorNotification : public QWidget
 {

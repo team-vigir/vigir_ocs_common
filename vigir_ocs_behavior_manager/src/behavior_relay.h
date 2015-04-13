@@ -7,7 +7,7 @@
 #include "behavior_notification.h"
 
 #include <actionlib/server/simple_action_server.h>
-#include <vigir_be_input/BehaviorInputAction.h>
+#include <vigir_be_msgs/BehaviorInputAction.h>
 #include "complex_action_server.h"
 
 /**
@@ -20,7 +20,7 @@
 
 /**
  server is defined in the behavior notification to circumvent circular dependency
- typedef actionlib::SimpleActionServer<vigir_be_input::BehaviorInputAction> BehaviorServer;
+ typedef actionlib::SimpleActionServer<vigir_be_msgs::BehaviorInputAction> BehaviorServer;
 **/
 
 Q_DECLARE_METATYPE(BehaviorServer::GoalHandle);
@@ -37,7 +37,7 @@ class BehaviorRelay: public QWidget
    private:
        BehaviorRelay(BehaviorRelay const&){};             // copy constructor is private
        BehaviorRelay& operator=(BehaviorRelay const&){};  // assignment operator is private
-       void processBehaviorGoalCB(vigir_be_input::BehaviorInputGoalConstPtr goal, BehaviorServer::GoalHandle goal_handle);
+       void processBehaviorGoalCB(vigir_be_msgs::BehaviorInputGoalConstPtr goal, BehaviorServer::GoalHandle goal_handle);
        void cleanNotifications();
 
        boost::recursive_mutex lock_;
