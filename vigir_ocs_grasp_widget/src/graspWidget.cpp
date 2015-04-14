@@ -34,6 +34,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     ui->attachButton->setDisabled(true);
     ui->detachButton->setDisabled(true);
     ui->show_grasp->setDisabled(true);
+    ui->graspPose->setDisabled(true);
     setUpButtons();
 
     this->stitch_template_pose_.setIdentity();
@@ -299,6 +300,8 @@ void graspWidget::setUpButtons()
     ui->snapTemplateButton->setFont(QFont ("Ubuntu", 10));
     ui->affordanceButton->setStyleSheet(btnStyle);
     ui->affordanceButton->setFont(QFont ("Ubuntu", 10));
+    ui->graspPose->setStyleSheet(btnStyle);
+    ui->graspPose->setFont(QFont ("Ubuntu", 10));
     //put arrows on comboboxes
     QString styleSheet = ui->templateBox->styleSheet() + "\n" +
             "QComboBox::down-arrow {\n" +
@@ -383,6 +386,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         ui->affordanceBox->setEnabled(false);
         ui->show_grasp->setChecked(false);
         ui->show_grasp->setEnabled(false);
+        ui->graspPose->setEnabled(false);
         ui->attachButton->setEnabled(false);
         ui->snapTemplateButton->setEnabled(false);
         ui->detachButton->setEnabled(false);
@@ -439,6 +443,7 @@ void graspWidget::on_performButton_clicked()
     ui->verticalSlider_4->setValue(0);
 
     setProgressLevel(ui->userSlider->value());
+    cmd.grasp_state.data = cmd.CLOSE;
 
     grasp_command_pub_.publish(cmd);
 }
@@ -460,6 +465,7 @@ void graspWidget::on_releaseButton_clicked()
     ui->verticalSlider_4->setValue(0);
 
     setProgressLevel(ui->userSlider->value());
+    cmd.grasp_state.data = cmd.OPEN;
 
     grasp_command_pub_.publish(cmd);
 }
@@ -495,8 +501,7 @@ void graspWidget::sendManualMsg(uint8_t level, int8_t thumb,int8_t left,int8_t r
     cmd.finger_effort[1].data = left;   //index for sandia
     cmd.finger_effort[2].data = right;  //middle for sandia
     cmd.finger_effort[3].data = spread; //Spread iRobot, Pinky for sandia
-    cmd.grasp_state.data = 4; // leave as current command
-    cmd.grasp_state.data += (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
+    cmd.grasp_state.data = cmd.PERCENTAGE;
     grasp_command_pub_.publish(cmd);
 }
 
@@ -526,8 +531,10 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
             ui->graspBox->addItem(QString(last_grasp_srv_.response.grasp_information.grasps[index].id.c_str()));
     }
 
-    if(ui->graspBox->count() > 0)
+    if(ui->graspBox->count() > 0){
         ui->show_grasp->setEnabled(true);
+        ui->graspPose->setEnabled(true);
+    }
 
     for(index = 0; index < last_template_srv_.response.template_type_information.affordances.size(); index++)
     {
@@ -639,7 +646,7 @@ void graspWidget::publishHandPose(unsigned int id)
             }
         }
 
-        if(index >= size)
+        if(index > size)
             ROS_ERROR_STREAM("Template server response id: " << last_grasp_srv_.response.grasp_information.grasps[index].id << " while searching for id: " << id);
         else{
             // get the selected grasp pose
@@ -1012,6 +1019,7 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             ui->attachButton->setDisabled(true);
             ui->detachButton->setDisabled(true);
             ui->show_grasp->setDisabled(true);
+            ui->graspPose->setDisabled(true);
             ui->show_grasp->setChecked(false);
             ui->show_grasp_radio->setEnabled(false);
             ui->show_pre_grasp_radio->setEnabled(false);
@@ -1130,4 +1138,27 @@ void graspWidget::on_snapTemplateButton_clicked()
     follow_ban_ = true;
 }
 
+void graspWidget::on_graspPose_clicked()
+{
+    flor_grasp_msgs::GraspState grasp;
+    size_t size = last_grasp_srv_.response.grasp_information.grasps.size();
+    if(size == 0)
+        ROS_ERROR_STREAM("No grasps found for this template");
+    else{
+        size_t index = 0;
+        for(; index < size; ++index)
+        {
+            if(std::atoi(last_grasp_srv_.response.grasp_information.grasps[index].id.c_str()) == selected_grasp_id_){
+                grasp.grasp.grasp_posture = last_grasp_srv_.response.grasp_information.grasps[index].grasp_posture;
+            }
+        }
 
+        if(index > size)
+            ROS_ERROR_STREAM("Template server response id: " << last_grasp_srv_.response.grasp_information.grasps[index].id << " while searching for id: " << selected_grasp_id_);
+        else{
+            grasp.grasp_state.data = grasp.GRASP_ID;
+            grasp_command_pub_.publish(grasp);
+        }
+
+    }
+}

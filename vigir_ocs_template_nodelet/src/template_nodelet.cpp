@@ -485,7 +485,7 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
             ROS_INFO_STREAM("Added aproaching vector information id: " << grasp.id << " pose: " << std::endl << grasp.pre_grasp_approach);
 
             grasp.pre_grasp_posture.points.resize(1);
-            grasp.pre_grasp_posture.points[0].time_from_start = ros::Duration(3.0);
+            grasp.pre_grasp_posture.points[0].time_from_start = ros::Duration(0.5);
 
             TiXmlElement* pPrePosture=pGrasp->FirstChildElement( "pre_grasp_posture" );
             if(!pPrePosture){
@@ -529,7 +529,7 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
             }
 
             grasp.grasp_posture.points.resize(1);
-            grasp.grasp_posture.points[0].time_from_start = ros::Duration(3.0);
+            grasp.grasp_posture.points[0].time_from_start = ros::Duration(0.5);
 
             TiXmlElement* pPosture=pGrasp->FirstChildElement( "grasp_posture" );
             if(!pPosture){
