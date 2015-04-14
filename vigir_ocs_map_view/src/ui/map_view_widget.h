@@ -68,16 +68,15 @@ private:
 
     virtual void timerEvent(QTimerEvent *event);
 
-    MapRegionConfigure * map_region_config_;
-    Region3DConfigure * region_3d_config_;
-    FootstepConfigure* footstep_configure_widget_;
+    MapRegionConfigure * mapRegionConfig;
+    Region3DConfigure * region3dConfig;
 
     void loadButtonIconAndStyle(QPushButton* btn, QString image_name);
     void setupToolbar();
     QString icon_path_;
 
-    QMenu region_menu_;
-    QMenu map_menu_;
+    QMenu regionMenu;
+    QMenu mapMenu;
     QMenu footstep_menu_;
 
     QPushButton* sidebar_toggle_;
@@ -88,6 +87,7 @@ private:
     void stereoHotkey();
 
     QSignalMapper* toggle_mapper_;
+    FootstepConfigure* footstep_configure_widget_;
 
     ros::Subscriber window_control_sub_;
     ros::Publisher window_control_pub_;
