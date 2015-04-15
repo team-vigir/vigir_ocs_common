@@ -60,6 +60,8 @@ void FootstepManager::onInit()
     footstep_path_pub_          = nh.advertise<nav_msgs::Path>( "/flor/ocs/footstep/path", 1, true );
     plan_goal_array_pub_        = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/plan_goal_array", 1, true );
 
+    start_step_index_feet_pub_ = nh.advertise<vigir_footstep_planning_msgs::Feet>( "start_index_feet", 1, true );
+
     // initialize all ros action clients
     //update feet considering intial goal
     update_feet_client_ = new UpdateFeetClient("update_feet", true);
@@ -190,6 +192,33 @@ void FootstepManager::processSetStartIndex(const std_msgs::Int32::ConstPtr &msg)
     start_step_index_ = msg->data;
 
     publishFootsteps();
+
+
+    vigir_footstep_planning_msgs::Feet start_feet;
+    // if it's not starting from 0 or clearing step plan starting foot
+    if(start_step_index_ > 0)
+    {
+        bool found_steps = false;
+
+        vigir_footstep_planning_msgs::Step step_1;
+        // if it doesn't find this find a step with the requested step_index, return
+        unsigned int step_plan_index_1;
+        found_steps = findStep(start_step_index_-1, step_1, step_plan_index_1);
+
+        vigir_footstep_planning_msgs::Step step_2;
+        // if it doesn't find this find a step with the requested step_index, return
+        unsigned int step_plan_index_2;
+        found_steps = findStep(start_step_index_, step_2, step_plan_index_2);
+
+        if(found_steps)
+        {
+            // populate start_feet
+            start_feet.left = step_1.foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? step_1.foot : step_2.foot;
+            start_feet.right = step_1.foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? step_2.foot : step_1.foot;
+            start_feet.header = start_feet.left.header;
+        }
+    } //else it just sends uninitialized start position to reset
+    start_step_index_feet_pub_.publish(start_feet);
 }
 
 void FootstepManager::processExecuteFootstepRequest(const std_msgs::Bool::ConstPtr& msg)
