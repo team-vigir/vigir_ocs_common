@@ -697,7 +697,12 @@ void GhostControlWidget::on_send_ghost_to_template_button_clicked()
     if (!template_info_client_.call(srv))
     {
         ROS_ERROR("Failed to call service request grasp info");
-    }else{
+    }
+    else
+    {
+        //cant send ghost robot if no pose
+        if(srv.response.template_type_information.stand_poses.size() == 0)
+            return;
         for(int index = 0; index < srv.response.template_type_information.stand_poses.size(); index++)
         {
             if(srv.response.template_type_information.stand_poses[index].id == selected_pose_id_){
