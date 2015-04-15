@@ -1156,7 +1156,7 @@ void Base3DView::updateGhostRobotOpacity()
        std::string link_name = link_names[i];
        //get poses of links
        geometry_msgs::Pose robot_pose;
-       geometry_msgs::Pose ghost_pose;       
+       geometry_msgs::Pose ghost_pose;
        if(!robot_model->getLinkPose(link_name,robot_pose) || !ghost_robot_model->getLinkPose(link_name,ghost_pose))
        {
           //ROS_ERROR("mismatch link? %s %d", link_name.c_str(),i);
@@ -1167,9 +1167,9 @@ void Base3DView::updateGhostRobotOpacity()
 
        //5cm and 2deg tolerance
        if(checkPoseMatch(robot_pose,ghost_pose,0.005f,2.0f))
-       {         
+       {
            //hide link
-           tmp.color.a = 0.0f;                      
+           tmp.color.a = 0.0f;
        }
        else
        {
@@ -2383,7 +2383,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
 }
 
 void Base3DView::processPelvisEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
-{
+{    
     ghost_root_pose_ = pose->pose;
 }
 
@@ -2709,7 +2709,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_l_arm_ = false;
         moving_r_arm_ = false;
 
-        pelvis_marker_pose_pub_.publish(msg.pose);
+        pelvis_marker_pose_pub_.publish(msg.pose);        
     }
     else if(msg.topic.find("/cartesian_pose_") != std::string::npos)
     {
@@ -2882,7 +2882,7 @@ void Base3DView::publishGhostPoses()
 
 //        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
 //        {
-//            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Pelvis")
+//            if(0server_[i]->getMarkerName() == "Ghost Pelvis")
 //            {
 //                im_ghost_robot_server_[i]->setPose(pose);
 //                break;
@@ -2896,13 +2896,13 @@ void Base3DView::publishGhostPoses()
 
         pelvis_marker_pose_pub_.publish(pose);
     }
-    /*else
+    else
     {
         // how do I set world lock for torso?
         ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
         pelvis_marker_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
-    }*/
+    }
 }
 
 void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::ConstPtr &msg)
