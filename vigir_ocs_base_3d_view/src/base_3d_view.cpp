@@ -2564,7 +2564,7 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
 }
 
 void Base3DView::processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg)
-{
+{    
     flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
     cmd.pose = *msg;
     cmd.topic = "/pelvis_pose_marker";
