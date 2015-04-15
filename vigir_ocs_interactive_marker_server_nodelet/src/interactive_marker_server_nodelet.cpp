@@ -210,7 +210,7 @@ void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs:
             selected_object_topic_ = "/footstep_"+boost::lexical_cast<std::string>(msg->id/2)+"_marker";
             break;
         case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL:
-            selected_object_topic_ = "/footstep_goal_"+boost::lexical_cast<std::string>(msg->id/2)+"_marker";
+            selected_object_topic_ = "/footstep_goal_"+boost::lexical_cast<std::string>(msg->id/2 ? "right" : "left")+"_marker";
             break;
         case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
             selected_object_topic_ = (msg->id == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM ? "/l_arm_pose_marker" : "/r_arm_pose_marker");

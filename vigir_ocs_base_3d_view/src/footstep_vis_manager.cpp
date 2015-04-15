@@ -292,7 +292,7 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
         // create/update footstep goal markers - 0 left, 1 right
         for(int i = 0; i < 2; i++)
         {
-            std::string pose_string = i ? "/footstep_goal_right" : "/footstep_goal_left";
+            std::string pose_string = i ? "/footstep_goal_right_marker" : "/footstep_goal_left_marker";
 
             // if needed, we create a marker
             if(!display_goal_footstep_marker_[i])
@@ -518,7 +518,7 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
         double_click_timer_ = boost::posix_time::second_clock::local_time();
         button_down_ = true;
     }
-    else if(button_down_ && msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP && (boost::posix_time::second_clock::local_time()-double_click_timer_).total_milliseconds() > 0.1)
+    else if(button_down_ && msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP && (boost::posix_time::second_clock::local_time()-double_click_timer_).total_milliseconds() > 100)
     {
         need_plan_update_ = true;
         button_down_ = false;
