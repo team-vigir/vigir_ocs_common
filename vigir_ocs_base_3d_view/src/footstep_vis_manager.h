@@ -68,6 +68,9 @@ public:
     // Receives a list of all the parameter sets
     void processFootstepParamSetList(const flor_ocs_msgs::OCSFootstepParamSetList::ConstPtr& msg);
 
+    // Receives the latest selected parameter
+    void processFootstepParamSet(const std_msgs::String::ConstPtr& msg);
+
     // ROS Callback: receives interactive marker pose updates
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
@@ -133,6 +136,7 @@ public Q_SLOTS:
 Q_SIGNALS:
     // Set visibility of all footstep interactive markers
     void populateFootstepParameterSetBox(std::vector<std::string>);
+    void setFootstepParameterSetBox(std::string);
 
 private:
     void updateInteractiveMarkers();
@@ -155,6 +159,7 @@ private:
     ros::Publisher footstep_plan_update_pub_;
     ros::Subscriber footstep_param_set_list_sub_;
     ros::Publisher footstep_param_set_selected_pub_;
+    ros::Subscriber footstep_param_set_selected_sub_;
 
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;

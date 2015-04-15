@@ -158,7 +158,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                         {
                             next_user_data = query_result[qr_idx].movable->getName();
                         }
-                        ROS_ERROR("(%s) next is footstep? %s", next_user_data.c_str(), boost::algorithm::starts_with(next_user_data,"footstep") ? "yes" : "no");
+                        //ROS_ERROR("(%s) next is footstep? %s", next_user_data.c_str(), boost::algorithm::starts_with(next_user_data,"footstep") ? "yes" : "no");
                         if(boost::algorithm::starts_with(next_user_data,"footstep"))
                         {
                             qr_idx = new_qr_idx;
@@ -188,7 +188,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                         {
                             next_user_data = query_result[qr_idx].movable->getName();
                         }
-                        ROS_ERROR("(%s) next is footstep goal? %s", next_user_data.c_str(), boost::algorithm::starts_with(next_user_data,"footstep_goal") ? "yes" : "no");
+                        //ROS_ERROR("(%s) next is footstep goal? %s", next_user_data.c_str(), boost::algorithm::starts_with(next_user_data,"footstep_goal") ? "yes" : "no");
                         if(boost::algorithm::starts_with(next_user_data,"footstep_goal"))
                         {
                             qr_idx = new_qr_idx;

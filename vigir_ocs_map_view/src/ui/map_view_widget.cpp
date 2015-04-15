@@ -307,6 +307,7 @@ void MapViewWidget::setupToolbar()
     //populate parameter box
     connect(ui->footstepParamSetBox,SIGNAL(currentIndexChanged(QString)),((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SLOT(setFootstepParameterSet(QString)));
     connect(((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));
+    connect(((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SIGNAL(setFootstepParameterSetBox(std::string)),this,SLOT(setFootstepParameterSetBox(std::string)));
 }
 
 void MapViewWidget::loadButtonIconAndStyle(QPushButton* btn, QString image_name)
@@ -545,6 +546,19 @@ void MapViewWidget::populateFootstepParameterSetBox(std::vector<std::string> par
         for(int i = 0; i < parameter_sets.size(); i++)
         {
             ui->footstepParamSetBox->addItem(QString(parameter_sets[i].c_str()));
+        }
+    }
+}
+
+void MapViewWidget::setFootstepParameterSetBox(std::string parameter_set)
+{
+    for(int i = 0; i < ui->footstepParamSetBox->count(); i++)
+    {
+        if(QString(parameter_set.c_str()) == ui->footstepParamSetBox->itemText(i))
+        {
+            ui->footstepParamSetBox->installEventFilter(this);
+            ui->footstepParamSetBox->setCurrentIndex(i);
+            ui->footstepParamSetBox->removeEventFilter(this);
         }
     }
 }
