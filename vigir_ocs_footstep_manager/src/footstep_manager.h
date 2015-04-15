@@ -194,6 +194,9 @@ namespace ocs_footstep
         // step plan request feedback
         ros::Publisher planner_plan_request_feedback_cloud_pub_;
 
+        // step plan starting steps
+        ros::Publisher start_step_index_feet_pub_;
+
         // feet pose generator client
         ros::ServiceClient generate_feet_pose_client;
 
