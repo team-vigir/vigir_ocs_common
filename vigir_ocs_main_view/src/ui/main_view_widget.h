@@ -89,11 +89,11 @@ public Q_SLOTS:
 protected Q_SLOTS:
     void toggleSidebarVisibility();    
     void hideGraspWidgets();
-    void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
     void toggleFootstepConfig();
     void setLidarSpinRate(double spin_rate);
 
-
+    void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
+    void setFootstepParameterSetBox(std::string parameter_set);
 
 protected:
     void setupToolbar();

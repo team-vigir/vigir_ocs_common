@@ -46,6 +46,9 @@ void FootstepManager::onInit()
     footstep_stitch_req_sub_         = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/stitch", 1, &FootstepManager::processStitchPlansRequest, this );
     footstep_param_set_list_pub_     = nh.advertise<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 1, false );
     footstep_param_set_selected_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 5, &FootstepManager::processFootstepParamSetSelected, this );
+    footstep_param_set_selected_pub_ = nh.advertise<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected_feedback", 1, false );
+    footstep_param_set_selected_ocs_pub_     = nh.advertise<std_msgs::String>( "set_active_parameter_set_ocs", 1, false );
+    footstep_param_set_selected_onboard_pub_ = nh.advertise<std_msgs::String>( "set_active_parameter_set_onboard", 1, false );
 
     // footstep request coming from the OCS
     footstep_goal_pose_fb_pub_  = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
@@ -234,6 +237,9 @@ void FootstepManager::processStitchPlansRequest(const std_msgs::Bool::ConstPtr& 
 void FootstepManager::processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg)
 {
     selected_footstep_parameter_set_ = msg->data;
+    footstep_param_set_selected_pub_.publish(*msg);
+    footstep_param_set_selected_ocs_pub_.publish(*msg);
+    footstep_param_set_selected_onboard_pub_.publish(*msg);
 }
 
 void FootstepManager::feetToFootMarkerArray(vigir_footstep_planning_msgs::Feet& input, visualization_msgs::MarkerArray& foot_array_msg)
@@ -1211,6 +1217,7 @@ void FootstepManager::processNewStepPlan(vigir_footstep_planning_msgs::StepPlan&
 
     //publishGoalMarkerClear();
 
+    // update goal pose
     vigir_footstep_planning_msgs::Feet goal;
     goal.header = getStepPlan().steps[getStepPlan().steps.size()-1].header;
     goal.left = getStepPlan().steps[getStepPlan().steps.size()-1].foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ?
@@ -1225,7 +1232,8 @@ void FootstepManager::processNewStepPlan(vigir_footstep_planning_msgs::StepPlan&
 // onboard action callbacks
 void FootstepManager::processOnboardStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request)
 {
-
+    // update parameter set
+    footstep_param_set_selected_pub_.publish(step_plan_request->parameter_set_name);
 }
 
 void FootstepManager::processOnboardStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan)
@@ -1248,7 +1256,8 @@ void FootstepManager::processOnboardStepPlan(const vigir_footstep_planning_msgs:
 // onboard action callbacks
 void FootstepManager::processOCSStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request)
 {
-
+    // update parameter set
+    footstep_param_set_selected_pub_.publish(step_plan_request->parameter_set_name);
 }
 
 void FootstepManager::processOCSStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan)

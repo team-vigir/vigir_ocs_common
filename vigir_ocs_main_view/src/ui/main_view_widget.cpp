@@ -748,6 +748,11 @@ bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
         e->ignore();
         return true;
     }
+    if( qobject_cast<QComboBox*>( o ) && qobject_cast<QComboBox*>( o ) == ui->footstepParamSetBox)
+    {
+        e->ignore();
+        return true;
+    }
     return QWidget::eventFilter( o, e );
 }
 
@@ -832,6 +837,7 @@ void MainViewWidget::setupToolbar()
 
     connect(ui->footstepParamSetBox,SIGNAL(currentIndexChanged(QString)),((vigir_ocs::Base3DView*)views_list_["Top Left"])->getFootstepVisManager(),SLOT(setFootstepParameterSet(QString)));
     connect(((vigir_ocs::Base3DView*)views_list_["Top Left"])->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));
+    connect(((vigir_ocs::Base3DView*)views_list_["Top Left"])->getFootstepVisManager(),SIGNAL(setFootstepParameterSetBox(std::string)),this,SLOT(setFootstepParameterSetBox(std::string)));
 
 }
 
@@ -1063,6 +1069,19 @@ void MainViewWidget::populateFootstepParameterSetBox(std::vector<std::string> pa
         for(int i = 0; i < parameter_sets.size(); i++)
         {
             ui->footstepParamSetBox->addItem(QString(parameter_sets[i].c_str()));
+        }
+    }
+}
+
+void MainViewWidget::setFootstepParameterSetBox(std::string parameter_set)
+{
+    for(int i = 0; i < ui->footstepParamSetBox->count(); i++)
+    {
+        if(QString(parameter_set.c_str()) == ui->footstepParamSetBox->itemText(i))
+        {
+            ui->footstepParamSetBox->installEventFilter(this);
+            ui->footstepParamSetBox->setCurrentIndex(i);
+            ui->footstepParamSetBox->removeEventFilter(this);
         }
     }
 }
