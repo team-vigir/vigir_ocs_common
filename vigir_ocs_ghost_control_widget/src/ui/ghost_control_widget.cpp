@@ -278,8 +278,7 @@ void GhostControlWidget::saveState()
     }
 
     saved_state_use_drake_ik_ = ui->use_drake_ik_->isChecked();
-    saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();
-    ROS_ERROR("lock %d",saved_state_lock_pelvis_);
+    saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();    
     saved_state_position_only_ik_ = ui->position_only_ik_->isChecked();
 }
 
