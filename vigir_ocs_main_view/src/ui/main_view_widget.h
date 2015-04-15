@@ -63,9 +63,9 @@ public:
     virtual void timerEvent(QTimerEvent *event);
 
     vigir_ocs::Base3DView* getPrimaryView() {return primary_view_;}
-    Ui::MainViewWidget* getUi(){return ui;}
-    GhostControlWidget* getGhostControlWidget() {return ghost_control_widget_;}
+    Ui::MainViewWidget* getUi(){return ui;}    
     void useTorsoContextMenu();
+    void snapGhostContextMenu();
 
 public Q_SLOTS:
     void oneViewToggle();
@@ -136,6 +136,9 @@ protected:
     //ros::Subscriber key_event_sub_;
     ros::Publisher ft_zero_pub_;
 
+
+    ros::Publisher snap_ghost_pub_;
+    ros::Publisher use_torso_pub_;
 
     ros::Publisher mode_pub_;
     ros::Subscriber mode_sub_;

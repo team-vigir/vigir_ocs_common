@@ -64,6 +64,11 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     template_info_client_ = nh_.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
 
 
+    //Context menu fix
+    snap_ghost_sub_ = nh_.subscribe<std_msgs::Bool>("/flor/ocs/snap_ghost_context",5, &GhostControlWidget::snapGhostContextMenu, this );
+    use_torso_sub_ = nh_.subscribe<std_msgs::Bool>("/flor/ocs/use_torso_context",5, &GhostControlWidget::useTorsoContextMenu, this );
+
+
     //Restore State
     //this->show();
     QSettings settings("OCS", "joint_limit");
@@ -274,6 +279,7 @@ void GhostControlWidget::saveState()
 
     saved_state_use_drake_ik_ = ui->use_drake_ik_->isChecked();
     saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();
+    ROS_ERROR("lock %d",saved_state_lock_pelvis_);
     saved_state_position_only_ik_ = ui->position_only_ik_->isChecked();
 }
 
@@ -355,14 +361,25 @@ void GhostControlWidget::on_planning_torso__clicked()
     publishState();
 }
 
-//public wrapper to be used with context menu callback,
-//returns state of use torso checkbox for convenience in main view and setting context menu item checked
-bool GhostControlWidget::useTorsoContextMenu()
+//temp fix before making ghost manager, ignoring message, just using these callbacks as a way to signal
+// this reference from main view without a local reference, ignore msg just a placeholder
+//public wrapper for context menu callback
+void GhostControlWidget::snapGhostContextMenu(const std_msgs::BoolConstPtr &msg)
+{
+    snapClicked();
+}
+
+void GhostControlWidget::useTorsoContextMenu(const std_msgs::BoolConstPtr &msg)
 {
     ui->planning_torso_->toggle();
-    return ui->planning_torso_->isChecked();
-    //on_planning_torso__clicked();
 }
+//public wrapper to be used with context menu callback,
+//returns state of use torso checkbox for convenience in main view and setting context menu item checked
+//bool GhostControlWidget::useTorsoContextMenu()
+//{
+//    //ui->planning_torso_->toggle();
+//    //return ui->planning_torso_->isChecked();
+//}
 
 void GhostControlWidget::on_position_only_ik__clicked()
 {
@@ -582,12 +599,6 @@ void GhostControlWidget::addHotkeys()
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+r",boost::bind(&GhostControlWidget::on_send_right_configuration_button__clicked,this));
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+f",boost::bind(&GhostControlWidget::on_send_upper_body_button__clicked,this));
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+s",boost::bind(&GhostControlWidget::snapClicked,this));
-}
-
-//public wrapper for context menu callback
-void GhostControlWidget::snapContextMenu()
-{
-    snapClicked();
 }
 
 void GhostControlWidget::on_send_left_cartesian_button__clicked()

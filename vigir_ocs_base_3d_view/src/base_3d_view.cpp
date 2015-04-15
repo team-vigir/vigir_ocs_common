@@ -2709,7 +2709,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_l_arm_ = false;
         moving_r_arm_ = false;
 
-        pelvis_marker_pose_pub_.publish(msg.pose);
+        pelvis_marker_pose_pub_.publish(msg.pose);        
     }
     else if(msg.topic.find("/cartesian_pose_") != std::string::npos)
     {
