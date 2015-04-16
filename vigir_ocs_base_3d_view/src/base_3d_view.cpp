@@ -179,7 +179,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
         // Add support for goal specification/vector navigation
         set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
-        set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/flor/ocs/footstep/goal_pose" );
+        set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( ("/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose").c_str() );
 
         grid_ = manager_->createDisplay( "rviz/Grid", "Grid", true );
         ROS_ASSERT( grid_ != NULL );
@@ -494,13 +494,16 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_lock_pelvis_ = 1;
 
         // ghost state
-        ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
-        reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
-        send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
-        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 1, false );
+        if(widget_name_ == "MainView") // hack, we don't have a ghost manager yet and should only do this once
+        {
+            ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
+            reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
+            send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
+        }
+        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 1, false );
 
         // subscribe to goal pose
-        set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &Base3DView::processGoalPose, this );
+        set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 5, &Base3DView::processGoalPose, this );
 
         // Create a RobotModel display.
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
@@ -637,7 +640,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         circular_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request", 1, false );
 
         // subscribe to the topic sent by the ghost widget
-        send_cartesian_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_cartesian", 5, &Base3DView::processSendCartesian, this );
+        send_cartesian_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/send_cartesian", 5, &Base3DView::processSendCartesian, this );
         send_ghost_pelvis_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/set_pose", 5, &Base3DView::processGhostPelvisPose, this );
 
         // create publisher and subscriber for object selection

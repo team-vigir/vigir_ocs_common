@@ -350,8 +350,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
 
     //need local reference to ghost control to access some of its functionality for context menu
-    snap_ghost_pub_ = n_.advertise<std_msgs::Bool>("/flor/ocs/snap_ghost_context",1,false);
-    use_torso_pub_ = n_.advertise<std_msgs::Bool>("/flor/ocs/use_torso_context",1,false);
+    snap_ghost_pub_ = n_.advertise<std_msgs::Bool>("/flor/ocs/ghost/snap_ghost_context",1,false);
+    use_torso_pub_ = n_.advertise<std_msgs::Bool>("/flor/ocs/ghost/use_torso_context",1,false);
     //TODO, get this synced from ghost control ui
     use_torso_checked_ = false;
 

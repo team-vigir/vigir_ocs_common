@@ -33,15 +33,15 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     saveState();
 
     // subscribe to the topic to load state configurations
-    state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &GhostControlWidget::processState, this );
+    state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost/ghost_ui_state", 5, &GhostControlWidget::processState, this );
     //subscribe to template list
     template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",5, &GhostControlWidget::processTemplateList, this );
 
     // advertise the topic to publish state configurations
-    state_pub_ = nh_.advertise<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 1, false );
-    reset_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 1, false );
-    send_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 1, false );
-    send_ghost_cartesian_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/send_cartesian", 1, false );
+    state_pub_ = nh_.advertise<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost/ghost_ui_state", 1, false );
+    reset_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/reset_pelvis", 1, false );
+    send_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/send_pelvis_to_footstep", 1, false );
+    send_ghost_cartesian_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/send_cartesian", 1, false );
 
     // advertise set pose buttons
     set_to_target_pose_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/planning/plan_to_pose_state", 1, false );
@@ -65,8 +65,8 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
 
 
     //Context menu fix
-    snap_ghost_sub_ = nh_.subscribe<std_msgs::Bool>("/flor/ocs/snap_ghost_context",5, &GhostControlWidget::snapGhostContextMenu, this );
-    use_torso_sub_ = nh_.subscribe<std_msgs::Bool>("/flor/ocs/use_torso_context",5, &GhostControlWidget::useTorsoContextMenu, this );
+    snap_ghost_sub_ = nh_.subscribe<std_msgs::Bool>("/flor/ocs/ghost/snap_ghost_context",5, &GhostControlWidget::snapGhostContextMenu, this );
+    use_torso_sub_ = nh_.subscribe<std_msgs::Bool>("/flor/ocs/ghost/use_torso_context",5, &GhostControlWidget::useTorsoContextMenu, this );
 
 
     //Restore State

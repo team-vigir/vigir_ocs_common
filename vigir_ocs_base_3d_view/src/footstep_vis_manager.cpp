@@ -52,7 +52,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     footstep_stitch_req_pub_  = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/stitch", 1, false );
 
     // publishers and subscribers for the plan request
-    footstep_goal_sub_               = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &FootstepVisManager::processGoalPose, this );
+    footstep_goal_sub_               = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 5, &FootstepVisManager::processGoalPose, this );
     footstep_plan_goal_pub_          = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, false );
     footstep_goal_pose_fb_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
     footstep_goal_pose_fb_sub_       = nh_.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 5, &FootstepVisManager::processGoalPoseFeedback, this );
@@ -256,6 +256,7 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
     // only do something if we're getting feedback
     if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::FEEDBACK)
     {
+        ROS_INFO("Need plan update? %s", need_plan_update_ ? "yes" : "no");
         if(need_plan_update_)
             requestStepPlan();
 
