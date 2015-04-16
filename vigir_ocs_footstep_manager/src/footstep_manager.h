@@ -27,6 +27,7 @@
 #include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include <flor_ocs_msgs/OCSFootstepPlanUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
+#include <flor_ocs_msgs/OCSFootstepStatus.h>
 
 #include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
 #include <vigir_footstep_planning_msgs/parameter_set.h>
@@ -199,6 +200,9 @@ namespace ocs_footstep
 
         // step plan starting steps
         ros::Publisher start_step_index_feet_pub_;
+
+        // update footstep planner feedback
+        ros::Publisher planner_status_pub_;
 
         // feet pose generator client
         ros::ServiceClient generate_feet_pose_client;
