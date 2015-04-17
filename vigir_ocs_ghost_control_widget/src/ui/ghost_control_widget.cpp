@@ -27,7 +27,12 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     , selected_pose_id_(-1),
     ui(new Ui::GhostControlWidget)
 {    
-    ui->setupUi(this);    
+    ui->setupUi(this);
+
+    saved_state_use_torso_ = 0;
+    saved_state_lock_pelvis_ = 0;
+    saved_state_position_only_ik_ = 0;
+    saved_state_use_drake_ik_ = 0;
 
     //publish to normal state to be read by outside
     state_use_torso_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/state_use_torso", 1, false );
