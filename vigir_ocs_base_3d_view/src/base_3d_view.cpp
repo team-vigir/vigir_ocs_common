@@ -2927,8 +2927,8 @@ void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::
 
     snap_ghost_to_robot_ = msg->snap;
 
-    left_marker_moveit_loopback_ = msg->left_moveit_marker_loopback;
-    right_marker_moveit_loopback_ = msg->right_moveit_marker_loopback;
+    //left_marker_moveit_loopback_ = msg->left_moveit_marker_loopback;
+    //right_marker_moveit_loopback_ = msg->right_moveit_marker_loopback;
 
     position_only_ik_ = msg->position_only_ik;
     use_drake_ik_ = msg->use_drake_ik;

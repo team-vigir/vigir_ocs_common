@@ -45,18 +45,18 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     // creates publishers and subscribers for the interaction loop
     footstep_update_pub_      = nh_.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/step_update", 1, false );
     footstep_list_sub_        = nh_.subscribe<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 5, &FootstepVisManager::processFootstepList, this );
-    footstep_undo_req_pub_    = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, false );
-    footstep_redo_req_pub_    = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, false );
+    footstep_undo_req_pub_    = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/undo", 1, false );
+    footstep_redo_req_pub_    = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/redo", 1, false );
     footstep_start_index_pub_ = nh_.advertise<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, false );
-    footstep_execute_req_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/execute", 1, false );
-    footstep_stitch_req_pub_  = nh_.advertise<std_msgs::Bool>( "/flor/ocs/footstep/stitch", 1, false );
+    footstep_execute_req_pub_ = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/execute", 1, false );
+    footstep_stitch_req_pub_  = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/stitch", 1, false );
 
     // publishers and subscribers for the plan request
     footstep_goal_sub_               = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 5, &FootstepVisManager::processGoalPose, this );
     footstep_plan_goal_pub_          = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, false );
     footstep_goal_pose_fb_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
     footstep_goal_pose_fb_sub_       = nh_.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 5, &FootstepVisManager::processGoalPoseFeedback, this );
-    footstep_plan_request_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, false );
+    footstep_plan_request_pub_       = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/plan_request", 1, false );
     footstep_plan_update_pub_        = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanUpdate>( "/flor/ocs/footstep/plan_update", 1, false );
     footstep_param_set_list_sub_     = nh_.subscribe<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 5, &FootstepVisManager::processFootstepParamSetList, this );
     footstep_param_set_selected_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 1, false );
@@ -73,8 +73,9 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     max_time_ = 0;
     max_steps_ = 0;
     path_length_ratio_ = 0;
-    interaction_mode_ = 0;
-    pattern_generation_enabled_ = 0;
+    edit_mode_ = 0;
+    use_3d_planning_ = false;
+
     start_step_index_ = -1;
     need_plan_update_ = false;
 
@@ -115,8 +116,8 @@ void FootstepVisManager::clearStartingFootstep()
 void FootstepVisManager::requestStitchFootstepPlans()
 {
     // send request to footstep manager
-    std_msgs::Bool cmd;
-    cmd.data = true;
+    std_msgs::Int8 cmd;
+    cmd.data = 1;
     footstep_stitch_req_pub_.publish(cmd);
 }
 
@@ -199,24 +200,24 @@ void FootstepVisManager::setFootstepParameterSet(QString selected)
 void FootstepVisManager::requestFootstepListUndo()
 {
     // send request to footstep manager
-    std_msgs::Bool cmd;
-    cmd.data = true;
+    std_msgs::Int8 cmd;
+    cmd.data = 1;
     footstep_undo_req_pub_.publish(cmd);
 }
 
 void FootstepVisManager::requestFootstepListRedo()
 {
     // send request to footstep manager
-    std_msgs::Bool cmd;
-    cmd.data = true;
+    std_msgs::Int8 cmd;
+    cmd.data = 1;
     footstep_redo_req_pub_.publish(cmd);
 }
 
 void FootstepVisManager::requestExecuteStepPlan()
 {
     // send request to footstep manager
-    std_msgs::Bool cmd;
-    cmd.data = true;
+    std_msgs::Int8 cmd;
+    cmd.data = 1;
     footstep_execute_req_pub_.publish(cmd);
 }
 
@@ -224,14 +225,8 @@ void FootstepVisManager::requestStepPlan()
 {
     need_plan_update_ = false;
 
-    flor_ocs_msgs::OCSFootstepPlanRequest cmd;
-    //set footstep paramaters from ui
-    cmd.max_time = max_time_;
-    cmd.max_steps = max_steps_;
-    cmd.path_length_ratio = path_length_ratio_;
-    cmd.interaction_mode = interaction_mode_;
-    cmd.pattern_generation_enabled = pattern_generation_enabled_;
-    //ROS_INFO("PLAN time:%f steps:%d ratio:%f intmode:%d pattern:%d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
+    std_msgs::Int8 cmd;
+    cmd.data = 1;
     footstep_plan_request_pub_.publish(cmd);
 
     NotificationSystem::Instance()->notifyPassive("Planning Footsteps");
@@ -532,15 +527,14 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
     }
 }
 
-void FootstepVisManager::updateFootstepParamaters(double maxTime,int maxSteps,double pathLengthRatio,int interactionMode,bool patternGeneration)
+void FootstepVisManager::updateFootstepParamaters(double maxTime,int maxSteps,double pathLengthRatio,int interactionMode)
 {
     //update all paramaters from ui
     max_time_ = maxTime;
     max_steps_ = maxSteps;
     path_length_ratio_ = pathLengthRatio;
-    interaction_mode_ = interactionMode;
-    pattern_generation_enabled_ = patternGeneration;
-    ROS_ERROR("UPDATE time: %f steps: %d ratio:%f intmode: %d pattern %d",max_time_,max_steps_,path_length_ratio_,interaction_mode_,pattern_generation_enabled_);
+    edit_mode_ = interactionMode;
+    ROS_ERROR("UPDATE time: %f steps: %d ratio:%f intmode: %d",max_time_,max_steps_,path_length_ratio_,edit_mode_);
 }
 
 

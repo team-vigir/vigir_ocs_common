@@ -11,9 +11,9 @@
 
 #include <ros/ros.h>
 
-#include <std_msgs/Bool.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/Int8.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 
@@ -24,7 +24,7 @@
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepPlanGoal.h>
 #include <flor_ocs_msgs/OCSFootstepPlanGoalUpdate.h>
-#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
+#include <flor_ocs_msgs/OCSFootstepPlanParameters.h>
 #include <flor_ocs_msgs/OCSFootstepPlanUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
 
@@ -92,9 +92,6 @@ public:
     // Sends a footstep plan stitch request to the footstep manager
     void requestStitchFootstepPlans();
 
-    // Sets the request mode for new footstep plans
-    void setRequestMode(unsigned char mode = flor_ocs_msgs::OCSFootstepPlanRequest::NEW_PLAN, int start_index = -1);
-
     // Set individual footstep parameters used for planning
     void setStartingFootstep(int footstep_id);
     void clearStartingFootstep();
@@ -131,7 +128,7 @@ public Q_SLOTS:
     void setFootstepParameterSet(QString selected);
 
     // Update all Footstep parameters from ui
-    void updateFootstepParamaters(double,int,double,int,bool);
+    void updateFootstepParamaters(double,int,double,int);
 
 Q_SIGNALS:
     // Set visibility of all footstep interactive markers
@@ -195,8 +192,8 @@ private:
     float max_time_;
     int max_steps_;
     float path_length_ratio_;
-    int interaction_mode_;
-    bool pattern_generation_enabled_;
+    int edit_mode_;
+    bool use_3d_planning_;
 
     // variables that determine the state of the footstep plan
     bool has_goal_;

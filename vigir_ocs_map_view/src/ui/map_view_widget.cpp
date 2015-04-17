@@ -230,8 +230,8 @@ void MapViewWidget::setupToolbar()
     region_3d_config_ = new Region3DConfigure();
     footstep_configure_widget_ = new FootstepConfigure();
     //connect to update footstep paramaters from ui
-    connect(footstep_configure_widget_,SIGNAL(sendFootstepParamaters(double,int,double,int,bool)),
-            ((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SLOT(updateFootstepParamaters(double,int,double,int,bool)));
+    connect(footstep_configure_widget_,SIGNAL(sendFootstepParamaters(double,int,double,int)),
+            ((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SLOT(updateFootstepParamaters(double,int,double,int)));
 
     //set menu to popup a config widget
     QWidgetAction *wa = new QWidgetAction(0);

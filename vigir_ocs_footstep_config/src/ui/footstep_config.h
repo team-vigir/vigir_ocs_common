@@ -19,19 +19,12 @@ public:
     explicit FootstepConfigure(QWidget *parent = 0);
     virtual ~FootstepConfigure();
 
-    double getMaxTime();
-    int getMaxSteps();
-    double getPlanLengthRatio();
-    int getFootstepInteraction();
-    bool patternGenerationEnabled();
-
 public Q_SLOTS:
-    void updateFootstepParamaters();
     void updateFootstepParamaters(int ignore);
     void updateFootstepParamaters(double ignore);
 
 Q_SIGNALS:
-    void sendFootstepParamaters(double,int,double,int,bool);
+    void sendFootstepParamaters(double,int,double,int);
 
 private:
     Ui::FootstepConfigure *ui;

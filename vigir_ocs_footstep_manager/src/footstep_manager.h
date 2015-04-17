@@ -9,9 +9,9 @@
 #include <stack>
 #include <string>
 
-#include <std_msgs/Bool.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/Int8.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Vector3.h>
 #include <visualization_msgs/MarkerArray.h>
@@ -24,7 +24,7 @@
 #include <flor_ocs_msgs/OCSFootstepUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepPlanGoal.h>
 #include <flor_ocs_msgs/OCSFootstepPlanGoalUpdate.h>
-#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
+#include <flor_ocs_msgs/OCSFootstepPlanParameters.h>
 #include <flor_ocs_msgs/OCSFootstepPlanUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
 #include <flor_ocs_msgs/OCSFootstepStatus.h>
@@ -55,16 +55,16 @@ namespace ocs_footstep
         // triggers footstep plan calls
         void processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal);
         void processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalUpdate::ConstPtr& plan_goal);
-        void processFootstepPlanRequest(const flor_ocs_msgs::OCSFootstepPlanRequest::ConstPtr& plan_request);
+        void processFootstepPlanRequest(const std_msgs::Int8::ConstPtr& plan_request);
         void processFootstepPlanUpdate(const flor_ocs_msgs::OCSFootstepPlanUpdate::ConstPtr& msg);
 
         // feedback look for interaction, should update stepplan and use actions to edit/update
         void processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg);
-        void processUndoRequest(const std_msgs::Bool::ConstPtr& msg);
-        void processRedoRequest(const std_msgs::Bool::ConstPtr& msg);
+        void processUndoRequest(const std_msgs::Int8::ConstPtr& msg);
+        void processRedoRequest(const std_msgs::Int8::ConstPtr& msg);
         void processSetStartIndex(const std_msgs::Int32::ConstPtr& msg);
-        void processExecuteFootstepRequest(const std_msgs::Bool::ConstPtr& msg);
-        void processStitchPlansRequest(const std_msgs::Bool::ConstPtr& msg);
+        void processExecuteFootstepRequest(const std_msgs::Int8::ConstPtr& msg);
+        void processStitchPlansRequest(const std_msgs::Int8::ConstPtr& msg);
         void processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg);
 
         // callbacks for actions
@@ -229,7 +229,7 @@ namespace ocs_footstep
         vigir_footstep_planning_msgs::Feet goal_;
 
         // last step plan request received, saved and used mostly for message parameters
-        flor_ocs_msgs::OCSFootstepPlanRequest last_plan_request_;
+        flor_ocs_msgs::OCSFootstepPlanParameters last_plan_request_;
 
         // specifies which footstep will be used as starting point for the planner, -1 to start a new one
         int start_step_index_;

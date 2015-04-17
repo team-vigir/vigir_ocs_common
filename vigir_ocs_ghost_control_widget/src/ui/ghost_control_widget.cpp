@@ -16,7 +16,7 @@
 
 std::vector<unsigned char> GhostControlWidget::saved_state_planning_group_;
 std::vector<unsigned char> GhostControlWidget::saved_state_pose_source_;
-std::vector<unsigned char> GhostControlWidget::saved_state_world_lock_;
+//std::vector<unsigned char> GhostControlWidget::saved_state_world_lock_;
 unsigned char GhostControlWidget::saved_state_collision_avoidance_;
 unsigned char GhostControlWidget::saved_state_lock_pelvis_;
 unsigned char GhostControlWidget::saved_state_position_only_ik_;
@@ -125,7 +125,7 @@ void GhostControlWidget::timerEvent(QTimerEvent *event)
 void GhostControlWidget::processState(const flor_ocs_msgs::OCSGhostControl::ConstPtr &msg)
 {
     // apply state coming from message
-    loadState(msg->planning_group,msg->pose_source,msg->world_lock,msg->collision_avoidance,msg->lock_pelvis, msg->use_drake_ik);
+    loadState(msg->planning_group,msg->pose_source,/*msg->world_lock,*/msg->collision_avoidance,msg->lock_pelvis, msg->use_drake_ik);
 
     // save as the last used state
     saveState();
@@ -235,8 +235,7 @@ void GhostControlWidget::publishState( bool snap )
     flor_ocs_msgs::OCSGhostControl cmd;
     cmd.planning_group = saved_state_planning_group_;
     cmd.pose_source = saved_state_pose_source_;
-    cmd.world_lock = saved_state_world_lock_;
-    //cmd.collision_avoidance = saved_state_collision_avoidance_;
+    //cmd.world_lock = saved_state_world_lock_;
     cmd.lock_pelvis = saved_state_lock_pelvis_;
     cmd.snap = snap;
     cmd.position_only_ik = saved_state_position_only_ik_;
@@ -249,7 +248,7 @@ void GhostControlWidget::saveState()
 {
     saved_state_planning_group_.clear();
     saved_state_pose_source_.clear();
-    saved_state_world_lock_.clear();
+    //saved_state_world_lock_.clear();
 
     saved_state_planning_group_.push_back(false);
     saved_state_planning_group_.push_back(false);
@@ -284,7 +283,7 @@ void GhostControlWidget::saveState()
 
 // default arguments are class members for saved state
 void GhostControlWidget::loadState(std::vector<unsigned char> planning_group, std::vector<unsigned char> pose_source,
-                                   std::vector<unsigned char> world_lock, unsigned char collision_avoidance,
+                                   /*std::vector<unsigned char> world_lock, */unsigned char collision_avoidance,
                                    unsigned char lock_pelvis, unsigned char use_drake_ik)
 {
     /*ui->planning_left_->setChecked(planning_group[0]);
