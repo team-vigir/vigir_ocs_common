@@ -44,7 +44,9 @@ public Q_SLOTS:
     void toggleRegionConfig();
     void toggleWindow(int window);
     void toggleFootstepConfig();
+
     void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
+    void setFootstepParameterSetBox(std::string parameter_set);
 
 private Q_SLOTS:
     void toggleSidebarVisibility();

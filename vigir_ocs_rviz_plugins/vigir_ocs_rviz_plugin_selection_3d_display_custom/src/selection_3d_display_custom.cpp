@@ -587,7 +587,7 @@ void Selection3DDisplayCustom::queryContext( int x, int y )
     std::string name;
     if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type,name))
     {
-        //ROS_ERROR("COLLIDED WITH %s",name.c_str());
+        //ROS_ERROR("COLLIDED WITH %s %d",name.c_str(), type);
         // type 0 -> UNKNOWN ENTITY
         // type 1 -> POINT CLOUD
         // type 2 -> WAYPOINT

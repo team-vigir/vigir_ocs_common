@@ -27,6 +27,7 @@
 #include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include <flor_ocs_msgs/OCSFootstepPlanUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
+#include <flor_ocs_msgs/OCSFootstepStatus.h>
 
 #include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
 #include <vigir_footstep_planning_msgs/parameter_set.h>
@@ -173,6 +174,9 @@ namespace ocs_footstep
         ros::Subscriber footstep_stitch_req_sub_;
         ros::Publisher footstep_param_set_list_pub_;
         ros::Subscriber footstep_param_set_selected_sub_;
+        ros::Publisher footstep_param_set_selected_pub_;
+        ros::Publisher footstep_param_set_selected_ocs_pub_;
+        ros::Publisher footstep_param_set_selected_onboard_pub_;
 
         ros::Publisher footstep_goal_pose_fb_pub_;
         ros::Subscriber footstep_goal_pose_fb_sub_;
@@ -193,6 +197,12 @@ namespace ocs_footstep
 
         // step plan request feedback
         ros::Publisher planner_plan_request_feedback_cloud_pub_;
+
+        // step plan starting steps
+        ros::Publisher start_step_index_feet_pub_;
+
+        // update footstep planner feedback
+        ros::Publisher planner_status_pub_;
 
         // feet pose generator client
         ros::ServiceClient generate_feet_pose_client;

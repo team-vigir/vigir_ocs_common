@@ -192,16 +192,16 @@ void glancehubSbar::receiveFootstepStatus(int status)
 {
     switch(status)
     {
-    case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE:
+    case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE:
         flash_color_footstep_ = "QLabel { background-color: yellow; border:2px solid grey;}";
         break;
-    case RobotStatusCodes::FOOTSTEP_PLANNER_FAILED:
+    case RobotStatusCodes::FOOTSTEP_PLANNER_FAILED: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED:
         flash_color_footstep_ = "QLabel { background-color: red; border:2px solid grey; }";
 
         //notify ui on failure
         NotificationSystem::Instance()->notifyWarning("Footstep Planner Failed");
         break;
-    case RobotStatusCodes::FOOTSTEP_PLANNER_SUCCESS:
+    case RobotStatusCodes::FOOTSTEP_PLANNER_SUCCESS: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_SUCCESS:
         flash_color_footstep_ = "QLabel { background-color: green; border:2px solid grey;}";
         break;
     }

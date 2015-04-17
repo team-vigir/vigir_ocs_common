@@ -179,7 +179,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
         // Add support for goal specification/vector navigation
         set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
-        set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/flor/ocs/footstep/goal_pose" );
+        set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( ("/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose").c_str() );
 
         grid_ = manager_->createDisplay( "rviz/Grid", "Grid", true );
         ROS_ASSERT( grid_ != NULL );
@@ -494,13 +494,16 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_lock_pelvis_ = 1;
 
         // ghost state
-        ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
-        reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
-        send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
-        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 1, false );
+        if(widget_name_ == "MainView") // hack, we don't have a ghost manager yet and should only do this once
+        {
+            ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
+            reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
+            send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
+        }
+        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 1, false );
 
         // subscribe to goal pose
-        set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &Base3DView::processGoalPose, this );
+        set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 5, &Base3DView::processGoalPose, this );
 
         // Create a RobotModel display.
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
@@ -637,7 +640,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         circular_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request", 1, false );
 
         // subscribe to the topic sent by the ghost widget
-        send_cartesian_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_cartesian", 5, &Base3DView::processSendCartesian, this );
+        send_cartesian_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/send_cartesian", 5, &Base3DView::processSendCartesian, this );
         send_ghost_pelvis_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/set_pose", 5, &Base3DView::processGhostPelvisPose, this );
 
         // create publisher and subscriber for object selection
@@ -1156,7 +1159,7 @@ void Base3DView::updateGhostRobotOpacity()
        std::string link_name = link_names[i];
        //get poses of links
        geometry_msgs::Pose robot_pose;
-       geometry_msgs::Pose ghost_pose;       
+       geometry_msgs::Pose ghost_pose;
        if(!robot_model->getLinkPose(link_name,robot_pose) || !ghost_robot_model->getLinkPose(link_name,ghost_pose))
        {
           //ROS_ERROR("mismatch link? %s %d", link_name.c_str(),i);
@@ -1167,9 +1170,9 @@ void Base3DView::updateGhostRobotOpacity()
 
        //5cm and 2deg tolerance
        if(checkPoseMatch(robot_pose,ghost_pose,0.005f,2.0f))
-       {         
+       {
            //hide link
-           tmp.color.a = 0.0f;                      
+           tmp.color.a = 0.0f;
        }
        else
        {
@@ -2383,7 +2386,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
 }
 
 void Base3DView::processPelvisEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
-{
+{    
     ghost_root_pose_ = pose->pose;
 }
 
@@ -2564,7 +2567,7 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
 }
 
 void Base3DView::processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg)
-{
+{    
     flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
     cmd.pose = *msg;
     cmd.topic = "/pelvis_pose_marker";
@@ -2709,7 +2712,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_l_arm_ = false;
         moving_r_arm_ = false;
 
-        pelvis_marker_pose_pub_.publish(msg.pose);
+        pelvis_marker_pose_pub_.publish(msg.pose);        
     }
     else if(msg.topic.find("/cartesian_pose_") != std::string::npos)
     {
@@ -2882,7 +2885,7 @@ void Base3DView::publishGhostPoses()
 
 //        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
 //        {
-//            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Pelvis")
+//            if(0server_[i]->getMarkerName() == "Ghost Pelvis")
 //            {
 //                im_ghost_robot_server_[i]->setPose(pose);
 //                break;
@@ -2896,13 +2899,13 @@ void Base3DView::publishGhostPoses()
 
         pelvis_marker_pose_pub_.publish(pose);
     }
-    /*else
+    else
     {
         // how do I set world lock for torso?
         ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
         pelvis_marker_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
-    }*/
+    }
 }
 
 void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::ConstPtr &msg)

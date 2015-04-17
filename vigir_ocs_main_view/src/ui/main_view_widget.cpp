@@ -350,8 +350,9 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
 
     //need local reference to ghost control to access some of its functionality for context menu
-    ghost_control_widget_ = new GhostControlWidget();
-    ghost_control_widget_->hide();
+    snap_ghost_pub_ = n_.advertise<std_msgs::Bool>("/flor/ocs/ghost/snap_ghost_context",1,false);
+    use_torso_pub_ = n_.advertise<std_msgs::Bool>("/flor/ocs/ghost/use_torso_context",1,false);
+    //TODO, get this synced from ghost control ui
     use_torso_checked_ = false;
 
     // connect emergency stop button to glancehub
@@ -666,10 +667,26 @@ void MainViewWidget::updateContextMenu()
 
 }
 
+//yes these next 3 functions are awful
 //need to coordinate checkbox in ghost widget and main view context menu, also call use torso function
 void MainViewWidget::useTorsoContextMenu()
 {
-    use_torso_checked_ = ghost_control_widget_->useTorsoContextMenu();
+    std_msgs::Bool msg;
+    //message is only used as a signal,  TEMPORARY, need to make ghost manager
+    snap_ghost_pub_.publish(msg);
+}
+
+//use_torso not synced in context menu
+//void MainViewWidget::useTorsoChecked(std_msgs::BoolConstPtr & msg)
+//{
+//    use_torso_checked_ = msg->data;
+//}
+
+void MainViewWidget::snapGhostContextMenu()
+{
+    std_msgs::Bool msg;
+    //message is only used as a signal,  TEMPORARY, need to make ghost manager
+    snap_ghost_pub_.publish(msg);
 }
 
 void MainViewWidget::setManipulationMode(int mode)
@@ -719,7 +736,7 @@ void MainViewWidget::graspWidgetToggle()
 MainViewWidget::~MainViewWidget()
 {
     delete ui;
-    delete ghost_control_widget_;
+    //delete ghost_control_widget_;
 }
 
 void MainViewWidget::timerEvent(QTimerEvent *event)
@@ -744,6 +761,11 @@ bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
 {
     if ( e->type() == QEvent::Wheel &&
          (qobject_cast<QAbstractSpinBox*>( o ) || qobject_cast<QAbstractSlider*>( o ) || qobject_cast<QComboBox*>( o )))
+    {
+        e->ignore();
+        return true;
+    }
+    if( qobject_cast<QComboBox*>( o ) && qobject_cast<QComboBox*>( o ) == ui->footstepParamSetBox)
     {
         e->ignore();
         return true;
@@ -832,6 +854,7 @@ void MainViewWidget::setupToolbar()
 
     connect(ui->footstepParamSetBox,SIGNAL(currentIndexChanged(QString)),((vigir_ocs::Base3DView*)views_list_["Top Left"])->getFootstepVisManager(),SLOT(setFootstepParameterSet(QString)));
     connect(((vigir_ocs::Base3DView*)views_list_["Top Left"])->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));
+    connect(((vigir_ocs::Base3DView*)views_list_["Top Left"])->getFootstepVisManager(),SIGNAL(setFootstepParameterSetBox(std::string)),this,SLOT(setFootstepParameterSetBox(std::string)));
 
 }
 
@@ -862,19 +885,19 @@ void MainViewWidget::loadButtonIconAndStyle(QPushButton* btn, QString image_name
 
 void MainViewWidget::toggleWindow(int window)
 {
-    if(window == WINDOW_GHOST_CONFIG)
-    {
-        if(ghost_control_widget_->isVisible())
-            ghost_control_widget_->hide();
-        else
-            ghost_control_widget_->show();
-    }
-    else
-    {
+//    if(window == WINDOW_GHOST_CONFIG)
+//    {
+//        if(ghost_control_widget_->isVisible())
+//            ghost_control_widget_->hide();
+//        else
+//            ghost_control_widget_->show();
+//    }
+//    else
+//    {
         std_msgs::Int8 cmd;
         cmd.data = ((QPushButton*)toggle_mapper_->mapping(window))->isChecked() ? window : -window;
         window_control_pub_.publish(cmd);
-    }
+   // }
 
 
 }
@@ -1063,6 +1086,19 @@ void MainViewWidget::populateFootstepParameterSetBox(std::vector<std::string> pa
         for(int i = 0; i < parameter_sets.size(); i++)
         {
             ui->footstepParamSetBox->addItem(QString(parameter_sets[i].c_str()));
+        }
+    }
+}
+
+void MainViewWidget::setFootstepParameterSetBox(std::string parameter_set)
+{
+    for(int i = 0; i < ui->footstepParamSetBox->count(); i++)
+    {
+        if(QString(parameter_set.c_str()) == ui->footstepParamSetBox->itemText(i))
+        {
+            ui->footstepParamSetBox->installEventFilter(this);
+            ui->footstepParamSetBox->setCurrentIndex(i);
+            ui->footstepParamSetBox->removeEventFilter(this);
         }
     }
 }

@@ -33,15 +33,15 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     saveState();
 
     // subscribe to the topic to load state configurations
-    state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &GhostControlWidget::processState, this );
+    state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost/ghost_ui_state", 5, &GhostControlWidget::processState, this );
     //subscribe to template list
     template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",5, &GhostControlWidget::processTemplateList, this );
 
     // advertise the topic to publish state configurations
-    state_pub_ = nh_.advertise<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 1, false );
-    reset_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 1, false );
-    send_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 1, false );
-    send_ghost_cartesian_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/send_cartesian", 1, false );
+    state_pub_ = nh_.advertise<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost/ghost_ui_state", 1, false );
+    reset_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/reset_pelvis", 1, false );
+    send_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/send_pelvis_to_footstep", 1, false );
+    send_ghost_cartesian_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/send_cartesian", 1, false );
 
     // advertise set pose buttons
     set_to_target_pose_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/planning/plan_to_pose_state", 1, false );
@@ -62,6 +62,11 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     //TEMPLATE SERVER STUFF
     grasp_info_client_    = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
     template_info_client_ = nh_.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
+
+
+    //Context menu fix
+    snap_ghost_sub_ = nh_.subscribe<std_msgs::Bool>("/flor/ocs/ghost/snap_ghost_context",5, &GhostControlWidget::snapGhostContextMenu, this );
+    use_torso_sub_ = nh_.subscribe<std_msgs::Bool>("/flor/ocs/ghost/use_torso_context",5, &GhostControlWidget::useTorsoContextMenu, this );
 
 
     //Restore State
@@ -273,7 +278,7 @@ void GhostControlWidget::saveState()
     }
 
     saved_state_use_drake_ik_ = ui->use_drake_ik_->isChecked();
-    saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();
+    saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();    
     saved_state_position_only_ik_ = ui->position_only_ik_->isChecked();
 }
 
@@ -355,14 +360,25 @@ void GhostControlWidget::on_planning_torso__clicked()
     publishState();
 }
 
-//public wrapper to be used with context menu callback,
-//returns state of use torso checkbox for convenience in main view and setting context menu item checked
-bool GhostControlWidget::useTorsoContextMenu()
+//temp fix before making ghost manager, ignoring message, just using these callbacks as a way to signal
+// this reference from main view without a local reference, ignore msg just a placeholder
+//public wrapper for context menu callback
+void GhostControlWidget::snapGhostContextMenu(const std_msgs::BoolConstPtr &msg)
+{
+    snapClicked();
+}
+
+void GhostControlWidget::useTorsoContextMenu(const std_msgs::BoolConstPtr &msg)
 {
     ui->planning_torso_->toggle();
-    return ui->planning_torso_->isChecked();
-    //on_planning_torso__clicked();
 }
+//public wrapper to be used with context menu callback,
+//returns state of use torso checkbox for convenience in main view and setting context menu item checked
+//bool GhostControlWidget::useTorsoContextMenu()
+//{
+//    //ui->planning_torso_->toggle();
+//    //return ui->planning_torso_->isChecked();
+//}
 
 void GhostControlWidget::on_position_only_ik__clicked()
 {
@@ -584,12 +600,6 @@ void GhostControlWidget::addHotkeys()
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+s",boost::bind(&GhostControlWidget::snapClicked,this));
 }
 
-//public wrapper for context menu callback
-void GhostControlWidget::snapContextMenu()
-{
-    snapClicked();
-}
-
 void GhostControlWidget::on_send_left_cartesian_button__clicked()
 {
     std_msgs::Bool cmd;
@@ -687,7 +697,12 @@ void GhostControlWidget::on_send_ghost_to_template_button_clicked()
     if (!template_info_client_.call(srv))
     {
         ROS_ERROR("Failed to call service request grasp info");
-    }else{
+    }
+    else
+    {
+        //cant send ghost robot if no pose
+        if(srv.response.template_type_information.stand_poses.size() == 0)
+            return;
         for(int index = 0; index < srv.response.template_type_information.stand_poses.size(); index++)
         {
             if(srv.response.template_type_information.stand_poses[index].id == selected_pose_id_){

@@ -1,12 +1,14 @@
 #include "glancehub.h"
-#include <ros/ros.h>
 #include "ui_glancehub.h"
+
+#include <ros/ros.h>
+#include <ros/package.h>
+
 #include "flor_ocs_msgs/RobotStatusCodes.h"
+
 #include<QFile>
 #include<QTextStream>
 #include<QDebug>
-#include <ros/package.h>
-
 
 glancehub::glancehub(QWidget *parent) :
     QMainWindow(parent),
@@ -14,9 +16,11 @@ glancehub::glancehub(QWidget *parent) :
 {
     ui->setupUi(this);
     ros::NodeHandle nh;
-    controlMode_sub = nh.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode",5,&glancehub::controlModeMsgRcv, this);
-    robotStatusMoveit_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/planning/upper_body/status",2,&glancehub::robotStatusMoveit,this);
-    robotStatusFootstep_sub = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/footstep_planner/status",2,&glancehub::robotStatusFootstep,this);
+    control_mode_sub_ = nh.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode",5,&glancehub::controlModeMsgRcv, this);
+    moveit_status_sub_ = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/planning/upper_body/status",2,&glancehub::robotStatusMoveit,this);
+    footstep_status_simple_sub_ = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/ocs/footstep/status_simple",2,&glancehub::robotStatusFootstep,this); // onboard status
+    footstep_status_sub_ = nh.subscribe<flor_ocs_msgs::OCSFootstepStatus>("/flor/ocs/footstep/status",2,&glancehub::robotStatusFootstepComplete,this);
+
 
     // load control modes into dropdown box from parameters
     nh.getParam("/atlas_controller/allowed_control_modes", allowed_control_modes_);
@@ -54,14 +58,6 @@ QString glancehub::getFootstepStat()
 
 void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr &msg)
 {
-    int count_row;
-    int unreadMsgs;
-    int numError;
-    int numWarn;
-    int maxRows;
-    QFont bold;
-    QFont normal;
-
     if(msg->status != RobotStatusCodes::PLANNER_MOVEIT_PLAN_ACTIVE)
         ui->plannerLight->setStyleSheet("QLabel { background-color: red; }");
     else
@@ -79,18 +75,16 @@ void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr 
     switch(level){
     case 0:
 
-        msgType="Ok";
+        msgType="(Ok) ";
         break;
     case 1:
-        msgType="Debug";
+        msgType="(Debug) ";
         break;
     case 2:
-        msgType="Warn";
-        numWarn++;
+        msgType="(Warn) ";
         break;
     case 3:
-        msgType="Error";
-        numError++;
+        msgType="(Error) ";
         break;
     }
 
@@ -100,7 +94,6 @@ void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr 
         QString tempMessage = QString::fromStdString("Default Message");
         tempMessage+=QString::number(code);
         text=(tempMessage);
-        numError++;
     }
     else if(errors.size() > 0)
     {
@@ -108,25 +101,13 @@ void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr 
     }
     else
     {
-        std::cout << "Cannot find data file but recieved msg level = " << (int)level << " code = " << (int)code << std::endl;
+        std::cout << "Cannot find data file but Received msg level = " << (int)level << " code = " << (int)code << std::endl;
 
-        QString tempMessage = "Cannot find data file but recieved msg  num";
+        QString tempMessage = "Cannot find data file but Received msg  num";
         tempMessage+= QString::number(code);
         text=tempMessage;
-        numError++;
     }
-    ui->moveitstat->setText(msgType+"("+text+")");
-    count_row++;
-    qDebug() << count_row;
-    if(count_row>maxRows)
-    {
-        if(msgType=="Warn")
-            numWarn--;
-        if(msgType=="Error")
-            numError--;
-
-    }
-    unreadMsgs++;
+    ui->moveitstat->setText(msgType+text);
 }
 
 void glancehub::loadFile()
@@ -157,14 +138,6 @@ void glancehub::loadFile()
 
 void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr &msg)
 {
-    int count_row;
-    int unreadMsgs;
-    int numError;
-    int numWarn;
-    int maxRows;
-    QFont bold;
-    QFont normal;
-
     switch(msg->status)
     {
     case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE:
@@ -177,31 +150,27 @@ void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPt
         ui->footLight->setStyleSheet("QLabel { background-color: green; }");
         break;
     }
-    //notify status bar
-    Q_EMIT sendFootstepStatus(msg->status);
 
     uint8_t  level;
     uint16_t code;
     RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
-    std::cout << "Recieved message. level = " << (int)level << " code = " << (int)code << std::endl;
+    std::cout << "Received message. level = " << (int)level << " code = " << (int)code << std::endl;
 
     QString text ;
     QString msgType ;
-    switch(level){
+    switch(level)
+    {
     case 0:
-
-        msgType="Ok";
+        msgType="(Success) ";
         break;
     case 1:
-        msgType="Debug";
+        msgType="(Debug) ";
         break;
     case 2:
-        msgType="Warn";
-        numWarn++;
+        msgType="(Warning) ";
         break;
     case 3:
-        msgType="Error";
-        numError++;
+        msgType="(Error) ";
         break;
     }
 
@@ -211,7 +180,6 @@ void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPt
         QString tempMessage = QString::fromStdString("Default Message");
         tempMessage+=QString::number(code);
         text=(tempMessage);
-        numError++;
     }
     else if(errors.size() > 0)
     {
@@ -219,27 +187,42 @@ void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPt
     }
     else
     {
-        std::cout << "Cannot find data file but recieved msg level = " << (int)level << " code = " << (int)code << std::endl;
+        std::cout << "Cannot find data file but Received msg level = " << (int)level << " code = " << (int)code << std::endl;
 
-        QString tempMessage = "Cannot find data file but recieved msg  num";
+        QString tempMessage = "Cannot find data file but Received msg  num";
         tempMessage+= QString::number(code);
         text=tempMessage;
-        numError++;
     }
-    ui->footstepstat->setText(msgType+"("+text+")");
-    count_row++;
-    qDebug() << count_row;
-    if(count_row>maxRows)
+
+    ui->footstepstat->setText(msgType+text);
+
+    //notify status bar
+    Q_EMIT sendFootstepStatus(msg->status);
+}
+
+void glancehub::robotStatusFootstepComplete(const flor_ocs_msgs::OCSFootstepStatus::ConstPtr& msg)
+{
+    QString msgType;
+    switch(msg->status)
     {
-        if(msgType=="Warn")
-            numWarn--;
-        if(msgType=="Error")
-            numError--;
-
+    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE:
+        ui->footLight->setStyleSheet("QLabel { background-color: yellow; }");
+        msgType="(Warning) ";
+        break;
+    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED:
+        ui->footLight->setStyleSheet("QLabel { background-color: red; }");
+        msgType="(Error) ";
+        break;
+    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_SUCCESS:
+        ui->footLight->setStyleSheet("QLabel { background-color: green; }");
+        msgType="(Success) ";
+        break;
     }
-    unreadMsgs++;
 
+    ui->footstepstat->setText(msgType+msg->status_msg.c_str());
 
+    //notify status bar
+    Q_EMIT sendFootstepStatus(msg->status);
 }
 
 void glancehub::controlModeMsgRcv(const flor_control_msgs::FlorControlMode::ConstPtr& msg)
@@ -250,11 +233,11 @@ void glancehub::controlModeMsgRcv(const flor_control_msgs::FlorControlMode::Cons
     else
         newText = QString::fromStdString("Unknown");
 
-    //notify status bar
-    Q_EMIT sendFlorStatus(msg->control_mode);
-
     ui->controlModeLabel->setText(newText);
     std::cout << "Changing to "<< newText.toStdString() << " Mode" << std::endl;
+
+    //notify status bar
+    Q_EMIT sendFlorStatus(msg->control_mode);
 }
 QString glancehub::timeFromMsg(ros::Time stamp)
 {

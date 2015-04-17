@@ -69,6 +69,8 @@ install( TARGETS ${PROJECT_NAME} #vigir_ocs_behavior_manager_exe
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+catkin_install_python(PROGRAMS scripts/behavior_manager
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 
 

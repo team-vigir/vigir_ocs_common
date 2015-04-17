@@ -61,8 +61,8 @@ public:
                    unsigned char lock_pelvis=saved_state_lock_pelvis_,
                    unsigned char use_drake_ik=saved_state_use_drake_ik_);
 
-    bool useTorsoContextMenu();
-    void snapContextMenu();
+    void useTorsoContextMenu(const std_msgs::BoolConstPtr &msg);
+    void snapGhostContextMenu(const std_msgs::BoolConstPtr &msg);
 
 protected:
     void timerEvent(QTimerEvent *event);
@@ -127,6 +127,9 @@ private:
     std::vector< std::vector<QString> > readTextDBFile(QString path);
 
     Ui::GhostControlWidget* ui;
+
+    ros::Subscriber snap_ghost_sub_;
+    ros::Subscriber use_torso_sub_;
 
     ros::NodeHandle nh_;
     ros::Subscriber state_sub_; // need to make sure we subscribe to others in case someone else changes the configuration
