@@ -56,7 +56,7 @@ public:
     void saveState();
     void loadState(std::vector<unsigned char> planning_group=saved_state_planning_group_,
                    std::vector<unsigned char> pose_source=saved_state_pose_source_,
-                   std::vector<unsigned char> world_lock=saved_state_world_lock_,
+                   //std::vector<unsigned char> world_lock=saved_state_world_lock_,
                    unsigned char collision_avoidance=saved_state_collision_avoidance_,
                    unsigned char lock_pelvis=saved_state_lock_pelvis_,
                    unsigned char use_drake_ik=saved_state_use_drake_ik_);
@@ -150,7 +150,7 @@ private:
     // variables that hold saved state of the widget
     static std::vector<unsigned char> saved_state_planning_group_;
     static std::vector<unsigned char> saved_state_pose_source_;
-    static std::vector<unsigned char> saved_state_world_lock_;
+    //static std::vector<unsigned char> saved_state_world_lock_;
     static unsigned char saved_state_collision_avoidance_;
     static unsigned char saved_state_lock_pelvis_;
     static unsigned char saved_state_position_only_ik_;
