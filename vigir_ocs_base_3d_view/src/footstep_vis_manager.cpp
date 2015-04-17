@@ -25,7 +25,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     footsteps_path_body_array_->subProp( "Marker Topic" )->setValue( "/flor/ocs/footstep/footsteps_path_body_array" );
 
     goal_pose_ = manager_->createDisplay( "rviz/Pose", "Goal pose", false );
-    goal_pose_->subProp( "Topic" )->setValue( "/flor/ocs/footstep/goal_pose" );
+    goal_pose_->subProp( "Topic" )->setValue( ("/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose").c_str() );
     goal_pose_->subProp( "Shape" )->setValue( "Axes" );
 
     planner_start_ = manager_->createDisplay( "rviz/Pose", "Start pose", false );
@@ -54,9 +54,11 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     // publishers and subscribers for the plan request
     footstep_goal_sub_               = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 5, &FootstepVisManager::processGoalPose, this );
     footstep_plan_goal_pub_          = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, false );
-    footstep_goal_pose_fb_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
-    footstep_goal_pose_fb_sub_       = nh_.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 5, &FootstepVisManager::processGoalPoseFeedback, this );
+    footstep_goal_pose_fb_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update", 1, false );
+    footstep_goal_pose_fb_sub_       = nh_.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update_feedback", 5, &FootstepVisManager::processGoalPoseFeedback, this );
     footstep_plan_request_pub_       = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/plan_request", 1, false );
+    footstep_plan_parameters_pub_    = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters", 1, false );
+    footstep_plan_parameters_sub_    = nh_.subscribe<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters_feedback", 5, &FootstepVisManager::processFootstepPlanParameters, this );
     footstep_plan_update_pub_        = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanUpdate>( "/flor/ocs/footstep/plan_update", 1, false );
     footstep_param_set_list_sub_     = nh_.subscribe<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 5, &FootstepVisManager::processFootstepParamSetList, this );
     footstep_param_set_selected_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 1, false );
@@ -527,15 +529,36 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
     }
 }
 
-void FootstepVisManager::updateFootstepParamaters(double maxTime,int maxSteps,double pathLengthRatio,int interactionMode)
+void FootstepVisManager::updateFootstepParamaters(double max_time,int max_steps,double path_length_ratio,int edit_mode)
 {
     //update all paramaters from ui
-    max_time_ = maxTime;
-    max_steps_ = maxSteps;
-    path_length_ratio_ = pathLengthRatio;
-    edit_mode_ = interactionMode;
-    ROS_ERROR("UPDATE time: %f steps: %d ratio:%f intmode: %d",max_time_,max_steps_,path_length_ratio_,edit_mode_);
+    max_time_ = max_time;
+    max_steps_ = max_steps;
+    path_length_ratio_ = path_length_ratio;
+    edit_mode_ = edit_mode;
 }
 
+void FootstepVisManager::update3dPlanning(bool use_3d_planning)
+{
+    //update all paramaters from ui
+    use_3d_planning_ = use_3d_planning;
+}
+
+void FootstepVisManager::sendFootstepPlanParameters()
+{
+    flor_ocs_msgs::OCSFootstepPlanParameters cmd;
+    cmd.max_time = max_time_;
+    cmd.max_steps = max_steps_;
+    cmd.path_length_ratio = path_length_ratio_;
+    cmd.edit_mode = edit_mode_;
+    cmd.use_3d_planning = use_3d_planning_;
+    footstep_plan_parameters_pub_.publish(cmd);
+}
+
+void FootstepVisManager::processFootstepPlanParameters(const flor_ocs_msgs::OCSFootstepPlanParameters::ConstPtr& msg)
+{
+    Q_EMIT set3dPlanning(msg->use_3d_planning);
+    Q_EMIT updateFootstepParamaters(msg->max_time, msg->max_steps, msg->path_length_ratio, msg->edit_mode);
+}
 
 }

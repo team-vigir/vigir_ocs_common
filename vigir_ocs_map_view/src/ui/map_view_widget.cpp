@@ -313,6 +313,7 @@ void MapViewWidget::setupToolbar()
 void MapViewWidget::loadButtonIconAndStyle(QPushButton* btn, QString image_name)
 {
     btn->setStyleSheet(QString("QPushButton  { ") +
+                       " font: 9pt \"Ubuntu\";" +
                        " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
                        " border-style: solid;" +
                        " border-width: 1px;" +
@@ -323,6 +324,7 @@ void MapViewWidget::loadButtonIconAndStyle(QPushButton* btn, QString image_name)
                        " image-position: top left"
                        "}" +
                        "QPushButton:pressed  {" +
+                       " font: 9pt \"Ubuntu\";" +
                        " padding-top:1px; padding-left:1px;" +
                        " background-color: rgb(180,180,180);" +
                        " border-style: inset;" +

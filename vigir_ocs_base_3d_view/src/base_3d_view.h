@@ -228,6 +228,7 @@ public:
     /**
       * ROS Callback: receives new goal pose for footstep planner
       */
+    virtual void processOwnGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose);
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     /**
       * ROS Callback: receives new key event from global hotkey process
@@ -525,7 +526,9 @@ protected:
     ros::Publisher pointcloud_request_world_pub_;
 
     ros::Publisher send_footstep_goal_pub_;
+    ros::Subscriber send_footstep_goal_sub_;
 
+    ros::Publisher set_goal_pub_;
     ros::Subscriber set_goal_sub_;
 
     ros::Publisher interactive_marker_add_pub_;

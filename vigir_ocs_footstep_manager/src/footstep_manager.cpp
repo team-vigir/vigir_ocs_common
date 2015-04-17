@@ -53,8 +53,8 @@ void FootstepManager::onInit()
     footstep_param_set_selected_onboard_pub_ = nh.advertise<std_msgs::String>( "set_active_parameter_set_onboard", 1, false );
 
     // footstep request coming from the OCS
-    footstep_goal_pose_fb_pub_  = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
-    footstep_goal_pose_fb_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 1, &FootstepManager::processFootstepPlanGoalFeedback, this );
+    footstep_goal_pose_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update", 1, &FootstepManager::processFootstepPlanGoalFeedback, this );
+    footstep_goal_pose_pub_  = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update_feedback", 1, false );
     footstep_plan_goal_sub_     = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, &FootstepManager::processFootstepPlanGoal, this );
     footstep_plan_request_sub_  = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/plan_request", 1, &FootstepManager::processFootstepPlanRequest, this );
     footstep_plan_update_sub_   = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanUpdate>( "/flor/ocs/footstep/plan_update", 1, &FootstepManager::processFootstepPlanUpdate, this );
@@ -534,7 +534,7 @@ void FootstepManager::processFootstepPlanUpdate(const flor_ocs_msgs::OCSFootstep
 void FootstepManager::processFootstepPlanRequest(const std_msgs::Int8::ConstPtr& plan_request)
 {
     //last_plan_request_ = *plan_request;
-    last_plan_request_.interaction_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_3D;
+    //last_plan_request_.interaction_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_3D;
 
     // need to get the following from the OCS as well
     last_plan_request_.max_time = 5;
@@ -691,7 +691,7 @@ void FootstepManager::publishGoalMarkerClear()
 {
     flor_ocs_msgs::OCSFootstepPlanGoalUpdate cmd;
     cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::CLEAR;
-    footstep_goal_pose_fb_pub_.publish(cmd);
+    footstep_goal_pose_pub_.publish(cmd);
 }
 
 void FootstepManager::publishGoalMarkerFeedback()
@@ -703,7 +703,7 @@ void FootstepManager::publishGoalMarkerFeedback()
     // and for goal feetposes
     cmd.left_foot.pose = goal_.left.pose;
     cmd.right_foot.pose = goal_.right.pose;
-    footstep_goal_pose_fb_pub_.publish(cmd);
+    footstep_goal_pose_pub_.publish(cmd);
 }
 
 void FootstepManager::publishFootsteps()
@@ -829,7 +829,7 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     request.start_foot_selection = start_foot;
 
     // default planning mode is 2D, but will get that from the OCS
-    request.planning_mode = last_plan_request_.interaction_mode;
+    request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_3D;//last_plan_request_.interaction_mode;
 
     // need to get the following from the OCS as well
     request.max_planning_time = last_plan_request_.max_time;

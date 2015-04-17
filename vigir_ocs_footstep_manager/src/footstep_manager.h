@@ -178,8 +178,8 @@ namespace ocs_footstep
         ros::Publisher footstep_param_set_selected_ocs_pub_;
         ros::Publisher footstep_param_set_selected_onboard_pub_;
 
-        ros::Publisher footstep_goal_pose_fb_pub_;
-        ros::Subscriber footstep_goal_pose_fb_sub_;
+        ros::Publisher footstep_goal_pose_pub_;
+        ros::Subscriber footstep_goal_pose_sub_;
         ros::Subscriber footstep_plan_goal_sub_;
         ros::Subscriber footstep_plan_request_sub_;
         ros::Subscriber footstep_plan_update_sub_;
