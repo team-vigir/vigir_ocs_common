@@ -57,7 +57,6 @@
 #include <flor_ocs_msgs/OCSObjectSelection.h>
 #include <flor_ocs_msgs/OCSCameraTransform.h>
 #include <flor_ocs_msgs/OCSControlMode.h>
-//#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include "flor_ocs_msgs/OCSSynchronize.h"
 #include <flor_ocs_msgs/OCSMarkerVisibility.h>
 #include <flor_perception_msgs/RaycastRequest.h>

@@ -243,7 +243,7 @@ void FootstepManager::processStitchPlansRequest(const std_msgs::Int8::ConstPtr& 
 
 void FootstepManager::processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg)
 {
-//    if(selected_footstep_parameter_set_ != msg->data)
+    if(selected_footstep_parameter_set_ != msg->data || selected_footstep_parameter_set_ == "")
     {
         selected_footstep_parameter_set_ = msg->data;
         footstep_param_set_selected_pub_.publish(*msg);
@@ -255,11 +255,11 @@ void FootstepManager::processFootstepParamSetSelected(const std_msgs::String::Co
 void FootstepManager::processFootstepPlanParameters(const flor_ocs_msgs::OCSFootstepPlanParameters::ConstPtr& msg)
 {
     flor_ocs_msgs::OCSFootstepPlanParameters new_planner_config = *msg;
-//    if(planner_config_.edit_mode != new_planner_config.edit_mode ||
-//       planner_config_.max_steps != new_planner_config.max_steps ||
-//       planner_config_.max_time != new_planner_config.max_time ||
-//       planner_config_.path_length_ratio != new_planner_config.path_length_ratio ||
-//       planner_config_.use_3d_planning != new_planner_config.use_3d_planning)
+    if(planner_config_.edit_mode != new_planner_config.edit_mode ||
+       planner_config_.max_steps != new_planner_config.max_steps ||
+       planner_config_.max_time != new_planner_config.max_time ||
+       planner_config_.path_length_ratio != new_planner_config.path_length_ratio ||
+       planner_config_.use_3d_planning != new_planner_config.use_3d_planning)
     {
         planner_config_ = new_planner_config;
         footstep_plan_parameters_pub_.publish(planner_config_);
@@ -1268,9 +1268,6 @@ void FootstepManager::doneGetAllParameterSets(const actionlib::SimpleClientGoalS
         footstep_parameter_set_list_.clear();
         for(int i = 0; i < result->param_sets.size(); i++)
             footstep_parameter_set_list_.push_back(result->param_sets[i]);
-
-        if(selected_footstep_parameter_set_ == "" && footstep_parameter_set_list_.size() > 0)
-            selected_footstep_parameter_set_ = footstep_parameter_set_list_[0].name.data;
 
         this->publishFootstepParameterSetList();
     }

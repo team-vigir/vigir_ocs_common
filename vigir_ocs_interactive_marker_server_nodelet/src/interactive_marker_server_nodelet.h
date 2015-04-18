@@ -38,12 +38,10 @@ namespace ocs_interactive_marker_server
         void onMarkerFeedback(unsigned char event_type, std::string topic_name, geometry_msgs::PoseStamped pose );
         void setMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
         void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &obj);
-        void timerCallback(const ros::TimerEvent& event);
         void processMarkerVisibility(const flor_ocs_msgs::OCSMarkerVisibility::ConstPtr &msg);
 
       private:
         void publishSelectedObject();
-        void setEnabledMarkerVisible();
 
         ros::Publisher interactive_marker_server_feedback_pub_;
         ros::Subscriber interactive_marker_server_add_sub_;
@@ -60,7 +58,5 @@ namespace ocs_interactive_marker_server
         boost::mutex interactive_marker_server_change_mutex_;
 
         std::string selected_object_topic_;
-
-        ros::Timer timer_;
     };
 }
