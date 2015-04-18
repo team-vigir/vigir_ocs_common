@@ -192,6 +192,14 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //connect to update footstep paramaters from ui
     connect(footstep_configure_widget_,SIGNAL(sendFootstepParamaters(double,int,double,int)),
             ((vigir_ocs::Base3DView*) views_list_["Top Left"])->getFootstepVisManager(),SLOT(updateFootstepParamaters(double,int,double,int)));
+    connect(ui->use3dPlanning,SIGNAL(clicked(bool)),
+            ((vigir_ocs::Base3DView*) views_list_["Top Left"])->getFootstepVisManager(),SLOT(update3dPlanning(bool)));
+    connect(((vigir_ocs::Base3DView*) views_list_["Top Left"])->getFootstepVisManager(),SIGNAL(setFootstepParamaters(double,int,double,int)),
+            footstep_configure_widget_,SLOT(updateFootstepParamaters(double,int,double,int)));
+    connect(((vigir_ocs::Base3DView*) views_list_["Top Left"])->getFootstepVisManager(),SIGNAL(set3dPlanning(bool)),
+            this,SLOT(update3dPlanning(bool)));
+
+    footstep_configure_widget_->emitCurrentConfig();
 
     // setup all buttons/icons in the toolbar
     setupToolbar();
@@ -770,6 +778,11 @@ bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
         e->ignore();
         return true;
     }
+    if( qobject_cast<QCheckBox*>( o ) && qobject_cast<QCheckBox*>( o ) == ui->use3dPlanning)
+    {
+        e->ignore();
+        return true;
+    }
     return QWidget::eventFilter( o, e );
 }
 
@@ -1101,4 +1114,11 @@ void MainViewWidget::setFootstepParameterSetBox(std::string parameter_set)
             ui->footstepParamSetBox->removeEventFilter(this);
         }
     }
+}
+
+void MainViewWidget::update3dPlanning(bool checked)
+{
+    ui->use3dPlanning->installEventFilter(this);
+    ui->use3dPlanning->setChecked(checked);
+    ui->use3dPlanning->removeEventFilter(this);
 }

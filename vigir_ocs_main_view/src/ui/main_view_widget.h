@@ -85,6 +85,7 @@ public Q_SLOTS:
     void setCameraMode();
     void setWorldMode();
     void updateBehaviorNotifications();
+    void update3dPlanning(bool);
 
 protected Q_SLOTS:
     void toggleSidebarVisibility();    

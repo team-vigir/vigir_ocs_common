@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>993</width>
-    <height>730</height>
+    <width>1179</width>
+    <height>831</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -224,7 +224,7 @@
               </property>
               <property name="font">
                <font>
-                <pointsize>9</pointsize>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -353,7 +353,7 @@
               </property>
               <property name="font">
                <font>
-                <pointsize>9</pointsize>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <italic>false</italic>
                 <bold>false</bold>
@@ -498,7 +498,7 @@
               <property name="font">
                <font>
                 <family>Ubuntu</family>
-                <pointsize>9</pointsize>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <italic>false</italic>
                 <bold>false</bold>
@@ -538,7 +538,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>210</width>
+          <width>300</width>
           <height>16777215</height>
          </size>
         </property>
@@ -732,6 +732,18 @@
               </property>
               <property name="text">
                <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="use3dPlanning">
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>3D Planning</string>
               </property>
              </widget>
             </item>

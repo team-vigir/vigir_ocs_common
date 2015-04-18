@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>200</width>
+    <width>234</width>
     <height>108</height>
    </rect>
   </property>
@@ -111,17 +111,12 @@
         </property>
         <item>
          <property name="text">
-          <string>2D</string>
+          <string>2D (x, y, yaw)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>3D</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Manual</string>
+          <string>Manual (6DOF)</string>
          </property>
         </item>
        </widget>

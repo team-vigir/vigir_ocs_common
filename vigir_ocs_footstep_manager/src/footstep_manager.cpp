@@ -39,25 +39,27 @@ void FootstepManager::onInit()
     addNewPlanList();
 
     // creates publishers and subscribers for the interaction loop
-    footstep_list_pub_               = nh.advertise<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, false );
-    footstep_update_sub_             = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/step_update", 1, &FootstepManager::processFootstepPoseUpdate, this );
-    footstep_undo_req_sub_           = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/undo", 1, &FootstepManager::processUndoRequest, this );
-    footstep_redo_req_sub_           = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/redo", 1, &FootstepManager::processRedoRequest, this );
-    footstep_start_index_pub_        = nh.subscribe<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, &FootstepManager::processSetStartIndex, this );
-    footstep_execute_req_sub_        = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
-    footstep_stitch_req_sub_         = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/stitch", 1, &FootstepManager::processStitchPlansRequest, this );
-    footstep_param_set_list_pub_     = nh.advertise<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 1, false );
-    footstep_param_set_selected_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 5, &FootstepManager::processFootstepParamSetSelected, this );
-    footstep_param_set_selected_pub_ = nh.advertise<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected_feedback", 1, false );
+    footstep_list_pub_                       = nh.advertise<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, false );
+    footstep_update_sub_                     = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/step_update", 1, &FootstepManager::processFootstepPoseUpdate, this );
+    footstep_undo_req_sub_                   = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/undo", 1, &FootstepManager::processUndoRequest, this );
+    footstep_redo_req_sub_                   = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/redo", 1, &FootstepManager::processRedoRequest, this );
+    footstep_start_index_pub_                = nh.subscribe<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, &FootstepManager::processSetStartIndex, this );
+    footstep_execute_req_sub_                = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
+    footstep_stitch_req_sub_                 = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/stitch", 1, &FootstepManager::processStitchPlansRequest, this );
+    footstep_plan_parameters_pub_            = nh.advertise<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters_feedback", 1, false );
+    footstep_plan_parameters_sub_            = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters", 5, &FootstepManager::processFootstepPlanParameters, this );
+    footstep_param_set_list_pub_             = nh.advertise<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 1, false );
+    footstep_param_set_selected_sub_         = nh.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 5, &FootstepManager::processFootstepParamSetSelected, this );
+    footstep_param_set_selected_pub_         = nh.advertise<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected_feedback", 1, false );
     footstep_param_set_selected_ocs_pub_     = nh.advertise<std_msgs::String>( "set_active_parameter_set_ocs", 1, false );
     footstep_param_set_selected_onboard_pub_ = nh.advertise<std_msgs::String>( "set_active_parameter_set_onboard", 1, false );
 
     // footstep request coming from the OCS
-    footstep_goal_pose_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update", 1, &FootstepManager::processFootstepPlanGoalFeedback, this );
-    footstep_goal_pose_pub_  = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update_feedback", 1, false );
-    footstep_plan_goal_sub_     = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, &FootstepManager::processFootstepPlanGoal, this );
-    footstep_plan_request_sub_  = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/plan_request", 1, &FootstepManager::processFootstepPlanRequest, this );
-    footstep_plan_update_sub_   = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanUpdate>( "/flor/ocs/footstep/plan_update", 1, &FootstepManager::processFootstepPlanUpdate, this );
+    footstep_goal_pose_sub_       = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update", 1, &FootstepManager::processFootstepPlanGoalFeedback, this );
+    footstep_goal_pose_pub_       = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update_feedback", 1, false );
+    footstep_plan_goal_sub_       = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, &FootstepManager::processFootstepPlanGoal, this );
+    footstep_plan_request_sub_    = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/plan_request", 1, &FootstepManager::processFootstepPlanRequest, this );
+    footstep_plan_update_sub_     = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanUpdate>( "/flor/ocs/footstep/plan_update", 1, &FootstepManager::processFootstepPlanUpdate, this );
 
     // creates publishers for visualization messages - latched because we want to be able to see planned footsteps in new stations or if something goes wrong
     footstep_array_pub_         = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_array", 1, true );
@@ -241,11 +243,29 @@ void FootstepManager::processStitchPlansRequest(const std_msgs::Int8::ConstPtr& 
 
 void FootstepManager::processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg)
 {
-    selected_footstep_parameter_set_ = msg->data;
-    footstep_param_set_selected_pub_.publish(*msg);
-    footstep_param_set_selected_ocs_pub_.publish(*msg);
-    footstep_param_set_selected_onboard_pub_.publish(*msg);
+//    if(selected_footstep_parameter_set_ != msg->data)
+    {
+        selected_footstep_parameter_set_ = msg->data;
+        footstep_param_set_selected_pub_.publish(*msg);
+        footstep_param_set_selected_ocs_pub_.publish(*msg);
+        footstep_param_set_selected_onboard_pub_.publish(*msg);
+    }
 }
+
+void FootstepManager::processFootstepPlanParameters(const flor_ocs_msgs::OCSFootstepPlanParameters::ConstPtr& msg)
+{
+    flor_ocs_msgs::OCSFootstepPlanParameters new_planner_config = *msg;
+//    if(planner_config_.edit_mode != new_planner_config.edit_mode ||
+//       planner_config_.max_steps != new_planner_config.max_steps ||
+//       planner_config_.max_time != new_planner_config.max_time ||
+//       planner_config_.path_length_ratio != new_planner_config.path_length_ratio ||
+//       planner_config_.use_3d_planning != new_planner_config.use_3d_planning)
+    {
+        planner_config_ = new_planner_config;
+        footstep_plan_parameters_pub_.publish(planner_config_);
+    }
+}
+
 
 void FootstepManager::feetToFootMarkerArray(vigir_footstep_planning_msgs::Feet& input, visualization_msgs::MarkerArray& foot_array_msg)
 {
@@ -533,14 +553,6 @@ void FootstepManager::processFootstepPlanUpdate(const flor_ocs_msgs::OCSFootstep
 
 void FootstepManager::processFootstepPlanRequest(const std_msgs::Int8::ConstPtr& plan_request)
 {
-    //last_plan_request_ = *plan_request;
-    //last_plan_request_.interaction_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_3D;
-
-    // need to get the following from the OCS as well
-    last_plan_request_.max_time = 5;
-    last_plan_request_.max_steps = 10;
-    last_plan_request_.path_length_ratio = 2;
-
     if(getStepPlanList().size() == 0 || getStepPlan().steps.size() == 0 || start_step_index_ > getStepPlan().steps.back().step_index)
         start_step_index_ = -1;
 
@@ -829,12 +841,15 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     request.start_foot_selection = start_foot;
 
     // default planning mode is 2D, but will get that from the OCS
-    request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_3D;//last_plan_request_.interaction_mode;
+    if(planner_config_.use_3d_planning)
+        request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_3D;
+    else
+        request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_2D;
 
     // need to get the following from the OCS as well
-    request.max_planning_time = last_plan_request_.max_time;
-    request.max_number_steps = last_plan_request_.max_steps;
-    request.max_path_length_ratio = last_plan_request_.path_length_ratio;
+    request.max_planning_time = planner_config_.max_time;
+    request.max_number_steps = planner_config_.max_steps;
+    request.max_path_length_ratio = planner_config_.path_length_ratio;
 
     // and then use the selected parameter set
     request.parameter_set_name.data = selected_footstep_parameter_set_;
@@ -923,7 +938,7 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
 }
 
 // action goal for EditStep
-void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan step_plan, vigir_footstep_planning_msgs::Step step, unsigned int plan_mode)
+void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan step_plan, vigir_footstep_planning_msgs::Step step)
 {
     //convert to ankle for planner
     foot_pose_transformer_->transformToRobotFrame(step_plan);
@@ -932,7 +947,10 @@ void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan st
     // Fill in goal here
     vigir_footstep_planning_msgs::EditStepGoal action_goal;
     action_goal.step_plan = step_plan;
-    action_goal.edit_step.plan_mode = plan_mode;
+    if(planner_config_.edit_mode)
+        action_goal.edit_step.plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_FULL;
+    else
+        action_goal.edit_step.plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_3D;
     action_goal.edit_step.step = step;
 
     // and send it to the server

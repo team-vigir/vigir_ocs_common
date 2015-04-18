@@ -32,6 +32,38 @@ FootstepConfigure::~FootstepConfigure()
     delete ui;
 }
 
+void FootstepConfigure::emitCurrentConfig()
+{
+    Q_EMIT sendFootstepParamaters(ui->maxTime->value(),(int)ui->maxSteps->value(),ui->pathLengthRatio->value(),ui->editStepMode->currentIndex());
+}
+
+bool FootstepConfigure::eventFilter( QObject * o, QEvent * e )
+{
+    e->ignore();
+    return true;
+    //return QWidget::eventFilter( o, e );
+}
+
+void FootstepConfigure::updateFootstepParamaters(double max_time,int max_steps,double path_length_ratio,int edit_mode)
+{
+    //update all paramaters from ui
+    ui->maxTime->installEventFilter(this);
+    ui->maxTime->setValue(max_time);
+    ui->maxTime->removeEventFilter(this);
+
+    ui->maxSteps->installEventFilter(this);
+    ui->maxSteps->setValue(max_steps);
+    ui->maxSteps->removeEventFilter(this);
+
+    ui->pathLengthRatio->installEventFilter(this);
+    ui->pathLengthRatio->setValue(path_length_ratio);
+    ui->pathLengthRatio->removeEventFilter(this);
+
+    ui->editStepMode->installEventFilter(this);
+    ui->editStepMode->setCurrentIndex(edit_mode);
+    ui->editStepMode->removeEventFilter(this);
+}
+
 //need slots to comply with qt signals...
 void FootstepConfigure::updateFootstepParamaters(int ignore)
 {

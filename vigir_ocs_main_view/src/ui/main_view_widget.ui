@@ -522,7 +522,7 @@
            </property>
            <property name="maximumSize">
             <size>
-             <width>210</width>
+             <width>300</width>
              <height>16777215</height>
             </size>
            </property>
@@ -548,6 +548,7 @@
                <font>
                 <pointsize>-1</pointsize>
                 <weight>75</weight>
+                <italic>false</italic>
                 <bold>true</bold>
                </font>
               </property>
@@ -712,6 +713,18 @@
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QCheckBox" name="use3dPlanning">
+                 <property name="font">
+                  <font>
+                   <pointsize>8</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>3D Planning</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </widget>
             </item>
@@ -752,6 +765,7 @@
                <font>
                 <pointsize>-1</pointsize>
                 <weight>75</weight>
+                <italic>false</italic>
                 <bold>true</bold>
                </font>
               </property>
@@ -1225,8 +1239,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>214</width>
-           <height>1617</height>
+           <width>224</width>
+           <height>1641</height>
           </rect>
          </property>
          <property name="maximumSize">
