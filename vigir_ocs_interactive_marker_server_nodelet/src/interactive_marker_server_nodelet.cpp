@@ -76,8 +76,8 @@ void InteractiveMarkerServerNodelet::updatePose(const flor_ocs_msgs::OCSInteract
     if(marker_map_.find(msg->topic) != marker_map_.end())
     {
         // return if message is older than latest change
-        if(msg->pose.header.stamp < pose_map_[msg->topic].header.stamp)
-            return;
+        //if(msg->pose.header.stamp < pose_map_[msg->topic].header.stamp)
+        //    return;
 
         //ROS_INFO("Updating marker %s", msg->topic.c_str());
         if(msg->pose_mode == flor_ocs_msgs::OCSInteractiveMarkerUpdate::ABSOLUTE)
