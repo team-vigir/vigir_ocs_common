@@ -97,18 +97,20 @@ void TemplateNodelet::timerCallback(const ros::TimerEvent& event)
 
 void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr& msg)
 {
+    boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
+
     bool found = false;
 
-    for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it){
-        if(it->second.path == (msg->template_path).substr(0, (msg->template_path).find_last_of(".")) ){ //removing file extension
-
+    for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it)
+    {
+        if(it->second.path == (msg->template_path).substr(0, (msg->template_path).find_last_of(".")) ) //removing file extension
+        {
             template_type_list_.push_back(it->second.type);	//Add the type of the template to be instantiated
             template_id_list_.push_back(id_counter_++);
             template_name_list_.push_back(msg->template_path);
             template_pose_list_.push_back(msg->pose);
             template_status_list_.push_back(0);  //Normal Status
             ROS_INFO("Added template to list with id: %d",(int)id_counter_);
-
 
             //ADD TEMPLATE TO PLANNING SCENE
             addCollisionObject(it->second.type,id_counter_-1,(msg->template_path).substr(0, (msg->template_path).find_last_of(".")),msg->pose.pose);
@@ -125,6 +127,8 @@ void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPt
 
 void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg)
 {
+    boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
+
     ROS_INFO("Removing template %d from list",(unsigned int)msg->template_id );
     int index = 0;
     for(; index < template_id_list_.size(); index++)
@@ -148,7 +152,9 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
         ROS_INFO("Removed! ");
 
         this->publishTemplateList();
-    }else{
+    }
+    else
+    {
         if(index >= template_id_list_.size())
             ROS_ERROR("Tried to remove template which is not inside the instantiated template list");
         else
@@ -158,6 +164,8 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
 
 void TemplateNodelet::updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& msg)
 {
+    boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
+
     //ROS_INFO("Updating template %d",(unsigned int)msg->template_id);
     int index = 0;
     for(; index < template_id_list_.size(); index++)
@@ -168,7 +176,6 @@ void TemplateNodelet::updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::C
         //ROS_INFO("Updated!");
         template_pose_list_[index] = msg->pose;
 
-
         //UPDATE TEMPLATE POSE IN THE PLANNING SCENE
         moveCollisionObject(msg->template_id,msg->pose.pose);
     }
@@ -177,6 +184,8 @@ void TemplateNodelet::updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::C
 
 void TemplateNodelet::snapTemplateCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg)
 {
+    boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
+
     //ROS_INFO("Updating template %d",(unsigned int)msg->template_id);
     int index = 0;
     for(; index < template_id_list_.size(); index++)
@@ -246,6 +255,8 @@ void TemplateNodelet::graspStateFeedbackCb(const flor_grasp_msgs::GraspState::Co
 
 void TemplateNodelet::templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg)
 {
+    boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
+
     std::cout << "Template feedback" << std::endl;
     int index = 0;
     for(; index < template_id_list_.size(); index++)
@@ -257,6 +268,8 @@ void TemplateNodelet::templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSel
 
 void TemplateNodelet::publishTemplateList()
 {
+    boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
+
     //std::cout << "timer" << std::endl;
     flor_ocs_msgs::OCSTemplateList cmd;
 
@@ -300,9 +313,11 @@ void TemplateNodelet::publishTemplateList()
         tfb_.sendTransform(transforms);
 }
 
-std::vector< std::vector <std::string> > TemplateNodelet::readCSVFile(std::string& file_name){
+std::vector< std::vector <std::string> > TemplateNodelet::readCSVFile(std::string& file_name)
+{
     std::ifstream file ( file_name.c_str() );
-    if(!file){
+    if(!file)
+    {
         ROS_ERROR("NO DATABASE FILE FOUND: %s",file_name.c_str());
     }
 
@@ -313,7 +328,8 @@ std::vector< std::vector <std::string> > TemplateNodelet::readCSVFile(std::strin
         std::vector<std::string> tmp;
         std::string value;
 
-        while(std::getline(in, value, ',')) {
+        while(std::getline(in, value, ','))
+        {
             std::stringstream trimmer;
             trimmer << value;
             value.clear();
@@ -332,7 +348,9 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
         palm_link_  = left_palm_link_;
         wrist_link_ = left_wrist_link_;
         hand_group_ = left_hand_group_;
-    }else{
+    }
+    else
+    {
         palm_link_  = right_palm_link_;
         wrist_link_ = right_wrist_link_;
         hand_group_ = right_hand_group_;
@@ -340,7 +358,8 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
 
     //Getting joints for hand from URDF robot description
 
-    if(!robot_model_->hasLinkModel(palm_link_)){
+    if(!robot_model_->hasLinkModel(palm_link_))
+    {
         ROS_WARN("Hand model does not contain %s, not adding grasps",palm_link_.c_str());
         return;
     }
@@ -351,9 +370,11 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
     Eigen::Affine3d hand_palm_aff;
     bool found = false;
 
-    for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it){
+    for(robot_model::LinkTransformMap::iterator it = hand_palm_tf_map.begin(); it != hand_palm_tf_map.end(); ++it)
+    {
         ROS_INFO("Getting links in map: %s and comparing to: %s", it->first->getName().c_str(), wrist_link_.c_str());
-        if(it->first->getName() == wrist_link_){
+        if(it->first->getName() == wrist_link_)
+        {
             ROS_INFO("Wrist %s found!!!",wrist_link_.c_str());
             hand_palm_aff = it->second;
             found = true;
@@ -365,7 +386,9 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
         ROS_WARN("Wrist %s NOT found!!!, setting to identity",wrist_link_.c_str());
         gp_T_lhand_.setIdentity();
         gp_T_rhand_.setIdentity();
-    }else{
+    }
+    else
+    {
         if(hand_side=="left")
             tf::transformEigenToTF( hand_palm_aff,gp_T_lhand_);
         else
@@ -376,7 +399,9 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
     {
         hand_joint_names_.clear();
         hand_joint_names_ = robot_model_->getJointModelGroup(hand_group_)->getActiveJointModelNames();
-    }else{
+    }
+    else
+    {
         ROS_WARN("NO JOINTS FOUND FOR %s HAND",hand_side.c_str());
     }
 
@@ -388,7 +413,8 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
     //Creating XML document from parameter server string of grasp library
     TiXmlDocument doc;
     doc.Parse((const char*)file_name.c_str(), 0, TIXML_ENCODING_UTF8);
-    if (doc.ErrorId() != 0){
+    if (doc.ErrorId() != 0)
+    {
         ROS_ERROR("Could not read file for %s hand",hand_side.c_str());
         return;
     }
@@ -399,7 +425,8 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
 
     pElem=hDoc.FirstChildElement().Element();
     // should always have a valid root but handle gracefully if it does
-    if (!pElem){
+    if (!pElem)
+    {
         ROS_ERROR("File for %s hand read but empty", hand_side.c_str());
         return;
     }
@@ -428,7 +455,8 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
             grasp.id = std::string(pID);
 
             TiXmlElement* pPose=pGrasp->FirstChildElement( "final_pose" );       //Gets final grasp pose
-            if(!pPose){
+            if(!pPose)
+            {
                 ROS_WARN("Grasp ID: %s does not contain an final pose, setting identity",pID);
                 grasp.grasp_pose.pose.position.x    = 0.0;
                 grasp.grasp_pose.pose.position.y    = 0.0;
@@ -437,7 +465,9 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
                 grasp.grasp_pose.pose.orientation.y = 0.0;
                 grasp.grasp_pose.pose.orientation.z = 0.0;
                 grasp.grasp_pose.pose.orientation.w = 1.0;
-            }else{
+            }
+            else
+            {
                 pPose->QueryFloatAttribute("x",  &x);
                 pPose->QueryFloatAttribute("y",  &y);
                 pPose->QueryFloatAttribute("z",  &z);
@@ -460,14 +490,17 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
             ROS_INFO_STREAM("Added grasp information id: " << grasp.id << " pose: " << std::endl << grasp.grasp_pose.pose);
 
             TiXmlElement* pApproachingVector=pGrasp->FirstChildElement( "approaching_vector" );       //Gets approaching vector
-            if(!pApproachingVector){
+            if(!pApproachingVector)
+            {
                 ROS_WARN("Grasp ID: %s does not contain an approaching vector, setting default values",pID);
                 grasp.pre_grasp_approach.direction.vector.x = 0.00;
                 grasp.pre_grasp_approach.direction.vector.y = 1.00;
                 grasp.pre_grasp_approach.direction.vector.z = 0.00;
                 grasp.pre_grasp_approach.desired_distance   = 0.20;
                 grasp.pre_grasp_approach.min_distance       = 0.05;
-            }else{
+            }
+            else
+            {
                 grasp.pre_grasp_approach.direction.header.frame_id = wrist_link_;
 
                 pApproachingVector->QueryFloatAttribute("x", &x);
@@ -488,29 +521,41 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
             grasp.pre_grasp_posture.points[0].time_from_start = ros::Duration(0.5);
 
             TiXmlElement* pPrePosture=pGrasp->FirstChildElement( "pre_grasp_posture" );
-            if(!pPrePosture){
+            if(!pPrePosture)
+            {
                 ROS_WARN("Grasp ID: %s does not contain a pregrasp posture, setting all %d joints to zeros",pID, (int)hand_joint_names_.size());
-                if(hand_joint_names_.size() > 0){
+                if(hand_joint_names_.size() > 0)
+                {
                     grasp.pre_grasp_posture.joint_names.resize(hand_joint_names_.size());
                     for(int j=0; j<hand_joint_names_.size();j++)
                         grasp.pre_grasp_posture.joint_names[j] = hand_joint_names_.at(j);
                     grasp.pre_grasp_posture.points[0].positions.resize(hand_joint_names_.size());
                     for(int j=0; j<hand_joint_names_.size();j++)
                         grasp.pre_grasp_posture.points[0].positions[j] = 0.0;  //Setting default joint values to zeros
-                }else{
+                }
+                else
+                {
                     ROS_WARN("Grasp ID: %s does not contain a pregrasp posture and URDF shows no %s hand joints",pID, hand_side.c_str());
                 }
-            }else{
+            }
+            else
+            {
                 TiXmlElement* pFinger=pPrePosture->FirstChildElement( "finger" );       //Gets pre finger joints
-                if(!pFinger){
+                if(!pFinger)
+                {
                     ROS_WARN("Grasp ID: %s does not contain any finger, setting joints to zeros",pID);
-                }else{
+                }
+                else
+                {
                     for( pFinger; pFinger; pFinger=pFinger->NextSiblingElement("finger"))   //Iterates thorugh all fingers for this particular pre posture
                     {
                         TiXmlElement* pJoint=pFinger->FirstChildElement( "joint" );       //Gets approaching vector
-                        if(!pJoint){
+                        if(!pJoint)
+                        {
                             ROS_WARN("Grasp ID: %s does not contain joints for finger %s",pID, pFinger->Attribute("idx"));
-                        }else{
+                        }
+                        else
+                        {
                             for( pJoint; pJoint; pJoint=pJoint->NextSiblingElement("joint"))   //Iterates thorugh all fingers for this particular pre posture
                             {
                                 const char *pJointName=pJoint->Attribute("name");
@@ -532,29 +577,41 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
             grasp.grasp_posture.points[0].time_from_start = ros::Duration(0.5);
 
             TiXmlElement* pPosture=pGrasp->FirstChildElement( "grasp_posture" );
-            if(!pPosture){
+            if(!pPosture)
+            {
                 ROS_WARN("Grasp ID: %s does not contain a grasp posture, setting all %d joints to zeros",pID, (int)hand_joint_names_.size());
-                if(hand_joint_names_.size() > 0){
+                if(hand_joint_names_.size() > 0)
+                {
                     grasp.grasp_posture.joint_names.resize(hand_joint_names_.size());
                     for(int j=0; j<hand_joint_names_.size();j++)
                         grasp.grasp_posture.joint_names[j] = hand_joint_names_.at(j);
                     grasp.grasp_posture.points[0].positions.resize(hand_joint_names_.size());
                     for(int j=0; j<hand_joint_names_.size();j++)
                         grasp.grasp_posture.points[0].positions[j] = 0.0;  //Setting default joint values to zeros
-                }else{
+                }
+                else
+                {
                     ROS_WARN("Grasp ID: %s does not contain a grasp posture and URDF shows no %s hand joints",pID, hand_side.c_str());
                 }
-            }else{
+            }
+            else
+            {
                 TiXmlElement* pFinger=pPosture->FirstChildElement( "finger" );       //Gets final finger joints
-                if(!pFinger){
+                if(!pFinger)
+                {
                     ROS_WARN("Grasp ID: %s does not contain any finger, setting joints to zeros",pID);
-                }else{
+                }
+                else
+                {
                     for( pFinger; pFinger; pFinger=pFinger->NextSiblingElement("finger"))   //Iterates thorugh all fingers for this particular posture
                     {
                         TiXmlElement* pJoint=pFinger->FirstChildElement( "joint" );       //Gets approaching vector
-                        if(!pJoint){
+                        if(!pJoint)
+                        {
                             ROS_WARN("Grasp ID: %s does not contain joints for finger %s",pID, pFinger->Attribute("idx"));
-                        }else{
+                        }
+                        else
+                        {
                             for( pJoint; pJoint; pJoint=pJoint->NextSiblingElement("joint"))   //Iterates thorugh all fingers for this particular posture
                             {
                                 const char *pJointName=pJoint->Attribute("name");
@@ -579,10 +636,15 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
             grasp.post_grasp_retreat.min_distance              = 0.05;
             grasp.post_grasp_retreat.desired_distance          = 0.1;
 
+            boost::recursive_mutex::scoped_lock lock(object_template_map_mutex_);
+
             if(object_template_map_.find(template_type) != object_template_map_.end())   //Template Type exists
                 object_template_map_[template_type].grasps.insert(std::pair<unsigned int,moveit_msgs::Grasp>(std::atoi(grasp.id.c_str()),grasp));
         }
     }
+
+    boost::recursive_mutex::scoped_lock lock(object_template_map_mutex_);
+
     for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it)
         for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it2=it->second.grasps.begin(); it2!=it->second.grasps.end(); ++it2)
             ROS_INFO("OT Map, inside ot: %d -> Grasp id %s ", it->second.type, it2->second.id.c_str());
@@ -640,10 +702,13 @@ void TemplateNodelet::loadStandPosesDatabaseXML(std::string& file_name){
         {
             vigir_object_template_msgs::StandPose current_pose;
             TiXmlElement* pPose=pStandPose->FirstChildElement("pose");
-            if(!pPose){
+            if(!pPose)
+            {
                 ROS_ERROR("Template ID: %d does not contain a  stand pose, skipping template",template_type);
                 continue;
-            }else{
+            }
+            else
+            {
                 double qx,qy,qz,qw;
                 std::string xyz = pPose->Attribute("xyz");
                 std::istringstream iss(xyz);
@@ -667,11 +732,16 @@ void TemplateNodelet::loadStandPosesDatabaseXML(std::string& file_name){
                 current_pose.pose.pose.orientation.z = qz;
                 current_pose.pose.pose.orientation.w = qw;
 
+                boost::recursive_mutex::scoped_lock lock(object_template_map_mutex_);
+
                 if(object_template_map_.find(template_type) != object_template_map_.end())   //Template Type exists
                     object_template_map_[template_type].stand_poses.insert(std::pair<unsigned int,vigir_object_template_msgs::StandPose>(current_pose.id, current_pose));
             }
         }
     }
+
+    boost::recursive_mutex::scoped_lock lock(object_template_map_mutex_);
+
     for (std::map<unsigned int,VigirObjectTemplate>::iterator it=object_template_map_.begin(); it!=object_template_map_.end(); ++it)
         for (std::map<unsigned int,vigir_object_template_msgs::StandPose>::iterator it2=it->second.stand_poses.begin(); it2!=it->second.stand_poses.end(); ++it2)
             ROS_INFO("OT Map, inside ot: %d -> Stand pose id %d ", it->second.type, it2->second.id);
@@ -936,6 +1006,8 @@ void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
             }
         }
 
+        boost::recursive_mutex::scoped_lock lock(object_template_map_mutex_);
+
         object_template_map_.insert(std::pair<unsigned int,VigirObjectTemplate>(template_type,object_template));
         ROS_INFO(" Inserting Object template type: %d with id: %d, name %s and mesh path: %s, aff.name: %s, aff.displacement: %f", object_template_map_[template_type].type
                                                                                              , object_template_map_[template_type].id
@@ -988,6 +1060,8 @@ void TemplateNodelet::gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose
 bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Request& req,
                                       vigir_object_template_msgs::GetTemplateStateAndTypeInfo::Response& res)
 {
+    boost::recursive_mutex::scoped_lock lock_template_list(template_list_mutex_);
+
     /*Fill in the blanks of the response "res"
      * with the info of the template id in the request "req"
     */
@@ -1012,6 +1086,8 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
         ROS_ERROR("Template not in /world frame, detach from robot!");
         return false;
     }
+
+    boost::recursive_mutex::scoped_lock lock_object_template_map(object_template_map_mutex_);
 
     res.template_state_information.template_type = template_type;
     res.template_state_information.template_id   = req.template_id;
@@ -1111,6 +1187,8 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
 bool TemplateNodelet::graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Request& req,
                                    vigir_object_template_msgs::GetGraspInfo::Response& res)
 {
+    boost::recursive_mutex::scoped_lock lock(object_template_map_mutex_);
+
     /*Fill in the blanks of the response "res"
      * with the info of the template id in the request "req"
     */
@@ -1135,6 +1213,8 @@ bool TemplateNodelet::graspInfoSrv(vigir_object_template_msgs::GetGraspInfo::Req
 bool TemplateNodelet::instantiatedGraspInfoSrv(vigir_object_template_msgs::GetInstantiatedGraspInfo::Request& req,
                                                vigir_object_template_msgs::GetInstantiatedGraspInfo::Response& res)
 {
+    boost::recursive_mutex::scoped_lock lock_template_list(template_list_mutex_);
+
     /*Fill in the blanks of the response "res"
      * with the info of the template id in the request "req"
     */
@@ -1152,6 +1232,8 @@ bool TemplateNodelet::instantiatedGraspInfoSrv(vigir_object_template_msgs::GetIn
         ROS_ERROR("Service requested template ID %d when no such template has been instantiated. Callback returning false.",req.template_id);
         return false;
     }
+    boost::recursive_mutex::scoped_lock lock_object_template_map(object_template_map_mutex_);
+
     //Transfer all known grasps to response
     for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it =  object_template_map_[template_type].grasps.begin();
                                                              it != object_template_map_[template_type].grasps.end();
@@ -1600,6 +1682,7 @@ void TemplateNodelet::addCollisionObject(int type, int index, std::string mesh_n
 //        collision_object.primitives.resize(1);
 //        collision_object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
 //        collision_object.primitives[0].dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
+//        boost::recursive_mutex::scoped_lock lock(object_template_map_mutex_);
 //        float x_size = object_template_map_[type].b_max.x - object_template_map_[type].b_min.x;
 //        float y_size = object_template_map_[type].b_max.y - object_template_map_[type].b_min.y;
 //        float z_size = object_template_map_[type].b_max.z - object_template_map_[type].b_min.z;
