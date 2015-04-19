@@ -914,9 +914,12 @@ void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
                     affordance.axis = "no_axis";
                 }
 
-                if(pAffordance->Attribute("displacement"))
-                    affordance.displacement = std::atof(pAffordance->Attribute("displacement"));
-                else{
+                if(pAffordance->Attribute("displacement")){
+                    if(affordance.type == "circular")
+                        affordance.displacement = (std::atof(pAffordance->Attribute("displacement"))) * 0.0174532925; // Template library in deg, msg in rad;
+                    else
+                        affordance.displacement = std::atof(pAffordance->Attribute("displacement"));
+                }else{
                     ROS_WARN("Affordance ID: %d has no displacement attribute, setting to zero", affordance.id);
                     affordance.displacement = 0.0;
                 }
