@@ -248,7 +248,9 @@ namespace ocs_footstep
         // local instance of foot pose transformer
         vigir_footstep_planning::FootPoseTransformer::Ptr foot_pose_transformer_;
 
-        boost::mutex step_plan_mutex_;
+        boost::recursive_mutex step_plan_mutex_;
+        boost::recursive_mutex param_mutex_;
+        boost::recursive_mutex goal_mutex_;
 
         ros::Time last_ocs_step_plan_stamp_;
         ros::Time last_onboard_step_plan_stamp_;
