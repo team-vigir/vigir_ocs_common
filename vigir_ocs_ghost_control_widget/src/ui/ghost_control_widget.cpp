@@ -15,9 +15,7 @@
 #include <flor_ocs_msgs/WindowCodes.h>
 
 std::vector<unsigned char> GhostControlWidget::saved_state_planning_group_;
-std::vector<unsigned char> GhostControlWidget::saved_state_pose_source_;
-//std::vector<unsigned char> GhostControlWidget::saved_state_world_lock_;
-unsigned char GhostControlWidget::saved_state_collision_avoidance_;
+unsigned char GhostControlWidget::saved_state_use_torso_;
 unsigned char GhostControlWidget::saved_state_lock_pelvis_;
 unsigned char GhostControlWidget::saved_state_position_only_ik_;
 unsigned char GhostControlWidget::saved_state_use_drake_ik_;
@@ -30,15 +28,23 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
 {    
     ui->setupUi(this);
 
-    saveState();
+    saved_state_use_torso_ = 0;
+    saved_state_lock_pelvis_ = 0;
+    saved_state_position_only_ik_ = 0;
+    saved_state_use_drake_ik_ = 0;
 
-    // subscribe to the topic to load state configurations
-    state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost/ghost_ui_state", 5, &GhostControlWidget::processState, this );
+    //publish to normal state to be read by outside
+    state_use_torso_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/state_use_torso", 1, false );
+    state_lock_pelvis_pub_ = nh_.advertise<std_msgs::Int8>( "/flor/ocs/ghost/state_lock_pelvis", 1, false );
+    state_position_only_ik_pub_ = nh_.advertise<std_msgs::Int8>( "/flor/ocs/ghost/state_position_only_ik", 1, false );
+    state_use_drake_ik_pub_ = nh_.advertise<std_msgs::Int8>( "/flor/ocs/ghost/state_use_drake_ik", 1, false );
+    state_snap_ghost_to_robot_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/state_snap_ghost_to_robot", 1, false );
+
+
     //subscribe to template list
     template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",5, &GhostControlWidget::processTemplateList, this );
 
-    // advertise the topic to publish state configurations
-    state_pub_ = nh_.advertise<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost/ghost_ui_state", 1, false );
+    // advertise the topic to publish state configurations    
     reset_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/reset_pelvis", 1, false );
     send_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/send_pelvis_to_footstep", 1, false );
     send_ghost_cartesian_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/send_cartesian", 1, false );
@@ -88,8 +94,7 @@ GhostControlWidget::~GhostControlWidget()
 void GhostControlWidget::closeEvent(QCloseEvent * event)
 {
     QSettings settings("OCS", "joint_limit");
-    settings.setValue("mainWindowGeometry", this->saveGeometry());
-    //settings.setValue("mainWindowState", this->saveState());
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
     std_msgs::Int8 msg;
     msg.data = -WINDOW_GHOST_CONFIG;
     window_control_pub.publish(msg);
@@ -99,17 +104,13 @@ void GhostControlWidget::closeEvent(QCloseEvent * event)
 void GhostControlWidget::resizeEvent(QResizeEvent * event)
 {
     QSettings settings("OCS", "joint_limit");
-    settings.setValue("mainWindowGeometry", this->saveGeometry());
-    //settings.setValue("mainWindowState", this->saveState());
-
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
 }
 
 void GhostControlWidget::moveEvent(QMoveEvent * event)
 {
     QSettings settings("OCS", "joint_limit");
-    settings.setValue("mainWindowGeometry", this->saveGeometry());
-    //settings.setValue("mainWindowState", this->saveState());
-
+    settings.setValue("mainWindowGeometry", this->saveGeometry());    
 }
 
 void GhostControlWidget::timerEvent(QTimerEvent *event)
@@ -120,15 +121,6 @@ void GhostControlWidget::timerEvent(QTimerEvent *event)
     
     //Spin at beginning of Qt timer callback, so current ROS time is retrieved
     ros::spinOnce();
-}
-
-void GhostControlWidget::processState(const flor_ocs_msgs::OCSGhostControl::ConstPtr &msg)
-{
-    // apply state coming from message
-    loadState(msg->planning_group,msg->pose_source,/*msg->world_lock,*/msg->collision_avoidance,msg->lock_pelvis, msg->use_drake_ik);
-
-    // save as the last used state
-    saveState();
 }
 
 void GhostControlWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list)
@@ -230,95 +222,13 @@ void GhostControlWidget::on_graspBox_activated(const QString &arg1)
     selected_pose_id_ = arg1.toInt();
 }
 
-void GhostControlWidget::publishState( bool snap )
-{
-    flor_ocs_msgs::OCSGhostControl cmd;
-    cmd.planning_group = saved_state_planning_group_;
-    cmd.pose_source = saved_state_pose_source_;
-    //cmd.world_lock = saved_state_world_lock_;
-    cmd.lock_pelvis = saved_state_lock_pelvis_;
-    cmd.snap = snap;
-    cmd.position_only_ik = saved_state_position_only_ik_;
-    cmd.use_drake_ik = saved_state_use_drake_ik_;
-
-    state_pub_.publish(cmd);
-}
-
-void GhostControlWidget::saveState()
-{
-    saved_state_planning_group_.clear();
-    saved_state_pose_source_.clear();
-    //saved_state_world_lock_.clear();
-
-    saved_state_planning_group_.push_back(false);
-    saved_state_planning_group_.push_back(false);
-    saved_state_planning_group_.push_back(ui->planning_torso_->isChecked());
-
-    //if(ui->left_template_lock->isChecked())
-    //{
-    //    saved_state_pose_source_.push_back(1);
-    //    saved_state_world_lock_.push_back(1);
-    //}
-    //else
-    {
-        saved_state_pose_source_.push_back(0);
-        //saved_state_world_lock_.push_back(ui->left_marker_lock->isChecked());
-    }
-
-//    if(ui->right_template_lock->isChecked())
-//    {
-//        saved_state_pose_source_.push_back(1);
-//        saved_state_world_lock_.push_back(1);
-//    }
-//    else
-    {
-        saved_state_pose_source_.push_back(0);
-        //saved_state_world_lock_.push_back(ui->right_marker_lock->isChecked());
-    }
-
-    saved_state_use_drake_ik_ = ui->use_drake_ik_->isChecked();
-    saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();    
-    saved_state_position_only_ik_ = ui->position_only_ik_->isChecked();
-}
-
-// default arguments are class members for saved state
-void GhostControlWidget::loadState(std::vector<unsigned char> planning_group, std::vector<unsigned char> pose_source,
-                                   /*std::vector<unsigned char> world_lock, */unsigned char collision_avoidance,
-                                   unsigned char lock_pelvis, unsigned char use_drake_ik)
-{
-    /*ui->planning_left_->setChecked(planning_group[0]);
-    ui->planning_right_->setChecked(planning_group[1]);
-    ui->planning_torso_->setChecked(planning_group[2]);
-
-    ui->pose_left_->setCurrentIndex(pose_source[0]);
-    ui->pose_right_->setCurrentIndex(pose_source[1]);
-    //ui->pose_torso_->setCurrentIndex(pose_source[2]);
-
-    //ui->lock_left_->setChecked(world_lock[0]);
-    //ui->lock_right_->setChecked(world_lock[1]);
-    //ui->lock_torso_->setChecked(world_lock[2]);
-
-    //ui->collision_->setChecked(collision_avoidance);
-
-    ui->lock_pelvis_->setChecked(lock_pelvis);
-    ui->use_drake_ik_->setChecked(use_drake_ik)*/
-}
-
-void GhostControlWidget::applyClicked()
-{
-    saveState();
-    publishState();
-}
-
-void GhostControlWidget::cancelClicked()
-{
-    loadState();
-}
-
 void GhostControlWidget::snapClicked()
 {
     std::cout << "Snap Clicked" << std::endl;
-    publishState(true);
+
+    std_msgs::Bool msg;
+    msg.data = true;
+    state_snap_ghost_to_robot_pub_.publish(msg);
 }
 
 void GhostControlWidget::sendTargetPoseClicked()
@@ -347,16 +257,20 @@ void GhostControlWidget::resetPelvisClicked()
     reset_pelvis_pub_.publish(cmd);
 }
 
-//void GhostControlWidget::on_planning_left__clicked()
-//{
-//    saveState();
-//    publishState();
-//}
 
 void GhostControlWidget::on_planning_torso__clicked()
 {
-    saveState();
-    publishState();
+    saved_state_planning_group_.clear();
+
+    saved_state_planning_group_.push_back(false);
+    saved_state_planning_group_.push_back(false);
+    saved_state_planning_group_.push_back(ui->planning_torso_->isChecked());
+
+    //only send use torso
+    saved_state_use_torso_ = ui->planning_torso_->isChecked();
+    std_msgs::Bool cmd;
+    cmd.data = saved_state_use_torso_;
+    state_use_torso_pub_.publish(cmd);
 }
 
 //temp fix before making ghost manager, ignoring message, just using these callbacks as a way to signal
@@ -371,72 +285,34 @@ void GhostControlWidget::useTorsoContextMenu(const std_msgs::BoolConstPtr &msg)
 {
     ui->planning_torso_->toggle();
 }
-//public wrapper to be used with context menu callback,
-//returns state of use torso checkbox for convenience in main view and setting context menu item checked
-//bool GhostControlWidget::useTorsoContextMenu()
-//{
-//    //ui->planning_torso_->toggle();
-//    //return ui->planning_torso_->isChecked();
-//}
+//----End temp fix-----//
 
 void GhostControlWidget::on_position_only_ik__clicked()
 {
-    saveState();
-    publishState();
+    saved_state_position_only_ik_ = ui->position_only_ik_->isChecked();
+
+    std_msgs::Int8 msg;
+    msg.data = saved_state_position_only_ik_;
+    state_position_only_ik_pub_.publish(msg);
 }
 
-//void GhostControlWidget::on_planning_right__clicked()
-//{
-//    saveState();
-//    publishState();
-//}
-
-//void GhostControlWidget::on_lock_left__clicked()
-//{
-//    saveState();
-//    publishState();
-//}
-
-//void GhostControlWidget::on_lock_torso__clicked()
-//{
-//    saveState();
-//    publishState();
-//}
-
-//void GhostControlWidget::on_lock_right__clicked()
-//{
-//    saveState();
-//    publishState();
-//}
-
-//void GhostControlWidget::on_pose_left__currentIndexChanged(int index)
-//{
-//    saveState();
-//    publishState();
-//}
-
-//void GhostControlWidget::on_pose_torso__currentIndexChanged(int index)
-//{
-//    saveState();
-//    publishState();
-//}
-
-//void GhostControlWidget::on_pose_right__currentIndexChanged(int index)
-//{
-//    saveState();
-//    publishState();
-//}
 
 void GhostControlWidget::on_lock_pelvis__clicked()
 {
-    saveState();
-    publishState();
+    saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();
+
+    std_msgs::Int8 msg;
+    msg.data = saved_state_lock_pelvis_;
+    state_lock_pelvis_pub_.publish(msg);
 }
 
 void GhostControlWidget::on_use_drake_ik__clicked()
 {
-    saveState();
-    publishState();
+    saved_state_use_drake_ik_ = ui->use_drake_ik_->isChecked();
+
+    std_msgs::Int8 msg;
+    msg.data = saved_state_use_drake_ik_;
+    state_use_drake_ik_pub_.publish(msg);
 }
 
 void GhostControlWidget::on_send_left_pose_button__clicked()
@@ -451,12 +327,6 @@ void GhostControlWidget::on_send_left_pose_button__clicked()
     set_to_target_pose_pub_.publish(cmd);
 }
 
-//void GhostControlWidget::on_send_left_torso_pose_button__clicked()
-//{
-//    std_msgs::String cmd;
-//    cmd.data = "l_arm_with_torso_group";
-//    set_to_target_pose_pub_.publish(cmd);
-//}
 
 void GhostControlWidget::on_send_right_pose_button__clicked()
 {
@@ -470,48 +340,7 @@ void GhostControlWidget::on_send_right_pose_button__clicked()
     set_to_target_pose_pub_.publish(cmd);
 }
 
-//void GhostControlWidget::on_send_right_torso_pose_button__clicked()
-//{
-//    std_msgs::String cmd;
-//    cmd.data = "r_arm_with_torso_group";
-//    set_to_target_pose_pub_.publish(cmd);
-//}
 
-//void GhostControlWidget::on_left_no_lock_toggled(bool checked)
-//{
-//    saveState();
-//    publishState();
-//}
-
-//void GhostControlWidget::on_left_marker_lock_toggled(bool checked)
-//{
-//    saveState();
-//    publishState();
-//}
-
-//void GhostControlWidget::on_left_template_lock_toggled(bool checked)
-//{
-//    saveState();
-//    publishState();
-//}
-
-//void GhostControlWidget::on_right_no_lock_toggled(bool checked)
-//{
-//    saveState();
-//    publishState();
-//}
-
-//void GhostControlWidget::on_right_marker_lock_toggled(bool checked)
-//{
-//    saveState();
-//    publishState();
-//}
-
-//void GhostControlWidget::on_right_template_lock_toggled(bool checked)
-//{
-//    saveState();
-//    publishState();
-//}
 
 void GhostControlWidget::on_send_left_configuration_button__clicked()
 {
@@ -525,12 +354,6 @@ void GhostControlWidget::on_send_left_configuration_button__clicked()
     set_to_target_config_pub_.publish(cmd);
 }
 
-//void GhostControlWidget::on_send_left_torso_configuration_button__clicked()
-//{
-//    std_msgs::String cmd;
-//    cmd.data = "l_arm_with_torso_group";
-//    set_to_target_config_pub_.publish(cmd);
-//}
 
 void GhostControlWidget::on_send_right_configuration_button__clicked()
 {
@@ -544,12 +367,6 @@ void GhostControlWidget::on_send_right_configuration_button__clicked()
     set_to_target_config_pub_.publish(cmd);
 }
 
-//void GhostControlWidget::on_send_right_torso_configuration_button__clicked()
-//{
-//    std_msgs::String cmd;
-//    cmd.data = "r_arm_with_torso_group";
-//    set_to_target_config_pub_.publish(cmd);
-//}
 
 void GhostControlWidget::on_send_upper_body_button__clicked()
 {
@@ -649,35 +466,6 @@ std::string GhostControlWidget::getGroupNameForSettings(const std::vector<unsign
   return "INVALID_GROUP";
 }
 
-void GhostControlWidget::on_send_template_to_behavior_button_clicked()
-{
-    //CHANGE TO CALL FOR STAND POSE INFO FROM TEMPLATE SERVER
-//    unsigned int pose_index;
-//    for(pose_index = 0; pose_index < pose_db_.size(); pose_index++)
-//        if(pose_db_[pose_index].pose_id == selected_grasp_id_)
-//            break;
-
-//    if(pose_index == pose_db_.size()){
-//        ROS_ERROR("Pose not found in database");
-//    }
-//    else
-//    {
-//        if(send_template_to_behavior_pub_)
-//        {
-//        geometry_msgs::PoseStamped pose;
-//        pose.header.frame_id = "/world";
-//        pose.header.stamp = ros::Time::now();
-//        pose.pose = last_template_list_.pose[ui->templateBox->currentIndex()].pose;
-//        send_template_to_behavior_pub_.publish(pose);
-//        }
-//        else{
-//            ROS_ERROR("No Publisher for ghost to template pose");
-//        }
-//    }
-
-}
-
-
 void GhostControlWidget::on_send_ghost_to_template_button_clicked()
 {
 
@@ -769,3 +557,12 @@ void GhostControlWidget::processWindowControl(const std_msgs::Int8::ConstPtr& ms
         this->hide();
     }
 }
+
+
+
+
+
+
+
+
+

@@ -49,7 +49,6 @@
 #include <moveit_msgs/DisplayRobotState.h>
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
-#include <flor_ocs_msgs/OCSGhostControl.h>
 #include <flor_ocs_msgs/OCSInteractiveMarkerAdd.h>
 #include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <flor_ocs_msgs/OCSKeyEvent.h>
@@ -145,9 +144,9 @@ public:
     ContextMenuManager * getContextMenuManager(){return context_menu_manager_;}
     std::string getActiveContext(){return active_context_name_;}
     std::vector<rviz::Display*> getCartesianMarkerList(){return cartesian_marker_list_;}
-    rviz::Display* getCircularMarker(){return circular_marker_;}
-    std::vector<unsigned char> getGhostPoseSource(){return ghost_pose_source_;}
-    std::vector<unsigned char> getGhostWorldLock(){return ghost_world_lock_;}
+    rviz::Display* getCircularMarker(){return circular_marker_;}    
+    bool getGhostLeftHandLocked(){return ghost_left_hand_lock_;}
+    bool getGhostRightHandLocked(){return ghost_right_hand_lock_;}
 
     /**
       * ROS Callback: receives left arm end effector position from moveit
@@ -170,11 +169,6 @@ public:
       * ROS Callback: receives right hand position to show grasps
       */
     void processRightGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
-
-    /**
-      * ROS Callback: receives configuration message for ghost robot
-      */
-    void processGhostControlState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
 
     /**
       * ROS Callback: receives joint states from the robot
@@ -265,6 +259,13 @@ public:
       * ROS Callback:synchronize 3d views on reset requests/toggles
       */
     void synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
+
+    //callbacks to receive ghost state  data
+    void stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr& msg);
+    void stateUseTorsoCB(const std_msgs::Bool::ConstPtr &msg);
+    void stateLockPelvisCB(const std_msgs::Int8::ConstPtr& msg);
+    void statePositionOnlyIkCB(const std_msgs::Int8::ConstPtr& msg);
+    void stateUseDrakeIkCB(const std_msgs::Int8::ConstPtr& msg);
 
 public Q_SLOTS:
     // displays
@@ -552,6 +553,18 @@ protected:
 
     ros::Publisher interactive_marker_visibility_pub_;
 
+    //subscribers to grab ghost state data
+    ros::Subscriber state_use_torso_sub_;
+    ros::Subscriber state_snap_ghost_to_robot_sub_;
+    ros::Subscriber state_lock_pelvis_sub_;
+    ros::Subscriber state_position_only_ik_sub_;
+    ros::Subscriber state_use_drake_ik_sub_;
+
+    bool ghost_left_hand_lock_;
+    bool ghost_right_hand_lock_ ;
+
+    bool ghost_use_torso_;
+
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
     std::string base_frame_;
@@ -779,10 +792,7 @@ protected:
     bool moving_r_arm_;
 
     std::vector<unsigned char> ghost_planning_group_;
-    std::vector<unsigned char> ghost_pose_source_;
-    std::vector<unsigned char> ghost_world_lock_;
-    unsigned char moveit_collision_avoidance_;
-    unsigned char ghost_lock_pelvis_;
+    bool ghost_lock_pelvis_;
     bool update_markers_;
     bool snap_ghost_to_robot_;
     bool snap_left_hand_to_ghost_;

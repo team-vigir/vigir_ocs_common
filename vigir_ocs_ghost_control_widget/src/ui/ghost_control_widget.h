@@ -16,7 +16,6 @@
 #include <algorithm>
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
-#include <flor_ocs_msgs/OCSGhostControl.h>
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
 #include <vigir_object_template_msgs/GetGraspInfo.h>
@@ -48,18 +47,9 @@ public:
 
     void processWindowControl(const std_msgs::Int8::ConstPtr& msg);
 
-    void processState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
-    void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list);    
-    void publishState( bool snap=false );
+    void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list);        
     int calcTargetPose(const geometry_msgs::Pose& pose_1, const geometry_msgs::Pose& pose_2, geometry_msgs::Pose& pose_result);
 
-    void saveState();
-    void loadState(std::vector<unsigned char> planning_group=saved_state_planning_group_,
-                   std::vector<unsigned char> pose_source=saved_state_pose_source_,
-                   //std::vector<unsigned char> world_lock=saved_state_world_lock_,
-                   unsigned char collision_avoidance=saved_state_collision_avoidance_,
-                   unsigned char lock_pelvis=saved_state_lock_pelvis_,
-                   unsigned char use_drake_ik=saved_state_use_drake_ik_);
 
     void useTorsoContextMenu(const std_msgs::BoolConstPtr &msg);
     void snapGhostContextMenu(const std_msgs::BoolConstPtr &msg);
@@ -70,49 +60,26 @@ protected:
     void resizeEvent(QResizeEvent * event);
     void moveEvent(QMoveEvent * event);
 
-private Q_SLOTS:
-    void applyClicked();
-    void cancelClicked();
+private Q_SLOTS:        
     void snapClicked();
     void sendTargetPoseClicked();
     void sendTargetConfigClicked();
-    void resetPelvisClicked();
-    //void on_planning_left__clicked();
+    void resetPelvisClicked();    
     void on_planning_torso__clicked();
     void on_position_only_ik__clicked();
-    //void on_planning_right__clicked();
-    //void on_lock_left__clicked();
-    //void on_lock_torso__clicked();
-    //void on_lock_right__clicked();
-    //void on_pose_left__currentIndexChanged(int index);
-    //void on_pose_torso__currentIndexChanged(int index);
-    //void on_pose_right__currentIndexChanged(int index);
     void on_lock_pelvis__clicked();
     void on_use_drake_ik__clicked();
-    void on_send_left_pose_button__clicked();
-    //void on_send_left_torso_pose_button__clicked();
-    void on_send_right_pose_button__clicked();
-    //void on_send_right_torso_pose_button__clicked();
+    void on_send_left_pose_button__clicked();    
+    void on_send_right_pose_button__clicked();    
     void on_send_left_ghost_hand_button__clicked();
     void on_send_right_ghost_hand_button__clicked();
-    //void on_left_no_lock_toggled(bool checked);
-    //void on_left_marker_lock_toggled(bool checked);
-    //void on_left_template_lock_toggled(bool checked);
-    //void on_right_no_lock_toggled(bool checked);
-    //void on_right_marker_lock_toggled(bool checked);
-    //void on_right_template_lock_toggled(bool checked);
     void on_send_left_configuration_button__clicked();
-    //void on_send_left_torso_configuration_button__clicked();
-    void on_send_right_configuration_button__clicked();
-    //void on_send_right_torso_configuration_button__clicked();
+    void on_send_right_configuration_button__clicked();    
     void on_send_upper_body_button__clicked();
     void on_send_whole_body_button__clicked();
-    //void on_left_moveit_marker_lock_clicked();
-    //void on_right_moveit_marker_lock_clicked();
     void on_pushButton_clicked();
     void on_pushButton_2_clicked();
     void on_send_ghost_to_template_button_clicked();
-    void on_send_template_to_behavior_button_clicked();
     void on_templateBox_activated(const QString &arg1);
     void on_graspBox_activated(const QString &arg1);
     void on_send_left_cartesian_button__clicked();
@@ -149,9 +116,7 @@ private:
 
     // variables that hold saved state of the widget
     static std::vector<unsigned char> saved_state_planning_group_;
-    static std::vector<unsigned char> saved_state_pose_source_;
-    //static std::vector<unsigned char> saved_state_world_lock_;
-    static unsigned char saved_state_collision_avoidance_;
+    static unsigned char saved_state_use_torso_;
     static unsigned char saved_state_lock_pelvis_;
     static unsigned char saved_state_position_only_ik_;
     static unsigned char saved_state_use_drake_ik_;
@@ -164,6 +129,13 @@ private:
     QBasicTimer timer;
 
     void addHotkeys();
+
+    ros::Publisher state_use_torso_pub_;
+    ros::Publisher state_lock_pelvis_pub_;
+    ros::Publisher state_position_only_ik_pub_;
+    ros::Publisher state_use_drake_ik_pub_;
+    ros::Publisher state_snap_ghost_to_robot_pub_;
+
 };
 
 #endif // GhostControlWidget_H

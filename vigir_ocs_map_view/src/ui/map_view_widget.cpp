@@ -226,8 +226,8 @@ void MapViewWidget::toggleSidebarVisibility()
 
 void MapViewWidget::setupToolbar()
 {
-    map_region_config_ = new MapRegionConfigure();
-    region_3d_config_ = new Region3DConfigure();
+    mapRegionConfig = new MapRegionConfigure();
+    region3dConfig = new Region3DConfigure();
     footstep_configure_widget_ = new FootstepConfigure();
 
     //connect to update footstep paramaters from ui
@@ -244,25 +244,25 @@ void MapViewWidget::setupToolbar()
 
     //set menu to popup a config widget
     QWidgetAction *wa = new QWidgetAction(0);
-    wa->setDefaultWidget(region_3d_config_);
-    region_menu_.addAction(wa);
+    wa->setDefaultWidget(region3dConfig);
+    regionMenu.addAction(wa);
     //associate button with menu
-    ui->regionConfig->setMenu(&region_menu_);
+    ui->regionConfig->setMenu(&regionMenu);
     //need to install event filter for widget positioning
-    region_menu_.installEventFilter(this);
+    regionMenu.installEventFilter(this);
 
     //set menu to popup a config widget
     QWidgetAction *wa2 = new QWidgetAction(0);
-    wa2->setDefaultWidget(map_region_config_);
-    map_menu_.addAction(wa2);
+    wa2->setDefaultWidget(mapRegionConfig);
+    mapMenu.addAction(wa2);
     //associate button with menu
-    ui->mapConfig->setMenu(&map_menu_);
+    ui->mapConfig->setMenu(&mapMenu);
     //need to install event filter for widget positioning
-    map_menu_.installEventFilter(this);
+    mapMenu.installEventFilter(this);
 
     //set menu to popup a config widget for footstep Params
     QWidgetAction *wa3 = new QWidgetAction(0);
-    wa3->setDefaultWidget(footstep_configure_widget_);
+    wa->setDefaultWidget(footstep_configure_widget_);
     footstep_menu_.addAction(wa3);
     //associate button with menu
     ui->footstepConfigBtn->setMenu(&footstep_menu_);
@@ -398,7 +398,7 @@ void MapViewWidget::requestMap()
             ocs_sync_pub_.publish(msg);
         }        
         //generate map
-        ui->map_view_->requestMap(map_region_config_->getMinHeight(),map_region_config_->getMaxHeight(),map_region_config_->getResolution());
+        ui->map_view_->requestMap(mapRegionConfig->getMinHeight(),mapRegionConfig->getMaxHeight(),mapRegionConfig->getResolution());       
     }
 }
 
@@ -415,7 +415,7 @@ void MapViewWidget::requestOctomap()
             ocs_sync_pub_.publish(msg);
         }
 
-        ui->map_view_->requestOctomap(region_3d_config_->getMinHeight(),region_3d_config_->getMaxHeight(),region_3d_config_->getVoxelResolution());
+        ui->map_view_->requestOctomap(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution());
     }
 
 }
@@ -441,7 +441,7 @@ void MapViewWidget::requestPointCloud()
             msg.visible.push_back(true);
             ocs_sync_pub_.publish(msg);
         }
-        ui->map_view_->requestPointCloud(region_3d_config_->getMinHeight(),region_3d_config_->getMaxHeight(),region_3d_config_->getVoxelResolution(),ui->point_cloud_type->currentIndex(),region_3d_config_->getAggregSize());
+        ui->map_view_->requestPointCloud(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution(),ui->point_cloud_type->currentIndex(),region3dConfig->getAggregSize());
     }
 }
 
@@ -470,13 +470,13 @@ bool MapViewWidget::eventFilter( QObject * o, QEvent * e )
             p.setX(0);
             p.setY(ui->mapConfig->geometry().height());
             p = ui->mapConfig->mapToGlobal(p);
-        }
+        }/*
         else if(((QMenu*)o) == ui->footstepConfigBtn->menu())
         {
             p.setX(0);
             p.setY(ui->footstepConfigBtn->geometry().height());
             p = ui->footstepConfigBtn->mapToGlobal(p);
-        }
+        }*/
 
         ((QMenu*)o)->move(p); // move widget to position
         return true;
@@ -504,14 +504,14 @@ void MapViewWidget::addHotkeys()
 void MapViewWidget::unfilteredHotkey()
 {
     if(ui->map_view_->hasValidSelection())
-        ui->map_view_->requestPointCloud(region_3d_config_->getMinHeight(),region_3d_config_->getMaxHeight(),region_3d_config_->getVoxelResolution(),1,region_3d_config_->getAggregSize());
+        ui->map_view_->requestPointCloud(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution(),1,region3dConfig->getAggregSize());
     else
         ui->map_view_->requestPointCloud(1);
 }
 void MapViewWidget::stereoHotkey()
 {
     if(ui->map_view_->hasValidSelection())
-        ui->map_view_->requestPointCloud(region_3d_config_->getMinHeight(),region_3d_config_->getMaxHeight(),region_3d_config_->getVoxelResolution(),2,region_3d_config_->getAggregSize());
+        ui->map_view_->requestPointCloud(region3dConfig->getMinHeight(),region3dConfig->getMaxHeight(),region3dConfig->getVoxelResolution(),2,region3dConfig->getAggregSize());
     else
         ui->map_view_->requestPointCloud(2);
 }
