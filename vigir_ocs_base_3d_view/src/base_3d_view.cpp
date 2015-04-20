@@ -2024,8 +2024,7 @@ void Base3DView::setTemplateGraspLock(int arm)
         selectTemplate();
 
         ghost_left_hand_lock_ = false;
-        ghost_right_hand_lock_ = false;
-        return;
+        ghost_right_hand_lock_ = false;        
     }
     else if(id != -1) //locks arm
     {
@@ -2667,7 +2666,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
     geometry_msgs::PoseStamped joint_pose;
     joint_pose = msg.pose;
 
-    //ROS_ERROR("Marker feedback on topic %s, have markers instantiated",msg.topic.c_str());
+
     if(msg.topic == "/l_arm_pose_marker")
     {
         ghost_planning_group_[0] = 1;
@@ -2760,8 +2759,20 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
     }
 
     //ROS_ERROR("ghost_world_lock 0: %d, ghost_world_lock_ 1: %d ",ghost_world_lock_[0],ghost_world_lock_[1]);
-    if(ghost_left_hand_lock_ == 0 && ghost_right_hand_lock_ == 0)
+
+
+
+    //should publish ghost if locked to template
+    //    processing template?                                          either arm is locked?
+    if(msg.topic.find("l_arm_pose_marker") != std::string::npos ||
+            msg.topic.find("r_arm_pose_marker") != std::string::npos||
+            msg.topic.find("pelvis_pose_marker") != std::string::npos||
+            (ghost_left_hand_lock_ || ghost_right_hand_lock_ ))
+    {
+        ROS_ERROR("publish ghost poses");
         publishGhostPoses();
+
+    }
 }
 
 // sends marker poses and so on to moveit
@@ -2889,7 +2900,7 @@ void Base3DView::publishGhostPoses()
         pose.header.frame_id = "/world";
         pose.header.stamp = ros::Time::now();
 
-        ghost_root_pose_pub_.publish(pose);
+        //ghost_root_pose_pub_.publish(pose);
 
 //        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
 //        {
@@ -2903,9 +2914,9 @@ void Base3DView::publishGhostPoses()
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/pelvis_pose_marker";
         cmd.pose = pose;
-        interactive_marker_update_pub_.publish(cmd);
+        //interactive_marker_update_pub_.publish(cmd);
 
-        pelvis_marker_pose_pub_.publish(pose);
+       // pelvis_marker_pose_pub_.publish(pose);
     }
     else
     {
