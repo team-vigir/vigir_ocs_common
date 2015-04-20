@@ -2762,16 +2762,14 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
 
 
 
-    //should publish ghost if locked to template
-    //    processing template?                                          either arm is locked?
+
+    //    need to publish ghost if we are directly interacting with end effectors
     if(msg.topic.find("l_arm_pose_marker") != std::string::npos ||
             msg.topic.find("r_arm_pose_marker") != std::string::npos||
             msg.topic.find("pelvis_pose_marker") != std::string::npos||
-            (ghost_left_hand_lock_ || ghost_right_hand_lock_ ))
+            (ghost_left_hand_lock_ || ghost_right_hand_lock_ ))     //should publish ghost if either arm is locked to template
     {
-        ROS_ERROR("publish ghost poses");
         publishGhostPoses();
-
     }
 }
 
