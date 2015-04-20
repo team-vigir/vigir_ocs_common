@@ -221,7 +221,7 @@ void CameraViewWidget::updatePitch(int value)
 }
 
 /**
-  * Thid method sets the current pitch value used for creating a trajectory
+  * This method sets the current pitch value used for creating a trajectory
   **/
 void CameraViewWidget::updateCurrentPitch(int value)
 {
