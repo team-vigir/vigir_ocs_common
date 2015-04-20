@@ -14,7 +14,6 @@
 #include <flor_ocs_msgs/OCSInverseReachability.h>
 #include <flor_ocs_msgs/WindowCodes.h>
 
-//std::vector<unsigned char> GhostControlWidget::saved_state_planning_group_;
 std::vector<unsigned char> GhostControlWidget::saved_state_planning_group_;
 unsigned char GhostControlWidget::saved_state_use_torso_;
 unsigned char GhostControlWidget::saved_state_lock_pelvis_;
@@ -223,22 +222,6 @@ void GhostControlWidget::on_graspBox_activated(const QString &arg1)
     selected_pose_id_ = arg1.toInt();
 }
 
-//void GhostControlWidget::publishState( bool snap )
-//{
-////    flor_ocs_msgs::OCSGhostControl cmd;
-////    cmd.planning_group = saved_state_planning_group_;
-////    cmd.pose_source = saved_state_pose_source_;
-////    //cmd.world_lock = saved_state_world_lock_;
-////    cmd.lock_pelvis = saved_state_lock_pelvis_;
-////    cmd.snap = snap;
-////    cmd.position_only_ik = saved_state_position_only_ik_;
-////    cmd.use_drake_ik = saved_state_use_drake_ik_;
-
-////    state_pub_.publish(cmd);
-//}
-
-
-
 void GhostControlWidget::snapClicked()
 {
     std::cout << "Snap Clicked" << std::endl;
@@ -302,7 +285,7 @@ void GhostControlWidget::useTorsoContextMenu(const std_msgs::BoolConstPtr &msg)
 {
     ui->planning_torso_->toggle();
 }
-
+//----End temp fix-----//
 
 void GhostControlWidget::on_position_only_ik__clicked()
 {
@@ -312,7 +295,6 @@ void GhostControlWidget::on_position_only_ik__clicked()
     msg.data = saved_state_position_only_ik_;
     state_position_only_ik_pub_.publish(msg);
 }
-
 
 
 void GhostControlWidget::on_lock_pelvis__clicked()

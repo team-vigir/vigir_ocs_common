@@ -482,17 +482,11 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // initialize ghost control config
         ghost_planning_group_.push_back(0);
-        ghost_planning_group_.push_back(1);
-        ghost_planning_group_.push_back(0);
+        ghost_planning_group_.push_back(1);      
+
         ghost_use_torso_ = false;
-//        ghost_pose_source_.push_back(0);
-//        ghost_pose_source_.push_back(0);
-//        ghost_pose_source_.push_back(0);
         ghost_left_hand_lock_ = false;
         ghost_right_hand_lock_ = false;
-        //ghost_world_lock_.push_back(0);
-        //ghost_world_lock_.push_back(0);
-//        ghost_world_lock_.push_back(0);
         ghost_lock_pelvis_ = true;
 
         // ghost state
@@ -2922,31 +2916,6 @@ void Base3DView::publishGhostPoses()
     }
 }
 
-//void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::ConstPtr &msg)
-//{
-//    if(msg->snap)
-//    {
-//        snap_ghost_to_robot_ = true;
-//        return;
-//    }
-//    ghost_planning_group_.clear();
-//    ghost_pose_source_.clear();
-//    //ghost_world_lock_.clear();
-
-//    ghost_planning_group_ = msg->planning_group;
-//    ghost_pose_source_ = msg->pose_source;
-//    //ghost_world_lock_ = msg->world_lock;
-//    ghost_lock_pelvis_ = msg->lock_pelvis;
-
-//    snap_ghost_to_robot_ = msg->snap;
-
-//    //left_marker_moveit_loopback_ = msg->left_moveit_marker_loopback;
-//    //right_marker_moveit_loopback_ = msg->right_moveit_marker_loopback;
-
-//    position_only_ik_ = msg->position_only_ik;
-//    use_drake_ik_ = msg->use_drake_ik;
-//}
-
 //----- Callbacks to receive Ghost State data -------------------//
 
 void Base3DView::stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr& msg)
@@ -2956,7 +2925,7 @@ void Base3DView::stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr& msg)
 
 void Base3DView::stateUseTorsoCB(const std_msgs::Bool::ConstPtr& msg)
 {
-    //need to reset planning group or just update use torso
+    //need to reset planning group or just update use torso??
     //ghost_planning_group_[0] = 0;
     //ghost_planning_group_[0] = 0;
     ghost_use_torso_ = msg->data;
@@ -3755,7 +3724,7 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
 
     cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
 
-    if(!ghost_use_torso_) //ghost_planning_group_[2]) // torso selected in the ghost widget
+    if(!ghost_use_torso_) // torso not selected in the ghost widget?
         cmd.planning_group = prefix+"_arm_group";
     else
         cmd.planning_group = prefix+"_arm_with_torso_group";
@@ -3825,7 +3794,7 @@ void Base3DView::sendCircularTarget(bool right_hand)
 
     cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
 
-    if(!ghost_use_torso_)// ghost_planning_group_[2]) // torso selected in the ghost widget
+    if(!ghost_use_torso_) // torso selected in the ghost widget?
         cmd.planning_group = prefix+"_arm_group";
     else
         cmd.planning_group = prefix+"_arm_with_torso_group";

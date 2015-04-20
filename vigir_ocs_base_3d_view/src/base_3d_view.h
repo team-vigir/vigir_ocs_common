@@ -792,8 +792,6 @@ protected:
     bool moving_r_arm_;
 
     std::vector<unsigned char> ghost_planning_group_;
-    std::vector<unsigned char> ghost_pose_source_;
-    std::vector<unsigned char> ghost_world_lock_;    
     bool ghost_lock_pelvis_;
     bool update_markers_;
     bool snap_ghost_to_robot_;
