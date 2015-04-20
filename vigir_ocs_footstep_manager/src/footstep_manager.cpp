@@ -1393,7 +1393,7 @@ void FootstepManager::processOnboardStepPlanRequest(const vigir_footstep_plannin
 
     // update parameter set
     selected_footstep_parameter_set_ = step_plan_request->parameter_set_name.data;
-    footstep_param_set_selected_pub_.publish(selected_footstep_parameter_set_);
+    footstep_param_set_selected_pub_.publish(step_plan_request->parameter_set_name);
 }
 
 void FootstepManager::processOnboardStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan)
@@ -1420,7 +1420,7 @@ void FootstepManager::processOCSStepPlanRequest(const vigir_footstep_planning_ms
 
     // update parameter set
     selected_footstep_parameter_set_ = step_plan_request->parameter_set_name.data;
-    footstep_param_set_selected_pub_.publish(selected_footstep_parameter_set_);
+    footstep_param_set_selected_pub_.publish(step_plan_request->parameter_set_name);
 }
 
 void FootstepManager::processOCSStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan)
