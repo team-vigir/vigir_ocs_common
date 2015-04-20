@@ -2029,26 +2029,18 @@ void Base3DView::setTemplateGraspLock(int arm)
     {
         selectTemplate();
 
-        //ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] = 0;
-        //ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] = 0;
         ghost_left_hand_lock_ = false;
         ghost_right_hand_lock_ = false;
-
-
-       // ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] = 0;
-        //ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] = 0;
         return;
     }
     else if(id != -1) //locks arm
     {
         selectTemplate();
 
-        if(arm == 0)
-            ghost_left_hand_lock_ = false;
-        else if(arm == 1)
-            ghost_right_hand_lock_ = false;
-        //ghost_pose_source_[arm] = 1;
-        //ghost_world_lock_[arm] = 1;
+        if(arm == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
+            ghost_left_hand_lock_ = true;
+        else if(arm == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
+            ghost_right_hand_lock_ = true;
     }
 
 }
