@@ -2346,7 +2346,7 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
 //        ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
 
         // doesn't happen if in template lock mode
-        if(!moving_pelvis_ && ghost_pose_source_[0] == 0)
+        if(!moving_pelvis_ && ghost_left_hand_lock_ )//ghost_pose_source_[0] == 0)
             end_effector_pose_list_[cmd.topic] = cmd.pose;
     }
 
@@ -2389,7 +2389,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
         //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
 
         // doesn't happen if in template lock mode
-        if(!moving_pelvis_ && ghost_pose_source_[1] == 0)
+        if(!moving_pelvis_ && ghost_right_hand_lock_ )//ghost_pose_source_[1] == 0)
             end_effector_pose_list_[cmd.topic] = cmd.pose;
     }
 

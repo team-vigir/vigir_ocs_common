@@ -49,7 +49,6 @@
 #include <moveit_msgs/DisplayRobotState.h>
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
-#include <flor_ocs_msgs/OCSGhostState.h>
 #include <flor_ocs_msgs/OCSInteractiveMarkerAdd.h>
 #include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <flor_ocs_msgs/OCSKeyEvent.h>
@@ -57,7 +56,7 @@
 #include <flor_ocs_msgs/OCSObjectSelection.h>
 #include <flor_ocs_msgs/OCSCameraTransform.h>
 #include <flor_ocs_msgs/OCSControlMode.h>
-#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
+//#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include "flor_ocs_msgs/OCSSynchronize.h"
 #include <flor_ocs_msgs/OCSMarkerVisibility.h>
 #include <flor_perception_msgs/RaycastRequest.h>

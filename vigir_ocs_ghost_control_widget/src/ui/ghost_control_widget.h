@@ -16,7 +16,6 @@
 #include <algorithm>
 
 #include <flor_ocs_msgs/OCSKeyEvent.h>
-#include <flor_ocs_msgs/OCSGhostState.h>
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
 #include <vigir_object_template_msgs/GetGraspInfo.h>
