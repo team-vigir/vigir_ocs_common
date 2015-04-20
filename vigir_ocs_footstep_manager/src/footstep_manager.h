@@ -57,6 +57,7 @@ namespace ocs_footstep
         void processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalUpdate::ConstPtr& plan_goal);
         void processFootstepPlanRequest(const std_msgs::Int8::ConstPtr& plan_request);
         void processFootstepPlanUpdate(const flor_ocs_msgs::OCSFootstepPlanUpdate::ConstPtr& msg);
+        void processFootstepPlanParameters(const flor_ocs_msgs::OCSFootstepPlanParameters::ConstPtr& msg);
 
         // feedback look for interaction, should update stepplan and use actions to edit/update
         void processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg);
@@ -113,7 +114,7 @@ namespace ocs_footstep
         // send action goals
         void sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet feet);
         void sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet start, vigir_footstep_planning_msgs::Feet goal, const unsigned int start_step_index = 0, const unsigned char start_foot = vigir_footstep_planning_msgs::StepPlanRequest::AUTO);
-        void sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan step_plan, vigir_footstep_planning_msgs::Step step, unsigned int plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_FULL);
+        void sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan step_plan, vigir_footstep_planning_msgs::Step step);
         void sendStitchStepPlanGoal(std::vector<vigir_footstep_planning_msgs::StepPlan>& step_plan_list);
         void sendUpdateStepPlanGoal(vigir_footstep_planning_msgs::StepPlan step_plan);
         void sendExecuteStepPlanGoal();
@@ -172,14 +173,16 @@ namespace ocs_footstep
         ros::Subscriber footstep_start_index_pub_;
         ros::Subscriber footstep_execute_req_sub_;
         ros::Subscriber footstep_stitch_req_sub_;
+        ros::Publisher footstep_plan_parameters_pub_;
+        ros::Subscriber footstep_plan_parameters_sub_;
         ros::Publisher footstep_param_set_list_pub_;
         ros::Subscriber footstep_param_set_selected_sub_;
         ros::Publisher footstep_param_set_selected_pub_;
         ros::Publisher footstep_param_set_selected_ocs_pub_;
         ros::Publisher footstep_param_set_selected_onboard_pub_;
 
-        ros::Publisher footstep_goal_pose_fb_pub_;
-        ros::Subscriber footstep_goal_pose_fb_sub_;
+        ros::Publisher footstep_goal_pose_pub_;
+        ros::Subscriber footstep_goal_pose_sub_;
         ros::Subscriber footstep_plan_goal_sub_;
         ros::Subscriber footstep_plan_request_sub_;
         ros::Subscriber footstep_plan_update_sub_;
@@ -229,7 +232,7 @@ namespace ocs_footstep
         vigir_footstep_planning_msgs::Feet goal_;
 
         // last step plan request received, saved and used mostly for message parameters
-        flor_ocs_msgs::OCSFootstepPlanParameters last_plan_request_;
+        flor_ocs_msgs::OCSFootstepPlanParameters planner_config_;
 
         // specifies which footstep will be used as starting point for the planner, -1 to start a new one
         int start_step_index_;
@@ -245,7 +248,9 @@ namespace ocs_footstep
         // local instance of foot pose transformer
         vigir_footstep_planning::FootPoseTransformer::Ptr foot_pose_transformer_;
 
-        boost::mutex step_plan_mutex_;
+        boost::recursive_mutex step_plan_mutex_;
+        boost::recursive_mutex param_mutex_;
+        boost::recursive_mutex goal_mutex_;
 
         ros::Time last_ocs_step_plan_stamp_;
         ros::Time last_onboard_step_plan_stamp_;

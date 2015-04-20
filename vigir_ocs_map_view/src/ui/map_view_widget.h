@@ -47,6 +47,7 @@ public Q_SLOTS:
 
     void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
     void setFootstepParameterSetBox(std::string parameter_set);
+    void update3dPlanning(bool);
 
 private Q_SLOTS:
     void toggleSidebarVisibility();

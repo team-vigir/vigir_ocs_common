@@ -71,6 +71,12 @@ public:
     // Receives the latest selected parameter
     void processFootstepParamSet(const std_msgs::String::ConstPtr& msg);
 
+    // Receives the latest parameters used for planning from the manager
+    void processFootstepPlanParameters(const flor_ocs_msgs::OCSFootstepPlanParameters::ConstPtr& msg);
+
+    // Sends the latest parameters selected in the OCS
+    void sendFootstepPlanParameters();
+
     // ROS Callback: receives interactive marker pose updates
     void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
@@ -130,10 +136,15 @@ public Q_SLOTS:
     // Update all Footstep parameters from ui
     void updateFootstepParamaters(double,int,double,int);
 
+    // Update 3d planning parameter from ui
+    void update3dPlanning(bool);
+
 Q_SIGNALS:
     // Set visibility of all footstep interactive markers
     void populateFootstepParameterSetBox(std::vector<std::string>);
     void setFootstepParameterSetBox(std::string);
+    void setFootstepParamaters(double,int,double,int);
+    void set3dPlanning(bool);
 
 private:
     void updateInteractiveMarkers();
@@ -147,6 +158,11 @@ private:
     ros::Publisher footstep_start_index_pub_;
     ros::Publisher footstep_execute_req_pub_;
     ros::Publisher footstep_stitch_req_pub_;
+    ros::Publisher footstep_plan_parameters_pub_;
+    ros::Subscriber footstep_plan_parameters_sub_;
+    ros::Subscriber footstep_param_set_list_sub_;
+    ros::Publisher footstep_param_set_selected_pub_;
+    ros::Subscriber footstep_param_set_selected_sub_;
 
     ros::Subscriber footstep_goal_sub_;
     ros::Publisher footstep_goal_pose_fb_pub_;
@@ -154,9 +170,6 @@ private:
     ros::Publisher footstep_plan_goal_pub_;
     ros::Publisher footstep_plan_request_pub_;
     ros::Publisher footstep_plan_update_pub_;
-    ros::Subscriber footstep_param_set_list_sub_;
-    ros::Publisher footstep_param_set_selected_pub_;
-    ros::Subscriber footstep_param_set_selected_sub_;
 
     ros::Publisher interactive_marker_add_pub_;
     ros::Publisher interactive_marker_update_pub_;

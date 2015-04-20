@@ -173,6 +173,9 @@ namespace ocs_template
         std::vector<std::string>                   hand_joint_names_;
         std::vector<std::string>                   hand_link_names_;
 
+        boost::recursive_mutex template_list_mutex_;
+        boost::recursive_mutex object_template_map_mutex_;
+
         ros::Timer timer;
 
         tf::TransformBroadcaster tfb_;

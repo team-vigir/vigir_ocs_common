@@ -229,9 +229,18 @@ void MapViewWidget::setupToolbar()
     mapRegionConfig = new MapRegionConfigure();
     region3dConfig = new Region3DConfigure();
     footstep_configure_widget_ = new FootstepConfigure();
+
     //connect to update footstep paramaters from ui
     connect(footstep_configure_widget_,SIGNAL(sendFootstepParamaters(double,int,double,int)),
             ((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SLOT(updateFootstepParamaters(double,int,double,int)));
+    connect(ui->use3dPlanning,SIGNAL(clicked(bool)),
+            ((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SLOT(update3dPlanning(bool)));
+    connect(((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SIGNAL(setFootstepParamaters(double,int,double,int)),
+            footstep_configure_widget_,SLOT(updateFootstepParamaters(double,int,double,int)));
+    connect(((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SIGNAL(set3dPlanning(bool)),
+            this,SLOT(update3dPlanning(bool)));
+
+    footstep_configure_widget_->emitCurrentConfig();
 
     //set menu to popup a config widget
     QWidgetAction *wa = new QWidgetAction(0);
@@ -313,6 +322,7 @@ void MapViewWidget::setupToolbar()
 void MapViewWidget::loadButtonIconAndStyle(QPushButton* btn, QString image_name)
 {
     btn->setStyleSheet(QString("QPushButton  { ") +
+                       " font: 9pt \"Ubuntu\";" +
                        " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
                        " border-style: solid;" +
                        " border-width: 1px;" +
@@ -323,6 +333,7 @@ void MapViewWidget::loadButtonIconAndStyle(QPushButton* btn, QString image_name)
                        " image-position: top left"
                        "}" +
                        "QPushButton:pressed  {" +
+                       " font: 9pt \"Ubuntu\";" +
                        " padding-top:1px; padding-left:1px;" +
                        " background-color: rgb(180,180,180);" +
                        " border-style: inset;" +
@@ -470,6 +481,17 @@ bool MapViewWidget::eventFilter( QObject * o, QEvent * e )
         ((QMenu*)o)->move(p); // move widget to position
         return true;
     }
+    if( qobject_cast<QComboBox*>( o ) && qobject_cast<QComboBox*>( o ) == ui->footstepParamSetBox)
+    {
+        e->ignore();
+        return true;
+    }
+    if( qobject_cast<QCheckBox*>( o ) && qobject_cast<QCheckBox*>( o ) == ui->use3dPlanning)
+    {
+        e->ignore();
+        return true;
+    }
+
     return QWidget::eventFilter( o, e );
 }
 
@@ -561,4 +583,11 @@ void MapViewWidget::setFootstepParameterSetBox(std::string parameter_set)
             ui->footstepParamSetBox->removeEventFilter(this);
         }
     }
+}
+
+void MapViewWidget::update3dPlanning(bool checked)
+{
+    ui->use3dPlanning->installEventFilter(this);
+    ui->use3dPlanning->setChecked(checked);
+    ui->use3dPlanning->removeEventFilter(this);
 }

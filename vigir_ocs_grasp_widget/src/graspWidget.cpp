@@ -548,7 +548,10 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
         ui->affordanceBox->setEnabled(true);
         current_affordance_ = last_template_srv_.response.template_type_information.affordances[0];
         ui->keepOrientationBox->setChecked(current_affordance_.keep_orientation);
-        ui->displacementBox->setValue(current_affordance_.displacement);
+        if(current_affordance_.type == "circular")
+            ui->displacementBox->setValue(current_affordance_.displacement / 0.0174532925); // UI in deg, msg in rad);
+        else
+            ui->displacementBox->setValue(current_affordance_.displacement);
     }
 
     if(ui->templateBox->count() > 0){
@@ -571,7 +574,10 @@ void graspWidget::on_affordanceBox_activated(const int &arg1)
     current_affordance_ = last_template_srv_.response.template_type_information.affordances[selected_affordance_id_];
 
     ui->keepOrientationBox->setChecked(current_affordance_.keep_orientation);
-    ui->displacementBox->setValue(current_affordance_.displacement);
+    if(current_affordance_.type == "circular")
+        ui->displacementBox->setValue(current_affordance_.displacement / 0.0174532925); // UI in deg, msg in rad);
+    else
+        ui->displacementBox->setValue(current_affordance_.displacement);
 }
 
 void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
@@ -1106,7 +1112,10 @@ void graspWidget::on_detachButton_clicked()
 
 void graspWidget::on_displacementBox_valueChanged(double value){
     //Set displacement value on afordance msg
-    current_affordance_.displacement = value;
+    if(current_affordance_.type == "circular")
+        current_affordance_.displacement = value * 0.0174532925; // UI in deg, msg in rad;
+    else
+        current_affordance_.displacement = value;
 }
 
 void graspWidget::on_keepOrientationBox_toggled(bool checked){

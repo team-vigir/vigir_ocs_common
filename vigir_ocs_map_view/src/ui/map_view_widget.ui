@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>993</width>
-    <height>730</height>
+    <width>1179</width>
+    <height>831</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -102,16 +102,10 @@
          </property>
          <item>
           <widget class="QLabel" name="label_9">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="minimumSize">
             <size>
              <width>0</width>
-             <height>16</height>
+             <height>0</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -230,7 +224,7 @@
               </property>
               <property name="font">
                <font>
-                <pointsize>9</pointsize>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -359,7 +353,7 @@
               </property>
               <property name="font">
                <font>
-                <pointsize>9</pointsize>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <italic>false</italic>
                 <bold>false</bold>
@@ -504,7 +498,7 @@
               <property name="font">
                <font>
                 <family>Ubuntu</family>
-                <pointsize>9</pointsize>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <italic>false</italic>
                 <bold>false</bold>
@@ -544,7 +538,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>210</width>
+          <width>300</width>
           <height>16777215</height>
          </size>
         </property>
@@ -741,6 +735,18 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QCheckBox" name="use3dPlanning">
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>3D Planning</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -890,7 +896,7 @@
            <x>0</x>
            <y>0</y>
            <width>207</width>
-           <height>1615</height>
+           <height>1639</height>
           </rect>
          </property>
          <property name="maximumSize">

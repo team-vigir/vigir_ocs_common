@@ -56,7 +56,6 @@
 #include <flor_ocs_msgs/OCSObjectSelection.h>
 #include <flor_ocs_msgs/OCSCameraTransform.h>
 #include <flor_ocs_msgs/OCSControlMode.h>
-//#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include "flor_ocs_msgs/OCSSynchronize.h"
 #include <flor_ocs_msgs/OCSMarkerVisibility.h>
 #include <flor_perception_msgs/RaycastRequest.h>
@@ -222,6 +221,7 @@ public:
     /**
       * ROS Callback: receives new goal pose for footstep planner
       */
+    virtual void processOwnGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose);
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     /**
       * ROS Callback: receives new key event from global hotkey process
@@ -526,7 +526,9 @@ protected:
     ros::Publisher pointcloud_request_world_pub_;
 
     ros::Publisher send_footstep_goal_pub_;
+    ros::Subscriber send_footstep_goal_sub_;
 
+    ros::Publisher set_goal_pub_;
     ros::Subscriber set_goal_sub_;
 
     ros::Publisher interactive_marker_add_pub_;

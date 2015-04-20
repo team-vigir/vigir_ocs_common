@@ -509,9 +509,11 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
             send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
         }
         send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 1, false );
+        send_footstep_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 5, &Base3DView::processOwnGoalPose, this );
 
-        // subscribe to goal pose
-        set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 5, &Base3DView::processGoalPose, this );
+        // publish/subscribe to goal pose
+        set_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 1, false );
+        set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &Base3DView::processGoalPose, this );
 
         // Create a RobotModel display.
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
@@ -1676,6 +1678,11 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
 void Base3DView::defineFootstepGoal()
 {
     manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
+}
+
+void Base3DView::processOwnGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+{
+    set_goal_pub_.publish(pose);
 }
 
 void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
