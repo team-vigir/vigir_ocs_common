@@ -270,7 +270,7 @@ void GhostControlWidget::on_planning_torso__clicked()
     saved_state_use_torso_ = ui->planning_torso_->isChecked();
     std_msgs::Bool cmd;
     cmd.data = saved_state_use_torso_;
-    reset_pelvis_pub_.publish(cmd);
+    state_use_torso_pub_.publish(cmd);
 }
 
 //temp fix before making ghost manager, ignoring message, just using these callbacks as a way to signal
