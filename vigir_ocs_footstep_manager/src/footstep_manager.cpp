@@ -1428,7 +1428,6 @@ void FootstepManager::processOCSStepPlanRequest(const vigir_footstep_planning_ms
     footstep_param_set_selected_pub_.publish(cmd);
 }
 
-
 void FootstepManager::processOCSStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan)
 {
     boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
