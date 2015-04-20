@@ -144,9 +144,9 @@ public:
     ContextMenuManager * getContextMenuManager(){return context_menu_manager_;}
     std::string getActiveContext(){return active_context_name_;}
     std::vector<rviz::Display*> getCartesianMarkerList(){return cartesian_marker_list_;}
-    rviz::Display* getCircularMarker(){return circular_marker_;}
-    std::vector<unsigned char> getGhostPoseSource(){return ghost_pose_source_;}
-    std::vector<unsigned char> getGhostWorldLock(){return ghost_world_lock_;}
+    rviz::Display* getCircularMarker(){return circular_marker_;}    
+    bool getGhostLeftHandLocked(){return ghost_left_hand_lock_;}
+    bool getGhostRightHandLocked(){return ghost_right_hand_lock_;}
 
     /**
       * ROS Callback: receives left arm end effector position from moveit

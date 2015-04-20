@@ -167,7 +167,7 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
         setItemVisibility("Lock Right Arm to Template",false);
     }
 
-    if((base_3d_view_->getGhostPoseSource()[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] && base_3d_view_->getGhostWorldLock()[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM]) || (base_3d_view_->getGhostPoseSource()[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] && base_3d_view_->getGhostWorldLock()[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM]))
+    if(base_3d_view_->getGhostLeftHandLocked() || base_3d_view_->getGhostLeftHandLocked())
     {
         //show only unlock        
         setItemVisibility("Lock Left Arm to Template",false);
