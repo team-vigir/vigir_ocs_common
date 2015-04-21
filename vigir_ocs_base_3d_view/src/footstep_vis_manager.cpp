@@ -6,6 +6,8 @@
 
 #include "footstep_vis_manager.h"
 
+#include <QMessageBox>
+
 namespace vigir_ocs
 {
 FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
@@ -46,7 +48,9 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     footstep_update_pub_             = nh_.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/step_update", 1, false );
     footstep_list_sub_               = nh_.subscribe<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 5, &FootstepVisManager::processFootstepList, this );
     footstep_undo_req_pub_           = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/undo", 1, false );
+    footstep_has_undo_sub_           = nh_.subscribe<std_msgs::UInt8>( "/flor/ocs/footstep/undos_available", 5, &FootstepVisManager::processUndosAvailable, this );
     footstep_redo_req_pub_           = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/redo", 1, false );
+    footstep_has_redo_sub_           = nh_.subscribe<std_msgs::UInt8>( "/flor/ocs/footstep/redos_available", 5, &FootstepVisManager::processRedosAvailable, this );
     footstep_start_index_pub_        = nh_.advertise<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, false );
     footstep_execute_req_pub_        = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/execute", 1, false );
     footstep_stitch_req_pub_         = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/stitch", 1, false );
@@ -80,6 +84,10 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
 
     start_step_index_ = -1;
     need_plan_update_ = false;
+    has_valid_step_plan_ = false;
+    has_undo_ = 0;
+    has_redo_ = 0;
+    num_step_plans_ = 0;
 
     // initialize displays for goals
     display_goal_marker_ = NULL;
@@ -218,10 +226,17 @@ void FootstepVisManager::requestFootstepListRedo()
 
 void FootstepVisManager::requestExecuteStepPlan()
 {
-    // send request to footstep manager
-    std_msgs::Int8 cmd;
-    cmd.data = 1;
-    footstep_execute_req_pub_.publish(cmd);
+    int option = QMessageBox::information( NULL, "Step Plan Execution Confirmation",
+                                          "Are you sure you want to execute the current step plan?",
+                                          "Execute", "Cancel",
+                                          0, 1 );
+    if(option == 0)
+    {
+        // send request to footstep manager
+        std_msgs::Int8 cmd;
+        cmd.data = 1;
+        footstep_execute_req_pub_.publish(cmd);
+    }
 }
 
 void FootstepVisManager::requestStepPlan()
@@ -349,6 +364,16 @@ void FootstepVisManager::processFootstepParamSet(const std_msgs::String::ConstPt
     Q_EMIT setFootstepParameterSetBox(msg->data);
 }
 
+void FootstepVisManager::processUndosAvailable(const std_msgs::UInt8::ConstPtr& msg)
+{
+    has_undo_ = msg->data;
+}
+
+void FootstepVisManager::processRedosAvailable(const std_msgs::UInt8::ConstPtr& msg)
+{
+    has_redo_ = msg->data;
+}
+
 void FootstepVisManager::updateInteractiveMarkers()
 {
     // first we create/update the step plan markers, since these are the ones we'll be seing/interacting with first
@@ -411,7 +436,7 @@ void FootstepVisManager::updateInteractiveMarkers()
         display_step_plan_marker_list_[i]->setEnabled( false );
 
     // check if it is possible to execute footstep plan without specifying a plan
-    has_valid_step_plan_ = (num_step_plans_ == 1 ? true : false);
+    has_valid_step_plan_ = (num_step_plans_ == 1 ? true : false); // this should be set based on validation as well
 
     // then we create/update the individual step markers
     for(int i = 0; i < footstep_list_.footstep_id_list.size(); i++)

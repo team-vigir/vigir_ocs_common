@@ -121,6 +121,12 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
         setItemVisibility("Select Left Arm",false);
     }
 
+    //footstep goal is still technically a footstep but need seperate case
+    if(base_3d_view_->getActiveContext().find("footstep goal") == std::string::npos)
+    {
+        setItemVisibility("Select Footstep Goal",false);
+    }
+
     //remove footstep-related items if context is not footstep
     if(base_3d_view_->getActiveContext().find("footstep") == std::string::npos || base_3d_view_->getActiveContext().find("footstep goal") != std::string::npos)
     {
@@ -132,12 +138,6 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     //setItemVisibility("Unlock Footstep",false);
     //setItemVisibility("Remove Footstep",false);
 
-    //footstep goal is still technically a footstep but need seperate case
-    if(base_3d_view_->getActiveContext().find("footstep goal") == std::string::npos)
-    {
-        setItemVisibility("Select Footstep Goal",false);
-    }
-
     //cannot request footstep plan without goal
     //if(!base_3d_view_->getFootstepVisManager()->hasGoal())
     //{
@@ -146,10 +146,27 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     //}
 
     //cannot execute without footstep plan
-    if(!base_3d_view_->getFootstepVisManager()->hasValidStepPlan())
+    if(base_3d_view_->getFootstepVisManager()->numStepPlans() != 1)
     {
         setItemVisibility("Execute Step Plan",false);
     }
+
+    // and need to show stitch option if more than one plan
+    if(base_3d_view_->getFootstepVisManager()->numStepPlans() < 2)
+    {
+        setItemVisibility("Stitch Plans",false);
+    }
+
+    // update visibility of undo/edo
+    if(base_3d_view_->getFootstepVisManager()->hasUndoAvailable() == 0)
+    {
+        setItemVisibility("Undo Step Change",false);
+    }
+    if(base_3d_view_->getFootstepVisManager()->hasRedoAvailable() == 0)
+    {
+        setItemVisibility("Redo Step Change",false);
+    }
+
 
     if(!base_3d_view_->getFootstepVisManager()->hasStartingFootstep())
     {
@@ -229,7 +246,7 @@ void ContextMenuManager::processContextMenu(int x, int y)
 
 void ContextMenuManager::setItemVisibility(QString name, bool visibility)
 {
-    contextMenuItem * item;
+    contextMenuItem* item = NULL;
     //find context menu item in vector
     for(int i=0;i<context_menu_items_.size();i++)
     {
@@ -237,7 +254,7 @@ void ContextMenuManager::setItemVisibility(QString name, bool visibility)
             item = context_menu_items_[i];
     }
     //can only remove actions?
-    if(!item->hasChildren)
+    if(item != NULL && !item->hasChildren)
         context_menu_.removeAction(item->action);
 }
 
