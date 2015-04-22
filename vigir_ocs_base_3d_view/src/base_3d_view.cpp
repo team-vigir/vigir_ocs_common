@@ -2025,12 +2025,11 @@ void Base3DView::snapHandGhost()
 
 // this function will toggle the template grasp lock
 void Base3DView::setTemplateGraspLock(int arm)
-{
+{    
     int id = findObjectContext("template");
     if (arm == -1) // unlocks both arms
     {
-        selectTemplate();
-
+        selectTemplate(); 
         ghost_left_hand_lock_ = false;
         ghost_right_hand_lock_ = false;        
     }
@@ -2039,9 +2038,13 @@ void Base3DView::setTemplateGraspLock(int arm)
         selectTemplate();
 
         if(arm == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
+        {
             ghost_left_hand_lock_ = true;
+        }
         else if(arm == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
+        {
             ghost_right_hand_lock_ = true;
+        }
     }
 
 }
@@ -2346,7 +2349,7 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
 //        ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
 
         // doesn't happen if in template lock mode
-        if(!moving_pelvis_ && ghost_left_hand_lock_ )//ghost_pose_source_[0] == 0)
+        if(!moving_pelvis_ && !ghost_left_hand_lock_ )//ghost_pose_source_[0] == 0)
             end_effector_pose_list_[cmd.topic] = cmd.pose;
     }
 
@@ -2552,7 +2555,7 @@ int Base3DView::calcWristTarget(const geometry_msgs::PoseStamped& end_effector_p
 void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
     // will only process this if in template lock
-    if(!moving_pelvis_ && ghost_left_hand_lock_ == 1)
+    if(!moving_pelvis_ && ghost_left_hand_lock_)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
         staticTransform(transformed_pose, l_hand_T_palm_);
@@ -2572,7 +2575,7 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
     //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",pose->pose.orientation.w,pose->pose.orientation.x,pose->pose.orientation.y,pose->pose.orientation.z);
 
     // will only process this if in template lock
-    if(!moving_pelvis_ && ghost_right_hand_lock_ == 1)
+    if(!moving_pelvis_ && ghost_right_hand_lock_)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
         staticTransform(transformed_pose, r_hand_T_palm_);
@@ -3183,8 +3186,6 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
 
     if(snap_ghost_to_robot_)
     {
-        ROS_ERROR("snap ghost");
-
         ghost_joint_state_pub_.publish(states);
         ghost_root_pose_pub_.publish(root_pose);
 
