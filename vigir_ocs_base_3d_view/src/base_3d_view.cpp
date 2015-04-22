@@ -707,8 +707,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         //kinda hacky, would like to only update on transform change on ghost robot
         //used within timer event to make sure updating ghost robot opacity is called every
-        ghost_opacity_update_counter_ = 0;
-        ghost_opacity_update_frequency_ = 20; //didn't want to create seperate timer event
+        //ghost_opacity_update_counter_ = 0;
+        //ghost_opacity_update_frequency_ = 20; //didn't want to create seperate timer event
 
         ghost_opacity_update_ = false; // dont update ghost robot opacity by default
 
@@ -1127,23 +1127,25 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     //Means that currently doing
 
-    if(is_primary_view_)
-    {
-        //if(occluded_robot_visible_)
-        //    setRenderOrder();
 
-        //only update opacity if ghost is on and update is allowed
-        if(ghost_robot_model_->isEnabled() && ghost_opacity_update_)
-        {
-            ghost_opacity_update_counter_++;
-            //only update ghost robot opacity occasionally, can cause performance issues if called on every timer event
-            if(ghost_opacity_update_counter_ >= ghost_opacity_update_frequency_)
-            {
-                //updateGhostRobotOpacity();
-                ghost_opacity_update_counter_= 0;//reset counter
-            }
-        }
-    }
+
+//    if(is_primary_view_)
+//    {
+//        //if(occluded_robot_visible_)
+//        //    setRenderOrder();
+
+//        //only update opacity if ghost is on and update is allowed
+//        if(ghost_robot_model_->isEnabled() && ghost_opacity_update_)
+//        {
+//            ghost_opacity_update_counter_++;
+//            //only update ghost robot opacity occasionally, can cause performance issues if called on every timer event
+//            if(ghost_opacity_update_counter_ >= ghost_opacity_update_frequency_)
+//            {
+//                //updateGhostRobotOpacity();
+//                ghost_opacity_update_counter_= 0;//reset counter
+//            }
+//        }
+//    }
 
 
 }
@@ -1152,88 +1154,88 @@ void Base3DView::timerEvent(QTimerEvent *event)
 //hide ghost parts if ghost position == robot position
 void Base3DView::updateGhostRobotOpacity()
 {    
-    MoveItOcsModel* robot_model = RobotStateManager::Instance()->getRobotStateSingleton();
-    MoveItOcsModel* ghost_robot_model = RobotStateManager::Instance()->getGhostRobotStateSingleton();
-    //compare the links of every joint in robot to ghost
-    std::vector<std::string> link_names = robot_model->getLinkNames();
+//    MoveItOcsModel* robot_model = RobotStateManager::Instance()->getRobotStateSingleton();
+//    MoveItOcsModel* ghost_robot_model = RobotStateManager::Instance()->getGhostRobotStateSingleton();
+//    //compare the links of every joint in robot to ghost
+//    std::vector<std::string> link_names = robot_model->getLinkNames();
 
-    //grab current root pose of ghost, necessary as publishing robot state will somehow reset ghost pose
-    geometry_msgs::PoseStamped ghost_root_pose;
-    ghost_root_pose.pose = ghost_root_pose_;
+//    //grab current root pose of ghost, necessary as publishing robot state will somehow reset ghost pose
+//    geometry_msgs::PoseStamped ghost_root_pose;
+//    ghost_root_pose.pose = ghost_root_pose_;
 
-    for(int i=0;i<link_names.size();i++)
-    {
-       std::string link_name = link_names[i];
-       //get poses of links
-       geometry_msgs::Pose robot_pose;
-       geometry_msgs::Pose ghost_pose;
-       if(!robot_model->getLinkPose(link_name,robot_pose) || !ghost_robot_model->getLinkPose(link_name,ghost_pose))
-       {
-          //ROS_ERROR("mismatch link? %s %d", link_name.c_str(),i);
-          break;
-       }
-       moveit_msgs::ObjectColor tmp;
-       tmp.id = link_name;
+//    for(int i=0;i<link_names.size();i++)
+//    {
+//       std::string link_name = link_names[i];
+//       //get poses of links
+//       geometry_msgs::Pose robot_pose;
+//       geometry_msgs::Pose ghost_pose;
+//       if(!robot_model->getLinkPose(link_name,robot_pose) || !ghost_robot_model->getLinkPose(link_name,ghost_pose))
+//       {
+//          //ROS_ERROR("mismatch link? %s %d", link_name.c_str(),i);
+//          break;
+//       }
+//       moveit_msgs::ObjectColor tmp;
+//       tmp.id = link_name;
 
-       //5cm and 2deg tolerance
-       if(checkPoseMatch(robot_pose,ghost_pose,0.005f,2.0f))
-       {
-           //hide link
-           tmp.color.a = 0.0f;
-       }
-       else
-       {
-           //show link, (could have previously been hidden so we need to update based on posematch)
-           tmp.color.a = 0.5f;
-           tmp.color.r = 0.0f;
-           tmp.color.g = 1.0f;
-           tmp.color.b = 0.0f;
-       }
-       ghost_display_state_msg_.highlight_links.push_back(tmp);
-    }
+//       //5cm and 2deg tolerance
+//       if(checkPoseMatch(robot_pose,ghost_pose,0.005f,2.0f))
+//       {
+//           //hide link
+//           tmp.color.a = 0.0f;
+//       }
+//       else
+//       {
+//           //show link, (could have previously been hidden so we need to update based on posematch)
+//           tmp.color.a = 0.5f;
+//           tmp.color.r = 0.0f;
+//           tmp.color.g = 1.0f;
+//           tmp.color.b = 0.0f;
+//       }
+//       ghost_display_state_msg_.highlight_links.push_back(tmp);
+//    }
 
-    robot_state::robotStateToRobotStateMsg(*ghost_robot_model->getState(), ghost_display_state_msg_.state);
+//    robot_state::robotStateToRobotStateMsg(*ghost_robot_model->getState(), ghost_display_state_msg_.state);
 
-    //TODO: figure out why ghost root pose will change on this line
-    ghost_robot_state_vis_pub_.publish(ghost_display_state_msg_);
+//    //TODO: figure out why ghost root pose will change on this line
+//    ghost_robot_state_vis_pub_.publish(ghost_display_state_msg_);
 
-    //reset root pose back to position before publishing
-    ghost_robot_model->setRootTransform(ghost_root_pose);
+//    //reset root pose back to position before publishing
+//    ghost_robot_model->setRootTransform(ghost_root_pose);
 }
 
 //reset ghost to have all parts visible, necessary if we have updated certain segments to disappear
 void Base3DView::showAllGhost()
 {
-    MoveItOcsModel* robot_model = RobotStateManager::Instance()->getRobotStateSingleton();
-    MoveItOcsModel* ghost_robot_model = RobotStateManager::Instance()->getGhostRobotStateSingleton();
+//    MoveItOcsModel* robot_model = RobotStateManager::Instance()->getRobotStateSingleton();
+//    MoveItOcsModel* ghost_robot_model = RobotStateManager::Instance()->getGhostRobotStateSingleton();
 
-    std::vector<std::string> link_names = robot_model->getLinkNames();
-    //grab current root pose of ghost, necessary as publishing robot state will somehow reset ghost pose
-    geometry_msgs::PoseStamped ghost_root_pose;
-    ghost_root_pose.pose = ghost_root_pose_;
+//    std::vector<std::string> link_names = robot_model->getLinkNames();
+//    //grab current root pose of ghost, necessary as publishing robot state will somehow reset ghost pose
+//    geometry_msgs::PoseStamped ghost_root_pose;
+//    ghost_root_pose.pose = ghost_root_pose_;
 
-    for(int i=0;i<link_names.size();i++)
-    {
-       std::string link_name = link_names[i];
-       moveit_msgs::ObjectColor tmp;
-       tmp.id = link_name;
+//    for(int i=0;i<link_names.size();i++)
+//    {
+//       std::string link_name = link_names[i];
+//       moveit_msgs::ObjectColor tmp;
+//       tmp.id = link_name;
 
-       //show link, (could have previously been hidden so we need to update based on posematch)
-       tmp.color.a = 0.5f;
-       tmp.color.r = 0.0f;
-       tmp.color.g = 1.0f;
-       tmp.color.b = 0.0f;
+//       //show link, (could have previously been hidden so we need to update based on posematch)
+//       tmp.color.a = 0.5f;
+//       tmp.color.r = 0.0f;
+//       tmp.color.g = 1.0f;
+//       tmp.color.b = 0.0f;
 
-       ghost_display_state_msg_.highlight_links.push_back(tmp);
-    }
+//       ghost_display_state_msg_.highlight_links.push_back(tmp);
+//    }
 
-    robot_state::robotStateToRobotStateMsg(*ghost_robot_model->getState(), ghost_display_state_msg_.state);
+//    robot_state::robotStateToRobotStateMsg(*ghost_robot_model->getState(), ghost_display_state_msg_.state);
 
-    //TODO: figure out why ghost root pose will change on this line
-    ghost_robot_state_vis_pub_.publish(ghost_display_state_msg_);
+//    //TODO: figure out why ghost root pose will change on this line
+//    ghost_robot_state_vis_pub_.publish(ghost_display_state_msg_);
 
-    //reset root pose back to position before publishing
-    ghost_robot_model->setRootTransform(ghost_root_pose);
+//    //reset root pose back to position before publishing
+//    ghost_robot_model->setRootTransform(ghost_root_pose);
 }
 
 void Base3DView::publishCameraTransform()
