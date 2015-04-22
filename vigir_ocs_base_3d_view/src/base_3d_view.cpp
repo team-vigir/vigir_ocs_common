@@ -703,12 +703,14 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         notification_overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
         notification_overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
 
-        ghost_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/robot_state_vis",1, true);        
+        //ghost_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/robot_state_vis",1, true);
 
+        //kinda hacky, would like to only update on transform change on ghost robot
         //used within timer event to make sure updating ghost robot opacity is called every
         ghost_opacity_update_counter_ = 0;
         ghost_opacity_update_frequency_ = 20; //didn't want to create seperate timer event
-        ghost_opacity_update_ = true; // update ghost robot opacity by default       
+
+        ghost_opacity_update_ = false; // update ghost robot opacity by default
 
 
         //initialize hotkeys
@@ -1138,7 +1140,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
             //only update ghost robot opacity occasionally, can cause performance issues if called on every timer event
             if(ghost_opacity_update_counter_ >= ghost_opacity_update_frequency_)
             {
-                updateGhostRobotOpacity();
+                //updateGhostRobotOpacity();
                 ghost_opacity_update_counter_= 0;//reset counter
             }
         }
@@ -1146,6 +1148,7 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
 
 }
+
 
 //hide ghost parts if ghost position == robot position
 void Base3DView::updateGhostRobotOpacity()
@@ -1553,9 +1556,11 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
         {
             //toggle ghost opacity update
             ghost_opacity_update_ = msg->visible[i];
+            ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
             //reset ghost opacity if necessary
             if(!ghost_opacity_update_)
-                showAllGhost();
+                ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_diff_vis" );
+                //showAllGhost();
         }
 
         for(int j = 0; j < num_displays; j++)
@@ -3175,6 +3180,8 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
 
     if(snap_ghost_to_robot_)
     {
+        ROS_ERROR("snap ghost");
+
         ghost_joint_state_pub_.publish(states);
         ghost_root_pose_pub_.publish(root_pose);
 
