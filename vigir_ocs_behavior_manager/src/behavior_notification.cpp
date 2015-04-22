@@ -12,11 +12,13 @@ BehaviorNotification::BehaviorNotification(QWidget *parent) :
     connect(ui->confirm_button_,SIGNAL(clicked()), this, SLOT(confirm()));
     connect(ui->abort_button_,SIGNAL(clicked()), this, SLOT(abort()));
 
-    ui->confirm_button_->hide();
-    ui->abort_button_->hide();
+    //ui->confirm_button_->hide();
+    //ui->abort_button_->hide();
     confirmed_ = false;
     ui->central_widget_->setMouseTracking( true );
     ui->central_widget_->installEventFilter(this);
+
+    ui->confirmation_widget_->hide();
 
     this->setStyleSheet("QWidget{background-color:rgba(255,255,255,200);}"
                         "QWidget:hover{background-color:rgba(235,235,235,200);}"
@@ -33,13 +35,15 @@ bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
         {
             if(ui->confirm_button_->isVisible())
             {
-                ui->confirm_button_->hide();
-                ui->abort_button_->hide();
+                ui->confirmation_widget_->hide();
+                //ui->confirm_button_->hide();
+                //ui->abort_button_->hide();
             }
             else
             {
-                ui->confirm_button_->show();
-                ui->abort_button_->show();
+                ui->confirmation_widget_->show();
+                //ui->confirm_button_->show();
+                //ui->abort_button_->show();
             }
             return true;
         }
