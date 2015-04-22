@@ -1238,9 +1238,9 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>0</y>
-           <width>224</width>
-           <height>1641</height>
+           <y>-446</y>
+           <width>212</width>
+           <height>1622</height>
           </rect>
          </property>
          <property name="maximumSize">
@@ -1929,11 +1929,14 @@ color: rgb(255, 26, 26);</string>
              </item>
              <item>
               <widget class="QCheckBox" name="update_ghost_opacity">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
                <property name="text">
                 <string>Update Ghost Robot Opacity</string>
                </property>
                <property name="checked">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>

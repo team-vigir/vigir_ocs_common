@@ -710,8 +710,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_opacity_update_counter_ = 0;
         ghost_opacity_update_frequency_ = 20; //didn't want to create seperate timer event
 
-        ghost_opacity_update_ = false; // update ghost robot opacity by default
-
+        ghost_opacity_update_ = false; // dont update ghost robot opacity by default
 
         //initialize hotkeys
         addHotkeys();
@@ -1556,10 +1555,14 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
         {
             //toggle ghost opacity update
             ghost_opacity_update_ = msg->visible[i];
-            ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
-            //reset ghost opacity if necessary
-            if(!ghost_opacity_update_)
+            if(ghost_opacity_update_)
+            {
                 ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_diff_vis" );
+            }
+            else
+            {
+                ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
+            }
                 //showAllGhost();
         }
 

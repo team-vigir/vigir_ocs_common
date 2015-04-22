@@ -309,7 +309,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-552</y>
+        <y>-661</y>
         <width>207</width>
         <height>1741</height>
        </rect>
@@ -1127,7 +1127,7 @@ color: rgb(255, 26, 26);</string>
              <string>Update Ghost Robot Opacity</string>
             </property>
             <property name="checked">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
            </widget>
           </item>
