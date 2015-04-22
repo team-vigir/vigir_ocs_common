@@ -267,6 +267,9 @@ public:
     void statePositionOnlyIkCB(const std_msgs::Int8::ConstPtr& msg);
     void stateUseDrakeIkCB(const std_msgs::Int8::ConstPtr& msg);
 
+    // public hotkey callbacks - for hotkeys that shouldn't be defined for every window
+    void executeStepPlanHotkey();
+
 public Q_SLOTS:
     // displays
     // Enables/disables visibility of rviz displays
@@ -712,7 +715,6 @@ protected:
     void rainbowColorHotkey();
     void pointcloudIntensityHotkey();
     //void requestStepPlanHotkey();
-    void executeStepPlanHotkey();
     void lockTranslationHotkey();
 
 

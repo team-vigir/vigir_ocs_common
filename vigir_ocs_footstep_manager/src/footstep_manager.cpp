@@ -42,7 +42,9 @@ void FootstepManager::onInit()
     footstep_list_pub_                       = nh.advertise<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, false );
     footstep_update_sub_                     = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/step_update", 1, &FootstepManager::processFootstepPoseUpdate, this );
     footstep_undo_req_sub_                   = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/undo", 1, &FootstepManager::processUndoRequest, this );
+    footstep_has_undo_pub_                   = nh.advertise<std_msgs::UInt8>( "/flor/ocs/footstep/undos_available", 1, false );
     footstep_redo_req_sub_                   = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/redo", 1, &FootstepManager::processRedoRequest, this );
+    footstep_has_redo_pub_                   = nh.advertise<std_msgs::UInt8>( "/flor/ocs/footstep/redos_available", 1, false );
     footstep_start_index_pub_                = nh.subscribe<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, &FootstepManager::processSetStartIndex, this );
     footstep_execute_req_sub_                = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
     footstep_stitch_req_sub_                 = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/stitch", 1, &FootstepManager::processStitchPlansRequest, this );
@@ -773,6 +775,13 @@ void FootstepManager::publishFootstepList()
         }
     }
     footstep_list_pub_.publish(list);
+
+    // also publish undo/redo status
+    std_msgs::UInt8 cmd;
+    cmd.data = footstep_plans_undo_stack_.size()-1; // -1 since we don't want to be able to undo when we only have one plan in the stack (it will make it empty and crash)
+    footstep_has_undo_pub_.publish(cmd);
+    cmd.data = footstep_plans_redo_stack_.size();
+    footstep_has_redo_pub_.publish(cmd);
 }
 
 void FootstepManager::publishFootstepParameterSetList()
@@ -1204,7 +1213,30 @@ void FootstepManager::sendExecuteStepPlanGoal()
 
     // need to make sure we only have one step plan, and that plan has steps
     if(getStepPlanList().size() != 1 || !getStepPlan().steps.size())
+    {
+        // send updated status to ocs
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED;
+        planner_status.status_msg = "Can't execute empty plan or multiple plans (stitch first).";
+        planner_status_pub_.publish(planner_status);
+
         return;
+    }
+
+    // also need to make sure this plan hasn't been sent before
+    if(last_executed_step_plan_stamp_ == getStepPlan().header.stamp)
+    {
+        // send updated status to ocs
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED;
+        planner_status.status_msg = "Can't execute same plan twice.";
+        planner_status_pub_.publish(planner_status);
+
+        return;
+    }
+
+    // save the last plan executed timestamp
+    last_executed_step_plan_stamp_ = getStepPlan().header.stamp;
 
     // Fill in goal here
     vigir_footstep_planning_msgs::ExecuteStepPlanGoal action_goal;
@@ -1231,18 +1263,30 @@ void FootstepManager::sendExecuteStepPlanGoal()
 void FootstepManager::activeExecuteStepPlan()
 {
     ROS_INFO("ExecuteStepPlan: Status changed to active.");
+
+    // send updated status to ocs
+    flor_ocs_msgs::OCSFootstepStatus planner_status;
+    planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE;
+    planner_status.status_msg = "Execution of footstep plan active";
+    planner_status_pub_.publish(planner_status);
 }
 
 void FootstepManager::feedbackExecuteStepPlan(const vigir_footstep_planning_msgs::ExecuteStepPlanFeedbackConstPtr& feedback)
 {
     ROS_INFO("ExecuteStepPlan: Feedback received.");
+
+    // send updated status to ocs
+    flor_ocs_msgs::OCSFootstepStatus planner_status;
+    planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE;
+    planner_status.status_msg = "Execution feedback received: Step "+boost::lexical_cast<std::string>(feedback->last_performed_step_index)+" -> Step "+boost::lexical_cast<std::string>(feedback->currently_executing_step_index);
+    planner_status_pub_.publish(planner_status);
 }
 
 void FootstepManager::doneExecuteStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::ExecuteStepPlanResultConstPtr& result)
 {
     ROS_INFO("ExecuteStepPlan: Got action response.");
 
-    if(result->status.status != vigir_footstep_planning_msgs::FootstepExecutionStatus::NO_ERROR)
+    if(!(result->status.status & vigir_footstep_planning_msgs::FootstepExecutionStatus::REACHED_GOAL))
     {
         ROS_ERROR("ExecuteStepPlan: Error occured!\nExecution error code: %d", result->status.status);
 
@@ -1254,11 +1298,14 @@ void FootstepManager::doneExecuteStepPlan(const actionlib::SimpleClientGoalState
     }
     else
     {
-        cleanStacks();
-        publishFootsteps();
-        publishFootstepList();
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_SUCCESS;
+        planner_status.status_msg = "Succesfully reached goal! Status: "+boost::lexical_cast<std::string>(result->status.status);
+        planner_status_pub_.publish(planner_status);
+//        cleanStacks();
+//        publishFootsteps();
+//        publishFootstepList();
     }
-
 }
 
 void FootstepManager::sendGetAllParameterSetsGoal()

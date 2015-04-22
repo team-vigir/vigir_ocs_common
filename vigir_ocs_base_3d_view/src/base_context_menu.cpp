@@ -73,16 +73,14 @@ void BaseContextMenu::createContextMenuItems()
     //context_menu_manager_->addActionItem("Remove Footstep",boost::bind(&Base3DView::removeFootstep,base_3d_view_),NULL);
     context_menu_manager_->addActionItem("Set Starting Footstep",boost::bind(&Base3DView::setStartingFootstep,base_3d_view_),NULL);
     context_menu_manager_->addActionItem("Clear Starting Footstep",boost::bind(&FootstepVisManager::clearStartingFootstep,footstep_vis_manager_),NULL);
-    context_menu_manager_->addActionItem("Stitch Plans",boost::bind(&FootstepVisManager::requestStitchFootstepPlans,footstep_vis_manager_),NULL);
 
     context_menu_manager_->addSeparatorItem();
-
-    context_menu_manager_->addActionItem("Snap Hand to Ghost",boost::bind(&Base3DView::snapHandGhost,base_3d_view_),NULL);
 
     context_menu_manager_->addActionItem("Create Step Plan Goal",boost::bind(&Base3DView::defineFootstepGoal,base_3d_view_), NULL);
     //context_menu_manager_->addActionItem("Request Step Plan",boost::bind(&FootstepVisManager::requestStepPlan,footstep_vis_manager_), NULL);
                                                                                         //will be custom plan?
     //context_menu_manager_->addActionItem("Request Step Plan...",boost::bind(&FootstepVisManager::requestStepPlan,footstep_vis_manager_), NULL);
+    context_menu_manager_->addActionItem("Stitch Plans",boost::bind(&FootstepVisManager::requestStitchFootstepPlans,footstep_vis_manager_),NULL);
     context_menu_manager_->addActionItem("Execute Step Plan",boost::bind(&FootstepVisManager::requestExecuteStepPlan,footstep_vis_manager_),NULL);
     context_menu_manager_->addActionItem("Undo Step Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL);
     context_menu_manager_->addActionItem("Redo Step Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL);
@@ -94,6 +92,7 @@ void BaseContextMenu::createContextMenuItems()
 
     context_menu_manager_->addSeparatorItem();
 
+    context_menu_manager_->addActionItem("Snap Hand to Ghost",boost::bind(&Base3DView::snapHandGhost,base_3d_view_),NULL);
     context_menu_manager_->addActionItem("Lock Left Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,base_3d_view_,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL);
     context_menu_manager_->addActionItem("Lock Right Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,base_3d_view_,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL);
     context_menu_manager_->addActionItem("Unlock Arms",boost::bind(&Base3DView::setTemplateGraspLock,base_3d_view_,-1),NULL);

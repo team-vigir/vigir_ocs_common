@@ -3866,8 +3866,8 @@ void Base3DView::addHotkeys()
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+g",boost::bind(&Base3DView::defineFootstepGoal,this));   
     //request footstep plan
     //HotkeyManager::Instance()->addHotkeyFunction("ctrl+h",boost::bind(&Base3DView::requestStepPlanHotkey,this));
-    //execute footstep plan
-    HotkeyManager::Instance()->addHotkeyFunction("ctrl+j",boost::bind(&Base3DView::executeStepPlanHotkey,this));    
+    //execute footstep plan -> moved to main view
+    //HotkeyManager::Instance()->addHotkeyFunction("ctrl+j",boost::bind(&Base3DView::executeStepPlanHotkey,this));
     //E-Stop
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+alt",boost::bind(&Base3DView::showEStopHotkey,this));    
 
@@ -3908,7 +3908,7 @@ void Base3DView::pointcloudIntensityHotkey()
 //}
 void Base3DView::executeStepPlanHotkey()
 {
-    if(footstep_vis_manager_->hasValidStepPlan())
+    if(footstep_vis_manager_->numStepPlans() == 1)
        footstep_vis_manager_->requestExecuteStepPlan();
 }
 

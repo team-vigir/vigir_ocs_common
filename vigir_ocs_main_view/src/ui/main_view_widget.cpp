@@ -384,6 +384,9 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //useful to getting access to callbacks for context menu
     primary_view_ = (vigir_ocs::Base3DView*) views_list_["Top Left"];
 
+    //execute footstep plan hotkey - should only run this once, so can't have it in the base view
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+j",boost::bind(&vigir_ocs::Base3DView::executeStepPlanHotkey,primary_view_));
+
     //create context menu and add to base3dview
     main_view_context_menu_ = new MainViewContextMenu(this);
 }

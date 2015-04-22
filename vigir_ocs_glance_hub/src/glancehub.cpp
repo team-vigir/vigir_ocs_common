@@ -81,7 +81,7 @@ void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr 
         msgType="(Debug) ";
         break;
     case 2:
-        msgType="(Warn) ";
+        msgType="(Warning) ";
         break;
     case 3:
         msgType="(Error) ";
@@ -167,7 +167,7 @@ void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPt
         msgType="(Debug) ";
         break;
     case 2:
-        msgType="(Warning) ";
+        msgType="(Active) ";
         break;
     case 3:
         msgType="(Error) ";

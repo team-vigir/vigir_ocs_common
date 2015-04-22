@@ -14,6 +14,7 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Int8.h>
+#include <std_msgs/UInt8.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 
@@ -74,6 +75,10 @@ public:
     // Receives the latest parameters used for planning from the manager
     void processFootstepPlanParameters(const flor_ocs_msgs::OCSFootstepPlanParameters::ConstPtr& msg);
 
+    // Receives the number of available undos and redos
+    void processUndosAvailable(const std_msgs::UInt8::ConstPtr& msg);
+    void processRedosAvailable(const std_msgs::UInt8::ConstPtr& msg);
+
     // Sends the latest parameters selected in the OCS
     void sendFootstepPlanParameters();
 
@@ -107,6 +112,8 @@ public:
 
     // verify state of plans
     bool hasGoal() { return has_goal_; }
+    unsigned char hasUndoAvailable() { return has_undo_; }
+    unsigned char hasRedoAvailable() { return has_redo_; }
     bool hasValidStepPlan() { return has_valid_step_plan_; }
     bool hasStartingFootstep() { return (start_step_index_ >= 0); }
     unsigned int numStepPlans() { return num_step_plans_; }
@@ -154,7 +161,9 @@ private:
     ros::Publisher footstep_update_pub_;
     ros::Subscriber footstep_list_sub_;
     ros::Publisher footstep_undo_req_pub_;
+    ros::Subscriber footstep_has_undo_sub_;
     ros::Publisher footstep_redo_req_pub_;
+    ros::Subscriber footstep_has_redo_sub_;
     ros::Publisher footstep_start_index_pub_;
     ros::Publisher footstep_execute_req_pub_;
     ros::Publisher footstep_stitch_req_pub_;
@@ -211,6 +220,8 @@ private:
     // variables that determine the state of the footstep plan
     bool has_goal_;
     bool has_valid_step_plan_;
+    unsigned char has_undo_;
+    unsigned char has_redo_;
     bool need_plan_update_;
     unsigned int num_step_plans_;
 

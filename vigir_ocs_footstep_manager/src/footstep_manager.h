@@ -12,6 +12,7 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Int8.h>
+#include <std_msgs/UInt8.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Vector3.h>
 #include <visualization_msgs/MarkerArray.h>
@@ -169,7 +170,9 @@ namespace ocs_footstep
         ros::Publisher footstep_list_pub_;
         ros::Subscriber footstep_update_sub_;
         ros::Subscriber footstep_undo_req_sub_;
+        ros::Publisher footstep_has_undo_pub_;
         ros::Subscriber footstep_redo_req_sub_;
+        ros::Publisher footstep_has_redo_pub_;
         ros::Subscriber footstep_start_index_pub_;
         ros::Subscriber footstep_execute_req_sub_;
         ros::Subscriber footstep_stitch_req_sub_;
@@ -254,6 +257,8 @@ namespace ocs_footstep
 
         ros::Time last_ocs_step_plan_stamp_;
         ros::Time last_onboard_step_plan_stamp_;
+
+        ros::Time last_executed_step_plan_stamp_;
 
         //ros::ServiceClient edit_step_service_client_;
     };
