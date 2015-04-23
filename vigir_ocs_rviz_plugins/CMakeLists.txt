@@ -24,6 +24,7 @@ catkin_package(
     vigir_ocs_rviz_plugin_selection_3d_tool_custom
     vigir_ocs_rviz_plugin_selection_3d_display_custom
     vigir_ocs_rviz_plugin_bounding_object_display_custom
+    vigir_ocs_rviz_plugin_mesh_display_custom
     vigir_ocs_rviz_plugin_path_display_custom
     vigir_ocs_rviz_plugin_octomap_display_custom
     vigir_ocs_rviz_plugin_grasp_display_custom
@@ -43,6 +44,7 @@ catkin_package(
     vigir_ocs_rviz_plugin_selection_3d_tool_custom/src
     vigir_ocs_rviz_plugin_selection_3d_display_custom/src
     vigir_ocs_rviz_plugin_bounding_object_display_custom/src
+    vigir_ocs_rviz_plugin_mesh_display_custom/src
     vigir_ocs_rviz_plugin_path_display_custom/src
     vigir_ocs_rviz_plugin_octomap_display_custom/src
     vigir_ocs_rviz_plugin_grasp_display_custom/src
@@ -69,27 +71,28 @@ catkin_package(
 )
 
 include_directories(
-	vigir_ocs_rviz_plugin_camera_display_custom/src
-	vigir_ocs_rviz_plugin_image_display_custom/src
-	vigir_ocs_rviz_plugin_template_display_custom/src
-	vigir_ocs_rviz_plugin_image_selection_tool_custom/src
-	vigir_ocs_rviz_plugin_selection_3d_tool_custom/src
-	vigir_ocs_rviz_plugin_selection_3d_display_custom/src
-	vigir_ocs_rviz_plugin_bounding_object_display_custom/src
-    vigir_ocs_rviz_plugin_path_display_custom/src
-    vigir_ocs_rviz_plugin_octomap_display_custom/src
-    vigir_ocs_rviz_plugin_grasp_display_custom/src
-    vigir_ocs_rviz_plugin_robot_display_custom/src
-    vigir_ocs_rviz_plugin_map_display_custom/src
-    vigir_ocs_rviz_plugin_interaction_tool_custom/src
-    vigir_ocs_rviz_plugin_ortho_view_controller_custom/src
-    vigir_ocs_rviz_plugin_overlay_display_custom/src
-    vigir_ocs_rviz_plugin_joint_marker_display_custom/src
-    vigir_ocs_rviz_plugin_camera_frustum_display_custom/src
+        vigir_ocs_rviz_plugin_camera_display_custom/src
+        vigir_ocs_rviz_plugin_image_display_custom/src
+        vigir_ocs_rviz_plugin_template_display_custom/src
+        vigir_ocs_rviz_plugin_image_selection_tool_custom/src
+        vigir_ocs_rviz_plugin_selection_3d_tool_custom/src
+        vigir_ocs_rviz_plugin_selection_3d_display_custom/src
+        vigir_ocs_rviz_plugin_bounding_object_display_custom/src
+        vigir_ocs_rviz_plugin_mesh_display_custom/src
+        vigir_ocs_rviz_plugin_path_display_custom/src
+        vigir_ocs_rviz_plugin_octomap_display_custom/src
+        vigir_ocs_rviz_plugin_grasp_display_custom/src
+        vigir_ocs_rviz_plugin_robot_display_custom/src
+        vigir_ocs_rviz_plugin_map_display_custom/src
+        vigir_ocs_rviz_plugin_interaction_tool_custom/src
+        vigir_ocs_rviz_plugin_ortho_view_controller_custom/src
+        vigir_ocs_rviz_plugin_overlay_display_custom/src
+        vigir_ocs_rviz_plugin_joint_marker_display_custom/src
+        vigir_ocs_rviz_plugin_camera_frustum_display_custom/src
 	${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM
-				    ${OPENGL_INCLUDE_DIR}
+                    ${OPENGL_INCLUDE_DIR}
                     ${QT_INCLUDE_DIR})
                     
 link_directories(${catkin_LIBRARY_DIRS})
@@ -101,6 +104,7 @@ add_subdirectory(vigir_ocs_rviz_plugin_image_selection_tool_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_selection_3d_tool_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_selection_3d_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_bounding_object_display_custom)
+add_subdirectory(vigir_ocs_rviz_plugin_mesh_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_path_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_octomap_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_grasp_display_custom)
@@ -121,6 +125,7 @@ install(FILES
   selection_3d_tool_custom_plugin_description.xml
   selection_3d_display_custom_plugin_description.xml
   bounding_object_display_custom_plugin_description.xml
+  mesh_display_custom_plugin_description.xml
   path_display_custom_plugin_description.xml
   octomap_display_custom_plugin_description.xml
   grasp_display_custom_plugin_description.xml
