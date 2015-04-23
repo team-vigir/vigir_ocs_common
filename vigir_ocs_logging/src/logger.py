@@ -27,6 +27,10 @@ class App(object):
 		self.pub = ''
 		self.query = ""
 
+	def __del__(self):
+		print "Destroying logging node."
+		self.killLogging('')
+
 	def createExperiment(self, name, description):
 		print "Creating experiment..."+name
 		filename = self.logLocation +'/' + name
