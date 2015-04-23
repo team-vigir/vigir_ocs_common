@@ -147,6 +147,9 @@ public:
     rviz::Display* getCircularMarker(){return circular_marker_;}    
     bool getGhostLeftHandLocked(){return ghost_left_hand_lock_;}
     bool getGhostRightHandLocked(){return ghost_right_hand_lock_;}
+    rviz::Tool* getInteractiveMarkersTool(){return interactive_markers_tool_;}
+    rviz::Tool* getMoveCameraTool(){return move_camera_tool_;}
+    rviz::Tool* getSetGoalTool(){return set_goal_tool_;}
 
     /**
       * ROS Callback: receives left arm end effector position from moveit

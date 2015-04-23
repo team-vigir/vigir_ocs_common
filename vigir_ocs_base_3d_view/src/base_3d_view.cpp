@@ -123,6 +123,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         selection_3d_display_ = copy_from->getSelection3DDisplay();
         notification_overlay_display_ = copy_from->getNotificationOverlayDisplay();        
         mouse_event_handler_ = copy_from->getMouseEventHander();
+
+        interactive_markers_tool_ = copy_from->getInteractiveMarkersTool();
+        move_camera_tool_ = copy_from->getMoveCameraTool();
+        set_goal_tool_ = copy_from->getSetGoalTool();
     }
     else
     {

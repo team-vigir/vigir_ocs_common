@@ -34,7 +34,7 @@ public Q_SLOTS:
     void receiveMoveitStatus(bool);
     void receiveFootstepStatus(int);
     void receiveFlorStatus(int);
-    void receiveModeChange(int, bool publish = true);
+    void modeChanged(int);
 
     virtual bool eventFilter( QObject * o, QEvent * e );
 
