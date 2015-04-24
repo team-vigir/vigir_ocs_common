@@ -18,7 +18,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>255</width>
+    <width>240</width>
     <height>12</height>
    </size>
   </property>
@@ -54,13 +54,13 @@
     <widget class="QWidget" name="central_widget_" native="true">
      <property name="minimumSize">
       <size>
-       <width>180</width>
+       <width>240</width>
        <height>0</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>260</width>
+       <width>240</width>
        <height>16777215</height>
       </size>
      </property>
