@@ -864,9 +864,7 @@ protected:
     rviz::Display* pelvis_hand_bounding_box_;
 
     moveit_msgs::DisplayRobotState ghost_display_state_msg_;
-    ros::Publisher ghost_robot_state_vis_pub_;    
-
-    geometry_msgs::PoseStamped root_pose_;
+    ros::Publisher ghost_robot_state_vis_pub_;        
 
     /**
       * Callback for setting im mode
