@@ -14,6 +14,7 @@
 #include "flor_ocs_msgs/OCSSynchronize.h"
 #include "notification_system.h"
 #include "hotkey_manager.h"
+#include <ui/footstep_config.h>
 
 namespace Ui
 {
@@ -30,6 +31,9 @@ public:
 
     virtual bool eventFilter( QObject * o, QEvent * e );   
 
+    // process window control messages to update toggle buttons
+    void processWindowControl(const std_msgs::Int8::ConstPtr& visible);
+
 public Q_SLOTS:
     void hideWaypointButton();
     void hideJoystick();
@@ -38,6 +42,12 @@ public Q_SLOTS:
     void requestPointCloud();
     void toggleMapConfig();
     void toggleRegionConfig();
+    void toggleWindow(int window);
+    void toggleFootstepConfig();
+
+    void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
+    void setFootstepParameterSetBox(std::string parameter_set);
+    void update3dPlanning(bool);
 
 private Q_SLOTS:
     void toggleSidebarVisibility();
@@ -70,6 +80,7 @@ private:
 
     QMenu regionMenu;
     QMenu mapMenu;
+    QMenu footstep_menu_;
 
     QPushButton* sidebar_toggle_;
 
@@ -78,7 +89,11 @@ private:
     void unfilteredHotkey();
     void stereoHotkey();
 
+    QSignalMapper* toggle_mapper_;
+    FootstepConfigure* footstep_configure_widget_;
 
+    ros::Subscriber window_control_sub_;
+    ros::Publisher window_control_pub_;
 
 };
 

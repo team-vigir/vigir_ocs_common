@@ -8,6 +8,8 @@
 #include <vigir_footstep_planning_msgs/Foot.h>
 #include <vigir_footstep_planning_msgs/EditStepService.h>
 
+#include <vigir_footstep_planning_lib/visualization/footstep_planning_vis.h>
+
 #include <sensor_msgs/PointCloud2.h>
 
 namespace ocs_footstep
@@ -37,28 +39,37 @@ void FootstepManager::onInit()
     addNewPlanList();
 
     // creates publishers and subscribers for the interaction loop
-    footstep_list_pub_               = nh.advertise<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, false );
-    footstep_update_sub_             = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/step_update", 1, &FootstepManager::processFootstepPoseUpdate, this );
-    footstep_undo_req_sub_           = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/undo", 1, &FootstepManager::processUndoRequest, this );
-    footstep_redo_req_sub_           = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/redo", 1, &FootstepManager::processRedoRequest, this );
-    footstep_start_index_pub_        = nh.subscribe<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, &FootstepManager::processSetStartIndex, this );
-    footstep_execute_req_sub_        = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
-    footstep_stitch_req_sub_         = nh.subscribe<std_msgs::Bool>( "/flor/ocs/footstep/stitch", 1, &FootstepManager::processStitchPlansRequest, this );
-    footstep_param_set_list_pub_     = nh.advertise<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 1, false );
-    footstep_param_set_selected_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 5, &FootstepManager::processFootstepParamSetSelected, this );
+    footstep_list_pub_                       = nh.advertise<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 1, false );
+    footstep_update_sub_                     = nh.subscribe<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/step_update", 1, &FootstepManager::processFootstepPoseUpdate, this );
+    footstep_undo_req_sub_                   = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/undo", 1, &FootstepManager::processUndoRequest, this );
+    footstep_has_undo_pub_                   = nh.advertise<std_msgs::UInt8>( "/flor/ocs/footstep/undos_available", 1, false );
+    footstep_redo_req_sub_                   = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/redo", 1, &FootstepManager::processRedoRequest, this );
+    footstep_has_redo_pub_                   = nh.advertise<std_msgs::UInt8>( "/flor/ocs/footstep/redos_available", 1, false );
+    footstep_start_index_pub_                = nh.subscribe<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, &FootstepManager::processSetStartIndex, this );
+    footstep_execute_req_sub_                = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
+    footstep_stitch_req_sub_                 = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/stitch", 1, &FootstepManager::processStitchPlansRequest, this );
+    footstep_plan_parameters_pub_            = nh.advertise<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters_feedback", 1, false );
+    footstep_plan_parameters_sub_            = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters", 5, &FootstepManager::processFootstepPlanParameters, this );
+    footstep_param_set_list_pub_             = nh.advertise<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 1, false );
+    footstep_param_set_selected_sub_         = nh.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 5, &FootstepManager::processFootstepParamSetSelected, this );
+    footstep_param_set_selected_pub_         = nh.advertise<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected_feedback", 1, false );
+    footstep_param_set_selected_ocs_pub_     = nh.advertise<std_msgs::String>( "set_active_parameter_set_ocs", 1, false );
+    footstep_param_set_selected_onboard_pub_ = nh.advertise<std_msgs::String>( "set_active_parameter_set_onboard", 1, false );
 
     // footstep request coming from the OCS
-    footstep_goal_pose_fb_pub_  = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 1, false );
-    footstep_goal_pose_fb_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_feedback", 1, &FootstepManager::processFootstepPlanGoalFeedback, this );
-    footstep_plan_goal_sub_     = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, &FootstepManager::processFootstepPlanGoal, this );
-    footstep_plan_request_sub_  = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanRequest>( "/flor/ocs/footstep/plan_request", 1, &FootstepManager::processFootstepPlanRequest, this );
-    footstep_plan_update_sub_   = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanUpdate>( "/flor/ocs/footstep/plan_update", 1, &FootstepManager::processFootstepPlanUpdate, this );
+    footstep_goal_pose_sub_       = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update", 1, &FootstepManager::processFootstepPlanGoalFeedback, this );
+    footstep_goal_pose_pub_       = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update_feedback", 1, false );
+    footstep_plan_goal_sub_       = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, &FootstepManager::processFootstepPlanGoal, this );
+    footstep_plan_request_sub_    = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/plan_request", 1, &FootstepManager::processFootstepPlanRequest, this );
+    footstep_plan_update_sub_     = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanUpdate>( "/flor/ocs/footstep/plan_update", 1, &FootstepManager::processFootstepPlanUpdate, this );
 
     // creates publishers for visualization messages - latched because we want to be able to see planned footsteps in new stations or if something goes wrong
     footstep_array_pub_         = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_array", 1, true );
     footstep_body_bb_array_pub_ = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/footsteps_path_body_array", 1, true );
     footstep_path_pub_          = nh.advertise<nav_msgs::Path>( "/flor/ocs/footstep/path", 1, true );
     plan_goal_array_pub_        = nh.advertise<visualization_msgs::MarkerArray>( "/flor/ocs/footstep/plan_goal_array", 1, true );
+
+    start_step_index_feet_pub_ = nh.advertise<vigir_footstep_planning_msgs::Feet>( "start_index_feet", 1, true );
 
     // initialize all ros action clients
     //update feet considering intial goal
@@ -129,13 +140,16 @@ void FootstepManager::onInit()
     sendGetAllParameterSetsGoal();
     selected_footstep_parameter_set_ = "";
 
-    timer = nh.createTimer(ros::Duration(0.066), &FootstepManager::timerCallback, this);
+    // topic to update ocs feedback
+    planner_status_pub_ = nh.advertise<flor_ocs_msgs::OCSFootstepStatus>( "/flor/ocs/footstep/status", 1, true );
+
+    timer = nh.createTimer(ros::Duration(1), &FootstepManager::timerCallback, this);
 }
 
 void FootstepManager::timerCallback(const ros::TimerEvent& event)
 {
+    // this is just in case some view crashes or a new one opens somewhere.
     this->publishFootstepList();
-    // REMOVE:create it's own timer with 1s sleep
     this->publishFootstepParameterSetList();
 }
 
@@ -156,10 +170,12 @@ void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstep
     sendEditStepGoal(getStepPlanList()[step_plan_index], step);
 }
 
-void FootstepManager::processUndoRequest(const std_msgs::Bool::ConstPtr& msg)
+void FootstepManager::processUndoRequest(const std_msgs::Int8::ConstPtr& msg)
 {
     if(footstep_plans_undo_stack_.size() > 0)
     {
+        boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
         // add top to the redo stack
         footstep_plans_redo_stack_.push(getStepPlanList());
         // remove from undo stack
@@ -170,10 +186,12 @@ void FootstepManager::processUndoRequest(const std_msgs::Bool::ConstPtr& msg)
     }
 }
 
-void FootstepManager::processRedoRequest(const std_msgs::Bool::ConstPtr& msg)
+void FootstepManager::processRedoRequest(const std_msgs::Int8::ConstPtr& msg)
 {
     if(footstep_plans_redo_stack_.size() > 0)
     {
+        boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
         // add top to the undo stack
         footstep_plans_undo_stack_.push(footstep_plans_redo_stack_.top());
         // remove from redo stack
@@ -190,22 +208,71 @@ void FootstepManager::processSetStartIndex(const std_msgs::Int32::ConstPtr &msg)
     start_step_index_ = msg->data;
 
     publishFootsteps();
+
+    vigir_footstep_planning_msgs::Feet start_feet;
+    // if it's not starting from 0 or clearing step plan starting foot
+    if(start_step_index_ > 0)
+    {
+        bool found_steps = false;
+
+        vigir_footstep_planning_msgs::Step step_1;
+        // if it doesn't find this find a step with the requested step_index, return
+        unsigned int step_plan_index_1;
+        found_steps = findStep(start_step_index_-1, step_1, step_plan_index_1);
+
+        vigir_footstep_planning_msgs::Step step_2;
+        // if it doesn't find this find a step with the requested step_index, return
+        unsigned int step_plan_index_2;
+        found_steps = findStep(start_step_index_, step_2, step_plan_index_2);
+
+        if(found_steps)
+        {
+            // populate start_feet
+            start_feet.left = step_1.foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? step_1.foot : step_2.foot;
+            start_feet.right = step_1.foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ? step_2.foot : step_1.foot;
+            start_feet.header = start_feet.left.header;
+        }
+    } //else it just sends uninitialized start position to reset
+    start_step_index_feet_pub_.publish(start_feet);
 }
 
-void FootstepManager::processExecuteFootstepRequest(const std_msgs::Bool::ConstPtr& msg)
+void FootstepManager::processExecuteFootstepRequest(const std_msgs::Int8::ConstPtr& msg)
 {
     sendExecuteStepPlanGoal();
 }
 
-void FootstepManager::processStitchPlansRequest(const std_msgs::Bool::ConstPtr& msg)
+void FootstepManager::processStitchPlansRequest(const std_msgs::Int8::ConstPtr& msg)
 {
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
     sendStitchStepPlanGoal(getStepPlanList());
 }
 
 void FootstepManager::processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg)
 {
-    selected_footstep_parameter_set_ = msg->data;
+    if(selected_footstep_parameter_set_ != msg->data || selected_footstep_parameter_set_ == "")
+    {
+        selected_footstep_parameter_set_ = msg->data;
+        footstep_param_set_selected_pub_.publish(*msg);
+        footstep_param_set_selected_ocs_pub_.publish(*msg);
+        footstep_param_set_selected_onboard_pub_.publish(*msg);
+    }
 }
+
+void FootstepManager::processFootstepPlanParameters(const flor_ocs_msgs::OCSFootstepPlanParameters::ConstPtr& msg)
+{
+    flor_ocs_msgs::OCSFootstepPlanParameters new_planner_config = *msg;
+    if(planner_config_.edit_mode != new_planner_config.edit_mode ||
+       planner_config_.max_steps != new_planner_config.max_steps ||
+       planner_config_.max_time != new_planner_config.max_time ||
+       planner_config_.path_length_ratio != new_planner_config.path_length_ratio ||
+       planner_config_.use_3d_planning != new_planner_config.use_3d_planning)
+    {
+        planner_config_ = new_planner_config;
+        footstep_plan_parameters_pub_.publish(planner_config_);
+    }
+}
+
 
 void FootstepManager::feetToFootMarkerArray(vigir_footstep_planning_msgs::Feet& input, visualization_msgs::MarkerArray& foot_array_msg)
 {
@@ -366,6 +433,8 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
                                plan_goal->goal_pose.pose.orientation.z);
         Ogre::Quaternion d_quat = q_old * q_new;
 
+        boost::recursive_mutex::scoped_lock lock(goal_mutex_);
+
         // update left foot
         {
         // need to calculate position relative to old goal pose
@@ -419,6 +488,8 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
     }
     else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::LEFT)
     {
+        boost::recursive_mutex::scoped_lock lock(goal_mutex_);
+
         goal_.left.pose.position.x = plan_goal->left_foot.pose.position.x;
         goal_.left.pose.position.y = plan_goal->left_foot.pose.position.y;
         goal_.left.pose.position.z = plan_goal->left_foot.pose.position.z;
@@ -429,6 +500,8 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
     }
     else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::RIGHT)
     {
+        boost::recursive_mutex::scoped_lock lock(goal_mutex_);
+
         goal_.right.pose.position.x = plan_goal->right_foot.pose.position.x;
         goal_.right.pose.position.y = plan_goal->right_foot.pose.position.y;
         goal_.right.pose.position.z = plan_goal->right_foot.pose.position.z;
@@ -464,6 +537,8 @@ void FootstepManager::calculateGoal()
       return;
     }
 
+    boost::recursive_mutex::scoped_lock lock(goal_mutex_);
+
     goal_ = feet_pose_service.response.feet;
 
     // since feet poses are reported in robot feet frame (ankle), transform from ankle to sole
@@ -491,9 +566,9 @@ void FootstepManager::processFootstepPlanUpdate(const flor_ocs_msgs::OCSFootstep
     }
 }
 
-void FootstepManager::processFootstepPlanRequest(const flor_ocs_msgs::OCSFootstepPlanRequest::ConstPtr& plan_request)
+void FootstepManager::processFootstepPlanRequest(const std_msgs::Int8::ConstPtr& plan_request)
 {
-    last_plan_request_ = *plan_request;
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
 
     if(getStepPlanList().size() == 0 || getStepPlan().steps.size() == 0 || start_step_index_ > getStepPlan().steps.back().step_index)
         start_step_index_ = -1;
@@ -608,6 +683,8 @@ void FootstepManager::cleanMarkerArray(visualization_msgs::MarkerArray& old_arra
 
 void FootstepManager::updateStepPlanVisMsgs()
 {
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
     // for each step, will need to create a set of two footstep markers
     // a TEXT_VIEW_FACING and CUBE
     visualization_msgs::MarkerArray foot_array_msg;
@@ -634,6 +711,8 @@ void FootstepManager::updateStepPlanVisMsgs()
 
 void FootstepManager::updateGoalVisMsgs()
 {
+    boost::recursive_mutex::scoped_lock lock(goal_mutex_);
+
     // for each step, will need to create a set of two footstep markers
     // a TEXT_VIEW_FACING and CUBE
     visualization_msgs::MarkerArray foot_array_msg;
@@ -645,11 +724,13 @@ void FootstepManager::publishGoalMarkerClear()
 {
     flor_ocs_msgs::OCSFootstepPlanGoalUpdate cmd;
     cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::CLEAR;
-    footstep_goal_pose_fb_pub_.publish(cmd);
+    footstep_goal_pose_pub_.publish(cmd);
 }
 
 void FootstepManager::publishGoalMarkerFeedback()
 {
+    boost::recursive_mutex::scoped_lock lock(goal_mutex_);
+
     flor_ocs_msgs::OCSFootstepPlanGoalUpdate cmd;
     cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::FEEDBACK;
     // for stepplan goal
@@ -657,11 +738,13 @@ void FootstepManager::publishGoalMarkerFeedback()
     // and for goal feetposes
     cmd.left_foot.pose = goal_.left.pose;
     cmd.right_foot.pose = goal_.right.pose;
-    footstep_goal_pose_fb_pub_.publish(cmd);
+    footstep_goal_pose_pub_.publish(cmd);
 }
 
 void FootstepManager::publishFootsteps()
 {
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
     // update visualization msgs so we can publish them
     updateStepPlanVisMsgs();
 
@@ -675,6 +758,8 @@ void FootstepManager::publishFootsteps()
 
 void FootstepManager::publishFootstepList()
 {
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
     flor_ocs_msgs::OCSFootstepList list;
     for(int i = 0; i < getStepPlanList().size(); i++)
     {
@@ -690,10 +775,19 @@ void FootstepManager::publishFootstepList()
         }
     }
     footstep_list_pub_.publish(list);
+
+    // also publish undo/redo status
+    std_msgs::UInt8 cmd;
+    cmd.data = footstep_plans_undo_stack_.size()-1; // -1 since we don't want to be able to undo when we only have one plan in the stack (it will make it empty and crash)
+    footstep_has_undo_pub_.publish(cmd);
+    cmd.data = footstep_plans_redo_stack_.size();
+    footstep_has_redo_pub_.publish(cmd);
 }
 
 void FootstepManager::publishFootstepParameterSetList()
 {
+    boost::recursive_mutex::scoped_lock lock(param_mutex_);
+
     flor_ocs_msgs::OCSFootstepParamSetList cmd;
     for(int i = 0; i < footstep_parameter_set_list_.size(); i++)
     {
@@ -740,39 +834,27 @@ void FootstepManager::feedbackUpdateFeet(const vigir_footstep_planning_msgs::Upd
 
 void FootstepManager::doneUpdateFeet(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::UpdateFeetResultConstPtr& result)
 {
-    if (vigir_footstep_planning::hasError(result->status) && result->status.error != vigir_footstep_planning_msgs::ErrorStatus::ERR_INVALID_TERRAIN_MODEL)
+    ROS_INFO("UpdateFeet: Got action response.\n");
+
+    if(vigir_footstep_planning::hasError(result->status) && result->status.error != vigir_footstep_planning_msgs::ErrorStatus::ERR_INVALID_TERRAIN_MODEL)
     {
         ROS_ERROR("UpdateFeet: Error occured!\n%s", vigir_footstep_planning::toString(result->status).c_str());
+
+        // send updated status to ocs
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED;
+        planner_status.status_msg = result->status.error_msg;
+        planner_status_pub_.publish(planner_status);
     }
     else
     {
-        ROS_INFO("UpdateFeet: Got action response.\n%s", vigir_footstep_planning::toString(result->status).c_str());
-
         // update the goal feet
-        goal_ = result->feet;
+        vigir_footstep_planning_msgs::Feet goal = result->feet;
 
         //convert to sole for visualization
-        foot_pose_transformer_->transformToPlannerFrame(goal_);
+        foot_pose_transformer_->transformToPlannerFrame(goal);
 
-        // need to send visualization message
-        updateGoalVisMsgs();
-
-        plan_goal_array_pub_.publish(footstep_goal_array_);
-
-        // update goal pose - should I be doing this?
-        goal_pose_.pose.position.x = (goal_.left.pose.position.x+goal_.right.pose.position.x)/2.0;
-        goal_pose_.pose.position.y = (goal_.left.pose.position.y+goal_.right.pose.position.y)/2.0;
-        goal_pose_.pose.position.z = (goal_.left.pose.position.z+goal_.right.pose.position.z)/2.0;
-        Ogre::Quaternion q1(goal_.left.pose.orientation.w,goal_.left.pose.orientation.x,goal_.left.pose.orientation.y,goal_.left.pose.orientation.z);
-        Ogre::Quaternion q2(goal_.right.pose.orientation.w,goal_.right.pose.orientation.x,goal_.right.pose.orientation.y,goal_.right.pose.orientation.z);
-        Ogre::Quaternion qr = Ogre::Quaternion::Slerp(0.5,q1,q2);
-        goal_pose_.pose.orientation.w = qr.w;
-        goal_pose_.pose.orientation.x = qr.x;
-        goal_pose_.pose.orientation.y = qr.y;
-        goal_pose_.pose.orientation.z = qr.z;
-
-        // and update the interactive markers
-        publishGoalMarkerFeedback();
+        processNewStepPlanGoal(goal);
     }
 }
 
@@ -795,12 +877,15 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     request.start_foot_selection = start_foot;
 
     // default planning mode is 2D, but will get that from the OCS
-    request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_2D;
+    if(planner_config_.use_3d_planning)
+        request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_3D;
+    else
+        request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_2D;
 
     // need to get the following from the OCS as well
-    request.max_planning_time = last_plan_request_.max_time;
-    request.max_number_steps = last_plan_request_.max_steps;
-    request.max_path_length_ratio = last_plan_request_.path_length_ratio;
+    request.max_planning_time = planner_config_.max_time;
+    request.max_number_steps = planner_config_.max_steps;
+    request.max_path_length_ratio = planner_config_.path_length_ratio;
 
     // and then use the selected parameter set
     request.parameter_set_name.data = selected_footstep_parameter_set_;
@@ -812,6 +897,7 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     // and send it to the server
     if(step_plan_request_client_->isServerConnected())
     {
+        ROS_INFO("StepPlanRequest: Sending action goal...");
         step_plan_request_client_->sendGoal(action_goal,
                                             boost::bind(&FootstepManager::doneStepPlanRequest, this, _1, _2),
                                             boost::bind(&FootstepManager::activeStepPlanRequest, this),
@@ -821,6 +907,12 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     {
         ROS_INFO("StepPlanRequest: Server not connected!");
     }
+
+    // send updated status to ocs
+    flor_ocs_msgs::OCSFootstepStatus planner_status;
+    planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE;
+    planner_status.status_msg = "Sending StepPlanRequest action goal...";
+    planner_status_pub_.publish(planner_status);
 }
 
 // action callbacks for step plan request
@@ -833,16 +925,33 @@ void FootstepManager::feedbackStepPlanRequest(const vigir_footstep_planning_msgs
 {
     ROS_INFO("StepPlanRequest: Feedback received.");
 
-    //planner_plan_request_feedback_cloud_pub_.publish(feedback.cloud);
+    vigir_footstep_planning::vis::publishRecentlyVistedSteps(planner_plan_request_feedback_cloud_pub_, feedback->feedback.visited_steps, feedback->feedback.header);
+
+    // send updated status to ocs
+    flor_ocs_msgs::OCSFootstepStatus planner_status;
+    planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE;
+    planner_status.status_msg = "Footstep planner working (percent complete).";
+    planner_status_pub_.publish(planner_status);
 }
 
 void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::StepPlanRequestResultConstPtr& result)
 {
-    ROS_INFO("StepPlanRequest: Got action response. %s", result->status.error_msg.c_str());
+    ROS_INFO("StepPlanRequest: Got action response.");
 
-    if(!vigir_footstep_planning::hasError(result->status))
+    if(vigir_footstep_planning::hasError(result->status))
     {
-        boost::mutex::scoped_lock lock(step_plan_mutex_);
+        ROS_ERROR("StepPlanRequest: Error occured!\n%s", vigir_footstep_planning::toString(result->status).c_str());
+
+        // send updated status to ocs
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED;
+        planner_status.status_msg = result->status.error_msg;
+        planner_status_pub_.publish(planner_status);
+    }
+    else
+    {
+        // send update to glance_hub "done"
+        boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
 
         if(result->step_plan.header.stamp.nsec != last_ocs_step_plan_stamp_.nsec || result->step_plan.header.stamp.sec != last_ocs_step_plan_stamp_.sec)
         {
@@ -853,13 +962,19 @@ void FootstepManager::doneStepPlanRequest(const actionlib::SimpleClientGoalState
         }
         else
         {
-            ROS_INFO("processOnboardStepPlan: Ignoring repeated plan (%d, %d).", result->step_plan.header.stamp.sec, result->step_plan.header.stamp.nsec);
+            ROS_INFO("StepPlanRequest: Ignoring repeated plan (%d, %d).", result->step_plan.header.stamp.sec, result->step_plan.header.stamp.nsec);
         }
+
+        // send updated status to ocs
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_SUCCESS;
+        planner_status.status_msg = "Footstep planner done.";
+        planner_status_pub_.publish(planner_status);
     }
 }
 
 // action goal for EditStep
-void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan step_plan, vigir_footstep_planning_msgs::Step step, unsigned int plan_mode)
+void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan step_plan, vigir_footstep_planning_msgs::Step step)
 {
     //convert to ankle for planner
     foot_pose_transformer_->transformToRobotFrame(step_plan);
@@ -868,7 +983,10 @@ void FootstepManager::sendEditStepGoal(vigir_footstep_planning_msgs::StepPlan st
     // Fill in goal here
     vigir_footstep_planning_msgs::EditStepGoal action_goal;
     action_goal.step_plan = step_plan;
-    action_goal.edit_step.plan_mode = plan_mode;
+    if(planner_config_.edit_mode)
+        action_goal.edit_step.plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_FULL;
+    else
+        action_goal.edit_step.plan_mode = vigir_footstep_planning_msgs::EditStep::EDIT_MODE_3D;
     action_goal.edit_step.step = step;
 
     // and send it to the server
@@ -898,14 +1016,20 @@ void FootstepManager::feedbackEditStep(const vigir_footstep_planning_msgs::EditS
 
 void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::EditStepResultConstPtr& result)
 {
+    ROS_INFO("EditStep: Got action response.");
+
     if (vigir_footstep_planning::hasError(result->status) && result->status.error != vigir_footstep_planning_msgs::ErrorStatus::ERR_INVALID_TERRAIN_MODEL)
     {
         ROS_ERROR("EditStep: Error occured!\n%s", vigir_footstep_planning::toString(result->status).c_str());
+
+        // send updated status to ocs
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED;
+        planner_status.status_msg = result->status.error_msg;
+        planner_status_pub_.publish(planner_status);
     }
     else
     {
-        ROS_INFO("EditStep: Got action response.\n%s", vigir_footstep_planning::toString(result->status).c_str());
-
         if(result->step_plans.size() == 0)
         {
             ROS_ERROR("EditStep: Received no step plan.");
@@ -931,6 +1055,8 @@ void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state
         unsigned int step_plan_index;
         findStepPlan(result_copy.step_plans[0].steps[0].step_index, step_plan_index);
 
+        boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
         // save the index of the step plan
         std::vector<vigir_footstep_planning_msgs::StepPlan>::iterator step_plan_it = getStepPlanList().begin()+step_plan_index;
         // remove the plan
@@ -946,6 +1072,8 @@ void FootstepManager::doneEditStep(const actionlib::SimpleClientGoalState& state
 // action goal for stitchstepplan
 void FootstepManager::sendStitchStepPlanGoal(std::vector<vigir_footstep_planning_msgs::StepPlan>& step_plan_list)
 {
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
     if(step_plan_list.size() < 2)
         return;
 
@@ -986,10 +1114,22 @@ void FootstepManager::feedbackStitchStepPlan(const vigir_footstep_planning_msgs:
 
 void FootstepManager::doneStitchStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::StitchStepPlanResultConstPtr& result)
 {
-    ROS_INFO("StitchStepPlan: Got action response. %s", result->status.error_msg.c_str());
+    ROS_INFO("StitchStepPlan: Got action response.");
 
-    if(!vigir_footstep_planning::hasError(result->status))
+    if(vigir_footstep_planning::hasError(result->status))
     {
+        ROS_ERROR("EditStep: Error occured!\n%s", vigir_footstep_planning::toString(result->status).c_str());
+
+        // send updated status to ocs
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED;
+        planner_status.status_msg = result->status.error_msg;
+        planner_status_pub_.publish(planner_status);
+    }
+    else
+    {
+        boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
         // create a new plan list for our stitched step plan
         addNewPlanList();
 
@@ -1046,15 +1186,57 @@ void FootstepManager::feedbackUpdateStepPlan(const vigir_footstep_planning_msgs:
 
 void FootstepManager::doneUpdateStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::UpdateStepPlanResultConstPtr& result)
 {
-    ROS_INFO("UpdateStepPlan: Got action response. %s", result->status.error_msg.c_str());
+    ROS_INFO("UpdateStepPlan: Got action response.");
+
+    if(vigir_footstep_planning::hasError(result->status))
+    {
+        ROS_ERROR("UpdateStepPlan: Error occured!\n%s", vigir_footstep_planning::toString(result->status).c_str());
+
+        // send updated status to ocs
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED;
+        planner_status.status_msg = result->status.error_msg;
+        planner_status_pub_.publish(planner_status);
+    }
+    else
+    {
+        boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
+        // this is reserved for validation
+    }
 }
 
 // action goal for executestep
 void FootstepManager::sendExecuteStepPlanGoal()
 {
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
     // need to make sure we only have one step plan, and that plan has steps
     if(getStepPlanList().size() != 1 || !getStepPlan().steps.size())
+    {
+        // send updated status to ocs
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED;
+        planner_status.status_msg = "Can't execute empty plan or multiple plans (stitch first).";
+        planner_status_pub_.publish(planner_status);
+
         return;
+    }
+
+    // also need to make sure this plan hasn't been sent before
+    if(last_executed_step_plan_stamp_ == getStepPlan().header.stamp)
+    {
+        // send updated status to ocs
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED;
+        planner_status.status_msg = "Can't execute same plan twice.";
+        planner_status_pub_.publish(planner_status);
+
+        return;
+    }
+
+    // save the last plan executed timestamp
+    last_executed_step_plan_stamp_ = getStepPlan().header.stamp;
 
     // Fill in goal here
     vigir_footstep_planning_msgs::ExecuteStepPlanGoal action_goal;
@@ -1081,22 +1263,48 @@ void FootstepManager::sendExecuteStepPlanGoal()
 void FootstepManager::activeExecuteStepPlan()
 {
     ROS_INFO("ExecuteStepPlan: Status changed to active.");
+
+    // send updated status to ocs
+    flor_ocs_msgs::OCSFootstepStatus planner_status;
+    planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE;
+    planner_status.status_msg = "Execution of footstep plan active";
+    planner_status_pub_.publish(planner_status);
 }
 
 void FootstepManager::feedbackExecuteStepPlan(const vigir_footstep_planning_msgs::ExecuteStepPlanFeedbackConstPtr& feedback)
 {
     ROS_INFO("ExecuteStepPlan: Feedback received.");
+
+    // send updated status to ocs
+    flor_ocs_msgs::OCSFootstepStatus planner_status;
+    planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE;
+    planner_status.status_msg = "Execution feedback received: Step "+boost::lexical_cast<std::string>(feedback->last_performed_step_index)+" -> Step "+boost::lexical_cast<std::string>(feedback->currently_executing_step_index);
+    planner_status_pub_.publish(planner_status);
 }
 
 void FootstepManager::doneExecuteStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::ExecuteStepPlanResultConstPtr& result)
 {
-    ROS_INFO("ExecuteStepPlan: Got action response. %d", result->status.status);
+    ROS_INFO("ExecuteStepPlan: Got action response.");
 
-    if(result->status.status == vigir_footstep_planning_msgs::FootstepExecutionStatus::NO_ERROR)
+    if(!(result->status.status & vigir_footstep_planning_msgs::FootstepExecutionStatus::REACHED_GOAL))
     {
-        cleanStacks();
-        publishFootsteps();
-        publishFootstepList();
+        ROS_ERROR("ExecuteStepPlan: Error occured!\nExecution error code: %d", result->status.status);
+
+        // send updated status to ocs
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED;
+        planner_status.status_msg = "Execution error code: "+boost::lexical_cast<std::string>(result->status.status);
+        planner_status_pub_.publish(planner_status);
+    }
+    else
+    {
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_SUCCESS;
+        planner_status.status_msg = "Succesfully reached goal! Status: "+boost::lexical_cast<std::string>(result->status.status);
+        planner_status_pub_.publish(planner_status);
+//        cleanStacks();
+//        publishFootsteps();
+//        publishFootstepList();
     }
 }
 
@@ -1133,21 +1341,60 @@ void FootstepManager::doneGetAllParameterSets(const actionlib::SimpleClientGoalS
 {
     ROS_INFO("GetAllParameterSets: Got action response. %s", result->status.error_msg.c_str());
 
-    if(result->status.error == vigir_footstep_planning_msgs::FootstepExecutionStatus::NO_ERROR)
+    if(vigir_footstep_planning::hasError(result->status))
     {
+        ROS_ERROR("GetAllParameterSets: Error occured!\n%s", vigir_footstep_planning::toString(result->status).c_str());
+
+        // send updated status to ocs
+        flor_ocs_msgs::OCSFootstepStatus planner_status;
+        planner_status.status = flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED;
+        planner_status.status_msg = result->status.error_msg;
+        planner_status_pub_.publish(planner_status);
+    }
+    else
+    {
+        boost::recursive_mutex::scoped_lock lock(param_mutex_);
+
         footstep_parameter_set_list_.clear();
         for(int i = 0; i < result->param_sets.size(); i++)
             footstep_parameter_set_list_.push_back(result->param_sets[i]);
-
-        if(selected_footstep_parameter_set_ == "" && footstep_parameter_set_list_.size() > 0)
-            selected_footstep_parameter_set_ = footstep_parameter_set_list_[0].name.data;
 
         this->publishFootstepParameterSetList();
     }
 }
 
+void FootstepManager::processNewStepPlanGoal(vigir_footstep_planning_msgs::Feet& goal)
+{
+    // update the goal feet
+    boost::recursive_mutex::scoped_lock lock(goal_mutex_);
+
+    goal_ = goal;
+
+    // need to send visualization message
+    updateGoalVisMsgs();
+
+    plan_goal_array_pub_.publish(footstep_goal_array_);
+
+    // update goal pose - should I be doing this?
+    goal_pose_.pose.position.x = (goal_.left.pose.position.x+goal_.right.pose.position.x)/2.0;
+    goal_pose_.pose.position.y = (goal_.left.pose.position.y+goal_.right.pose.position.y)/2.0;
+    goal_pose_.pose.position.z = (goal_.left.pose.position.z+goal_.right.pose.position.z)/2.0;
+    Ogre::Quaternion q1(goal_.left.pose.orientation.w,goal_.left.pose.orientation.x,goal_.left.pose.orientation.y,goal_.left.pose.orientation.z);
+    Ogre::Quaternion q2(goal_.right.pose.orientation.w,goal_.right.pose.orientation.x,goal_.right.pose.orientation.y,goal_.right.pose.orientation.z);
+    Ogre::Quaternion qr = Ogre::Quaternion::Slerp(0.5,q1,q2);
+    goal_pose_.pose.orientation.w = qr.w;
+    goal_pose_.pose.orientation.x = qr.x;
+    goal_pose_.pose.orientation.y = qr.y;
+    goal_pose_.pose.orientation.z = qr.z;
+
+    // and update the interactive markers
+    publishGoalMarkerFeedback();
+}
+
 void FootstepManager::processNewStepPlan(vigir_footstep_planning_msgs::StepPlan& step_plan)
 {
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
     ROS_INFO("processNewStepPlan: Processing new step plan (%d, %d).", step_plan.header.stamp.sec, step_plan.header.stamp.nsec);
 
     if(step_plan.steps.size() == 0)
@@ -1173,17 +1420,34 @@ void FootstepManager::processNewStepPlan(vigir_footstep_planning_msgs::StepPlan&
     publishFootsteps();
 
     //publishGoalMarkerClear();
+
+    // update goal pose
+    vigir_footstep_planning_msgs::Feet goal;
+    goal.header = getStepPlan().steps[getStepPlan().steps.size()-1].header;
+    goal.left = getStepPlan().steps[getStepPlan().steps.size()-1].foot.foot_index == vigir_footstep_planning_msgs::Foot::LEFT ?
+                getStepPlan().steps[getStepPlan().steps.size()-1].foot :
+                getStepPlan().steps[getStepPlan().steps.size()-2].foot;
+    goal.right = getStepPlan().steps[getStepPlan().steps.size()-1].foot.foot_index == vigir_footstep_planning_msgs::Foot::RIGHT ?
+                 getStepPlan().steps[getStepPlan().steps.size()-1].foot :
+                 getStepPlan().steps[getStepPlan().steps.size()-2].foot;
+    processNewStepPlanGoal(goal);
 }
 
 // onboard action callbacks
 void FootstepManager::processOnboardStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request)
 {
+    boost::recursive_mutex::scoped_lock lock(param_mutex_);
 
+    // update parameter set
+    selected_footstep_parameter_set_ = step_plan_request->parameter_set_name.data;
+    std_msgs::String cmd;
+    cmd.data = selected_footstep_parameter_set_;
+    footstep_param_set_selected_pub_.publish(cmd);
 }
 
 void FootstepManager::processOnboardStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan)
 {
-    boost::mutex::scoped_lock lock(step_plan_mutex_);
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
 
     if(step_plan->header.stamp.nsec != last_onboard_step_plan_stamp_.nsec || step_plan->header.stamp.sec != last_onboard_step_plan_stamp_.sec)
     {
@@ -1201,12 +1465,19 @@ void FootstepManager::processOnboardStepPlan(const vigir_footstep_planning_msgs:
 // onboard action callbacks
 void FootstepManager::processOCSStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request)
 {
+    boost::recursive_mutex::scoped_lock lock(param_mutex_);
 
+    // update parameter set
+    selected_footstep_parameter_set_ = step_plan_request->parameter_set_name.data;
+
+    std_msgs::String cmd;
+    cmd.data = selected_footstep_parameter_set_;
+    footstep_param_set_selected_pub_.publish(cmd);
 }
 
 void FootstepManager::processOCSStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan)
 {
-    boost::mutex::scoped_lock lock(step_plan_mutex_);
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
 
     if(step_plan->header.stamp.nsec != last_ocs_step_plan_stamp_.nsec || step_plan->header.stamp.sec != last_ocs_step_plan_stamp_.sec)
     {
@@ -1224,6 +1495,8 @@ void FootstepManager::processOCSStepPlan(const vigir_footstep_planning_msgs::Ste
 // utilities
 void FootstepManager::addNewPlanList()
 {
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
     // create new plan list and push it to the top of the stack
     std::vector<vigir_footstep_planning_msgs::StepPlan> plan_list;
     footstep_plans_undo_stack_.push(plan_list);
@@ -1233,6 +1506,8 @@ void FootstepManager::addNewPlanList()
 
 void FootstepManager::addCopyPlanList()
 {
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
     // if there is a previous list, save it
     std::vector<vigir_footstep_planning_msgs::StepPlan> previous;
     if(footstep_plans_undo_stack_.size() > 0)
@@ -1247,6 +1522,8 @@ void FootstepManager::addCopyPlanList()
 
 void FootstepManager::cleanStacks()
 {
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
     footstep_plans_undo_stack_ = std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> >();
     footstep_plans_redo_stack_ = std::stack< std::vector<vigir_footstep_planning_msgs::StepPlan> >();
 
@@ -1256,6 +1533,8 @@ void FootstepManager::cleanStacks()
 // returns step and the step plan it's contained in based on a step_index
 bool FootstepManager::findStep(const unsigned int& step_index, vigir_footstep_planning_msgs::Step &step, unsigned int& step_plan_index)
 {
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
     // look for step with step index
     for(int i = 0; i < getStepPlanList().size(); i++)
     {
@@ -1282,6 +1561,8 @@ bool FootstepManager::findStepPlan(const unsigned int& step_index, unsigned int&
 
 void FootstepManager::extendPlanList(const vigir_footstep_planning_msgs::StepPlan& new_step_plan)
 {
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
     vigir_footstep_planning_msgs::StepPlan new_step_plan_copy = new_step_plan;
     // first we need to remove any extra steps in the existing step list based on the new step plan step index
     for(int i = 0; i < getStepPlanList().size(); i++)

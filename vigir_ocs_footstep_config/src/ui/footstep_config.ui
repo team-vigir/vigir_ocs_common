@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>192</width>
-    <height>137</height>
+    <width>234</width>
+    <height>108</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,59 +35,26 @@
       <enum>Qt::LeftToRight</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <property name="horizontalSpacing">
        <number>0</number>
       </property>
       <property name="verticalSpacing">
        <number>2</number>
       </property>
-      <property name="margin">
-       <number>0</number>
-      </property>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label">
-        <property name="maximumSize">
-         <size>
-          <width>85</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>8</pointsize>
-          <weight>50</weight>
-          <italic>false</italic>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Interaction Mode</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="font">
-         <font>
-          <pointsize>8</pointsize>
-          <weight>50</weight>
-          <italic>false</italic>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Path Length Ratio </string>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="1">
-       <widget class="QComboBox" name="footstepInteractionModeBox">
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>16777215</height>
-         </size>
-        </property>
+       <widget class="QComboBox" name="editStepMode">
         <property name="styleSheet">
          <string notr="true"> QComboBox {
      border: 1px solid gray;
@@ -144,43 +111,28 @@
         </property>
         <item>
          <property name="text">
-          <string>2D</string>
+          <string>2D (x, y, yaw)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>3D</string>
+          <string>Manual (6DOF)</string>
          </property>
         </item>
-        <item>
-         <property name="text">
-          <string>Manual</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="4" column="0" colspan="2">
-       <widget class="QCheckBox" name="patternGenerationEnabled">
-        <property name="font">
-         <font>
-          <pointsize>8</pointsize>
-         </font>
-        </property>
-        <property name="layoutDirection">
-         <enum>Qt::LeftToRight</enum>
-        </property>
-        <property name="text">
-         <string>Use Pattern Generation</string>
-        </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QDoubleSpinBox" name="maxSteps">
         <property name="maximumSize">
          <size>
-          <width>90</width>
-          <height>61</height>
+          <width>16777215</width>
+          <height>25</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+         </font>
         </property>
         <property name="decimals">
          <number>0</number>
@@ -203,9 +155,14 @@
        <widget class="QDoubleSpinBox" name="pathLengthRatio">
         <property name="maximumSize">
          <size>
-          <width>90</width>
-          <height>16777215</height>
+          <width>16777215</width>
+          <height>25</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+         </font>
         </property>
         <property name="decimals">
          <number>0</number>
@@ -240,9 +197,14 @@
        <widget class="QDoubleSpinBox" name="maxTime">
         <property name="maximumSize">
          <size>
-          <width>90</width>
-          <height>16777215</height>
+          <width>16777215</width>
+          <height>25</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+         </font>
         </property>
         <property name="layoutDirection">
          <enum>Qt::LeftToRight</enum>
@@ -273,6 +235,33 @@
         </property>
         <property name="text">
          <string>Max Steps</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+          <weight>50</weight>
+          <italic>false</italic>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Path Length Ratio </string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Edit Step Mode</string>
         </property>
        </widget>
       </item>

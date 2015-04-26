@@ -24,6 +24,8 @@
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QTreeWidget>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreRay.h>
@@ -47,7 +49,6 @@
 #include <moveit_msgs/DisplayRobotState.h>
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
-#include <flor_ocs_msgs/OCSGhostControl.h>
 #include <flor_ocs_msgs/OCSInteractiveMarkerAdd.h>
 #include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <flor_ocs_msgs/OCSKeyEvent.h>
@@ -55,7 +56,6 @@
 #include <flor_ocs_msgs/OCSObjectSelection.h>
 #include <flor_ocs_msgs/OCSCameraTransform.h>
 #include <flor_ocs_msgs/OCSControlMode.h>
-#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 #include "flor_ocs_msgs/OCSSynchronize.h"
 #include <flor_ocs_msgs/OCSMarkerVisibility.h>
 #include <flor_perception_msgs/RaycastRequest.h>
@@ -144,9 +144,12 @@ public:
     ContextMenuManager * getContextMenuManager(){return context_menu_manager_;}
     std::string getActiveContext(){return active_context_name_;}
     std::vector<rviz::Display*> getCartesianMarkerList(){return cartesian_marker_list_;}
-    rviz::Display* getCircularMarker(){return circular_marker_;}
-    std::vector<unsigned char> getGhostPoseSource(){return ghost_pose_source_;}
-    std::vector<unsigned char> getGhostWorldLock(){return ghost_world_lock_;}
+    rviz::Display* getCircularMarker(){return circular_marker_;}    
+    bool getGhostLeftHandLocked(){return ghost_left_hand_lock_;}
+    bool getGhostRightHandLocked(){return ghost_right_hand_lock_;}
+    rviz::Tool* getInteractiveMarkersTool(){return interactive_markers_tool_;}
+    rviz::Tool* getMoveCameraTool(){return move_camera_tool_;}
+    rviz::Tool* getSetGoalTool(){return set_goal_tool_;}
 
     /**
       * ROS Callback: receives left arm end effector position from moveit
@@ -169,11 +172,6 @@ public:
       * ROS Callback: receives right hand position to show grasps
       */
     void processRightGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
-
-    /**
-      * ROS Callback: receives configuration message for ghost robot
-      */
-    void processGhostControlState( const flor_ocs_msgs::OCSGhostControl::ConstPtr& msg );
 
     /**
       * ROS Callback: receives joint states from the robot
@@ -226,6 +224,7 @@ public:
     /**
       * ROS Callback: receives new goal pose for footstep planner
       */
+    virtual void processOwnGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose);
     virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
     /**
       * ROS Callback: receives new key event from global hotkey process
@@ -240,7 +239,7 @@ public:
     // functions needed for shared contexts
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }
     rviz::Display* getSelection3DDisplay() { return selection_3d_display_; }
-    rviz::Display* getOverlayDisplay() { return overlay_display_; }
+    rviz::Display* getNotificationOverlayDisplay() { return notification_overlay_display_; }    
     MouseEventHandler* getMouseEventHander() { return mouse_event_handler_; }    
 
 
@@ -264,6 +263,16 @@ public:
       */
     void synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
 
+    //callbacks to receive ghost state  data
+    void stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr& msg);
+    void stateUseTorsoCB(const std_msgs::Bool::ConstPtr &msg);
+    void stateLockPelvisCB(const std_msgs::Bool::ConstPtr& msg);
+    void statePositionOnlyIkCB(const std_msgs::Bool::ConstPtr& msg);
+    void stateUseDrakeIkCB(const std_msgs::Bool::ConstPtr& msg);
+
+    // public hotkey callbacks - for hotkeys that shouldn't be defined for every window
+    void executeStepPlanHotkey();
+
 public Q_SLOTS:
     // displays
     // Enables/disables visibility of rviz displays
@@ -280,6 +289,7 @@ public Q_SLOTS:
     void footstepPlanningToggled( bool );
     void simulationRobotToggled( bool );
     void notificationSystemToggled(bool);
+    void updateGhostRobotOpacityToggled(bool);
     void cameraFrustumToggled(bool);
     // tools
     // enables/disables use of rviz tools
@@ -385,6 +395,8 @@ public Q_SLOTS:
     //void setRenderOrder();
     //void resetRenderOrder();
 
+
+
 Q_SIGNALS:
     /**
       * Sets the render panel
@@ -428,10 +440,13 @@ Q_SIGNALS:
     void sendFPS(int);
 
 
+
+
 protected:
     virtual void timerEvent(QTimerEvent *event);
 
     void updateGhostRobotOpacity();
+    void showAllGhost();
 
     /**
       * Adds joint disks that visualize the current state of the joints
@@ -460,15 +475,15 @@ protected:
     bool shift_pressed_;
     int interactive_marker_mode_;
 
+
     Ogre::Camera* getCamera();
 
-    NotificationSystem* notification_system_;
+    NotificationSystem* notification_system_;   
 
     rviz::VisualizationManager* manager_;
     rviz::RenderPanel* render_panel_;
 
-    rviz::Display* robot_model_;
-    //std::vector<InteractiveMarkerServerCustom*> im_ghost_robot_server_;
+    rviz::Display* robot_model_;    
     rviz::Display* interactive_marker_template_;
     rviz::Display* octomap_;
     rviz::Display* grid_;
@@ -476,7 +491,7 @@ protected:
     rviz::Display* region_point_cloud_viewer_;
     rviz::Display* stereo_point_cloud_viewer_;
     rviz::Display* selection_3d_display_;
-    rviz::Display * overlay_display_;
+    rviz::Display * notification_overlay_display_;    
     rviz::Display* template_display_;
     rviz::Display* waypoints_display_;
     rviz::Display* achieved_waypoints_display_;
@@ -516,7 +531,9 @@ protected:
     ros::Publisher pointcloud_request_world_pub_;
 
     ros::Publisher send_footstep_goal_pub_;
+    ros::Subscriber send_footstep_goal_sub_;
 
+    ros::Publisher set_goal_pub_;
     ros::Subscriber set_goal_sub_;
 
     ros::Publisher interactive_marker_add_pub_;
@@ -540,6 +557,18 @@ protected:
     ros::Publisher ocs_sync_pub_;
 
     ros::Publisher interactive_marker_visibility_pub_;
+
+    //subscribers to grab ghost state data
+    ros::Subscriber state_use_torso_sub_;
+    ros::Subscriber state_snap_ghost_to_robot_sub_;
+    ros::Subscriber state_lock_pelvis_sub_;
+    ros::Subscriber state_position_only_ik_sub_;
+    ros::Subscriber state_use_drake_ik_sub_;
+
+    bool ghost_left_hand_lock_;
+    bool ghost_right_hand_lock_ ;
+
+    bool ghost_use_torso_;
 
     vigir_ocs::MouseEventHandler* mouse_event_handler_;
 
@@ -567,6 +596,7 @@ protected:
     QBasicTimer timer;
     int ghost_opacity_update_counter_;
     int ghost_opacity_update_frequency_;
+    bool ghost_opacity_update_;
 
     int view_id_;
 
@@ -687,7 +717,6 @@ protected:
     void rainbowColorHotkey();
     void pointcloudIntensityHotkey();
     //void requestStepPlanHotkey();
-    void executeStepPlanHotkey();
     void lockTranslationHotkey();
 
 
@@ -767,10 +796,7 @@ protected:
     bool moving_r_arm_;
 
     std::vector<unsigned char> ghost_planning_group_;
-    std::vector<unsigned char> ghost_pose_source_;
-    std::vector<unsigned char> ghost_world_lock_;
-    unsigned char moveit_collision_avoidance_;
-    unsigned char ghost_lock_pelvis_;
+    bool ghost_lock_pelvis_;
     bool update_markers_;
     bool snap_ghost_to_robot_;
     bool snap_left_hand_to_ghost_;
@@ -838,7 +864,7 @@ protected:
     rviz::Display* pelvis_hand_bounding_box_;
 
     moveit_msgs::DisplayRobotState ghost_display_state_msg_;
-    ros::Publisher ghost_robot_state_vis_pub_;    
+    ros::Publisher ghost_robot_state_vis_pub_;        
 
     /**
       * Callback for setting im mode

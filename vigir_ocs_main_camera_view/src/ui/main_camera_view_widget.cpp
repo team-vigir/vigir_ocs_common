@@ -100,6 +100,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
             QObject::connect(ui->robot_joint_markers,SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(robotJointMarkerToggled(bool)));
             QObject::connect(ui->robot_occlusion_rendering,SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(robotOcclusionToggled(bool)));
             QObject::connect(ui->notification_system,SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(notificationSystemToggled(bool)));
+            QObject::connect(ui->update_ghost_opacity,SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(updateGhostRobotOpacityToggled(bool)));
             QObject::connect(ui->camera_frustum,SIGNAL(toggled(bool)), ((CameraViewWidget*)iter->second)->getCameraView(), SLOT(cameraFrustumToggled(bool)));
         }
         else
@@ -192,7 +193,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     // connect emergency stop button to glancehub
     stop_mapper_ = new QSignalMapper(this);
-    connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
+    connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(modeChanged(int)));
 
     //map all toggles button to their identifiers
     ROS_WARN(" Hard coding a STOP with index 1"); // @todo - verify this setup
@@ -312,6 +313,16 @@ void MainCameraViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSync
                     changeCheckBoxState(ui->notification_system,Qt::Checked);
                 else
                     changeCheckBoxState(ui->notification_system,Qt::Unchecked);
+            }
+        }
+        else if(msg->properties[i].compare("Update Ghost Opacity") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->update_ghost_opacity,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->update_ghost_opacity,Qt::Unchecked);
             }
         }
         else if(msg->properties[i].compare("Frustum Display") == 0)

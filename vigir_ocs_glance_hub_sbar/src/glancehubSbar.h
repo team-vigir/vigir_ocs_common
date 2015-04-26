@@ -1,18 +1,21 @@
 #ifndef GLANCEHUBSBAR_H
 #define GLANCEHUBSBAR_H
 
-#include <QMainWindow>
+#include <ros/ros.h>
 #include <ros/subscriber.h>
+
 #include <flor_control_msgs/FlorControlModeCommand.h>
 #include <flor_ocs_msgs/OCSRobotStatus.h>
-#include "flor_ocs_msgs/RobotStatusCodes.h"
+#include <flor_ocs_msgs/RobotStatusCodes.h>
+#include <flor_ocs_msgs/OCSFootstepStatus.h>
 #include "glancehub.h"
-#include <ros/ros.h>
+#include "notification_system.h"
+
+#include <QMainWindow>
 #include <QPropertyAnimation>
 #include <QDialog>
 #include <QBasicTimer>
 #include <QElapsedTimer>
-#include "notification_system.h"
 
 namespace Ui {
 class glancehubSbar;
@@ -31,7 +34,7 @@ public Q_SLOTS:
     void receiveMoveitStatus(bool);
     void receiveFootstepStatus(int);
     void receiveFlorStatus(int);
-    void receiveModeChange(int, bool publish = true);
+    void modeChanged(int);
 
     virtual bool eventFilter( QObject * o, QEvent * e );
 

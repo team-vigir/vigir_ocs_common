@@ -121,8 +121,12 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         view_id_ = manager_->addRenderPanel( render_panel_ );
 
         selection_3d_display_ = copy_from->getSelection3DDisplay();
-        overlay_display_ = copy_from->getOverlayDisplay();
+        notification_overlay_display_ = copy_from->getNotificationOverlayDisplay();        
         mouse_event_handler_ = copy_from->getMouseEventHander();
+
+        interactive_markers_tool_ = copy_from->getInteractiveMarkersTool();
+        move_camera_tool_ = copy_from->getMoveCameraTool();
+        set_goal_tool_ = copy_from->getSetGoalTool();
     }
     else
     {
@@ -179,7 +183,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
         // Add support for goal specification/vector navigation
         set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
-        set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( "/flor/ocs/footstep/goal_pose" );
+        set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( ("/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose").c_str() );
 
         grid_ = manager_->createDisplay( "rviz/Grid", "Grid", true );
         ROS_ASSERT( grid_ != NULL );
@@ -482,24 +486,34 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // initialize ghost control config
         ghost_planning_group_.push_back(0);
-        ghost_planning_group_.push_back(1);
-        ghost_planning_group_.push_back(0);
-        ghost_pose_source_.push_back(0);
-        ghost_pose_source_.push_back(0);
-        ghost_pose_source_.push_back(0);
-        ghost_world_lock_.push_back(0);
-        ghost_world_lock_.push_back(0);
-        ghost_world_lock_.push_back(0);
-        moveit_collision_avoidance_ = 0;
-        ghost_lock_pelvis_ = 1;
+        ghost_planning_group_.push_back(1);      
+
+        ghost_use_torso_ = false;
+        ghost_left_hand_lock_ = false;
+        ghost_right_hand_lock_ = false;
+        ghost_lock_pelvis_ = true;
+
+        //locks must be shared across all views
+        state_use_torso_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_use_torso", 5, &Base3DView::stateUseTorsoCB, this );
+        state_lock_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_lock_pelvis", 5, &Base3DView::stateLockPelvisCB, this );
+        state_position_only_ik_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_position_only_ik", 5, &Base3DView::statePositionOnlyIkCB, this );
+        state_use_drake_ik_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_use_drake_ik", 5, &Base3DView::stateUseDrakeIkCB, this );
 
         // ghost state
-        ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
-        reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
-        send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
-        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 1, false );
+        if(widget_name_ == "MainView") // hack, we don't have a ghost manager yet and should only do this once
+        {
+            //ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
 
-        // subscribe to goal pose
+            state_snap_ghost_to_robot_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_snap_ghost_to_robot", 5, &Base3DView::stateSnapGhostToRobot, this );
+
+            reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
+            send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
+        }
+        send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 1, false );
+        send_footstep_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 5, &Base3DView::processOwnGoalPose, this );
+
+        // publish/subscribe to goal pose
+        set_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 1, false );
         set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &Base3DView::processGoalPose, this );
 
         // Create a RobotModel display.
@@ -637,7 +651,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         circular_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request", 1, false );
 
         // subscribe to the topic sent by the ghost widget
-        send_cartesian_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/send_cartesian", 5, &Base3DView::processSendCartesian, this );
+        send_cartesian_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/send_cartesian", 5, &Base3DView::processSendCartesian, this );
         send_ghost_pelvis_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/set_pose", 5, &Base3DView::processGhostPelvisPose, this );
 
         // create publisher and subscriber for object selection
@@ -680,11 +694,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // update render order whenever objects are added/ display changed
         //connect(manager_,SIGNAL(statusUpdate(QString)),this,SLOT(setRenderOrder(QString)));
         // initialize Render Order correctly
-        //setRenderOrder();
-
-        // initialize notification system
-        overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
-        overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");      
 
         //create visualizations for camera frustum
         //initializeFrustums("/flor/ocs/camera/atlas");
@@ -697,7 +706,18 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         frustum_display_->subProp("alpha")->setValue("0.05");
         frustum_display_->setEnabled(false);
 
-        ghost_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/robot_state_vis",1, true);        
+		// initialize notification systems
+        notification_overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
+        notification_overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
+
+        //ghost_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/robot_state_vis",1, true);
+
+        //kinda hacky, would like to only update on transform change on ghost robot
+        //used within timer event to make sure updating ghost robot opacity is called every
+        //ghost_opacity_update_counter_ = 0;
+        //ghost_opacity_update_frequency_ = 20; //didn't want to create seperate timer event
+
+        ghost_opacity_update_ = false; // dont update ghost robot opacity by default
 
         //initialize hotkeys
         addHotkeys();
@@ -741,7 +761,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
    // reset_view_button_->move(0,300);
     QObject::connect(reset_view_button_, SIGNAL(clicked()), this, SLOT(resetView()));
 
-    stop_button_ = new QPushButton("STOP",this);
+    stop_button_ = new QPushButton("STOP",this);    
     stop_button_->setStyleSheet("font: 100pt \"MS Shell Dlg 2\";background-color: red;color: white;border-color: red;");
     stop_button_->setMaximumSize(400,300);
     stop_button_->adjustSize();
@@ -848,10 +868,6 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     shift_pressed_ = false;
     interactive_marker_mode_ = 0;
 
-    //used within timer event to make sure updating ghost robot opacity is called every
-    ghost_opacity_update_counter_ = 0;
-    ghost_opacity_update_frequency_ = 20; //didn't want to create seperate timer event
-
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer.start(33, this);
 }
@@ -954,10 +970,6 @@ void Base3DView::blurRender()
                   "gl_FragColor = sum;\n"
 
                 "}\n";
-
-
-
-
 
 
         Ogre::HighLevelGpuProgramPtr removeMagentaFP = Ogre::HighLevelGpuProgramManager::getSingleton()
@@ -1122,75 +1134,115 @@ void Base3DView::timerEvent(QTimerEvent *event)
 
     //Means that currently doing
 
-    if(is_primary_view_)
-    {
-        //if(occluded_robot_visible_)
-        //    setRenderOrder();
-        if(ghost_robot_model_->isEnabled())
-        {
-            ghost_opacity_update_counter_++;
-            //only update ghost robot opacity occasionally, can cause performance issues if called on every timer event
-            if(ghost_opacity_update_counter_ >= ghost_opacity_update_frequency_)
-            {
-                updateGhostRobotOpacity();
-                ghost_opacity_update_counter_= 0;//reset counter
-            }
-        }
-    }
+
+
+//    if(is_primary_view_)
+//    {
+//        //if(occluded_robot_visible_)
+//        //    setRenderOrder();
+
+//        //only update opacity if ghost is on and update is allowed
+//        if(ghost_robot_model_->isEnabled() && ghost_opacity_update_)
+//        {
+//            ghost_opacity_update_counter_++;
+//            //only update ghost robot opacity occasionally, can cause performance issues if called on every timer event
+//            if(ghost_opacity_update_counter_ >= ghost_opacity_update_frequency_)
+//            {
+//                //updateGhostRobotOpacity();
+//                ghost_opacity_update_counter_= 0;//reset counter
+//            }
+//        }
+//    }
 
 
 }
 
+
 //hide ghost parts if ghost position == robot position
 void Base3DView::updateGhostRobotOpacity()
 {    
-    MoveItOcsModel* robot_model = RobotStateManager::Instance()->getRobotStateSingleton();
-    MoveItOcsModel* ghost_robot_model = RobotStateManager::Instance()->getGhostRobotStateSingleton();
-    //compare the links of every joint in robot to ghost
-    std::vector<std::string> link_names = robot_model->getLinkNames();
+//    MoveItOcsModel* robot_model = RobotStateManager::Instance()->getRobotStateSingleton();
+//    MoveItOcsModel* ghost_robot_model = RobotStateManager::Instance()->getGhostRobotStateSingleton();
+//    //compare the links of every joint in robot to ghost
+//    std::vector<std::string> link_names = robot_model->getLinkNames();
 
-    //grab current root pose of ghost, necessary as publishing robot state will somehow reset ghost pose
-    geometry_msgs::PoseStamped ghost_root_pose;
-    ghost_root_pose.pose = ghost_root_pose_;
+//    //grab current root pose of ghost, necessary as publishing robot state will somehow reset ghost pose
+//    geometry_msgs::PoseStamped ghost_root_pose;
+//    ghost_root_pose.pose = ghost_root_pose_;
 
-    for(int i=0;i<link_names.size();i++)
-    {
-       std::string link_name = link_names[i];
-       //get poses of links
-       geometry_msgs::Pose robot_pose;
-       geometry_msgs::Pose ghost_pose;       
-       if(!robot_model->getLinkPose(link_name,robot_pose) || !ghost_robot_model->getLinkPose(link_name,ghost_pose))
-       {
-          //ROS_ERROR("mismatch link? %s %d", link_name.c_str(),i);
-          break;
-       }
-       moveit_msgs::ObjectColor tmp;
-       tmp.id = link_name;
+//    for(int i=0;i<link_names.size();i++)
+//    {
+//       std::string link_name = link_names[i];
+//       //get poses of links
+//       geometry_msgs::Pose robot_pose;
+//       geometry_msgs::Pose ghost_pose;
+//       if(!robot_model->getLinkPose(link_name,robot_pose) || !ghost_robot_model->getLinkPose(link_name,ghost_pose))
+//       {
+//          //ROS_ERROR("mismatch link? %s %d", link_name.c_str(),i);
+//          break;
+//       }
+//       moveit_msgs::ObjectColor tmp;
+//       tmp.id = link_name;
 
-       //5cm and 2deg tolerance
-       if(checkPoseMatch(robot_pose,ghost_pose,0.005f,2.0f))
-       {         
-           //hide link
-           tmp.color.a = 0.0f;                      
-       }
-       else
-       {
-           //show link, (could have previously been hidden so we need to update based on posematch)
-           tmp.color.a = 0.5f;
-           tmp.color.r = 0.0f;
-           tmp.color.g = 1.0f;
-           tmp.color.b = 0.0f;
-       }
-       ghost_display_state_msg_.highlight_links.push_back(tmp);
-    }
+//       //5cm and 2deg tolerance
+//       if(checkPoseMatch(robot_pose,ghost_pose,0.005f,2.0f))
+//       {
+//           //hide link
+//           tmp.color.a = 0.0f;
+//       }
+//       else
+//       {
+//           //show link, (could have previously been hidden so we need to update based on posematch)
+//           tmp.color.a = 0.5f;
+//           tmp.color.r = 0.0f;
+//           tmp.color.g = 1.0f;
+//           tmp.color.b = 0.0f;
+//       }
+//       ghost_display_state_msg_.highlight_links.push_back(tmp);
+//    }
 
-    robot_state::robotStateToRobotStateMsg(*ghost_robot_model->getState(), ghost_display_state_msg_.state);
+//    robot_state::robotStateToRobotStateMsg(*ghost_robot_model->getState(), ghost_display_state_msg_.state);
 
-    //TODO: figure out why ghost root pose will change on this line
-    ghost_robot_state_vis_pub_.publish(ghost_display_state_msg_);
+//    //TODO: figure out why ghost root pose will change on this line
+//    ghost_robot_state_vis_pub_.publish(ghost_display_state_msg_);
 
-    //reset root pose back to position before publishing
-    ghost_robot_model->setRootTransform(ghost_root_pose);
+//    //reset root pose back to position before publishing
+//    ghost_robot_model->setRootTransform(ghost_root_pose);
+}
+
+//reset ghost to have all parts visible, necessary if we have updated certain segments to disappear
+void Base3DView::showAllGhost()
+{
+//    MoveItOcsModel* robot_model = RobotStateManager::Instance()->getRobotStateSingleton();
+//    MoveItOcsModel* ghost_robot_model = RobotStateManager::Instance()->getGhostRobotStateSingleton();
+
+//    std::vector<std::string> link_names = robot_model->getLinkNames();
+//    //grab current root pose of ghost, necessary as publishing robot state will somehow reset ghost pose
+//    geometry_msgs::PoseStamped ghost_root_pose;
+//    ghost_root_pose.pose = ghost_root_pose_;
+
+//    for(int i=0;i<link_names.size();i++)
+//    {
+//       std::string link_name = link_names[i];
+//       moveit_msgs::ObjectColor tmp;
+//       tmp.id = link_name;
+
+//       //show link, (could have previously been hidden so we need to update based on posematch)
+//       tmp.color.a = 0.5f;
+//       tmp.color.r = 0.0f;
+//       tmp.color.g = 1.0f;
+//       tmp.color.b = 0.0f;
+
+//       ghost_display_state_msg_.highlight_links.push_back(tmp);
+//    }
+
+//    robot_state::robotStateToRobotStateMsg(*ghost_robot_model->getState(), ghost_display_state_msg_.state);
+
+//    //TODO: figure out why ghost root pose will change on this line
+//    ghost_robot_state_vis_pub_.publish(ghost_display_state_msg_);
+
+//    //reset root pose back to position before publishing
+//    ghost_robot_model->setRootTransform(ghost_root_pose);
 }
 
 void Base3DView::publishCameraTransform()
@@ -1316,6 +1368,15 @@ void Base3DView::notificationSystemToggled(bool selected)
 {
     flor_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("Notification System");
+    msg.reset.push_back(false);
+    msg.visible.push_back(selected);
+    ocs_sync_pub_.publish(msg);
+}
+
+void Base3DView::updateGhostRobotOpacityToggled(bool selected)
+{    
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("Update Ghost Opacity");
     msg.reset.push_back(false);
     msg.visible.push_back(selected);
     ocs_sync_pub_.publish(msg);
@@ -1497,13 +1558,30 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
     {        
         bool groundMapReset = false;
         int num_displays = render_panel_->getManager()->getRootDisplayGroup()->numDisplays();
+
+        //special case for non rviz displays that are being synced across views
+        if(msg->properties[i].compare("Update Ghost Opacity") == 0)
+        {
+            //toggle ghost opacity update
+            ghost_opacity_update_ = msg->visible[i];
+            if(ghost_opacity_update_)
+            {
+                ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_diff_vis" );
+            }
+            else
+            {
+                ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
+            }
+                //showAllGhost();
+        }
+
         for(int j = 0; j < num_displays; j++)
         {
             rviz::Display* display = render_panel_->getManager()->getRootDisplayGroup()->getDisplayAt(j);
-            std::string display_name = display->getNameStd();
+            std::string display_name = display->getNameStd();           
 
             if(msg->properties[i].compare(display_name) == 0)
-            {                
+            {
                 if(display_name.compare("Stereo Point Cloud") == 0)
                 {
                     if(msg->reset[i]) //reset case
@@ -1580,7 +1658,7 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
                 else if(display_name.compare("Notification System") == 0)
                 {
                     //only toggle notification visibility
-                    overlay_display_->setEnabled(msg->visible[i]);
+                    notification_overlay_display_->setEnabled(msg->visible[i]);
                 }
                 else if(display_name.compare("Frustum Display") == 0)
                 {
@@ -1591,8 +1669,7 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
                         frustum_display->setEnabled(msg->visible[i]);
                     }
                     frustum_display_->setEnabled(msg->visible[i]);
-                }
-
+                }                
             }
         }
         if(groundMapReset)
@@ -1612,6 +1689,11 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
 void Base3DView::defineFootstepGoal()
 {
     manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
+}
+
+void Base3DView::processOwnGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+{
+    set_goal_pub_.publish(pose);
 }
 
 void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
@@ -1727,7 +1809,7 @@ void Base3DView::transform(const std::string& target_frame, geometry_msgs::PoseS
 }
 
 void Base3DView::insertTemplate( QString path )
-{
+{        
     //std::cout << "adding template" << std::endl;    
     if(!selected_)
     {
@@ -1825,7 +1907,7 @@ void Base3DView::selectOnDoubleClick(int x, int y)
     else if(active_context_name_.find("footstep goal") != std::string::npos)
         selectFootstepGoal();
     else if(active_context_name_.find("footstep") != std::string::npos)
-        selectFootstep();
+        selectFootstep();        
 }
 
 //callback functions for context Menu
@@ -1952,26 +2034,26 @@ void Base3DView::snapHandGhost()
 
 // this function will toggle the template grasp lock
 void Base3DView::setTemplateGraspLock(int arm)
-{
+{    
     int id = findObjectContext("template");
     if (arm == -1) // unlocks both arms
     {
-        selectTemplate();
-
-        ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] = 0;
-        ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::LEFT_ARM] = 0;
-
-
-        ghost_pose_source_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] = 0;
-        ghost_world_lock_[flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM] = 0;
-        return;
+        selectTemplate(); 
+        ghost_left_hand_lock_ = false;
+        ghost_right_hand_lock_ = false;        
     }
     else if(id != -1) //locks arm
     {
         selectTemplate();
 
-        ghost_pose_source_[arm] = 1;
-        ghost_world_lock_[arm] = 1;
+        if(arm == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
+        {
+            ghost_left_hand_lock_ = true;
+        }
+        else if(arm == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
+        {
+            ghost_right_hand_lock_ = true;
+        }
     }
 
 }
@@ -2189,7 +2271,7 @@ void Base3DView::removeTemplate(int id)
     template_remove_pub_.publish( cmd );
 
     //notify
-    NotificationSystem::Instance()->notifyPassive("Template Removed");
+    NotificationSystem::Instance()->notifyPassive("Template Removed");    
 }
 
 void Base3DView::emitQueryContext(int x,int y)
@@ -2276,7 +2358,7 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
 //        ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
 
         // doesn't happen if in template lock mode
-        if(!moving_pelvis_ && ghost_pose_source_[0] == 0)
+        if(!moving_pelvis_ && !ghost_left_hand_lock_ )//ghost_pose_source_[0] == 0)
             end_effector_pose_list_[cmd.topic] = cmd.pose;
     }
 
@@ -2319,7 +2401,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
         //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
 
         // doesn't happen if in template lock mode
-        if(!moving_pelvis_ && ghost_pose_source_[1] == 0)
+        if(!moving_pelvis_ && ghost_right_hand_lock_ )//ghost_pose_source_[1] == 0)
             end_effector_pose_list_[cmd.topic] = cmd.pose;
     }
 
@@ -2331,7 +2413,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
 }
 
 void Base3DView::processPelvisEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
-{
+{    
     ghost_root_pose_ = pose->pose;
 }
 
@@ -2482,7 +2564,7 @@ int Base3DView::calcWristTarget(const geometry_msgs::PoseStamped& end_effector_p
 void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
     // will only process this if in template lock
-    if(!moving_pelvis_ && ghost_world_lock_[0] == 1)
+    if(!moving_pelvis_ && ghost_left_hand_lock_)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
         staticTransform(transformed_pose, l_hand_T_palm_);
@@ -2502,7 +2584,7 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
     //ROS_INFO("  orientation: %.2f %.2f %.2f %.2f",pose->pose.orientation.w,pose->pose.orientation.x,pose->pose.orientation.y,pose->pose.orientation.z);
 
     // will only process this if in template lock
-    if(!moving_pelvis_ && ghost_world_lock_[1] == 1)
+    if(!moving_pelvis_ && ghost_right_hand_lock_)
     {
         geometry_msgs::Pose transformed_pose = pose->pose;
         staticTransform(transformed_pose, r_hand_T_palm_);
@@ -2512,7 +2594,7 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
 }
 
 void Base3DView::processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg)
-{
+{    
     flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
     cmd.pose = *msg;
     cmd.topic = "/pelvis_pose_marker";
@@ -2604,7 +2686,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
     geometry_msgs::PoseStamped joint_pose;
     joint_pose = msg.pose;
 
-    //ROS_ERROR("Marker feedback on topic %s, have markers instantiated",msg.topic.c_str());
+
     if(msg.topic == "/l_arm_pose_marker")
     {
         ghost_planning_group_[0] = 1;
@@ -2697,8 +2779,20 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
     }
 
     //ROS_ERROR("ghost_world_lock 0: %d, ghost_world_lock_ 1: %d ",ghost_world_lock_[0],ghost_world_lock_[1]);
-    if(ghost_world_lock_[0] == 0 && ghost_world_lock_[1] == 0)
-        publishGhostPoses();
+
+
+
+
+    //    need to publish ghost if we are directly interacting with end effectors
+    if(msg.topic.find("l_arm_pose_marker") != std::string::npos ||
+            msg.topic.find("r_arm_pose_marker") != std::string::npos||
+            msg.topic.find("pelvis_pose_marker") != std::string::npos||
+            (ghost_left_hand_lock_ || ghost_right_hand_lock_ ))     //should publish ghost if either arm is locked to template
+    {
+        //hack, need to have seperate main view that overrides onmarkerfeedback to handle main view specifically
+        if(widget_name_ == "MainView")
+            publishGhostPoses();
+    }
 }
 
 // sends marker poses and so on to moveit
@@ -2706,10 +2800,10 @@ void Base3DView::publishGhostPoses()
 {
     bool left = ghost_planning_group_[0];
     bool right = ghost_planning_group_[1];
-    bool torso = ghost_planning_group_[2];
+    bool torso = ghost_use_torso_;
 
-    bool left_lock = ghost_world_lock_[0];
-    bool right_lock = ghost_world_lock_[1];
+    bool left_lock = ghost_left_hand_lock_;
+    bool right_lock = ghost_right_hand_lock_;
     //ROS_ERROR("Moving marker? %s",moving_pelvis_?"Yes, Pelvis":(moving_l_arm_?"Yes, Left Arm":(moving_r_arm_?"Yes, Right Arm":"No")));
     //ROS_ERROR("Left lock: %s Right lock: %s",left_lock?"yes":"no",right_lock?"yes":"no");
 
@@ -2782,23 +2876,27 @@ void Base3DView::publishGhostPoses()
     if(position_only_ik_ && !(left && right && torso) && !(left && right && !torso))
         cmd.planning_group.data += "_position_only_ik";
 
-    if(use_drake_ik_) {
+    if(use_drake_ik_)
+    {
         cmd.planning_group.data = "whole_body_group";
 
-        if ( left ) {
+        if ( left )
+        {
             std_msgs::String target_link_name;
             target_link_name.data = "l_hand";
             cmd.target_link_names.push_back(target_link_name);
         }
 
 
-        if ( right ) {
+        if ( right )
+        {
             std_msgs::String target_link_name;
             target_link_name.data = "r_hand";
             cmd.target_link_names.push_back(target_link_name);
         }
 
-        if ( ghost_lock_pelvis_ ) {
+        if ( ghost_lock_pelvis_ )
+        {
             std_msgs::String target_link_name;
             target_link_name.data = "pelvis";
             cmd.target_link_names.push_back(target_link_name);
@@ -2811,73 +2909,98 @@ void Base3DView::publishGhostPoses()
 
     if(ghost_lock_pelvis_)
     {
+        //get root pose of robot, publish ghost to lock to robot
+
         Ogre::Vector3 position(0,0,0);
         Ogre::Quaternion orientation(1,0,0,0);
         transform(position, orientation, "/pelvis", "/world");
 
-        geometry_msgs::PoseStamped pose;
-        pose.pose.position.x = position.x;
-        pose.pose.position.y = position.y;
-        pose.pose.position.z = position.z;
-        pose.pose.orientation.x = orientation.x;
-        pose.pose.orientation.y = orientation.y;
-        pose.pose.orientation.z = orientation.z;
-        pose.pose.orientation.w = orientation.w;
-        pose.header.frame_id = "/world";
-        pose.header.stamp = ros::Time::now();
+        geometry_msgs::PoseStamped root_pose;
+        root_pose.pose.position.x = position.x;
+        root_pose.pose.position.y = position.y;
+        root_pose.pose.position.z = position.z;
+        root_pose.pose.orientation.x = orientation.x;
+        root_pose.pose.orientation.y = orientation.y;
+        root_pose.pose.orientation.z = orientation.z;
+        root_pose.pose.orientation.w = orientation.w;
+        root_pose.header.frame_id = "/world";
+        root_pose.header.stamp = ros::Time::now();
 
-        ghost_root_pose_pub_.publish(pose);
+        //ROS_ERROR("locked root pose");
 
-//        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
-//        {
-//            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Pelvis")
-//            {
-//                im_ghost_robot_server_[i]->setPose(pose);
-//                break;
-//            }
-//        }
+
+
+        ghost_root_pose_pub_.publish(root_pose);
+
+        //set pelvis interactive marker to always be hidden
+       // if(im_ghost_robot_[2]->isEnabled())
+        //    im_ghost_robot_[2]->setEnabled(false);
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/pelvis_pose_marker";
-        cmd.pose = pose;
+        cmd.pose = root_pose;
         interactive_marker_update_pub_.publish(cmd);
 
-        pelvis_marker_pose_pub_.publish(pose);
+        pelvis_marker_pose_pub_.publish(root_pose);
     }
-    /*else
+    else
     {
+        //currently overpublishing data, 0,0,0  1,0,0,0 is used to initialize pose updates. should not be published but we must ignore for now...  TODO: don't publish 0,0,0 unnecessarily
+        if(end_effector_pose_list_["/pelvis_pose_marker"].pose.position.x == 0 &&
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.position.y == 0 &&
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.position.z == 0 &&
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.x == 0 &&
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.y == 0 &&
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.z == 0 &&
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.w == 0 )
+            return;
+
+
+        //set pelvis interactive marker to always be shown
+       // if(!im_ghost_robot_[2]->isEnabled())
+        //    im_ghost_robot_[2]->setEnabled(true);
+
         // how do I set world lock for torso?
         ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
         pelvis_marker_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
-    }*/
-}
 
-void Base3DView::processGhostControlState(const flor_ocs_msgs::OCSGhostControl::ConstPtr &msg)
-{
-    if(msg->snap)
-    {
-        snap_ghost_to_robot_ = true;
-        return;
+        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.topic = "/pelvis_pose_marker";
+        cmd.pose = end_effector_pose_list_["/pelvis_pose_marker"];
+        interactive_marker_update_pub_.publish(cmd);
+
     }
-    ghost_planning_group_.clear();
-    ghost_pose_source_.clear();
-    //ghost_world_lock_.clear();
-
-    ghost_planning_group_ = msg->planning_group;
-    ghost_pose_source_ = msg->pose_source;
-    //ghost_world_lock_ = msg->world_lock;
-    moveit_collision_avoidance_ = msg->collision_avoidance;
-    ghost_lock_pelvis_ = msg->lock_pelvis;
-
-    snap_ghost_to_robot_ = msg->snap;
-
-    left_marker_moveit_loopback_ = msg->left_moveit_marker_loopback;
-    right_marker_moveit_loopback_ = msg->right_moveit_marker_loopback;
-
-    position_only_ik_ = msg->position_only_ik;
-    use_drake_ik_ = msg->use_drake_ik;
 }
+
+//----- Callbacks to receive Ghost State data -------------------//
+
+void Base3DView::stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr& msg)
+{
+    snap_ghost_to_robot_ = msg->data;
+}
+
+void Base3DView::stateUseTorsoCB(const std_msgs::Bool::ConstPtr& msg)
+{
+    ghost_use_torso_ = msg->data;
+}
+
+void Base3DView::stateLockPelvisCB(const std_msgs::Bool::ConstPtr& msg)
+{
+    ghost_lock_pelvis_ = msg->data;    
+}
+
+void Base3DView::statePositionOnlyIkCB(const std_msgs::Bool::ConstPtr& msg)
+{
+    position_only_ik_ = msg->data;
+}
+
+void Base3DView::stateUseDrakeIkCB(const std_msgs::Bool::ConstPtr& msg)
+{
+    use_drake_ik_ = msg->data;
+}
+
+//----- End Callbacks to receive Ghost State data -------------------//
 
 void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::Pose& pose, double effortPercent, double boundPercent, bool ghost, int arrowDirection)
 {
@@ -3025,6 +3148,8 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
     robot_state->setJointStates(*states);
     // and root transform
     robot_state->setRootTransform(root_pose);
+
+    //ROS_ERROR("root position %f %f %f", root_pose.pose.position.x,root_pose.pose.position.y,root_pose.pose.position.z);
 
     for(int i = 0; i < states->name.size(); i++)
     {
@@ -3499,18 +3624,9 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
         pose.pose.orientation.z = final_orientation.z;
         pose.pose.orientation.w = final_orientation.w;
         pose.header.frame_id = "/world";
-        pose.header.stamp = ros::Time::now();
+        pose.header.stamp = ros::Time::now();        
 
         ghost_root_pose_pub_.publish(pose);
-
-//        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
-//        {
-//            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Pelvis")
-//            {
-//                im_ghost_robot_server_[i]->setPose(pose);
-//                break;
-//            }
-//        }
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/pelvis_pose_marker";
@@ -3655,7 +3771,7 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
 
     cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
 
-    if(!ghost_planning_group_[2]) // torso selected in the ghost widget
+    if(!ghost_use_torso_) // torso not selected in the ghost widget?
         cmd.planning_group = prefix+"_arm_group";
     else
         cmd.planning_group = prefix+"_arm_with_torso_group";
@@ -3725,7 +3841,7 @@ void Base3DView::sendCircularTarget(bool right_hand)
 
     cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
 
-    if(!ghost_planning_group_[2]) // torso selected in the ghost widget
+    if(!ghost_use_torso_) // torso selected in the ghost widget?
         cmd.planning_group = prefix+"_arm_group";
     else
         cmd.planning_group = prefix+"_arm_with_torso_group";
@@ -3781,8 +3897,8 @@ void Base3DView::addHotkeys()
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+g",boost::bind(&Base3DView::defineFootstepGoal,this));   
     //request footstep plan
     //HotkeyManager::Instance()->addHotkeyFunction("ctrl+h",boost::bind(&Base3DView::requestStepPlanHotkey,this));
-    //execute footstep plan
-    HotkeyManager::Instance()->addHotkeyFunction("ctrl+j",boost::bind(&Base3DView::executeStepPlanHotkey,this));    
+    //execute footstep plan -> moved to main view
+    //HotkeyManager::Instance()->addHotkeyFunction("ctrl+j",boost::bind(&Base3DView::executeStepPlanHotkey,this));
     //E-Stop
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+alt",boost::bind(&Base3DView::showEStopHotkey,this));    
 
@@ -3823,7 +3939,7 @@ void Base3DView::pointcloudIntensityHotkey()
 //}
 void Base3DView::executeStepPlanHotkey()
 {
-    if(footstep_vis_manager_->hasValidStepPlan())
+    if(footstep_vis_manager_->numStepPlans() == 1)
        footstep_vis_manager_->requestExecuteStepPlan();
 }
 

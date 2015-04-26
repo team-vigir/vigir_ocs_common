@@ -71,7 +71,7 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
 
     // connect emergency stop button to glancehub
     stop_mapper_ = new QSignalMapper(this);
-    connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
+    connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(modeChanged(int)));
 
     //map all toggles button to their identifiers
     stop_mapper_->setMapping(((vigir_ocs::Base3DView*)ui->map_view_), 1);//flor_control_msgs::FlorControlModeCommand::FLOR_STOP);
@@ -103,6 +103,10 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
 
     ocs_sync_sub_ = n_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &MapViewWidget::synchronizeToggleButtons, this );
     ocs_sync_pub_ = n_.advertise<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
+
+    //publisher and subscriber for window visibility control
+    window_control_sub_ = n_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &MapViewWidget::processWindowControl, this );
+    window_control_pub_ = n_.advertise<std_msgs::Int8>( "/flor/ocs/window_control", 1, false);
 
     timer.start(100, this);
 }
@@ -189,6 +193,16 @@ void MapViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize
                     changeCheckBoxState(ui->notification_system,Qt::Unchecked);
             }
         }
+        else if(msg->properties[i].compare("Update Ghost Opacity") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->update_ghost_opacity,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->update_ghost_opacity,Qt::Unchecked);
+            }
+        }
         else if(msg->properties[i].compare("Frustum Display") == 0)
         {
             if(!msg->reset[i])
@@ -214,6 +228,19 @@ void MapViewWidget::setupToolbar()
 {
     mapRegionConfig = new MapRegionConfigure();
     region3dConfig = new Region3DConfigure();
+    footstep_configure_widget_ = new FootstepConfigure();
+
+    //connect to update footstep paramaters from ui
+    connect(footstep_configure_widget_,SIGNAL(sendFootstepParamaters(double,int,double,int)),
+            ((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SLOT(updateFootstepParamaters(double,int,double,int)));
+    connect(ui->use3dPlanning,SIGNAL(clicked(bool)),
+            ((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SLOT(update3dPlanning(bool)));
+    connect(((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SIGNAL(setFootstepParamaters(double,int,double,int)),
+            footstep_configure_widget_,SLOT(updateFootstepParamaters(double,int,double,int)));
+    connect(((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SIGNAL(set3dPlanning(bool)),
+            this,SLOT(update3dPlanning(bool)));
+
+    footstep_configure_widget_->emitCurrentConfig();
 
     //set menu to popup a config widget
     QWidgetAction *wa = new QWidgetAction(0);
@@ -224,15 +251,28 @@ void MapViewWidget::setupToolbar()
     //need to install event filter for widget positioning
     regionMenu.installEventFilter(this);
 
+    //set menu to popup a config widget
     QWidgetAction *wa2 = new QWidgetAction(0);
     wa2->setDefaultWidget(mapRegionConfig);
     mapMenu.addAction(wa2);
+    //associate button with menu
     ui->mapConfig->setMenu(&mapMenu);
+    //need to install event filter for widget positioning
     mapMenu.installEventFilter(this);
+
+    //set menu to popup a config widget for footstep Params
+    QWidgetAction *wa3 = new QWidgetAction(0);
+    wa->setDefaultWidget(footstep_configure_widget_);
+    footstep_menu_.addAction(wa3);
+    //associate button with menu
+    ui->footstepConfigBtn->setMenu(&footstep_menu_);
+    //need to install event filter for widget positioning
+    footstep_menu_.installEventFilter(this);
 
     //connect buttons to bringup config widgets
     connect(ui->mapConfig,SIGNAL(clicked()),this,SLOT(toggleMapConfig()));
     connect(ui->regionConfig,SIGNAL(clicked()),this,SLOT(toggleRegionConfig()));
+    connect(ui->footstepConfigBtn,SIGNAL(clicked()),this,SLOT(toggleFootstepConfig()));
 
     //set button style
     loadButtonIconAndStyle(ui->regionConfig,"configIcon.png");
@@ -240,6 +280,24 @@ void MapViewWidget::setupToolbar()
     loadButtonIconAndStyle(ui->request_point_cloud,""); //TO-DO: get cool icons
     loadButtonIconAndStyle(ui->request_octomap,"");
     loadButtonIconAndStyle(ui->request_map,"");
+    //loadButtonIcon(ui->basicStepBtn, "footBasicIcon.png");
+    loadButtonIconAndStyle(ui->stepBtn, "footAdvancedIcon.png");
+    loadButtonIconAndStyle(ui->footstepParamBtn, "footParamIcon.png");
+    loadButtonIconAndStyle(ui->footstepConfigBtn,"configIcon.png");
+
+    //use signalmapper to avoid having one function for each one of the toggle buttons
+    toggle_mapper_ = new QSignalMapper(this);
+    connect(toggle_mapper_,SIGNAL(mapped(int)),this,SLOT(toggleWindow(int)));
+
+    //map all toggles button to their identifiers
+    //toggle_mapper_->setMapping(this->ui->basicStepBtn,WINDOW_FOOTSTEP_BASIC);
+    toggle_mapper_->setMapping(this->ui->stepBtn,WINDOW_FOOTSTEP_ADVANCED);
+    toggle_mapper_->setMapping(this->ui->footstepParamBtn,WINDOW_FOOTSTEP_PARAMETER);
+
+    //connect all buttons for mouse presses
+    //connect(ui->basicStepBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
+    connect(ui->stepBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
+    connect(ui->footstepParamBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
 
     //place arrow on combo box
     QString comboStyle = ui->point_cloud_type->styleSheet() + "\n" +
@@ -247,11 +305,24 @@ void MapViewWidget::setupToolbar()
             " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
             "}";
     ui->point_cloud_type->setStyleSheet(comboStyle);
+
+    //set for footstep param box
+    comboStyle = ui->footstepParamSetBox->styleSheet() + "\n" +
+            "QComboBox::down-arrow {\n" +
+            " image: url(" + icon_path_ + "down_arrow.png" + ");\n" +
+            "}";
+    ui->footstepParamSetBox->setStyleSheet(comboStyle);
+
+    //populate parameter box
+    connect(ui->footstepParamSetBox,SIGNAL(currentIndexChanged(QString)),((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SLOT(setFootstepParameterSet(QString)));
+    connect(((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));
+    connect(((vigir_ocs::Base3DView*)ui->map_view_)->getFootstepVisManager(),SIGNAL(setFootstepParameterSetBox(std::string)),this,SLOT(setFootstepParameterSetBox(std::string)));
 }
 
 void MapViewWidget::loadButtonIconAndStyle(QPushButton* btn, QString image_name)
 {
     btn->setStyleSheet(QString("QPushButton  { ") +
+                       " font: 9pt \"Ubuntu\";" +
                        " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
                        " border-style: solid;" +
                        " border-width: 1px;" +
@@ -262,6 +333,7 @@ void MapViewWidget::loadButtonIconAndStyle(QPushButton* btn, QString image_name)
                        " image-position: top left"
                        "}" +
                        "QPushButton:pressed  {" +
+                       " font: 9pt \"Ubuntu\";" +
                        " padding-top:1px; padding-left:1px;" +
                        " background-color: rgb(180,180,180);" +
                        " border-style: inset;" +
@@ -277,6 +349,11 @@ void MapViewWidget::toggleMapConfig()
 void MapViewWidget::toggleRegionConfig()
 {
     ui->regionConfig->showMenu();
+}
+
+void MapViewWidget::toggleFootstepConfig()
+{
+    ui->footstepConfigBtn->showMenu();
 }
 
 void MapViewWidget::closeEvent(QCloseEvent *event)
@@ -393,10 +470,28 @@ bool MapViewWidget::eventFilter( QObject * o, QEvent * e )
             p.setX(0);
             p.setY(ui->mapConfig->geometry().height());
             p = ui->mapConfig->mapToGlobal(p);
-        }
+        }/*
+        else if(((QMenu*)o) == ui->footstepConfigBtn->menu())
+        {
+            p.setX(0);
+            p.setY(ui->footstepConfigBtn->geometry().height());
+            p = ui->footstepConfigBtn->mapToGlobal(p);
+        }*/
+
         ((QMenu*)o)->move(p); // move widget to position
         return true;
     }
+    if( qobject_cast<QComboBox*>( o ) && qobject_cast<QComboBox*>( o ) == ui->footstepParamSetBox)
+    {
+        e->ignore();
+        return true;
+    }
+    if( qobject_cast<QCheckBox*>( o ) && qobject_cast<QCheckBox*>( o ) == ui->use3dPlanning)
+    {
+        e->ignore();
+        return true;
+    }
+
     return QWidget::eventFilter( o, e );
 }
 
@@ -421,3 +516,78 @@ void MapViewWidget::stereoHotkey()
         ui->map_view_->requestPointCloud(2);
 }
 
+void MapViewWidget::toggleWindow(int window)
+{
+    std_msgs::Int8 cmd;
+    cmd.data = ((QPushButton*)toggle_mapper_->mapping(window))->isChecked() ? window : -window;
+    window_control_pub_.publish(cmd);
+}
+
+void MapViewWidget::processWindowControl(const std_msgs::Int8::ConstPtr &visible)
+{
+    char visibility = visible->data;
+
+    switch(abs(visibility))
+    {
+        case HIDE_ALL_WINDOWS:
+            //ui->basicStepBtn->setChecked(false);
+            ui->stepBtn->setChecked(false);
+            ui->footstepParamBtn->setChecked(false);
+            break;
+        case WINDOW_FOOTSTEP_BASIC:
+            //ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case WINDOW_FOOTSTEP_ADVANCED:
+            ui->stepBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        case WINDOW_FOOTSTEP_PARAMETER:
+            ui->footstepParamBtn->setChecked(visibility > 0 ? true : false);
+            break;
+        default:
+            break;
+    }
+}
+
+void MapViewWidget::populateFootstepParameterSetBox(std::vector<std::string> parameter_sets)
+{
+    // first we need to check if they're different than the one we have
+    bool need_clear = false;
+    for(int i = 0; i < parameter_sets.size(); i++)
+    {
+        if(QString(parameter_sets[i].c_str()) != ui->footstepParamSetBox->itemText(i))
+        {
+            need_clear = true;
+            break;
+        }
+    }
+
+    // then we only repopulate the combo box if needed
+    if(need_clear)
+    {
+        ui->footstepParamSetBox->clear();
+        for(int i = 0; i < parameter_sets.size(); i++)
+        {
+            ui->footstepParamSetBox->addItem(QString(parameter_sets[i].c_str()));
+        }
+    }
+}
+
+void MapViewWidget::setFootstepParameterSetBox(std::string parameter_set)
+{
+    for(int i = 0; i < ui->footstepParamSetBox->count(); i++)
+    {
+        if(QString(parameter_set.c_str()) == ui->footstepParamSetBox->itemText(i))
+        {
+            ui->footstepParamSetBox->installEventFilter(this);
+            ui->footstepParamSetBox->setCurrentIndex(i);
+            ui->footstepParamSetBox->removeEventFilter(this);
+        }
+    }
+}
+
+void MapViewWidget::update3dPlanning(bool checked)
+{
+    ui->use3dPlanning->installEventFilter(this);
+    ui->use3dPlanning->setChecked(checked);
+    ui->use3dPlanning->removeEventFilter(this);
+}

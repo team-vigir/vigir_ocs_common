@@ -87,6 +87,8 @@ public Q_SLOTS:
     void on_displacementBox_valueChanged(double value);
     void on_keepOrientationBox_toggled(bool checked);
     void on_snapTemplateButton_clicked();
+    void on_graspPose_clicked();
+
 
 
 private:
@@ -181,7 +183,7 @@ private:
 
     // publisher for the finger joints
     ros::Publisher ghost_hand_joint_state_pub_;
-    void publishHandJointStates(std::vector<float>&);
+    void publishHandJointStates(std::vector<float>&, std::vector<std::string> &finger_joint_names);
 
     tf::TransformListener tf_;
 
@@ -223,6 +225,7 @@ private:
 
 protected:
     void timerEvent(QTimerEvent *event);
+
 
 private:
     QBasicTimer timer;

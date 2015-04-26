@@ -109,6 +109,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
             QObject::connect(ui->robot_joint_markers,SIGNAL(toggled(bool)), iter->second, SLOT(robotJointMarkerToggled(bool)));
             QObject::connect(ui->robot_occlusion_rendering,SIGNAL(toggled(bool)), iter->second, SLOT(robotOcclusionToggled(bool)));            
             QObject::connect(ui->notification_system,SIGNAL(toggled(bool)), iter->second, SLOT(notificationSystemToggled(bool)));
+            QObject::connect(ui->update_ghost_opacity,SIGNAL(toggled(bool)), iter->second, SLOT(updateGhostRobotOpacityToggled(bool)));
             QObject::connect(ui->camera_frustum,SIGNAL(toggled(bool)), iter->second, SLOT(cameraFrustumToggled(bool)));
         }
         else
@@ -189,8 +190,16 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //initialize footstep configuration widget
     footstep_configure_widget_ = new FootstepConfigure();
     //connect to update footstep paramaters from ui
-    connect(footstep_configure_widget_,SIGNAL(sendFootstepParamaters(double,int,double,int,bool)),
-            ((vigir_ocs::Base3DView*) views_list_["Top Left"])->getFootstepVisManager(),SLOT(updateFootstepParamaters(double,int,double,int,bool)));
+    connect(footstep_configure_widget_,SIGNAL(sendFootstepParamaters(double,int,double,int)),
+            ((vigir_ocs::Base3DView*) views_list_["Top Left"])->getFootstepVisManager(),SLOT(updateFootstepParamaters(double,int,double,int)));
+    connect(ui->use3dPlanning,SIGNAL(clicked(bool)),
+            ((vigir_ocs::Base3DView*) views_list_["Top Left"])->getFootstepVisManager(),SLOT(update3dPlanning(bool)));
+    connect(((vigir_ocs::Base3DView*) views_list_["Top Left"])->getFootstepVisManager(),SIGNAL(setFootstepParamaters(double,int,double,int)),
+            footstep_configure_widget_,SLOT(updateFootstepParamaters(double,int,double,int)));
+    connect(((vigir_ocs::Base3DView*) views_list_["Top Left"])->getFootstepVisManager(),SIGNAL(set3dPlanning(bool)),
+            this,SLOT(update3dPlanning(bool)));
+
+    footstep_configure_widget_->emitCurrentConfig();
 
     // setup all buttons/icons in the toolbar
     setupToolbar();
@@ -316,7 +325,29 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     sidebar_toggle_->setIcon(Btn);
     sidebar_toggle_->setIconSize(pix.rect().size() / 8);
 
-    connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));  
+    connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));
+
+    //initialize behavior relay with notifications
+    notification_container_ = new QWidget(this);
+    notification_container_->setStyleSheet("background-color: rgb(30, 30, 30);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
+    notification_container_->setWindowOpacity(0);
+    //notification_container_->setAttribute(Qt::WA_TranslucentBackground);
+    //notification_container_->setStyleSheet("background:transparent;");
+    notification_container_->setMinimumHeight(70);
+    notification_container_->setMaximumHeight(70);
+    notification_container_->setMaximumWidth(340);
+    notification_container_->setMinimumWidth(340);
+    notification_container_->adjustSize();
+    notification_layout_ = new QVBoxLayout();
+    notification_layout_->setMargin(0);
+    notification_layout_->setSpacing(0);
+    notification_container_->setLayout(notification_layout_);
+    notification_container_->hide();
+
+    behavior_relay_ = new BehaviorRelay();
+    connect(behavior_relay_,SIGNAL(updateUI()),this,SLOT(updateBehaviorNotifications()));
+
+
 
     timer.start(100, this);
 
@@ -327,13 +358,14 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
 
     //need local reference to ghost control to access some of its functionality for context menu
-    ghost_control_widget_ = new GhostControlWidget();
-    ghost_control_widget_->hide();
+    snap_ghost_pub_ = n_.advertise<std_msgs::Bool>("/flor/ocs/ghost/snap_ghost_context",1,false);
+    use_torso_pub_ = n_.advertise<std_msgs::Bool>("/flor/ocs/ghost/use_torso_context",1,false);
+    //TODO, get this synced from ghost control ui
     use_torso_checked_ = false;
 
     // connect emergency stop button to glancehub
     stop_mapper_ = new QSignalMapper(this);
-    connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
+    connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(modeChanged(int)));
 
     //map all toggles button to their identifiers                              @todo - verify
     stop_mapper_->setMapping(((vigir_ocs::Base3DView*) views_list_["Top Left"]),1);//flor_control_msgs::FlorControlModeCommand::FLOR_STOP);
@@ -352,8 +384,33 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //useful to getting access to callbacks for context menu
     primary_view_ = (vigir_ocs::Base3DView*) views_list_["Top Left"];
 
+    //execute footstep plan hotkey - should only run this once, so can't have it in the base view
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+j",boost::bind(&vigir_ocs::Base3DView::executeStepPlanHotkey,primary_view_));
+
     //create context menu and add to base3dview
     main_view_context_menu_ = new MainViewContextMenu(this);
+}
+
+
+void MainViewWidget::updateBehaviorNotifications()
+{
+    //show certain amount of notifications in 3d view
+    int i=0;
+    //old notifications may have been deleted, replace current notifications with top 3 from relay
+    while (i < (int)behavior_relay_->getNotifications().size() && i < behavior_relay_->getMaxNotificationsShown())
+    {
+        BehaviorNotification* notification = behavior_relay_->getNotifications()[i];       
+        notification->show();        
+        notification_layout_->insertWidget(0,notification);//insert top down
+        i++;
+    }    
+    //toggle visibility of behavior container in ui
+    if(notification_layout_->count() == 0)
+    {
+        notification_container_->hide();
+    }
+    else
+        notification_container_->show();
 }
 
 void MainViewWidget::setLidarSpinRate(double spin_rate)
@@ -444,6 +501,16 @@ void MainViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchroniz
                     changeCheckBoxState(ui->notification_system,Qt::Unchecked);
             }
         }
+        else if(msg->properties[i].compare("Update Ghost Opacity") == 0)
+        {
+            if(!msg->reset[i])
+            {
+                if(msg->visible[i])
+                    changeCheckBoxState(ui->update_ghost_opacity,Qt::Checked);
+                else
+                    changeCheckBoxState(ui->update_ghost_opacity,Qt::Unchecked);
+            }
+        }
         else if(msg->properties[i].compare("Frustum Display") == 0)
         {
             if(!msg->reset[i])
@@ -517,12 +584,12 @@ void MainViewWidget::contextToggleWindow(int window)
         else
             ui->pelvisControlBtn->setChecked(false);
         break;
-    case WINDOW_FOOTSTEP_BASIC:
-        if(!ui->basicStepBtn->isChecked())
-            ui->basicStepBtn->setChecked(true);
-        else
-            ui->basicStepBtn->setChecked(false);
-        break;
+//    case WINDOW_FOOTSTEP_BASIC:
+//        if(!ui->basicStepBtn->isChecked())
+//            ui->basicStepBtn->setChecked(true);
+//        else
+//            ui->basicStepBtn->setChecked(false);
+//        break;
     case WINDOW_FOOTSTEP_ADVANCED:
         if(!ui->stepBtn->isChecked())
             ui->stepBtn->setChecked(true);
@@ -582,7 +649,7 @@ void MainViewWidget::updateContextMenu()
     main_view_context_menu_->setItemCheckState("Joystick",ui->joystickBtn->isChecked());
     main_view_context_menu_->setItemCheckState("Joint Control",ui->jointControlBtn->isChecked());
     main_view_context_menu_->setItemCheckState("Pelvis Pose",ui->pelvisControlBtn->isChecked());
-    main_view_context_menu_->setItemCheckState("Basic Footstep Interface",ui->basicStepBtn->isChecked());
+    //main_view_context_menu_->setItemCheckState("Basic Footstep Interface",ui->basicStepBtn->isChecked());
     main_view_context_menu_->setItemCheckState("Advanced Footstep Interface",ui->stepBtn->isChecked());
     main_view_context_menu_->setItemCheckState("Footstep Parameter Control",ui->footstepParamBtn->isChecked());
     main_view_context_menu_->setItemCheckState("Ghost Control",ui->ghostControlBtn->isChecked());
@@ -611,10 +678,26 @@ void MainViewWidget::updateContextMenu()
 
 }
 
+//yes these next 3 functions are awful
 //need to coordinate checkbox in ghost widget and main view context menu, also call use torso function
 void MainViewWidget::useTorsoContextMenu()
 {
-    use_torso_checked_ = ghost_control_widget_->useTorsoContextMenu();
+    std_msgs::Bool msg;
+    //message is only used as a signal,  TEMPORARY, need to make ghost manager
+    snap_ghost_pub_.publish(msg);
+}
+
+//use_torso not synced in context menu
+//void MainViewWidget::useTorsoChecked(std_msgs::BoolConstPtr & msg)
+//{
+//    use_torso_checked_ = msg->data;
+//}
+
+void MainViewWidget::snapGhostContextMenu()
+{
+    std_msgs::Bool msg;
+    //message is only used as a signal,  TEMPORARY, need to make ghost manager
+    snap_ghost_pub_.publish(msg);
 }
 
 void MainViewWidget::setManipulationMode(int mode)
@@ -664,13 +747,18 @@ void MainViewWidget::graspWidgetToggle()
 MainViewWidget::~MainViewWidget()
 {
     delete ui;
-    delete ghost_control_widget_;
+    //delete ghost_control_widget_;
 }
 
 void MainViewWidget::timerEvent(QTimerEvent *event)
 {
     grasp_toggle_button_->setGeometry(ui->view_stack_->geometry().bottomRight().x() - 60,ui->view_stack_->geometry().bottom() + 22,60,22);
     sidebar_toggle_->setGeometry(ui->view_stack_->geometry().topRight().x() - 25 ,ui->view_stack_->geometry().top() + 43,25,25);
+
+    //top right 3/4 of width just offset from top
+    notification_container_->setGeometry(ui->view_stack_->geometry().topRight().x() - notification_container_->geometry().width()/2 - ui->view_stack_->geometry().width()/4,
+                                         ui->view_stack_->geometry().topRight().y() + notification_container_->geometry().height() - 15,
+                                         notification_container_->geometry().width(),notification_container_->geometry().height());
 
     //must be global, as it is treated as dialog window
     graspContainer->setGeometry(ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x() - graspContainer->geometry().width()/2 - ui->view_stack_->geometry().width()/2,
@@ -684,6 +772,16 @@ bool MainViewWidget::eventFilter( QObject * o, QEvent * e )
 {
     if ( e->type() == QEvent::Wheel &&
          (qobject_cast<QAbstractSpinBox*>( o ) || qobject_cast<QAbstractSlider*>( o ) || qobject_cast<QComboBox*>( o )))
+    {
+        e->ignore();
+        return true;
+    }
+    if( qobject_cast<QComboBox*>( o ) && qobject_cast<QComboBox*>( o ) == ui->footstepParamSetBox)
+    {
+        e->ignore();
+        return true;
+    }
+    if( qobject_cast<QCheckBox*>( o ) && qobject_cast<QCheckBox*>( o ) == ui->use3dPlanning)
     {
         e->ignore();
         return true;
@@ -705,41 +803,15 @@ void MainViewWidget::setupToolbar()
     connect(ui->footstepConfigBtn,SIGNAL(clicked()),this,SLOT(toggleFootstepConfig()));
 
     //place graphic on joystick toggle
-    loadButtonIcon(ui->joystickBtn, "controllerIcon.png");
-    loadButtonIcon(ui->jointControlBtn, "jointIcon.png");
-    loadButtonIcon(ui->pelvisControlBtn, "pelvis.png");
-    loadButtonIcon(ui->ghostControlBtn, "ghostIcon.png");
-    loadButtonIcon(ui->positionModeBtn, "positionIcon.png");
-    loadButtonIcon(ui->basicStepBtn, "footBasicIcon.png");
-    loadButtonIcon(ui->stepBtn, "footAdvancedIcon.png");
-    loadButtonIcon(ui->footstepParamBtn, "footParamIcon.png");
-    loadButtonIcon(ui->footstepConfigBtn,"configIcon.png");
-
-    //set button style
-    QString btnStyle = QString("QPushButton  { ") +
-                               " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
-                               " border-style: solid;" +
-                               " border-width: 1px;" +
-                               " border-radius: 1px;" +
-                               " border-color: gray;" +
-                               " padding: 0px;" +
-                               " image-position: top left"
-                               "}" +
-                               "QPushButton:checked  {" +
-                               " padding-top:1px; padding-left:1px;" +
-                               " background-color: rgb(180,180,180);" +
-                               " border-style: inset;" +
-                               "}";
-    ui->joystickBtn->setStyleSheet(btnStyle);
-    ui->jointControlBtn->setStyleSheet(btnStyle);
-    ui->pelvisControlBtn->setStyleSheet(btnStyle);
-    ui->basicStepBtn->setStyleSheet(btnStyle);
-    ui->stepBtn->setStyleSheet(btnStyle);
-    ui->footstepParamBtn->setStyleSheet(btnStyle);
-    ui->ghostControlBtn->setStyleSheet(btnStyle);
-    ui->positionModeBtn->setStyleSheet(btnStyle);
-    ui->plannerConfigBtn->setStyleSheet(btnStyle);
-    ui->footstepConfigBtn->setStyleSheet(btnStyle);
+    loadButtonIconAndStyle(ui->joystickBtn, "controllerIcon.png");
+    loadButtonIconAndStyle(ui->jointControlBtn, "jointIcon.png");
+    loadButtonIconAndStyle(ui->pelvisControlBtn, "pelvis.png");
+    loadButtonIconAndStyle(ui->ghostControlBtn, "ghostIcon.png");
+    loadButtonIconAndStyle(ui->positionModeBtn, "positionIcon.png");
+    //loadButtonIconAndStyle(ui->basicStepBtn, "footBasicIcon.png");
+    loadButtonIconAndStyle(ui->stepBtn, "footAdvancedIcon.png");
+    loadButtonIconAndStyle(ui->footstepParamBtn, "footParamIcon.png");
+    loadButtonIconAndStyle(ui->footstepConfigBtn,"configIcon.png");
 
     //use signalmapper to avoid having one function for each one of the toggle buttons
     toggle_mapper_ = new QSignalMapper(this);
@@ -749,7 +821,7 @@ void MainViewWidget::setupToolbar()
     toggle_mapper_->setMapping(this->ui->joystickBtn,WINDOW_JOYSTICK);
     toggle_mapper_->setMapping(this->ui->jointControlBtn,WINDOW_JOINT_CONTROL);
     toggle_mapper_->setMapping(this->ui->pelvisControlBtn,WINDOW_BDI_PELVIS_POSE);
-    toggle_mapper_->setMapping(this->ui->basicStepBtn,WINDOW_FOOTSTEP_BASIC);
+    //toggle_mapper_->setMapping(this->ui->basicStepBtn,WINDOW_FOOTSTEP_BASIC);
     toggle_mapper_->setMapping(this->ui->stepBtn,WINDOW_FOOTSTEP_ADVANCED);
     toggle_mapper_->setMapping(this->ui->footstepParamBtn,WINDOW_FOOTSTEP_PARAMETER);
     toggle_mapper_->setMapping(this->ui->ghostControlBtn,WINDOW_GHOST_CONFIG);
@@ -760,7 +832,7 @@ void MainViewWidget::setupToolbar()
     connect(ui->joystickBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->jointControlBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->pelvisControlBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
-    connect(ui->basicStepBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
+    //connect(ui->basicStepBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->stepBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->footstepParamBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
     connect(ui->ghostControlBtn,SIGNAL(toggled(bool)),toggle_mapper_,SLOT(map()));
@@ -798,6 +870,7 @@ void MainViewWidget::setupToolbar()
 
     connect(ui->footstepParamSetBox,SIGNAL(currentIndexChanged(QString)),((vigir_ocs::Base3DView*)views_list_["Top Left"])->getFootstepVisManager(),SLOT(setFootstepParameterSet(QString)));
     connect(((vigir_ocs::Base3DView*)views_list_["Top Left"])->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));
+    connect(((vigir_ocs::Base3DView*)views_list_["Top Left"])->getFootstepVisManager(),SIGNAL(setFootstepParameterSetBox(std::string)),this,SLOT(setFootstepParameterSetBox(std::string)));
 
 }
 
@@ -806,31 +879,41 @@ void MainViewWidget::toggleFootstepConfig()
     ui->footstepConfigBtn->showMenu();
 }
 
-
-void MainViewWidget::loadButtonIcon(QPushButton* btn, QString image_name)
+void MainViewWidget::loadButtonIconAndStyle(QPushButton* btn, QString image_name)
 {
-    QPixmap pixmap( icon_path_+ image_name );
-    QIcon icon(pixmap);
-    btn->setIcon(icon);
-    QSize size(btn->size());
-    btn->setIconSize(size);
+    btn->setStyleSheet(QString("QPushButton  { ") +
+                       " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                       " border-style: solid;" +
+                       " border-width: 1px;" +
+                       " border-radius: 1px;" +
+                       " border-color: gray;" +
+                       " padding: 0px;" +
+                       " image: url(" + icon_path_ + image_name + ");" +
+                       " image-position: top left"
+                       "}" +
+                       "QPushButton:pressed  {" +
+                       " padding-top:1px; padding-left:1px;" +
+                       " background-color: rgb(180,180,180);" +
+                       " border-style: inset;" +
+                       " image: url(" + icon_path_ + image_name + ");" +
+                       "}");
 }
 
 void MainViewWidget::toggleWindow(int window)
 {
-    if(window == WINDOW_GHOST_CONFIG)
-    {
-        if(ghost_control_widget_->isVisible())
-            ghost_control_widget_->hide();
-        else
-            ghost_control_widget_->show();
-    }
-    else
-    {
+//    if(window == WINDOW_GHOST_CONFIG)
+//    {
+//        if(ghost_control_widget_->isVisible())
+//            ghost_control_widget_->hide();
+//        else
+//            ghost_control_widget_->show();
+//    }
+//    else
+//    {
         std_msgs::Int8 cmd;
         cmd.data = ((QPushButton*)toggle_mapper_->mapping(window))->isChecked() ? window : -window;
         window_control_pub_.publish(cmd);
-    }
+   // }
 
 
 }
@@ -942,7 +1025,7 @@ void MainViewWidget::processWindowControl(const std_msgs::Int8::ConstPtr &visibl
             ui->joystickBtn->setChecked(false);
             ui->jointControlBtn->setChecked(false);
             ui->pelvisControlBtn->setChecked(false);
-            ui->basicStepBtn->setChecked(false);
+            //ui->basicStepBtn->setChecked(false);
             ui->stepBtn->setChecked(false);
             ui->footstepParamBtn->setChecked(false);
             ui->ghostControlBtn->setChecked(false);
@@ -950,7 +1033,7 @@ void MainViewWidget::processWindowControl(const std_msgs::Int8::ConstPtr &visibl
             ui->plannerConfigBtn->setChecked(false);
             break;
         case WINDOW_FOOTSTEP_BASIC:
-            ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
+            //ui->basicStepBtn->setChecked(visibility > 0 ? true : false);
             break;
         case WINDOW_FOOTSTEP_ADVANCED:
             ui->stepBtn->setChecked(visibility > 0 ? true : false);
@@ -1021,4 +1104,24 @@ void MainViewWidget::populateFootstepParameterSetBox(std::vector<std::string> pa
             ui->footstepParamSetBox->addItem(QString(parameter_sets[i].c_str()));
         }
     }
+}
+
+void MainViewWidget::setFootstepParameterSetBox(std::string parameter_set)
+{
+    for(int i = 0; i < ui->footstepParamSetBox->count(); i++)
+    {
+        if(QString(parameter_set.c_str()) == ui->footstepParamSetBox->itemText(i))
+        {
+            ui->footstepParamSetBox->installEventFilter(this);
+            ui->footstepParamSetBox->setCurrentIndex(i);
+            ui->footstepParamSetBox->removeEventFilter(this);
+        }
+    }
+}
+
+void MainViewWidget::update3dPlanning(bool checked)
+{
+    ui->use3dPlanning->installEventFilter(this);
+    ui->use3dPlanning->setChecked(checked);
+    ui->use3dPlanning->removeEventFilter(this);
 }

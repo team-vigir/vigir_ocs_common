@@ -33,9 +33,10 @@
 #include <rviz/views_panel.h>
 #include <QPropertyAnimation>
 #include <flor_ocs_msgs/WindowCodes.h>
-#include "footstep_config.h"
+#include <ui/footstep_config.h>
 #include "notification_system.h"
 #include "main_context_menu.h"
+#include "behavior_relay.h"
 
 #include "ui/ghost_control_widget.h"
 
@@ -62,9 +63,9 @@ public:
     virtual void timerEvent(QTimerEvent *event);
 
     vigir_ocs::Base3DView* getPrimaryView() {return primary_view_;}
-    Ui::MainViewWidget* getUi(){return ui;}
-    GhostControlWidget* getGhostControlWidget() {return ghost_control_widget_;}
+    Ui::MainViewWidget* getUi(){return ui;}    
     void useTorsoContextMenu();
+    void snapGhostContextMenu();
 
 public Q_SLOTS:
     void oneViewToggle();
@@ -83,20 +84,22 @@ public Q_SLOTS:
     void graspWidgetToggle();
     void setCameraMode();
     void setWorldMode();
+    void updateBehaviorNotifications();
+    void update3dPlanning(bool);
 
 protected Q_SLOTS:
     void toggleSidebarVisibility();    
     void hideGraspWidgets();
-    void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
     void toggleFootstepConfig();
     void setLidarSpinRate(double spin_rate);
 
-
+    void populateFootstepParameterSetBox(std::vector<std::string> parameter_sets);
+    void setFootstepParameterSetBox(std::string parameter_set);
 
 protected:
     void setupToolbar();
     void systemCommandContext(std::string command);
-    void loadButtonIcon(QPushButton* btn, QString image_name);
+    void loadButtonIconAndStyle(QPushButton* btn, QString image_name);
     void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
     void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
     void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
@@ -107,6 +110,11 @@ protected:
     flor_ocs_msgs::OCSControlMode controlModes;
 
     vigir_ocs::Base3DView* primary_view_;
+
+    QWidget * notification_container_;
+    QVBoxLayout* notification_layout_;
+    BehaviorRelay* behavior_relay_;
+
 
     Ui::MainViewWidget *ui;
     MainViewContextMenu* main_view_context_menu_;
@@ -129,6 +137,9 @@ protected:
     //ros::Subscriber key_event_sub_;
     ros::Publisher ft_zero_pub_;
 
+
+    ros::Publisher snap_ghost_pub_;
+    ros::Publisher use_torso_pub_;
 
     ros::Publisher mode_pub_;
     ros::Subscriber mode_sub_;

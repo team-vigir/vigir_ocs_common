@@ -338,11 +338,16 @@
              <widget class="QLabel" name="label_2">
               <property name="font">
                <font>
-                <pointsize>8</pointsize>
+                <pointsize>-1</pointsize>
                 <weight>75</weight>
                 <italic>false</italic>
                 <bold>true</bold>
                </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">
+     font: bold &quot;Ubuntu&quot;;
+     font-size: 10px;</string>
               </property>
               <property name="lineWidth">
                <number>1</number>
@@ -517,7 +522,7 @@
            </property>
            <property name="maximumSize">
             <size>
-             <width>210</width>
+             <width>300</width>
              <height>16777215</height>
             </size>
            </property>
@@ -541,10 +546,16 @@
              <widget class="QLabel" name="label_4">
               <property name="font">
                <font>
-                <pointsize>8</pointsize>
+                <pointsize>-1</pointsize>
                 <weight>75</weight>
+                <italic>false</italic>
                 <bold>true</bold>
                </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">
+     font: bold &quot;Ubuntu&quot;;
+     font-size: 10px;</string>
               </property>
               <property name="text">
                <string>Footstep Control</string>
@@ -581,31 +592,6 @@
                <property name="bottomMargin">
                 <number>0</number>
                </property>
-               <item>
-                <widget class="QPushButton" name="basicStepBtn">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>26</width>
-                   <height>26</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>Basis Step Interface</string>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="checkable">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
                <item>
                 <widget class="QPushButton" name="stepBtn">
                  <property name="sizePolicy">
@@ -718,12 +704,24 @@
                 <widget class="QPushButton" name="footstepConfigBtn">
                  <property name="maximumSize">
                   <size>
-                   <width>26</width>
+                   <width>40</width>
                    <height>26</height>
                   </size>
                  </property>
                  <property name="text">
                   <string/>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="use3dPlanning">
+                 <property name="font">
+                  <font>
+                   <pointsize>8</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>3D Planning</string>
                  </property>
                 </widget>
                </item>
@@ -765,10 +763,16 @@
              <widget class="QLabel" name="label_7">
               <property name="font">
                <font>
-                <pointsize>8</pointsize>
+                <pointsize>-1</pointsize>
                 <weight>75</weight>
+                <italic>false</italic>
                 <bold>true</bold>
                </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">
+     font: bold &quot;Ubuntu&quot;;
+     font-size: 10px;</string>
               </property>
               <property name="text">
                <string>Position Mode</string>
@@ -1234,9 +1238,9 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-149</y>
+           <y>-446</y>
            <width>212</width>
-           <height>1598</height>
+           <height>1622</height>
           </rect>
          </property>
          <property name="maximumSize">
@@ -1506,9 +1510,6 @@
               </widget>
              </item>
             </layout>
-            <zorder>laser_scan_2</zorder>
-            <zorder>lidar_spin_rate</zorder>
-            <zorder>label_8</zorder>
            </widget>
           </item>
           <item>
@@ -1923,6 +1924,19 @@ color: rgb(255, 26, 26);</string>
                </property>
                <property name="checked">
                 <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="update_ghost_opacity">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="text">
+                <string>Update Ghost Robot Opacity</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
                </property>
               </widget>
              </item>

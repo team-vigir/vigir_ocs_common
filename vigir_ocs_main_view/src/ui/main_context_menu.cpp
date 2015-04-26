@@ -5,8 +5,7 @@ MainViewContextMenu::MainViewContextMenu(MainViewWidget *main_view)
 {
     main_view_ = main_view;
     base_view_ = main_view_->getPrimaryView();
-    context_menu_manager_ = base_view_->getContextMenuManager();
-    ghost_control_widget_ = main_view_->getGhostControlWidget();
+    context_menu_manager_ = base_view_->getContextMenuManager();    
 
     //connect context menu elements to be updated by ui
     connect(context_menu_manager_,SIGNAL(updateMainViewItems()),main_view_,SLOT(updateContextMenu()));
@@ -93,7 +92,7 @@ void MainViewContextMenu::createContextMenu()
     //ghost widget functions
     context_menu_manager_->addSeparatorItem();
 
-    context_menu_manager_->addActionItem("Snap Ghost to Robot",boost::bind(&GhostControlWidget::snapContextMenu,ghost_control_widget_), NULL);
+    context_menu_manager_->addActionItem("Snap Ghost to Robot",boost::bind(&MainViewWidget::snapGhostContextMenu,main_view_), NULL);
     context_menu_items_map_["Use Torso"] = context_menu_manager_->addActionItem("Use Torso",boost::bind(&MainViewWidget::useTorsoContextMenu,main_view_), NULL);
 }
 //CALLBACKS/////////////////////

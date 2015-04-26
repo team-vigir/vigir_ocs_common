@@ -34,6 +34,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     ui->attachButton->setDisabled(true);
     ui->detachButton->setDisabled(true);
     ui->show_grasp->setDisabled(true);
+    ui->graspPose->setDisabled(true);
     setUpButtons();
 
     this->stitch_template_pose_.setIdentity();
@@ -137,7 +138,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     if(robot_model_->hasJointModelGroup(hand_group_))
     {
         hand_joint_names_.clear();
-        hand_joint_names_ = robot_model_->getJointModelGroup(hand_group_)->getActiveJointModelNames();
+        hand_joint_names_ = robot_model_->getJointModelGroup(hand_group_)->getJointModelNames();//->getActiveJointModelNames();
 
         for(int i = 0; i < hand_joint_names_.size(); i++)
             ROS_INFO("Grasp widget loading joint %d: %s",i,hand_joint_names_[i].c_str());
@@ -169,7 +170,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
             }
         }
         // change color of the ghost template hands
-        std::vector<std::string> link_names = robot_model_->getJointModelGroup(hand_group_)->getLinkModelNames();
+        std::vector<std::string> link_names = hand_robot_model_->getJointModelGroup(hand_group_)->getLinkModelNames();
         link_names.push_back(palm_link_);
 
         for (size_t i = 0; i < link_names.size(); ++i)
@@ -299,6 +300,8 @@ void graspWidget::setUpButtons()
     ui->snapTemplateButton->setFont(QFont ("Ubuntu", 10));
     ui->affordanceButton->setStyleSheet(btnStyle);
     ui->affordanceButton->setFont(QFont ("Ubuntu", 10));
+    ui->graspPose->setStyleSheet(btnStyle);
+    ui->graspPose->setFont(QFont ("Ubuntu", 10));
     //put arrows on comboboxes
     QString styleSheet = ui->templateBox->styleSheet() + "\n" +
             "QComboBox::down-arrow {\n" +
@@ -383,6 +386,7 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         ui->affordanceBox->setEnabled(false);
         ui->show_grasp->setChecked(false);
         ui->show_grasp->setEnabled(false);
+        ui->graspPose->setEnabled(false);
         ui->attachButton->setEnabled(false);
         ui->snapTemplateButton->setEnabled(false);
         ui->detachButton->setEnabled(false);
@@ -439,6 +443,7 @@ void graspWidget::on_performButton_clicked()
     ui->verticalSlider_4->setValue(0);
 
     setProgressLevel(ui->userSlider->value());
+    cmd.grasp_state.data = cmd.CLOSE;
 
     grasp_command_pub_.publish(cmd);
 }
@@ -460,6 +465,7 @@ void graspWidget::on_releaseButton_clicked()
     ui->verticalSlider_4->setValue(0);
 
     setProgressLevel(ui->userSlider->value());
+    cmd.grasp_state.data = cmd.OPEN;
 
     grasp_command_pub_.publish(cmd);
 }
@@ -495,8 +501,7 @@ void graspWidget::sendManualMsg(uint8_t level, int8_t thumb,int8_t left,int8_t r
     cmd.finger_effort[1].data = left;   //index for sandia
     cmd.finger_effort[2].data = right;  //middle for sandia
     cmd.finger_effort[3].data = spread; //Spread iRobot, Pinky for sandia
-    cmd.grasp_state.data = 4; // leave as current command
-    cmd.grasp_state.data += (flor_grasp_msgs::GraspState::MANUAL_GRASP_MODE)<<4;
+    cmd.grasp_state.data = cmd.PERCENTAGE;
     grasp_command_pub_.publish(cmd);
 }
 
@@ -526,8 +531,10 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
             ui->graspBox->addItem(QString(last_grasp_srv_.response.grasp_information.grasps[index].id.c_str()));
     }
 
-    if(ui->graspBox->count() > 0)
+    if(ui->graspBox->count() > 0){
         ui->show_grasp->setEnabled(true);
+        ui->graspPose->setEnabled(true);
+    }
 
     for(index = 0; index < last_template_srv_.response.template_type_information.affordances.size(); index++)
     {
@@ -541,7 +548,10 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
         ui->affordanceBox->setEnabled(true);
         current_affordance_ = last_template_srv_.response.template_type_information.affordances[0];
         ui->keepOrientationBox->setChecked(current_affordance_.keep_orientation);
-        ui->displacementBox->setValue(current_affordance_.displacement);
+        if(current_affordance_.type == "circular")
+            ui->displacementBox->setValue(current_affordance_.displacement / 0.0174532925); // UI in deg, msg in rad);
+        else
+            ui->displacementBox->setValue(current_affordance_.displacement);
     }
 
     if(ui->templateBox->count() > 0){
@@ -564,7 +574,10 @@ void graspWidget::on_affordanceBox_activated(const int &arg1)
     current_affordance_ = last_template_srv_.response.template_type_information.affordances[selected_affordance_id_];
 
     ui->keepOrientationBox->setChecked(current_affordance_.keep_orientation);
-    ui->displacementBox->setValue(current_affordance_.displacement);
+    if(current_affordance_.type == "circular")
+        ui->displacementBox->setValue(current_affordance_.displacement / 0.0174532925); // UI in deg, msg in rad);
+    else
+        ui->displacementBox->setValue(current_affordance_.displacement);
 }
 
 void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
@@ -620,6 +633,7 @@ void graspWidget::publishHandPose(unsigned int id)
     moveit_msgs::GripperTranslation trans;
 
     std::vector<float> joints;
+    std::vector<std::string> joint_names;
 
     size_t size = last_grasp_srv_.response.grasp_information.grasps.size();
 
@@ -632,14 +646,17 @@ void graspWidget::publishHandPose(unsigned int id)
             if(std::atoi(last_grasp_srv_.response.grasp_information.grasps[index].id.c_str()) == id){
                 grasp_pose = last_grasp_srv_.response.grasp_information.grasps[index].grasp_pose;
                 joints.resize(last_grasp_srv_.response.grasp_information.grasps[index].grasp_posture.points[0].positions.size());
+                joint_names.resize(joints.size());
                 trans = last_grasp_srv_.response.grasp_information.grasps[index].pre_grasp_approach;
-                for(int j=0; j<joints.size();j++)
-                    joints[j] = last_grasp_srv_.response.grasp_information.grasps[index].grasp_posture.points[0].positions[j];
+                for(int j=0; j<joints.size();j++){
+                    joints[j]      = last_grasp_srv_.response.grasp_information.grasps[index].grasp_posture.points[0].positions[j];
+                    joint_names[j] = last_grasp_srv_.response.grasp_information.grasps[index].grasp_posture.joint_names[j];
+                }
                 break;
             }
         }
 
-        if(index >= size)
+        if(index > size)
             ROS_ERROR_STREAM("Template server response id: " << last_grasp_srv_.response.grasp_information.grasps[index].id << " while searching for id: " << id);
         else{
             // get the selected grasp pose
@@ -694,7 +711,7 @@ void graspWidget::publishHandPose(unsigned int id)
 
             moveit::core::jointStateToRobotState(virtual_link_joint_states_, *hand_robot_state_);
 
-            publishHandJointStates(joints);
+            publishHandJointStates(joints, joint_names);
 
             geometry_msgs::PoseStamped planning_hand_target;
             calcPlanningTarget(template_T_palm, frameid_T_template_, planning_hand_target);
@@ -706,7 +723,7 @@ void graspWidget::publishHandPose(unsigned int id)
     
 }
 
-void graspWidget::publishHandJointStates(std::vector<float>& finger_joints)
+void graspWidget::publishHandJointStates(std::vector<float>& finger_joints, std::vector<std::string>& finger_joint_names)
 {
     sensor_msgs::JointState joint_states;
 
@@ -726,9 +743,17 @@ void graspWidget::publishHandJointStates(std::vector<float>& finger_joints)
         joint_states.velocity[i] = 0;
         if(finger_joints.size() == 0)
             joint_states.position[i] = 0;
-        else
-            joint_states.position[i] = finger_joints[i];
+        else{
+            int index = 0;
+            while (index < finger_joint_names.size() && joint_states.name[i] != finger_joint_names[index]){
+                index++;
+            }
+            if(index < finger_joint_names.size()){
+                joint_states.position[i] = finger_joints[index];
+            }else
+                joint_states.position[i] = 0;
         //ROS_ERROR("Setting Finger Joint %s to %f",joint_states.name[i].c_str(),joint_states.position[i]);
+        }
     }
 
     //ghost_hand_joint_state_pub_.publish(joint_states);
@@ -936,8 +961,10 @@ int graspWidget::hideHand()
     moveit::core::jointStateToRobotState(virtual_link_joint_states_, *hand_robot_state_);
 
     std::vector<float> zero_joints;
+    std::vector<std::string> zero_joints_names;
     zero_joints.clear();
-    publishHandJointStates(zero_joints);
+    zero_joints_names.clear();
+    publishHandJointStates(zero_joints,zero_joints_names);
 }
 
 void graspWidget::on_show_grasp_toggled(bool checked)
@@ -1012,6 +1039,7 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             ui->attachButton->setDisabled(true);
             ui->detachButton->setDisabled(true);
             ui->show_grasp->setDisabled(true);
+            ui->graspPose->setDisabled(true);
             ui->show_grasp->setChecked(false);
             ui->show_grasp_radio->setEnabled(false);
             ui->show_pre_grasp_radio->setEnabled(false);
@@ -1098,7 +1126,10 @@ void graspWidget::on_detachButton_clicked()
 
 void graspWidget::on_displacementBox_valueChanged(double value){
     //Set displacement value on afordance msg
-    current_affordance_.displacement = value;
+    if(current_affordance_.type == "circular")
+        current_affordance_.displacement = value * 0.0174532925; // UI in deg, msg in rad;
+    else
+        current_affordance_.displacement = value;
 }
 
 void graspWidget::on_keepOrientationBox_toggled(bool checked){
@@ -1130,4 +1161,27 @@ void graspWidget::on_snapTemplateButton_clicked()
     follow_ban_ = true;
 }
 
+void graspWidget::on_graspPose_clicked()
+{
+    flor_grasp_msgs::GraspState grasp;
+    size_t size = last_grasp_srv_.response.grasp_information.grasps.size();
+    if(size == 0)
+        ROS_ERROR_STREAM("No grasps found for this template");
+    else{
+        size_t index = 0;
+        for(; index < size; ++index)
+        {
+            if(std::atoi(last_grasp_srv_.response.grasp_information.grasps[index].id.c_str()) == selected_grasp_id_){
+                grasp.grasp.grasp_posture = last_grasp_srv_.response.grasp_information.grasps[index].grasp_posture;
+            }
+        }
 
+        if(index > size)
+            ROS_ERROR_STREAM("Template server response id: " << last_grasp_srv_.response.grasp_information.grasps[index].id << " while searching for id: " << selected_grasp_id_);
+        else{
+            grasp.grasp_state.data = grasp.GRASP_ID;
+            grasp_command_pub_.publish(grasp);
+        }
+
+    }
+}

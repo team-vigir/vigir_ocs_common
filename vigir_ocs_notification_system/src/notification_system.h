@@ -8,6 +8,8 @@
 //NotificationSystem::Instance()->notifyCustom("your text",flor_ocs_msgs::OCSOverlayText::TOPROW,flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN,.8f,.8f,.8f);
 
 /**
+  Places notification in top,center and center,center(errors)
+
 Current Proposed Notifications (* means implemented)
 
 Passive(doesn't have to be seen, top center white text)
@@ -42,7 +44,6 @@ Error	(center red text)
     emergency stop activated*
   **/
 
-//Singleton class to store state of robot to be conveniently referenced outside base3dview
 class NotificationSystem{
    public:
        static NotificationSystem* Instance();
