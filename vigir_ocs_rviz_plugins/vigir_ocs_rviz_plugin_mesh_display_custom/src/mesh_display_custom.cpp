@@ -79,15 +79,16 @@ MeshDisplayCustom::MeshDisplayCustom()
     alpha_property_ = new FloatProperty( "Alpha", 0.6f,
                                          "Amount of transparency.", this, SLOT( updateObjectProperties() ) );
 
-    topic_property_ = new RosTopicProperty( "Pose Topic", "",
+    mesh_topic_property_ = new RosTopicProperty( "Mesh Topic", "",
                                             QString::fromStdString( ros::message_traits::datatype<shape_msgs::Mesh>() ),
                                             "shape_msgs::Mesh topic to subscribe to.",
                                             this, SLOT( updateTopic() ));
 
-    position_property_ = new VectorProperty( "Position", Ogre::Vector3::ZERO,
-                                             "position of the bounding object in relation to the object",
+    // this shouldn't necessarily be here, and we should get this from a camera topic with camera info
+    position_property_ = new VectorProperty( "Projector Position", Ogre::Vector3::ZERO,
+                                             "position of the texture projector object in /world",
                                              this, SLOT( updateObjectProperties() ) );
-    rotation_property_ = new QuaternionProperty("Rotation", Ogre::Quaternion::IDENTITY,"rotation of bounding object",this,SLOT(updateObjectProperties()));
+    rotation_property_ = new QuaternionProperty("Projector Rotation", Ogre::Quaternion::IDENTITY,"rotation of the texture projector object",this,SLOT(updateObjectProperties()));
 
 }
 
@@ -106,7 +107,6 @@ void MeshDisplayCustom::createProjector()
 
     projector_node_ = scene_manager_->getRootSceneNode()->createChildSceneNode();
     projector_node_->attachObject(decal_frustum_);
-    projector_node_->setPosition(1, 1, 1);
 
     filter_frustum_ = new Ogre::Frustum();
     filter_frustum_->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
@@ -150,10 +150,13 @@ void MeshDisplayCustom::addDecalToMaterial(const Ogre::String& matName)
 
 void MeshDisplayCustom::setPose()
 {
-    mesh_node_->setPosition(position_property_->getVector().x,
+    if(projector_node_ == NULL)
+        return;
+
+    projector_node_->setPosition(position_property_->getVector().x,
                             position_property_->getVector().y,
                             position_property_->getVector().z);
-    mesh_node_->setOrientation(rotation_property_->getQuaternion().w,
+    projector_node_->setOrientation(rotation_property_->getQuaternion().w,
                                rotation_property_->getQuaternion().x,
                                rotation_property_->getQuaternion().y,
                                rotation_property_->getQuaternion().z);
@@ -255,11 +258,11 @@ void MeshDisplayCustom::subscribe()
         return;
     }
 
-    if( !topic_property_->getTopic().isEmpty() )
+    if( !mesh_topic_property_->getTopic().isEmpty() )
     {
         try
         {
-            pose_sub_ = nh_.subscribe( topic_property_->getTopicStd(), 1, &MeshDisplayCustom::updateMesh, this );
+            pose_sub_ = nh_.subscribe( mesh_topic_property_->getTopicStd(), 1, &MeshDisplayCustom::updateMesh, this );
             setStatus( StatusProperty::Ok, "Topic", "OK" );
         }
         catch( ros::Exception& e )
@@ -359,8 +362,12 @@ void MeshDisplayCustom::update( float wall_dt, float ros_dt )
 {
     time_since_last_transform_ += wall_dt;
 
+    // just added automatic rotation to make it easier  to test things
     if(projector_node_ != NULL)
-        projector_node_->rotate(Ogre::Vector3::UNIT_Y, Ogre::Degree(wall_dt * 10));
+    {
+        projector_node_->rotate(Ogre::Vector3::UNIT_Y, Ogre::Degree(wall_dt * 50));
+        rotation_property_->setQuaternion(projector_node_->getOrientation());
+    }
 }
 
 void MeshDisplayCustom::fixedFrameChanged()

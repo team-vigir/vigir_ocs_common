@@ -132,7 +132,7 @@ protected:
 
   float time_since_last_transform_;
 
-  RosTopicProperty* topic_property_;
+  RosTopicProperty* mesh_topic_property_;
   FloatProperty* alpha_property_;
   ColorProperty* color_property_;
   VectorProperty* position_property_;
