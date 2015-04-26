@@ -135,19 +135,18 @@ void MeshDisplayCustom::createProjector()
 
     Ogre::SceneNode* filter_node = projector_node_->createChildSceneNode();
     filter_node->attachObject(filter_frustum_);
-    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Y));
+    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Z));
 }
 
 void MeshDisplayCustom::addDecalToMaterial(const Ogre::String& matName)
 {
     Ogre::MaterialPtr mat = (Ogre::MaterialPtr)Ogre::MaterialManager::getSingleton().getByName(matName);
-
     mat->setCullingMode(Ogre::CULL_NONE);
     Ogre::Pass* pass = mat->getTechnique(0)->createPass();
 
     pass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
     pass->setDepthBias(1);
-    pass->setLightingEnabled(false);
+    pass->setLightingEnabled(true);
 
     // need the decal_filter to avoid back projection
     Ogre::String resource_group_name = "decal_textures_folder";
