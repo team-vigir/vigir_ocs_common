@@ -183,7 +183,7 @@ private:
 
     // publisher for the finger joints
     ros::Publisher ghost_hand_joint_state_pub_;
-    void publishHandJointStates(std::vector<float>&);
+    void publishHandJointStates(std::vector<float>&, std::vector<std::string> &finger_joint_names);
 
     tf::TransformListener tf_;
 
