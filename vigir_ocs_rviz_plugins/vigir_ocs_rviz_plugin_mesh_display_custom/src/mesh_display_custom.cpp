@@ -43,8 +43,6 @@
 #include <OGRE/OgreMaterialManager.h>
 #include <OGRE/OgreFrustum.h>
 
-#include <urdf/model.h>
-
 #include "rviz/display_context.h"
 #include "rviz/robot/robot.h"
 #include "rviz/robot/tf_link_updater.h"
@@ -58,18 +56,30 @@
 #include "rviz/validate_floats.h"
 #include "rviz/view_manager.h"
 #include "rviz/visualization_manager.h"
-#include "robot_display_custom.h"
+
+#include <image_transport/camera_common.h>
 
 #include "mesh_display_custom.h"
 
 namespace rviz
 {
 
+bool validateFloats(const sensor_msgs::CameraInfo& msg)
+{
+    bool valid = true;
+    valid = valid && validateFloats( msg.D );
+    valid = valid && validateFloats( msg.K );
+    valid = valid && validateFloats( msg.R );
+    valid = valid && validateFloats( msg.P );
+    return valid;
+}
+
 MeshDisplayCustom::MeshDisplayCustom()
-    : Display()
+    : ImageDisplayBase()
     , time_since_last_transform_( 0.0f )
     , mesh_node_(NULL)
     , projector_node_(NULL)
+    , decal_frustum_(NULL)
     , manual_object_(NULL)
     , initialized_(false)
 {
@@ -94,11 +104,23 @@ MeshDisplayCustom::MeshDisplayCustom()
 
 MeshDisplayCustom::~MeshDisplayCustom()
 {
+    unsubscribe();
+    caminfo_tf_filter_->clear();
+    delete caminfo_tf_filter_;
 }
 
 void MeshDisplayCustom::onInitialize()
 {
+    ImageDisplayBase::onInitialize();
+
+    // it will only accept images if the frame in camera info is resolved
+    caminfo_tf_filter_ = new tf::MessageFilter<sensor_msgs::CameraInfo>( *context_->getTFClient(), fixed_frame_.toStdString(),
+                                                                         queue_size_property_->getInt(), update_nh_ );
+
     context_->getSceneManager()->addRenderQueueListener(this);
+
+    caminfo_tf_filter_->connectInput(caminfo_sub_);
+    caminfo_tf_filter_->registerCallback(boost::bind(&MeshDisplayCustom::caminfoCallback, this, _1));
 }
 
 void MeshDisplayCustom::createProjector()
@@ -119,25 +141,28 @@ void MeshDisplayCustom::createProjector()
 void MeshDisplayCustom::addDecalToMaterial(const Ogre::String& matName)
 {
     Ogre::MaterialPtr mat = (Ogre::MaterialPtr)Ogre::MaterialManager::getSingleton().getByName(matName);
+
+    mat->setCullingMode(Ogre::CULL_NONE);
     Ogre::Pass* pass = mat->getTechnique(0)->createPass();
 
     pass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
     pass->setDepthBias(1);
     pass->setLightingEnabled(false);
 
-    // TEMPORARY TEST, SHOULD RECEIVE IMAGE TOPIC AND USE THAT AS TEXTURE
-    Ogre::String resource_group_name = "picturesfolder";
+    // need the decal_filter to avoid back projection
+    Ogre::String resource_group_name = "decal_textures_folder";
     Ogre::ResourceGroupManager& resource_manager = Ogre::ResourceGroupManager::getSingleton();
     if(!resource_manager.resourceGroupExists(resource_group_name))
     {
         resource_manager.createResourceGroup(resource_group_name);
-        resource_manager.addResourceLocation("/home/vigir/Pictures/", "FileSystem", resource_group_name, false);
+        resource_manager.addResourceLocation(ros::package::getPath("vigir_ocs_rviz_plugins")+"/vigir_ocs_rviz_plugin_mesh_display_custom/textures/", "FileSystem", resource_group_name, false);
         resource_manager.initialiseResourceGroup(resource_group_name);
     }
     // loads files into our resource manager
     resource_manager.loadResourceGroup(resource_group_name);
 
-    Ogre::TextureUnitState* tex_state = pass->createTextureUnitState("Decal.png");
+    Ogre::TextureUnitState* tex_state = pass->createTextureUnitState();//"Decal.png");
+    tex_state->setTextureName(texture_.getTexture()->getName());
     tex_state->setProjectiveTexturing(true, decal_frustum_);
     tex_state->setTextureAddressingMode(Ogre::TextureUnitState::TAM_CLAMP);
     tex_state->setTextureFiltering(Ogre::FO_POINT, Ogre::FO_LINEAR, Ogre::FO_NONE);
@@ -212,6 +237,8 @@ void MeshDisplayCustom::updateMesh( const shape_msgs::Mesh::ConstPtr& mesh )
 
     manual_object_->end();
 
+    mesh_material_->setCullingMode(Ogre::CULL_NONE);
+
     last_mesh_ = *mesh;
 }
 
@@ -270,10 +297,33 @@ void MeshDisplayCustom::subscribe()
             setStatus( StatusProperty::Error, "Topic", QString( "Error subscribing: " ) + e.what() );
         }
     }
+
+    if( !topic_property_->getTopic().isEmpty() )
+    {
+        std::string target_frame = fixed_frame_.toStdString();
+        ImageDisplayBase::enableTFFilter(target_frame);
+
+        ImageDisplayBase::subscribe();
+
+        std::string topic = topic_property_->getTopicStd();
+        std::string caminfo_topic = image_transport::getCameraInfoTopic(topic);
+
+        try
+        {
+          caminfo_sub_.subscribe( update_nh_, caminfo_topic, 1 );
+          setStatus( StatusProperty::Ok, "Camera Info", "OK" );
+        }
+        catch( ros::Exception& e )
+        {
+          setStatus( StatusProperty::Error, "Camera Info", QString( "Error subscribing: ") + e.what() );
+        }
+    }
 }
 
 void MeshDisplayCustom::unsubscribe()
 {
+    ImageDisplayBase::unsubscribe();
+    caminfo_sub_.unsubscribe();
     pose_sub_.shutdown();
 }
 
@@ -338,98 +388,208 @@ void MeshDisplayCustom::onDisable()
     unsubscribe();
 }
 
-void MeshDisplayCustom::preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt )
-{
-
-}
-
-void MeshDisplayCustom::postRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
-{
-
-}
-
-void MeshDisplayCustom::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation)
-{
-
-}
-
-void MeshDisplayCustom::renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& repeatThisInvocation)
-{
-
-}
-
 void MeshDisplayCustom::update( float wall_dt, float ros_dt )
 {
     time_since_last_transform_ += wall_dt;
 
-    // just added automatic rotation to make it easier  to test things
-    if(projector_node_ != NULL)
+//    // just added automatic rotation to make it easier  to test things
+//    if(projector_node_ != NULL)
+//    {
+//        projector_node_->rotate(Ogre::Vector3::UNIT_Y, Ogre::Degree(wall_dt * 50));
+//        rotation_property_->setQuaternion(projector_node_->getOrientation());
+//    }
+
+    if( !topic_property_->getTopic().isEmpty() )
     {
-        projector_node_->rotate(Ogre::Vector3::UNIT_Y, Ogre::Degree(wall_dt * 50));
-        rotation_property_->setQuaternion(projector_node_->getOrientation());
+        std::string caminfo_topic = image_transport::getCameraInfoTopic(topic_property_->getTopicStd());
+        if(caminfo_sub_.getTopic().compare(caminfo_topic) != 0)
+        {
+            //std::cout<<"updating topic" <<std::endl;
+
+            caminfo_sub_.unsubscribe();
+            try
+            {
+                caminfo_sub_.subscribe( update_nh_, caminfo_topic, 1 );
+                // std::cout<<"The subscription happens"<<std::endl;
+                setStatus( StatusProperty::Ok, "Camera Info", "OK" );
+            }
+            catch( ros::Exception& e )
+            {
+                setStatus( StatusProperty::Error, "Camera Info", QString( "Error subscribing: ") + e.what() );
+            }
+        }
+
+        try
+        {
+            updateCamera(texture_.update());
+        }
+        catch( UnsupportedImageEncoding& e )
+        {
+            setStatus(StatusProperty::Error, "Image", e.what());
+        }
     }
 }
 
-void MeshDisplayCustom::fixedFrameChanged()
+bool MeshDisplayCustom::updateCamera(bool update_image)
 {
-    //has_new_transforms_ = true;
-    context_->queueRender();
+    if(update_image)
+    {
+        boost::mutex::scoped_lock lock( caminfo_mutex_ );
+
+        last_info_ = current_caminfo_;
+        last_image_ = texture_.getImage();
+    }
+    if(!last_info_ || !last_image_)
+    {
+        return false;
+    }
+
+    if(!validateFloats( *last_info_ ))
+    {
+        setStatus( StatusProperty::Error, "Camera Info", "Contains invalid floating point values (nans or infs)" );
+        return false;
+    }
+
+    Ogre::Vector3 position;
+    Ogre::Quaternion orientation;
+
+    context_->getFrameManager()->getTransform( last_image_->header.frame_id, last_image_->header.stamp, position, orientation );
+
+    // convert vision (Z-forward) frame to ogre frame (Z-out)
+    orientation = orientation * Ogre::Quaternion( Ogre::Degree( 180 ), Ogre::Vector3::UNIT_X );
+
+    //std::cout << "CameraInfo dimensions: " << last_info_->width << " x " << last_info_->height << std::endl;
+    //std::cout << "Texture dimensions: " << last_image_->width << " x " << last_image_->height << std::endl;
+    //std::cout << "Original image dimensions: " << last_image_->width*full_image_binning_ << " x " << last_image_->height*full_image_binning_ << std::endl;
+    float img_width  = last_info_->width;//image->width*full_image_binning_;
+    float img_height = last_info_->height;//image->height*full_image_binning_;
+
+    // If the image width is 0 due to a malformed caminfo, try to grab the width from the image.
+    if( img_width == 0 )
+    {
+      ROS_ERROR( "Malformed CameraInfo on camera [%s], width = 0", qPrintable( getName() ));
+      img_width = texture_.getWidth();
+    }
+
+    if (img_height == 0)
+    {
+      ROS_ERROR( "Malformed CameraInfo on camera [%s], height = 0", qPrintable( getName() ));
+      img_height = texture_.getHeight();
+    }
+
+    if( img_height == 0.0 || img_width == 0.0 )
+    {
+      setStatus( StatusProperty::Error, "Camera Info",
+                 "Could not determine width/height of image due to malformed CameraInfo (either width or height is 0)" );
+      return false;
+    }
+
+    if(last_info_->P[0] != 0)
+    {
+        double fx = last_info_->P[0];
+        double fy = last_info_->P[5];
+
+        // Add the camera's translation relative to the left camera (from P[3]);
+        double tx = -1 * (last_info_->P[3] / fx);
+        Ogre::Vector3 right = orientation * Ogre::Vector3::UNIT_X;
+        position = position + (right * tx);
+
+        double ty = -1 * (last_info_->P[7] / fy);
+        Ogre::Vector3 down = orientation * Ogre::Vector3::UNIT_Y;
+        position = position + (down * ty);
+
+        if( !validateFloats( position ))
+        {
+            ROS_ERROR( "position error");
+            setStatus( StatusProperty::Error, "Camera Info", "CameraInfo/P resulted in an invalid position calculation (nans or infs)" );
+            return false;
+        }
+
+        if(projector_node_ != NULL)
+        {
+            projector_node_->setPosition( position );
+            projector_node_->setOrientation( orientation );
+        }
+
+        // calculate the projection matrix
+        double cx = last_info_->P[2];
+        double cy = last_info_->P[6];
+
+        double far_plane = 100;
+        double near_plane = 0.01;
+
+        Ogre::Matrix4 proj_matrix;
+        proj_matrix = Ogre::Matrix4::ZERO;
+
+        proj_matrix[0][0]= 2.0 * fx/img_width;
+        proj_matrix[1][1]= 2.0 * fy/img_height;
+
+        proj_matrix[0][2]= 2.0 * (0.5 - cx/img_width);
+        proj_matrix[1][2]= 2.0 * (cy/img_height - 0.5);
+
+        proj_matrix[2][2]= -(far_plane+near_plane) / (far_plane-near_plane);
+        proj_matrix[2][3]= -2.0*far_plane*near_plane / (far_plane-near_plane);
+
+        proj_matrix[3][2]= -1;
+
+        if(decal_frustum_ != NULL)
+            decal_frustum_->setCustomProjectionMatrix(true, proj_matrix);
+
+        //ROS_INFO(" Camera (%f, %f)", proj_matrix[0][0], proj_matrix[1][1]);
+        //ROS_INFO(" Render Panel: %x   Viewport: %x", render_panel_, render_panel_->getViewport());
+    }
+
+    setStatus( StatusProperty::Ok, "Time", "ok" );
+    setStatus( StatusProperty::Ok, "Camera Info", "ok" );
+
+    return true;
 }
 
 void MeshDisplayCustom::clear()
 {
+    texture_.clear();
+    context_->queueRender();
+
+    current_caminfo_.reset();
+    setStatus( StatusProperty::Warn, "Camera Info",
+               "No CameraInfo received on [" + QString::fromStdString( caminfo_sub_.getTopic() ) + "].  Topic may not exist.");
+    setStatus( StatusProperty::Warn, "Image", "No Image received");
 }
 
 void MeshDisplayCustom::reset()
 {
-    Display::reset();
-    //has_new_transforms_ = true;
+    ImageDisplayBase::reset();
+    clear();
 }
 
-void MeshDisplayCustom::transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame)
+/* This is called by incomingMessage(). */
+void MeshDisplayCustom::processMessage(const sensor_msgs::Image::ConstPtr& msg)
 {
-    //std::cout << "POS bt: " << position.x << ", " << position.y << ", " << position.z << std::endl;
-    // put all pose data into a tf stamped pose
-    tf::Quaternion bt_orientation(orientation.x, orientation.y, orientation.z, orientation.w);
-    tf::Vector3 bt_position(position.x, position.y, position.z);
-
-    std::string frame(from_frame);
-    tf::Stamped<tf::Pose> pose_in(tf::Transform(bt_orientation,bt_position), ros::Time(), frame);
-    tf::Stamped<tf::Pose> pose_out;
-
-    // convert pose into new frame
-    try
-    {
-      context_->getFrameManager()->getTFClient()->transformPose( to_frame, pose_in, pose_out );
-    }
-    catch(tf::TransformException& e)
-    {
-      ROS_DEBUG("Error transforming from frame '%s' to frame '%s': %s", from_frame, to_frame, e.what());
-      return;
-    }
-
-    bt_position = pose_out.getOrigin();
-    position = Ogre::Vector3(bt_position.x(), bt_position.y(), bt_position.z());
-    //std::cout << "POS transform: " << position.x << ", " << position.y << ", " << position.z << std::endl;
-
-    bt_orientation = pose_out.getRotation();
-    orientation = Ogre::Quaternion( bt_orientation.w(), bt_orientation.x(), bt_orientation.y(), bt_orientation.z() );
-    //std::cout << "QUAT transform: " << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << std::endl;
+    //std::cout<<"camera image received"<<std::endl;
+    texture_.addMessage(msg);
 }
 
-void MeshDisplayCustom::setRenderPanel( rviz::RenderPanel* rp )
+void MeshDisplayCustom::caminfoCallback( const sensor_msgs::CameraInfo::ConstPtr& msg )
 {
-    if(std::find(render_panel_list_.begin(),render_panel_list_.end(),rp) != render_panel_list_.end())
-    {
-        this->render_panel_ = rp;
-        this->render_panel_->getRenderWindow()->addListener( this );
-    }
-    else
-    {
-        this->render_panel_list_.push_back(rp);
-        this->render_panel_ = rp;
-        this->render_panel_->getRenderWindow()->addListener( this );
-    }
+    //std::cout<<"camera info received"<<std::endl;
+    boost::mutex::scoped_lock lock( caminfo_mutex_ );
+    current_caminfo_ = msg;
+}
+
+
+void MeshDisplayCustom::updateQueueSize()
+{
+    caminfo_tf_filter_->setQueueSize( (uint32_t) queue_size_property_->getInt() );
+    ImageDisplayBase::updateQueueSize();
+}
+
+
+void MeshDisplayCustom::fixedFrameChanged()
+{
+    std::string targetFrame = fixed_frame_.toStdString();
+    caminfo_tf_filter_->setTargetFrame(targetFrame);
+
+    ImageDisplayBase::fixedFrameChanged();
 }
 
 } // namespace rviz

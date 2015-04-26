@@ -39,7 +39,13 @@
 
 #include "rviz/display.h"
 #include "rviz/frame_manager.h"
+#include "rviz/image/image_display_base.h"
+#include "rviz/image/ros_image_texture.h"
 
+#include <image_transport/image_transport.h>
+#include <sensor_msgs/CameraInfo.h>
+#include <message_filters/subscriber.h>
+#include <tf/message_filter.h>
 
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -87,7 +93,7 @@ namespace rviz
  * \class MeshDisplayCustom
  * \brief Uses a pose from topic + offset to render a bounding object with shape, size and color
  */
-class MeshDisplayCustom: public Display,  public Ogre::RenderTargetListener, public Ogre::RenderQueueListener
+class MeshDisplayCustom: public rviz::ImageDisplayBase,  public Ogre::RenderTargetListener, public Ogre::RenderQueueListener
 {
 Q_OBJECT
 public:
@@ -97,21 +103,14 @@ public:
   // Overrides from Display
   virtual void onInitialize();
   virtual void update( float wall_dt, float ros_dt );
-  virtual void fixedFrameChanged();
   virtual void reset();
-
-  void clear();
-
-  virtual void preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
-  virtual void postRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
-  virtual void renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
-  virtual void renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation, bool& skipThisInvocation);
+  virtual void fixedFrameChanged();
 
 private Q_SLOTS:
   void updateObjectProperties();
   void updateTopic();
-  void setRenderPanel(rviz::RenderPanel*);
   void updateName();
+  virtual void updateQueueSize();
 
 protected:
   void setPose();
@@ -121,14 +120,21 @@ protected:
   virtual void onEnable();
   virtual void onDisable();
 
+  // This is called by incomingMessage().
+  virtual void processMessage(const sensor_msgs::Image::ConstPtr& msg);
+
   virtual void subscribe();
   virtual void unsubscribe();
+
+private:
+  void clear();
+  void updateStatus();
+  bool updateCamera(bool update_image);
+  void caminfoCallback( const sensor_msgs::CameraInfo::ConstPtr& msg );
 
   void createProjector();
   void addDecalToMaterial(const Ogre::String& matName);
   void updateMesh( const shape_msgs::Mesh::ConstPtr& mesh );
-
-  void transform(Ogre::Vector3& position, Ogre::Quaternion& orientation, const char* from_frame, const char* to_frame);
 
   float time_since_last_transform_;
 
@@ -144,9 +150,21 @@ protected:
 
   ros::NodeHandle nh_;
 
+  //This deals with the camera info
+  message_filters::Subscriber<sensor_msgs::CameraInfo> caminfo_sub_;
+  tf::MessageFilter<sensor_msgs::CameraInfo>* caminfo_tf_filter_;
+
+  sensor_msgs::CameraInfo::ConstPtr current_caminfo_;
+  boost::mutex caminfo_mutex_;
+
+  // hold the last information received
+  sensor_msgs::CameraInfo::ConstPtr last_info_;
+  sensor_msgs::Image::ConstPtr last_image_;
+
   Ogre::SceneNode* mesh_node_;
   Ogre::ManualObject* manual_object_;
   Ogre::MaterialPtr mesh_material_;
+  ROSImageTexture texture_;
 
   ros::Subscriber pose_sub_;
 
