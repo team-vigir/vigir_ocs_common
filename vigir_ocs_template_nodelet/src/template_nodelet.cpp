@@ -1134,12 +1134,22 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
         //Transform to world coordinate frame
         vigir_object_template_msgs::StandPose stand_pose = it->second;
         if(template_pose_list_[index].header.frame_id == "/world")
-            worldPoseTransform(template_pose_list_[index],stand_pose.pose.pose,stand_pose.pose);
+        {
+            if(stand_pose.id >= 1000 && (req.hand_side == req.LEFT_HAND || req.hand_side == req.BOTH_HANDS)){
+                //staticTransform(stand_pose.pose.pose,gp_T_lhand_);
+                worldPoseTransform(template_pose_list_[index],stand_pose.pose.pose,stand_pose.pose);
+                res.template_type_information.stand_poses.push_back(stand_pose);
+            }
+            if(stand_pose.id < 1000 && (req.hand_side == req.RIGHT_HAND || req.hand_side == req.BOTH_HANDS)){
+                //staticTransform(stand_pose.pose.pose,gp_T_rhand_);
+                worldPoseTransform(template_pose_list_[index],stand_pose.pose.pose,stand_pose.pose);
+                res.template_type_information.stand_poses.push_back(stand_pose);
+            }
+        }
         else{
             ROS_ERROR("Template not in /world frame, detach from robot!");
             return false;
         }
-        res.template_type_information.stand_poses.push_back(stand_pose);
     }
 
     //Transfer all known usabilities to response
