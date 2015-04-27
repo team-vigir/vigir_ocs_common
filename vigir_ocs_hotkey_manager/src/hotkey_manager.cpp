@@ -61,7 +61,7 @@ void HotkeyManager::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPt
         if(i == keys_pressed_list_.size()-1) // dont add plus on the end
             keyCombo = keyCombo + key;
         else
-            keyCombo = keyCombo + key +"+";
+            keyCombo = keyCombo + key + "+";
     }    
     //ROS_ERROR("Keys pressed: %s", keyCombo.c_str());
     callHotkeyFunction(keyCombo);
