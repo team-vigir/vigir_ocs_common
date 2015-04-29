@@ -1291,9 +1291,18 @@ bool TemplateNodelet::instantiatedGraspInfoSrv(vigir_object_template_msgs::GetIn
                                                                                 ++it) {
         //Transform to world coordinate frame
         vigir_object_template_msgs::StandPose stand_pose = it->second;
-        worldPoseTransform(template_pose_list_[index],stand_pose.pose.pose,stand_pose.pose);
-        res.grasp_information.stand_poses.push_back(stand_pose);
-        res.pre_grasp_information.stand_poses.push_back(stand_pose);
+        if(stand_pose.id >= 1000 && (req.hand_side == req.LEFT_HAND || req.hand_side == req.BOTH_HANDS))
+        {
+                worldPoseTransform(template_pose_list_[index],stand_pose.pose.pose,stand_pose.pose);
+                res.grasp_information.stand_poses.push_back(stand_pose);
+                res.pre_grasp_information.stand_poses.push_back(stand_pose);
+        }
+        if(stand_pose.id < 1000 && (req.hand_side == req.RIGHT_HAND || req.hand_side == req.BOTH_HANDS))
+        {
+                worldPoseTransform(template_pose_list_[index],stand_pose.pose.pose,stand_pose.pose);
+                res.grasp_information.stand_poses.push_back(stand_pose);
+                res.pre_grasp_information.stand_poses.push_back(stand_pose);
+        }
     }
     return true;
 }
