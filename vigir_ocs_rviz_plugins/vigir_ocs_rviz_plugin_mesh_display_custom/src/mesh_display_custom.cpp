@@ -135,7 +135,7 @@ void MeshDisplayCustom::createProjector()
 
     Ogre::SceneNode* filter_node = projector_node_->createChildSceneNode();
     filter_node->attachObject(filter_frustum_);
-    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Z));
+    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Y));
 }
 
 void MeshDisplayCustom::addDecalToMaterial(const Ogre::String& matName)
