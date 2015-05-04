@@ -1436,9 +1436,11 @@ bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetAtt
     unsigned int index = 0;
     std::string mesh_name;
     geometry_msgs::PoseStamped template_pose;
+    unsigned int template_type;
 
     for(; index < template_id_list_.size(); index++) {
         if(template_id_list_[index] == req.template_id){
+            template_type = template_type_list_[index];
             mesh_name = (template_name_list_[index]).substr(0, (template_name_list_[index]).find_last_of("."));
             template_pose      = template_pose_list_[index];
             ROS_INFO("Template %s found in server, index: %d, list: %d, requested: %d",mesh_name.c_str(), index, template_id_list_[index], req.template_id);
@@ -1496,6 +1498,10 @@ bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetAtt
     template_pose_list_[index].header.frame_id = req.pose.header.frame_id; //Attaches the OCS template to the robot hand
     template_pose_list_[index].pose            = pose;
     template_status_list_[index]               = 1; //Attached to robot
+
+    res.template_pose = template_pose_list_[index];
+    res.template_mass = object_template_map_[template_type].mass;
+    res.template_com  = object_template_map_[template_type].com;
 
     last_attached_pose_ = template_pose_list_[index];
 
