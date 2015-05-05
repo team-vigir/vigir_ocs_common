@@ -19,7 +19,6 @@ void TemplateNodelet::onInit()
     template_update_sub_         = nh_out.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( "update", 1, &TemplateNodelet::updateTemplateCb, this );
     template_snap_sub_           = nh_out.subscribe<flor_grasp_msgs::TemplateSelection>( "snap", 1, &TemplateNodelet::snapTemplateCb, this );
     template_match_feedback_sub_ = nh_out.subscribe<flor_grasp_msgs::TemplateSelection>( "template_match_feedback", 1, &TemplateNodelet::templateMatchFeedbackCb, this );
-    grasp_request_sub_           = nh_out.subscribe<flor_grasp_msgs::GraspSelection>( "grasp_request", 1, &TemplateNodelet::graspRequestCb, this );
     grasp_state_feedback_sub_    = nh_out.subscribe<flor_grasp_msgs::GraspState>( "grasp_state_feedback", 1, &TemplateNodelet::graspStateFeedbackCb, this );
 
     template_info_server_        = nh_out.advertiseService("/template_info", &TemplateNodelet::templateInfoSrv, this);
@@ -28,7 +27,6 @@ void TemplateNodelet::onInit()
 
     inst_grasp_info_server_      = nh_out.advertiseService("/instantiated_grasp_info", &TemplateNodelet::instantiatedGraspInfoSrv, this);
 
-    attach_object_server_        = nh_out.advertiseService("/attach_object_template", &TemplateNodelet::attachObjectTemplateSrv, this);
     stitch_object_server_        = nh_out.advertiseService("/stitch_object_template", &TemplateNodelet::stitchObjectTemplateSrv, this);
     detach_object_server_        = nh_out.advertiseService("/detach_object_template", &TemplateNodelet::detachObjectTemplateSrv, this);
 
@@ -198,54 +196,6 @@ void TemplateNodelet::snapTemplateCb(const flor_grasp_msgs::TemplateSelection::C
     this->publishTemplateList();
 }
 
-void TemplateNodelet::graspRequestCb(const flor_grasp_msgs::GraspSelection::ConstPtr& msg)
-{
-    std::cout << "Grasp request (id: " << msg->grasp_id << ")" << std::endl;
-    {
-    flor_grasp_msgs::GraspState cmd;
-
-    //#typedef enum
-    //#{
-    //#    GRASP_MODE_NONE     = 0,
-    //#    TEMPLATE_GRASP_MODE = 1,
-    //#    MANUAL_GRASP_MODE   = 2,
-    //#    NUM_GRASP_MODES
-    //#
-    //#} GraspControlModes;
-    //#typedef enum
-    //#{
-    //#   GRASP_STATE_NONE   = 0, // unknown state
-    //#    GRASP_INIT        = 1,
-    //#    APPROACHING       = 2,
-    //#    SURROUNDING       = 3,
-    //#    GRASPING          = 4,
-    //#    MONITORING        = 5,
-    //#    OPENING           = 6,
-    //#    GRASP_ERROR       = 7,
-    //#    NUM_GRASP_STATES
-    //#
-    //#} GraspControlStates;
-
-    unsigned char grasp_control_mode = 1;
-    unsigned char grasp_control_state = 0;
-
-    cmd.grasp_state.data = (grasp_control_mode <<4) + grasp_control_state;
-
-    grasp_selected_state_pub_.publish(cmd);
-    }
-    {
-    flor_grasp_msgs::GraspSelection cmd;
-
-    cmd.template_id.data = msg->template_id.data;
-    cmd.template_type.data = msg->template_type.data;
-    cmd.grasp_id.data = msg->grasp_id.data;
-    cmd.header.frame_id = "/world";
-    cmd.header.stamp = ros::Time::now();
-
-    grasp_selected_pub_.publish(cmd);
-    }
-}
-
 void TemplateNodelet::graspStateFeedbackCb(const flor_grasp_msgs::GraspState::ConstPtr& msg)
 {
     std::cout << "Grasp feedback" << std::endl;
@@ -311,34 +261,6 @@ void TemplateNodelet::publishTemplateList()
 
     if(transforms.size() > 0)
         tfb_.sendTransform(transforms);
-}
-
-std::vector< std::vector <std::string> > TemplateNodelet::readCSVFile(std::string& file_name)
-{
-    std::ifstream file ( file_name.c_str() );
-    if(!file)
-    {
-        ROS_ERROR("NO DATABASE FILE FOUND: %s",file_name.c_str());
-    }
-
-    std::vector< std::vector <std::string> > db;
-    for (std::string line; std::getline(file, line); )
-    {
-        std::istringstream in(line);
-        std::vector<std::string> tmp;
-        std::string value;
-
-        while(std::getline(in, value, ','))
-        {
-            std::stringstream trimmer;
-            trimmer << value;
-            value.clear();
-            trimmer >> value; //removes white spaces
-            tmp.push_back(value);
-        }
-        db.push_back(tmp);
-    }
-    return db;
 }
 
 void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string hand_side)
@@ -1304,116 +1226,6 @@ bool TemplateNodelet::instantiatedGraspInfoSrv(vigir_object_template_msgs::GetIn
                 res.pre_grasp_information.stand_poses.push_back(stand_pose);
         }
     }
-    return true;
-}
-
-bool TemplateNodelet::attachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
-                                              vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res)
-{
-
-    /* First, define the REMOVE object message*/
-    moveit_msgs::CollisionObject remove_object;
-    remove_object.id              = boost::to_string(req.template_id);
-    remove_object.header.frame_id = "/world";
-    remove_object.operation       = remove_object.REMOVE;
-    co_pub_.publish(remove_object);
-    ROS_INFO("Collision object :%s removed",remove_object.id.c_str());
-
-
-    ROS_INFO("Attach template to %s started... ",req.pose.header.frame_id.c_str());
-
-    // Define the attached object message
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    // We will use this message to add or
-    // subtract the object from the world
-    // and to attach the object to the robot
-    moveit_msgs::AttachedCollisionObject attached_object;
-    attached_object.link_name              = req.pose.header.frame_id;
-    /* The header must contain a valid TF frame*/
-    attached_object.object.header.frame_id = req.pose.header.frame_id;
-    /* The id of the object */
-    attached_object.object.id              = boost::to_string(req.template_id);
-
-    unsigned int index = 0;
-    std::string mesh_name;
-    geometry_msgs::PoseStamped template_pose;
-
-    for(; index < template_id_list_.size(); index++) {
-        if(template_id_list_[index] == req.template_id){
-            mesh_name = (template_name_list_[index]).substr(0, (template_name_list_[index]).find_last_of("."));
-            template_pose      = template_pose_list_[index];
-            ROS_INFO("Template %s found in server, index: %d, list: %d, requested: %d",mesh_name.c_str(), index, template_id_list_[index], req.template_id);
-            break;
-        }
-    }
-
-    if (index >= template_id_list_.size()){
-        //ROS_ERROR_STREAM("Service requested template id " << req.template_type.data << " when no such id has been instantiated. Callback returning false.");
-        ROS_ERROR("Service requested template id %d when no such id has been instantiated. Callback returning false.",req.template_id);
-        return false;
-    }
-
-    std::string mesh_path = "package://vigir_template_library/object_templates/"+ mesh_name + ".ply";
-    ROS_INFO("Requesting mesh_path: %s", mesh_path.c_str());
-
-
-    shapes::Mesh* shape = shapes::createMeshFromResource(mesh_path);
-    shapes::ShapeMsg mesh_msg;
-
-    shapes::constructMsgFromShape(shape,mesh_msg);
-
-    shape_msgs::Mesh mesh_;
-    mesh_ = boost::get<shape_msgs::Mesh>(mesh_msg);
-
-    tf::Transform world_T_wrist;
-    tf::Transform world_T_template;
-    tf::Transform target_pose;
-    world_T_wrist.setRotation(tf::Quaternion(req.pose.pose.orientation.x,req.pose.pose.orientation.y,req.pose.pose.orientation.z,req.pose.pose.orientation.w));
-    world_T_wrist.setOrigin(tf::Vector3(req.pose.pose.position.x,req.pose.pose.position.y,req.pose.pose.position.z) );
-    world_T_template.setRotation(tf::Quaternion(template_pose.pose.orientation.x,template_pose.pose.orientation.y,template_pose.pose.orientation.z,template_pose.pose.orientation.w));
-    world_T_template.setOrigin(tf::Vector3(template_pose.pose.position.x,template_pose.pose.position.y,template_pose.pose.position.z) );
-
-    target_pose = world_T_wrist.inverse() * world_T_template;
-
-    geometry_msgs::Pose pose;
-    pose.orientation.x = target_pose.getRotation().getX();
-    pose.orientation.y = target_pose.getRotation().getY();
-    pose.orientation.z = target_pose.getRotation().getZ();
-    pose.orientation.w = target_pose.getRotation().getW();
-    pose.position.x    = target_pose.getOrigin().getX();
-    pose.position.y    = target_pose.getOrigin().getY();
-    pose.position.z    = target_pose.getOrigin().getZ();
-
-    attached_object.object.meshes.push_back(mesh_);
-    attached_object.object.mesh_poses.push_back(pose);
-
-    template_pose_list_[index].header.frame_id = req.pose.header.frame_id; //Attaches the OCS template to the robot hand
-    template_pose_list_[index].pose            = pose;
-    template_status_list_[index]               = 1; //Attached to robot
-
-    last_attached_pose_ = template_pose_list_[index];
-
-    // Note that attaching an object to the robot requires
-    // the corresponding operation to be specified as an ADD operation
-    attached_object.object.operation = attached_object.object.ADD;
-
-    if(req.pose.header.frame_id == right_wrist_link_){
-        hand_link_names_ = robot_model_->getJointModelGroup(right_hand_group_)->getLinkModelNames();
-        hand_link_names_.push_back(right_palm_link_);
-    }else{
-        hand_link_names_ = robot_model_->getJointModelGroup(left_hand_group_)->getLinkModelNames();
-        hand_link_names_.push_back(left_palm_link_);
-    }
-
-
-    for(int i = 0; i < hand_link_names_.size(); i++){
-        ROS_INFO("Link %d: %s",i,hand_link_names_[i].c_str());
-        attached_object.touch_links.push_back(hand_link_names_[i]);
-    }
-
-    ROS_INFO("Attaching the object to the %s link, template %d status: %d", req.pose.header.frame_id.c_str(), template_id_list_[index], template_status_list_[index]);
-    aco_pub_.publish(attached_object);
-
     return true;
 }
 
