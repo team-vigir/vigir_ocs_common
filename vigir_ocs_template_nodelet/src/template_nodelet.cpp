@@ -21,15 +21,38 @@ void TemplateNodelet::onInit()
     template_match_feedback_sub_ = nh_out.subscribe<flor_grasp_msgs::TemplateSelection>( "template_match_feedback", 1, &TemplateNodelet::templateMatchFeedbackCb, this );
     grasp_state_feedback_sub_    = nh_out.subscribe<flor_grasp_msgs::GraspState>( "grasp_state_feedback", 1, &TemplateNodelet::graspStateFeedbackCb, this );
 
+    // Which mode are we using
+    this->master_mode_ = true;
+    if (!nhp.getParam("master_mode", this->master_mode_))
+        ROS_ERROR(" Did not find master_mode parameter - using MASTER_MODE as default");
+    else
+        ROS_INFO("Server mode parameters received, mode: %s", this->master_mode_ ? "MASTER" : "SLAVE" );
+
+    if(master_mode_){
+        //MASTER Forward topics through comms
+        template_add_pub_            = nh_out.advertise<flor_ocs_msgs::OCSTemplateAdd>(    "add_fwd",    1, false );
+        template_remove_pub_         = nh_out.advertise<flor_ocs_msgs::OCSTemplateRemove>( "remove_fwd", 1, false );
+        template_update_pub_         = nh_out.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "update_fwd", 1, false );
+
+        //MASTER Retrieve topics from comms
+        stitch_template_sub_         = nh_out.subscribe<vigir_object_template_msgs::TemplateStateInfo>( "/stitch_template_srv_fwd",1, &TemplateNodelet::stitchTemplateFwdCb, this );
+        detach_template_sub_         = nh_out.subscribe<vigir_object_template_msgs::TemplateStateInfo>( "/detach_template_srv_fwd",1, &TemplateNodelet::detachTemplateFwdCb, this );
+    }else{
+        //SLAVE Forward topics through comms
+        stitch_template_pub_         = nh_out.advertise<vigir_object_template_msgs::TemplateStateInfo>( "/stitch_template_srv_fwd", 1, false );
+        detach_template_pub_         = nh_out.advertise<vigir_object_template_msgs::TemplateStateInfo>( "/detach_template_srv_fwd", 1, false );
+    }
+
+
+
+    //Template Services
     template_info_server_        = nh_out.advertiseService("/template_info", &TemplateNodelet::templateInfoSrv, this);
-
     grasp_info_server_           = nh_out.advertiseService("/grasp_info", &TemplateNodelet::graspInfoSrv, this);
-
     inst_grasp_info_server_      = nh_out.advertiseService("/instantiated_grasp_info", &TemplateNodelet::instantiatedGraspInfoSrv, this);
-
     stitch_object_server_        = nh_out.advertiseService("/stitch_object_template", &TemplateNodelet::stitchObjectTemplateSrv, this);
     detach_object_server_        = nh_out.advertiseService("/detach_object_template", &TemplateNodelet::detachObjectTemplateSrv, this);
 
+    //Planing scene publishers
     co_pub_                      = nh_out.advertise<moveit_msgs::CollisionObject>("/collision_object", 1, false);
     aco_pub_                     = nh_out.advertise<moveit_msgs::AttachedCollisionObject>("/attached_collision_object", 1, false);
 
@@ -82,6 +105,8 @@ void TemplateNodelet::onInit()
     else
         TemplateNodelet::loadStandPosesDatabaseXML(this->stand_filename_);
 
+
+
     id_counter_ = 0;
 
     timer = nh_out.createTimer(ros::Duration(0.033), &TemplateNodelet::timerCallback, this);
@@ -107,6 +132,7 @@ void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPt
             template_id_list_.push_back(id_counter_++);
             template_name_list_.push_back(msg->template_path);
             template_pose_list_.push_back(msg->pose);
+            template_last_pose_list_.push_back(msg->pose);
             template_status_list_.push_back(0);  //Normal Status
             ROS_INFO("Added template to list with id: %d",(int)id_counter_);
 
@@ -119,6 +145,10 @@ void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPt
 
     if(!found)
         ROS_ERROR("Template %s not found in library, ignoring", (msg->template_path).substr(0, (msg->template_path).find_last_of(".")).c_str());
+    else{
+        if(master_mode_) //Forward add message to slave server
+            template_add_pub_.publish(msg);
+    }
 
     this->publishTemplateList();
 }
@@ -136,6 +166,7 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
                                         && !template_type_list_.empty()
                                         && !template_name_list_.empty()
                                         && !template_pose_list_.empty()
+                                        && !template_last_pose_list_.empty()
                                         && !template_status_list_.empty())
     {
         //REMOVE TEMPLATE FROM THE PLANING SCENE
@@ -146,8 +177,12 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
         template_type_list_.erase(template_type_list_.begin()+index);	//Remove it
         template_name_list_.erase(template_name_list_.begin()+index);
         template_pose_list_.erase(template_pose_list_.begin()+index);
+        template_last_pose_list_.erase(template_last_pose_list_.begin()+index);
         template_status_list_.erase(template_status_list_.begin()+index);
         ROS_INFO("Removed! ");
+
+        if(master_mode_) //Forward remove message to slave server
+            template_remove_pub_.publish(msg);
 
         this->publishTemplateList();
     }
@@ -176,6 +211,10 @@ void TemplateNodelet::updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::C
 
         //UPDATE TEMPLATE POSE IN THE PLANNING SCENE
         moveCollisionObject(msg->template_id,msg->pose.pose);
+        if(master_mode_  && msg->event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP){
+            //ROS_ERROR("Forwarding Template Update");
+            template_update_pub_.publish(msg);
+        }
     }
     this->publishTemplateList();
 }
@@ -191,9 +230,31 @@ void TemplateNodelet::snapTemplateCb(const flor_grasp_msgs::TemplateSelection::C
             break;
     if(index < template_id_list_.size())
     {
-        template_pose_list_[index] = last_attached_pose_;
+        template_pose_list_[index] = template_last_pose_list_[index];
     }
     this->publishTemplateList();
+}
+
+void TemplateNodelet::stitchTemplateFwdCb(const vigir_object_template_msgs::TemplateStateInfo::ConstPtr& msg)
+{
+    if(master_mode_){
+        vigir_object_template_msgs::SetAttachedObjectTemplate::Response res;
+        vigir_object_template_msgs::SetAttachedObjectTemplate::Request  req;
+        req.pose = msg->pose;
+        req.template_id = msg->template_id;
+        stitchObjectTemplateSrv(req,res);
+    }
+}
+
+void TemplateNodelet::detachTemplateFwdCb(const vigir_object_template_msgs::TemplateStateInfo::ConstPtr& msg)
+{
+    if(master_mode_){
+        vigir_object_template_msgs::SetAttachedObjectTemplate::Response res;
+        vigir_object_template_msgs::SetAttachedObjectTemplate::Request  req;
+        req.pose = msg->pose;
+        req.template_id = msg->template_id;
+        detachObjectTemplateSrv(req,res);
+    }
 }
 
 void TemplateNodelet::graspStateFeedbackCb(const flor_grasp_msgs::GraspState::ConstPtr& msg)
@@ -1232,6 +1293,13 @@ bool TemplateNodelet::instantiatedGraspInfoSrv(vigir_object_template_msgs::GetIn
 bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
                                               vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res)
 {
+    if(!master_mode_){ //In SLAVE Mode, forwrding through comms
+        vigir_object_template_msgs::TemplateStateInfo cmd;
+        cmd.pose = req.pose;
+        cmd.template_id = req.template_id;
+        stitch_template_pub_.publish(cmd);
+    }
+
     /* First, define the DETACH object message*/
     moveit_msgs::AttachedCollisionObject tmp_attached_object;
     tmp_attached_object.object.id = boost::to_string(req.template_id);
@@ -1315,7 +1383,7 @@ bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetAtt
     res.template_mass = object_template_map_[template_type].mass;
     res.template_com  = object_template_map_[template_type].com;
 
-    last_attached_pose_ = template_pose_list_[index];
+    template_last_pose_list_[index] = template_pose_list_[index];
 
     // Note that attaching an object to the robot requires
     // the corresponding operation to be specified as an ADD operation
@@ -1356,6 +1424,13 @@ bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetAtt
 bool TemplateNodelet::detachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
                                               vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res)
 {
+    if(!master_mode_){ //In SLAVE Mode, forwrding through comms
+        vigir_object_template_msgs::TemplateStateInfo cmd;
+        cmd.pose = req.pose;
+        cmd.template_id = req.template_id;
+        detach_template_pub_.publish(cmd);
+    }
+
     /* First, define the DETACH object message*/
     moveit_msgs::AttachedCollisionObject detach_object;
     detach_object.object.id = boost::to_string(req.template_id);

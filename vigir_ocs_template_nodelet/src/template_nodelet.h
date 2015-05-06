@@ -13,6 +13,7 @@
 #include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_eigen.h>
 
+#include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <flor_ocs_msgs/OCSTemplateAdd.h>
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
 #include <flor_ocs_msgs/OCSTemplateList.h>
@@ -81,6 +82,8 @@ namespace ocs_template
         void addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr& msg);
         void removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
         void updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& msg);
+        void stitchTemplateFwdCb(const vigir_object_template_msgs::TemplateStateInfo::ConstPtr& msg);
+        void detachTemplateFwdCb(const vigir_object_template_msgs::TemplateStateInfo::ConstPtr& msg);
         void snapTemplateCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
         void graspStateFeedbackCb(const flor_grasp_msgs::GraspState::ConstPtr& msg);
         void templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
@@ -126,6 +129,15 @@ namespace ocs_template
         ros::Publisher  co_pub_;
         ros::Publisher  aco_pub_;
 
+        //Forward topics through comms
+        ros::Publisher  template_update_pub_;
+        ros::Publisher  template_add_pub_;
+        ros::Publisher  template_remove_pub_;
+        ros::Publisher  stitch_template_pub_;
+        ros::Subscriber stitch_template_sub_;
+        ros::Publisher  detach_template_pub_;
+        ros::Subscriber detach_template_sub_;
+
         ros::ServiceServer template_info_server_;
         ros::ServiceServer grasp_info_server_;
         ros::ServiceServer inst_grasp_info_server_;
@@ -141,7 +153,7 @@ namespace ocs_template
         std::vector<geometry_msgs::PoseStamped>    template_pose_list_;
         std::vector<unsigned char>                 template_status_list_; //0-normal, 1-attached
         unsigned char                              id_counter_;
-        geometry_msgs::PoseStamped                 last_attached_pose_;
+        std::vector<geometry_msgs::PoseStamped>    template_last_pose_list_;
         // Filename of the grasping library
         std::string                                r_grasps_filename_;
         std::string                                l_grasps_filename_;
@@ -156,6 +168,9 @@ namespace ocs_template
         std::string left_wrist_link_, right_wrist_link_;
         std::string left_palm_link_,  right_palm_link_;
         std::string left_hand_group_, right_hand_group_;
+
+        //Server mode parameter
+        bool master_mode_;
 
         tf::Transform                              gp_T_lhand_;
         tf::Transform                              gp_T_rhand_;

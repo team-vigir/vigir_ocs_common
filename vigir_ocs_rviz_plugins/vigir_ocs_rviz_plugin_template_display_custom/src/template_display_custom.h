@@ -97,7 +97,7 @@ public:
 
     void processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose);
     void processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg);
-    void publishTemplateUpdate(const unsigned char& id, const geometry_msgs::PoseStamped& pose);
+    void publishTemplateUpdate(const unsigned char& id, const geometry_msgs::PoseStamped& pose,const unsigned char &event_type);
     void processTemplateRemove(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
 
     void setVisualizationManager(rviz::VisualizationManager* manager) { vis_manager_ = manager; };
