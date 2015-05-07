@@ -52,6 +52,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     footstep_redo_req_pub_           = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/redo", 1, false );
     footstep_has_redo_sub_           = nh_.subscribe<std_msgs::UInt8>( "/flor/ocs/footstep/redos_available", 5, &FootstepVisManager::processRedosAvailable, this );
     footstep_start_index_pub_        = nh_.advertise<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, false );
+    footstep_validate_req_pub_       = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/validate", 1, false );
     footstep_execute_req_pub_        = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/execute", 1, false );
     footstep_stitch_req_pub_         = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/stitch", 1, false );
     footstep_plan_parameters_pub_    = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters", 1, false );
@@ -224,18 +225,30 @@ void FootstepVisManager::requestFootstepListRedo()
     footstep_redo_req_pub_.publish(cmd);
 }
 
+void FootstepVisManager::requestValidateStepPlan()
+{
+    // send validate request to footstep manager
+    std_msgs::Int8 cmd;
+    cmd.data = 1;
+    footstep_validate_req_pub_.publish(cmd);
+}
+
 void FootstepVisManager::requestExecuteStepPlan()
 {
     int option = QMessageBox::information( NULL, "Step Plan Execution Confirmation",
                                           "Are you sure you want to execute the current step plan?",
-                                          "Execute", "Cancel",
-                                          0, 1 );
+                                          "Execute", "Validate", "Cancel",
+                                          0, 2 );
     if(option == 0)
     {
         // send request to footstep manager
         std_msgs::Int8 cmd;
         cmd.data = 1;
         footstep_execute_req_pub_.publish(cmd);
+    }
+    if(option == 1)
+    {
+        requestValidateStepPlan();
     }
 }
 

@@ -97,6 +97,9 @@ public:
     // Sends a step plan request, and will get the two goal footsteps
     void requestStepPlan();
 
+    // Sends a footstep plan validate request to the footstep manager
+    void requestValidateStepPlan();
+
     // Sends a footstep plan execute request to the footstep manager
     void requestExecuteStepPlan();
 
@@ -165,6 +168,7 @@ private:
     ros::Publisher footstep_redo_req_pub_;
     ros::Subscriber footstep_has_redo_sub_;
     ros::Publisher footstep_start_index_pub_;
+    ros::Publisher footstep_validate_req_pub_;
     ros::Publisher footstep_execute_req_pub_;
     ros::Publisher footstep_stitch_req_pub_;
     ros::Publisher footstep_plan_parameters_pub_;

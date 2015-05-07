@@ -29,6 +29,7 @@
 #include <flor_ocs_msgs/OCSFootstepPlanUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
 #include <flor_ocs_msgs/OCSFootstepStatus.h>
+#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
 
 #include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
 #include <vigir_footstep_planning_msgs/parameter_set.h>
@@ -65,9 +66,28 @@ namespace ocs_footstep
         void processUndoRequest(const std_msgs::Int8::ConstPtr& msg);
         void processRedoRequest(const std_msgs::Int8::ConstPtr& msg);
         void processSetStartIndex(const std_msgs::Int32::ConstPtr& msg);
+        void processValidatePlanRequest(const std_msgs::Int8::ConstPtr& msg);
         void processExecuteFootstepRequest(const std_msgs::Int8::ConstPtr& msg);
         void processStitchPlansRequest(const std_msgs::Int8::ConstPtr& msg);
         void processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg);
+
+        // used in the obfsm interaction
+        void processExecuteStepPlanResult(vigir_footstep_planning_msgs::ExecuteStepPlanResult result);
+        void processExecuteStepPlanResult(const vigir_footstep_planning_msgs::ExecuteStepPlanActionResult::ConstPtr& msg);
+        void processUpdateFeetResult(vigir_footstep_planning_msgs::UpdateFeetResult result);
+        void processUpdateFeetResult(const vigir_footstep_planning_msgs::UpdateFeetActionResult::ConstPtr& msg);
+
+        // used to process new step plans whenever and however they arrive
+        void processNewStepPlanGoal(vigir_footstep_planning_msgs::Feet& goal);
+        void processNewStepPlan(vigir_footstep_planning_msgs::StepPlan& step_plan);
+        // callbacks for onboard actions
+        void processOnboardStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request);
+        void processOnboardStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan);
+        // callback for the ocs planner feedback
+        void processOCSStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request);
+        void processOCSStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan);
+
+        void timerCallback(const ros::TimerEvent& event);
 
         // callbacks for actions
         //updatefeet
@@ -98,18 +118,6 @@ namespace ocs_footstep
         void activeGetAllParameterSets();
         void feedbackGetAllParameterSets(const vigir_footstep_planning_msgs::GetAllParameterSetsFeedbackConstPtr& feedback);
         void doneGetAllParameterSets(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::GetAllParameterSetsResultConstPtr& result);
-
-        // used to process new step plans whenever and however they arrive
-        void processNewStepPlanGoal(vigir_footstep_planning_msgs::Feet& goal);
-        void processNewStepPlan(vigir_footstep_planning_msgs::StepPlan& step_plan);
-        // callbacks for onboard actions
-        void processOnboardStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request);
-        void processOnboardStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan);
-        // callback for the ocs planner feedback
-        void processOCSStepPlanRequest(const vigir_footstep_planning_msgs::StepPlanRequest::ConstPtr& step_plan_request);
-        void processOCSStepPlan(const vigir_footstep_planning_msgs::StepPlan::ConstPtr& step_plan);
-
-        void timerCallback(const ros::TimerEvent& event);
 
     private:
         // send action goals
@@ -182,7 +190,6 @@ namespace ocs_footstep
         ros::Subscriber footstep_param_set_selected_sub_;
         ros::Publisher footstep_param_set_selected_pub_;
         ros::Publisher footstep_param_set_selected_ocs_pub_;
-        ros::Publisher footstep_param_set_selected_onboard_pub_;
 
         ros::Publisher footstep_goal_pose_pub_;
         ros::Subscriber footstep_goal_pose_sub_;
@@ -190,8 +197,24 @@ namespace ocs_footstep
         ros::Subscriber footstep_plan_request_sub_;
         ros::Subscriber footstep_plan_update_sub_;
 
-        // footstep plan request
-        ros::Subscriber set_goal_sub_;
+        ros::Subscriber validate_step_plan_sub_;
+        // obfsm topics
+        ros::Publisher obfsm_step_update_pub_;
+        ros::Publisher obfsm_update_step_plan_goal_pub_;
+        ros::Publisher obfsm_plan_goal_pub_;
+        ros::Publisher obfsm_plan_parameters_goal_pub_;
+        ros::Publisher obfsm_set_active_parameter_set_pub_;
+        ros::Publisher obfsm_updated_step_plan_pub_;
+        ros::Publisher obfsm_execute_step_plan_pub_;
+        ros::Publisher obfsm_replan_request_pub_;
+        ros::Subscriber obfsm_execute_step_plan_sub_;
+        ros::Subscriber obfsm_current_step_plan_sub_;
+        ros::Subscriber obfsm_update_feet_sub_;
+        ros::Subscriber obfsm_active_parameter_set_sub_;
+
+        // used exclusively to check what should be sent to the obfsm
+        std::map<ros::Time,std::vector<unsigned char> > updated_steps_;
+        std::map<ros::Time,bool> updated_goal_;
 
         // onboard planners feedback
         ros::Subscriber onboard_step_plan_request_sub_;
@@ -259,7 +282,5 @@ namespace ocs_footstep
         ros::Time last_onboard_step_plan_stamp_;
 
         ros::Time last_executed_step_plan_stamp_;
-
-        //ros::ServiceClient edit_step_service_client_;
     };
 }
