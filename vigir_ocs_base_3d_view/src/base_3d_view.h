@@ -148,7 +148,7 @@ public:
     bool getGhostLeftHandLocked(){return ghost_left_hand_lock_;}
     bool getGhostRightHandLocked(){return ghost_right_hand_lock_;}
     rviz::Tool* getInteractiveMarkersTool(){return interactive_markers_tool_;}
-    rviz::Tool* getMoveCameraTool(){return move_camera_tool_;}
+    //rviz::Tool* getMoveCameraTool(){return move_camera_tool_;}
     rviz::Tool* getSetGoalTool(){return set_goal_tool_;}
 
     /**
@@ -510,7 +510,7 @@ protected:
 
     rviz::Tool* interactive_markers_tool_;
     //rviz::Tool* selection_tool_;
-    rviz::Tool* move_camera_tool_;
+    //rviz::Tool* move_camera_tool_;
     rviz::Tool* set_goal_tool_;
 
     Ogre::Vector3 selection_position_;

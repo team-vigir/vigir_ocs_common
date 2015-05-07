@@ -125,7 +125,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         mouse_event_handler_ = copy_from->getMouseEventHander();
 
         interactive_markers_tool_ = copy_from->getInteractiveMarkersTool();
-        move_camera_tool_ = copy_from->getMoveCameraTool();
+        //move_camera_tool_ = copy_from->getMoveCameraTool();
         set_goal_tool_ = copy_from->getSetGoalTool();
     }
     else
@@ -180,7 +180,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // Add support for selection
         //selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
         // Add support for camera movement
-        move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
+        //move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
         // Add support for goal specification/vector navigation
         set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
         set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( ("/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose").c_str() );
@@ -1451,19 +1451,19 @@ void Base3DView::robotJointMarkerToggled(bool selected)
 
 void Base3DView::cameraToggled( bool selected )
 {
-    if(selected)
-    {
-        manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+//    if(selected)
+//    {
+//        manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
 
-        // enable robot IK widget_name_.compare("MainView") == 0markers
-        for( int i = 0; i < im_ghost_robot_.size(); i++ )
-        {
-            im_ghost_robot_[i]->setEnabled( false );
-        }
+//        // enable robot IK widget_name_.compare("MainView") == 0markers
+//        for( int i = 0; i < im_ghost_robot_.size(); i++ )
+//        {
+//            im_ghost_robot_[i]->setEnabled( false );
+//        }
 
-        // disable template marker
-        Q_EMIT enableTemplateMarkers( false );
-    }
+//        // disable template marker
+//        Q_EMIT enableTemplateMarkers( false );
+//    }
 }
 
 void Base3DView::selectToggled( bool selected )

@@ -82,11 +82,9 @@ namespace ocs_template
         void removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
         void updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& msg);
         void snapTemplateCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
-        void graspRequestCb(const flor_grasp_msgs::GraspSelection::ConstPtr& msg);
         void graspStateFeedbackCb(const flor_grasp_msgs::GraspState::ConstPtr& msg);
         void templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
         void publishTemplateList();
-        std::vector< std::vector <std::string> > readCSVFile(std::string& file_name);
         void loadObjectTemplateDatabaseXML(std::string& file_name);
         void loadGraspDatabaseXML(std::string& file_name, std::string hand_side);
         void loadStandPosesDatabaseXML(std::string& file_name);
@@ -104,9 +102,6 @@ namespace ocs_template
         bool instantiatedGraspInfoSrv(vigir_object_template_msgs::GetInstantiatedGraspInfo::Request& req,
                                       vigir_object_template_msgs::GetInstantiatedGraspInfo::Response& res);
 
-        bool attachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
-                                     vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
-
         bool stitchObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
                                      vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
 
@@ -122,7 +117,6 @@ namespace ocs_template
         ros::Subscriber template_update_sub_;
         ros::Subscriber template_add_sub_;
         ros::Subscriber template_remove_sub_;
-        ros::Subscriber grasp_request_sub_;
         ros::Subscriber grasp_state_feedback_sub_;
         ros::Subscriber template_match_feedback_sub_;
         ros::Subscriber template_snap_sub_;
@@ -135,7 +129,6 @@ namespace ocs_template
         ros::ServiceServer template_info_server_;
         ros::ServiceServer grasp_info_server_;
         ros::ServiceServer inst_grasp_info_server_;
-        ros::ServiceServer attach_object_server_;
         ros::ServiceServer stitch_object_server_;
         ros::ServiceServer detach_object_server_;
 

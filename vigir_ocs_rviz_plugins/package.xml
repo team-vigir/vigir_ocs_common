@@ -13,6 +13,7 @@
   <build_depend>rospy</build_depend>
   <build_depend>roslib</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>shape_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>flor_ocs_msgs</build_depend>
   <build_depend>flor_perception_msgs</build_depend>
@@ -26,6 +27,7 @@
   <run_depend>rospy</run_depend>
   <run_depend>roslib</run_depend>
   <run_depend>std_msgs</run_depend>
+  <run_depend>shape_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>flor_ocs_msgs</run_depend>
   <run_depend>flor_perception_msgs</run_depend>
@@ -43,6 +45,7 @@
       <rviz plugin="${prefix}/selection_3d_tool_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/selection_3d_display_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/bounding_object_display_custom_plugin_description.xml"/>
+      <rviz plugin="${prefix}/mesh_display_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/path_display_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/octomap_display_custom_plugin_description.xml"/>
       <rviz plugin="${prefix}/grasp_display_custom_plugin_description.xml"/>
