@@ -1303,6 +1303,10 @@ bool TemplateNodelet::instantiatedGraspInfoSrv(vigir_object_template_msgs::GetIn
             pre_grasp.post_place_retreat.direction.header.frame_id = template_pose_list_[index].header.frame_id;
             pre_grasp.pre_grasp_approach.direction.header.frame_id = template_pose_list_[index].header.frame_id;
             pre_grasp.pre_grasp_posture.header.frame_id            = template_pose_list_[index].header.frame_id;
+
+            grasp.grasp_pose.header.frame_id     = template_pose_list_[index].header.frame_id;
+            pre_grasp.grasp_pose.header.frame_id = template_pose_list_[index].header.frame_id;
+
             if(std::atoi(grasp.id.c_str()) >= 1000 && (req.hand_side == req.LEFT_HAND || req.hand_side == req.BOTH_HANDS)){
                 staticTransform(grasp.grasp_pose.pose,gp_T_lhand_);
                 gripperTranslationToPreGraspPose(pre_grasp.grasp_pose.pose,pre_grasp.pre_grasp_approach);
