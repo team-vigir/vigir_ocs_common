@@ -316,7 +316,7 @@ void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUp
 
     template_node_list_[id]->setOrientation(quat);*/
 
-    publishTemplateUpdate(pose->template_id,pose->pose);
+    publishTemplateUpdate(pose->template_id,pose->pose, pose->event_type); //add event type
 
     context_->queueRender();
 }
@@ -421,6 +421,7 @@ void TemplateDisplayCustom::onMarkerFeedback(const flor_ocs_msgs::OCSInteractive
         {
             flor_ocs_msgs::OCSTemplateUpdate out;
             out.pose = msg->pose;
+            out.event_type = msg->event_type;
             out.template_id = atoi(topic_name.erase(topic_name.find("_marker"),topic_name.size()).erase(0,std::string("/template_").size()).c_str());
             template_pose_pub_list_[i].publish(out);
         }
@@ -471,13 +472,13 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
     //msg->template_list;
 }
 
-void TemplateDisplayCustom::publishTemplateUpdate(const unsigned char& id, const geometry_msgs::PoseStamped& pose)
+void TemplateDisplayCustom::publishTemplateUpdate(const unsigned char& id, const geometry_msgs::PoseStamped& pose, const unsigned char &event_type)
 {
     flor_ocs_msgs::OCSTemplateUpdate cmd;
 
     cmd.template_id = id;
-    cmd.pose = pose;
-
+    cmd.pose        = pose;
+    cmd.event_type  = event_type;
     transform("/world",cmd.pose);
 
     // publish complete list of templates and poses
