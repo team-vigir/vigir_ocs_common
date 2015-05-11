@@ -6,9 +6,9 @@ project(vigir_ocs_ghost_control_widget)
 find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib std_msgs rviz flor_ocs_msgs flor_grasp_msgs vigir_ocs_hotkey_manager)
 
 ## Declare things to be passed to other projects
-catkin_package(	
+catkin_package(
 	INCLUDE_DIRS src
-	LIBRARIES ${PROJECT_NAME} 
+	LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS roscpp rospy roslib std_msgs rviz flor_ocs_msgs flor_grasp_msgs vigir_ocs_hotkey_manager
 )
 
@@ -41,13 +41,13 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} s
 
 add_executable(ghost_control ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(ghost_control ${catkin_LIBRARIES} ${QT_LIBRARIES})
-add_dependencies(ghost_control ${catkin_EXPORTED_TARGETS})
+add_dependencies(ghost_control ${catkin_EXPORTED_TARGETS} vigir_object_template_msgs_generate_messages_cpp)
 
 add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
-add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS} vigir_object_template_msgs_generate_messages_cpp)
 
-install(TARGETS ${PROJECT_NAME} ghost_control 
+install(TARGETS ${PROJECT_NAME} ghost_control
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   )
