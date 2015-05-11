@@ -24,6 +24,25 @@ BehaviorNotification::BehaviorNotification(QWidget *parent) :
                         "QWidget:hover{background-color:rgba(235,235,235,200);}"
                         );
 
+    setButtonStyle(ui->confirm_button_);
+    setButtonStyle(ui->abort_button_);
+
+
+    confirm_fadein_ = new QPropertyAnimation(ui->confirmation_widget_, "windowOpacity");
+    confirm_fadein_->setTargetObject(ui->confirmation_widget_);
+    confirm_fadein_->setEasingCurve(QEasingCurve::InOutQuad);
+    confirm_fadein_->setDuration(500);
+    confirm_fadein_->setStartValue(0.0);
+    confirm_fadein_->setEndValue(.8);
+
+//    QFrame* leftFrame = new QFrame(ui->central_widget_);
+//    leftFrame->setLayout(ui->central_widget_->layout());
+//    leftFrame->setFrameStyle(QFrame::Panel| QFrame::Plain);
+//    leftFrame->setLineWidth(2);
+//    leftFrame->setObjectName("leftFrame");
+//    leftFrame->setStyleSheet("#leftFrame {color: green;}");
+
+
 }
 
 bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
@@ -36,14 +55,11 @@ bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
             if(ui->confirm_button_->isVisible())
             {
                 ui->confirmation_widget_->hide();
-                //ui->confirm_button_->hide();
-                //ui->abort_button_->hide();
             }
             else
             {
                 ui->confirmation_widget_->show();
-                //ui->confirm_button_->show();
-                //ui->abort_button_->show();
+               // confirm_fadein_->start();
             }
             return true;
         }
@@ -69,6 +85,23 @@ void BehaviorNotification::setGoal(BehaviorServer::GoalHandle goal_handle)
 {
     //not great to pass goal along with notification, but im going to live with it for now
     goal_ = goal_handle;
+}
+
+void BehaviorNotification::setButtonStyle(QPushButton* btn)
+{
+    btn->setStyleSheet(QString("QPushButton  { ") +
+                                                " background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));" +
+                                                " border-style: solid;" +
+                                                " border-width: 1px;" +
+                                                " border-radius: 1px;" +
+                                                " border-color: gray;" +
+                                                " padding: 0px;" +
+                                                "}" +
+                                                "QPushButton:pressed  {" +
+                                                " padding-top:1px; padding-left:1px;" +
+                                                " background-color: rgb(180,180,180);" +
+                                                " border-style: inset;" +
+                                                "}");
 }
 
 

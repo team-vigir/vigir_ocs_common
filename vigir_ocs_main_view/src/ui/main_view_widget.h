@@ -159,6 +159,7 @@ protected:
     QPushButton * grasp_toggle_button_;
     QPropertyAnimation * graspFadeIn;
     QPropertyAnimation * graspFadeOut;
+    QPropertyAnimation * notification_container_fade_out_;
 
     QWidget *graspContainer;
 
