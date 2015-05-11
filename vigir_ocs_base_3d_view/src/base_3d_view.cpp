@@ -123,6 +123,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         selection_3d_display_ = copy_from->getSelection3DDisplay();
         notification_overlay_display_ = copy_from->getNotificationOverlayDisplay();        
         mouse_event_handler_ = copy_from->getMouseEventHander();
+
+        interactive_markers_tool_ = copy_from->getInteractiveMarkersTool();
+        //move_camera_tool_ = copy_from->getMoveCameraTool();
+        set_goal_tool_ = copy_from->getSetGoalTool();
     }
     else
     {
@@ -176,7 +180,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // Add support for selection
         //selection_tool_ = manager_->getToolManager()->addTool( "rviz/Select" );
         // Add support for camera movement
-        move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
+        //move_camera_tool_ = manager_->getToolManager()->addTool( "rviz/MoveCamera" );
         // Add support for goal specification/vector navigation
         set_goal_tool_ = manager_->getToolManager()->addTool( "rviz/SetGoal" );
         set_goal_tool_->getPropertyContainer()->subProp( "Topic" )->setValue( ("/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose").c_str() );
@@ -489,14 +493,17 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_right_hand_lock_ = false;
         ghost_lock_pelvis_ = true;
 
+        //locks must be shared across all views
+        state_use_torso_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_use_torso", 5, &Base3DView::stateUseTorsoCB, this );
+        state_lock_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_lock_pelvis", 5, &Base3DView::stateLockPelvisCB, this );
+        state_position_only_ik_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_position_only_ik", 5, &Base3DView::statePositionOnlyIkCB, this );
+        state_use_drake_ik_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_use_drake_ik", 5, &Base3DView::stateUseDrakeIkCB, this );
+
         // ghost state
         if(widget_name_ == "MainView") // hack, we don't have a ghost manager yet and should only do this once
         {
             //ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
-            state_use_torso_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_use_torso", 5, &Base3DView::stateUseTorsoCB, this );
-            state_lock_pelvis_sub_ = nh_.subscribe<std_msgs::Int8>( "/flor/ocs/ghost/state_lock_pelvis", 5, &Base3DView::stateLockPelvisCB, this );
-            state_position_only_ik_sub_ = nh_.subscribe<std_msgs::Int8>( "/flor/ocs/ghost/state_position_only_ik", 5, &Base3DView::statePositionOnlyIkCB, this );
-            state_use_drake_ik_sub_ = nh_.subscribe<std_msgs::Int8>( "/flor/ocs/ghost/state_use_drake_ik", 5, &Base3DView::stateUseDrakeIkCB, this );
+
             state_snap_ghost_to_robot_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_snap_ghost_to_robot", 5, &Base3DView::stateSnapGhostToRobot, this );
 
             reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
@@ -1444,19 +1451,19 @@ void Base3DView::robotJointMarkerToggled(bool selected)
 
 void Base3DView::cameraToggled( bool selected )
 {
-    if(selected)
-    {
-        manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
+//    if(selected)
+//    {
+//        manager_->getToolManager()->setCurrentTool( move_camera_tool_ );
 
-        // enable robot IK widget_name_.compare("MainView") == 0markers
-        for( int i = 0; i < im_ghost_robot_.size(); i++ )
-        {
-            im_ghost_robot_[i]->setEnabled( false );
-        }
+//        // enable robot IK widget_name_.compare("MainView") == 0markers
+//        for( int i = 0; i < im_ghost_robot_.size(); i++ )
+//        {
+//            im_ghost_robot_[i]->setEnabled( false );
+//        }
 
-        // disable template marker
-        Q_EMIT enableTemplateMarkers( false );
-    }
+//        // disable template marker
+//        Q_EMIT enableTemplateMarkers( false );
+//    }
 }
 
 void Base3DView::selectToggled( bool selected )
@@ -2732,7 +2739,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
         moving_l_arm_ = false;
         moving_r_arm_ = false;
 
-        pelvis_marker_pose_pub_.publish(msg.pose);        
+        pelvis_marker_pose_pub_.publish(msg.pose);
     }
     else if(msg.topic.find("/cartesian_pose_") != std::string::npos)
     {
@@ -2782,7 +2789,9 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
             msg.topic.find("pelvis_pose_marker") != std::string::npos||
             (ghost_left_hand_lock_ || ghost_right_hand_lock_ ))     //should publish ghost if either arm is locked to template
     {
-        publishGhostPoses();
+        //hack, need to have seperate main view that overrides onmarkerfeedback to handle main view specifically
+        if(widget_name_ == "MainView")
+            publishGhostPoses();
     }
 }
 
@@ -2867,23 +2876,27 @@ void Base3DView::publishGhostPoses()
     if(position_only_ik_ && !(left && right && torso) && !(left && right && !torso))
         cmd.planning_group.data += "_position_only_ik";
 
-    if(use_drake_ik_) {
+    if(use_drake_ik_)
+    {
         cmd.planning_group.data = "whole_body_group";
 
-        if ( left ) {
+        if ( left )
+        {
             std_msgs::String target_link_name;
             target_link_name.data = "l_hand";
             cmd.target_link_names.push_back(target_link_name);
         }
 
 
-        if ( right ) {
+        if ( right )
+        {
             std_msgs::String target_link_name;
             target_link_name.data = "r_hand";
             cmd.target_link_names.push_back(target_link_name);
         }
 
-        if ( ghost_lock_pelvis_ ) {
+        if ( ghost_lock_pelvis_ )
+        {
             std_msgs::String target_link_name;
             target_link_name.data = "pelvis";
             cmd.target_link_names.push_back(target_link_name);
@@ -2896,45 +2909,67 @@ void Base3DView::publishGhostPoses()
 
     if(ghost_lock_pelvis_)
     {
+        //get root pose of robot, publish ghost to lock to robot
+
         Ogre::Vector3 position(0,0,0);
         Ogre::Quaternion orientation(1,0,0,0);
         transform(position, orientation, "/pelvis", "/world");
 
-        geometry_msgs::PoseStamped pose;
-        pose.pose.position.x = position.x;
-        pose.pose.position.y = position.y;
-        pose.pose.position.z = position.z;
-        pose.pose.orientation.x = orientation.x;
-        pose.pose.orientation.y = orientation.y;
-        pose.pose.orientation.z = orientation.z;
-        pose.pose.orientation.w = orientation.w;
-        pose.header.frame_id = "/world";
-        pose.header.stamp = ros::Time::now();
+        geometry_msgs::PoseStamped root_pose;
+        root_pose.pose.position.x = position.x;
+        root_pose.pose.position.y = position.y;
+        root_pose.pose.position.z = position.z;
+        root_pose.pose.orientation.x = orientation.x;
+        root_pose.pose.orientation.y = orientation.y;
+        root_pose.pose.orientation.z = orientation.z;
+        root_pose.pose.orientation.w = orientation.w;
+        root_pose.header.frame_id = "/world";
+        root_pose.header.stamp = ros::Time::now();
 
-        //ghost_root_pose_pub_.publish(pose);
+        //ROS_ERROR("locked root pose");
 
-//        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
-//        {
-//            if(0server_[i]->getMarkerName() == "Ghost Pelvis")
-//            {
-//                im_ghost_robot_server_[i]->setPose(pose);
-//                break;
-//            }
-//        }
+
+
+        ghost_root_pose_pub_.publish(root_pose);
+
+        //set pelvis interactive marker to always be hidden
+       // if(im_ghost_robot_[2]->isEnabled())
+        //    im_ghost_robot_[2]->setEnabled(false);
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/pelvis_pose_marker";
-        cmd.pose = pose;
-        //interactive_marker_update_pub_.publish(cmd);
+        cmd.pose = root_pose;
+        interactive_marker_update_pub_.publish(cmd);
 
-       // pelvis_marker_pose_pub_.publish(pose);
+        pelvis_marker_pose_pub_.publish(root_pose);
     }
     else
     {
+        //currently overpublishing data, 0,0,0  1,0,0,0 is used to initialize pose updates. should not be published but we must ignore for now...  TODO: don't publish 0,0,0 unnecessarily
+        if(end_effector_pose_list_["/pelvis_pose_marker"].pose.position.x == 0 &&
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.position.y == 0 &&
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.position.z == 0 &&
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.x == 0 &&
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.y == 0 &&
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.z == 0 &&
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.w == 0 )
+            return;
+
+
+        //set pelvis interactive marker to always be shown
+       // if(!im_ghost_robot_[2]->isEnabled())
+        //    im_ghost_robot_[2]->setEnabled(true);
+
         // how do I set world lock for torso?
         ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
         pelvis_marker_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+
+        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.topic = "/pelvis_pose_marker";
+        cmd.pose = end_effector_pose_list_["/pelvis_pose_marker"];
+        interactive_marker_update_pub_.publish(cmd);
+
     }
 }
 
@@ -2947,23 +2982,20 @@ void Base3DView::stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr& msg)
 
 void Base3DView::stateUseTorsoCB(const std_msgs::Bool::ConstPtr& msg)
 {
-    //need to reset planning group or just update use torso??
-    //ghost_planning_group_[0] = 0;
-    //ghost_planning_group_[0] = 0;
     ghost_use_torso_ = msg->data;
 }
 
-void Base3DView::stateLockPelvisCB(const std_msgs::Int8::ConstPtr& msg)
+void Base3DView::stateLockPelvisCB(const std_msgs::Bool::ConstPtr& msg)
 {
-    ghost_lock_pelvis_ = msg->data;
+    ghost_lock_pelvis_ = msg->data;    
 }
 
-void Base3DView::statePositionOnlyIkCB(const std_msgs::Int8::ConstPtr& msg)
+void Base3DView::statePositionOnlyIkCB(const std_msgs::Bool::ConstPtr& msg)
 {
     position_only_ik_ = msg->data;
 }
 
-void Base3DView::stateUseDrakeIkCB(const std_msgs::Int8::ConstPtr& msg)
+void Base3DView::stateUseDrakeIkCB(const std_msgs::Bool::ConstPtr& msg)
 {
     use_drake_ik_ = msg->data;
 }
@@ -3116,6 +3148,8 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
     robot_state->setJointStates(*states);
     // and root transform
     robot_state->setRootTransform(root_pose);
+
+    //ROS_ERROR("root position %f %f %f", root_pose.pose.position.x,root_pose.pose.position.y,root_pose.pose.position.z);
 
     for(int i = 0; i < states->name.size(); i++)
     {
@@ -3590,18 +3624,9 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
         pose.pose.orientation.z = final_orientation.z;
         pose.pose.orientation.w = final_orientation.w;
         pose.header.frame_id = "/world";
-        pose.header.stamp = ros::Time::now();
+        pose.header.stamp = ros::Time::now();        
 
         ghost_root_pose_pub_.publish(pose);
-
-//        for(int i = 0; i < im_ghost_robot_server_.size(); i++)
-//        {
-//            if(im_ghost_robot_server_[i]->getMarkerName() == "Ghost Pelvis")
-//            {
-//                im_ghost_robot_server_[i]->setPose(pose);
-//                break;
-//            }
-//        }
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.topic = "/pelvis_pose_marker";

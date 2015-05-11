@@ -193,7 +193,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     // connect emergency stop button to glancehub
     stop_mapper_ = new QSignalMapper(this);
-    connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
+    connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(modeChanged(int)));
 
     //map all toggles button to their identifiers
     ROS_WARN(" Hard coding a STOP with index 1"); // @todo - verify this setup

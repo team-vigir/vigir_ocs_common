@@ -365,7 +365,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     // connect emergency stop button to glancehub
     stop_mapper_ = new QSignalMapper(this);
-    connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(receiveModeChange(int)));
+    connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(modeChanged(int)));
 
     //map all toggles button to their identifiers                              @todo - verify
     stop_mapper_->setMapping(((vigir_ocs::Base3DView*) views_list_["Top Left"]),1);//flor_control_msgs::FlorControlModeCommand::FLOR_STOP);

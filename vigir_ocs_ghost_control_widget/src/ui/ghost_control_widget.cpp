@@ -35,9 +35,9 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
 
     //publish to normal state to be read by outside
     state_use_torso_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/state_use_torso", 1, false );
-    state_lock_pelvis_pub_ = nh_.advertise<std_msgs::Int8>( "/flor/ocs/ghost/state_lock_pelvis", 1, false );
-    state_position_only_ik_pub_ = nh_.advertise<std_msgs::Int8>( "/flor/ocs/ghost/state_position_only_ik", 1, false );
-    state_use_drake_ik_pub_ = nh_.advertise<std_msgs::Int8>( "/flor/ocs/ghost/state_use_drake_ik", 1, false );
+    state_lock_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/state_lock_pelvis", 1, false );
+    state_position_only_ik_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/state_position_only_ik", 1, false );
+    state_use_drake_ik_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/state_use_drake_ik", 1, false );
     state_snap_ghost_to_robot_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/state_snap_ghost_to_robot", 1, false );
 
 
@@ -291,7 +291,7 @@ void GhostControlWidget::on_position_only_ik__clicked()
 {
     saved_state_position_only_ik_ = ui->position_only_ik_->isChecked();
 
-    std_msgs::Int8 msg;
+    std_msgs::Bool msg;
     msg.data = saved_state_position_only_ik_;
     state_position_only_ik_pub_.publish(msg);
 }
@@ -301,7 +301,7 @@ void GhostControlWidget::on_lock_pelvis__clicked()
 {
     saved_state_lock_pelvis_ = ui->lock_pelvis_->isChecked();
 
-    std_msgs::Int8 msg;
+    std_msgs::Bool msg;
     msg.data = saved_state_lock_pelvis_;
     state_lock_pelvis_pub_.publish(msg);
 }
@@ -310,7 +310,7 @@ void GhostControlWidget::on_use_drake_ik__clicked()
 {
     saved_state_use_drake_ik_ = ui->use_drake_ik_->isChecked();
 
-    std_msgs::Int8 msg;
+    std_msgs::Bool msg;
     msg.data = saved_state_use_drake_ik_;
     state_use_drake_ik_pub_.publish(msg);
 }
@@ -481,6 +481,7 @@ void GhostControlWidget::on_send_ghost_to_template_button_clicked()
     //CALLING THE TEMPLATE SERVER
     vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
     srv.request.template_id = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
+    srv.request.hand_side   = srv.request.BOTH_HANDS;
     if (!template_info_client_.call(srv))
     {
         ROS_ERROR("Failed to call service request grasp info");
