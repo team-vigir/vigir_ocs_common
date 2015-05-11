@@ -335,8 +335,8 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //notification_container_->setStyleSheet("background:transparent;");
     notification_container_->setMinimumHeight(70);
     notification_container_->setMaximumHeight(70);
-    notification_container_->setMaximumWidth(340);
-    notification_container_->setMinimumWidth(340);
+    notification_container_->setMaximumWidth(400);
+    notification_container_->setMinimumWidth(400);
     notification_container_->adjustSize();
     notification_layout_ = new QVBoxLayout();
     notification_layout_->setMargin(0);
