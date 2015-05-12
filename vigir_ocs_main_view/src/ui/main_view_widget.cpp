@@ -330,13 +330,13 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //initialize behavior relay with notifications
     notification_container_ = new QWidget(this);
     notification_container_->setStyleSheet("background-color: rgb(30, 30, 30);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
-    notification_container_->setWindowOpacity(0);
+    //notification_container_->setWindowOpacity(0);
     //notification_container_->setAttribute(Qt::WA_TranslucentBackground);
     //notification_container_->setStyleSheet("background:transparent;");
-    notification_container_->setMinimumHeight(0);
+    notification_container_->setMinimumHeight(70);
     notification_container_->setMaximumHeight(70);
     notification_container_->setMaximumWidth(400);
-    notification_container_->setMinimumWidth(0);
+    notification_container_->setMinimumWidth(400);
     notification_container_->adjustSize();
     notification_layout_ = new QVBoxLayout();
     notification_layout_->setMargin(0);

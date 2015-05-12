@@ -16,6 +16,10 @@ BehaviorNotification::BehaviorNotification(QWidget *parent) :
     //ui->abort_button_->hide();
     confirmed_ = false;
     ui->central_widget_->setMouseTracking( true );
+    ui->central_widget_->setWindowOpacity(0);
+    ui->central_widget_->setAttribute(Qt::WA_TranslucentBackground);
+    ui->central_widget_->setStyleSheet("background:transparent;");
+
     ui->central_widget_->installEventFilter(this);
 
     ui->confirmation_widget_->hide();
