@@ -7,6 +7,7 @@
 #include "footstep_vis_manager.h"
 
 #include <QMessageBox>
+#include <QApplication>
 
 namespace vigir_ocs
 {
@@ -71,7 +72,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     // publishers and subscribers for the interactive markers
     interactive_marker_add_pub_      = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, false );
     interactive_marker_update_pub_   = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 100, false );
-    interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 5, &FootstepVisManager::onMarkerFeedback, this );
+    interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 100, &FootstepVisManager::onMarkerFeedback, this );
     interactive_marker_remove_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
 
     //initialize to default values in case requesting a plan before updating any values
@@ -300,6 +301,7 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
 
         // update interactive marker pose
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.client_id = ros::this_node::getName();
         cmd.topic = step_pose_string;
         cmd.pose = plan_goal->goal_pose;
         interactive_marker_update_pub_.publish(cmd);
@@ -333,6 +335,7 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
 
             // update interactive marker pose
             flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+            cmd.client_id = ros::this_node::getName();
             cmd.topic = pose_string;
             cmd.pose.pose = i ? plan_goal->right_foot.pose : plan_goal->left_foot.pose;
             interactive_marker_update_pub_.publish(cmd);
@@ -413,6 +416,7 @@ void FootstepVisManager::updateInteractiveMarkers()
 
             // update interactive marker pose
             flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+            cmd.client_id = ros::this_node::getName();
             cmd.topic = step_pose_string;
             cmd.pose.pose.position.x = (footstep_list_.pose[i].pose.position.x+footstep_list_.pose[i-1].pose.position.x)/2.0;
             cmd.pose.pose.position.y = (footstep_list_.pose[i].pose.position.y+footstep_list_.pose[i-1].pose.position.y)/2.0;
@@ -469,9 +473,8 @@ void FootstepVisManager::updateInteractiveMarkers()
 
         // update interactive marker pose
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.client_id = ros::this_node::getName();
         cmd.topic = pose_string;
-        //convert back to ankle??
-
         cmd.pose = footstep_list_.pose[i];
         interactive_marker_update_pub_.publish(cmd);
     }
@@ -543,16 +546,21 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
         }
     }
 
-    // on mouse release, update plan
-    if(msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_DOWN)
+    if(msg.client_id == ros::this_node::getName())
     {
-        double_click_timer_ = boost::posix_time::second_clock::local_time();
-        button_down_ = true;
-    }
-    else if(button_down_ && msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP && (boost::posix_time::second_clock::local_time()-double_click_timer_).total_milliseconds() > 100)
-    {
-        need_plan_update_ = true;
-        button_down_ = false;
+        // on mouse release, update plan
+        if(msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_DOWN)
+        {
+            ROS_ERROR("%s: button down",ros::this_node::getName());
+            double_click_timer_ = boost::posix_time::second_clock::local_time();
+            button_down_ = true;
+        }
+        else if(button_down_ && msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP && (boost::posix_time::second_clock::local_time()-double_click_timer_).total_milliseconds() > 100)
+        {
+            ROS_ERROR("%s: button up",ros::this_node::getName());
+            need_plan_update_ = true;
+            button_down_ = false;
+        }
     }
 }
 

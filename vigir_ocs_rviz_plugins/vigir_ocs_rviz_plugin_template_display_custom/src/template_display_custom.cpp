@@ -463,6 +463,7 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
             template_node_list_[i]->setOrientation(quat);
             //template_marker_list_[i]->setPose(pose);
             flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+            cmd.client_id = ros::this_node::getName();
             cmd.topic = template_pose_pub_list_[i].getTopic();
             cmd.pose = pose;
             interactive_marker_update_pub_.publish(cmd);
