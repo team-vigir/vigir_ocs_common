@@ -41,6 +41,7 @@ BehaviorNotification::BehaviorNotification(QWidget *parent) :
     //flags |= Qt::WindowStaysOnTopHint;
     flags |= Qt::FramelessWindowHint;
     flags |= Qt::Dialog;
+    flags |= Qt::WindowStaysOnTopHint;
     ui->confirmation_widget_->setWindowFlags(flags);
 
     timer.start(100, this);
@@ -51,8 +52,9 @@ void BehaviorNotification::timerEvent(QTimerEvent *event)
 {
     if(ui->confirm_button_->isVisible())
     {
+        QPoint p = QWidget::mapToGlobal(this->geometry().topRight());
         //position to right of rest of notification
-        ui->confirmation_widget_->setGeometry(this->geometry().topRight().x(),this->geometry().topRight().y(),
+        ui->confirmation_widget_->setGeometry(p.x(),p.y(),
                                               ui->confirmation_widget_->geometry().width(),ui->confirmation_widget_->geometry().height());
     }
 }
