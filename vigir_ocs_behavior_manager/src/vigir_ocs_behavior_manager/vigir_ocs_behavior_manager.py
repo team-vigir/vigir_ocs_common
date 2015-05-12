@@ -12,6 +12,8 @@ from vigir_be_msgs.msg import BehaviorInputAction , BehaviorInputFeedback, Behav
 #from python_qt_binding.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QDoubleSpinBox, QCheckBox
 from geometry_msgs.msg import Point, PoseStamped#, JointState
 from flor_ocs_msgs.msg import OCSObjectSelection, OCSTemplateList
+from vigir_footstep_planning_msgs.msg import StepPlan
+from std_msgs.msg import Header
 
 '''
 Created on 02/26/2015
@@ -31,6 +33,7 @@ class BehaviorManager():
         self.object_sub = rospy.Subscriber('/flor/ocs/object_selection', OCSObjectSelection, self.object_cb)
         self.template_sub = rospy.Subscriber('/template/list', OCSTemplateList,self.template_cb)
         self.goal_waypoint_sub = rospy.Subscriber('/flor/ocs/footstep/goal_pose',PoseStamped,self.goal_waypoint_cb)
+        self.footstep_plan_sub = rospy.Subscriber('/vigir/footstep_manager/current_step_plan',StepPlan ,self.footstep_plan_cb)
         #self.ghost_joint_state_sub = rospy.Subscriber('/flor/ghost/get_joint_states',JointState, self.ghost_joint_state_cb)
 
          #"/flor/ghost/pose/left_hand"
@@ -47,6 +50,7 @@ class BehaviorManager():
         self.latest_selected_template_ = OCSObjectSelection()
         self.template_list_ = OCSTemplateList()
         self.latest_goal_waypoint_pose_  = PoseStamped()
+        self.latest_footstep_plan_ = StepPlan()
         #self.ghost_joint_state = JointState()
 
 
@@ -78,6 +82,8 @@ class BehaviorManager():
             result.data = self.latest_selected_template_.id
         elif(goal.request_type == BehaviorInputGoal.WAYPOINT_GOAL_POSE):
             result.data = self.latest_goal_waypoint_pose_
+        elif(goal.request_type == BehaviorInputGoal.FOOTSTEP_PLAN_HEADER):
+            result.data = self.latest_footstep_plan_.header
         else:
             print 'behavior not yet implemented'
             result.data = 'behavior not yet implemented'
@@ -106,6 +112,9 @@ class BehaviorManager():
     def goal_waypoint_cb(self,data):
         self.latest_goal_waypoint_pose_ = data
 
+    def footstep_plan_cb(self,data):
+        self.latest_footstep_plan_ = data
+                
     #def ghost_joint_state_cb(self,data):
             #self.ghost_joint_state = data
 
