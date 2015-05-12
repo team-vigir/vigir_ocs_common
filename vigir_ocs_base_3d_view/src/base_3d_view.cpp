@@ -869,7 +869,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     interactive_marker_mode_ = 0;
 
     // this is only used to make sure we close window if ros::shutdown has already been called
-    timer.start(33, this);
+    timer_.start(33, this);
 }
 
 // Destructor.

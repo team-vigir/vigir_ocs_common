@@ -593,7 +593,7 @@ protected:
     QPushButton* reset_view_button_;
     QPushButton* stop_button_;
 
-    QBasicTimer timer;
+    QBasicTimer timer_;
     int ghost_opacity_update_counter_;
     int ghost_opacity_update_frequency_;
     bool ghost_opacity_update_;

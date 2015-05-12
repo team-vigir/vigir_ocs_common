@@ -98,11 +98,22 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
 
     //
     button_down_ = false;
+
+    // make sure we send step plan request if needed based on time
+    timer_.start(66, this);
 }
 
 FootstepVisManager::~FootstepVisManager()
 {
 }
+
+void FootstepVisManager::timerEvent(QTimerEvent *event)
+{
+    //ROS_INFO("Need plan update? %s", need_plan_update_ ? "yes" : "no");
+    if(need_plan_update_ && !button_down_ && (boost::posix_time::second_clock::local_time()-double_click_timer_).total_milliseconds() > 100)
+        requestStepPlan();
+}
+
 
 void FootstepVisManager::setStartingFootstep(int footstep_id)
 {
@@ -258,6 +269,7 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
     enableFootstepGoalDisplays( false, true, true );
 
     // enable update of footstep plan
+    double_click_timer_ = boost::posix_time::second_clock::local_time();
     need_plan_update_ = true;
 
     flor_ocs_msgs::OCSFootstepPlanGoal cmd;
@@ -270,10 +282,6 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
     // only do something if we're getting feedback
     if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::FEEDBACK)
     {
-        ROS_INFO("Need plan update? %s", need_plan_update_ ? "yes" : "no");
-        if(need_plan_update_)
-            requestStepPlan();
-
         // create/update step plan goal marker
         {
         std::string step_pose_string = "/step_plan_goal_marker";
@@ -551,13 +559,13 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
         // on mouse release, update plan
         if(msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_DOWN)
         {
-            ROS_INFO("%s: button down",ros::this_node::getName().c_str());
-            double_click_timer_ = boost::posix_time::second_clock::local_time();
+            ROS_ERROR("%s: button down",ros::this_node::getName().c_str());
             button_down_ = true;
         }
-        else if(button_down_ && msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP && (boost::posix_time::second_clock::local_time()-double_click_timer_).total_milliseconds() > 100)
+        else if(button_down_ && msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP)
         {
-            ROS_INFO("%s: button up",ros::this_node::getName().c_str());
+            ROS_ERROR("%s: button up",ros::this_node::getName().c_str());
+            double_click_timer_ = boost::posix_time::second_clock::local_time();
             need_plan_update_ = true;
             button_down_ = false;
         }
