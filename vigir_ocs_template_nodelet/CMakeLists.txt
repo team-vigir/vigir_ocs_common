@@ -3,7 +3,7 @@ project(vigir_ocs_template_nodelet)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy tf tf_conversions pluginlib std_msgs geometry_msgs moveit_core moveit_ros_planning shape_msgs flor_ocs_msgs flor_grasp_msgs vigir_object_template_msgs nodelet cmake_modules)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy tf tf_conversions pluginlib std_msgs geometry_msgs moveit_core moveit_ros_planning shape_msgs visualization_msgs flor_ocs_msgs flor_grasp_msgs vigir_object_template_msgs nodelet cmake_modules)
 
 find_package(TinyXML REQUIRED)
 
@@ -11,7 +11,7 @@ find_package(TinyXML REQUIRED)
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-        CATKIN_DEPENDS roscpp rospy tf tf_conversions pluginlib std_msgs geometry_msgs moveit_core moveit_ros_planning shape_msgs flor_ocs_msgs flor_grasp_msgs vigir_object_template_msgs nodelet
+        CATKIN_DEPENDS roscpp rospy tf tf_conversions pluginlib std_msgs geometry_msgs moveit_core moveit_ros_planning shape_msgs visualization_msgs flor_ocs_msgs flor_grasp_msgs vigir_object_template_msgs nodelet
         DEPENDS TinyXML
 )
 
@@ -35,7 +35,7 @@ add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 add_executable(template_nodelet ${SOURCE_FILES})
 target_link_libraries(template_nodelet ${catkin_LIBRARIES} ${PROJECT_NAME})
 
-add_dependencies(template_nodelet ${catkin_EXPORTED_TARGETS})
+add_dependencies(template_nodelet ${catkin_EXPORTED_TARGETS} vigir_object_template_msgs_generate_messages_cpp)
 
 install(FILES
   vigir_template_nodelet.xml

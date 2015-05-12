@@ -538,6 +538,9 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
     for(index = 0; index < last_template_srv_.response.template_type_information.affordances.size(); index++)
     {
         ui->affordanceBox->addItem(QString(last_template_srv_.response.template_type_information.affordances[index].name.c_str()));
+    }
+
+    if(ui->affordanceBox->count() > 0){
         ui->affordanceButton->setEnabled(true);
         ui->keepOrientationBox->setEnabled(true);
         ui->displacementBox->setEnabled(true);
@@ -1144,11 +1147,12 @@ void graspWidget::on_affordanceButton_clicked()
     if (!template_info_client_.call(last_template_srv_))
     {
         ROS_ERROR("Failed to call service request template info");
-    }
+    }else{
     current_affordance_.waypoints = last_template_srv_.response.template_type_information.affordances[current_affordance_.id].waypoints;
 
     if(affordance_selection_pub_)
         affordance_selection_pub_.publish(current_affordance_);
+    }
 }
 
 void graspWidget::on_snapTemplateButton_clicked()

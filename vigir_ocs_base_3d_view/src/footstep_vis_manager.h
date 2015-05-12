@@ -8,6 +8,7 @@
 #define FOOTSTEP_VIS_MANAGER_H
 
 #include <QObject>
+#include <QBasicTimer>
 
 #include <ros/ros.h>
 
@@ -121,6 +122,8 @@ public:
     bool hasStartingFootstep() { return (start_step_index_ >= 0); }
     unsigned int numStepPlans() { return num_step_plans_; }
 
+    virtual void timerEvent(QTimerEvent *event);
+
 public Q_SLOTS:
     // Set visibility of all footstep-related displays
     void setEnabled(bool enabled);
@@ -232,6 +235,8 @@ private:
     // avoid detecting double click as dragging interactive marker
     boost::posix_time::ptime double_click_timer_;
     bool button_down_;
+
+    QBasicTimer timer_;
 };
 
 }

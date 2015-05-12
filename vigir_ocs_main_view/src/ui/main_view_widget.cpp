@@ -330,7 +330,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     //initialize behavior relay with notifications
     notification_container_ = new QWidget(this);
     notification_container_->setStyleSheet("background-color: rgb(30, 30, 30);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
-    notification_container_->setWindowOpacity(0);
+    //notification_container_->setWindowOpacity(0);
     //notification_container_->setAttribute(Qt::WA_TranslucentBackground);
     //notification_container_->setStyleSheet("background:transparent;");
     notification_container_->setMinimumHeight(70);
@@ -340,9 +340,18 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     notification_container_->adjustSize();
     notification_layout_ = new QVBoxLayout();
     notification_layout_->setMargin(0);
+    notification_layout_->setContentsMargins(0,0,0,0);
     notification_layout_->setSpacing(0);
     notification_container_->setLayout(notification_layout_);
     notification_container_->hide();
+
+    //hacky way to make widget invisible
+    notification_container_fade_out_ = new QPropertyAnimation(notification_container_, "windowOpacity");
+    notification_container_fade_out_->setEasingCurve(QEasingCurve::InOutQuad);
+    notification_container_fade_out_->setDuration(300);
+    notification_container_fade_out_->setStartValue(0.8);
+    notification_container_fade_out_->setEndValue(0.0);
+    notification_container_fade_out_->start();
 
     behavior_relay_ = new BehaviorRelay();
     connect(behavior_relay_,SIGNAL(updateUI()),this,SLOT(updateBehaviorNotifications()));
@@ -400,8 +409,22 @@ void MainViewWidget::updateBehaviorNotifications()
     while (i < (int)behavior_relay_->getNotifications().size() && i < behavior_relay_->getMaxNotificationsShown())
     {
         BehaviorNotification* notification = behavior_relay_->getNotifications()[i];       
+        //get rid of spacer?
+
         notification->show();        
         notification_layout_->insertWidget(0,notification);//insert top down
+
+        //fade in
+        QPropertyAnimation notification_fadein;
+        notification_fadein.setParent(notification);
+        notification_fadein.setTargetObject(notification);
+        notification_fadein.setPropertyName("windowOpacity");
+        notification_fadein.setEasingCurve(QEasingCurve::InOutQuad);
+        notification_fadein.setDuration(500);
+        notification_fadein.setStartValue(0.0);
+        notification_fadein.setEndValue(.8);
+        //notification_fadein.start();
+
         i++;
     }    
     //toggle visibility of behavior container in ui
@@ -410,7 +433,10 @@ void MainViewWidget::updateBehaviorNotifications()
         notification_container_->hide();
     }
     else
+    {
         notification_container_->show();
+        //notification_container_fade_out_->start();
+    }
 }
 
 void MainViewWidget::setLidarSpinRate(double spin_rate)
@@ -757,7 +783,7 @@ void MainViewWidget::timerEvent(QTimerEvent *event)
 
     //top right 3/4 of width just offset from top
     notification_container_->setGeometry(ui->view_stack_->geometry().topRight().x() - notification_container_->geometry().width()/2 - ui->view_stack_->geometry().width()/4,
-                                         ui->view_stack_->geometry().topRight().y() + notification_container_->geometry().height() - 15,
+                                         ui->view_stack_->geometry().topRight().y() + 45, //plus height of toolbar
                                          notification_container_->geometry().width(),notification_container_->geometry().height());
 
     //must be global, as it is treated as dialog window
