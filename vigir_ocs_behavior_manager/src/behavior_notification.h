@@ -8,6 +8,7 @@
 #include <QtCore>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QBasicTimer>
 #include <QPropertyAnimation>
 #include <vigir_be_msgs/BehaviorInputAction.h>
 #include <QFrame>
@@ -35,12 +36,14 @@ public:
 
 private:
     bool eventFilter(QObject* object,QEvent* event);
+    void timerEvent(QTimerEvent *event);
     void setButtonStyle(QPushButton* btn);
 
     Ui::BehaviorNotification *ui;
     bool confirmed_;
     BehaviorServer::GoalHandle goal_;
     QPropertyAnimation* confirm_fadein_;
+    QBasicTimer timer;
 
 
 public Q_SLOTS:

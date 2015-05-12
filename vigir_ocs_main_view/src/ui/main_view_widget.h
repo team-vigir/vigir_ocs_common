@@ -158,8 +158,7 @@ protected:
     graspWidget * rightGraspWidget;
     QPushButton * grasp_toggle_button_;
     QPropertyAnimation * graspFadeIn;
-    QPropertyAnimation * graspFadeOut;
-    QPropertyAnimation * notification_container_fade_out_;
+    QPropertyAnimation * graspFadeOut;    
 
     QWidget *graspContainer;
 
@@ -173,6 +172,8 @@ protected:
 
     GhostControlWidget * ghost_control_widget_;
     bool use_torso_checked_;
+
+    std::vector<BehaviorNotification*> behavior_notifications_;
 };
 
 #endif // MAIN_VIEW_WIDGET_H
