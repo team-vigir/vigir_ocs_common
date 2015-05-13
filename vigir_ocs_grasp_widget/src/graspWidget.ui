@@ -336,7 +336,7 @@
           <item>
            <widget class="QPushButton" name="graspPose">
             <property name="text">
-             <string>Grasp Pose</string>
+             <string>Grasp Posture</string>
             </property>
            </widget>
           </item>
