@@ -131,18 +131,18 @@ void RenderPanelCustom::wheelEvent( QWheelEvent* event )
 }
 
 void RenderPanelCustom::keyPressEvent( QKeyEvent* event )
-{
-    if(block_config_.find(KEY_PRESS_EVENT) != block_config_.end())
-    {
-        if(!block_config_[KEY_PRESS_EVENT].block &&
-           !(event->modifiers() & block_config_[KEY_PRESS_EVENT].block_key_modifiers)/* &&
-           !(event->buttons() & block_config_[KEY_PRESS_EVENT].block_mouse_buttons)*/)
-        {
-            RenderPanel::keyPressEvent( event );
-        }
-    }
-    else
-        RenderPanel::keyPressEvent( event );
+{    
+//    if(block_config_.find(KEY_PRESS_EVENT) != block_config_.end())
+//    {
+//        if(!block_config_[KEY_PRESS_EVENT].block &&
+//           !(event->modifiers() & block_config_[KEY_PRESS_EVENT].block_key_modifiers)/* &&
+//           !(event->buttons() & block_config_[KEY_PRESS_EVENT].block_mouse_buttons)*/)
+//        {
+//            RenderPanel::keyPressEvent( event );
+//        }
+//    }
+//    else
+//        RenderPanel::keyPressEvent( event );
     Q_EMIT signalKeyPressEvent( event );
 }
 
