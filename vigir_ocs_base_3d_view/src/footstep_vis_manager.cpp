@@ -77,7 +77,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     interactive_marker_remove_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
 
     // sync status between ocs manager and onboard manager
-    sync_status_sub_                 = nh_.subscribe<std_msgs::UInt8>( "/flor/ocs/footstep/sync_status", 5, &FootstepVisManager::processSyncStatus, this );
+    sync_status_sub_                 = nh_.subscribe<flor_ocs_msgs::OCSFootstepSyncStatus>( "/flor/ocs/footstep/sync_status", 5, &FootstepVisManager::processSyncStatus, this );
 
     //initialize to default values in case requesting a plan before updating any values
     // NOTE: tried to emit signal from footstep_config on init, but was unable to be received as something else was not initialized in time
@@ -278,10 +278,18 @@ void FootstepVisManager::requestStepPlan()
     NotificationSystem::Instance()->notifyPassive("Planning Footsteps");
 }
 
-void FootstepVisManager::processSyncStatus(const std_msgs::UInt8::ConstPtr& msg)
+void FootstepVisManager::processSyncStatus(const flor_ocs_msgs::OCSFootstepSyncStatus::ConstPtr& msg)
 {
     // check if it is possible to execute footstep plan without specifying a plan and if the managers are synced
-    has_valid_step_plan_ = (num_step_plans_ == 1 && msg->data ? true : false); // this should be set based on validation as well
+    if(num_step_plans_ == 1 && msg->status == flor_ocs_msgs::OCSFootstepSyncStatus::SYNCED)
+        has_valid_step_plan_ = true;
+    else
+        has_valid_step_plan_ = false; // this should be set based on validation as well
+    // check if we can validate or if there's something else causing them to be out of sync
+    if(msg->status == flor_ocs_msgs::OCSFootstepSyncStatus::NEED_PLAN_VALIDATION)
+        can_validate_ = true;
+    else
+        can_validate_ = false;
 }
 
 void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)

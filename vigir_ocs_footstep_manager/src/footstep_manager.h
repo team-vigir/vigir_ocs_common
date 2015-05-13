@@ -30,6 +30,7 @@
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
 #include <flor_ocs_msgs/OCSFootstepStatus.h>
 #include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
+#include <flor_ocs_msgs/OCSFootstepSyncStatus.h>
 
 #include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
 #include <vigir_footstep_planning_msgs/parameter_set.h>
@@ -129,6 +130,9 @@ namespace ocs_footstep
         void sendExecuteStepPlanGoal();
         void sendGetAllParameterSetsGoal();
 
+        // sync status with onboard manager
+        void publishSyncStatus();
+
         // for visualization
         void publishFootsteps();
         void publishFootstepList();
@@ -213,7 +217,7 @@ namespace ocs_footstep
         ros::Subscriber obfsm_active_parameter_set_sub_;
 
         // used exclusively to check what should be sent to the obfsm
-        std::map<ros::Time,std::vector<unsigned char> > updated_steps_;
+        std::map<ros::Time,std::set<unsigned char> > updated_steps_;
         bool updated_goal_;
 
         // onboard planners feedback

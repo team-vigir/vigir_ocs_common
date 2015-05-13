@@ -29,6 +29,7 @@
 #include <flor_ocs_msgs/OCSFootstepPlanParameters.h>
 #include <flor_ocs_msgs/OCSFootstepPlanUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
+#include <flor_ocs_msgs/OCSFootstepSyncStatus.h>
 
 #include <string>
 #include <boost/bind.hpp>
@@ -81,7 +82,7 @@ public:
     void processRedosAvailable(const std_msgs::UInt8::ConstPtr& msg);
 
     // Update sync status
-    void processSyncStatus(const std_msgs::UInt8::ConstPtr& msg);
+    void processSyncStatus(const flor_ocs_msgs::OCSFootstepSyncStatus::ConstPtr& msg);
 
     // Sends the latest parameters selected in the OCS
     void sendFootstepPlanParameters();
@@ -123,6 +124,7 @@ public:
     unsigned char hasRedoAvailable() { return has_redo_; }
     bool hasValidStepPlan() { return has_valid_step_plan_; }
     bool hasStartingFootstep() { return (start_step_index_ >= 0); }
+    bool canValidate() { return can_validate_; }
     unsigned int numStepPlans() { return num_step_plans_; }
 
     virtual void timerEvent(QTimerEvent *event);
@@ -232,6 +234,7 @@ private:
     // variables that determine the state of the footstep plan
     bool has_goal_;
     bool has_valid_step_plan_;
+    bool can_validate_;
     unsigned char has_undo_;
     unsigned char has_redo_;
     bool need_plan_update_;

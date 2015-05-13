@@ -170,7 +170,7 @@ void FootstepManager::onInit()
     planner_status_pub_ = nh.advertise<flor_ocs_msgs::OCSFootstepStatus>( "/flor/ocs/footstep/status", 1, true );
 
     // sync status between ocs manager and onboard manager
-    sync_status_pub_ = nh.advertise<std_msgs::UInt8>( "/flor/ocs/footstep/sync_status", 1, true );
+    sync_status_pub_ = nh.advertise<flor_ocs_msgs::OCSFootstepSyncStatus>( "/flor/ocs/footstep/sync_status", 1, true );
 
     timer = nh.createTimer(ros::Duration(0.33), &FootstepManager::timerCallback, this);
 }
@@ -180,15 +180,7 @@ void FootstepManager::timerCallback(const ros::TimerEvent& event)
     // this is just in case some view crashes or a new one opens somewhere.
     this->publishFootstepList();
     this->publishFootstepParameterSetList();
-
-    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
-
-    std_msgs::UInt8 synced;
-    if(getStepPlanList().size() == 0 || getStepPlan().steps.size() == 0 || updated_steps_.find(getStepPlan().header.stamp) != updated_steps_.end() || last_validated_step_plan_stamp_.toSec() != getStepPlan().header.stamp.toSec())
-        synced.data = 0;
-    else
-        synced.data = 1;
-    sync_status_pub_.publish(synced);
+    this->publishSyncStatus();
 }
 
 void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg)
@@ -206,8 +198,8 @@ void FootstepManager::processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstep
 
     // now we know we have edited steps for this plan
     if(updated_steps_.find(getStepPlan().header.stamp) == updated_steps_.end())
-        updated_steps_[getStepPlan().header.stamp] = std::vector<unsigned char>();
-    updated_steps_[getStepPlan().header.stamp].push_back(msg->footstep_id);
+        updated_steps_[getStepPlan().header.stamp] = std::set<unsigned char>();
+    updated_steps_[getStepPlan().header.stamp].insert(msg->footstep_id);
 
     // send goal
     sendEditStepGoal(getStepPlanList()[step_plan_index], step);
@@ -291,16 +283,15 @@ void FootstepManager::processValidatePlanRequest(const std_msgs::Int8::ConstPtr&
         if(getStepPlan().header.stamp.nsec == last_onboard_step_plan_stamp_.nsec && getStepPlan().header.stamp.sec == last_onboard_step_plan_stamp_.sec)
         {
             // need to send all updated steps
-            for(int i = 0; i < updated_steps_[last_onboard_step_plan_stamp_].size(); i++)
+            for(std::set<unsigned char>::iterator it = updated_steps_[last_onboard_step_plan_stamp_].begin(); it != updated_steps_[last_onboard_step_plan_stamp_].end(); ++it)
             {
                 // only send the message if we can find the plan/step containing the edited step (should never fail if it gets to this point)
                 vigir_footstep_planning_msgs::Step step;
                 unsigned int step_plan_index;
-                if(findStep(updated_steps_[last_onboard_step_plan_stamp_][i], step, step_plan_index))
+                if(findStep(*it, step, step_plan_index))
                 {
-
                     flor_ocs_msgs::OCSFootstepUpdate cmd;
-                    cmd.footstep_id = updated_steps_[last_onboard_step_plan_stamp_][i];
+                    cmd.footstep_id = *it;
                     cmd.pose.header.stamp = last_validated_step_plan_stamp_;
                     cmd.pose.pose = step.foot.pose;
                     obfsm_step_update_pub_.publish(cmd);
@@ -519,7 +510,7 @@ void FootstepManager::stepPlanToFootMarkerArray(std::vector<vigir_footstep_plann
             marker.id++;
             marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
             marker.action = visualization_msgs::Marker::ADD;
-            marker.text = boost::lexical_cast<std::string>(input[i].steps[j].step_index) + (start_step_index_ == input[i].steps[j].step_index ? "*S" : "");
+            marker.text = (start_step_index_ == input[i].steps[j].step_index ? "*" : "") + boost::lexical_cast<std::string>(input[i].steps[j].step_index) + (start_step_index_ == input[i].steps[j].step_index ? "*" : "");
             marker.scale.x *= 2.0;
             marker.scale.y *= 2.0;
             marker.scale.z *= 2.0;
@@ -936,6 +927,25 @@ void FootstepManager::publishGoalMarkerFeedback()
     cmd.left_foot.pose = goal_.left.pose;
     cmd.right_foot.pose = goal_.right.pose;
     footstep_goal_pose_pub_.publish(cmd);
+}
+
+void FootstepManager::publishSyncStatus()
+{
+    boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
+
+    flor_ocs_msgs::OCSFootstepSyncStatus synced;
+    if(getStepPlanList().size() == 0)
+        synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::EMPTY_PLAN_LIST;
+    else if(getStepPlan().steps.size() == 0)
+        synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::EMPTY_PLAN;
+    else if(goal_.header.stamp.toSec() != getStepPlan().header.stamp.toSec()) // goal and step plan headers don't match
+        synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::PROCESSING_OCS_PLAN;
+    else if(updated_steps_.find(getStepPlan().header.stamp) != updated_steps_.end() ||
+            last_validated_step_plan_stamp_.toSec() != getStepPlan().header.stamp.toSec())
+        synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::NEED_PLAN_VALIDATION;
+    else
+        synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::SYNCED;
+    sync_status_pub_.publish(synced);
 }
 
 void FootstepManager::publishFootsteps()

@@ -146,14 +146,22 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     //}
 
     //cannot execute without footstep plan
-    if(base_3d_view_->getFootstepVisManager()->hasValidStepPlan())
+    if(base_3d_view_->getFootstepVisManager()->hasValidStepPlan() || base_3d_view_->getFootstepVisManager()->numStepPlans() != 1)
     {
         setItemVisibility("Validate Step Plan",false);
     }
+    else if(!base_3d_view_->getFootstepVisManager()->canValidate())
+    {
+        setItemEnabled("Validate Step Plan",false);
+    }
     else
     {
-        if(base_3d_view_->getFootstepVisManager()->numStepPlans() == 0)
-            setItemVisibility("Validate Step Plan",false);
+        setItemEnabled("Validate Step Plan",true);
+    }
+
+    //cannot execute without footstep plan
+    if(!base_3d_view_->getFootstepVisManager()->hasValidStepPlan())
+    {
         setItemVisibility("Execute Step Plan",false);
     }
 
@@ -262,6 +270,20 @@ void ContextMenuManager::setItemVisibility(QString name, bool visibility)
     //can only remove actions?
     if(item != NULL && !item->hasChildren)
         context_menu_.removeAction(item->action);
+}
+
+void ContextMenuManager::setItemEnabled(QString name, bool enabled)
+{
+    contextMenuItem* item = NULL;
+    //find context menu item in vector
+    for(int i=0;i<context_menu_items_.size();i++)
+    {
+        if(context_menu_items_[i]->name == name)
+            item = context_menu_items_[i];
+    }
+    //can only remove actions?
+    if(item != NULL && !item->hasChildren)
+        item->action->setEnabled(enabled);
 }
 
 
