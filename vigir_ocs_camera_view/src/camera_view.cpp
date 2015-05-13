@@ -114,7 +114,7 @@ CameraView::CameraView( QWidget* parent, Base3DView* copy_from )
 
     // and advertise the head pitch update function
     //head_pitch_update_pub_ = nh_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ry", 1, false );
-    head_pitch_update_traj_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory > ("/flor/neck_controller/trajectory",1,false);
+    head_pitch_update_traj_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory > ("/trajectory_controllers/neck_traj_controller/command",1,false);
 
     rviz::EmptyViewController* camera_controller = new rviz::EmptyViewController();
     camera_controller->initialize( render_panel_->getManager() );
