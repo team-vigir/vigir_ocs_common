@@ -3950,7 +3950,7 @@ void Base3DView::pointcloudIntensityHotkey()
 //}
 void Base3DView::executeStepPlanHotkey()
 {
-    if(footstep_vis_manager_->numStepPlans() == 1)
+    if(footstep_vis_manager_->hasValidStepPlan())
        footstep_vis_manager_->requestExecuteStepPlan();
 }
 

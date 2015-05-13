@@ -146,8 +146,14 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     //}
 
     //cannot execute without footstep plan
-    if(base_3d_view_->getFootstepVisManager()->numStepPlans() != 1)
+    if(base_3d_view_->getFootstepVisManager()->hasValidStepPlan())
     {
+        setItemVisibility("Validate Step Plan",false);
+    }
+    else
+    {
+        if(base_3d_view_->getFootstepVisManager()->numStepPlans() == 0)
+            setItemVisibility("Validate Step Plan",false);
         setItemVisibility("Execute Step Plan",false);
     }
 

@@ -76,6 +76,9 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 100, &FootstepVisManager::onMarkerFeedback, this );
     interactive_marker_remove_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
 
+    // sync status between ocs manager and onboard manager
+    sync_status_sub_                 = nh_.subscribe<std_msgs::UInt8>( "/flor/ocs/footstep/sync_status", 5, &FootstepVisManager::processSyncStatus, this );
+
     //initialize to default values in case requesting a plan before updating any values
     // NOTE: tried to emit signal from footstep_config on init, but was unable to be received as something else was not initialized in time
     max_time_ = 0;
@@ -275,6 +278,12 @@ void FootstepVisManager::requestStepPlan()
     NotificationSystem::Instance()->notifyPassive("Planning Footsteps");
 }
 
+void FootstepVisManager::processSyncStatus(const std_msgs::UInt8::ConstPtr& msg)
+{
+    // check if it is possible to execute footstep plan without specifying a plan and if the managers are synced
+    has_valid_step_plan_ = (num_step_plans_ == 1 && msg->data ? true : false); // this should be set based on validation as well
+}
+
 void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
 {
     // enable visibility of goal
@@ -460,9 +469,6 @@ void FootstepVisManager::updateInteractiveMarkers()
     for(int i = num_step_plans_; i < display_step_plan_marker_list_.size(); i++)
         display_step_plan_marker_list_[i]->setEnabled( false );
 
-    // check if it is possible to execute footstep plan without specifying a plan
-    has_valid_step_plan_ = (num_step_plans_ == 1 ? true : false); // this should be set based on validation as well
-
     // then we create/update the individual step markers
     for(int i = 0; i < footstep_list_.footstep_id_list.size(); i++)
     {
@@ -529,6 +535,23 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
             cmd.right_foot = msg.pose;
         }
         footstep_goal_pose_fb_pub_.publish(cmd);
+
+        // on mouse release, update plan
+        if(msg.client_id == ros::this_node::getName())
+        {
+            if(msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_DOWN)
+            {
+                ROS_INFO("%s: button down",ros::this_node::getName().c_str());
+                button_down_ = true;
+            }
+            else if(button_down_ && msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP)
+            {
+                ROS_INFO("%s: button up",ros::this_node::getName().c_str());
+                double_click_timer_ = boost::posix_time::second_clock::local_time();
+                need_plan_update_ = true;
+                button_down_ = false;
+            }
+        }
     }
     else if(boost::starts_with(msg.topic,"/step_plan_"))
     {
@@ -564,23 +587,6 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
         catch( boost::bad_lexical_cast const& )
         {
             ROS_ERROR("Error: input string was not valid");
-        }
-    }
-
-    if(msg.client_id == ros::this_node::getName())
-    {
-        // on mouse release, update plan
-        if(msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_DOWN)
-        {
-            ROS_INFO("%s: button down",ros::this_node::getName().c_str());
-            button_down_ = true;
-        }
-        else if(button_down_ && msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP)
-        {
-            ROS_INFO("%s: button up",ros::this_node::getName().c_str());
-            double_click_timer_ = boost::posix_time::second_clock::local_time();
-            need_plan_update_ = true;
-            button_down_ = false;
         }
     }
 }

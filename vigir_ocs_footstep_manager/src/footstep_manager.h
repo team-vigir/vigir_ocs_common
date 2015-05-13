@@ -214,7 +214,7 @@ namespace ocs_footstep
 
         // used exclusively to check what should be sent to the obfsm
         std::map<ros::Time,std::vector<unsigned char> > updated_steps_;
-        std::map<ros::Time,bool> updated_goal_;
+        bool updated_goal_;
 
         // onboard planners feedback
         ros::Subscriber onboard_step_plan_request_sub_;
@@ -232,6 +232,9 @@ namespace ocs_footstep
 
         // update footstep planner feedback
         ros::Publisher planner_status_pub_;
+
+        // sync status between footstep managers
+        ros::Publisher sync_status_pub_;
 
         // feet pose generator client
         ros::ServiceClient generate_feet_pose_client;
@@ -280,7 +283,7 @@ namespace ocs_footstep
 
         ros::Time last_ocs_step_plan_stamp_;
         ros::Time last_onboard_step_plan_stamp_;
-
+        ros::Time last_validated_step_plan_stamp_;
         ros::Time last_executed_step_plan_stamp_;
     };
 }

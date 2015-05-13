@@ -80,6 +80,9 @@ public:
     void processUndosAvailable(const std_msgs::UInt8::ConstPtr& msg);
     void processRedosAvailable(const std_msgs::UInt8::ConstPtr& msg);
 
+    // Update sync status
+    void processSyncStatus(const std_msgs::UInt8::ConstPtr& msg);
+
     // Sends the latest parameters selected in the OCS
     void sendFootstepPlanParameters();
 
@@ -191,6 +194,8 @@ private:
     ros::Publisher interactive_marker_update_pub_;
     ros::Subscriber interactive_marker_feedback_sub_;
     ros::Publisher interactive_marker_remove_pub_;
+
+    ros::Subscriber sync_status_sub_;
 
     flor_ocs_msgs::OCSFootstepList footstep_list_;
 
