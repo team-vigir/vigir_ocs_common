@@ -170,6 +170,26 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     fourViewToggle();
 
+    int min_degrees;
+
+    if(ros::param::get("~min_degrees", min_degrees))
+    {
+        std::stringstream ss;
+        ss << min_degrees;
+        ui->label->setText(QString::fromStdString(ss.str()));
+        ui->pitch->setMinimum(min_degrees);
+    }
+
+    int max_degrees;
+
+    if(ros::param::get("~max_degrees", max_degrees))
+    {
+        std::stringstream ss;
+        ss << max_degrees;
+        ui->label_3->setText(QString::fromStdString(ss.str()));
+        ui->pitch->setMaximum(max_degrees);
+    }
+
     //key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
     neck_pos_sub_ = nh_.subscribe<std_msgs::Float32> ( "/flor/neck_controller/current_position" , 2, &MainCameraViewWidget::updatePitch, this );
 
@@ -353,15 +373,15 @@ void MainCameraViewWidget::closeEvent(QCloseEvent *event)
 }
 
 void MainCameraViewWidget::resizeEvent(QResizeEvent * event)
-{    
+{
     QSettings settings("OCS", "camera_view");
-    settings.setValue("mainWindowGeometry", this->saveGeometry());    
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
 }
 
 void MainCameraViewWidget::moveEvent(QMoveEvent * event)
-{    
+{
     QSettings settings("OCS", "camera_view");
-    settings.setValue("mainWindowGeometry", this->saveGeometry());    
+    settings.setValue("mainWindowGeometry", this->saveGeometry());
 }
 
 void MainCameraViewWidget::lockPitchUpdates()
@@ -400,7 +420,7 @@ void MainCameraViewWidget::updatePitch( const std_msgs::Float32::ConstPtr &pitch
 }
 
 bool MainCameraViewWidget::eventFilter( QObject * o, QEvent * e )
-{    
+{
     if ( e->type() == QEvent::Wheel &&
          (qobject_cast<QAbstractSpinBox*>( o ) || qobject_cast<QAbstractSlider*>( o ) || qobject_cast<QComboBox*>( o )))
     {
