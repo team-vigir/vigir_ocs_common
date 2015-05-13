@@ -869,7 +869,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     interactive_marker_mode_ = 0;
 
     // this is only used to make sure we close window if ros::shutdown has already been called
-    timer.start(33, this);
+    timer_.start(33, this);
 }
 
 // Destructor.
@@ -2342,16 +2342,18 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
         if(marker_published_ < 3)
             publishMarkers();
 
-        // publishes the grasp hands pose
-        publishHandPose("left",*pose);
-
         // update interactive marker pose
-        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-        cmd.topic = "/l_arm_pose_marker";
-        cmd.pose = wrist_pose;
-        interactive_marker_update_pub_.publish(cmd);
+        //if(wrist_pose.header.stamp.toSec() != l_arm_marker_update.pose.header.stamp.toSec())
+        {
+            // publishes the grasp hands pose
+            publishHandPose("left",*pose);
+            l_arm_marker_update.client_id = ros::this_node::getName();
+            l_arm_marker_update.topic = "/l_arm_pose_marker";
+            l_arm_marker_update.pose = wrist_pose;
+            interactive_marker_update_pub_.publish(l_arm_marker_update);
 
-        l_arm_marker_pose_pub_.publish(wrist_pose);
+            l_arm_marker_pose_pub_.publish(wrist_pose);
+        }
 
 //        ROS_ERROR("PROCESS LEFT ARM END EFFECTOR:");
 //        ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
@@ -2359,7 +2361,7 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
 
         // doesn't happen if in template lock mode
         if(!moving_pelvis_ && !ghost_left_hand_lock_ )//ghost_pose_source_[0] == 0)
-            end_effector_pose_list_[cmd.topic] = cmd.pose;
+            end_effector_pose_list_[l_arm_marker_update.topic] = l_arm_marker_update.pose;
     }
 
     // save last moveit return pose transformed to wrist CS
@@ -2386,15 +2388,17 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
         if(marker_published_ < 3)
             publishMarkers();
 
-        publishHandPose("right",*pose);
-
         // update interactive marker pose
-        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-        cmd.topic = "/r_arm_pose_marker";
-        cmd.pose = wrist_pose;
-        interactive_marker_update_pub_.publish(cmd);
+        //if(wrist_pose.header.stamp.toSec() != r_arm_marker_update.pose.header.stamp.toSec())
+        {
+            publishHandPose("right",*pose);
+            r_arm_marker_update.client_id = ros::this_node::getName();
+            r_arm_marker_update.topic = "/r_arm_pose_marker";
+            r_arm_marker_update.pose = wrist_pose;
+            interactive_marker_update_pub_.publish(r_arm_marker_update);
 
-        r_arm_marker_pose_pub_.publish(wrist_pose);
+            r_arm_marker_pose_pub_.publish(wrist_pose);
+        }
 
         //ROS_ERROR("RIGHT ARM POSE:");
         //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
@@ -2402,7 +2406,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
 
         // doesn't happen if in template lock mode
         if(!moving_pelvis_ && ghost_right_hand_lock_ )//ghost_pose_source_[1] == 0)
-            end_effector_pose_list_[cmd.topic] = cmd.pose;
+            end_effector_pose_list_[r_arm_marker_update.topic] = r_arm_marker_update.pose;
     }
 
     // save last moveit return pose transformed to wrist
@@ -2596,6 +2600,7 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
 void Base3DView::processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg)
 {    
     flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+    cmd.client_id = ros::this_node::getName();
     cmd.pose = *msg;
     cmd.topic = "/pelvis_pose_marker";
     interactive_marker_update_pub_.publish(cmd);
@@ -2685,7 +2690,6 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
 {
     geometry_msgs::PoseStamped joint_pose;
     joint_pose = msg.pose;
-
 
     if(msg.topic == "/l_arm_pose_marker")
     {
@@ -2789,14 +2793,13 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
             msg.topic.find("pelvis_pose_marker") != std::string::npos||
             (ghost_left_hand_lock_ || ghost_right_hand_lock_ ))     //should publish ghost if either arm is locked to template
     {
-        //hack, need to have seperate main view that overrides onmarkerfeedback to handle main view specifically
-        if(widget_name_ == "MainView")
-            publishGhostPoses();
+        publishGhostPoses(msg.client_id == ros::this_node::getName());
     }
 }
 
 // sends marker poses and so on to moveit
-void Base3DView::publishGhostPoses()
+// if local feedback is true, it will NOT publish messages to other nodes and will only update local (this node) structures
+void Base3DView::publishGhostPoses(bool local_feedback)
 {
     bool left = ghost_planning_group_[0];
     bool right = ghost_planning_group_[1];
@@ -2807,6 +2810,7 @@ void Base3DView::publishGhostPoses()
     //ROS_ERROR("Moving marker? %s",moving_pelvis_?"Yes, Pelvis":(moving_l_arm_?"Yes, Left Arm":(moving_r_arm_?"Yes, Right Arm":"No")));
     //ROS_ERROR("Left lock: %s Right lock: %s",left_lock?"yes":"no",right_lock?"yes":"no");
 
+    // update class attributes
     if(moving_pelvis_ || right_lock || left_lock)
     {
         if(!left_lock && left)
@@ -2834,6 +2838,9 @@ void Base3DView::publishGhostPoses()
             moving_l_arm_ = false;
         }
     }
+
+    if(local_feedback)
+        return;
 
     //ROS_ERROR("Left: %s Right:%s Pelvis: %s",left?"yes":"no",right?"yes":"no",torso?"yes":"no");
 
@@ -2937,6 +2944,7 @@ void Base3DView::publishGhostPoses()
         //    im_ghost_robot_[2]->setEnabled(false);
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.client_id = ros::this_node::getName();
         cmd.topic = "/pelvis_pose_marker";
         cmd.pose = root_pose;
         interactive_marker_update_pub_.publish(cmd);
@@ -2966,6 +2974,7 @@ void Base3DView::publishGhostPoses()
         pelvis_marker_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.client_id = ros::this_node::getName();
         cmd.topic = "/pelvis_pose_marker";
         cmd.pose = end_effector_pose_list_["/pelvis_pose_marker"];
         interactive_marker_update_pub_.publish(cmd);
@@ -3226,6 +3235,7 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
         ghost_root_pose_pub_.publish(root_pose);
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.client_id = ros::this_node::getName();
         cmd.topic = "/pelvis_pose_marker";
         cmd.pose = root_pose;
         interactive_marker_update_pub_.publish(cmd);
@@ -3629,6 +3639,7 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
         ghost_root_pose_pub_.publish(pose);
 
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        cmd.client_id = ros::this_node::getName();
         cmd.topic = "/pelvis_pose_marker";
         cmd.pose = pose;
         interactive_marker_update_pub_.publish(cmd);

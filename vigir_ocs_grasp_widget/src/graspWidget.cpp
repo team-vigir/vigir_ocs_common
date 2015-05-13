@@ -82,7 +82,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     if(!nh_.getParam("/right_hand_group", right_hand_group_))
         ROS_WARN("No right hand group defined, using r_hand_group as default");
 
-    ui->stackedWidget->setVisible(false);
+    ui->stackedWidget->setVisible(true);
 
     float color_r, color_g, color_b;
 
@@ -319,13 +319,7 @@ void graspWidget::templateMatchFeedback (const flor_grasp_msgs::TemplateSelectio
 
 void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPtr& graspState)
 {
-    setProgressLevel(graspState->grip.data);
-
     ui->userSlider->setValue(graspState->grip.data);
-    ui->verticalSlider->setValue(graspState->finger_effort[0].data);
-    ui->verticalSlider_2->setValue(graspState->finger_effort[1].data);
-    ui->verticalSlider_3->setValue(graspState->finger_effort[2].data);
-    ui->verticalSlider_4->setValue(graspState->finger_effort[3].data);
 
 }
 
@@ -435,13 +429,8 @@ void graspWidget::on_performButton_clicked()
     cmd.finger_effort[2].data = 0;  //middle for sandia
     cmd.finger_effort[3].data = 0; //Spread iRobot, Pinky for sandia
 
-    ui->userSlider->setValue(200);
-    ui->verticalSlider->setValue(0);
-    ui->verticalSlider_2->setValue(0);
-    ui->verticalSlider_3->setValue(0);
-    ui->verticalSlider_4->setValue(0);
+    ui->userSlider->setValue(100);
 
-    setProgressLevel(ui->userSlider->value());
     cmd.grasp_state.data = cmd.CLOSE;
 
     grasp_command_pub_.publish(cmd);
@@ -458,12 +447,7 @@ void graspWidget::on_releaseButton_clicked()
     cmd.finger_effort[3].data = 0; //Spread iRobot, Pinky for sandia
 
     ui->userSlider->setValue(0);
-    ui->verticalSlider->setValue(0);
-    ui->verticalSlider_2->setValue(0);
-    ui->verticalSlider_3->setValue(0);
-    ui->verticalSlider_4->setValue(0);
 
-    setProgressLevel(ui->userSlider->value());
     cmd.grasp_state.data = cmd.OPEN;
 
     grasp_command_pub_.publish(cmd);
@@ -471,35 +455,14 @@ void graspWidget::on_releaseButton_clicked()
 
 void graspWidget::on_userSlider_sliderReleased()
 {
-        setProgressLevel(ui->userSlider->value());
-        sendManualMsg(ui->userSlider->value(), ui->verticalSlider->value(), ui->verticalSlider_2->value(), ui->verticalSlider_3->value(), ui->verticalSlider_4->value());
+        sendManualMsg(ui->userSlider->value());
 }
 
-//currentStateLabel
-void graspWidget::setProgressLevel(uint8_t level)
-{
-    //std::cout << "setting fill level to be " << (int)level << std::endl;
-    if(level >=100)
-    {
-        ui->closedGraph->setValue(100);
-        ui->forceGraph->setValue((int)(level-100));
-    }
-    else
-    {
-        ui->closedGraph->setValue(level);
-        ui->forceGraph->setValue(0);
-    }
-}
 
-void graspWidget::sendManualMsg(uint8_t level, int8_t thumb,int8_t left,int8_t right ,int8_t spread)
+void graspWidget::sendManualMsg(uint8_t level)
 {
     flor_grasp_msgs::GraspState cmd;
     cmd.grip.data             = level;
-    cmd.finger_effort.resize(FINGER_EFFORTS);
-    cmd.finger_effort[0].data = thumb;
-    cmd.finger_effort[1].data = left;   //index for sandia
-    cmd.finger_effort[2].data = right;  //middle for sandia
-    cmd.finger_effort[3].data = spread; //Spread iRobot, Pinky for sandia
     cmd.grasp_state.data = cmd.PERCENTAGE;
     grasp_command_pub_.publish(cmd);
 }
@@ -1054,39 +1017,6 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
     }
 }
 
-//void graspWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
-//{
-//    // store key state
-//    if(key_event->state)
-//        keys_pressed_list_.push_back(key_event->keycode);
-//    else
-//        keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keycode), keys_pressed_list_.end());
-
-//    // process hotkeys
-//    std::vector<int>::iterator key_is_pressed;
-
-//    key_is_pressed = std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), 37);
-//}
-
-void graspWidget::on_verticalSlider_sliderReleased()
-{
-    this->on_userSlider_sliderReleased();
-}
-
-void graspWidget::on_verticalSlider_2_sliderReleased()
-{
-    this->on_userSlider_sliderReleased();
-}
-
-void graspWidget::on_verticalSlider_3_sliderReleased()
-{
-    this->on_userSlider_sliderReleased();
-}
-
-void graspWidget::on_verticalSlider_4_sliderReleased()
-{
-    this->on_userSlider_sliderReleased();
-}
 
 Ui::graspWidget * graspWidget::getUi()
 {
@@ -1095,11 +1025,6 @@ Ui::graspWidget * graspWidget::getUi()
 QLayout* graspWidget::getMainLayout()
 {
     return ui->mainLayout;
-}
-
-void graspWidget::on_fingerBox_toggled(bool checked)
-{
-    ui->stackedWidget->setVisible(checked);
 }
 
 void graspWidget::on_attachButton_clicked()

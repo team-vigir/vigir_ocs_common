@@ -868,7 +868,7 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     foot_pose_transformer_->transformToRobotFrame(goal);
 
     request.header.frame_id = "/world";
-    request.header.stamp = ros::Time::now();
+    request.header.stamp = goal.header.stamp;
 
     request.start = start;
     request.goal = goal;
@@ -897,7 +897,7 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     // and send it to the server
     if(step_plan_request_client_->isServerConnected())
     {
-        ROS_INFO("StepPlanRequest: Sending action goal...");
+        ROS_INFO("StepPlanRequest: Sending action goal (%f)...",action_goal.plan_request.header.stamp.toSec());
         step_plan_request_client_->sendGoal(action_goal,
                                             boost::bind(&FootstepManager::doneStepPlanRequest, this, _1, _2),
                                             boost::bind(&FootstepManager::activeStepPlanRequest, this),
