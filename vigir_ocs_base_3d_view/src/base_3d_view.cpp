@@ -1687,7 +1687,7 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
 }
 
 void Base3DView::defineFootstepGoal()
-{
+{    
     manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
 }
 
