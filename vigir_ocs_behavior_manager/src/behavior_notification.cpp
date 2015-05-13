@@ -22,6 +22,9 @@ BehaviorNotification::BehaviorNotification(QWidget *parent) :
 
     ui->confirmation_widget_->show();
     ui->confirmation_widget_->setVisible(false);
+    ui->confirmation_widget_->setStyleSheet("QWidget{background-color:rgba(60,60,60,200);}");
+    ui->confirmation_widget_->setMinimumHeight(25);
+    ui->confirmation_widget_->setMaximumHeight(25);
 
     ui->label_widget_->setStyleSheet("QWidget{background-color:rgba(60,60,60,200);}"
                         "QWidget:hover{background-color:rgba(30,30,30,200);}");
@@ -29,22 +32,16 @@ BehaviorNotification::BehaviorNotification(QWidget *parent) :
     setButtonStyle(ui->confirm_button_);
     setButtonStyle(ui->abort_button_);
 
-
-//    QFrame* leftFrame = new QFrame(ui->central_widget_);
-//    leftFrame->setLayout(ui->central_widget_->layout());
-//    leftFrame->setFrameStyle(QFrame::Panel| QFrame::Plain);
-//    leftFrame->setLineWidth(2);
-//    leftFrame->setObjectName("leftFrame");
-//    leftFrame->setStyleSheet("#leftFrame {color: green;}");
-
     Qt::WindowFlags flags = ui->confirmation_widget_->windowFlags();
-    //flags |= Qt::WindowStaysOnTopHint;
     flags |= Qt::FramelessWindowHint;
-    flags |= Qt::Dialog;
+    //flags |= Qt::Dialog;
     flags |= Qt::WindowStaysOnTopHint;
     ui->confirmation_widget_->setWindowFlags(flags);
 
     timer.start(100, this);
+
+    //dummy init
+    main_view_point_ = this->mapToGlobal(this->geometry().topLeft());
 
 }
 
@@ -53,8 +50,8 @@ void BehaviorNotification::timerEvent(QTimerEvent *event)
     if(ui->confirm_button_->isVisible())
     {
         QPoint p = QWidget::mapToGlobal(this->geometry().topRight());
-        //position to right of rest of notification
-        ui->confirmation_widget_->setGeometry(p.x(),p.y(),
+                                                    //x works fine from global, but y is messed up, unless grabbed elsewhere
+        ui->confirmation_widget_->setGeometry(this->mapToGlobal(this->geometry().topRight()).x(),main_view_point_.y() + 45,//plus height of toolbar, yes this is awkward and shouldn't be getting position from main view
                                               ui->confirmation_widget_->geometry().width(),ui->confirmation_widget_->geometry().height());
     }
 }
@@ -75,7 +72,6 @@ bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
             {
                 //ui->confirmation_widget_->show();
                 ui->confirmation_widget_->setVisible(true);
-               // confirm_fadein_->start();
             }
             return true;
         }
@@ -126,6 +122,10 @@ void BehaviorNotification::setButtonStyle(QPushButton* btn)
 void BehaviorNotification::confirm()
 {
     confirmed_ = true; // notification is now obselete, can be deleted    
+
+    //set confirmation to be parented to this so it is deleted with rest of notification
+    ui->confirmation_widget_->setParent(this);
+
     Q_EMIT sendConfirmation(ui->action_label_->text(),goal_);
 }
 
@@ -133,5 +133,9 @@ void BehaviorNotification::abort()
 {
     //this action isn't confirmed, but it still needs to be deleted
     confirmed_ = true;
+
+    //set confirmation to be parented to this so it is deleted with rest of notification
+    ui->confirmation_widget_->setParent(this);
+
     Q_EMIT sendAbort(ui->action_label_->text(),goal_);
 }

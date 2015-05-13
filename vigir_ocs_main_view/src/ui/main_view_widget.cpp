@@ -329,48 +329,21 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
 
     //initialize behavior relay with notifications
     notification_container_ = new QWidget(this);
-
-    //notification_container_->setWindowFlags(Qt::FramelessWindowHint);
-    //notification_container_->setAttribute(Qt::WA_TranslucentBackground);
     notification_container_->setStyleSheet("background-color: rgb(30, 30, 30);color: rgb(108, 108, 108);border-color: rgb(0, 0, 0); ");
-    //notification_container_->setWindowOpacity(0);
-    //notification_container_->setStyleSheet("background:transparent;");
-//    notification_container_->setMinimumHeight(70);
-//    notification_container_->setMaximumHeight(70);
-//    notification_container_->setMaximumWidth(400);
-    notification_container_->setMinimumWidth(200);
- //   notification_container_->adjustSize();
-    notification_layout_ = new QVBoxLayout();    
+    notification_container_->setMinimumWidth(250);
+    notification_container_->setMaximumWidth(250);
+
+    notification_layout_ = new QVBoxLayout();
     notification_layout_->setMargin(1);
     notification_layout_->setSpacing(1);
     notification_layout_->setContentsMargins(0,0,0,0);
 
-   // QSpacerItem* vert_spacer = new QSpacerItem(70,70,QSizePolicy::Expanding);
-   // notification_layout_->addSpacerItem(vert_spacer);
-
     notification_container_->setLayout(notification_layout_);
-
-    //set container to be transparent, nothing  seems to work, and couldn't animate property?
-    notification_container_->setAutoFillBackground(false);
-//    QPixmap pmap = QPixmap::grabWidget(notification_container_);
-//    //notification_container_->setMask(pmap.createHeuristicMask());
-//    notification_container_->setMask(pmap.createMaskFromColor(QColor(173,240,13)));
-
     notification_container_->hide();
 
-    //notification_container_->setWindowFlags(left_flags);
-    //hacky way to make widget invisible
-//    notification_container_fade_out_ = new QPropertyAnimation(notification_container_, "windowOpacity");
-//    notification_container_fade_out_->setEasingCurve(QEasingCurve::InOutQuad);
-//    notification_container_fade_out_->setDuration(300);
-//    notification_container_fade_out_->setStartValue(0.8);
-//    notification_container_fade_out_->setEndValue(0.0);
-//    notification_container_fade_out_->start();
 
     behavior_relay_ = new BehaviorRelay();
     connect(behavior_relay_,SIGNAL(updateUI()),this,SLOT(updateBehaviorNotifications()));
-
-
 
     timer.start(100, this);
 
@@ -420,36 +393,28 @@ void MainViewWidget::updateBehaviorNotifications()
     //show certain amount of notifications in 3d view
     int i = 0;
     int height = 0;
-    int width = 0;
-    //old notifications may have been deleted, replace current notifications with top 3 from relay
-   // behavior_notifications_.clear();
+    behavior_notifications_.clear();
+    //old notifications may have been deleted, replace current notifications with top 3 from relay   
     while (i < (int)behavior_relay_->getNotifications().size() && i < behavior_relay_->getMaxNotificationsShown())
     {
-        BehaviorNotification* notification = behavior_relay_->getNotifications()[i];       
-        //behavior_notifications_.push_back(notification);
+        BehaviorNotification* notification = behavior_relay_->getNotifications()[i];               
+        behavior_notifications_.push_back(notification);
         //get rid of spacer?
 
         notification->show();
         notification_layout_->insertWidget(0,notification);//insert top down
 
         height += notification->geometry().height();
-        if(width < notification->geometry().width())
-            width = notification->geometry().width();
         i++;
     }
-    //ROS_ERROR("w: %d h:%d", width, height);
     notification_container_->setMinimumHeight(height);
-    notification_container_->setMinimumWidth(width);
     notification_container_->setMaximumHeight(height);
-    notification_container_->setMaximumWidth(width);
-    notification_container_->setLayout(notification_layout_);
 
 
     //toggle visibility of behavior container in ui
     if(notification_layout_->count() == 0)
     {
         notification_container_->hide();
-        //notification_container_fade_out_->start();
     }
     else
     {
@@ -800,17 +765,17 @@ void MainViewWidget::timerEvent(QTimerEvent *event)
     sidebar_toggle_->setGeometry(ui->view_stack_->geometry().topRight().x() - 25 ,ui->view_stack_->geometry().top() + 43,25,25);
 
 
-//    for(int i=0;i<behavior_notifications_.size();i++)
-//    {
-//        BehaviorNotification* notification = behavior_notifications_[i];
-//        notification->setGeometry(ui->view_stack_->geometry().topRight().x() - notification->geometry().width()/2 - ui->view_stack_->geometry().width()/4,
-//                                  ui->view_stack_->geometry().topRight().y() + 45 + (i*notification->geometry().height()) + 2, //plus height of toolbar , # of widget to be placed, offset
-//                                  notification->geometry().width(),notification->geometry().height());
-//    }
+
     //top right 3/4 of width just offset from top
     notification_container_->setGeometry(ui->view_stack_->geometry().topRight().x() - notification_container_->geometry().width()/2 - ui->view_stack_->geometry().width()/4,
                                          ui->view_stack_->geometry().topRight().y() + 45, //plus height of toolbar
                                          notification_container_->geometry().width(),notification_container_->geometry().height());
+
+    for(int i=0;i<behavior_notifications_.size();i++)
+    {
+        BehaviorNotification* notification = behavior_notifications_[i];
+        notification->setPoint(this->mapToGlobal(notification->geometry().topRight()));
+    }
 
     //must be global, as it is treated as dialog window
     graspContainer->setGeometry(ui->view_stack_->mapToGlobal(ui->view_stack_->geometry().bottomRight()).x() - graspContainer->geometry().width()/2 - ui->view_stack_->geometry().width()/2,

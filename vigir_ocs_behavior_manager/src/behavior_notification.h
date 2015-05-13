@@ -33,6 +33,7 @@ public:
     bool getConfirmed() { return confirmed_; }
     void setActionText(QString);
     void setGoal(BehaviorServer::GoalHandle );
+    void setPoint(QPoint point){main_view_point_ = point;}
 
 private:
     bool eventFilter(QObject* object,QEvent* event);
@@ -44,6 +45,7 @@ private:
     BehaviorServer::GoalHandle goal_;
     QPropertyAnimation* confirm_fadein_;
     QBasicTimer timer;
+    QPoint main_view_point_;
 
 
 public Q_SLOTS:
