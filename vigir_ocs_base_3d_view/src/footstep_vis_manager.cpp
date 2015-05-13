@@ -252,18 +252,14 @@ void FootstepVisManager::requestExecuteStepPlan()
 {
     int option = QMessageBox::information( NULL, "Step Plan Execution Confirmation",
                                           "Are you sure you want to execute the current step plan?",
-                                          "Execute", "Validate", "Cancel",
-                                          0, 2 );
+                                          "Go for it!", "Cancel",
+                                          0, 1 );
     if(option == 0)
     {
         // send request to footstep manager
         std_msgs::Int8 cmd;
         cmd.data = 1;
         footstep_execute_req_pub_.publish(cmd);
-    }
-    if(option == 1)
-    {
-        requestValidateStepPlan();
     }
 }
 
