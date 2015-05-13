@@ -13,12 +13,6 @@ BehaviorRelay::BehaviorRelay(QWidget* parent)
     //connect execute thread to gui thread
     connect(this,SIGNAL(signalCreateNotification(QString,BehaviorServer::GoalHandle)),this,SLOT(createNotification(QString,BehaviorServer::GoalHandle)));
 
-    BehaviorServer::GoalHandle dummy;
-    //ui test
-    createNotification(QString("hey there is everything"), dummy);
-    createNotification(QString("okay because these things"), dummy);
-    createNotification(QString("are positioned right?"), dummy);
-
 }
 
 //this is being run on a seperate thread by the complex behavior server
