@@ -1687,7 +1687,7 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
 }
 
 void Base3DView::defineFootstepGoal()
-{
+{        
     manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
 }
 
@@ -3234,13 +3234,17 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &sta
         ghost_joint_state_pub_.publish(states);
         ghost_root_pose_pub_.publish(root_pose);
 
+        //update pose of pelvis marker to be root
         flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.client_id = ros::this_node::getName();
         cmd.topic = "/pelvis_pose_marker";
         cmd.pose = root_pose;
         interactive_marker_update_pub_.publish(cmd);
-
         pelvis_marker_pose_pub_.publish(root_pose);
+
+        //update pose markers of left and right hand to be back on start with robot hands
+        snap_left_hand_to_ghost_ = true; // will be reset in processLeftArmEndEffector
+        snap_right_hand_to_ghost_ = true;
 
         snap_ghost_to_robot_ = false;
     }
