@@ -107,7 +107,7 @@ public:
   virtual void fixedFrameChanged();
 
 private Q_SLOTS:
-  void updateObjectProperties();
+  void updateMeshProperties();
   void updateTopic();
   void updateName();
   virtual void updateQueueSize();
@@ -139,8 +139,9 @@ private:
   float time_since_last_transform_;
 
   RosTopicProperty* mesh_topic_property_;
-  FloatProperty* alpha_property_;
-  ColorProperty* color_property_;
+  FloatProperty* mesh_alpha_property_;
+  FloatProperty* image_alpha_property_;
+  ColorProperty* mesh_color_property_;
   VectorProperty* position_property_;
   StringProperty* type_property_;
   QuaternionProperty* rotation_property_;
