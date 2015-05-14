@@ -160,6 +160,7 @@ private:
   // hold the last information received
   sensor_msgs::CameraInfo::ConstPtr last_info_;
   sensor_msgs::Image::ConstPtr last_image_;
+  float hfov_, vfov_;
 
   Ogre::SceneNode* mesh_node_;
   Ogre::ManualObject* manual_object_;
@@ -169,7 +170,7 @@ private:
   ros::Subscriber pose_sub_;
 
   Ogre::Frustum* decal_frustum_;
-  Ogre::Frustum* filter_frustum_;
+  std::vector<Ogre::Frustum*> filter_frustum_; //need multiple filters (back, up, down, left, right)
   Ogre::SceneNode* projector_node_;
 
   std::vector<RenderPanel*> render_panel_list_;

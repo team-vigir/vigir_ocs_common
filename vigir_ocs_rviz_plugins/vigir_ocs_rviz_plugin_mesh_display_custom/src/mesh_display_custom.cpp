@@ -130,18 +130,48 @@ void MeshDisplayCustom::createProjector()
     projector_node_ = scene_manager_->getRootSceneNode()->createChildSceneNode();
     projector_node_->attachObject(decal_frustum_);
 
-    filter_frustum_ = new Ogre::Frustum();
-    filter_frustum_->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
+    Ogre::SceneNode* filter_node;
 
-    Ogre::SceneNode* filter_node = projector_node_->createChildSceneNode();
-    filter_node->attachObject(filter_frustum_);
-    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Y));
+    //back filter
+//    filter_frustum_.push_back(new Ogre::Frustum());
+//    filter_frustum_.back()->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
+//    filter_node = projector_node_->createChildSceneNode();
+//    filter_node->attachObject(filter_frustum_.back());
+//    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Y));
+
+    //left filter
+    filter_frustum_.push_back(new Ogre::Frustum());
+    filter_frustum_.back()->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
+    filter_node = projector_node_->createChildSceneNode();
+    filter_node->attachObject(filter_frustum_.back());
+    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(hfov_/2.0f),Ogre::Vector3::UNIT_Y));
+
+    //right filter
+    filter_frustum_.push_back(new Ogre::Frustum());
+    filter_frustum_.back()->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
+    filter_node = projector_node_->createChildSceneNode();
+    filter_node->attachObject(filter_frustum_.back());
+    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(180),Ogre::Vector3::UNIT_Z)*Ogre::Quaternion(Ogre::Degree(hfov_/2.0f),Ogre::Vector3::UNIT_Y));
+
+    //down filter
+    filter_frustum_.push_back(new Ogre::Frustum());
+    filter_frustum_.back()->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
+    filter_node = projector_node_->createChildSceneNode();
+    filter_node->attachObject(filter_frustum_.back());
+    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Y)*Ogre::Quaternion(Ogre::Degree(90-vfov_/2.0f),Ogre::Vector3::UNIT_Z));
+
+    //up filter
+    filter_frustum_.push_back(new Ogre::Frustum());
+    filter_frustum_.back()->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
+    filter_node = projector_node_->createChildSceneNode();
+    filter_node->attachObject(filter_frustum_.back());
+    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(180),Ogre::Vector3::UNIT_Z)*Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Y)*Ogre::Quaternion(Ogre::Degree(90-vfov_/2.0f),Ogre::Vector3::UNIT_Z));
 }
 
 void MeshDisplayCustom::addDecalToMaterial(const Ogre::String& matName)
 {
     Ogre::MaterialPtr mat = (Ogre::MaterialPtr)Ogre::MaterialManager::getSingleton().getByName(matName);
-    mat->setCullingMode(Ogre::CULL_NONE);
+    //mat->setCullingMode(Ogre::CULL_NONE);
     Ogre::Pass* pass = mat->getTechnique(0)->createPass();
 
     pass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
@@ -166,10 +196,13 @@ void MeshDisplayCustom::addDecalToMaterial(const Ogre::String& matName)
     tex_state->setTextureAddressingMode(Ogre::TextureUnitState::TAM_CLAMP);
     tex_state->setTextureFiltering(Ogre::FO_POINT, Ogre::FO_LINEAR, Ogre::FO_NONE);
 
-    tex_state = pass->createTextureUnitState("Decal_filter.png");
-    tex_state->setProjectiveTexturing(true, filter_frustum_);
-    tex_state->setTextureAddressingMode(Ogre::TextureUnitState::TAM_CLAMP);
-    tex_state->setTextureFiltering(Ogre::TFO_NONE);
+    for(int i = 0; i < filter_frustum_.size(); i++)
+    {
+        tex_state = pass->createTextureUnitState("Decal_filter.png");
+        tex_state->setProjectiveTexturing(true, filter_frustum_[i]);
+        tex_state->setTextureAddressingMode(Ogre::TextureUnitState::TAM_CLAMP);
+        tex_state->setTextureFiltering(Ogre::TFO_NONE);
+    }
 }
 
 void MeshDisplayCustom::setPose()
@@ -371,10 +404,6 @@ void MeshDisplayCustom::load()
     }
 
     mesh_node_ = this->scene_node_->createChildSceneNode();
-
-    createProjector();
-
-    addDecalToMaterial(material_name);
 }
 
 void MeshDisplayCustom::onEnable()
@@ -531,6 +560,9 @@ bool MeshDisplayCustom::updateCamera(bool update_image)
 
         proj_matrix[3][2]= -1;
 
+        hfov_ = atan( 1.0f / proj_matrix[0][0] ) * 2.0f * 57.2957795f;
+        vfov_ = atan( 1.0f / proj_matrix[1][1] ) * 2.0f * 57.2957795f;
+
         if(decal_frustum_ != NULL)
             decal_frustum_->setCustomProjectionMatrix(true, proj_matrix);
 
@@ -540,6 +572,13 @@ bool MeshDisplayCustom::updateCamera(bool update_image)
 
     setStatus( StatusProperty::Ok, "Time", "ok" );
     setStatus( StatusProperty::Ok, "Camera Info", "ok" );
+
+    if(mesh_node_ != NULL && filter_frustum_.size() == 0)
+    {
+        createProjector();
+
+        addDecalToMaterial(mesh_material_->getName());
+    }
 
     return true;
 }
