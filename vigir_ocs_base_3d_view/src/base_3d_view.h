@@ -593,7 +593,7 @@ protected:
     QPushButton* reset_view_button_;
     QPushButton* stop_button_;
 
-    QBasicTimer timer;
+    QBasicTimer timer_;
     int ghost_opacity_update_counter_;
     int ghost_opacity_update_frequency_;
     bool ghost_opacity_update_;
@@ -789,6 +789,9 @@ protected:
     ros::Publisher r_arm_marker_pose_pub_;
     ros::Publisher pelvis_marker_pose_pub_;
 
+    flor_ocs_msgs::OCSInteractiveMarkerUpdate l_arm_marker_update;
+    flor_ocs_msgs::OCSInteractiveMarkerUpdate r_arm_marker_update;
+
     int marker_published_;
 
     bool moving_pelvis_;
@@ -884,7 +887,7 @@ protected:
     /**
       * published the pose of the IM of the ghost robot
       */
-    void publishGhostPoses();
+    void publishGhostPoses(bool local_feedback = false);
 
     /**
       * Sets end effector pose

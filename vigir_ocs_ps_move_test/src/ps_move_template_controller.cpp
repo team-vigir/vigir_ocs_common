@@ -252,11 +252,11 @@ int PSMoveTemplateController::updateSuccess(MoveServerPacket *move_server_packet
         p = updatePose(object_pose_, move_server_packet, /*(float)move_server_packet->state[0].pad.analog_trigger/255.0f*/1.0f);
 
         //Add to the template_update
+        cmd.client_id = ros::this_node::getName();
         cmd.topic = selected_object_topic_;
         cmd.pose = p;
         cmd.pose.header.frame_id = "/world";
         cmd.pose.header.stamp = ros::Time::now();
-        cmd.pose_mode = flor_ocs_msgs::OCSInteractiveMarkerUpdate::ABSOLUTE;
         cmd.update_mode = flor_ocs_msgs::OCSInteractiveMarkerUpdate::SET_POSE;
 
         //Publish the new pose

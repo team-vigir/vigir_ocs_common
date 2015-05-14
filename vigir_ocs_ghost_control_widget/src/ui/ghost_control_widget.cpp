@@ -223,7 +223,7 @@ void GhostControlWidget::on_graspBox_activated(const QString &arg1)
 }
 
 void GhostControlWidget::snapClicked()
-{
+{    
     std::cout << "Snap Clicked" << std::endl;
 
     std_msgs::Bool msg;

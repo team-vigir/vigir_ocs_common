@@ -8,7 +8,10 @@
 #include <QtCore>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QBasicTimer>
+#include <QPropertyAnimation>
 #include <vigir_be_msgs/BehaviorInputAction.h>
+#include <QFrame>
 #include "complex_action_server.h"
 
 //typedef typename ActionServer<ActionSpec>::GoalHandlePtr GoalHandlePtr;
@@ -30,13 +33,19 @@ public:
     bool getConfirmed() { return confirmed_; }
     void setActionText(QString);
     void setGoal(BehaviorServer::GoalHandle );
+    void setPoint(QPoint point){main_view_point_ = point;}
 
 private:
     bool eventFilter(QObject* object,QEvent* event);
+    void timerEvent(QTimerEvent *event);
+    void setButtonStyle(QPushButton* btn);
 
     Ui::BehaviorNotification *ui;
     bool confirmed_;
     BehaviorServer::GoalHandle goal_;
+    QPropertyAnimation* confirm_fadein_;
+    QBasicTimer timer;
+    QPoint main_view_point_;
 
 
 public Q_SLOTS:

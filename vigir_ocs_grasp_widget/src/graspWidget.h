@@ -76,11 +76,6 @@ public Q_SLOTS:
     void on_moveToPoseButton_clicked();
     void on_releaseButton_clicked();
     void on_show_grasp_toggled(bool checked);
-    void on_verticalSlider_sliderReleased();
-    void on_verticalSlider_3_sliderReleased();
-    void on_verticalSlider_2_sliderReleased();
-    void on_verticalSlider_4_sliderReleased();
-    void on_fingerBox_toggled(bool checked);
     void on_attachButton_clicked();
     void on_detachButton_clicked();
     void on_affordanceButton_clicked();
@@ -92,8 +87,7 @@ public Q_SLOTS:
 
 
 private:
-    void setProgressLevel(uint8_t level);
-    void sendManualMsg(uint8_t level, int8_t thumb, int8_t left, int8_t right, int8_t spread);
+    void sendManualMsg(uint8_t level);
 
     QString icon_path_;
     void setUpButtons();
