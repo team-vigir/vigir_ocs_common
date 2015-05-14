@@ -44,6 +44,7 @@ CameraView::CameraView( QWidget* parent, Base3DView* copy_from )
     , selection_made_(false)
     , initialized_(false)
     , selection_tool_enabled_( true )
+    , current_pitch_(0)
 {
     this->setMouseTracking(true);
 
@@ -242,7 +243,7 @@ int CameraView::getDefaultCamera()
 
 void CameraView::setCurrentCameraPitch( int degrees )
 {
-    m_current_pitch = degrees;
+    current_pitch_ = degrees;
 }
 
 void CameraView::setCameraPitch( int degrees )
@@ -256,11 +257,11 @@ void CameraView::setCameraPitch( int degrees )
 	trajectory.points.push_back( trajectory_msgs::JointTrajectoryPoint() );
 	trajectory.points.push_back( trajectory_msgs::JointTrajectoryPoint() );
 
-	trajectory.points[0].positions.push_back( ((double)m_current_pitch)*0.0174532925 ); // current
+    trajectory.points[0].positions.push_back( ((double)current_pitch_)*0.0174532925 ); // current
 	trajectory.points[1].positions.push_back( ((double)degrees)*0.0174532925); // next
 
 	trajectory.points[0].time_from_start = ros::Duration(0.0);
-    trajectory.points[1].time_from_start = ros::Duration(0.25+fabs(((double)m_current_pitch)-((double)degrees))/(65.0+40.0)*1.5); //range from 0-> 3
+    trajectory.points[1].time_from_start = ros::Duration(0.25+fabs(((double)current_pitch_)-((double)degrees))/(65.0+40.0)*1.5); //range from 0-> 3
 
 	head_pitch_update_traj_pub_.publish( trajectory );
 }

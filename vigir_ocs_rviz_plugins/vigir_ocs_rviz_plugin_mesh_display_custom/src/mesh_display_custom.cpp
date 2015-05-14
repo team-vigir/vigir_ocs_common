@@ -132,13 +132,6 @@ void MeshDisplayCustom::createProjector()
 
     Ogre::SceneNode* filter_node;
 
-    //back filter
-//    filter_frustum_.push_back(new Ogre::Frustum());
-//    filter_frustum_.back()->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
-//    filter_node = projector_node_->createChildSceneNode();
-//    filter_node->attachObject(filter_frustum_.back());
-//    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Y));
-
     //left filter
     filter_frustum_.push_back(new Ogre::Frustum());
     filter_frustum_.back()->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
@@ -153,6 +146,13 @@ void MeshDisplayCustom::createProjector()
     filter_node->attachObject(filter_frustum_.back());
     filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(180),Ogre::Vector3::UNIT_Z)*Ogre::Quaternion(Ogre::Degree(hfov_/2.0f),Ogre::Vector3::UNIT_Y));
 
+    //up filter
+    filter_frustum_.push_back(new Ogre::Frustum());
+    filter_frustum_.back()->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
+    filter_node = projector_node_->createChildSceneNode();
+    filter_node->attachObject(filter_frustum_.back());
+    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(180),Ogre::Vector3::UNIT_Z)*Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Y)*Ogre::Quaternion(Ogre::Degree(90-vfov_/2.0f),Ogre::Vector3::UNIT_Z));
+
     //down filter
     filter_frustum_.push_back(new Ogre::Frustum());
     filter_frustum_.back()->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
@@ -160,12 +160,12 @@ void MeshDisplayCustom::createProjector()
     filter_node->attachObject(filter_frustum_.back());
     filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Y)*Ogre::Quaternion(Ogre::Degree(90-vfov_/2.0f),Ogre::Vector3::UNIT_Z));
 
-    //up filter
-    filter_frustum_.push_back(new Ogre::Frustum());
-    filter_frustum_.back()->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
-    filter_node = projector_node_->createChildSceneNode();
-    filter_node->attachObject(filter_frustum_.back());
-    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(180),Ogre::Vector3::UNIT_Z)*Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Y)*Ogre::Quaternion(Ogre::Degree(90-vfov_/2.0f),Ogre::Vector3::UNIT_Z));
+//    //back filter
+//    filter_frustum_.push_back(new Ogre::Frustum());
+//    filter_frustum_.back()->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
+//    filter_node = projector_node_->createChildSceneNode();
+//    filter_node->attachObject(filter_frustum_.back());
+//    filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Y));
 }
 
 void MeshDisplayCustom::addDecalToMaterial(const Ogre::String& matName)
@@ -221,6 +221,8 @@ void MeshDisplayCustom::setPose()
 
 void MeshDisplayCustom::updateMesh( const shape_msgs::Mesh::ConstPtr& mesh )
 {
+    boost::mutex::scoped_lock lock( mesh_mutex_ );
+
     // create our scenenode and material
     load();
 
@@ -477,6 +479,8 @@ bool MeshDisplayCustom::updateCamera(bool update_image)
         setStatus( StatusProperty::Error, "Camera Info", "Contains invalid floating point values (nans or infs)" );
         return false;
     }
+
+    boost::mutex::scoped_lock lock( mesh_mutex_ );
 
     Ogre::Vector3 position;
     Ogre::Quaternion orientation;

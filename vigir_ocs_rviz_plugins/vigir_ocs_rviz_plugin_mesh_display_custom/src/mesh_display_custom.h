@@ -177,6 +177,8 @@ private:
   RenderPanel* render_panel_; // this is the active render panel
 
   bool initialized_;
+
+  boost::mutex mesh_mutex_;
 };
 
 } // namespace rviz
