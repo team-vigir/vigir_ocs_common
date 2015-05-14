@@ -151,7 +151,7 @@ void MeshDisplayCustom::createProjector()
 void MeshDisplayCustom::addDecalToMaterial(const Ogre::String& matName)
 {
     Ogre::MaterialPtr mat = (Ogre::MaterialPtr)Ogre::MaterialManager::getSingleton().getByName(matName);
-    //mat->setCullingMode(Ogre::CULL_NONE);
+    mat->setCullingMode(Ogre::CULL_NONE);
     Ogre::Pass* pass = mat->getTechnique(0)->createPass();
 
     pass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
@@ -219,33 +219,37 @@ void MeshDisplayCustom::updateMesh( const shape_msgs::Mesh::ConstPtr& mesh )
     }
 
     // If we have the same number of tris as previously, just update the object
-    if (last_mesh_.vertices.size() > 0 && mesh->vertices.size() == last_mesh_.vertices.size())
+    if (last_mesh_.vertices.size() > 0 && mesh->vertices.size()*2 == last_mesh_.vertices.size())
     {
         manual_object_->beginUpdate(0);
     }
     else // Otherwise clear it and begin anew
     {
         manual_object_->clear();
-        manual_object_->estimateVertexCount(mesh->vertices.size());
+        manual_object_->estimateVertexCount(mesh->vertices.size()*2);
         manual_object_->begin(mesh_material_->getName(), Ogre::RenderOperation::OT_TRIANGLE_LIST);
     }
 
     const std::vector<geometry_msgs::Point>& points = mesh->vertices;
     for(size_t i = 0; i < mesh->triangles.size(); i++)
     {
-
-        std::vector<Ogre::Vector3> corners(3);
-        for(size_t c = 0; c < 3; c++)
+        // make sure we have front-face/back-face triangles
+        for(int side = 0; side < 2; side++)
         {
-            corners[c] = Ogre::Vector3(points[mesh->triangles[i].vertex_indices[c]].x, points[mesh->triangles[i].vertex_indices[c]].y, points[mesh->triangles[i].vertex_indices[c]].z);
-        }
-        Ogre::Vector3 normal = (corners[1] - corners[0]).crossProduct(corners[2] - corners[0]);
-        normal.normalise();
+            std::vector<Ogre::Vector3> corners(3);
+            for(size_t c = 0; c < 3; c++)
+            {
+                size_t corner = side ? 2-c : c; // order of corners if side == 1
+                corners[corner] = Ogre::Vector3(points[mesh->triangles[i].vertex_indices[corner]].x, points[mesh->triangles[i].vertex_indices[corner]].y, points[mesh->triangles[i].vertex_indices[corner]].z);
+            }
+            Ogre::Vector3 normal = (corners[1] - corners[0]).crossProduct(corners[2] - corners[0]);
+            normal.normalise();
 
-        for(size_t c = 0; c < 3; c++)
-        {
-            manual_object_->position(corners[c]);
-            manual_object_->normal(normal);
+            for(size_t c = 0; c < 3; c++)
+            {
+                manual_object_->position(corners[c]);
+                manual_object_->normal(normal);
+            }
         }
     }
 
@@ -380,7 +384,6 @@ void MeshDisplayCustom::load()
         pass->setShininess(shininess);
 
         pass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
-        pass->setDepthWriteEnabled(false);
 
         mesh_material_->setCullingMode(Ogre::CULL_NONE);
     }

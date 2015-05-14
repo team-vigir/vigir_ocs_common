@@ -488,8 +488,10 @@ protected:
     rviz::Display* octomap_;
     rviz::Display* grid_;
     rviz::Display* laser_scan_;
-    rviz::Display* region_point_cloud_viewer_;
+    rviz::Display* lidar_point_cloud_viewer_;
     rviz::Display* stereo_point_cloud_viewer_;
+    rviz::Display* lidar_mesh_viewer_;
+    rviz::Display* stereo_mesh_viewer_;
     rviz::Display* selection_3d_display_;
     rviz::Display * notification_overlay_display_;    
     rviz::Display* template_display_;

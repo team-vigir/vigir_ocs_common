@@ -220,15 +220,15 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         stereo_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
         stereo_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
-        region_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "LIDAR Point Cloud", true );
-        ROS_ASSERT( region_point_cloud_viewer_ != NULL );
-        region_point_cloud_viewer_->subProp( "Style" )->setValue( "Flat Squares" );
-        region_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/cloud_result" );
-        region_point_cloud_viewer_->subProp( "Size (m)" )->setValue( 0.01 );
-        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-        region_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
-        region_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
-        region_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
+        lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "LIDAR Point Cloud", true );
+        ROS_ASSERT( lidar_point_cloud_viewer_ != NULL );
+        lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Flat Squares" );
+        lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/cloud_result" );
+        lidar_point_cloud_viewer_->subProp( "Size (m)" )->setValue( 0.01 );
+        lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+        lidar_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
+        lidar_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
+        lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
         // point cloud request
         raycast_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Raycast Point Cloud", true );
@@ -1611,13 +1611,13 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
                 {
                     if(msg->reset[i]) //reset case
                     {
-                        region_point_cloud_viewer_->setEnabled(false);
-                        region_point_cloud_viewer_->setEnabled(true);
+                        lidar_point_cloud_viewer_->setEnabled(false);
+                        lidar_point_cloud_viewer_->setEnabled(true);
                     }
                     else  // toggle case
                     {
                         //lidar_point_cloud_viewer_->setEnabled( selected );
-                        region_point_cloud_viewer_->subProp("Alpha")->setValue(msg->visible[i] ? 1.0f : 0.0f);
+                        lidar_point_cloud_viewer_->subProp("Alpha")->setValue(msg->visible[i] ? 1.0f : 0.0f);
                     }
                 }
                 else if(display_name.compare("Ground map") == 0)
@@ -3941,11 +3941,11 @@ void Base3DView::resetPointCloudsHotkey()
 void Base3DView::rainbowColorHotkey()
 {
     //set Region pointcloud to rainbow color
-    region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+    lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
 }
 void Base3DView::pointcloudIntensityHotkey()
 {
-    region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
+    lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
 }
 //void Base3DView::requestStepPlanHotkey()
 //{
@@ -4016,11 +4016,11 @@ void Base3DView::processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::
     }
     if(msg->relay_code == flor_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_RAINBOW)
     {
-        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+        lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
     }
     if(msg->relay_code == flor_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_INTENSITY)
     {
-        region_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
+        lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
     }
 }
 
