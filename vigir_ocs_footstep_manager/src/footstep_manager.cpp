@@ -17,7 +17,7 @@ namespace ocs_footstep
 void FootstepManager::onInit()
 {
     ros::NodeHandle& nh         = getNodeHandle();
-
+    
     foot_pose_transformer_.reset(new vigir_footstep_planning::FootPoseTransformer(nh));
 
     // TODO: Get them from footstep planner
@@ -123,10 +123,9 @@ void FootstepManager::onInit()
     //update step plan
     update_step_plan_client_ = new UpdateStepPlanClient("update_step_plan", true);
     //get all parameter sets
-    get_all_parameter_sets_client_ = new GetAllParameterSetsClient("get_all_parameter_sets", true);
+    get_all_parameter_sets_client_ = new GetAllParameterSetsClient("params/get_all_parameter_sets", true);
     //execute step plan
     execute_step_plan_client_ = new ExecuteStepPlanClient("execute_step_plan", true);
-
     //wait for servers to come online
     while(!update_feet_client_->waitForServer(ros::Duration(5.0)))
     {

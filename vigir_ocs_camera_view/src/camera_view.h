@@ -1,10 +1,10 @@
-/* 
+/*
  * CameraView class definition.
- * 
+ *
  * Author: Felipe Bacim.CameraViewWidgetCameraViewWidget
- * 
+ *
  * Based on librviz_tutorials.
- * 
+ *
  * Latest changes (12/04/2012):
  */
 
@@ -103,7 +103,7 @@ private:
     int selected_area_[4];
     int last_selected_area_[4];
     std::string camera_frame_topic_;
-    float m_current_pitch;
+    float current_pitch_;
 
     rviz::Display* camera_viewer_;
 
@@ -136,6 +136,7 @@ private:
     bool initialized_;
 
     bool selection_tool_enabled_;
+    std::string joint_name_;
 };
 }
 #endif // CAMERA_VIEWER_H

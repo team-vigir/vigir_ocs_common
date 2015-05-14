@@ -107,7 +107,7 @@ public:
   virtual void fixedFrameChanged();
 
 private Q_SLOTS:
-  void updateObjectProperties();
+  void updateMeshProperties();
   void updateTopic();
   void updateName();
   virtual void updateQueueSize();
@@ -139,8 +139,9 @@ private:
   float time_since_last_transform_;
 
   RosTopicProperty* mesh_topic_property_;
-  FloatProperty* alpha_property_;
-  ColorProperty* color_property_;
+  FloatProperty* mesh_alpha_property_;
+  FloatProperty* image_alpha_property_;
+  ColorProperty* mesh_color_property_;
   VectorProperty* position_property_;
   StringProperty* type_property_;
   QuaternionProperty* rotation_property_;
@@ -160,6 +161,7 @@ private:
   // hold the last information received
   sensor_msgs::CameraInfo::ConstPtr last_info_;
   sensor_msgs::Image::ConstPtr last_image_;
+  float hfov_, vfov_;
 
   Ogre::SceneNode* mesh_node_;
   Ogre::ManualObject* manual_object_;
@@ -169,13 +171,15 @@ private:
   ros::Subscriber pose_sub_;
 
   Ogre::Frustum* decal_frustum_;
-  Ogre::Frustum* filter_frustum_;
+  std::vector<Ogre::Frustum*> filter_frustum_; //need multiple filters (back, up, down, left, right)
   Ogre::SceneNode* projector_node_;
 
   std::vector<RenderPanel*> render_panel_list_;
   RenderPanel* render_panel_; // this is the active render panel
 
   bool initialized_;
+
+  boost::mutex mesh_mutex_;
 };
 
 } // namespace rviz

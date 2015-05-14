@@ -423,7 +423,7 @@ void MainViewWidget::updateBehaviorNotifications()
 }
 
 void MainViewWidget::setLidarSpinRate(double spin_rate)
-{    
+{
     //published in radians directly from widget
     std_msgs::Float64 msg;
     msg.data = spin_rate;
