@@ -129,6 +129,7 @@ public:
     bool hasStartingFootstep() { return (start_step_index_ >= 0); }
     bool canValidate() { return can_validate_; }
     unsigned int numStepPlans() { return num_step_plans_; }
+    unsigned char getValidateMode() { return validate_mode_; }
 
     virtual void timerEvent(QTimerEvent *event);
 
@@ -243,6 +244,7 @@ private:
     unsigned char has_redo_;
     bool need_plan_update_;
     unsigned int num_step_plans_;
+    unsigned char validate_mode_;
 
     // avoid detecting double click as dragging interactive marker
     boost::posix_time::ptime double_click_timer_;

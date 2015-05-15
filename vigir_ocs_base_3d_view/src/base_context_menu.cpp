@@ -81,7 +81,10 @@ void BaseContextMenu::createContextMenuItems()
                                                                                         //will be custom plan?
     //context_menu_manager_->addActionItem("Request Step Plan...",boost::bind(&FootstepVisManager::requestStepPlan,footstep_vis_manager_), NULL);
     context_menu_manager_->addActionItem("Stitch Plans",boost::bind(&FootstepVisManager::requestStitchFootstepPlans,footstep_vis_manager_),NULL);
-    context_menu_manager_->addActionItem("Validate Step Plan",boost::bind(&FootstepVisManager::requestValidateStepPlan,footstep_vis_manager_),NULL);
+    context_menu_manager_->addActionItem("Validate Step Plan (goal)",boost::bind(&FootstepVisManager::requestValidateStepPlan,footstep_vis_manager_),NULL);
+    context_menu_manager_->addActionItem("Validate Step Plan (goal feet)",boost::bind(&FootstepVisManager::requestValidateStepPlan,footstep_vis_manager_),NULL);
+    context_menu_manager_->addActionItem("Validate Step Plan (edited steps)",boost::bind(&FootstepVisManager::requestValidateStepPlan,footstep_vis_manager_),NULL);
+    context_menu_manager_->addActionItem("Validate Step Plan (current plan)",boost::bind(&FootstepVisManager::requestValidateStepPlan,footstep_vis_manager_),NULL);
     context_menu_manager_->addActionItem("Execute Step Plan",boost::bind(&FootstepVisManager::requestExecuteStepPlan,footstep_vis_manager_),NULL);
     context_menu_manager_->addActionItem("Undo Step Change",boost::bind(&FootstepVisManager::requestFootstepListUndo,footstep_vis_manager_),NULL);
     context_menu_manager_->addActionItem("Redo Step Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL);

@@ -1037,23 +1037,23 @@ void FootstepManager::publishSyncStatus()
     {
         if(getStepPlan().header.stamp.nsec == last_onboard_step_plan_stamp_.nsec && getStepPlan().header.stamp.sec == last_onboard_step_plan_stamp_.sec)
         {
-            synced.validate_mode = "edited steps";
+            synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::EDITED_STEPS;
         }
         // if not and we have edited steps, we have to send the entire plan
         else
         {
-            synced.validate_mode = "current plan";
+            synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::CURRENT_PLAN;
         }
     }
     // if the goal has been updated
     else if(updated_goal_)
     {
-        synced.validate_mode = "send goal feet poses";
+        synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::GOAL_FEET;
     }
     // only send 3dof goal if it hasn't been modified
     else
     {
-        synced.validate_mode = "send goal pose";
+        synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::GOAL;
     }
 
     sync_status_pub_.publish(synced);

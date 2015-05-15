@@ -302,6 +302,8 @@ void FootstepVisManager::processSyncStatus(const flor_ocs_msgs::OCSFootstepSyncS
         can_validate_ = true;
     else
         can_validate_ = false;
+
+    validate_mode_ = msg->validate_mode;
 }
 
 void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
