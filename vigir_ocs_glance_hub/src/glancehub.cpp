@@ -20,6 +20,7 @@ glancehub::glancehub(QWidget *parent) :
     moveit_status_sub_ = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/planning/upper_body/status",2,&glancehub::robotStatusMoveit,this);
     footstep_status_simple_sub_ = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/ocs/footstep/status_simple",2,&glancehub::robotStatusFootstep,this); // onboard status
     footstep_status_sub_ = nh.subscribe<flor_ocs_msgs::OCSFootstepStatus>("/flor/ocs/footstep/status",2,&glancehub::robotStatusFootstepComplete,this);
+    obfsm_footstep_status_sub_ = nh.subscribe<flor_ocs_msgs::OCSFootstepStatus>( "/vigir/footstep_manager/step_planner_status", 1, &glancehub::robotStatusFootstepComplete, this );
 
 
     // load control modes into dropdown box from parameters
@@ -205,17 +206,17 @@ void glancehub::robotStatusFootstepComplete(const flor_ocs_msgs::OCSFootstepStat
     QString msgType;
     switch(msg->status)
     {
-    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE:
+    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_EXECUTION_ACTIVE:
         ui->footLight->setStyleSheet("QLabel { background-color: yellow; }");
         msgType="(Warning) ";
         break;
-    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED:
-        ui->footLight->setStyleSheet("QLabel { background-color: red; }");
-        msgType="(Error) ";
-        break;
-    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_SUCCESS:
+    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_SUCCESS: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_VALID_GOAL: //case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_EXECUTION_SUCCESS: //same as FOOTSTEP_PLANNER_SUCCESS
         ui->footLight->setStyleSheet("QLabel { background-color: green; }");
         msgType="(Success) ";
+        break;
+    default: // all the error codes go here
+        ui->footLight->setStyleSheet("QLabel { background-color: red; }");
+        msgType="(Error) ";
         break;
     }
 

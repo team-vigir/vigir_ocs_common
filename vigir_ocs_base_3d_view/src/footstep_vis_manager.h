@@ -29,6 +29,7 @@
 #include <flor_ocs_msgs/OCSFootstepPlanParameters.h>
 #include <flor_ocs_msgs/OCSFootstepPlanUpdate.h>
 #include <flor_ocs_msgs/OCSFootstepParamSetList.h>
+#include <flor_ocs_msgs/OCSFootstepSyncStatus.h>
 
 #include <string>
 #include <boost/bind.hpp>
@@ -80,6 +81,9 @@ public:
     void processUndosAvailable(const std_msgs::UInt8::ConstPtr& msg);
     void processRedosAvailable(const std_msgs::UInt8::ConstPtr& msg);
 
+    // Update sync status
+    void processSyncStatus(const flor_ocs_msgs::OCSFootstepSyncStatus::ConstPtr& msg);
+
     // Sends the latest parameters selected in the OCS
     void sendFootstepPlanParameters();
 
@@ -97,6 +101,9 @@ public:
 
     // Sends a step plan request, and will get the two goal footsteps
     void requestStepPlan();
+
+    // Sends a footstep plan validate request to the footstep manager
+    void requestValidateStepPlan();
 
     // Sends a footstep plan execute request to the footstep manager
     void requestExecuteStepPlan();
@@ -117,6 +124,7 @@ public:
     unsigned char hasRedoAvailable() { return has_redo_; }
     bool hasValidStepPlan() { return has_valid_step_plan_; }
     bool hasStartingFootstep() { return (start_step_index_ >= 0); }
+    bool canValidate() { return can_validate_; }
     unsigned int numStepPlans() { return num_step_plans_; }
 
     virtual void timerEvent(QTimerEvent *event);
@@ -168,6 +176,7 @@ private:
     ros::Publisher footstep_redo_req_pub_;
     ros::Subscriber footstep_has_redo_sub_;
     ros::Publisher footstep_start_index_pub_;
+    ros::Publisher footstep_validate_req_pub_;
     ros::Publisher footstep_execute_req_pub_;
     ros::Publisher footstep_stitch_req_pub_;
     ros::Publisher footstep_plan_parameters_pub_;
@@ -187,6 +196,8 @@ private:
     ros::Publisher interactive_marker_update_pub_;
     ros::Subscriber interactive_marker_feedback_sub_;
     ros::Publisher interactive_marker_remove_pub_;
+
+    ros::Subscriber sync_status_sub_;
 
     flor_ocs_msgs::OCSFootstepList footstep_list_;
 
@@ -223,6 +234,7 @@ private:
     // variables that determine the state of the footstep plan
     bool has_goal_;
     bool has_valid_step_plan_;
+    bool can_validate_;
     unsigned char has_undo_;
     unsigned char has_redo_;
     bool need_plan_update_;
