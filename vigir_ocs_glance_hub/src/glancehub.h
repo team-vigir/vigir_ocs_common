@@ -43,6 +43,7 @@ private:
     ros::Subscriber moveit_status_sub_;
     ros::Subscriber footstep_status_simple_sub_;
     ros::Subscriber footstep_status_sub_;
+    ros::Subscriber obfsm_footstep_status_sub_;
     QBasicTimer timer;
 
     std::vector<std::string> allowed_control_modes_;

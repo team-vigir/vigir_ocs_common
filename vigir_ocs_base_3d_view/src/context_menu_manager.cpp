@@ -145,8 +145,70 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
         //setItemVisibility("Request Step Plan...",false);
     //}
 
-    //cannot execute without footstep plan
+    //set validate visibility based on mode
+    if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::EDITED_STEPS)
+    {
+        setItemVisibility("Validate Step Plan (goal)",false);
+        setItemVisibility("Validate Step Plan (goal feet)",false);
+        //setItemVisibility("Validate Step Plan (edited steps)",true);
+        setItemVisibility("Validate Step Plan (current plan)",false);
+    }
+    else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::CURRENT_PLAN)
+    {
+        setItemVisibility("Validate Step Plan (goal)",false);
+        setItemVisibility("Validate Step Plan (goal feet)",false);
+        setItemVisibility("Validate Step Plan (edited steps)",false);
+        //setItemVisibility("Validate Step Plan (current plan)",true);
+    }
+    else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::GOAL_FEET)
+    {
+        setItemVisibility("Validate Step Plan (goal)",false);
+        //setItemVisibility("Validate Step Plan (goal feet)",true);
+        setItemVisibility("Validate Step Plan (edited steps)",false);
+        setItemVisibility("Validate Step Plan (current plan)",false);
+    }
+    else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::GOAL)
+    {
+        //setItemVisibility("Validate Step Plan (goal)",true);
+        setItemVisibility("Validate Step Plan (goal feet)",false);
+        setItemVisibility("Validate Step Plan (edited steps)",false);
+        setItemVisibility("Validate Step Plan (current plan)",false);
+    }
+
+    //cannot validate empty/invalid plan
+    if(base_3d_view_->getFootstepVisManager()->hasValidStepPlan() || base_3d_view_->getFootstepVisManager()->numStepPlans() != 1)
+    {
+        setItemVisibility("Validate Step Plan (goal)",false);
+        setItemVisibility("Validate Step Plan (goal feet)",false);
+        setItemVisibility("Validate Step Plan (edited steps)",false);
+        setItemVisibility("Validate Step Plan (current plan)",false);
+    }
+    else if(!base_3d_view_->getFootstepVisManager()->canValidate())
+    {
+        setItemEnabled("Validate Step Plan (goal)",false);
+        setItemEnabled("Validate Step Plan (goal feet)",false);
+        setItemEnabled("Validate Step Plan (edited steps)",false);
+        setItemEnabled("Validate Step Plan (current plan)",false);
+    }
+    else
+    {
+        setItemEnabled("Validate Step Plan (goal)",true);
+        setItemEnabled("Validate Step Plan (goal feet)",true);
+        setItemEnabled("Validate Step Plan (edited steps)",true);
+        setItemEnabled("Validate Step Plan (current plan)",true);
+    }
+
     if(base_3d_view_->getFootstepVisManager()->numStepPlans() != 1)
+    {
+        setItemEnabled("Send Current Step Plan",false);
+    }
+    else
+    {
+        setItemEnabled("Send Current Step Plan",true);
+    }
+
+    //cannot execute without footstep plan
+    if(!base_3d_view_->getFootstepVisManager()->hasValidStepPlan())
     {
         setItemVisibility("Execute Step Plan",false);
     }
@@ -256,6 +318,20 @@ void ContextMenuManager::setItemVisibility(QString name, bool visibility)
     //can only remove actions?
     if(item != NULL && !item->hasChildren)
         context_menu_.removeAction(item->action);
+}
+
+void ContextMenuManager::setItemEnabled(QString name, bool enabled)
+{
+    contextMenuItem* item = NULL;
+    //find context menu item in vector
+    for(int i=0;i<context_menu_items_.size();i++)
+    {
+        if(context_menu_items_[i]->name == name)
+            item = context_menu_items_[i];
+    }
+    //can only remove actions?
+    if(item != NULL && !item->hasChildren)
+        item->action->setEnabled(enabled);
 }
 
 

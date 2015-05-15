@@ -99,7 +99,7 @@ MeshDisplayCustom::MeshDisplayCustom()
     mesh_alpha_property_ = new FloatProperty( "Mesh Alpha", 0.6f,
                                               "Amount of transparency for the mesh.", this, SLOT( updateMeshProperties() ) );
 
-    mesh_color_property_ = new ColorProperty( "Mesh Color", QColor( 25, 255, 0 ),
+    mesh_color_property_ = new ColorProperty( "Mesh Color", QColor( 255, 255, 255 ),
                                               "Color to mesh when not overlayed by image texture.", this, SLOT( updateMeshProperties() ) );
 
     // this shouldn't necessarily be here, and we should get this from a camera topic with camera info

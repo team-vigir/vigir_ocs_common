@@ -72,6 +72,8 @@ private:
 
     //visibility handled after construction in associated widget
     void setItemVisibility(QString name, bool visibility);
+    //grey things out if necessary
+    void setItemEnabled(QString name, bool enabled);
 
     vigir_ocs::Base3DView* base_3d_view_;
 

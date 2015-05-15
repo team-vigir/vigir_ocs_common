@@ -34,6 +34,7 @@ class BehaviorManager():
         self.template_sub = rospy.Subscriber('/template/list', OCSTemplateList,self.template_cb)
         self.goal_waypoint_sub = rospy.Subscriber('/flor/ocs/footstep/goal_pose',PoseStamped,self.goal_waypoint_cb)
         self.footstep_plan_sub = rospy.Subscriber('/vigir/footstep_manager/current_step_plan',StepPlan ,self.footstep_plan_cb)
+        self.updated_footstep_plan_sub = rospy.Subscriber('/vigir/footstep_manager/updated_step_plan',StepPlan ,self.footstep_plan_cb)
         #self.ghost_joint_state_sub = rospy.Subscriber('/flor/ghost/get_joint_states',JointState, self.ghost_joint_state_cb)
 
          #"/flor/ghost/pose/left_hand"

@@ -51,6 +51,7 @@ void TemplateNodelet::onInit()
     inst_grasp_info_server_      = nh_out.advertiseService("/instantiated_grasp_info", &TemplateNodelet::instantiatedGraspInfoSrv, this);
     stitch_object_server_        = nh_out.advertiseService("/stitch_object_template", &TemplateNodelet::stitchObjectTemplateSrv, this);
     detach_object_server_        = nh_out.advertiseService("/detach_object_template", &TemplateNodelet::detachObjectTemplateSrv, this);
+    usability_pose_server_      = nh_out.advertiseService("/usability_pose", &TemplateNodelet::usabilityPoseSrv, this);
 
     //Planing scene publishers
     co_pub_                      = nh_out.advertise<moveit_msgs::CollisionObject>("/collision_object", 1, false);
@@ -367,15 +368,15 @@ void TemplateNodelet::loadGraspDatabaseXML(std::string& file_name, std::string h
 
     if(!found){
         ROS_WARN("Wrist %s NOT found!!!, setting to identity",wrist_link_.c_str());
-        gp_T_lhand_.setIdentity();
-        gp_T_rhand_.setIdentity();
+        palm_T_lhand_.setIdentity();
+        palm_T_rhand_.setIdentity();
     }
     else
     {
         if(hand_side=="left")
-            tf::transformEigenToTF( hand_palm_aff,gp_T_lhand_);
+            tf::transformEigenToTF( hand_palm_aff,palm_T_lhand_);
         else
-            tf::transformEigenToTF( hand_palm_aff,gp_T_rhand_);
+            tf::transformEigenToTF( hand_palm_aff,palm_T_rhand_);
     }
 
     if(robot_model_->hasJointModelGroup(hand_group_))
@@ -1097,12 +1098,12 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
             grasp.pre_grasp_approach.direction.header.frame_id = "/world";
             grasp.pre_grasp_posture.header.frame_id            = "/world";
             if(std::atoi(grasp.id.c_str()) >= 1000 && (req.hand_side == req.LEFT_HAND || req.hand_side == req.BOTH_HANDS)){
-                staticTransform(grasp.grasp_pose.pose,gp_T_lhand_);
+                staticTransform(grasp.grasp_pose.pose,palm_T_lhand_);
                 worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
                 res.template_type_information.grasps.push_back(grasp);
             }
             if(std::atoi(grasp.id.c_str()) < 1000 && (req.hand_side == req.RIGHT_HAND || req.hand_side == req.BOTH_HANDS)){
-                staticTransform(grasp.grasp_pose.pose,gp_T_rhand_);
+                staticTransform(grasp.grasp_pose.pose,palm_T_rhand_);
                 worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
                 res.template_type_information.grasps.push_back(grasp);
             }
@@ -1274,18 +1275,18 @@ bool TemplateNodelet::instantiatedGraspInfoSrv(vigir_object_template_msgs::GetIn
             pre_grasp.pre_grasp_approach.direction.header.frame_id = "/world";
             pre_grasp.pre_grasp_posture.header.frame_id            = "/world";
             if(std::atoi(grasp.id.c_str()) >= 1000 && (req.hand_side == req.LEFT_HAND || req.hand_side == req.BOTH_HANDS)){
-                staticTransform(grasp.grasp_pose.pose,gp_T_lhand_);
+                staticTransform(grasp.grasp_pose.pose,palm_T_lhand_);
                 gripperTranslationToPreGraspPose(pre_grasp.grasp_pose.pose,pre_grasp.pre_grasp_approach);
-                staticTransform(pre_grasp.grasp_pose.pose,gp_T_lhand_);
+                staticTransform(pre_grasp.grasp_pose.pose,palm_T_lhand_);
                 worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
                 worldPoseTransform(template_pose_list_[index],pre_grasp.grasp_pose.pose,pre_grasp.grasp_pose);
                 res.grasp_information.grasps.push_back(grasp);
                 res.pre_grasp_information.grasps.push_back(pre_grasp);
             }
             if(std::atoi(grasp.id.c_str()) < 1000 && (req.hand_side == req.RIGHT_HAND || req.hand_side == req.BOTH_HANDS)){
-                staticTransform(grasp.grasp_pose.pose,gp_T_rhand_);
+                staticTransform(grasp.grasp_pose.pose,palm_T_rhand_);
                 gripperTranslationToPreGraspPose(pre_grasp.grasp_pose.pose,pre_grasp.pre_grasp_approach);
-                staticTransform(pre_grasp.grasp_pose.pose,gp_T_rhand_);
+                staticTransform(pre_grasp.grasp_pose.pose,palm_T_rhand_);
                 worldPoseTransform(template_pose_list_[index],grasp.grasp_pose.pose,grasp.grasp_pose);
                 worldPoseTransform(template_pose_list_[index],pre_grasp.grasp_pose.pose,pre_grasp.grasp_pose);
                 res.grasp_information.grasps.push_back(grasp);
@@ -1308,18 +1309,18 @@ bool TemplateNodelet::instantiatedGraspInfoSrv(vigir_object_template_msgs::GetIn
             pre_grasp.grasp_pose.header.frame_id = template_pose_list_[index].header.frame_id;
 
             if(std::atoi(grasp.id.c_str()) >= 1000 && (req.hand_side == req.LEFT_HAND || req.hand_side == req.BOTH_HANDS)){
-                staticTransform(grasp.grasp_pose.pose,gp_T_lhand_);
+                staticTransform(grasp.grasp_pose.pose,palm_T_lhand_);
                 gripperTranslationToPreGraspPose(pre_grasp.grasp_pose.pose,pre_grasp.pre_grasp_approach);
-                staticTransform(pre_grasp.grasp_pose.pose,gp_T_lhand_);
+                staticTransform(pre_grasp.grasp_pose.pose,palm_T_lhand_);
                 poseTransform(template_pose_list_[index].pose,grasp.grasp_pose.pose,grasp.grasp_pose.pose);
                 poseTransform(template_pose_list_[index].pose,pre_grasp.grasp_pose.pose,pre_grasp.grasp_pose.pose);
                 res.grasp_information.grasps.push_back(grasp);
                 res.pre_grasp_information.grasps.push_back(pre_grasp);
             }
             if(std::atoi(grasp.id.c_str()) < 1000 && (req.hand_side == req.RIGHT_HAND || req.hand_side == req.BOTH_HANDS)){
-                staticTransform(grasp.grasp_pose.pose,gp_T_rhand_);
+                staticTransform(grasp.grasp_pose.pose,palm_T_rhand_);
                 gripperTranslationToPreGraspPose(pre_grasp.grasp_pose.pose,pre_grasp.pre_grasp_approach);
-                staticTransform(pre_grasp.grasp_pose.pose,gp_T_rhand_);
+                staticTransform(pre_grasp.grasp_pose.pose,palm_T_rhand_);
                 poseTransform(template_pose_list_[index].pose,grasp.grasp_pose.pose,grasp.grasp_pose.pose);
                 poseTransform(template_pose_list_[index].pose,pre_grasp.grasp_pose.pose,pre_grasp.grasp_pose.pose);
                 res.grasp_information.grasps.push_back(grasp);
@@ -1541,6 +1542,92 @@ bool TemplateNodelet::detachObjectTemplateSrv(vigir_object_template_msgs::SetAtt
 
     ROS_INFO("Dettaching the object %s",detach_object.object.id.c_str());
     aco_pub_.publish(detach_object);
+}
+
+bool TemplateNodelet::usabilityPoseSrv(vigir_object_template_msgs::GetUsabilityInWristFrame::Request& req,
+                                       vigir_object_template_msgs::GetUsabilityInWristFrame::Response& res)
+{
+    boost::recursive_mutex::scoped_lock lock_template_list(template_list_mutex_);
+
+    /*Fill in the blanks of the response "res"
+     * with the info of the template id in the request "req"
+    */
+
+    //Find the template
+    unsigned int index = 0;
+    unsigned int template_type;
+    for(; index < template_id_list_.size(); index++) {
+        if(template_id_list_[index] == req.template_id){
+            template_type = template_type_list_[index];
+            ROS_INFO("Template ID found in server, index: %d, list: %d, requested: %d",index, template_id_list_[index], req.template_id);
+            break;
+        }
+    }
+
+    if (index >= template_id_list_.size()){
+        ROS_ERROR("Service requested template ID %d when no such template has been instantiated. Callback returning false.",req.template_id);
+        return false;
+    }
+
+    if(template_status_list_[index] == 0){
+        ROS_ERROR("Template %d is not attached to robot, attach first to get usability in wrist frame.",req.template_id);
+        return false;
+    }else{
+        res.wrist_usability.header.frame_id = template_last_pose_list_[index].header.frame_id;
+        if(template_last_pose_list_[index].header.frame_id == "l_hand")
+            tf::poseTFToMsg(palm_T_lhand_.inverse(),res.wrist_usability.pose);
+        else
+            tf::poseTFToMsg(palm_T_rhand_.inverse(),res.wrist_usability.pose);
+    }
+
+    boost::recursive_mutex::scoped_lock lock_object_template_map(object_template_map_mutex_);
+
+    //Transfer all known usabilities to response
+    for (std::map<unsigned int,vigir_object_template_msgs::Usability>::iterator it =  object_template_map_[template_type].usabilities.begin();
+                                                                                it != object_template_map_[template_type].usabilities.end();
+                                                                                ++it) {
+        vigir_object_template_msgs::Usability usability = it->second;
+        if(usability.id == req.usability_id){
+
+            tf::Transform template_T_marker;
+            tf::Transform hand_T_template;
+            tf::Transform hand_T_marker;
+
+            tf::poseMsgToTF(usability.pose.pose, template_T_marker);
+
+//            ROS_ERROR("template_T_marker x:%f, y:%f, z:%f, qx:%f, qy:%f, qz:%f, qw:%f",
+//                      template_T_marker.getOrigin().getX(),
+//                      template_T_marker.getOrigin().getY(),
+//                      template_T_marker.getOrigin().getZ(),
+//                      template_T_marker.getRotation().getX(),
+//                      template_T_marker.getRotation().getY(),
+//                      template_T_marker.getRotation().getZ(),
+//                      template_T_marker.getRotation().getW());
+
+            tf::poseMsgToTF(template_last_pose_list_[index].pose, hand_T_template);
+
+//            ROS_ERROR("hand_T_template x:%f, y:%f, z:%f, qx:%f, qy:%f, qz:%f, qw:%f",
+//                      hand_T_template.getOrigin().getX(),
+//                      hand_T_template.getOrigin().getY(),
+//                      hand_T_template.getOrigin().getZ(),
+//                      hand_T_template.getRotation().getX(),
+//                      hand_T_template.getRotation().getY(),
+//                      hand_T_template.getRotation().getZ(),
+//                      hand_T_template.getRotation().getW());
+
+            hand_T_marker = hand_T_template * template_T_marker;
+
+            res.wrist_usability.header.frame_id = template_last_pose_list_[index].header.frame_id;
+
+            tf::poseTFToMsg(hand_T_marker,res.wrist_usability.pose);
+
+            return true;
+        }
+    }
+
+    ROS_ERROR("Service requested usability ID %d when no such usability exists for template %d. Returning palm as reference point for %s.",req.usability_id, req.template_id, template_last_pose_list_[index].header.frame_id.c_str());
+
+    return true;
 }
 
 int TemplateNodelet::worldPoseTransform(const geometry_msgs::PoseStamped& template_pose,const geometry_msgs::Pose& input_pose, geometry_msgs::PoseStamped& target_pose)

@@ -37,25 +37,17 @@ class App(object):
 		if not os.path.exists(filename):
 			os.makedirs(filename)
 		self.folder = filename
-		f = open(self.folder + '/Experiment.txt', 'w')
+                f = open(self.folder + '/Desktop_Recording_Experiment.txt', 'w')
 		f.write('<?xml version="1.0"?>\n')
 		f.write(' <Experiment>\n')
 		f.write(' <Name>'+name+'</Name>\n')
 		self.startTime = datetime.datetime.now()
 		f.write(' <StartTime>'+str(self.startTime)+'</StartTime>\n')
 		f.write(' <Description>'+description+'</Description>\n')
-		f.write(' <TopicsLogged>'+self.combined()+'</TopicsLogged>')
 		f.write('</Experiment>')
 		f.close()
 		self.name = name
 		
-	def combined(self):
-		output = ''
-		for x in range(len(self.toLog)):
-			output += self.toLog[x] + ' '
-		print output
-		return output
-
 	def state(self, data):
 		print data
 		if self.logging:
@@ -65,9 +57,9 @@ class App(object):
 		self.pub.publish(self.query + temp)
 
 	def startLogging(self):
-		print "Starting logs"
+                print "Starting desktop recorder in "+self.folder
 		bashCommand = ["/bin/bash", "--norc", "-c"]
-		bagCommand = "rosbag record --split --duration=5m -O /"+ self.folder + "/log.bag " + self.combined()
+                bagCommand = "record_desktop -p "+ self.folder + "> /dev/null 2> /dev/null"
 		print bagCommand
 		self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE, preexec_fn=os.setsid)
 		self.logging = True
@@ -85,7 +77,6 @@ class App(object):
 		f.write(' <StartTime>'+str(self.startTime)+'</StartTime>\n')
 		f.write(' <EndTime>'+str(datetime.datetime.now())+'</EndTime>\n')
 		f.write(' <Summary>'+results+'</Summary>\n')
-		f.write(' <TopicsLogged>'+self.combined()+'</TopicsLogged>')
 		f.write('</Experiment>')
 		f.close()
 		self.folder = ''
@@ -99,17 +90,6 @@ class App(object):
 		
 		print "Looking for ros params..."
 		print rospy.search_param('logging_location')
-		print rospy.search_param('to_log')		
-		if rospy.has_param('~to_log'):
-			print "logging the following topics..."
-			self.toLog = rospy.get_param('~to_log')
-			print self.toLog
-		else:
-			print "Failed to find topics to log."
-		if rospy.has_param('~enable_Log_grabbing'):
-			self.enableBDILogging = rospy.get_param('~enable_Log_grabbing')
-		else:
-			print "Not setting up log grabbing"
 		if rospy.has_param("~logging_location"):
 			print "logging to the following location..."
 			self.logLocation = rospy.get_param('~logging_location')
@@ -123,36 +103,13 @@ class App(object):
 		rospy.Subscriber('/vigir_logging', OCSLogging, self.callback)
 		rospy.Subscriber('/vigir_logging_query', String, self.state)
 		self.pub = rospy.Publisher('/vigir_logging_responce', String, queue_size=1)
-		if self.onboard:
-			self.query = "onboard_"
-		else:
-			self.query = "ocs_"
+		self.query = "desktop_"
 		rospy.spin()
-		
-	def grabLogs(self, time):
-		print "Grabbing robot logs!!"
-		bashCommand = ["/bin/bash", "--norc", "-c"]
-		if(not(self.folder == '')):
-			if not os.path.exists(self.folder):
-				os.makedirs(self.folder)
-			bagCommand = "python atlas_log_downloader.py 192.168.130.103 /" + self.folder + ' ' + str(time)
-		else:
-			if not os.path.exists(self.logLocation + '/BDI_Logs'):
-				os.makedirs(self.logLocation + '/BDI_Logs')	
-			bagCommand = "python atlas_log_downloader.py 192.168.130.103 /" + self.logLocation + '/BDI_Logs ' + str(time)
-		print bagCommand
-		self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE, preexec_fn=os.setsid)
 		
 
 	def callback(self, data):
 		print "Recieved message!"
 		self.callback_data = data
-		#rospy.loginfo(rospy.get_caller_id() + "I heard %s", self.callback_data.message)
-		#print self.callback_data
-		if(data.bdiLogTime > 0):			
-			if(self.enableBDILogging):
-				self.grabLogs(data.bdiLogTime)
-			return
 		if(not data.no_bags and data.run and self.logging ):
 			self.killLogging('')
 			self.createExperiment(data.experiment_name, data.description)
