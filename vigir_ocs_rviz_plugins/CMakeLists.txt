@@ -25,6 +25,7 @@ catkin_package(
     vigir_ocs_rviz_plugin_selection_3d_display_custom
     vigir_ocs_rviz_plugin_bounding_object_display_custom
     vigir_ocs_rviz_plugin_mesh_display_custom
+    vigir_ocs_rviz_plugin_mesh_display_localized_images
     vigir_ocs_rviz_plugin_path_display_custom
     vigir_ocs_rviz_plugin_octomap_display_custom
     vigir_ocs_rviz_plugin_grasp_display_custom
@@ -44,6 +45,7 @@ catkin_package(
     vigir_ocs_rviz_plugin_selection_3d_tool_custom/src
     vigir_ocs_rviz_plugin_selection_3d_display_custom/src
     vigir_ocs_rviz_plugin_bounding_object_display_custom/src
+    vigir_ocs_rviz_plugin_mesh_display_localized_images/src
     vigir_ocs_rviz_plugin_mesh_display_custom/src
     vigir_ocs_rviz_plugin_path_display_custom/src
     vigir_ocs_rviz_plugin_octomap_display_custom/src
@@ -82,6 +84,7 @@ include_directories(
         vigir_ocs_rviz_plugin_selection_3d_display_custom/src
         vigir_ocs_rviz_plugin_bounding_object_display_custom/src
         vigir_ocs_rviz_plugin_mesh_display_custom/src
+        vigir_ocs_rviz_plugin_mesh_display_localized_images/src
         vigir_ocs_rviz_plugin_path_display_custom/src
         vigir_ocs_rviz_plugin_octomap_display_custom/src
         vigir_ocs_rviz_plugin_grasp_display_custom/src
@@ -108,6 +111,7 @@ add_subdirectory(vigir_ocs_rviz_plugin_selection_3d_tool_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_selection_3d_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_bounding_object_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_mesh_display_custom)
+add_subdirectory(vigir_ocs_rviz_plugin_mesh_display_localized_images)
 add_subdirectory(vigir_ocs_rviz_plugin_path_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_octomap_display_custom)
 add_subdirectory(vigir_ocs_rviz_plugin_grasp_display_custom)
@@ -129,6 +133,7 @@ install(FILES
   selection_3d_display_custom_plugin_description.xml
   bounding_object_display_custom_plugin_description.xml
   mesh_display_custom_plugin_description.xml
+  mesh_display_localized_images_plugin_description.xml
   path_display_custom_plugin_description.xml
   octomap_display_custom_plugin_description.xml
   grasp_display_custom_plugin_description.xml

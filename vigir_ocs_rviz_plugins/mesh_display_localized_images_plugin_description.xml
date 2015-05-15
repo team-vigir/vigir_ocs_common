@@ -1,0 +1,9 @@
+<library path="libvigir_ocs_rviz_plugin_mesh_display_localized_images">
+  <class name="rviz/MeshDisplayLocalizedImages"
+         type="rviz::MeshDisplayLocalizedImages"
+         base_class_type="rviz::Display">
+    <description>
+      Customized display plugin for meshes using localized images. It also supports overlay of camera images.
+    </description>
+  </class>
+</library>

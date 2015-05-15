@@ -1,5 +1,5 @@
 /*
- * MeshDisplayCustom class implementation.
+ * MeshDisplayLocalizedImages class implementation.
  *
  * Author: Felipe Bacim.
  *
@@ -59,11 +59,6 @@
 
 #include <image_transport/camera_common.h>
 
-#include <sensor_msgs/image_encodings.h>
-#include <cv_bridge/cv_bridge.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-
 #include "mesh_display_custom.h"
 
 namespace rviz
@@ -79,7 +74,7 @@ bool validateFloats(const sensor_msgs::CameraInfo& msg)
     return valid;
 }
 
-MeshDisplayCustom::MeshDisplayCustom()
+MeshDisplayLocalizedImages::MeshDisplayLocalizedImages()
     : ImageDisplayBase()
     , time_since_last_transform_( 0.0f )
     , mesh_node_(NULL)
@@ -88,36 +83,33 @@ MeshDisplayCustom::MeshDisplayCustom()
     , manual_object_(NULL)
     , initialized_(false)
 {
-    image_alpha_property_ = new FloatProperty( "Image Alpha", 1.0f,
-                                               "Amount of transparency for the mesh with image texture overlay.", this, SLOT( updateMeshProperties() ) );
+    color_property_ = new ColorProperty( "Color", QColor( 25, 255, 0 ),
+                                         "Color to draw the path.", this, SLOT( updateObjectProperties() ) );
+
+    alpha_property_ = new FloatProperty( "Alpha", 0.6f,
+                                         "Amount of transparency.", this, SLOT( updateObjectProperties() ) );
 
     mesh_topic_property_ = new RosTopicProperty( "Mesh Topic", "",
                                             QString::fromStdString( ros::message_traits::datatype<shape_msgs::Mesh>() ),
                                             "shape_msgs::Mesh topic to subscribe to.",
                                             this, SLOT( updateTopic() ));
 
-    mesh_alpha_property_ = new FloatProperty( "Mesh Alpha", 0.6f,
-                                              "Amount of transparency for the mesh.", this, SLOT( updateMeshProperties() ) );
-
-    mesh_color_property_ = new ColorProperty( "Mesh Color", QColor( 25, 255, 0 ),
-                                              "Color to mesh when not overlayed by image texture.", this, SLOT( updateMeshProperties() ) );
-
     // this shouldn't necessarily be here, and we should get this from a camera topic with camera info
     position_property_ = new VectorProperty( "Projector Position", Ogre::Vector3::ZERO,
                                              "position of the texture projector object in /world",
-                                             this, SLOT( updateMeshProperties() ) );
-    rotation_property_ = new QuaternionProperty("Projector Rotation", Ogre::Quaternion::IDENTITY,"rotation of the texture projector object",this,SLOT(updateMeshProperties()));
+                                             this, SLOT( updateObjectProperties() ) );
+    rotation_property_ = new QuaternionProperty("Projector Rotation", Ogre::Quaternion::IDENTITY,"rotation of the texture projector object",this,SLOT(updateObjectProperties()));
 
 }
 
-MeshDisplayCustom::~MeshDisplayCustom()
+MeshDisplayLocalizedImages::~MeshDisplayLocalizedImages()
 {
     unsubscribe();
     caminfo_tf_filter_->clear();
     delete caminfo_tf_filter_;
 }
 
-void MeshDisplayCustom::onInitialize()
+void MeshDisplayLocalizedImages::onInitialize()
 {
     ImageDisplayBase::onInitialize();
 
@@ -128,27 +120,25 @@ void MeshDisplayCustom::onInitialize()
     context_->getSceneManager()->addRenderQueueListener(this);
 
     caminfo_tf_filter_->connectInput(caminfo_sub_);
-    caminfo_tf_filter_->registerCallback(boost::bind(&MeshDisplayCustom::caminfoCallback, this, _1));
+    caminfo_tf_filter_->registerCallback(boost::bind(&MeshDisplayLocalizedImages::caminfoCallback, this, _1));
 }
 
-void MeshDisplayCustom::createProjector()
+void MeshDisplayLocalizedImages::createProjector()
 {
     decal_frustum_ = new Ogre::Frustum();
 
     projector_node_ = scene_manager_->getRootSceneNode()->createChildSceneNode();
     projector_node_->attachObject(decal_frustum_);
 
-    Ogre::SceneNode* filter_node;
+    filter_frustum_ = new Ogre::Frustum();
+    filter_frustum_->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
 
-    //back filter
-    filter_frustum_.push_back(new Ogre::Frustum());
-    filter_frustum_.back()->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
-    filter_node = projector_node_->createChildSceneNode();
-    filter_node->attachObject(filter_frustum_.back());
+    Ogre::SceneNode* filter_node = projector_node_->createChildSceneNode();
+    filter_node->attachObject(filter_frustum_);
     filter_node->setOrientation(Ogre::Quaternion(Ogre::Degree(90),Ogre::Vector3::UNIT_Y));
 }
 
-void MeshDisplayCustom::addDecalToMaterial(const Ogre::String& matName)
+void MeshDisplayLocalizedImages::addDecalToMaterial(const Ogre::String& matName)
 {
     Ogre::MaterialPtr mat = (Ogre::MaterialPtr)Ogre::MaterialManager::getSingleton().getByName(matName);
     mat->setCullingMode(Ogre::CULL_NONE);
@@ -176,16 +166,13 @@ void MeshDisplayCustom::addDecalToMaterial(const Ogre::String& matName)
     tex_state->setTextureAddressingMode(Ogre::TextureUnitState::TAM_CLAMP);
     tex_state->setTextureFiltering(Ogre::FO_POINT, Ogre::FO_LINEAR, Ogre::FO_NONE);
 
-    for(int i = 0; i < filter_frustum_.size(); i++)
-    {
-        tex_state = pass->createTextureUnitState("Decal_filter.png");
-        tex_state->setProjectiveTexturing(true, filter_frustum_[i]);
-        tex_state->setTextureAddressingMode(Ogre::TextureUnitState::TAM_CLAMP);
-        tex_state->setTextureFiltering(Ogre::TFO_NONE);
-    }
+    tex_state = pass->createTextureUnitState("Decal_filter.png");
+    tex_state->setProjectiveTexturing(true, filter_frustum_);
+    tex_state->setTextureAddressingMode(Ogre::TextureUnitState::TAM_CLAMP);
+    tex_state->setTextureFiltering(Ogre::TFO_NONE);
 }
 
-void MeshDisplayCustom::setPose()
+void MeshDisplayLocalizedImages::setPose()
 {
     if(projector_node_ == NULL)
         return;
@@ -199,10 +186,8 @@ void MeshDisplayCustom::setPose()
                                rotation_property_->getQuaternion().z);
 }
 
-void MeshDisplayCustom::updateMesh( const shape_msgs::Mesh::ConstPtr& mesh )
+void MeshDisplayLocalizedImages::updateMesh( const shape_msgs::Mesh::ConstPtr& mesh )
 {
-    boost::mutex::scoped_lock lock( mesh_mutex_ );
-
     // create our scenenode and material
     load();
 
@@ -219,37 +204,33 @@ void MeshDisplayCustom::updateMesh( const shape_msgs::Mesh::ConstPtr& mesh )
     }
 
     // If we have the same number of tris as previously, just update the object
-    if (last_mesh_.vertices.size() > 0 && mesh->vertices.size()*2 == last_mesh_.vertices.size())
+    if (last_mesh_.vertices.size() > 0 && mesh->vertices.size() == last_mesh_.vertices.size())
     {
         manual_object_->beginUpdate(0);
     }
     else // Otherwise clear it and begin anew
     {
         manual_object_->clear();
-        manual_object_->estimateVertexCount(mesh->vertices.size()*2);
+        manual_object_->estimateVertexCount(mesh->vertices.size());
         manual_object_->begin(mesh_material_->getName(), Ogre::RenderOperation::OT_TRIANGLE_LIST);
     }
 
     const std::vector<geometry_msgs::Point>& points = mesh->vertices;
     for(size_t i = 0; i < mesh->triangles.size(); i++)
     {
-        // make sure we have front-face/back-face triangles
-        for(int side = 0; side < 2; side++)
-        {
-            std::vector<Ogre::Vector3> corners(3);
-            for(size_t c = 0; c < 3; c++)
-            {
-                size_t corner = side ? 2-c : c; // order of corners if side == 1
-                corners[corner] = Ogre::Vector3(points[mesh->triangles[i].vertex_indices[corner]].x, points[mesh->triangles[i].vertex_indices[corner]].y, points[mesh->triangles[i].vertex_indices[corner]].z);
-            }
-            Ogre::Vector3 normal = (corners[1] - corners[0]).crossProduct(corners[2] - corners[0]);
-            normal.normalise();
 
-            for(size_t c = 0; c < 3; c++)
-            {
-                manual_object_->position(corners[c]);
-                manual_object_->normal(normal);
-            }
+        std::vector<Ogre::Vector3> corners(3);
+        for(size_t c = 0; c < 3; c++)
+        {
+            corners[c] = Ogre::Vector3(points[mesh->triangles[i].vertex_indices[c]].x, points[mesh->triangles[i].vertex_indices[c]].y, points[mesh->triangles[i].vertex_indices[c]].z);
+        }
+        Ogre::Vector3 normal = (corners[1] - corners[0]).crossProduct(corners[2] - corners[0]);
+        normal.normalise();
+
+        for(size_t c = 0; c < 3; c++)
+        {
+            manual_object_->position(corners[c]);
+            manual_object_->normal(normal);
         }
     }
 
@@ -260,7 +241,7 @@ void MeshDisplayCustom::updateMesh( const shape_msgs::Mesh::ConstPtr& mesh )
     last_mesh_ = *mesh;
 }
 
-void MeshDisplayCustom::updateMeshProperties()
+void MeshDisplayLocalizedImages::updateObjectProperties()
 {
     // update transformations
     setPose();
@@ -269,13 +250,13 @@ void MeshDisplayCustom::updateMeshProperties()
     Ogre::Technique* technique = mesh_material_->getTechnique(0);
     Ogre::Pass* pass = technique->getPass(0);
 
-    Ogre::ColourValue self_illumination_color(0.0f, 0.0f, 0.0f, mesh_alpha_property_->getFloat());
+    Ogre::ColourValue self_illumination_color(0.0f, 0.0f, 0.0f, alpha_property_->getFloat());
     pass->setSelfIllumination(self_illumination_color);
 
-    Ogre::ColourValue diffuse_color(mesh_color_property_->getColor().redF(), mesh_color_property_->getColor().greenF(), mesh_color_property_->getColor().blueF(), mesh_alpha_property_->getFloat());
+    Ogre::ColourValue diffuse_color(color_property_->getColor().redF(), color_property_->getColor().greenF(), color_property_->getColor().blueF(), alpha_property_->getFloat());
     pass->setDiffuse(diffuse_color);
 
-    Ogre::ColourValue ambient_color(mesh_color_property_->getColor().redF()/2.0f, mesh_color_property_->getColor().greenF()/2.0f, mesh_color_property_->getColor().blueF()/2.0f, mesh_alpha_property_->getFloat());
+    Ogre::ColourValue ambient_color(color_property_->getColor().redF()/2.0f, color_property_->getColor().greenF()/2.0f, color_property_->getColor().blueF()/2.0f, alpha_property_->getFloat());
     pass->setAmbient(ambient_color);
 
     Ogre::ColourValue specular_color(1.0f, 1.0f, 1.0f, 1.0f);
@@ -290,13 +271,13 @@ void MeshDisplayCustom::updateMeshProperties()
     context_->queueRender();
 }
 
-void MeshDisplayCustom::updateTopic()
+void MeshDisplayLocalizedImages::updateTopic()
 {
     unsubscribe();
     subscribe();
 }
 
-void MeshDisplayCustom::subscribe()
+void MeshDisplayLocalizedImages::subscribe()
 {
     if ( !isEnabled() )
     {
@@ -307,7 +288,7 @@ void MeshDisplayCustom::subscribe()
     {
         try
         {
-            pose_sub_ = nh_.subscribe( mesh_topic_property_->getTopicStd(), 1, &MeshDisplayCustom::updateMesh, this );
+            pose_sub_ = nh_.subscribe( mesh_topic_property_->getTopicStd(), 1, &MeshDisplayLocalizedImages::updateMesh, this );
             setStatus( StatusProperty::Ok, "Topic", "OK" );
         }
         catch( ros::Exception& e )
@@ -338,14 +319,14 @@ void MeshDisplayCustom::subscribe()
     }
 }
 
-void MeshDisplayCustom::unsubscribe()
+void MeshDisplayLocalizedImages::unsubscribe()
 {
     ImageDisplayBase::unsubscribe();
     caminfo_sub_.unsubscribe();
     pose_sub_.shutdown();
 }
 
-void MeshDisplayCustom::load()
+void MeshDisplayLocalizedImages::load()
 {
     if(mesh_node_ != NULL)
         return;
@@ -368,13 +349,13 @@ void MeshDisplayCustom::load()
         Ogre::Technique* technique = mesh_material_->getTechnique(0);
         Ogre::Pass* pass = technique->getPass(0);
 
-        Ogre::ColourValue self_illumnation_color(0.0f, 0.0f, 0.0f, mesh_alpha_property_->getFloat());
+        Ogre::ColourValue self_illumnation_color(0.0f, 0.0f, 0.0f, alpha_property_->getFloat());
         pass->setSelfIllumination(self_illumnation_color);
 
-        Ogre::ColourValue diffuse_color(mesh_color_property_->getColor().redF(), mesh_color_property_->getColor().greenF(), mesh_color_property_->getColor().blueF(), mesh_alpha_property_->getFloat());
+        Ogre::ColourValue diffuse_color(color_property_->getColor().redF(), color_property_->getColor().greenF(), color_property_->getColor().blueF(), alpha_property_->getFloat());
         pass->setDiffuse(diffuse_color);
 
-        Ogre::ColourValue ambient_color(mesh_color_property_->getColor().redF()/2.0f, mesh_color_property_->getColor().greenF()/2.0f, mesh_color_property_->getColor().blueF()/2.0f, mesh_alpha_property_->getFloat());
+        Ogre::ColourValue ambient_color(color_property_->getColor().redF()/2.0f, color_property_->getColor().greenF()/2.0f, color_property_->getColor().blueF()/2.0f, alpha_property_->getFloat());
         pass->setAmbient(ambient_color);
 
         Ogre::ColourValue specular_color(1.0f, 1.0f, 1.0f, 1.0f);
@@ -384,24 +365,29 @@ void MeshDisplayCustom::load()
         pass->setShininess(shininess);
 
         pass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+        pass->setDepthWriteEnabled(false);
 
         mesh_material_->setCullingMode(Ogre::CULL_NONE);
     }
 
     mesh_node_ = this->scene_node_->createChildSceneNode();
+
+    createProjector();
+
+    addDecalToMaterial(material_name);
 }
 
-void MeshDisplayCustom::onEnable()
+void MeshDisplayLocalizedImages::onEnable()
 {
     subscribe();
 }
 
-void MeshDisplayCustom::onDisable()
+void MeshDisplayLocalizedImages::onDisable()
 {
     unsubscribe();
 }
 
-void MeshDisplayCustom::update( float wall_dt, float ros_dt )
+void MeshDisplayLocalizedImages::update( float wall_dt, float ros_dt )
 {
     time_since_last_transform_ += wall_dt;
 
@@ -443,7 +429,7 @@ void MeshDisplayCustom::update( float wall_dt, float ros_dt )
     }
 }
 
-bool MeshDisplayCustom::updateCamera(bool update_image)
+bool MeshDisplayLocalizedImages::updateCamera(bool update_image)
 {
     if(update_image)
     {
@@ -463,8 +449,6 @@ bool MeshDisplayCustom::updateCamera(bool update_image)
         return false;
     }
 
-    boost::mutex::scoped_lock lock( mesh_mutex_ );
-
     Ogre::Vector3 position;
     Ogre::Quaternion orientation;
 
@@ -476,35 +460,29 @@ bool MeshDisplayCustom::updateCamera(bool update_image)
     //std::cout << "CameraInfo dimensions: " << last_info_->width << " x " << last_info_->height << std::endl;
     //std::cout << "Texture dimensions: " << last_image_->width << " x " << last_image_->height << std::endl;
     //std::cout << "Original image dimensions: " << last_image_->width*full_image_binning_ << " x " << last_image_->height*full_image_binning_ << std::endl;
-
-
     float img_width  = last_info_->width;//image->width*full_image_binning_;
     float img_height = last_info_->height;//image->height*full_image_binning_;
 
-    // If the image width/height is 0 due to a malformed caminfo, try to grab the width from the image.
-    if( img_width <= 0 )
+    // If the image width is 0 due to a malformed caminfo, try to grab the width from the image.
+    if( img_width == 0 )
     {
       ROS_ERROR( "Malformed CameraInfo on camera [%s], width = 0", qPrintable( getName() ));
-      // use texture size, but have to remove border from the perspective calculations
-      img_width = texture_.getWidth()-2;
+      img_width = texture_.getWidth();
     }
 
-    if (img_height <= 0)
+    if (img_height == 0)
     {
-        ROS_ERROR( "Malformed CameraInfo on camera [%s], height = 0", qPrintable( getName() ));
-        // use texture size, but have to remove border from the perspective calculations
-        img_height = texture_.getHeight()-2;
+      ROS_ERROR( "Malformed CameraInfo on camera [%s], height = 0", qPrintable( getName() ));
+      img_height = texture_.getHeight();
     }
 
-    // if even the texture has 0 size, return
-    if( img_height <= 0.0 || img_width <= 0.0 )
+    if( img_height == 0.0 || img_width == 0.0 )
     {
-        setStatus( StatusProperty::Error, "Camera Info",
-                 "Could not determine width/height of image due to malformed CameraInfo (either width or height is 0) and texture." );
-        return false;
+      setStatus( StatusProperty::Error, "Camera Info",
+                 "Could not determine width/height of image due to malformed CameraInfo (either width or height is 0)" );
+      return false;
     }
 
-    // calculate projection matrix
     if(last_info_->P[0] != 0)
     {
         double fx = last_info_->P[0];
@@ -553,9 +531,6 @@ bool MeshDisplayCustom::updateCamera(bool update_image)
 
         proj_matrix[3][2]= -1;
 
-        hfov_ = atan( 1.0f / proj_matrix[0][0] ) * 2.0f * 57.2957795f;
-        vfov_ = atan( 1.0f / proj_matrix[1][1] ) * 2.0f * 57.2957795f;
-
         if(decal_frustum_ != NULL)
             decal_frustum_->setCustomProjectionMatrix(true, proj_matrix);
 
@@ -566,17 +541,10 @@ bool MeshDisplayCustom::updateCamera(bool update_image)
     setStatus( StatusProperty::Ok, "Time", "ok" );
     setStatus( StatusProperty::Ok, "Camera Info", "ok" );
 
-    if(mesh_node_ != NULL && filter_frustum_.size() == 0)
-    {
-        createProjector();
-
-        addDecalToMaterial(mesh_material_->getName());
-    }
-
     return true;
 }
 
-void MeshDisplayCustom::clear()
+void MeshDisplayLocalizedImages::clear()
 {
     texture_.clear();
     context_->queueRender();
@@ -587,48 +555,20 @@ void MeshDisplayCustom::clear()
     setStatus( StatusProperty::Warn, "Image", "No Image received");
 }
 
-void MeshDisplayCustom::reset()
+void MeshDisplayLocalizedImages::reset()
 {
     ImageDisplayBase::reset();
     clear();
 }
 
 /* This is called by incomingMessage(). */
-void MeshDisplayCustom::processMessage(const sensor_msgs::Image::ConstPtr& msg)
+void MeshDisplayLocalizedImages::processMessage(const sensor_msgs::Image::ConstPtr& msg)
 {
     //std::cout<<"camera image received"<<std::endl;
-    cv_bridge::CvImagePtr cv_ptr;
-
-    // simply converting every image to RGBA
-    try
-    {
-        cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::RGBA8);
-    }
-    catch (cv_bridge::Exception& e)
-    {
-        ROS_ERROR("MeshDisplayCustom: cv_bridge exception: %s", e.what());
-        return;
-    }
-
-    // update image alpha
-    for(int i = 0; i < cv_ptr->image.rows; i++)
-    {
-        for(int j = 0; j < cv_ptr->image.cols; j++)
-        {
-            cv::Vec4b& pixel = cv_ptr->image.at<cv::Vec4b>(i,j);
-            pixel[3] = image_alpha_property_->getFloat()*255;
-        }
-    }
-
-    // add completely white transparent border to the image so that it won't replicate colored pixels all over the mesh
-    cv::Scalar value(255,255,255,0);
-    cv::copyMakeBorder(cv_ptr->image,cv_ptr->image,1,1,1,1,cv::BORDER_CONSTANT,value);
-
-    // Output modified video stream
-    texture_.addMessage(cv_ptr->toImageMsg());
+    texture_.addMessage(msg);
 }
 
-void MeshDisplayCustom::caminfoCallback( const sensor_msgs::CameraInfo::ConstPtr& msg )
+void MeshDisplayLocalizedImages::caminfoCallback( const sensor_msgs::CameraInfo::ConstPtr& msg )
 {
     //std::cout<<"camera info received"<<std::endl;
     boost::mutex::scoped_lock lock( caminfo_mutex_ );
@@ -636,14 +576,14 @@ void MeshDisplayCustom::caminfoCallback( const sensor_msgs::CameraInfo::ConstPtr
 }
 
 
-void MeshDisplayCustom::updateQueueSize()
+void MeshDisplayLocalizedImages::updateQueueSize()
 {
     caminfo_tf_filter_->setQueueSize( (uint32_t) queue_size_property_->getInt() );
     ImageDisplayBase::updateQueueSize();
 }
 
 
-void MeshDisplayCustom::fixedFrameChanged()
+void MeshDisplayLocalizedImages::fixedFrameChanged()
 {
     std::string targetFrame = fixed_frame_.toStdString();
     caminfo_tf_filter_->setTargetFrame(targetFrame);
