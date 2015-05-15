@@ -488,8 +488,10 @@ protected:
     rviz::Display* octomap_;
     rviz::Display* grid_;
     rviz::Display* laser_scan_;
-    rviz::Display* region_point_cloud_viewer_;
+    rviz::Display* lidar_point_cloud_viewer_;
     rviz::Display* stereo_point_cloud_viewer_;
+    rviz::Display* lidar_mesh_viewer_;
+    rviz::Display* stereo_mesh_viewer_;
     rviz::Display* selection_3d_display_;
     rviz::Display * notification_overlay_display_;    
     rviz::Display* template_display_;
@@ -593,7 +595,7 @@ protected:
     QPushButton* reset_view_button_;
     QPushButton* stop_button_;
 
-    QBasicTimer timer;
+    QBasicTimer timer_;
     int ghost_opacity_update_counter_;
     int ghost_opacity_update_frequency_;
     bool ghost_opacity_update_;
@@ -789,6 +791,9 @@ protected:
     ros::Publisher r_arm_marker_pose_pub_;
     ros::Publisher pelvis_marker_pose_pub_;
 
+    flor_ocs_msgs::OCSInteractiveMarkerUpdate l_arm_marker_update;
+    flor_ocs_msgs::OCSInteractiveMarkerUpdate r_arm_marker_update;
+
     int marker_published_;
 
     bool moving_pelvis_;
@@ -884,7 +889,7 @@ protected:
     /**
       * published the pose of the IM of the ghost robot
       */
-    void publishGhostPoses();
+    void publishGhostPoses(bool local_feedback = false);
 
     /**
       * Sets end effector pose

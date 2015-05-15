@@ -316,7 +316,7 @@ void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUp
 
     template_node_list_[id]->setOrientation(quat);*/
 
-    publishTemplateUpdate(pose->template_id,pose->pose, pose->event_type); //add event type
+    //publishTemplateUpdate(pose->template_id,pose->pose, pose->event_type); //add event type
 
     context_->queueRender();
 }
@@ -414,16 +414,16 @@ void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char i
 
 void TemplateDisplayCustom::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
 {
-    std::string topic_name = msg->topic;
-    for(int i = 0; i < template_pose_pub_list_.size(); i++)
+    if(msg->client_id == ros::this_node::getName())
     {
-        if(template_pose_pub_list_[i].getTopic() == topic_name)
+        std::string topic_name = msg->topic;
+        for(int i = 0; i < template_pose_pub_list_.size(); i++)
         {
-            flor_ocs_msgs::OCSTemplateUpdate out;
-            out.pose = msg->pose;
-            out.event_type = msg->event_type;
-            out.template_id = atoi(topic_name.erase(topic_name.find("_marker"),topic_name.size()).erase(0,std::string("/template_").size()).c_str());
-            template_pose_pub_list_[i].publish(out);
+            if(template_pose_pub_list_[i].getTopic() == topic_name)
+            {
+                publishTemplateUpdate(atoi(topic_name.erase(topic_name.find("_marker"),topic_name.size()).erase(0,std::string("/template_").size()).c_str()),msg->pose, msg->event_type);
+                break;
+            }
         }
     }
 }
@@ -463,6 +463,7 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
             template_node_list_[i]->setOrientation(quat);
             //template_marker_list_[i]->setPose(pose);
             flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+            cmd.client_id = ros::this_node::getName();
             cmd.topic = template_pose_pub_list_[i].getTopic();
             cmd.pose = pose;
             interactive_marker_update_pub_.publish(cmd);

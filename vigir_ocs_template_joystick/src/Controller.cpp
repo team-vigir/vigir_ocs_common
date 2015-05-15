@@ -497,6 +497,7 @@ namespace vigir_ocs
         {
             //ROS_INFO("sending robot arm data");
             flor_ocs_msgs::OCSInteractiveMarkerUpdate msg;
+            msg.client_id = ros::this_node::getName();
             msg.topic = "/l_arm_pose_marker";
             msg.pose.header.frame_id = "/world";
             msg.pose.pose.orientation.x = rotation->x();

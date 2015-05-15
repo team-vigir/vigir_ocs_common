@@ -44,6 +44,7 @@ CameraView::CameraView( QWidget* parent, Base3DView* copy_from )
     , selection_made_(false)
     , initialized_(false)
     , selection_tool_enabled_( true )
+    , current_pitch_(0)
 {
     this->setMouseTracking(true);
 
@@ -112,9 +113,13 @@ CameraView::CameraView( QWidget* parent, Base3DView* copy_from )
 
     Q_EMIT unHighlight();
 
+    if(!nh_.getParam("pitch_joint", joint_name_))
+    {
+        joint_name_ = "neck_ry";
+    }
     // and advertise the head pitch update function
     //head_pitch_update_pub_ = nh_.advertise<std_msgs::Float64>( "/atlas/pos_cmd/neck_ry", 1, false );
-    head_pitch_update_traj_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory > ("/flor/neck_controller/trajectory",1,false);
+    head_pitch_update_traj_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory > ("/trajectory_controllers/neck_traj_controller/command",1,false);
 
     rviz::EmptyViewController* camera_controller = new rviz::EmptyViewController();
     camera_controller->initialize( render_panel_->getManager() );
@@ -238,25 +243,25 @@ int CameraView::getDefaultCamera()
 
 void CameraView::setCurrentCameraPitch( int degrees )
 {
-    m_current_pitch = degrees;
+    current_pitch_ = degrees;
 }
 
 void CameraView::setCameraPitch( int degrees )
 {
 	trajectory_msgs::JointTrajectory trajectory;
 
-    trajectory.joint_names.push_back("neck_ry");
+    trajectory.joint_names.push_back(joint_name_);
 
 	trajectory.header.stamp = ros::Time::now();
 
 	trajectory.points.push_back( trajectory_msgs::JointTrajectoryPoint() );
 	trajectory.points.push_back( trajectory_msgs::JointTrajectoryPoint() );
 
-	trajectory.points[0].positions.push_back( ((double)m_current_pitch)*0.0174532925 ); // current
+    trajectory.points[0].positions.push_back( ((double)current_pitch_)*0.0174532925 ); // current
 	trajectory.points[1].positions.push_back( ((double)degrees)*0.0174532925); // next
 
-	trajectory.points[0].time_from_start = ros::Duration(0.0); 
-    trajectory.points[1].time_from_start = ros::Duration(0.25+fabs(((double)m_current_pitch)-((double)degrees))/(65.0+40.0)*1.5); //range from 0-> 3
+	trajectory.points[0].time_from_start = ros::Duration(0.0);
+    trajectory.points[1].time_from_start = ros::Duration(0.25+fabs(((double)current_pitch_)-((double)degrees))/(65.0+40.0)*1.5); //range from 0-> 3
 
 	head_pitch_update_traj_pub_.publish( trajectory );
 }

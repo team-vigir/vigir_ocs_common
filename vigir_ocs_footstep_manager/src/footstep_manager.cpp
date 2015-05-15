@@ -17,7 +17,7 @@ namespace ocs_footstep
 void FootstepManager::onInit()
 {
     ros::NodeHandle& nh         = getNodeHandle();
-
+    
     foot_pose_transformer_.reset(new vigir_footstep_planning::FootPoseTransformer(nh));
 
     // TODO: Get them from footstep planner
@@ -83,10 +83,9 @@ void FootstepManager::onInit()
     //update step plan
     update_step_plan_client_ = new UpdateStepPlanClient("update_step_plan", true);
     //get all parameter sets
-    get_all_parameter_sets_client_ = new GetAllParameterSetsClient("get_all_parameter_sets", true);
+    get_all_parameter_sets_client_ = new GetAllParameterSetsClient("params/get_all_parameter_sets", true);
     //execute step plan
     execute_step_plan_client_ = new ExecuteStepPlanClient("execute_step_plan", true);
-
     //wait for servers to come online
     while(!update_feet_client_->waitForServer(ros::Duration(5.0)))
     {
@@ -868,7 +867,7 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     foot_pose_transformer_->transformToRobotFrame(goal);
 
     request.header.frame_id = "/world";
-    request.header.stamp = ros::Time::now();
+    request.header.stamp = goal.header.stamp;
 
     request.start = start;
     request.goal = goal;
@@ -897,7 +896,7 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     // and send it to the server
     if(step_plan_request_client_->isServerConnected())
     {
-        ROS_INFO("StepPlanRequest: Sending action goal...");
+        ROS_INFO("StepPlanRequest: Sending action goal (%f)...",action_goal.plan_request.header.stamp.toSec());
         step_plan_request_client_->sendGoal(action_goal,
                                             boost::bind(&FootstepManager::doneStepPlanRequest, this, _1, _2),
                                             boost::bind(&FootstepManager::activeStepPlanRequest, this),
