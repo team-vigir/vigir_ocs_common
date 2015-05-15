@@ -25,6 +25,7 @@
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/GetInstantiatedGraspInfo.h>
 #include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
+#include <vigir_object_template_msgs/GetUsabilityInWristFrame.h>
 #include <vigir_object_template_msgs/Affordance.h>
 #include <vigir_object_template_msgs/Usability.h>
 
@@ -110,6 +111,9 @@ namespace ocs_template
         bool detachObjectTemplateSrv(vigir_object_template_msgs::SetAttachedObjectTemplate::Request& req,
                                      vigir_object_template_msgs::SetAttachedObjectTemplate::Response& res);
 
+        bool usabilityPoseSrv(vigir_object_template_msgs::GetUsabilityInWristFrame::Request& req,
+                              vigir_object_template_msgs::GetUsabilityInWristFrame::Response& res);
+
         //Planning Scene
         void addCollisionObject(int type, int index, std::string mesh_name, geometry_msgs::Pose pose);
         void moveCollisionObject(int template_id, geometry_msgs::Pose pose);
@@ -142,6 +146,7 @@ namespace ocs_template
         ros::ServiceServer inst_grasp_info_server_;
         ros::ServiceServer stitch_object_server_;
         ros::ServiceServer detach_object_server_;
+        ros::ServiceServer usability_pose_server_;
 
         ros::Timer image_publish_timer_;
 
