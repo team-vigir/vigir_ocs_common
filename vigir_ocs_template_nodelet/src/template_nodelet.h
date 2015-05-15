@@ -176,8 +176,8 @@ namespace ocs_template
         //Server mode parameter
         bool master_mode_;
 
-        tf::Transform                              gp_T_lhand_;
-        tf::Transform                              gp_T_rhand_;
+        tf::Transform                              palm_T_lhand_;
+        tf::Transform                              palm_T_rhand_;
         std::map<unsigned int,VigirObjectTemplate> object_template_map_;
 
         robot_model_loader::RobotModelLoaderPtr    robot_model_loader_;
