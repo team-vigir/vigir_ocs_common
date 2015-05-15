@@ -69,6 +69,7 @@ namespace ocs_footstep
         void processSetStartIndex(const std_msgs::Int32::ConstPtr& msg);
         void processValidatePlanRequest(const std_msgs::Int8::ConstPtr& msg);
         void processExecuteFootstepRequest(const std_msgs::Int8::ConstPtr& msg);
+        void processSendOCSStepPlanRequest(const std_msgs::Int8::ConstPtr& msg);
         void processStitchPlansRequest(const std_msgs::Int8::ConstPtr& msg);
         void processFootstepParamSetSelected(const std_msgs::String::ConstPtr& msg);
 
@@ -131,6 +132,12 @@ namespace ocs_footstep
         void sendExecuteStepPlanGoal();
         void sendGetAllParameterSetsGoal();
 
+        // OBFSM
+        void sendEditedSteps();
+        void sendCurrentStepPlan();
+        void sendStepPlanGoal();
+        void sendStepPlanGoalFeet();
+
         // sync status with onboard manager
         void publishSyncStatus();
 
@@ -188,6 +195,7 @@ namespace ocs_footstep
         ros::Publisher footstep_has_redo_pub_;
         ros::Subscriber footstep_start_index_pub_;
         ros::Subscriber footstep_execute_req_sub_;
+        ros::Subscriber footstep_send_ocs_plan_req_sub_;
         ros::Subscriber footstep_stitch_req_sub_;
         ros::Publisher footstep_plan_parameters_pub_;
         ros::Subscriber footstep_plan_parameters_sub_;

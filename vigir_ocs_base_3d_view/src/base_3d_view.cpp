@@ -230,6 +230,17 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         lidar_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
         lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
+        // Create the mesh displays
+        stereo_mesh_viewer_ = manager_->createDisplay( "rviz/MeshDisplayCustom", "Stereo Mesh", true );
+        ROS_ASSERT( stereo_mesh_viewer_ != NULL );
+        stereo_mesh_viewer_->subProp( "Image Topic" )->setValue( "/flor/ocs/mesh/camera" );
+        stereo_mesh_viewer_->subProp( "Mesh Topic" )->setValue( "/flor/ocs/mesh/stereo_mesh" );
+
+        lidar_mesh_viewer_ = manager_->createDisplay( "rviz/MeshDisplayCustom", "LIDAR Mesh", true );
+        ROS_ASSERT( lidar_mesh_viewer_ != NULL );
+        lidar_mesh_viewer_->subProp( "Image Topic" )->setValue( "/flor/ocs/mesh/camera" );
+        lidar_mesh_viewer_->subProp( "Mesh Topic" )->setValue( "/flor/ocs/mesh/lidar_mesh" );
+
         // point cloud request
         raycast_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Raycast Point Cloud", true );
         ROS_ASSERT( raycast_point_cloud_viewer_ != NULL );
@@ -242,14 +253,17 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // Create a template display to display all templates listed by the template nodelet
         template_display_ = manager_->createDisplay( "rviz/TemplateDisplayCustom", "Template Display", true );
+        ROS_ASSERT( template_display_ != NULL );
         ((rviz::TemplateDisplayCustom*)template_display_)->setVisualizationManager(manager_);
 
         // Create a display for waypoints
         waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
+        ROS_ASSERT( waypoints_display_ != NULL );
         waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/list" );
 
         // Create another display for waypoints, this time the ones that have already been achieved
         achieved_waypoints_display_ = manager_->createDisplay( "rviz/PathDisplayCustom", "Path Display", true );
+        ROS_ASSERT( achieved_waypoints_display_ != NULL );
         achieved_waypoints_display_->subProp( "Topic" )->setValue( "/waypoint/achieved_list" );
         achieved_waypoints_display_->subProp( "Color" )->setValue( QColor( 150, 150, 255 ) );
 
@@ -270,12 +284,14 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // F/T sensor displays
         left_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Left F/T sensor", false);
+        ROS_ASSERT( left_ft_sensor_ != NULL );
         left_ft_sensor_->subProp("Topic")->setValue("/flor/l_hand/force_torque_sensor");
         left_ft_sensor_->subProp("Alpha")->setValue(0.5);
         left_ft_sensor_->subProp("Arrow Scale")->setValue(0.01);
         left_ft_sensor_->subProp("Arrow Width")->setValue(0.3);
 
         right_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Right F/T sensor", false);
+        ROS_ASSERT( right_ft_sensor_ != NULL );
         right_ft_sensor_->subProp("Topic")->setValue("/flor/r_hand/force_torque_sensor");
         right_ft_sensor_->subProp("Alpha")->setValue(0.5);
         right_ft_sensor_->subProp("Arrow Scale")->setValue(0.01);
@@ -283,12 +299,14 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // create the grasp hands displays (blue/yellow hands)
         left_grasp_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left grasp hand model", true );
+        ROS_ASSERT( left_grasp_hand_model_ != NULL );
         left_grasp_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
         left_grasp_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_left_hand" );
         left_grasp_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
         left_grasp_hand_model_->subProp( "Robot Alpha" )->setValue( 0.5f );
 
         right_grasp_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot right grasp hand model", true );
+        ROS_ASSERT( right_grasp_hand_model_ != NULL );
         right_grasp_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
         right_grasp_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/template_right_hand" );
         right_grasp_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
@@ -296,6 +314,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // create the hands displays (iron man hands)
         left_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot left hand model", true );
+        ROS_ASSERT( left_hand_model_ != NULL );
         left_hand_model_->subProp( "Robot Description" )->setValue( "left_hand_robot_description" );
         left_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/marker_left_hand" );
         left_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
@@ -372,6 +391,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         left_hand_virtual_link_joint_states_.position.resize(7);
 
         right_hand_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot right hand model", true );
+        ROS_ASSERT( right_hand_model_ != NULL );
         right_hand_model_->subProp( "Robot Description" )->setValue( "right_hand_robot_description" );
         right_hand_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/marker_right_hand" );
         right_hand_model_->subProp( "Robot Root Link" )->setValue( "base" );
@@ -432,24 +452,28 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // create the simulation robot display
         ghost_robot_model_ = manager_->createDisplay( "moveit_rviz_plugin/RobotState", "Robot simulation model", false );
+        ROS_ASSERT( ghost_robot_model_ != NULL );
         ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
         ghost_robot_model_->subProp( "Robot Alpha" )->setValue( 0.0f );
         ghost_robot_model_->setEnabled(false);
 
         // Add custom interactive markers to control ghost robot
         rviz::Display* im_left_arm = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - left arm", false );
+        ROS_ASSERT( im_left_arm != NULL );
         im_left_arm->subProp( "Update Topic" )->setValue( "/l_arm_pose_marker/pose_marker/update" );
         im_left_arm->subProp( "Show Axes" )->setValue( true );
         im_left_arm->subProp( "Show Visual Aids" )->setValue( true );
         //im_left_arm->setEnabled(true);
         im_ghost_robot_.push_back(im_left_arm);
         rviz::Display* im_right_arm = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - right arm", false );
+        ROS_ASSERT( im_right_arm != NULL );
         im_right_arm->subProp( "Update Topic" )->setValue( "/r_arm_pose_marker/pose_marker/update" );
         im_right_arm->subProp( "Show Axes" )->setValue( true );
         im_right_arm->subProp( "Show Visual Aids" )->setValue( true );
         //im_right_arm->setEnabled(true);
         im_ghost_robot_.push_back(im_right_arm);
         rviz::Display* im_pelvis = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - pelvis", false );
+        ROS_ASSERT( im_pelvis != NULL );
         im_pelvis->subProp( "Update Topic" )->setValue( "/pelvis_pose_marker/pose_marker/update" );
         im_pelvis->subProp( "Show Axes" )->setValue( true );
         im_pelvis->subProp( "Show Visual Aids" )->setValue( true );
@@ -518,6 +542,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // Create a RobotModel display.
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
+        ROS_ASSERT( robot_model_ != NULL );
         robot_model_->subProp( "Color" )->setValue( QColor( 200, 200, 200 ) );
         robot_model_->subProp( "Alpha" )->setValue( 1.0f );
 
@@ -537,6 +562,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // Create a display for 3D selection
         selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
+        ROS_ASSERT( selection_3d_display_ != NULL );
         //}
 
         // and advertise the template remove option
@@ -557,14 +583,17 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // add bounding boxes for the left/right/pelvis markers
         rviz::Display* left_hand_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for left hand", true );
+        ROS_ASSERT( left_hand_bounding_box_ != NULL );
         left_hand_bounding_box_->subProp( "Name" )->setValue( "LeftArm" );
         left_hand_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/l_arm_marker_pose" );
         left_hand_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
         rviz::Display* right_hand_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for right hand", true );
+        ROS_ASSERT( right_hand_bounding_box_ != NULL );
         right_hand_bounding_box_->subProp( "Name" )->setValue( "RightArm" );
         right_hand_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/r_arm_marker_pose" );
         right_hand_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
         rviz::Display* pelvis_bounding_box_ = manager_->createDisplay( "rviz/BoundingObjectDisplayCustom", "BoundingObject for pelvis", true );
+        ROS_ASSERT( pelvis_bounding_box_ != NULL );
         pelvis_bounding_box_->subProp( "Name" )->setValue( "Pelvis" );
         pelvis_bounding_box_->subProp( "Pose Topic" )->setValue( "/flor/ghost/pelvis_marker_pose" );
         pelvis_bounding_box_->subProp( "Alpha" )->setValue( 0.0f );
@@ -673,12 +702,14 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         //create joint position error displays
         joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
+        ROS_ASSERT( joint_arrows_ != NULL );
         joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
         joint_arrows_->subProp("Width")->setValue("0.015");
         joint_arrows_->subProp("Scale")->setValue("1.2");        
         joint_arrows_->subProp("isGhost")->setValue(false);
 
         ghost_joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Ghost Joint Position Markers", false );
+        ROS_ASSERT( ghost_joint_arrows_ != NULL );
         ghost_joint_arrows_->subProp("Topic")->setValue("/flor/ghost/get_joint_states");
         ghost_joint_arrows_->subProp("Width")->setValue("0.015");
         ghost_joint_arrows_->subProp("Scale")->setValue("1.2");
@@ -702,12 +733,14 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         //left eye test, need to load topics on launch
         frustum_display_ = manager_->createDisplay("rviz/CameraFrustumDisplayCustom","Frustum Display", true);
+        ROS_ASSERT( frustum_display_ != NULL );
         frustum_display_->subProp("Topic")->setValue("/multisense_sl/left/camera_info");
         frustum_display_->subProp("alpha")->setValue("0.05");
         frustum_display_->setEnabled(false);
 
 		// initialize notification systems
         notification_overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Notification System", true );
+        ROS_ASSERT( notification_overlay_display_ != NULL );
         notification_overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
 
         //ghost_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/robot_state_vis",1, true);

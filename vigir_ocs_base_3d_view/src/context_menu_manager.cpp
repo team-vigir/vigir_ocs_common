@@ -159,6 +159,15 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
         setItemEnabled("Validate Step Plan",true);
     }
 
+    if(base_3d_view_->getFootstepVisManager()->numStepPlans() != 1)
+    {
+        setItemEnabled("Send Current Step Plan",false);
+    }
+    else
+    {
+        setItemEnabled("Send Current Step Plan",true);
+    }
+
     //cannot execute without footstep plan
     if(!base_3d_view_->getFootstepVisManager()->hasValidStepPlan())
     {

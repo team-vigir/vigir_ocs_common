@@ -87,6 +87,10 @@ void BaseContextMenu::createContextMenuItems()
     context_menu_manager_->addActionItem("Redo Step Change",boost::bind(&FootstepVisManager::requestFootstepListRedo,footstep_vis_manager_),NULL);
 
     context_menu_manager_->addSeparatorItem();
+    // make it separate to avoid accidental clicks?
+    context_menu_manager_->addActionItem("Send Current Step Plan",boost::bind(&FootstepVisManager::requestSendOCSStepPlan,footstep_vis_manager_),NULL);
+
+    context_menu_manager_->addSeparatorItem();
 
     insertTemplateMenu_ = context_menu_manager_->addMenuItem("Insert Template");
     context_menu_manager_->addActionItem("Remove Template",boost::bind(&BaseContextMenu::removeTemplateContextMenu,this),NULL);
