@@ -296,9 +296,9 @@ void FootstepManager::processValidatePlanRequest(const std_msgs::Int8::ConstPtr&
 
                     flor_ocs_msgs::OCSFootstepUpdate cmd;
                     cmd.footstep_id = *it;
+                    cmd.pose.pose = step_copy.foot.pose;
                     cmd.pose.header.stamp = last_validated_step_plan_stamp_;
                     cmd.pose.header.frame_id = "/world";
-                    cmd.pose.pose = step_copy.foot.pose;
                     obfsm_step_update_pub_.publish(cmd);
                 }
             }
@@ -327,15 +327,15 @@ void FootstepManager::processValidatePlanRequest(const std_msgs::Int8::ConstPtr&
         foot_pose_transformer_->transformToRobotFrame(goal_copy);
 
         flor_ocs_msgs::OCSFootstepPlanGoalUpdate cmd;
-        cmd.goal_pose.header.stamp = last_validated_step_plan_stamp_;
-        cmd.goal_pose.header.frame_id = "/world";
         cmd.goal_pose = goal_pose_;
+        cmd.goal_pose.header.frame_id = "/world";
+        cmd.goal_pose.header.stamp = last_validated_step_plan_stamp_;
+        cmd.left_foot.pose = goal_copy.left.pose;
         cmd.left_foot.header.frame_id = "/world";
         cmd.left_foot.header.stamp = last_validated_step_plan_stamp_;
-        cmd.left_foot.pose = goal_copy.left.pose;
+        cmd.right_foot.pose = goal_copy.right.pose;
         cmd.right_foot.header.frame_id = "/world";
         cmd.right_foot.header.stamp = last_validated_step_plan_stamp_;
-        cmd.right_foot.pose = goal_copy.right.pose;
         obfsm_update_step_plan_goal_pub_.publish(cmd);
 
     }
@@ -347,9 +347,9 @@ void FootstepManager::processValidatePlanRequest(const std_msgs::Int8::ConstPtr&
         last_validated_step_plan_stamp_ = ros::Time::now();
 
         flor_ocs_msgs::OCSFootstepPlanGoal cmd;
+        cmd.goal_pose = goal_pose_;
         cmd.goal_pose.header.frame_id = "/world";
         cmd.goal_pose.header.stamp = last_validated_step_plan_stamp_;
-        cmd.goal_pose = goal_pose_;
         obfsm_plan_goal_pub_.publish(cmd);
     }
 
