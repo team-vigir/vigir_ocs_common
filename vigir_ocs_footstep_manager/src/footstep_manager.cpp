@@ -274,6 +274,8 @@ void FootstepManager::processValidatePlanRequest(const std_msgs::Int8::ConstPtr&
 {
     boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
 
+    // ONBOARDFOOTSTEPMANAGER EXPECTS EVERYTHING TO BE IN ROBOT FRAME
+
     // if the plan we're editing is an onboard plan and we have edited steps for that plan, send the step
     if(updated_steps_.find(getStepPlan().header.stamp) != updated_steps_.end())
     {
@@ -289,10 +291,14 @@ void FootstepManager::processValidatePlanRequest(const std_msgs::Int8::ConstPtr&
                 unsigned int step_plan_index;
                 if(findStep(*it, step, step_plan_index))
                 {
+                    vigir_footstep_planning_msgs::Step step_copy = step;
+                    foot_pose_transformer_->transformToRobotFrame(step_copy);
+
                     flor_ocs_msgs::OCSFootstepUpdate cmd;
                     cmd.footstep_id = *it;
                     cmd.pose.header.stamp = last_validated_step_plan_stamp_;
-                    cmd.pose.pose = step.foot.pose;
+                    cmd.pose.header.frame_id = "/world";
+                    cmd.pose.pose = step_copy.foot.pose;
                     obfsm_step_update_pub_.publish(cmd);
                 }
             }
@@ -300,7 +306,11 @@ void FootstepManager::processValidatePlanRequest(const std_msgs::Int8::ConstPtr&
         // if not and we have edited steps, we have to send the entire plan
         else
         {
-            obfsm_updated_step_plan_pub_.publish(getStepPlan());
+            vigir_footstep_planning_msgs::StepPlan step_plan_copy = getStepPlan();
+            foot_pose_transformer_->transformToRobotFrame(step_plan_copy);
+            step_plan_copy.header.frame_id = "/world";
+
+            obfsm_updated_step_plan_pub_.publish(step_plan_copy);
         }
 
         // only need to send this once
@@ -313,13 +323,19 @@ void FootstepManager::processValidatePlanRequest(const std_msgs::Int8::ConstPtr&
 
         last_validated_step_plan_stamp_ = ros::Time::now();
 
+        vigir_footstep_planning_msgs::Feet goal_copy = goal_;
+        foot_pose_transformer_->transformToRobotFrame(goal_copy);
+
         flor_ocs_msgs::OCSFootstepPlanGoalUpdate cmd;
-        cmd.goal_pose = goal_pose_;
         cmd.goal_pose.header.stamp = last_validated_step_plan_stamp_;
-        cmd.left_foot.pose = goal_.left.pose;
+        cmd.goal_pose.header.frame_id = "/world";
+        cmd.goal_pose = goal_pose_;
+        cmd.left_foot.header.frame_id = "/world";
         cmd.left_foot.header.stamp = last_validated_step_plan_stamp_;
-        cmd.right_foot.pose = goal_.right.pose;
+        cmd.left_foot.pose = goal_copy.left.pose;
+        cmd.right_foot.header.frame_id = "/world";
         cmd.right_foot.header.stamp = last_validated_step_plan_stamp_;
+        cmd.right_foot.pose = goal_copy.right.pose;
         obfsm_update_step_plan_goal_pub_.publish(cmd);
 
     }
@@ -331,8 +347,9 @@ void FootstepManager::processValidatePlanRequest(const std_msgs::Int8::ConstPtr&
         last_validated_step_plan_stamp_ = ros::Time::now();
 
         flor_ocs_msgs::OCSFootstepPlanGoal cmd;
-        cmd.goal_pose = goal_pose_;
+        cmd.goal_pose.header.frame_id = "/world";
         cmd.goal_pose.header.stamp = last_validated_step_plan_stamp_;
+        cmd.goal_pose = goal_pose_;
         obfsm_plan_goal_pub_.publish(cmd);
     }
 
