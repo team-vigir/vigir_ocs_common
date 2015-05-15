@@ -77,6 +77,7 @@ namespace ocs_footstep
         void processExecuteStepPlanResult(const vigir_footstep_planning_msgs::ExecuteStepPlanActionResult::ConstPtr& msg);
         void processUpdateFeetResult(vigir_footstep_planning_msgs::UpdateFeetResult result);
         void processUpdateFeetResult(const vigir_footstep_planning_msgs::UpdateFeetActionResult::ConstPtr& msg);
+        void processGenerateFeetPoseResult(const vigir_footstep_planning_msgs::GenerateFeetPoseActionResult::ConstPtr& msg);
 
         // used to process new step plans whenever and however they arrive
         void processNewStepPlanGoal(vigir_footstep_planning_msgs::Feet& goal);
@@ -213,7 +214,7 @@ namespace ocs_footstep
         ros::Publisher obfsm_replan_request_pub_;
         ros::Subscriber obfsm_execute_step_plan_sub_;
         ros::Subscriber obfsm_current_step_plan_sub_;
-        ros::Subscriber obfsm_update_feet_sub_;
+        ros::Subscriber obfsm_generate_feet_pose_sub_;
         ros::Subscriber obfsm_active_parameter_set_sub_;
 
         // used exclusively to check what should be sent to the obfsm

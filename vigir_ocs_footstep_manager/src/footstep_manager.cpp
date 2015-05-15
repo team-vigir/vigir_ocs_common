@@ -74,21 +74,21 @@ void FootstepManager::onInit()
     validate_step_plan_sub_ = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/validate", 1, &FootstepManager::processValidatePlanRequest, this );
     // publishers: ocs -> obfsm
     // Single step update of existing plan
-    obfsm_step_update_pub_ = nh.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/vigir/footstep_manager/step_update", 1, true );
+    obfsm_step_update_pub_ = nh.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/vigir/footstep_manager/step_update", 1, false );
     // 3DOF pose of goal and 2 6D feet (flag whether to recalculate the 6D pose feet based on terrain) this is if operator edits feet poses
-    obfsm_update_step_plan_goal_pub_ = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/vigir/footstep_manager/update_step_plan_goal", 1, true );
+    obfsm_update_step_plan_goal_pub_ = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/vigir/footstep_manager/update_step_plan_goal", 1, false );
     // 3dof (x,y,yaw) is only important part across comms, remainder will be determined by terrain on update
-    obfsm_plan_goal_pub_ = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/vigir/footstep_manager/plan_goal", 1, true );
+    obfsm_plan_goal_pub_ = nh.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/vigir/footstep_manager/plan_goal", 1, false );
     // Ability to change planner parameters (rarely used)
-    obfsm_plan_parameters_goal_pub_ = nh.advertise<flor_ocs_msgs::OCSFootstepPlanParameters>( "/vigir/footstep_manager/plan_parameters", 1, true );
+    obfsm_plan_parameters_goal_pub_ = nh.advertise<flor_ocs_msgs::OCSFootstepPlanParameters>( "/vigir/footstep_manager/plan_parameters", 1, false );
     // Selected parameter set for onboard planning (sent as index into list of names) Not through Bridge state
-    obfsm_set_active_parameter_set_pub_ = nh.advertise<std_msgs::String>( "/vigir/footstep_manager/set_active_parameter_set", 1, true );
+    obfsm_set_active_parameter_set_pub_ = nh.advertise<std_msgs::String>( "/vigir/footstep_manager/set_active_parameter_set", 1, false );
     // Step plan updated by OCS - only send 6D poses for feet and name of parameter set. See note 3
-    obfsm_updated_step_plan_pub_ = nh.advertise<vigir_footstep_planning_msgs::StepPlan>( "/vigir/footstep_manager/updated_step_plan", 1, true );
+    obfsm_updated_step_plan_pub_ = nh.advertise<vigir_footstep_planning_msgs::StepPlan>( "/vigir/footstep_manager/updated_step_plan", 1, false );
     // Command to execute the plan (Use the header time stamp only with empty step plan)
-    obfsm_execute_step_plan_pub_ = nh.advertise<vigir_footstep_planning_msgs::ExecuteStepPlanActionGoal>( "/vigir/footstep_manager/execute_step_plan/goal", 1, true );
+    obfsm_execute_step_plan_pub_ = nh.advertise<vigir_footstep_planning_msgs::ExecuteStepPlanActionGoal>( "/vigir/footstep_manager/execute_step_plan/goal", 1, false );
     // Request to replan to existing goal with specified parameters
-    obfsm_replan_request_pub_ = nh.advertise<flor_ocs_msgs::OCSFootstepPlanRequest>( "/vigir/footstep_manager/replan_request", 1, true );
+    obfsm_replan_request_pub_ = nh.advertise<flor_ocs_msgs::OCSFootstepPlanRequest>( "/vigir/footstep_manager/replan_request", 1, false );
 
     // subscribers: obfsm -> ocs
     // Action result status message (int32) from execute action (OCS or Behaviors) Not through Bridge state
@@ -96,7 +96,7 @@ void FootstepManager::onInit()
     // Latest footstep plan ready to execute or edit (only pose and risk) See notes 1,2,4
     obfsm_current_step_plan_sub_ = nh.subscribe<vigir_footstep_planning_msgs::StepPlan>( "/vigir/footstep_manager/current_step_plan", 1, &FootstepManager::processOnboardStepPlan, this );
     // Goal pose with updated feet poses (sent in response to any action request by onboard planner whether triggered by OCS or behaviors
-    obfsm_update_feet_sub_ = nh.subscribe<vigir_footstep_planning_msgs::UpdateFeetActionResult>( "/vigir/footstep_planning/update_feet/result", 1, &FootstepManager::processUpdateFeetResult, this );
+    obfsm_generate_feet_pose_sub_ = nh.subscribe<vigir_footstep_planning_msgs::GenerateFeetPoseActionResult>( "/vigir/footstep_manager/generate_feet_pose/result", 1, &FootstepManager::processGenerateFeetPoseResult, this );
     // Currently active parameter set for onboard planning in case behaviors changes it (sent as index into list of names) Not through Bridge state
     obfsm_active_parameter_set_sub_ = nh.subscribe<std_msgs::String>( "/vigir/footstep_manager/active_parameter_set", 1, &FootstepManager::processFootstepParamSetSelected, this );
 
@@ -443,6 +443,46 @@ void FootstepManager::processUpdateFeetResult(vigir_footstep_planning_msgs::Upda
 void FootstepManager::processUpdateFeetResult(const vigir_footstep_planning_msgs::UpdateFeetActionResult::ConstPtr& msg)
 {
     processUpdateFeetResult(msg->result);
+}
+
+void FootstepManager::processGenerateFeetPoseResult(const vigir_footstep_planning_msgs::GenerateFeetPoseActionResult::ConstPtr& msg)
+{
+    // check result
+    if (vigir_footstep_planning::hasError(msg->result.status))
+    {
+      ROS_ERROR("Error occured while requesting current feet pose:\n%s", vigir_footstep_planning::toString(msg->result.status).c_str());
+      return;
+    }
+    else if (vigir_footstep_planning::hasWarning(msg->result.status))
+    {
+      ROS_ERROR("Warning occured while requesting current feet pose:\n%s", vigir_footstep_planning::toString(msg->result.status).c_str());
+      return;
+    }
+
+    goal_ = msg->result.feet;
+
+    // since feet poses are reported in robot feet frame (ankle), transform from ankle to sole
+    foot_pose_transformer_->transformToPlannerFrame(goal_);
+
+    // need to send visualization message
+    updateGoalVisMsgs();
+
+    plan_goal_array_pub_.publish(footstep_goal_array_);
+
+    // update goal pose - should I be doing this?
+    goal_pose_.pose.position.x = (goal_.left.pose.position.x+goal_.right.pose.position.x)/2.0;
+    goal_pose_.pose.position.y = (goal_.left.pose.position.y+goal_.right.pose.position.y)/2.0;
+    goal_pose_.pose.position.z = (goal_.left.pose.position.z+goal_.right.pose.position.z)/2.0;
+    Ogre::Quaternion q1(goal_.left.pose.orientation.w,goal_.left.pose.orientation.x,goal_.left.pose.orientation.y,goal_.left.pose.orientation.z);
+    Ogre::Quaternion q2(goal_.right.pose.orientation.w,goal_.right.pose.orientation.x,goal_.right.pose.orientation.y,goal_.right.pose.orientation.z);
+    Ogre::Quaternion qr = Ogre::Quaternion::Slerp(0.5,q1,q2);
+    goal_pose_.pose.orientation.w = qr.w;
+    goal_pose_.pose.orientation.x = qr.x;
+    goal_pose_.pose.orientation.y = qr.y;
+    goal_pose_.pose.orientation.z = qr.z;
+
+    // and update the interactive markers
+    publishGoalMarkerFeedback();
 }
 
 void FootstepManager::feetToFootMarkerArray(vigir_footstep_planning_msgs::Feet& input, visualization_msgs::MarkerArray& foot_array_msg)
