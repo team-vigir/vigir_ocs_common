@@ -47,7 +47,7 @@ void FootstepManager::onInit()
     footstep_has_redo_pub_                   = nh.advertise<std_msgs::UInt8>( "/flor/ocs/footstep/redos_available", 1, false );
     footstep_start_index_pub_                = nh.subscribe<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, &FootstepManager::processSetStartIndex, this );
     footstep_execute_req_sub_                = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
-    footstep_send_ocs_plan_req_sub_          = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processSendOCSStepPlanRequest, this );
+    footstep_send_ocs_plan_req_sub_          = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/send_ocs_plan", 1, &FootstepManager::processSendOCSStepPlanRequest, this );
     footstep_stitch_req_sub_                 = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/stitch", 1, &FootstepManager::processStitchPlansRequest, this );
     footstep_plan_parameters_pub_            = nh.advertise<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters_feedback", 1, false );
     footstep_plan_parameters_sub_            = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters", 5, &FootstepManager::processFootstepPlanParameters, this );
@@ -306,6 +306,8 @@ void FootstepManager::sendCurrentStepPlan()
     step_plan_copy.header.frame_id = "/world";
 
     obfsm_updated_step_plan_pub_.publish(step_plan_copy);
+
+    last_validated_step_plan_stamp_ = step_plan_copy.header.stamp;
 
     // only need to send this once
     updated_steps_.clear();
@@ -1024,36 +1026,40 @@ void FootstepManager::publishSyncStatus()
         synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::EMPTY_PLAN_LIST;
     else if(getStepPlan().steps.size() == 0)
         synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::EMPTY_PLAN;
-    else if(goal_.header.stamp.toSec() != getStepPlan().header.stamp.toSec()) // goal and step plan headers don't match
-        synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::PROCESSING_OCS_PLAN;
-    else if(updated_steps_.find(getStepPlan().header.stamp) != updated_steps_.end() ||
-            last_validated_step_plan_stamp_.toSec() != getStepPlan().header.stamp.toSec())
-        synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::NEED_PLAN_VALIDATION;
     else
-        synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::SYNCED;
-
-    // validation option based on status
-    if(updated_steps_.find(getStepPlan().header.stamp) != updated_steps_.end())
     {
-        if(getStepPlan().header.stamp.nsec == last_onboard_step_plan_stamp_.nsec && getStepPlan().header.stamp.sec == last_onboard_step_plan_stamp_.sec)
+        // there is a step plan, so safe to access it
+        if(goal_.header.stamp.toSec() != getStepPlan().header.stamp.toSec()) // goal and step plan headers don't match
+            synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::PROCESSING_OCS_PLAN;
+        else if(updated_steps_.find(getStepPlan().header.stamp) != updated_steps_.end() ||
+                last_validated_step_plan_stamp_.toSec() != getStepPlan().header.stamp.toSec())
+            synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::NEED_PLAN_VALIDATION;
+        else
+            synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::SYNCED;
+
+        // validation option based on status
+        if(updated_steps_.find(getStepPlan().header.stamp) != updated_steps_.end())
         {
-            synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::EDITED_STEPS;
+            if(getStepPlan().header.stamp.nsec == last_onboard_step_plan_stamp_.nsec && getStepPlan().header.stamp.sec == last_onboard_step_plan_stamp_.sec)
+            {
+                synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::EDITED_STEPS;
+            }
+            // if not and we have edited steps, we have to send the entire plan
+            else
+            {
+                synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::CURRENT_PLAN;
+            }
         }
-        // if not and we have edited steps, we have to send the entire plan
+        // if the goal has been updated
+        else if(updated_goal_)
+        {
+            synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::GOAL_FEET;
+        }
+        // only send 3dof goal if it hasn't been modified
         else
         {
-            synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::CURRENT_PLAN;
+            synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::GOAL;
         }
-    }
-    // if the goal has been updated
-    else if(updated_goal_)
-    {
-        synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::GOAL_FEET;
-    }
-    // only send 3dof goal if it hasn't been modified
-    else
-    {
-        synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::GOAL;
     }
 
     sync_status_pub_.publish(synced);

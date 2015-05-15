@@ -146,18 +146,34 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     //}
 
     //set validate visibility based on mode
-    setItemVisibility("Validate Step Plan (goal)",false);
-    setItemVisibility("Validate Step Plan (goal feet)",false);
-    setItemVisibility("Validate Step Plan (edited steps)",false);
-    setItemVisibility("Validate Step Plan (current plan)",false);
     if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::EDITED_STEPS)
-        setItemVisibility("Validate Step Plan (edited steps)",true);
+    {
+        setItemVisibility("Validate Step Plan (goal)",false);
+        setItemVisibility("Validate Step Plan (goal feet)",false);
+        //setItemVisibility("Validate Step Plan (edited steps)",true);
+        setItemVisibility("Validate Step Plan (current plan)",false);
+    }
     else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::CURRENT_PLAN)
-        setItemVisibility("Validate Step Plan (current plan)",true);
+    {
+        setItemVisibility("Validate Step Plan (goal)",false);
+        setItemVisibility("Validate Step Plan (goal feet)",false);
+        setItemVisibility("Validate Step Plan (edited steps)",false);
+        //setItemVisibility("Validate Step Plan (current plan)",true);
+    }
     else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::GOAL_FEET)
-        setItemVisibility("Validate Step Plan (goal feet)",true);
+    {
+        setItemVisibility("Validate Step Plan (goal)",false);
+        //setItemVisibility("Validate Step Plan (goal feet)",true);
+        setItemVisibility("Validate Step Plan (edited steps)",false);
+        setItemVisibility("Validate Step Plan (current plan)",false);
+    }
     else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::GOAL)
-        setItemVisibility("Validate Step Plan (goal)",true);
+    {
+        //setItemVisibility("Validate Step Plan (goal)",true);
+        setItemVisibility("Validate Step Plan (goal feet)",false);
+        setItemVisibility("Validate Step Plan (edited steps)",false);
+        setItemVisibility("Validate Step Plan (current plan)",false);
+    }
 
     //cannot validate empty/invalid plan
     if(base_3d_view_->getFootstepVisManager()->hasValidStepPlan() || base_3d_view_->getFootstepVisManager()->numStepPlans() != 1)
