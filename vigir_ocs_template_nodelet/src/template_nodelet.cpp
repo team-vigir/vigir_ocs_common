@@ -24,7 +24,7 @@ void TemplateNodelet::onInit()
     // Which mode are we using
     this->master_mode_ = true;
     if (!nhp.getParam("master_mode", this->master_mode_))
-        ROS_ERROR(" Did not find master_mode parameter - using MASTER_MODE as default");
+        ROS_ERROR(" Did not find Template Server Mode parameter (master_mode) - using MASTER_MODE as default");
     else
         ROS_INFO("Server mode parameters received, mode: %s", this->master_mode_ ? "MASTER" : "SLAVE" );
 

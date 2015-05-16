@@ -14,6 +14,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     , selected_template_id_(-1)
     , selected_grasp_id_(-1)
     , selected_affordance_id_(-1)
+    , selected_usability_id_(-1)
     , show_grasp_(false)
     , follow_ban_(false)
     , hand_side_(hand)
@@ -31,6 +32,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     ui->templateBox->setDisabled(true);
     ui->graspBox->setDisabled(true);
     ui->affordanceBox->setDisabled(true);
+    ui->usabilityBox->setDisabled(true);
     ui->attachButton->setDisabled(true);
     ui->detachButton->setDisabled(true);
     ui->show_grasp->setDisabled(true);
@@ -56,6 +58,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     grasp_command_pub_           = nh_.advertise<flor_grasp_msgs::GraspState>(        grasp_control_prefix+"/grasp_command",                              1, false);
     affordance_selection_pub_    = nh_.advertise<vigir_object_template_msgs::Affordance>( "/manipulation_control/" + hand_name_ + "/affordance_command",  1, false);
     snap_template_pub_           = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/snap",                                                   1, false);
+    hand_marker_pub_             = nh_.advertise<std_msgs::Int8>(                     "/manipulation_control/" + hand_name_ + "/hand_marker",             1, false);
 
     grasp_info_client_           = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
     template_info_client_        = nh_.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
@@ -309,6 +312,7 @@ void graspWidget::setUpButtons()
     ui->templateBox->setStyleSheet(styleSheet);
     ui->graspBox->setStyleSheet(styleSheet);
     ui->affordanceBox->setStyleSheet(styleSheet);
+    ui->usabilityBox->setStyleSheet(styleSheet);
 }
 
 void graspWidget::templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr& feedback)
@@ -372,11 +376,14 @@ void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::Con
         hideHand();
         ui->graspBox->clear();
         ui->affordanceBox->clear();
+        ui->usabilityBox->clear();
         selected_template_id_   = -1;
         selected_grasp_id_      = -1;
         selected_affordance_id_ = -1;
+        selected_usability_id_  = -1;
         ui->graspBox->setEnabled(false);
         ui->affordanceBox->setEnabled(false);
+        ui->usabilityBox->setEnabled(false);
         ui->show_grasp->setChecked(false);
         ui->show_grasp->setEnabled(false);
         ui->graspPose->setEnabled(false);
@@ -480,8 +487,11 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
     // clean grasp box
     ui->graspBox->clear();
     ui->affordanceBox->clear();
+    ui->usabilityBox->clear();
+    ui->usabilityBox->addItem("Palm");
     selected_grasp_id_      = -1;
     selected_affordance_id_ = -1;
+    selected_usability_id_  = -1;
 
     int index;
 
@@ -503,10 +513,17 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
         ui->affordanceBox->addItem(QString(last_template_srv_.response.template_type_information.affordances[index].name.c_str()));
     }
 
+    for(index = 0; index < last_template_srv_.response.template_type_information.usabilities.size(); index++)
+    {
+        //ui->affordanceBox->addItem(QString(last_template_srv_.response.template_type_information.usabilities[index].name.c_str()));
+        ui->usabilityBox->addItem(QString((boost::to_string(int(last_template_srv_.response.template_type_information.usabilities[index].id))).c_str()));
+    }
+
     if(ui->affordanceBox->count() > 0){
         ui->affordanceButton->setEnabled(true);
         ui->keepOrientationBox->setEnabled(true);
         ui->displacementBox->setEnabled(true);
+        ui->usabilityBox->setEnabled(true);
     }
 
     if(index >0){
@@ -543,6 +560,16 @@ void graspWidget::on_affordanceBox_activated(const int &arg1)
         ui->displacementBox->setValue(current_affordance_.displacement / 0.0174532925); // UI in deg, msg in rad);
     else
         ui->displacementBox->setValue(current_affordance_.displacement);
+}
+
+void graspWidget::on_usabilityBox_activated(const int &arg1)
+{
+    selected_usability_id_ = arg1-1;
+    ROS_INFO(" usability selection = %d",selected_usability_id_);
+    std_msgs::Int8 usability;
+    usability.data = selected_usability_id_;
+
+    hand_marker_pub_.publish(usability);
 }
 
 void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
@@ -997,9 +1024,11 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             selected_template_id_ = -1;
             ui->templateBox->setCurrentIndex(-1);
             ui->graspBox->setCurrentIndex(-1);
-            ui->affordanceBox->setCurrentIndex(-1);
+            ui->affordanceBox->setCurrentIndex(-1);            
+            ui->usabilityBox->setCurrentIndex(-1);
             ui->graspBox->setDisabled(true);
             ui->affordanceBox->setDisabled(true);
+            ui->usabilityBox->setDisabled(true);
             ui->moveToPoseButton->setDisabled(true);
             ui->attachButton->setDisabled(true);
             ui->detachButton->setDisabled(true);
@@ -1073,10 +1102,12 @@ void graspWidget::on_affordanceButton_clicked()
     {
         ROS_ERROR("Failed to call service request template info");
     }else{
-    current_affordance_.waypoints = last_template_srv_.response.template_type_information.affordances[current_affordance_.id].waypoints;
+        current_affordance_.waypoints = last_template_srv_.response.template_type_information.affordances[current_affordance_.id].waypoints;
 
-    if(affordance_selection_pub_)
-        affordance_selection_pub_.publish(current_affordance_);
+        current_affordance_.speed        = ui->speedBox->value();
+
+        if(affordance_selection_pub_)
+            affordance_selection_pub_.publish(current_affordance_);
     }
 }
 
