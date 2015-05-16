@@ -72,6 +72,7 @@ public Q_SLOTS:
     void on_templateBox_activated(const QString &arg1);
     void on_graspBox_activated(const QString &arg1);
     void on_affordanceBox_activated(const int &arg1);
+    void on_usabilityBox_activated(const int &arg1);
     void on_performButton_clicked();
     void on_moveToPoseButton_clicked();
     void on_releaseButton_clicked();
@@ -119,6 +120,7 @@ private:
     int selected_template_id_;
     int selected_grasp_id_;
     int selected_affordance_id_;
+    int selected_usability_id_;
 
     ros::NodeHandle nh_;
     ros::Subscriber grasp_state_sub_;
@@ -136,6 +138,7 @@ private:
     ros::Publisher grasp_release_pub_;
     ros::Publisher affordance_selection_pub_;
     ros::Publisher snap_template_pub_;
+    ros::Publisher hand_marker_pub_;
 
     ros::Publisher planning_hand_target_pub_;
 

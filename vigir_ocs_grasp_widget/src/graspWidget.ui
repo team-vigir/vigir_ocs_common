@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>553</width>
+    <width>437</width>
     <height>264</height>
    </rect>
   </property>
@@ -497,23 +497,28 @@
      selection-background-color: lightgray;
  }</string>
             </property>
+            <property name="editable">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
-           <spacer name="horizontalSpacer_16">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
            <widget class="QDoubleSpinBox" name="displacementBox">
+            <property name="wrapping">
+             <bool>true</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+            <property name="buttonSymbols">
+             <enum>QAbstractSpinBox::PlusMinus</enum>
+            </property>
+            <property name="showGroupSeparator" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="prefix">
+             <string/>
+            </property>
             <property name="decimals">
              <number>2</number>
             </property>
@@ -531,30 +536,30 @@
           <item>
            <widget class="QCheckBox" name="keepOrientationBox">
             <property name="text">
-             <string>Keep Orientation</string>
+             <string>Kp. Or.</string>
             </property>
            </widget>
           </item>
           <item>
-           <spacer name="horizontalSpacer_9">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+           <widget class="QSpinBox" name="speedBox">
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
+            <property name="minimum">
+             <number>1</number>
             </property>
-           </spacer>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>3</number>
+            </property>
+           </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="affordanceButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
+           <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>Execute</string>
+             <string>%Speed</string>
             </property>
            </widget>
           </item>
@@ -565,6 +570,23 @@
           <property name="spacing">
            <number>2</number>
           </property>
+          <item>
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Usability: </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="usabilityBox">
+            <property name="editable">
+             <bool>true</bool>
+            </property>
+            <property name="currentIndex">
+             <number>-1</number>
+            </property>
+           </widget>
+          </item>
           <item>
            <spacer name="horizontalSpacer_10">
             <property name="orientation">
@@ -604,6 +626,16 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="affordanceButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Execute</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
