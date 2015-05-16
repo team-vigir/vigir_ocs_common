@@ -679,6 +679,8 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
     if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::FEEDBACK)
         return;
 
+    boost::recursive_mutex::scoped_lock lock(goal_mutex_);
+
     // update time stamp, as it will require a new validate
     goal_.header.stamp = ros::Time::now();
     goal_pose_.header.stamp = goal_.header.stamp;
@@ -701,8 +703,6 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
                                plan_goal->goal_pose.pose.orientation.y,
                                plan_goal->goal_pose.pose.orientation.z);
         Ogre::Quaternion d_quat = q_old * q_new;
-
-        boost::recursive_mutex::scoped_lock lock(goal_mutex_);
 
         // update left foot
         {
@@ -757,8 +757,6 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
     }
     else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::LEFT)
     {
-        boost::recursive_mutex::scoped_lock lock(goal_mutex_);
-
         goal_.left.pose.position.x = plan_goal->left_foot.pose.position.x;
         goal_.left.pose.position.y = plan_goal->left_foot.pose.position.y;
         goal_.left.pose.position.z = plan_goal->left_foot.pose.position.z;
@@ -772,8 +770,6 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
     }
     else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::RIGHT)
     {
-        boost::recursive_mutex::scoped_lock lock(goal_mutex_);
-
         goal_.right.pose.position.x = plan_goal->right_foot.pose.position.x;
         goal_.right.pose.position.y = plan_goal->right_foot.pose.position.y;
         goal_.right.pose.position.z = plan_goal->right_foot.pose.position.z;
@@ -792,8 +788,11 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
     // send
     plan_goal_array_pub_.publish(footstep_goal_array_);
 
-    // and update the interactive markers
+    // update the interactive markers
     publishGoalMarkerFeedback();
+
+    // then update feet pose using the footstep planner
+    sendUpdateFeetGoal(goal_);
 }
 
 void FootstepManager::calculateGoal()
