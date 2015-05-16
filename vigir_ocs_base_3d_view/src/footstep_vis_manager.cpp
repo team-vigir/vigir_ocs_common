@@ -318,6 +318,7 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
 
     flor_ocs_msgs::OCSFootstepPlanGoal cmd;
     cmd.goal_pose = *pose;
+    cmd.goal_pose.header.stamp = ros::Time::now();
     footstep_plan_goal_pub_.publish(cmd);
 }
 

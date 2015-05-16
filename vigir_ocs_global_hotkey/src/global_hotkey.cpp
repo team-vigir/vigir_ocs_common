@@ -196,11 +196,11 @@ void GlobalHotkey::onUpdate()
 
     //printf("key states(%d): %d, %d, %d\n", state_changed, old_keys_[37], old_keys_[64], old_keys_[45]);
 
-    if(state_changed &&
-       std::find(old_keys_.begin(), old_keys_.end(), 37) != old_keys_.end() &&
-       std::find(old_keys_.begin(), old_keys_.end(), 64) != old_keys_.end() &&
-       std::find(old_keys_.begin(), old_keys_.end(), 45) != old_keys_.end()) // ctrl + alt + k
-        registering_keystrokes_ = !registering_keystrokes_;
+//    if(state_changed &&
+//       std::find(old_keys_.begin(), old_keys_.end(), 37) != old_keys_.end() &&
+//       std::find(old_keys_.begin(), old_keys_.end(), 64) != old_keys_.end() &&
+//       std::find(old_keys_.begin(), old_keys_.end(), 45) != old_keys_.end()) // ctrl + alt + k
+//        registering_keystrokes_ = !registering_keystrokes_;
 }
 
 void GlobalHotkey::publishKeyPressed(int k, int x, int y)
