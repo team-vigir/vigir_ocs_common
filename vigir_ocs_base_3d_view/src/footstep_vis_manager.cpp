@@ -267,7 +267,9 @@ void FootstepVisManager::requestExecuteStepPlan()
 void FootstepVisManager::requestSendOCSStepPlan()
 {
     int option = QMessageBox::information( NULL, "Send OCS Step Plan Confirmation",
-                                          "Are you sure you want to send the current step plan?",
+                                          "Are you sure you want to send the current step plan?\n\n" \
+                                          "WARNING: Timestamps and validations will be ignored, \n" \
+                                          "and the entire step plan will be sent onboard!",
                                           "Yes", "Cancel",
                                           0, 1 );
     if(option == 0)
