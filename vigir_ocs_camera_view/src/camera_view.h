@@ -125,6 +125,7 @@ private:
     typedef struct
     {
         std::string topic_prefix;
+        std::string topic_name;
         std::string name;
         std::string frame;
         int width;

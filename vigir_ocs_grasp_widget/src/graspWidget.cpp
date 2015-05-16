@@ -515,8 +515,8 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
 
     for(index = 0; index < last_template_srv_.response.template_type_information.usabilities.size(); index++)
     {
-        //ui->affordanceBox->addItem(QString(last_template_srv_.response.template_type_information.usabilities[index].name.c_str()));
-        ui->usabilityBox->addItem(QString((boost::to_string(int(last_template_srv_.response.template_type_information.usabilities[index].id))).c_str()));
+        ui->usabilityBox->addItem(QString(last_template_srv_.response.template_type_information.usabilities[index].name.c_str()));
+        //ui->usabilityBox->addItem(QString((boost::to_string(int(last_template_srv_.response.template_type_information.usabilities[index].id))).c_str()));
     }
 
     if(ui->affordanceBox->count() > 0){

@@ -207,9 +207,10 @@ void CameraView::loadCameraTopics(std::string prefix)
 {
   try
   {
-    XmlRpc::XmlRpcValue camera_topic_prefix, camera_name, camera_width, camera_height;
+    XmlRpc::XmlRpcValue camera_topic_prefix, camera_topic_name, camera_name, camera_width, camera_height;
 
     nh_.getParam(prefix+"/topic_prefix", camera_topic_prefix);
+    nh_.getParam(prefix+"/topic_name", camera_topic_name);
     nh_.getParam(prefix+"/name", camera_name);
     nh_.getParam(prefix+"/width", camera_width);
     nh_.getParam(prefix+"/height", camera_height);
@@ -218,6 +219,7 @@ void CameraView::loadCameraTopics(std::string prefix)
     {
       Camera c;
       c.topic_prefix = static_cast<std::string>(camera_topic_prefix[i]);
+      c.topic_name = static_cast<std::string>(camera_topic_name[i]);
       c.name = static_cast<std::string>(camera_name[i]);
       c.width = static_cast<int>(camera_width[i]);
       c.height = static_cast<int>(camera_height[i]);
@@ -287,7 +289,7 @@ void CameraView::changeCameraTopic( int t )
     ((rviz::CameraDisplayCustom*)camera_viewer_)->closeFull();
 
 
-    camera_viewer_->subProp( "Image Topic" )->setValue( (camera_[t].topic_prefix+"_full/image_raw").c_str() );
+    camera_viewer_->subProp( "Image Topic" )->setValue( (camera_[t].topic_prefix+camera_[t].topic_name).c_str() );
     camera_viewer_->subProp( "Image Request Topic" )->setValue( (camera_[t].topic_prefix+"_full/image_request").c_str() );
     camera_viewer_->subProp( "Cropped Image Topic" )->setValue( (camera_[t].topic_prefix+"_cropped/image_raw").c_str() );
     camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( (camera_[t].topic_prefix+"_cropped/image_request").c_str() );
