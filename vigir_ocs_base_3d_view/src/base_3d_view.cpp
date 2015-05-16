@@ -1935,6 +1935,8 @@ void Base3DView::selectOnDoubleClick(int x, int y)
         selectLeftArm();
     else if(active_context_name_.find("RightArm") != std::string::npos)
         selectRightArm();
+    else if(active_context_name_.find("Pelvis") != std::string::npos)
+        selectPelvis();
     else if(active_context_name_.find("template") != std::string::npos)
         selectTemplate();
     else if(active_context_name_.find("footstep goal") != std::string::npos)
@@ -2056,6 +2058,14 @@ void Base3DView::selectRightArm()
     flor_ocs_msgs::OCSObjectSelection cmd;
     cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
     cmd.id = flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM;
+    select_object_pub_.publish(cmd);
+}
+
+void Base3DView::selectPelvis()
+{
+    flor_ocs_msgs::OCSObjectSelection cmd;
+    cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
+    cmd.id = flor_ocs_msgs::OCSObjectSelection::PELVIS;
     select_object_pub_.publish(cmd);
 }
 
@@ -2816,17 +2826,13 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
     }
 
     //ROS_ERROR("ghost_world_lock 0: %d, ghost_world_lock_ 1: %d ",ghost_world_lock_[0],ghost_world_lock_[1]);
-
-
-
-
     //    need to publish ghost if we are directly interacting with end effectors
     if(msg.topic.find("l_arm_pose_marker") != std::string::npos ||
-            msg.topic.find("r_arm_pose_marker") != std::string::npos||
-            msg.topic.find("pelvis_pose_marker") != std::string::npos||
-            (ghost_left_hand_lock_ || ghost_right_hand_lock_ ))     //should publish ghost if either arm is locked to template
+       msg.topic.find("r_arm_pose_marker") != std::string::npos ||
+       msg.topic.find("pelvis_pose_marker") != std::string::npos ||
+       (ghost_left_hand_lock_ || ghost_right_hand_lock_ ))     //should publish ghost if either arm is locked to template
     {
-        publishGhostPoses(msg.client_id == ros::this_node::getName());
+        publishGhostPoses(msg.client_id != ros::this_node::getName());
     }
 }
 
@@ -3714,7 +3720,7 @@ void Base3DView::publishMarkers()
     marker_server_pelvis.name = "Ghost Pelvis";
     marker_server_pelvis.topic = "/pelvis_pose_marker";
     marker_server_pelvis.frame = manager_->getFixedFrame().toStdString();
-    marker_server_pelvis.scale = 0.2;
+    marker_server_pelvis.scale = 0.4;
     marker_server_pelvis.point = point;
     interactive_marker_add_pub_.publish(marker_server_pelvis);
 
