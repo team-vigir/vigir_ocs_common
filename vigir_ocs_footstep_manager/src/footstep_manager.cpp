@@ -302,6 +302,7 @@ void FootstepManager::sendEditedSteps()
 void FootstepManager::sendCurrentStepPlan()
 {
     vigir_footstep_planning_msgs::StepPlan step_plan_copy = getStepPlan();
+    getStepPlan().header.stamp = ros::Time::now(); // since this is a force-overwrite of the onboard step plan, create new timestamp
     foot_pose_transformer_->transformToRobotFrame(step_plan_copy);
     step_plan_copy.header.frame_id = "/world";
 
