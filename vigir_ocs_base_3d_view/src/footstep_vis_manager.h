@@ -108,6 +108,9 @@ public:
     // Sends a footstep plan execute request to the footstep manager
     void requestExecuteStepPlan();
 
+    // Sends a request to send the plan that is currently visualized in the OCS
+    void requestSendOCSStepPlan();
+
     // Sends a footstep plan stitch request to the footstep manager
     void requestStitchFootstepPlans();
 
@@ -126,6 +129,7 @@ public:
     bool hasStartingFootstep() { return (start_step_index_ >= 0); }
     bool canValidate() { return can_validate_; }
     unsigned int numStepPlans() { return num_step_plans_; }
+    unsigned char getValidateMode() { return validate_mode_; }
 
     virtual void timerEvent(QTimerEvent *event);
 
@@ -178,6 +182,7 @@ private:
     ros::Publisher footstep_start_index_pub_;
     ros::Publisher footstep_validate_req_pub_;
     ros::Publisher footstep_execute_req_pub_;
+    ros::Publisher footstep_send_ocs_plan_req_pub_;
     ros::Publisher footstep_stitch_req_pub_;
     ros::Publisher footstep_plan_parameters_pub_;
     ros::Subscriber footstep_plan_parameters_sub_;
@@ -239,6 +244,7 @@ private:
     unsigned char has_redo_;
     bool need_plan_update_;
     unsigned int num_step_plans_;
+    unsigned char validate_mode_;
 
     // avoid detecting double click as dragging interactive marker
     boost::posix_time::ptime double_click_timer_;

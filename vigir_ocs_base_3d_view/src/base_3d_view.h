@@ -670,6 +670,10 @@ protected:
       */
     void selectRightArm();
     /**
+      * select pelvis marker
+      */
+    void selectPelvis();
+    /**
       *  select the starting footstep and send to footstep vis manager
       */
     void setStartingFootstep();

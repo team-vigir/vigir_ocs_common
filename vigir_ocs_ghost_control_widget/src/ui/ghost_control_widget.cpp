@@ -40,7 +40,6 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     state_use_drake_ik_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/state_use_drake_ik", 1, false );
     state_snap_ghost_to_robot_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/state_snap_ghost_to_robot", 1, false );
 
-
     //subscribe to template list
     template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",5, &GhostControlWidget::processTemplateList, this );
 
@@ -194,7 +193,7 @@ void GhostControlWidget::on_templateBox_activated(const QString &arg1)
     template_id.remove(template_id.indexOf(": "),template_id.length()-template_id.indexOf(": "));
     selected_template_id_ = template_id.toInt();
 
-    std::cout << "updating the ghost widget pose selection box contents" << std::endl;
+    //std::cout << "updating the ghost widget pose selection box contents" << std::endl;
     // clean grasp box
     ui->graspBox->clear();
     selected_pose_id_ = -1;
@@ -218,14 +217,11 @@ void GhostControlWidget::on_templateBox_activated(const QString &arg1)
 
 void GhostControlWidget::on_graspBox_activated(const QString &arg1)
 {
-    std::cout << " pose selection = " << arg1.toStdString() << std::endl;
     selected_pose_id_ = arg1.toInt();
 }
 
 void GhostControlWidget::snapClicked()
 {    
-    std::cout << "Snap Clicked" << std::endl;
-
     std_msgs::Bool msg;
     msg.data = true;
     state_snap_ghost_to_robot_pub_.publish(msg);
@@ -431,13 +427,6 @@ void GhostControlWidget::on_send_right_cartesian_button__clicked()
 }
 
 void GhostControlWidget::on_pushButton_clicked()
-{
-    std_msgs::Bool cmd;
-    cmd.data = false;
-    send_pelvis_pub_.publish(cmd);
-}
-
-void GhostControlWidget::on_pushButton_2_clicked()
 {
     std_msgs::Bool cmd;
     cmd.data = true;

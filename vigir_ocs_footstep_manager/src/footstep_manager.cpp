@@ -47,6 +47,7 @@ void FootstepManager::onInit()
     footstep_has_redo_pub_                   = nh.advertise<std_msgs::UInt8>( "/flor/ocs/footstep/redos_available", 1, false );
     footstep_start_index_pub_                = nh.subscribe<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, &FootstepManager::processSetStartIndex, this );
     footstep_execute_req_sub_                = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/execute", 1, &FootstepManager::processExecuteFootstepRequest, this );
+    footstep_send_ocs_plan_req_sub_          = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/send_ocs_plan", 1, &FootstepManager::processSendOCSStepPlanRequest, this );
     footstep_stitch_req_sub_                 = nh.subscribe<std_msgs::Int8>( "/flor/ocs/footstep/stitch", 1, &FootstepManager::processStitchPlansRequest, this );
     footstep_plan_parameters_pub_            = nh.advertise<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters_feedback", 1, false );
     footstep_plan_parameters_sub_            = nh.subscribe<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters", 5, &FootstepManager::processFootstepPlanParameters, this );
@@ -270,6 +271,83 @@ void FootstepManager::processSetStartIndex(const std_msgs::Int32::ConstPtr &msg)
     start_step_index_feet_pub_.publish(start_feet);
 }
 
+void FootstepManager::sendEditedSteps()
+{
+    last_validated_step_plan_stamp_ = getStepPlan().header.stamp;
+
+    // need to send all updated steps
+    for(std::set<unsigned char>::iterator it = updated_steps_[last_onboard_step_plan_stamp_].begin(); it != updated_steps_[last_onboard_step_plan_stamp_].end(); ++it)
+    {
+        // only send the message if we can find the plan/step containing the edited step (should never fail if it gets to this point)
+        vigir_footstep_planning_msgs::Step step;
+        unsigned int step_plan_index;
+        if(findStep(*it, step, step_plan_index))
+        {
+            vigir_footstep_planning_msgs::Step step_copy = step;
+            foot_pose_transformer_->transformToRobotFrame(step_copy);
+
+            flor_ocs_msgs::OCSFootstepUpdate cmd;
+            cmd.footstep_id = *it;
+            cmd.pose.pose = step_copy.foot.pose;
+            cmd.pose.header.stamp = last_validated_step_plan_stamp_;
+            cmd.pose.header.frame_id = "/world";
+            obfsm_step_update_pub_.publish(cmd);
+        }
+    }
+
+    // only need to send this once
+    updated_steps_.clear();
+}
+
+void FootstepManager::sendCurrentStepPlan()
+{
+    vigir_footstep_planning_msgs::StepPlan step_plan_copy = getStepPlan();
+    foot_pose_transformer_->transformToRobotFrame(step_plan_copy);
+    step_plan_copy.header.frame_id = "/world";
+
+    obfsm_updated_step_plan_pub_.publish(step_plan_copy);
+
+    last_validated_step_plan_stamp_ = step_plan_copy.header.stamp;
+
+    // only need to send this once
+    updated_steps_.clear();
+}
+
+void FootstepManager::sendStepPlanGoal()
+{
+    boost::recursive_mutex::scoped_lock lock(goal_mutex_);
+
+    last_validated_step_plan_stamp_ = ros::Time::now();
+
+    flor_ocs_msgs::OCSFootstepPlanGoal cmd;
+    cmd.goal_pose = goal_pose_;
+    cmd.goal_pose.header.frame_id = "/world";
+    cmd.goal_pose.header.stamp = last_validated_step_plan_stamp_;
+    obfsm_plan_goal_pub_.publish(cmd);
+}
+
+void FootstepManager::sendStepPlanGoalFeet()
+{
+    boost::recursive_mutex::scoped_lock lock(goal_mutex_);
+
+    last_validated_step_plan_stamp_ = ros::Time::now();
+
+    vigir_footstep_planning_msgs::Feet goal_copy = goal_;
+    foot_pose_transformer_->transformToRobotFrame(goal_copy);
+
+    flor_ocs_msgs::OCSFootstepPlanGoalUpdate cmd;
+    cmd.goal_pose = goal_pose_;
+    cmd.goal_pose.header.frame_id = "/world";
+    cmd.goal_pose.header.stamp = last_validated_step_plan_stamp_;
+    cmd.left_foot.pose = goal_copy.left.pose;
+    cmd.left_foot.header.frame_id = "/world";
+    cmd.left_foot.header.stamp = last_validated_step_plan_stamp_;
+    cmd.right_foot.pose = goal_copy.right.pose;
+    cmd.right_foot.header.frame_id = "/world";
+    cmd.right_foot.header.stamp = last_validated_step_plan_stamp_;
+    obfsm_update_step_plan_goal_pub_.publish(cmd);
+}
+
 void FootstepManager::processValidatePlanRequest(const std_msgs::Int8::ConstPtr& msg)
 {
     boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
@@ -279,78 +357,25 @@ void FootstepManager::processValidatePlanRequest(const std_msgs::Int8::ConstPtr&
     // if the plan we're editing is an onboard plan and we have edited steps for that plan, send the step
     if(updated_steps_.find(getStepPlan().header.stamp) != updated_steps_.end())
     {
-        last_validated_step_plan_stamp_ = getStepPlan().header.stamp;
-
         if(getStepPlan().header.stamp.nsec == last_onboard_step_plan_stamp_.nsec && getStepPlan().header.stamp.sec == last_onboard_step_plan_stamp_.sec)
         {
-            // need to send all updated steps
-            for(std::set<unsigned char>::iterator it = updated_steps_[last_onboard_step_plan_stamp_].begin(); it != updated_steps_[last_onboard_step_plan_stamp_].end(); ++it)
-            {
-                // only send the message if we can find the plan/step containing the edited step (should never fail if it gets to this point)
-                vigir_footstep_planning_msgs::Step step;
-                unsigned int step_plan_index;
-                if(findStep(*it, step, step_plan_index))
-                {
-                    vigir_footstep_planning_msgs::Step step_copy = step;
-                    foot_pose_transformer_->transformToRobotFrame(step_copy);
-
-                    flor_ocs_msgs::OCSFootstepUpdate cmd;
-                    cmd.footstep_id = *it;
-                    cmd.pose.pose = step_copy.foot.pose;
-                    cmd.pose.header.stamp = last_validated_step_plan_stamp_;
-                    cmd.pose.header.frame_id = "/world";
-                    obfsm_step_update_pub_.publish(cmd);
-                }
-            }
+            sendEditedSteps();
         }
         // if not and we have edited steps, we have to send the entire plan
         else
         {
-            vigir_footstep_planning_msgs::StepPlan step_plan_copy = getStepPlan();
-            foot_pose_transformer_->transformToRobotFrame(step_plan_copy);
-            step_plan_copy.header.frame_id = "/world";
-
-            obfsm_updated_step_plan_pub_.publish(step_plan_copy);
+            sendCurrentStepPlan();
         }
-
-        // only need to send this once
-        updated_steps_.clear();
     }
     // if the goal has been updated
     else if(updated_goal_)
     {
-        boost::recursive_mutex::scoped_lock lock(goal_mutex_);
-
-        last_validated_step_plan_stamp_ = ros::Time::now();
-
-        vigir_footstep_planning_msgs::Feet goal_copy = goal_;
-        foot_pose_transformer_->transformToRobotFrame(goal_copy);
-
-        flor_ocs_msgs::OCSFootstepPlanGoalUpdate cmd;
-        cmd.goal_pose = goal_pose_;
-        cmd.goal_pose.header.frame_id = "/world";
-        cmd.goal_pose.header.stamp = last_validated_step_plan_stamp_;
-        cmd.left_foot.pose = goal_copy.left.pose;
-        cmd.left_foot.header.frame_id = "/world";
-        cmd.left_foot.header.stamp = last_validated_step_plan_stamp_;
-        cmd.right_foot.pose = goal_copy.right.pose;
-        cmd.right_foot.header.frame_id = "/world";
-        cmd.right_foot.header.stamp = last_validated_step_plan_stamp_;
-        obfsm_update_step_plan_goal_pub_.publish(cmd);
-
+        sendStepPlanGoalFeet();
     }
     // only send 3dof goal if it hasn't been modified
     else
     {
-        boost::recursive_mutex::scoped_lock lock(goal_mutex_);
-
-        last_validated_step_plan_stamp_ = ros::Time::now();
-
-        flor_ocs_msgs::OCSFootstepPlanGoal cmd;
-        cmd.goal_pose = goal_pose_;
-        cmd.goal_pose.header.frame_id = "/world";
-        cmd.goal_pose.header.stamp = last_validated_step_plan_stamp_;
-        obfsm_plan_goal_pub_.publish(cmd);
+        sendStepPlanGoal();
     }
 
 }
@@ -395,6 +420,11 @@ void FootstepManager::processExecuteFootstepRequest(const std_msgs::Int8::ConstP
 
     //convert transform to ankle for planner, might be redundant here?
     foot_pose_transformer_->transformToRobotFrame(action_goal.step_plan);
+}
+
+void FootstepManager::processSendOCSStepPlanRequest(const std_msgs::Int8::ConstPtr& msg)
+{
+    sendCurrentStepPlan();
 }
 
 void FootstepManager::processStitchPlansRequest(const std_msgs::Int8::ConstPtr& msg)
@@ -990,17 +1020,48 @@ void FootstepManager::publishSyncStatus()
     boost::recursive_mutex::scoped_lock lock(step_plan_mutex_);
 
     flor_ocs_msgs::OCSFootstepSyncStatus synced;
+
+    // sync status
     if(getStepPlanList().size() == 0)
         synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::EMPTY_PLAN_LIST;
     else if(getStepPlan().steps.size() == 0)
         synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::EMPTY_PLAN;
-    else if(goal_.header.stamp.toSec() != getStepPlan().header.stamp.toSec()) // goal and step plan headers don't match
-        synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::PROCESSING_OCS_PLAN;
-    else if(updated_steps_.find(getStepPlan().header.stamp) != updated_steps_.end() ||
-            last_validated_step_plan_stamp_.toSec() != getStepPlan().header.stamp.toSec())
-        synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::NEED_PLAN_VALIDATION;
     else
-        synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::SYNCED;
+    {
+        // there is a step plan, so safe to access it
+        if(goal_.header.stamp.toSec() != getStepPlan().header.stamp.toSec()) // goal and step plan headers don't match
+            synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::PROCESSING_OCS_PLAN;
+        else if(updated_steps_.find(getStepPlan().header.stamp) != updated_steps_.end() ||
+                last_validated_step_plan_stamp_.toSec() != getStepPlan().header.stamp.toSec())
+            synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::NEED_PLAN_VALIDATION;
+        else
+            synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::SYNCED;
+
+        // validation option based on status
+        if(updated_steps_.find(getStepPlan().header.stamp) != updated_steps_.end())
+        {
+            if(getStepPlan().header.stamp.nsec == last_onboard_step_plan_stamp_.nsec && getStepPlan().header.stamp.sec == last_onboard_step_plan_stamp_.sec)
+            {
+                synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::EDITED_STEPS;
+            }
+            // if not and we have edited steps, we have to send the entire plan
+            else
+            {
+                synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::CURRENT_PLAN;
+            }
+        }
+        // if the goal has been updated
+        else if(updated_goal_)
+        {
+            synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::GOAL_FEET;
+        }
+        // only send 3dof goal if it hasn't been modified
+        else
+        {
+            synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::GOAL;
+        }
+    }
+
     sync_status_pub_.publish(synced);
 }
 

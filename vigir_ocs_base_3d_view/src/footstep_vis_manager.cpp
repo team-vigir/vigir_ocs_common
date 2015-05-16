@@ -55,6 +55,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     footstep_start_index_pub_        = nh_.advertise<std_msgs::Int32>( "/flor/ocs/footstep/set_start_index", 1, false );
     footstep_validate_req_pub_       = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/validate", 1, false );
     footstep_execute_req_pub_        = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/execute", 1, false );
+    footstep_send_ocs_plan_req_pub_  = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/send_ocs_plan", 1, false );
     footstep_stitch_req_pub_         = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/stitch", 1, false );
     footstep_plan_parameters_pub_    = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters", 1, false );
     footstep_plan_parameters_sub_    = nh_.subscribe<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters_feedback", 5, &FootstepVisManager::processFootstepPlanParameters, this );
@@ -100,7 +101,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     display_goal_footstep_marker_[1] = NULL;
     has_goal_ = false;
 
-    //
+    // mouse button down?
     button_down_ = false;
 
     // make sure we send step plan request if needed based on time
@@ -263,6 +264,21 @@ void FootstepVisManager::requestExecuteStepPlan()
     }
 }
 
+void FootstepVisManager::requestSendOCSStepPlan()
+{
+    int option = QMessageBox::information( NULL, "Send OCS Step Plan Confirmation",
+                                          "Are you sure you want to send the current step plan?",
+                                          "Yes", "Cancel",
+                                          0, 1 );
+    if(option == 0)
+    {
+        // send request to footstep manager
+        std_msgs::Int8 cmd;
+        cmd.data = 1;
+        footstep_send_ocs_plan_req_pub_.publish(cmd);
+    }
+}
+
 void FootstepVisManager::requestStepPlan()
 {
     need_plan_update_ = false;
@@ -286,6 +302,8 @@ void FootstepVisManager::processSyncStatus(const flor_ocs_msgs::OCSFootstepSyncS
         can_validate_ = true;
     else
         can_validate_ = false;
+
+    validate_mode_ = msg->validate_mode;
 }
 
 void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
@@ -300,6 +318,7 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
 
     flor_ocs_msgs::OCSFootstepPlanGoal cmd;
     cmd.goal_pose = *pose;
+    cmd.goal_pose.header.stamp = ros::Time::now();
     footstep_plan_goal_pub_.publish(cmd);
 }
 
