@@ -643,6 +643,7 @@ void FootstepManager::stepPlanToBodyMarkerArray(std::vector<vigir_footstep_plann
 
             vigir_footstep_planning::msgs::feetToUpperBodyMarker(feet, upper_body_size, upper_body_origin_shift, color, marker, true);
             marker.id = body_array_msg.markers.size();
+            marker.ns = std::string("body_bb");
 
             body_array_msg.markers.push_back(marker);
         }

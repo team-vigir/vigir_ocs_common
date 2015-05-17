@@ -82,6 +82,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
     // there are some minor optimizations (distance based) that mean we wont have to
     // check all of the objects most of the time, but the worst case scenario is that
     // we need to test every triangle of every object.
+    std::map<size_t,Ogre::Real> entity_closest_distance_map_;
     Ogre::Real closest_distance = -1.0f;
     Ogre::Vector3 closest_result;
     Ogre::RaySceneQueryResult &query_result = ray_scene_query_->getLastResults();
@@ -89,12 +90,12 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
     {
         // stop checking if we have found a raycast hit that is closer
         // than all remaining entities
-        if ((closest_distance >= 0.0f) &&
-                (closest_distance < query_result[qr_idx].distance))
-        {
-            break;
-        }
-        
+//        if ((closest_distance >= 0.0f) &&
+//            (closest_distance < query_result[qr_idx].distance))
+//        {
+//            break;
+//        }
+
         if(query_result[qr_idx].movable != NULL)
         {
             //query_result[qr_idx].movable->getParentSceneNode()->showBoundingBox(true);
@@ -105,101 +106,6 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
         if ((query_result[qr_idx].movable != NULL) &&
             (query_result[qr_idx].movable->getMovableType().compare("Entity") == 0))
         {
-            // get user-defined data (in this case, usually identifier
-            std::string user_data = "";
-            try
-            {
-                Ogre::Any any = query_result[qr_idx].movable->getUserAny();
-                user_data = Ogre::any_cast<std::string>(any);
-            }
-            catch(...)
-            {
-                user_data = query_result[qr_idx].movable->getName();
-            }
-
-            //ROS_ERROR("raycast[%d]: %s",qr_idx,user_data.c_str());
-
-            // need to skip BoundingObject if there is a template, which means the bounding box/sphere is occluding it
-            if(boost::algorithm::starts_with(query_result[qr_idx].movable->getName(),"BoundingObject"))
-            {
-                int new_qr_idx;
-                for(new_qr_idx = qr_idx+1; new_qr_idx < query_result.size(); new_qr_idx++)
-                {
-                    if((query_result[new_qr_idx].movable != NULL) &&
-                       query_result[new_qr_idx].movable->getMovableType().compare("Entity") == 0)
-                    {
-                        if(query_result[new_qr_idx].movable->getName().find("Robot") != std::string::npos)
-                            break;
-                        if(boost::algorithm::starts_with(query_result[new_qr_idx].movable->getName(),"template"))
-                        {
-                            qr_idx = new_qr_idx;
-                            break;
-                        }
-                    }
-                }
-            }
-            // and need to skip step plan markers if there's a footstep
-            if(boost::algorithm::starts_with(user_data,"/step_plan_"))
-            {
-                //ROS_ERROR("ignoring step plan");
-                int new_qr_idx;
-                for(new_qr_idx = qr_idx+1; new_qr_idx < query_result.size(); new_qr_idx++)
-                {
-                    if((query_result[new_qr_idx].movable != NULL) &&
-                       query_result[new_qr_idx].movable->getMovableType().compare("Entity") == 0)
-                    {
-                        std::string next_user_data = "";
-                        try
-                        {
-                            Ogre::Any any = query_result[new_qr_idx].movable->getUserAny();
-                            next_user_data = Ogre::any_cast<std::string>(any);
-                        }
-                        catch(...)
-                        {
-                            next_user_data = query_result[qr_idx].movable->getName();
-                        }
-                        //ROS_ERROR("(%s) next is footstep? %s", next_user_data.c_str(), boost::algorithm::starts_with(next_user_data,"footstep") ? "yes" : "no");
-                        if(boost::algorithm::starts_with(next_user_data,"footstep"))
-                        {
-                            qr_idx = new_qr_idx;
-                            user_data = next_user_data;
-                            break;
-                        }
-                    }
-                }
-            }
-            // and need to skip footstep markers if there's a footstep goal
-            if(boost::algorithm::starts_with(user_data,"footstep") && !boost::algorithm::starts_with(user_data,"footstep_goal"))
-            {
-                //ROS_ERROR("ignoring step plan");
-                int new_qr_idx;
-                for(new_qr_idx = qr_idx+1; new_qr_idx < query_result.size(); new_qr_idx++)
-                {
-                    if((query_result[new_qr_idx].movable != NULL) &&
-                       query_result[new_qr_idx].movable->getMovableType().compare("Entity") == 0)
-                    {
-                        std::string next_user_data = "";
-                        try
-                        {
-                            Ogre::Any any = query_result[new_qr_idx].movable->getUserAny();
-                            next_user_data = Ogre::any_cast<std::string>(any);
-                        }
-                        catch(...)
-                        {
-                            next_user_data = query_result[qr_idx].movable->getName();
-                        }
-                        //ROS_ERROR("(%s) next is footstep goal? %s", next_user_data.c_str(), boost::algorithm::starts_with(next_user_data,"footstep_goal") ? "yes" : "no");
-                        if(boost::algorithm::starts_with(next_user_data,"footstep_goal"))
-                        {
-                            qr_idx = new_qr_idx;
-                            user_data = next_user_data;
-                            break;
-                        }
-                    }
-                }
-            }
-
-
             // get the entity to check
             Ogre::Entity *pentity = static_cast<Ogre::Entity*>(query_result[qr_idx].movable);
 
@@ -209,12 +115,13 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
             Ogre::Vector3 *vertices;
             unsigned long *indices;
 
+            // test for hitting individual triangles on the mesh
+
             // get the mesh information
             GetMeshInformationOptimized(pentity->getMesh(), vertex_count, vertices, index_count, indices,
                                         pentity->getParentNode()->_getDerivedPosition(), pentity->getParentNode()->_getDerivedOrientation(), pentity->getParentNode()->_getDerivedScale());
 
-            // test for hitting individual triangles on the mesh
-            bool new_closest_found = false;
+            Ogre::Real entity_closest_distance = -1.0f;
             for (int i = 0; i < static_cast<int>(index_count); i += 3)
             {
                 // check for a hit against this triangle
@@ -224,50 +131,28 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                 // if it was a hit check if its the closest
                 if (hit.first)
                 {
-                    if ((closest_distance < 0.0f) ||
-                            (hit.second < closest_distance))
+                    if ((entity_closest_distance < 0.0f) ||
+                            (hit.second < entity_closest_distance))
                     {
                         // this is the closest so far, save it off
-                        closest_distance = hit.second;
-                        new_closest_found = true;
+                        entity_closest_distance = hit.second;
                     }
                 }
+            }
+
+            if(entity_closest_distance > 0)
+                entity_closest_distance_map_[qr_idx] = entity_closest_distance; // save in map to check priority
+
+            if ((closest_distance < 0.0f) ||
+                (entity_closest_distance < closest_distance))
+            {
+                // this is the closest so far, save it off
+                closest_distance = entity_closest_distance;
             }
 
             // free the verticies and indicies memory
             delete[] vertices;
             delete[] indices;
-
-            // if we found a new closest raycast for this object, update the
-            // closest_result before moving on to the next object.
-            if (new_closest_found)
-            {
-                closest_result = ray.getPoint(closest_distance);
-
-                // type 0 -> UNKNOWN ENTITY
-                // type 1 -> POINT CLOUD
-                // type 2 -> WAYPOINT
-                // type 3 -> TEMPLATE
-                // type 4 -> FOOTSTEP
-                object_type = 0;
-                if(query_result[qr_idx].movable->getMovableType().compare("PointCloudCustom") == 0)
-                {
-                    object_type = 1;
-                    object_name = query_result[qr_idx].movable->getName();
-                }
-                else if(query_result[qr_idx].movable->getMovableType().compare("Entity") == 0)
-                {
-                    if(boost::algorithm::starts_with(user_data,"waypoint"))
-                        object_type = 2;
-                    else if(boost::algorithm::starts_with(user_data,"template"))
-                        object_type = 3;
-                    else if(boost::algorithm::starts_with(user_data,"footstep goal"))
-                        object_type = 4;
-                    else if(boost::algorithm::starts_with(user_data,"footstep"))
-                        object_type = 4;
-                    object_name = user_data;
-                }
-            }
         }
         else if ((query_result[qr_idx].movable != NULL) &&
                  (query_result[qr_idx].movable->getMovableType().compare("PointCloudCustom") == 0))
@@ -285,7 +170,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
             std::cout << "all mesh information ready (" << vertices.size() << ", " << indices.size() << ")" << std::endl;
 
             // test for hitting individual triangles on the mesh
-            bool new_closest_found = false;
+            Ogre::Real entity_closest_distance = -1.0f;
             for (int i = 0; i < indices.size(); i += 3)
             {
                 //std::cout << "testing hit with " << i << " / " << vertices.size() << std::endl;
@@ -299,66 +184,213 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                 // if it was a hit check if its the closest
                 if (hit.first)
                 {
-                    std::cout << "new hit: " << hit.second << "\n   compared to current closest hit: " << closest_distance << std::endl;
-                    if ((closest_distance < 0.0f) ||
-                        (hit.second < closest_distance))
+                    std::cout << "new hit: " << hit.second << "\n   compared to current closest hit: " << entity_closest_distance << std::endl;
+                    if ((entity_closest_distance < 0.0f) ||
+                        (hit.second < entity_closest_distance))
                     {
                         // this is the closest so far, save it off
-                        closest_distance = hit.second;
-                        new_closest_found = true;
+                        entity_closest_distance = hit.second;
                     }
                 }
             }
-			std::cout << "tested for hits" << std::endl;
+            std::cout << "tested for hits" << std::endl;
+
+            if(entity_closest_distance > 0)
+                entity_closest_distance_map_[qr_idx] = entity_closest_distance; // save in map to check priority
+
+            if ((closest_distance < 0.0f) ||
+                (entity_closest_distance < closest_distance))
+            {
+                // this is the closest so far, save it off
+                closest_distance = entity_closest_distance;
+            }
 
             // free the verticies and indicies memory
             vertices.clear();
             indices.clear();
 			std::cout << "cleared memory" << std::endl;
+        }
+    }
 
-            // if we found a new closest raycast for this object, update the
-            // closest_result before moving on to the next object.
-            if (new_closest_found)
+    // now that we have all the per-triangle intersection, we do selection priority checking
+    if(entity_closest_distance_map_.size() > 0)
+    {
+        // use the first one, which should be the closest point
+        std::map<size_t,Ogre::Real>::iterator closest_object = entity_closest_distance_map_.begin();
+
+        size_t index = closest_object->first;
+        Ogre::MovableObject* movable = query_result[index].movable;
+        Ogre::Real distance = closest_object->second;
+        // get user-defined data (in this case, usually identifier
+        std::string user_data = "";
+        try
+        {
+           Ogre::Any any = movable->getUserAny();
+           user_data = Ogre::any_cast<std::string>(any);
+        }
+        catch(...)
+        {
+           user_data = movable->getName();
+        }
+
+        // check if there is a need to iterate
+        // ignore ground and footstep body bounding boxes
+        if((movable->getName().c_str() == "ground plane" || boost::algorithm::starts_with(user_data,"body_bb")) && entity_closest_distance_map_.size() > 1 )
+        {
+            ROS_ERROR("ignore ground and footstep body bounding boxes");
+            ++closest_object;
+        }
+
+        // if we're intersecting a bounding object, need to prioritize template if template is there
+        if(boost::algorithm::starts_with(movable->getName(),"BoundingObject"))
+        {
+            ROS_ERROR("we're intersecting a bounding object, prioritize template if template is there");
+            for (std::map<size_t,Ogre::Real>::iterator it = closest_object; it != entity_closest_distance_map_.end(); ++it)
             {
-   				std::cout << "found new point" << std::endl;
-                closest_result = ray.getPoint(closest_distance);
-
-                // type 0 -> UNKNOWN ENTITY
-                // type 1 -> POINT CLOUD
-                // type 2 -> WAYPOINT
-                // type 3 -> TEMPLATE
-                // type 4 -> FOOTSTEP
-                object_type = 0;
-                if(query_result[qr_idx].movable->getMovableType().compare("PointCloudCustom") == 0)
+                size_t new_index = it->first;
+                Ogre::MovableObject* new_movable = query_result[new_index].movable;
+                Ogre::Real new_distance = it->second;
+                std::string new_user_data = "";
+                try
                 {
-                    object_type = 1;
+                   Ogre::Any any = new_movable->getUserAny();
+                   new_user_data = Ogre::any_cast<std::string>(any);
                 }
-                else if(query_result[qr_idx].movable->getMovableType().compare("Entity") == 0)
+                catch(...)
                 {
-                    std::string user_data = "";
-                    try
-                    {
-                        Ogre::Any any = pentity->getUserAny();
-                        user_data = Ogre::any_cast<std::string>(any);
-                    }
-                    catch(...)
-                    {
-                        std::cout << "no user data" << std::endl;
-                    }
-
-                    std::cout << "any data: " << user_data << std::endl;
-                    if(boost::algorithm::starts_with(user_data,"waypoint"))
-                        object_type = 2;
-                    else if(boost::algorithm::starts_with(user_data,"template"))
-                        object_type = 3;
-                    else if(boost::algorithm::starts_with(user_data,"footstep goal"))
-                        object_type = 4;
-                    else if(boost::algorithm::starts_with(user_data,"footstep"))
-                        object_type = 4;
+                   new_user_data = new_movable->getName();
                 }
 
-                object_name = query_result[qr_idx].movable->getName();
+                ROS_ERROR("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
+
+                if(new_movable->getName().c_str() == "ground plane" || boost::algorithm::starts_with(new_user_data,"body_bb"))
+                    continue;
+
+                // if outside the bounding sphere or collided with robot mesh
+                if(new_distance-distance > 0.2 || new_movable->getName().find("Robot") != std::string::npos)
+                    break;
+
+                if(boost::algorithm::starts_with(new_movable->getName(),"template"))
+                {
+                    ROS_ERROR("    found");
+
+                    index = new_index;
+                    movable = new_movable;
+                    distance = new_distance;
+                    user_data = new_user_data;
+                    closest_object = it;
+                    break;
+                }
             }
+        }
+        // prioritize footsteps over step plan markers
+        if(boost::algorithm::starts_with(user_data,"/step_plan_"))
+        {
+            ROS_ERROR("prioritize footsteps over step plan markers");
+            for (std::map<size_t,Ogre::Real>::iterator it = closest_object; it != entity_closest_distance_map_.end(); ++it)
+            {
+                size_t new_index = it->first;
+                Ogre::MovableObject* new_movable = query_result[new_index].movable;
+                Ogre::Real new_distance = it->second;
+                std::string new_user_data = "";
+                try
+                {
+                   Ogre::Any any = new_movable->getUserAny();
+                   new_user_data = Ogre::any_cast<std::string>(any);
+                }
+                catch(...)
+                {
+                   new_user_data = new_movable->getName();
+                }
+
+                ROS_ERROR("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
+
+                if(new_movable->getName().c_str() == "ground plane" || boost::algorithm::starts_with(new_user_data,"body_bb"))
+                    continue;
+
+                // if there is a footstep
+                if(boost::algorithm::starts_with(new_user_data,"footstep"))
+                {
+                    ROS_ERROR("    found");
+
+                    index = new_index;
+                    movable = new_movable;
+                    distance = new_distance;
+                    user_data = new_user_data;
+                    closest_object = it;
+                    break;
+                }
+            }
+        }
+        // prioritize footstep goal steps over regular footsteps
+        if(boost::algorithm::starts_with(user_data,"footstep") && !boost::algorithm::starts_with(user_data,"footstep_goal"))
+        {
+            ROS_ERROR("prioritize footsteps over step plan markers");
+            for (std::map<size_t,Ogre::Real>::iterator it = closest_object; it != entity_closest_distance_map_.end(); ++it)
+            {
+                size_t new_index = it->first;
+                Ogre::MovableObject* new_movable = query_result[new_index].movable;
+                Ogre::Real new_distance = it->second;
+                std::string new_user_data = "";
+                try
+                {
+                   Ogre::Any any = new_movable->getUserAny();
+                   new_user_data = Ogre::any_cast<std::string>(any);
+                }
+                catch(...)
+                {
+                   new_user_data = new_movable->getName();
+                }
+
+                ROS_ERROR("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
+
+                if(new_movable->getName().c_str() == "ground plane" || boost::algorithm::starts_with(new_user_data,"body_bb"))
+                    continue;
+
+                // if there is a footstep
+                if(boost::algorithm::starts_with(new_user_data,"footstep_goal"))
+                {
+                    ROS_ERROR("    found");
+
+                    index = new_index;
+                    movable = new_movable;
+                    distance = new_distance;
+                    user_data = new_user_data;
+                    closest_object = it;
+                    break;
+                }
+            }
+        }
+
+        ROS_ERROR("raycast[%d].%f: %s::%s",index,distance,movable->getName().c_str(),user_data.c_str());
+
+        // if we found a new closest raycast for this object, update the
+        // closest_result before moving on to the next object.
+        closest_distance = distance;
+        closest_result = ray.getPoint(closest_distance);
+
+        // type 0 -> UNKNOWN ENTITY
+        // type 1 -> POINT CLOUD
+        // type 2 -> WAYPOINT
+        // type 3 -> TEMPLATE
+        // type 4 -> FOOTSTEP
+        object_type = 0;
+        if(movable->getMovableType().compare("PointCloudCustom") == 0)
+        {
+            object_type = 1;
+            object_name = movable->getName();
+        }
+        else if(movable->getMovableType().compare("Entity") == 0)
+        {
+            if(boost::algorithm::starts_with(user_data,"waypoint"))
+                object_type = 2;
+            else if(boost::algorithm::starts_with(user_data,"template"))
+                object_type = 3;
+            else if(boost::algorithm::starts_with(user_data,"footstep goal"))
+                object_type = 4;
+            else if(boost::algorithm::starts_with(user_data,"footstep"))
+                object_type = 4;
+            object_name = user_data;
         }
     }
 

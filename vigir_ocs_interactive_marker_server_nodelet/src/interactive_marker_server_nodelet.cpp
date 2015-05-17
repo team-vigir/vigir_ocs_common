@@ -9,7 +9,7 @@ void InteractiveMarkerServerNodelet::onInit()
     interactive_marker_server_feedback_pub_ = nh.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback",100, false );
     interactive_marker_server_add_sub_ = nh.subscribe<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 100, &InteractiveMarkerServerNodelet::addInteractiveMarker, this );
     interactive_marker_server_remove_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 100, &InteractiveMarkerServerNodelet::removeInteractiveMarker, this );
-    interactive_marker_server_update_sub_ = nh.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 100, boost::bind(&InteractiveMarkerServerNodelet::updatePose, this, _1));
+    interactive_marker_server_update_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/update", 100, &InteractiveMarkerServerNodelet::updatePose, this);
     interactive_marker_server_mode_sub_ = nh.subscribe<flor_ocs_msgs::OCSControlMode>( "/flor/ocs/control_modes", 100, &InteractiveMarkerServerNodelet::setMode, this );
     interactive_marker_server_visibility_sub_ = nh.subscribe<flor_ocs_msgs::OCSMarkerVisibility>("/flor/ocs/interactive_marker_server/visibility",5, &InteractiveMarkerServerNodelet::processMarkerVisibility,this);
 
@@ -22,6 +22,8 @@ void InteractiveMarkerServerNodelet::onInit()
 
 void InteractiveMarkerServerNodelet::publishSelectedObject()
 {
+    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+
     if (pose_map_.find(selected_object_topic_) != pose_map_.end())
     {
         flor_ocs_msgs::OCSSelectedObjectUpdate cmd;
@@ -33,7 +35,7 @@ void InteractiveMarkerServerNodelet::publishSelectedObject()
 
 void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr &msg)
 {
-    boost::mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     // name, topic, frame, scale, point
     if (marker_map_.find(msg->topic) == marker_map_.end())
@@ -47,7 +49,7 @@ void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::O
 
 void InteractiveMarkerServerNodelet::removeInteractiveMarker( const std_msgs::String::ConstPtr& msg )
 {
-    boost::mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     //ROS_ERROR("%s marker exists?", msg->data.c_str());
     if(marker_map_.find(msg->data) != marker_map_.end())
@@ -59,12 +61,9 @@ void InteractiveMarkerServerNodelet::removeInteractiveMarker( const std_msgs::St
     }
 }
 
-void InteractiveMarkerServerNodelet::updatePose(const ros::MessageEvent<flor_ocs_msgs::OCSInteractiveMarkerUpdate const>& event)
+void InteractiveMarkerServerNodelet::updatePose( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr msg )
 {
-    boost::mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
-
-    const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg = event.getMessage();
-    const std::string& publisher_name = msg->client_id;//event.getPublisherName();
+    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     if(marker_map_.find(msg->topic) != marker_map_.end())
     {
@@ -78,7 +77,7 @@ void InteractiveMarkerServerNodelet::updatePose(const ros::MessageEvent<flor_ocs
         // close the loop by sending feedback IF needed
         if(msg->update_mode == flor_ocs_msgs::OCSInteractiveMarkerUpdate::SET_POSE)
         {
-            marker_map_[msg->topic]->onFeedback(msg->event_type,msg->topic,msg->pose,publisher_name);
+            marker_map_[msg->topic]->onFeedback(msg->event_type,msg->topic,msg->pose,msg->client_id);
             pose_map_[msg->topic] = msg->pose;
             publishSelectedObject();
         }
@@ -93,12 +92,18 @@ void InteractiveMarkerServerNodelet::onMarkerFeedback(unsigned char event_type, 
     cmd.topic = topic_name;
     cmd.pose = pose;
     cmd.event_type = event_type;
+    {
+    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_publisher_mutex_ );
     interactive_marker_server_feedback_pub_.publish(cmd);
+    }
+
+    if(event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP)
+        publishSelectedObject();
 }
 
 void InteractiveMarkerServerNodelet::setMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
 {
-    boost::mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     //ROS_ERROR("CHANGING MODE");
     std::map<std::string,InteractiveMarkerServerCustom*>::iterator iter;
@@ -113,7 +118,7 @@ void InteractiveMarkerServerNodelet::processMarkerVisibility(const flor_ocs_msgs
     //set visibility of different interactive markers
     if(msg->all_markers)
     {
-        boost::mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+        boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
         std::map<std::string,InteractiveMarkerServerCustom*>::iterator iter;
         for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
@@ -150,6 +155,8 @@ void InteractiveMarkerServerNodelet::processMarkerVisibility(const flor_ocs_msgs
 
 void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &msg)
 {
+    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+
     // save the interactive marker topic
     selected_object_topic_ = "";
 
@@ -173,8 +180,6 @@ void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs:
     }
 
     ROS_INFO("SELECTED OBJECT: %s", selected_object_topic_.c_str());
-
-    boost::mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     pose_map_[selected_object_topic_] = marker_map_[selected_object_topic_]->getPose();
 
