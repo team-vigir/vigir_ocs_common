@@ -1,10 +1,15 @@
 #include "graspWidget.h"
 #include "ui_graspWidget.h"
-#include <ros/package.h>
+
 #include <algorithm>
+
+#include <boost/asio/ip/host_name.hpp>
+
 #include <QColor>
 #include <QProgressBar>
 #include <QSlider>
+
+#include <ros/package.h>
 
 //grasp_testing grasp_testing_simple.launch
 
@@ -972,6 +977,10 @@ void graspWidget::on_show_grasp_toggled(bool checked)
 
 void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
 {
+    // only process object selection if I'm the sender
+    if(msg->host != boost::asio::ip::host_name())
+        return;
+
     switch(msg->type)
     {
         case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:

@@ -225,19 +225,19 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
         std::string user_data = "";
         try
         {
-           Ogre::Any any = movable->getUserAny();
-           user_data = Ogre::any_cast<std::string>(any);
+            Ogre::Any any = movable->getUserAny();
+            user_data = Ogre::any_cast<std::string>(any);
         }
         catch(...)
         {
-           user_data = movable->getName();
+            user_data = movable->getName();
         }
 
         // check if there is a need to iterate
         // ignore ground and footstep body bounding boxes
         while((boost::algorithm::starts_with(user_data,"ground plane") || boost::algorithm::starts_with(user_data,"body_bb")) && closest_object != entity_closest_distance_map_.end())
         {
-            ROS_INFO("ignore ground and footstep body bounding boxes (%s)",user_data.c_str());
+            //ROS_INFO("ignore ground and footstep body bounding boxes (%s)",user_data.c_str());
 
             ++closest_object;
 
@@ -260,7 +260,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
         // if we're intersecting a bounding object, need to prioritize template if template is there
         if(boost::algorithm::starts_with(movable->getName(),"BoundingObject"))
         {
-            ROS_INFO("we're intersecting a bounding object, prioritize template if template is there");
+            //ROS_INFO("we're intersecting a bounding object, prioritize template if template is there");
             for (std::map<size_t,Ogre::Real>::iterator it = closest_object; it != entity_closest_distance_map_.end(); ++it)
             {
                 size_t new_index = it->first;
@@ -277,7 +277,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                    new_user_data = new_movable->getName();
                 }
 
-                ROS_INFO("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
+                //ROS_INFO("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
 
                 if(boost::algorithm::starts_with(user_data,"ground plane") || boost::algorithm::starts_with(new_user_data,"body_bb"))
                     continue;
@@ -288,7 +288,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
 
                 if(boost::algorithm::starts_with(new_movable->getName(),"template"))
                 {
-                    ROS_INFO("    found");
+                    //ROS_INFO("    found");
 
                     index = new_index;
                     movable = new_movable;
@@ -302,7 +302,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
         // prioritize footsteps over step plan markers
         if(boost::algorithm::starts_with(user_data,"/step_plan_"))
         {
-            ROS_INFO("prioritize footsteps over step plan markers");
+            //ROS_INFO("prioritize footsteps over step plan markers");
             for (std::map<size_t,Ogre::Real>::iterator it = closest_object; it != entity_closest_distance_map_.end(); ++it)
             {
                 size_t new_index = it->first;
@@ -319,7 +319,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                    new_user_data = new_movable->getName();
                 }
 
-                ROS_INFO("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
+                //ROS_INFO("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
 
                 if(boost::algorithm::starts_with(user_data,"ground plane") || boost::algorithm::starts_with(new_user_data,"body_bb"))
                     continue;
@@ -327,7 +327,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                 // if there is a footstep
                 if(boost::algorithm::starts_with(new_user_data,"footstep"))
                 {
-                    ROS_INFO("    found");
+                    //ROS_INFO("    found");
 
                     index = new_index;
                     movable = new_movable;
@@ -341,7 +341,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
         // prioritize footstep goal steps over regular footsteps
         if(boost::algorithm::starts_with(user_data,"footstep") && !boost::algorithm::starts_with(user_data,"footstep goal"))
         {
-            ROS_INFO("prioritize footstep goal steps over regular footsteps");
+            //ROS_INFO("prioritize footstep goal steps over regular footsteps");
             for (std::map<size_t,Ogre::Real>::iterator it = closest_object; it != entity_closest_distance_map_.end(); ++it)
             {
                 size_t new_index = it->first;
@@ -358,7 +358,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                    new_user_data = new_movable->getName();
                 }
 
-                ROS_INFO("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
+                //ROS_INFO("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
 
                 if(boost::algorithm::starts_with(user_data,"ground plane") || boost::algorithm::starts_with(new_user_data,"body_bb"))
                     continue;
@@ -366,7 +366,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
                 // if there is a footstep
                 if(boost::algorithm::starts_with(new_user_data,"footstep goal"))
                 {
-                    ROS_INFO("    found");
+                    //ROS_INFO("    found");
 
                     index = new_index;
                     movable = new_movable;
@@ -378,7 +378,7 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
             }
         }
 
-        ROS_INFO("raycast[%d].%f: %s::%s",index,distance,movable->getName().c_str(),user_data.c_str());
+        //ROS_INFO("raycast[%d].%f: %s::%s",index,distance,movable->getName().c_str(),user_data.c_str());
 
         // if we found a new closest raycast for this object, update the
         // closest_result before moving on to the next object.

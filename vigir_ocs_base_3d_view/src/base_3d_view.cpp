@@ -9,6 +9,8 @@
  * - added support for joint manipulation?
  */
 
+#include <boost/asio/ip/host_name.hpp>
+
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -2013,6 +2015,7 @@ void Base3DView::selectTemplate()
         flor_ocs_msgs::OCSObjectSelection cmd;
         cmd.type = flor_ocs_msgs::OCSObjectSelection::TEMPLATE;
         cmd.id = id;
+        cmd.host = boost::asio::ip::host_name();
         select_object_pub_.publish(cmd);
     }
 }
@@ -2027,6 +2030,7 @@ void Base3DView::selectFootstep()
         flor_ocs_msgs::OCSObjectSelection cmd;
         cmd.type = flor_ocs_msgs::OCSObjectSelection::FOOTSTEP;
         cmd.id = id;
+        cmd.host = boost::asio::ip::host_name();
         select_object_pub_.publish(cmd);
     }
 }
@@ -2041,6 +2045,7 @@ void Base3DView::selectFootstepGoal()
         flor_ocs_msgs::OCSObjectSelection cmd;
         cmd.type = flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL;
         cmd.id = id;
+        cmd.host = boost::asio::ip::host_name();
         select_object_pub_.publish(cmd);
     }
 }
@@ -2050,6 +2055,7 @@ void Base3DView::selectLeftArm()
     flor_ocs_msgs::OCSObjectSelection cmd;
     cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
     cmd.id = flor_ocs_msgs::OCSObjectSelection::LEFT_ARM;
+    cmd.host = boost::asio::ip::host_name();
     select_object_pub_.publish(cmd);
 }
 
@@ -2058,6 +2064,7 @@ void Base3DView::selectRightArm()
     flor_ocs_msgs::OCSObjectSelection cmd;
     cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
     cmd.id = flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM;
+    cmd.host = boost::asio::ip::host_name();
     select_object_pub_.publish(cmd);
 }
 
@@ -2066,6 +2073,7 @@ void Base3DView::selectPelvis()
     flor_ocs_msgs::OCSObjectSelection cmd;
     cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
     cmd.id = flor_ocs_msgs::OCSObjectSelection::PELVIS;
+    cmd.host = boost::asio::ip::host_name();
     select_object_pub_.publish(cmd);
 }
 
@@ -2132,6 +2140,10 @@ void Base3DView::deselectAll()
 
 void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
 {
+    // only process object selection if I'm the sender
+    if(msg->host != boost::asio::ip::host_name())
+        return;
+
     deselectAll();
     //can assume everything deselected by this point
 

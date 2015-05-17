@@ -1,5 +1,7 @@
 #include "ps_move_template_controller.h"
 
+#include <boost/asio/ip/host_name.hpp>
+
 #define _USE_MATH_DEFINES
 using namespace std;
 
@@ -48,6 +50,10 @@ PSMoveTemplateController::~PSMoveTemplateController()
 //store information about the selected object
 void PSMoveTemplateController::processSelectedObjectUpdate(const flor_ocs_msgs::OCSSelectedObjectUpdate::ConstPtr& msg)
 {
+    // only process object selection if I'm the sender
+    if(msg->host != boost::asio::ip::host_name())
+        return;
+
     selected_object_topic_ = msg->topic;
     object_pose_ = msg->pose;
 }

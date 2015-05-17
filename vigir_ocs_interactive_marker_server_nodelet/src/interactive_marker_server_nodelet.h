@@ -4,6 +4,7 @@
 #include <pluginlib/class_list_macros.h>
 
 #include <boost/thread.hpp>
+#include <boost/asio/ip/host_name.hpp>
 
 #include <vector>
 #include <string>
@@ -54,10 +55,11 @@ namespace ocs_interactive_marker_server
 
         std::map<std::string,InteractiveMarkerServerCustom*> marker_map_;        
         std::map<std::string,geometry_msgs::PoseStamped> pose_map_;
+        std::map<std::string,std::string> host_selected_object_topic_map_;
 
         boost::recursive_mutex interactive_marker_server_change_mutex_;
         boost::recursive_mutex interactive_marker_server_publisher_mutex_;
 
-        std::string selected_object_topic_;
+        boost::posix_time::ptime marker_feedback_timer_;
     };
 }

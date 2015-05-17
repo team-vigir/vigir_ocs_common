@@ -17,18 +17,22 @@ void InteractiveMarkerServerNodelet::onInit()
     select_object_sub_ = nh.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &InteractiveMarkerServerNodelet::processObjectSelection, this );
     selected_object_update_pub_ = nh.advertise<flor_ocs_msgs::OCSSelectedObjectUpdate>( "/flor/ocs/interactive_marker_server/selected_object_update", 100, false);
 
-    selected_object_topic_ = "";
+    marker_feedback_timer_ = boost::posix_time::second_clock::local_time();
 }
 
 void InteractiveMarkerServerNodelet::publishSelectedObject()
 {
     boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
-    if (pose_map_.find(selected_object_topic_) != pose_map_.end())
+    for (std::map<std::string,std::string>::iterator it = host_selected_object_topic_map_.begin(); it != host_selected_object_topic_map_.end(); ++it)
     {
+        std::string host = it->first;
+        std::string selected_object_topic = it->second;
+
         flor_ocs_msgs::OCSSelectedObjectUpdate cmd;
-        cmd.topic = selected_object_topic_;
-        cmd.pose = pose_map_[selected_object_topic_];
+        cmd.topic = selected_object_topic;
+        cmd.pose = pose_map_[selected_object_topic];
+        cmd.host = host;
         selected_object_update_pub_.publish(cmd);
     }
 }
@@ -86,6 +90,12 @@ void InteractiveMarkerServerNodelet::updatePose( const flor_ocs_msgs::OCSInterac
 
 void InteractiveMarkerServerNodelet::onMarkerFeedback(unsigned char event_type, std::string topic_name, geometry_msgs::PoseStamped pose, std::string client_id)
 {
+    // throttle marker feedback to ~30hz
+    //if(event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE && (boost::posix_time::second_clock::local_time()-marker_feedback_timer_).total_milliseconds() < 33)
+    //    return;
+
+    marker_feedback_timer_ = boost::posix_time::second_clock::local_time();
+
     //ROS_INFO("update_pose: %s -> %s",client_id.c_str(),topic_name.c_str());
     flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
     cmd.client_id = client_id;
@@ -158,30 +168,31 @@ void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs:
     boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     // save the interactive marker topic
-    selected_object_topic_ = "";
+    std::string selected_object_topic = "";
 
     //Get id of object that is selected
     switch(msg->type)
     {
         case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
-            selected_object_topic_ = "/template_"+boost::lexical_cast<std::string>(msg->id)+"_marker";
+            selected_object_topic = "/template_"+boost::lexical_cast<std::string>(msg->id)+"_marker";
             break;
         case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
-            selected_object_topic_ = "/footstep_"+boost::lexical_cast<std::string>(msg->id/2)+"_marker";
+            selected_object_topic = "/footstep_"+boost::lexical_cast<std::string>(msg->id/2)+"_marker";
             break;
         case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL:
-            selected_object_topic_ = "/footstep_goal_"+boost::lexical_cast<std::string>(msg->id/2 ? "right" : "left")+"_marker";
+            selected_object_topic = "/footstep_goal_"+boost::lexical_cast<std::string>(msg->id/2 ? "right" : "left")+"_marker";
             break;
         case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
-            selected_object_topic_ = (msg->id == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM ? "/l_arm_pose_marker" : "/r_arm_pose_marker");
+            selected_object_topic = (msg->id == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM ? "/l_arm_pose_marker" : "/r_arm_pose_marker");
             break;
         default:
             break;
     }
 
-    ROS_INFO("SELECTED OBJECT: %s", selected_object_topic_.c_str());
+    ROS_INFO("SELECTED OBJECT: %s", selected_object_topic.c_str());
 
-    pose_map_[selected_object_topic_] = marker_map_[selected_object_topic_]->getPose();
+    host_selected_object_topic_map_[msg->host] = selected_object_topic;
+    pose_map_[host_selected_object_topic_map_[msg->host]] = marker_map_[selected_object_topic]->getPose();
 
     publishSelectedObject();
 
