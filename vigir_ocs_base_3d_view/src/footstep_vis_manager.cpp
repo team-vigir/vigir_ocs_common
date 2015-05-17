@@ -567,11 +567,17 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
             if(msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_DOWN)
             {
                 ROS_INFO("%s: button down",ros::this_node::getName().c_str());
+
                 button_down_ = true;
             }
             else if(button_down_ && msg.event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP)
             {
                 ROS_INFO("%s: button up",ros::this_node::getName().c_str());
+
+                // on mouse release, update feet
+                cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::UPDATE;
+                footstep_goal_pose_fb_pub_.publish(cmd);
+
                 double_click_timer_ = boost::posix_time::second_clock::local_time();
                 need_plan_update_ = true;
                 button_down_ = false;

@@ -683,6 +683,11 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
     if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::FEEDBACK)
         return;
 
+    vigir_footstep_planning_msgs::Feet updated_goal;
+
+    // noticed issue with SimpleActionClient where the sendGoal function would result in a deadlock, and if we had our lock active as well, we would get stuck
+    // so, using a copy of the goal_ member to send the action goal
+    {
     boost::recursive_mutex::scoped_lock lock(goal_mutex_);
 
     // update time stamp, as it will require a new validate
@@ -795,8 +800,14 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
     // update the interactive markers
     publishGoalMarkerFeedback();
 
+    updated_goal = goal_;
+    }
+
     // then update feet pose using the footstep planner
-    sendUpdateFeetGoal(goal_);
+    if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::UPDATE)
+    {
+        sendUpdateFeetGoal(updated_goal);
+    }
 }
 
 void FootstepManager::calculateGoal()
