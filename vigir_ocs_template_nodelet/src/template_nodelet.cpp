@@ -892,6 +892,13 @@ void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
                 usability.pose.pose.orientation.z = qz;
                 usability.pose.pose.orientation.w = qw;
 
+                if(pUsability->Attribute("name"))
+                    usability.name = pUsability->Attribute("name");
+                else{
+                    ROS_WARN("Usability ID: %d has no name attribute, setting to usability_%d", usability.id, usability.id);
+                    usability.name = "usability_" + boost::to_string(usability.id);
+                }
+
                 object_template.usabilities.insert(std::pair<unsigned int,vigir_object_template_msgs::Usability>(usability.id, usability));
             }
         }

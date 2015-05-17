@@ -301,14 +301,18 @@ void FootstepManager::sendEditedSteps()
 
 void FootstepManager::sendCurrentStepPlan()
 {
-    vigir_footstep_planning_msgs::StepPlan step_plan_copy = getStepPlan();
     getStepPlan().header.stamp = ros::Time::now(); // since this is a force-overwrite of the onboard step plan, create new timestamp
+
+    vigir_footstep_planning_msgs::StepPlan step_plan_copy = getStepPlan();
     foot_pose_transformer_->transformToRobotFrame(step_plan_copy);
     step_plan_copy.header.frame_id = "/world";
 
     obfsm_updated_step_plan_pub_.publish(step_plan_copy);
 
+    // overwriting everything, set local timestamps
     last_validated_step_plan_stamp_ = step_plan_copy.header.stamp;
+    goal_.header.stamp = step_plan_copy.header.stamp;
+    goal_pose_.header.stamp = step_plan_copy.header.stamp;
 
     // only need to send this once
     updated_steps_.clear();
