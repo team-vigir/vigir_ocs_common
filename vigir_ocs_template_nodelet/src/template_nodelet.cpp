@@ -1129,12 +1129,10 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
         if(template_pose_list_[index].header.frame_id == "/world")
         {
             if(stand_pose.id >= 1000 && (req.hand_side == req.LEFT_HAND || req.hand_side == req.BOTH_HANDS)){
-                //staticTransform(stand_pose.pose.pose,gp_T_lhand_);
                 worldPoseTransform(template_pose_list_[index],stand_pose.pose.pose,stand_pose.pose);
                 res.template_type_information.stand_poses.push_back(stand_pose);
             }
             if(stand_pose.id < 1000 && (req.hand_side == req.RIGHT_HAND || req.hand_side == req.BOTH_HANDS)){
-                //staticTransform(stand_pose.pose.pose,gp_T_rhand_);
                 worldPoseTransform(template_pose_list_[index],stand_pose.pose.pose,stand_pose.pose);
                 res.template_type_information.stand_poses.push_back(stand_pose);
             }
