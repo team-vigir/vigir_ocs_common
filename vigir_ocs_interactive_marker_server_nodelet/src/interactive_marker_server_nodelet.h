@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <ros/message_event.h>
-#include <nodelet/nodelet.h>
+//#include <nodelet/nodelet.h>
 #include <pluginlib/class_list_macros.h>
 
 #include <boost/thread.hpp>
@@ -28,10 +28,11 @@
 namespace ocs_interactive_marker_server
 {
 
-    class InteractiveMarkerServerNodelet : public nodelet::Nodelet
+    class InteractiveMarkerServerNodelet //: public nodelet::Nodelet
     {
       public:
-        virtual void onInit();
+        //virtual void onInit();
+        InteractiveMarkerServerNodelet();
 
         void addInteractiveMarker( const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr& msg );
         void removeInteractiveMarker( const std_msgs::String::ConstPtr& msg );
@@ -42,6 +43,8 @@ namespace ocs_interactive_marker_server
         void processMarkerVisibility(const flor_ocs_msgs::OCSMarkerVisibility::ConstPtr &msg);
 
       private:
+        ros::NodeHandle nh;
+
         void publishSelectedObject();
 
         ros::Publisher interactive_marker_server_feedback_pub_;
@@ -57,9 +60,9 @@ namespace ocs_interactive_marker_server
         std::map<std::string,geometry_msgs::PoseStamped> pose_map_;
         std::map<std::string,std::string> host_selected_object_topic_map_;
 
-        boost::recursive_mutex interactive_marker_server_change_mutex_;
-        boost::recursive_mutex interactive_marker_server_publisher_mutex_;
+//        boost::recursive_mutex interactive_marker_server_change_mutex_;
+//        boost::recursive_mutex interactive_marker_server_publisher_mutex_;
 
-        boost::posix_time::ptime marker_feedback_timer_;
+//        boost::posix_time::ptime marker_feedback_timer_;
     };
 }

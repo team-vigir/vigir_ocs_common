@@ -1,16 +1,19 @@
-#include "ros/ros.h"
-#include <nodelet/loader.h>
+#include <ros/ros.h>
+#include "interactive_marker_server_nodelet.h"
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
-    ros::init(argc, argv, "vigir_ocs_interactive_marker_server_nodelet");
+    if( !ros::isInitialized() )
+    {
+      ros::init( argc, argv, "interactive_marker_server", ros::init_options::AnonymousName );
+    }
 
-    nodelet::Loader manager(true);
-    nodelet::M_string remappings;
-    nodelet::V_string my_argv;
+    ocs_interactive_marker_server::InteractiveMarkerServerNodelet w;
 
-    manager.load(ros::this_node::getName(), "vigir_ocs_interactive_marker_server_nodelet/InteractiveMarkerServerNodelet", remappings, my_argv);
+    while(ros::ok())
+    {
+        ros::spinOnce();
+        usleep(1000);
+    }
 
-    ros::spin();
-    return 0;
 }

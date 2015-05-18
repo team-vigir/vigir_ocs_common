@@ -2,27 +2,26 @@
 
 namespace ocs_interactive_marker_server
 {
-void InteractiveMarkerServerNodelet::onInit()
+//void InteractiveMarkerServerNodelet::onInit()
+InteractiveMarkerServerNodelet::InteractiveMarkerServerNodelet()
 {
-    ros::NodeHandle& nh = getNodeHandle();
-
-    interactive_marker_server_feedback_pub_ = nh.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback",100, false );
-    interactive_marker_server_add_sub_ = nh.subscribe<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 100, &InteractiveMarkerServerNodelet::addInteractiveMarker, this );
-    interactive_marker_server_remove_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 100, &InteractiveMarkerServerNodelet::removeInteractiveMarker, this );
-    interactive_marker_server_update_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/update", 100, &InteractiveMarkerServerNodelet::updatePose, this);
-    interactive_marker_server_mode_sub_ = nh.subscribe<flor_ocs_msgs::OCSControlMode>( "/flor/ocs/control_modes", 100, &InteractiveMarkerServerNodelet::setMode, this );
+    interactive_marker_server_feedback_pub_ = nh.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback",5, false );
+    interactive_marker_server_add_sub_ = nh.subscribe<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, &InteractiveMarkerServerNodelet::addInteractiveMarker, this );
+    interactive_marker_server_remove_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, &InteractiveMarkerServerNodelet::removeInteractiveMarker, this );
+    interactive_marker_server_update_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/update", 5, &InteractiveMarkerServerNodelet::updatePose, this);
+    interactive_marker_server_mode_sub_ = nh.subscribe<flor_ocs_msgs::OCSControlMode>( "/flor/ocs/control_modes", 5, &InteractiveMarkerServerNodelet::setMode, this );
     interactive_marker_server_visibility_sub_ = nh.subscribe<flor_ocs_msgs::OCSMarkerVisibility>("/flor/ocs/interactive_marker_server/visibility",5, &InteractiveMarkerServerNodelet::processMarkerVisibility,this);
 
     // related to object selection
     select_object_sub_ = nh.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &InteractiveMarkerServerNodelet::processObjectSelection, this );
-    selected_object_update_pub_ = nh.advertise<flor_ocs_msgs::OCSSelectedObjectUpdate>( "/flor/ocs/interactive_marker_server/selected_object_update", 100, false);
+    selected_object_update_pub_ = nh.advertise<flor_ocs_msgs::OCSSelectedObjectUpdate>( "/flor/ocs/interactive_marker_server/selected_object_update", 5, false);
 
-    marker_feedback_timer_ = boost::posix_time::microsec_clock::universal_time();
+    //marker_feedback_timer_ = boost::posix_time::microsec_clock::universal_time();
 }
 
 void InteractiveMarkerServerNodelet::publishSelectedObject()
 {
-    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+    //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     for (std::map<std::string,std::string>::iterator it = host_selected_object_topic_map_.begin(); it != host_selected_object_topic_map_.end(); ++it)
     {
@@ -39,7 +38,7 @@ void InteractiveMarkerServerNodelet::publishSelectedObject()
 
 void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr &msg)
 {
-    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+    //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     // name, topic, frame, scale, point
     if (marker_map_.find(msg->topic) == marker_map_.end())
@@ -53,7 +52,7 @@ void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::O
 
 void InteractiveMarkerServerNodelet::removeInteractiveMarker( const std_msgs::String::ConstPtr& msg )
 {
-    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+    //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     //ROS_ERROR("%s marker exists?", msg->data.c_str());
     if(marker_map_.find(msg->data) != marker_map_.end())
@@ -67,7 +66,7 @@ void InteractiveMarkerServerNodelet::removeInteractiveMarker( const std_msgs::St
 
 void InteractiveMarkerServerNodelet::updatePose( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr msg )
 {
-    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+    //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     if(marker_map_.find(msg->topic) != marker_map_.end())
     {
@@ -111,7 +110,7 @@ void InteractiveMarkerServerNodelet::onMarkerFeedback(unsigned char event_type, 
     cmd.pose.header.stamp = ros::Time::now();
     cmd.event_type = event_type;
     {
-    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_publisher_mutex_ );
+    //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_publisher_mutex_ );
     interactive_marker_server_feedback_pub_.publish(cmd);
     }
 
@@ -121,7 +120,7 @@ void InteractiveMarkerServerNodelet::onMarkerFeedback(unsigned char event_type, 
 
 void InteractiveMarkerServerNodelet::setMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
 {
-    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+    //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     //ROS_ERROR("CHANGING MODE");
     std::map<std::string,InteractiveMarkerServerCustom*>::iterator iter;
@@ -136,7 +135,7 @@ void InteractiveMarkerServerNodelet::processMarkerVisibility(const flor_ocs_msgs
     //set visibility of different interactive markers
     if(msg->all_markers)
     {
-        boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+        //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
         std::map<std::string,InteractiveMarkerServerCustom*>::iterator iter;
         for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
@@ -173,7 +172,7 @@ void InteractiveMarkerServerNodelet::processMarkerVisibility(const flor_ocs_msgs
 
 void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &msg)
 {
-    boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+    //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     // save the interactive marker topic
     std::string selected_object_topic = "";
@@ -208,4 +207,4 @@ void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs:
 
 }
 
-PLUGINLIB_DECLARE_CLASS (vigir_ocs_interactive_marker_server_nodelet, InteractiveMarkerServerNodelet, ocs_interactive_marker_server::InteractiveMarkerServerNodelet, nodelet::Nodelet);
+//PLUGINLIB_DECLARE_CLASS (vigir_ocs_interactive_marker_server_nodelet, InteractiveMarkerServerNodelet, ocs_interactive_marker_server::InteractiveMarkerServerNodelet, nodelet::Nodelet);
