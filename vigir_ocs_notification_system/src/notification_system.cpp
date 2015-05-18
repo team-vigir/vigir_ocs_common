@@ -1,5 +1,7 @@
-
 #include "notification_system.h"
+
+#include <boost/thread.hpp>
+#include <boost/date_time.hpp>
 
 // Allocating and initializing GlobalClass's
 // static data member.  The pointer is being
@@ -42,7 +44,7 @@ void NotificationSystem::notifyPassive(std::string text)
     msg.bg_color.a = .5f;
     msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
     msg.fadeIn = 1.0f;
-   // msg.fadeOut = 1.0f;
+    //msg.fadeOut = 1.0f;
     msg.upTime = 2.0f;
     msg.row = flor_ocs_msgs::OCSOverlayText::TOPROW;
     msg.column = flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
@@ -68,11 +70,13 @@ void NotificationSystem::notifyWarning(std::string text)
     msg.bg_color.a = .5f;
     msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
     msg.fadeIn = 1.0f;
-  //  msg.fadeOut = 1.0f;
-    msg.upTime = 2.0f;
+    msg.fadeOut = 1.0f;
+    msg.upTime = 5.0f;
     msg.row = flor_ocs_msgs::OCSOverlayText::CENTERROW;
     msg.column = flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
     notification_pub_.publish(msg);
+
+    boost::thread thread = boost::thread(&NotificationSystem::sendDelayedNotification, this, 5, text);
 }
 
 //publishes to show red text in center
@@ -93,11 +97,13 @@ void NotificationSystem::notifyError(std::string text)
     msg.bg_color.a = .5f;
     msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
     msg.fadeIn = 1.0f;
-//    msg.fadeOut = 1.0f;
-    msg.upTime = 2.0f;
+    msg.fadeOut = 1.0f;
+    msg.upTime = 5.0f;
     msg.row = flor_ocs_msgs::OCSOverlayText::CENTERROW;
     msg.column = flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
     notification_pub_.publish(msg);
+
+    boost::thread thread = boost::thread(&NotificationSystem::sendDelayedNotification, this, 5, text);
 }
 
 //publishes a custom message to have a notification appear and fade out in 3d view
@@ -123,8 +129,15 @@ void NotificationSystem::notifyCustom(std::string text, int row, int column, flo
     msg.row = row;
     msg.column = column;
     notification_pub_.publish(msg);
-
 }
 
+void NotificationSystem::sendDelayedNotification(int seconds, std::string text)
+{
+    boost::posix_time::seconds wait_time(seconds);
+
+    boost::this_thread::sleep(wait_time);
+
+    notifyPassive(text);
+}
 
 

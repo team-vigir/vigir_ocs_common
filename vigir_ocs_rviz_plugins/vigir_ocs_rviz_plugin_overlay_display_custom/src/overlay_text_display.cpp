@@ -192,6 +192,9 @@ void OverlayTextDisplay::update(float wall_dt, float ros_dt)
         return;
     }
 
+    if (text_.length() > 0)
+        overlay_text_->setText((text_).c_str());
+
     //set colors based on fade timers
     if(fade_in_timer_ > 0)
     {

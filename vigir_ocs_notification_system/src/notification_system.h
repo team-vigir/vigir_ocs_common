@@ -51,12 +51,14 @@ class NotificationSystem{
        void notifyWarning(std::string text);
        void notifyError(std::string text);
        void notifyCustom(std::string text, int row, int column, float r, float g, float b);
+
+       void sendDelayedNotification(int seconds, std::string text);
    private:
        NotificationSystem();  // Private so that it can  not be called
        NotificationSystem(NotificationSystem const&){};             // copy constructor is private
        NotificationSystem& operator=(NotificationSystem const&){};  // assignment operator is private
 
-       static NotificationSystem* instance;       
+       static NotificationSystem* instance;
        ros::NodeHandle nh;
        ros::Publisher notification_pub_;       
 };

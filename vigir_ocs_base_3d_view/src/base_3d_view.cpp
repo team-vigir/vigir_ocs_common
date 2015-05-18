@@ -240,8 +240,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         lidar_mesh_viewer_ = manager_->createDisplay( "rviz/MeshDisplayCustom", "LIDAR Mesh", true );
         ROS_ASSERT( lidar_mesh_viewer_ != NULL );
-        lidar_mesh_viewer_->subProp( "Image Topic" )->setValue( "/flor/ocs/mesh/camera" );
-        lidar_mesh_viewer_->subProp( "Mesh Topic" )->setValue( "/flor/ocs/mesh/lidar_mesh" );
+        lidar_mesh_viewer_->subProp( "Image Topic" )->setValue( "/multisense/left/image_rect_color" );
+        lidar_mesh_viewer_->subProp( "Mesh Topic" )->setValue( "/worldmodel_main/pointcloud_vis" );
 
         // point cloud request
         raycast_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Raycast Point Cloud", true );
