@@ -115,7 +115,9 @@ FootstepVisManager::~FootstepVisManager()
 void FootstepVisManager::timerEvent(QTimerEvent *event)
 {
     //ROS_INFO("Need plan update? %s", need_plan_update_ ? "yes" : "no");
-    if(need_plan_update_ && !button_down_ && (boost::posix_time::second_clock::local_time()-double_click_timer_).total_milliseconds() > 100)
+    boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
+    boost::posix_time::time_duration diff = now - double_click_timer_;
+    if(need_plan_update_ && !button_down_ && static_cast<float>(diff.total_milliseconds()) > 100.0f)
         requestStepPlan();
 }
 
@@ -315,7 +317,7 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
     enableFootstepGoalDisplays( false, true, true );
 
     // enable update of footstep plan
-    double_click_timer_ = boost::posix_time::second_clock::local_time();
+    double_click_timer_ = boost::posix_time::microsec_clock::universal_time();
     need_plan_update_ = true;
 
     flor_ocs_msgs::OCSFootstepPlanGoal cmd;
@@ -578,7 +580,7 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
                 cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::UPDATE;
                 footstep_goal_pose_fb_pub_.publish(cmd);
 
-                double_click_timer_ = boost::posix_time::second_clock::local_time();
+                double_click_timer_ = boost::posix_time::microsec_clock::universal_time();
                 need_plan_update_ = true;
                 button_down_ = false;
             }

@@ -17,7 +17,7 @@ void InteractiveMarkerServerNodelet::onInit()
     select_object_sub_ = nh.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &InteractiveMarkerServerNodelet::processObjectSelection, this );
     selected_object_update_pub_ = nh.advertise<flor_ocs_msgs::OCSSelectedObjectUpdate>( "/flor/ocs/interactive_marker_server/selected_object_update", 100, false);
 
-    marker_feedback_timer_ = boost::posix_time::second_clock::local_time();
+    marker_feedback_timer_ = boost::posix_time::microsec_clock::universal_time();
 }
 
 void InteractiveMarkerServerNodelet::publishSelectedObject()
@@ -90,17 +90,25 @@ void InteractiveMarkerServerNodelet::updatePose( const flor_ocs_msgs::OCSInterac
 
 void InteractiveMarkerServerNodelet::onMarkerFeedback(unsigned char event_type, std::string topic_name, geometry_msgs::PoseStamped pose, std::string client_id)
 {
-    // throttle marker feedback to ~30hz
-    //if(event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE && (boost::posix_time::second_clock::local_time()-marker_feedback_timer_).total_milliseconds() < 33)
-    //    return;
+    // multithreaded application, multiple threads sending this, so would need a timer per thread
+//    boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
+//    boost::posix_time::time_duration diff = now - marker_feedback_timer_;
 
-    marker_feedback_timer_ = boost::posix_time::second_clock::local_time();
+//    ROS_ERROR("%f",static_cast<float>(diff.total_milliseconds()));
+//    // throttle marker feedback to ~30hz
+//    if(event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE && static_cast<float>(diff.total_milliseconds()) < 33.333f)
+//        return;
+
+//    ROS_ERROR("send");
+
+//    marker_feedback_timer_ = boost::posix_time::microsec_clock::universal_time();
 
     //ROS_INFO("update_pose: %s -> %s",client_id.c_str(),topic_name.c_str());
     flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
     cmd.client_id = client_id;
     cmd.topic = topic_name;
     cmd.pose = pose;
+    cmd.pose.header.stamp = ros::Time::now();
     cmd.event_type = event_type;
     {
     boost::recursive_mutex::scoped_lock lock( interactive_marker_server_publisher_mutex_ );
