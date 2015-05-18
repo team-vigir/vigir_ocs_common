@@ -56,6 +56,6 @@ install( TARGETS
 )
 
 install( DIRECTORY
-    src
+    src launch
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

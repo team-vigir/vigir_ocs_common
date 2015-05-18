@@ -48,6 +48,7 @@ private:
     ros::Publisher ocs_responce_pub_;
     QBasicTimer timer;
     bool first;
+    std::string  experiment_directory_;
 	void on_responce_recieved(const std_msgs::String::ConstPtr& msg);
 
 };

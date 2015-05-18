@@ -25,6 +25,9 @@ Widget::Widget(QWidget *parent) :
     ocs_logging_pub_ = nh.advertise<flor_ocs_msgs::OCSLogging>("/vigir_logging",        1, false);
     ocs_responce_sub_ = nh.subscribe<std_msgs::String>("/vigir_logging_responce", 5, &Widget::on_responce_recieved, this);
     ocs_responce_pub_ = nh.advertise<std_msgs::String>("/vigir_logging_query", 1, false);
+    experiment_directory_ = "/home/vigir/Experiments";
+    if(nh.hasParam("experiment_directory"))
+            nh.getParam("experiment_directory",experiment_directory_);
 	first = true;
 
 }
@@ -105,11 +108,10 @@ void Widget::timerEvent(QTimerEvent *event)
 
 void Widget::on_startButton_clicked()
 {
-    std::string dir = "/home/vigir/Experiments/";
     QRegExp rx("(\s\\\\)");
     std::string expName = (ui->experimentName->text().replace(rx,tr("_"))).toStdString();
     std::cout << "Exp name is " << expName << std::endl;
-    boost::filesystem::path folder (std::string("/home/vigir/Experiments/"+expName));
+    boost::filesystem::path folder (std::string(experiment_directory_+expName));
     if(boost::filesystem::exists(folder))
     {
         std::cout << "Folder already exists " << folder.c_str() << std::endl;
