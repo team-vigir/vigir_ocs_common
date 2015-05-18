@@ -25,7 +25,7 @@ Widget::Widget(QWidget *parent) :
     ocs_logging_pub_ = nh.advertise<flor_ocs_msgs::OCSLogging>("/vigir_logging",        1, false);
     ocs_responce_sub_ = nh.subscribe<std_msgs::String>("/vigir_logging_responce", 5, &Widget::on_responce_recieved, this);
     ocs_responce_pub_ = nh.advertise<std_msgs::String>("/vigir_logging_query", 1, false);
-    experiment_directory_ = "/home/vigir/Experiments";
+    experiment_directory_ = "/home/vigir/Experiments/";
     if(nh.hasParam("experiment_directory"))
             nh.getParam("experiment_directory",experiment_directory_);
 	first = true;

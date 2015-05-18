@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
   <node pkg="vigir_ocs_logging" name="logging_widget" type="logging_widget" output="screen" respawn="true">
-    <param name="experiment_folder" type="string" value="/home/testing/Experiments" />
+    <param name="experiment_directory" type="string" value="/home/testing/Experiments/" />
   </node>
 </launch>
