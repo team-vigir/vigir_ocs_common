@@ -170,10 +170,15 @@ CameraView::CameraView( QWidget* parent, Base3DView* copy_from )
 
     // Set image topic
     int default_cam = getDefaultCamera();
+
+    /*
     camera_viewer_->subProp( "Image Topic" )->setValue( (camera_[default_cam].topic_prefix+"_full/image_raw").c_str() );
     camera_viewer_->subProp( "Image Request Topic" )->setValue( (camera_[default_cam].topic_prefix+"_full/image_request").c_str() );
     camera_viewer_->subProp( "Cropped Image Topic" )->setValue( (camera_[default_cam].topic_prefix+"_cropped/image_raw").c_str() );
     camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( (camera_[default_cam].topic_prefix+"_cropped/image_request").c_str() );
+    */
+    this->changeCameraTopic(default_cam);
+
     camera_viewer_->setEnabled(false);
     camera_viewer_->setEnabled(true);
 
@@ -290,9 +295,9 @@ void CameraView::changeCameraTopic( int t )
 
 
     camera_viewer_->subProp( "Image Topic" )->setValue( (camera_[t].topic_prefix+camera_[t].topic_name).c_str() );
-    camera_viewer_->subProp( "Image Request Topic" )->setValue( (camera_[t].topic_prefix+"_full/image_request").c_str() );
-    camera_viewer_->subProp( "Cropped Image Topic" )->setValue( (camera_[t].topic_prefix+"_cropped/image_raw").c_str() );
-    camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( (camera_[t].topic_prefix+"_cropped/image_request").c_str() );
+    camera_viewer_->subProp( "Image Request Topic" )->setValue( (camera_[t].topic_prefix+"_full/image_request_remap_away").c_str() );
+    camera_viewer_->subProp( "Cropped Image Topic" )->setValue( (camera_[t].topic_prefix+"_cropped/image_raw_remap_away").c_str() );
+    camera_viewer_->subProp( "Cropped Image Request Topic" )->setValue( (camera_[t].topic_prefix+"_cropped/image_request_remap_away").c_str() );
 
     //applyFeedChanges();
 }
