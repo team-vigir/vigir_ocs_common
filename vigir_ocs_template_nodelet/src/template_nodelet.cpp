@@ -14,6 +14,7 @@ void TemplateNodelet::onInit()
     grasp_selected_state_pub_  = nh_out.advertise<flor_grasp_msgs::GraspState>( "grasp_selected_state", 1, false );
 
     // then, subscribe to the resulting cropped image
+    template_clear_sub_          = nh_out.subscribe<std_msgs::Int8>( "clear", 1, &TemplateNodelet::clearTemplateCb, this );
     template_add_sub_            = nh_out.subscribe<flor_ocs_msgs::OCSTemplateAdd>( "add", 1, &TemplateNodelet::addTemplateCb, this );
     template_remove_sub_         = nh_out.subscribe<flor_ocs_msgs::OCSTemplateRemove>( "remove", 1, &TemplateNodelet::removeTemplateCb, this );
     template_update_sub_         = nh_out.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( "update", 1, &TemplateNodelet::updateTemplateCb, this );
@@ -116,6 +117,11 @@ void TemplateNodelet::onInit()
 void TemplateNodelet::timerCallback(const ros::TimerEvent& event)
 {
     this->publishTemplateList();
+}
+
+void TemplateNodelet::clearTemplateCb(const std_msgs::Int8::ConstPtr &msg)
+{
+
 }
 
 
@@ -1092,6 +1098,7 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     res.template_type_information.b_min          = object_template_map_[template_type].b_min;
 	
 	//Transfer all known grasps to response
+    res.template_type_information.grasps.clear();
     for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it =  object_template_map_[template_type].grasps.begin();
                                                              it != object_template_map_[template_type].grasps.end();
                                                              ++it) {
@@ -1162,35 +1169,41 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
                                                                                  it != object_template_map_[template_type].affordances.end();
                                                                                  ++it) {
         vigir_object_template_msgs::Affordance affordance = it->second;
-        if(template_pose_list_[index].header.frame_id == "/world"){
-            ROS_INFO("Template in /world frame, responding affordances");
-            for(int waypoint=0; waypoint < affordance.waypoints.size(); waypoint++){
-                if(affordance.type == "circular")
-                    worldPoseTransform(template_pose_list_[index],affordance.waypoints[waypoint].pose,affordance.waypoints[waypoint]);
-                else{
-                    geometry_msgs::PoseStamped temp = template_pose_list_[index];
-                    temp.pose.position.x = temp.pose.position.y = temp.pose.position.z = 0.0; //we are only using the rotation part
-                    worldPoseTransform(temp,affordance.waypoints[waypoint].pose,affordance.waypoints[waypoint]);
+        if(affordance.waypoints.size() > 0){
+            if(template_pose_list_[index].header.frame_id == "/world"){
+                ROS_INFO("Template in /world frame, responding affordances");
+
+                for(int waypoint=0; waypoint < affordance.waypoints.size(); waypoint++){
+                    if(affordance.type == "circular")
+                        worldPoseTransform(template_pose_list_[index],affordance.waypoints[waypoint].pose,affordance.waypoints[waypoint]);
+                    else{
+                        geometry_msgs::PoseStamped temp = template_pose_list_[index];
+                        temp.pose.position.x = temp.pose.position.y = temp.pose.position.z = 0.0; //we are only using the rotation part
+                        worldPoseTransform(temp,affordance.waypoints[waypoint].pose,affordance.waypoints[waypoint]);
+                    }
                 }
-            }
-            res.template_type_information.affordances.push_back(affordance);
-        }else{
-            if(affordance.type == "cartesian"){
-                ROS_INFO("Template in %s frame, responding cartesian affordances", template_pose_list_[index].header.frame_id.c_str());
-                geometry_msgs::PoseStamped temp = template_pose_list_[index];
-                temp.pose.position.x = temp.pose.position.y = temp.pose.position.z = 0.0; //we are only using the rotation part
-                ROS_INFO_STREAM("template pose " << temp << std::endl);
-                ROS_INFO_STREAM("Affordan pose " << affordance.waypoints[0] << std::endl);
-                poseTransform(temp.pose,affordance.waypoints[0].pose,affordance.waypoints[0].pose);
-                ROS_INFO_STREAM("aff end pose " << affordance.waypoints[0] << std::endl);
-                affordance.waypoints[0].header.frame_id = template_pose_list_[index].header.frame_id;
                 res.template_type_information.affordances.push_back(affordance);
             }else{
-                ROS_INFO("Template in %s frame, responding circular affordances", template_pose_list_[index].header.frame_id.c_str());
-                poseTransform(template_pose_list_[index].pose,affordance.waypoints[0].pose,affordance.waypoints[0].pose);
-                affordance.waypoints[0].header.frame_id = template_pose_list_[index].header.frame_id;
-                res.template_type_information.affordances.push_back(affordance);
+                if(affordance.type == "cartesian"){
+                    ROS_INFO("Template in %s frame, responding cartesian affordances", template_pose_list_[index].header.frame_id.c_str());
+                    geometry_msgs::PoseStamped temp = template_pose_list_[index];
+                    temp.pose.position.x = temp.pose.position.y = temp.pose.position.z = 0.0; //we are only using the rotation part
+                    ROS_INFO_STREAM("template pose " << temp << std::endl);
+                    ROS_INFO_STREAM("Affordan pose " << affordance.waypoints[0] << std::endl);
+                    poseTransform(temp.pose,affordance.waypoints[0].pose,affordance.waypoints[0].pose);
+                    ROS_INFO_STREAM("aff end pose " << affordance.waypoints[0] << std::endl);
+                    affordance.waypoints[0].header.frame_id = template_pose_list_[index].header.frame_id;
+                    res.template_type_information.affordances.push_back(affordance);
+                }else{
+                    ROS_INFO("Template in %s frame, responding circular affordances", template_pose_list_[index].header.frame_id.c_str());
+                    poseTransform(template_pose_list_[index].pose,affordance.waypoints[0].pose,affordance.waypoints[0].pose);
+                    affordance.waypoints[0].header.frame_id = template_pose_list_[index].header.frame_id;
+                    res.template_type_information.affordances.push_back(affordance);
+                }
             }
+        }else{
+            ROS_ERROR("Affordance id: %d has no waypoints defined", affordance.id);
+            return false;
         }
     }
 

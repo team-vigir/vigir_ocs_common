@@ -79,6 +79,7 @@ namespace ocs_template
       public:
         virtual void onInit();
 
+        void clearTemplateCb(const std_msgs::Int8::ConstPtr& msg);
         void addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr& msg);
         void removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
         void updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& msg);
@@ -121,6 +122,7 @@ namespace ocs_template
 
       protected:
         ros::Subscriber template_update_sub_;
+        ros::Subscriber template_clear_sub_;
         ros::Subscriber template_add_sub_;
         ros::Subscriber template_remove_sub_;
         ros::Subscriber grasp_state_feedback_sub_;
