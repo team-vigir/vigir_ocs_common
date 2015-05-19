@@ -14,7 +14,6 @@ void TemplateNodelet::onInit()
     grasp_selected_state_pub_  = nh_out.advertise<flor_grasp_msgs::GraspState>( "grasp_selected_state", 1, false );
 
     // then, subscribe to the resulting cropped image
-    template_clear_sub_          = nh_out.subscribe<std_msgs::Int8>( "clear", 1, &TemplateNodelet::clearTemplateCb, this );
     template_add_sub_            = nh_out.subscribe<flor_ocs_msgs::OCSTemplateAdd>( "add", 1, &TemplateNodelet::addTemplateCb, this );
     template_remove_sub_         = nh_out.subscribe<flor_ocs_msgs::OCSTemplateRemove>( "remove", 1, &TemplateNodelet::removeTemplateCb, this );
     template_update_sub_         = nh_out.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( "update", 1, &TemplateNodelet::updateTemplateCb, this );
@@ -42,6 +41,8 @@ void TemplateNodelet::onInit()
         //SLAVE Forward topics through comms
         stitch_template_pub_         = nh_out.advertise<vigir_object_template_msgs::TemplateStateInfo>( "/stitch_template_srv_fwd", 1, false );
         detach_template_pub_         = nh_out.advertise<vigir_object_template_msgs::TemplateStateInfo>( "/detach_template_srv_fwd", 1, false );
+
+        template_clear_sub_          = nh_out.subscribe<std_msgs::Empty>( "clear", 1, &TemplateNodelet::clearTemplateCb, this );
     }
 
 
@@ -52,11 +53,14 @@ void TemplateNodelet::onInit()
     inst_grasp_info_server_      = nh_out.advertiseService("/instantiated_grasp_info", &TemplateNodelet::instantiatedGraspInfoSrv, this);
     stitch_object_server_        = nh_out.advertiseService("/stitch_object_template", &TemplateNodelet::stitchObjectTemplateSrv, this);
     detach_object_server_        = nh_out.advertiseService("/detach_object_template", &TemplateNodelet::detachObjectTemplateSrv, this);
-    usability_pose_server_      = nh_out.advertiseService("/usability_pose", &TemplateNodelet::usabilityPoseSrv, this);
+    usability_pose_server_       = nh_out.advertiseService("/usability_pose", &TemplateNodelet::usabilityPoseSrv, this);
 
     //Planing scene publishers
     co_pub_                      = nh_out.advertise<moveit_msgs::CollisionObject>("/collision_object", 1, false);
     aco_pub_                     = nh_out.advertise<moveit_msgs::AttachedCollisionObject>("/attached_collision_object", 1, false);
+    planning_scene_diff_pub_     = nh_out.advertise<moveit_msgs::PlanningScene>("/move_group/monitored_planning_scene", 1, false);
+
+
 
     ROS_INFO(" Start reading database files");
 
@@ -119,9 +123,40 @@ void TemplateNodelet::timerCallback(const ros::TimerEvent& event)
     this->publishTemplateList();
 }
 
-void TemplateNodelet::clearTemplateCb(const std_msgs::Int8::ConstPtr &msg)
+void TemplateNodelet::clearTemplateCb(const std_msgs::Empty)
 {
+    boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
 
+
+    moveit_msgs::PlanningScene planning_scene;
+    planning_scene.robot_state.attached_collision_objects.clear();
+    planning_scene.world.collision_objects.clear();
+    planning_scene.is_diff = true;
+
+    moveit_msgs::CollisionObject remove_object;
+    remove_object.operation = remove_object.REMOVE;
+
+    moveit_msgs::AttachedCollisionObject detach_object;
+    detach_object.object.operation = detach_object.object.REMOVE;
+
+    for(int i = 0; i < 25 ; i++){
+        remove_object.id = boost::to_string(i).c_str();
+        detach_object.object.id = boost::to_string(i).c_str();
+        planning_scene.world.collision_objects.push_back(remove_object);
+        planning_scene.robot_state.attached_collision_objects.push_back(detach_object);
+    }
+
+//    id_counter_ = 0; //resetting the templates ID
+
+//    ROS_WARN("Clearing template list" );
+//    template_id_list_.clear();
+//    template_type_list_.clear();
+//    template_name_list_.clear();
+//    template_pose_list_.clear();
+//    template_last_pose_list_.clear();
+//    template_status_list_.clear();
+
+    planning_scene_diff_pub_.publish(planning_scene);
 }
 
 
