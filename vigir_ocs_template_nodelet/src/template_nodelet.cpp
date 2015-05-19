@@ -41,6 +41,8 @@ void TemplateNodelet::onInit()
         //SLAVE Forward topics through comms
         stitch_template_pub_         = nh_out.advertise<vigir_object_template_msgs::TemplateStateInfo>( "/stitch_template_srv_fwd", 1, false );
         detach_template_pub_         = nh_out.advertise<vigir_object_template_msgs::TemplateStateInfo>( "/detach_template_srv_fwd", 1, false );
+
+        template_clear_sub_          = nh_out.subscribe<std_msgs::Empty>( "clear", 1, &TemplateNodelet::clearTemplateCb, this );
     }
 
 
@@ -51,11 +53,14 @@ void TemplateNodelet::onInit()
     inst_grasp_info_server_      = nh_out.advertiseService("/instantiated_grasp_info", &TemplateNodelet::instantiatedGraspInfoSrv, this);
     stitch_object_server_        = nh_out.advertiseService("/stitch_object_template", &TemplateNodelet::stitchObjectTemplateSrv, this);
     detach_object_server_        = nh_out.advertiseService("/detach_object_template", &TemplateNodelet::detachObjectTemplateSrv, this);
-    usability_pose_server_      = nh_out.advertiseService("/usability_pose", &TemplateNodelet::usabilityPoseSrv, this);
+    usability_pose_server_       = nh_out.advertiseService("/usability_pose", &TemplateNodelet::usabilityPoseSrv, this);
 
     //Planing scene publishers
     co_pub_                      = nh_out.advertise<moveit_msgs::CollisionObject>("/collision_object", 1, false);
     aco_pub_                     = nh_out.advertise<moveit_msgs::AttachedCollisionObject>("/attached_collision_object", 1, false);
+    planning_scene_diff_pub_     = nh_out.advertise<moveit_msgs::PlanningScene>("/move_group/monitored_planning_scene", 1, false);
+
+
 
     ROS_INFO(" Start reading database files");
 
@@ -116,6 +121,42 @@ void TemplateNodelet::onInit()
 void TemplateNodelet::timerCallback(const ros::TimerEvent& event)
 {
     this->publishTemplateList();
+}
+
+void TemplateNodelet::clearTemplateCb(const std_msgs::Empty)
+{
+    boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
+
+
+    moveit_msgs::PlanningScene planning_scene;
+    planning_scene.robot_state.attached_collision_objects.clear();
+    planning_scene.world.collision_objects.clear();
+    planning_scene.is_diff = true;
+
+    moveit_msgs::CollisionObject remove_object;
+    remove_object.operation = remove_object.REMOVE;
+
+    moveit_msgs::AttachedCollisionObject detach_object;
+    detach_object.object.operation = detach_object.object.REMOVE;
+
+    for(int i = 0; i < 25 ; i++){
+        remove_object.id = boost::to_string(i).c_str();
+        detach_object.object.id = boost::to_string(i).c_str();
+        planning_scene.world.collision_objects.push_back(remove_object);
+        planning_scene.robot_state.attached_collision_objects.push_back(detach_object);
+    }
+
+//    id_counter_ = 0; //resetting the templates ID
+
+//    ROS_WARN("Clearing template list" );
+//    template_id_list_.clear();
+//    template_type_list_.clear();
+//    template_name_list_.clear();
+//    template_pose_list_.clear();
+//    template_last_pose_list_.clear();
+//    template_status_list_.clear();
+
+    planning_scene_diff_pub_.publish(planning_scene);
 }
 
 
@@ -1092,6 +1133,7 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     res.template_type_information.b_min          = object_template_map_[template_type].b_min;
 	
 	//Transfer all known grasps to response
+    res.template_type_information.grasps.clear();
     for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it =  object_template_map_[template_type].grasps.begin();
                                                              it != object_template_map_[template_type].grasps.end();
                                                              ++it) {
@@ -1162,35 +1204,41 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
                                                                                  it != object_template_map_[template_type].affordances.end();
                                                                                  ++it) {
         vigir_object_template_msgs::Affordance affordance = it->second;
-        if(template_pose_list_[index].header.frame_id == "/world"){
-            ROS_INFO("Template in /world frame, responding affordances");
-            for(int waypoint=0; waypoint < affordance.waypoints.size(); waypoint++){
-                if(affordance.type == "circular")
-                    worldPoseTransform(template_pose_list_[index],affordance.waypoints[waypoint].pose,affordance.waypoints[waypoint]);
-                else{
-                    geometry_msgs::PoseStamped temp = template_pose_list_[index];
-                    temp.pose.position.x = temp.pose.position.y = temp.pose.position.z = 0.0; //we are only using the rotation part
-                    worldPoseTransform(temp,affordance.waypoints[waypoint].pose,affordance.waypoints[waypoint]);
+        if(affordance.waypoints.size() > 0){
+            if(template_pose_list_[index].header.frame_id == "/world"){
+                ROS_INFO("Template in /world frame, responding affordances");
+
+                for(int waypoint=0; waypoint < affordance.waypoints.size(); waypoint++){
+                    if(affordance.type == "circular")
+                        worldPoseTransform(template_pose_list_[index],affordance.waypoints[waypoint].pose,affordance.waypoints[waypoint]);
+                    else{
+                        geometry_msgs::PoseStamped temp = template_pose_list_[index];
+                        temp.pose.position.x = temp.pose.position.y = temp.pose.position.z = 0.0; //we are only using the rotation part
+                        worldPoseTransform(temp,affordance.waypoints[waypoint].pose,affordance.waypoints[waypoint]);
+                    }
                 }
-            }
-            res.template_type_information.affordances.push_back(affordance);
-        }else{
-            if(affordance.type == "cartesian"){
-                ROS_INFO("Template in %s frame, responding cartesian affordances", template_pose_list_[index].header.frame_id.c_str());
-                geometry_msgs::PoseStamped temp = template_pose_list_[index];
-                temp.pose.position.x = temp.pose.position.y = temp.pose.position.z = 0.0; //we are only using the rotation part
-                ROS_INFO_STREAM("template pose " << temp << std::endl);
-                ROS_INFO_STREAM("Affordan pose " << affordance.waypoints[0] << std::endl);
-                poseTransform(temp.pose,affordance.waypoints[0].pose,affordance.waypoints[0].pose);
-                ROS_INFO_STREAM("aff end pose " << affordance.waypoints[0] << std::endl);
-                affordance.waypoints[0].header.frame_id = template_pose_list_[index].header.frame_id;
                 res.template_type_information.affordances.push_back(affordance);
             }else{
-                ROS_INFO("Template in %s frame, responding circular affordances", template_pose_list_[index].header.frame_id.c_str());
-                poseTransform(template_pose_list_[index].pose,affordance.waypoints[0].pose,affordance.waypoints[0].pose);
-                affordance.waypoints[0].header.frame_id = template_pose_list_[index].header.frame_id;
-                res.template_type_information.affordances.push_back(affordance);
+                if(affordance.type == "cartesian"){
+                    ROS_INFO("Template in %s frame, responding cartesian affordances", template_pose_list_[index].header.frame_id.c_str());
+                    geometry_msgs::PoseStamped temp = template_pose_list_[index];
+                    temp.pose.position.x = temp.pose.position.y = temp.pose.position.z = 0.0; //we are only using the rotation part
+                    ROS_INFO_STREAM("template pose " << temp << std::endl);
+                    ROS_INFO_STREAM("Affordan pose " << affordance.waypoints[0] << std::endl);
+                    poseTransform(temp.pose,affordance.waypoints[0].pose,affordance.waypoints[0].pose);
+                    ROS_INFO_STREAM("aff end pose " << affordance.waypoints[0] << std::endl);
+                    affordance.waypoints[0].header.frame_id = template_pose_list_[index].header.frame_id;
+                    res.template_type_information.affordances.push_back(affordance);
+                }else{
+                    ROS_INFO("Template in %s frame, responding circular affordances", template_pose_list_[index].header.frame_id.c_str());
+                    poseTransform(template_pose_list_[index].pose,affordance.waypoints[0].pose,affordance.waypoints[0].pose);
+                    affordance.waypoints[0].header.frame_id = template_pose_list_[index].header.frame_id;
+                    res.template_type_information.affordances.push_back(affordance);
+                }
             }
+        }else{
+            ROS_ERROR("Affordance id: %d has no waypoints defined", affordance.id);
+            return false;
         }
     }
 

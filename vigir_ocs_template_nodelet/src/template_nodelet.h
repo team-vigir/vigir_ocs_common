@@ -9,6 +9,8 @@
 #include <string>
 #include <fstream>
 
+#include <std_msgs/Empty.h>
+
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_eigen.h>
@@ -40,6 +42,7 @@
 #include <moveit_msgs/Grasp.h>
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
+#include <moveit_msgs/PlanningScene.h>
 
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
@@ -79,6 +82,7 @@ namespace ocs_template
       public:
         virtual void onInit();
 
+        void clearTemplateCb(const std_msgs::Empty);
         void addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr& msg);
         void removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
         void updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& msg);
@@ -121,6 +125,7 @@ namespace ocs_template
 
       protected:
         ros::Subscriber template_update_sub_;
+        ros::Subscriber template_clear_sub_;
         ros::Subscriber template_add_sub_;
         ros::Subscriber template_remove_sub_;
         ros::Subscriber grasp_state_feedback_sub_;
@@ -131,6 +136,7 @@ namespace ocs_template
         ros::Publisher  grasp_selected_state_pub_;
         ros::Publisher  co_pub_;
         ros::Publisher  aco_pub_;
+        ros::Publisher  planning_scene_diff_pub_;
 
         //Forward topics through comms
         ros::Publisher  template_update_pub_;
