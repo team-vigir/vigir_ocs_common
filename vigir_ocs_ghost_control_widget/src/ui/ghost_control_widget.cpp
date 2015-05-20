@@ -381,6 +381,15 @@ void GhostControlWidget::on_send_whole_body_button__clicked()
     set_to_target_config_pub_.publish(cmd);
 }
 
+void GhostControlWidget::on_send_torso_button__clicked()
+{
+    std_msgs::String cmd;
+
+    cmd.data = "torso_group";
+
+    set_to_target_config_pub_.publish(cmd);
+}
+
 void GhostControlWidget::on_send_left_ghost_hand_button__clicked()
 {
     flor_grasp_msgs::InverseReachabilityForGraspRequest inv_grasp_req;
