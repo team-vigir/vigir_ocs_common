@@ -77,6 +77,7 @@ private Q_SLOTS:
     void on_send_right_configuration_button__clicked();    
     void on_send_upper_body_button__clicked();
     void on_send_whole_body_button__clicked();
+    void on_send_torso_button__clicked();
     void on_pushButton_clicked();
     void on_send_ghost_to_template_button_clicked();
     void on_templateBox_activated(const QString &arg1);

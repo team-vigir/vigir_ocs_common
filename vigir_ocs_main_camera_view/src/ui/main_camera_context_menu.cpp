@@ -27,6 +27,7 @@ void MainCameraContextMenu::createContextMenu()
     contextMenuItem * systemCommands = context_menu_manager->addMenuItem("System Commands");
 
     context_menu_manager->addActionItem("Reset World Model",boost::bind(&MainCameraContextMenu::systemCommandContext,this, "reset"), systemCommands);
+    context_menu_manager->addActionItem("Reset Pose Est",boost::bind(&MainCameraContextMenu::systemCommandContext,this, "reset_pose_estimation"), systemCommands);
     context_menu_manager->addActionItem("Save Octomap",boost::bind(&MainCameraContextMenu::systemCommandContext,this,"save_octomap"), systemCommands);
     context_menu_manager->addActionItem("Save Pointcloud",boost::bind(&MainCameraContextMenu::systemCommandContext,this,"save_pointcloud"), systemCommands);
     context_menu_manager->addActionItem("Save Image Head",boost::bind(&MainCameraContextMenu::systemCommandContext,this,"save_image_left_eye"), systemCommands);
