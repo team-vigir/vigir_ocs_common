@@ -1640,7 +1640,7 @@ bool TemplateNodelet::usabilityPoseSrv(vigir_object_template_msgs::GetUsabilityI
                                                                                 it != object_template_map_[template_type].usabilities.end();
                                                                                 ++it) {
         vigir_object_template_msgs::Usability usability = it->second;
-        if((usability.id < 0 && usability.name == req.usability_name) ||  //Compare with name
+        if((usability.id == 100 && usability.name == req.usability_name) ||  //Compare with name
                 usability.id == req.usability_id){                        //Compare with ID
 
             tf::Transform template_T_marker;
