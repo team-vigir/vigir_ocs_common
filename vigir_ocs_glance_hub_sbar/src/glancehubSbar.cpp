@@ -207,17 +207,19 @@ void glancehubSbar::receiveFlorStatus(int status)
         ui->modeBox->setCurrentIndex(status);
 
         //notify on 3d view  previous is still at the state we want right now
-        QString notificationText = QString("Changed Robot Mode to ") + previous_selection_ ;
+        QString notification_text = QString("Changed Robot Mode to ") + ui->modeBox->currentText();// + previous_selection_ ;
         //flor stop is an error condition
-        if(previous_selection_ == "stop")
-            NotificationSystem::Instance()->notifyError(notificationText.toStdString());
+        //if(previous_selection_ == "stop")
+        if(ui->modeBox->currentText() == "stop")
+            NotificationSystem::Instance()->notifyError(notification_text.toStdString());
+        else if(ui->modeBox->currentText() == "")
+            NotificationSystem::Instance()->notifyWarning("Invalid Mode Change");
         else
-            NotificationSystem::Instance()->notifyPassive(notificationText.toStdString());
+            NotificationSystem::Instance()->notifyPassive(notification_text.toStdString());
 
         ignore_events_ = false;
     }
-
-    ui->modelabel->setText(""); // only want to display transitions
+    ui->modelabel->setText(""); // only want to display transitions    
 }
 
 bool glancehubSbar::eventFilter( QObject * o, QEvent * e )

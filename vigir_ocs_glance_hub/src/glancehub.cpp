@@ -235,7 +235,7 @@ void glancehub::controlModeMsgRcv(const flor_control_msgs::FlorControlMode::Cons
         newText = QString::fromStdString("Unknown");
 
     ui->controlModeLabel->setText(newText);
-    std::cout << "Changing to "<< newText.toStdString() << " Mode" << std::endl;
+    std::cout << "Changing to "<< newText.toStdString() << " Mode" << std::endl;   
 
     //notify status bar
     Q_EMIT sendFlorStatus(msg->control_mode);
