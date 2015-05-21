@@ -6,14 +6,14 @@ namespace ocs_interactive_marker_server
 InteractiveMarkerServerNodelet::InteractiveMarkerServerNodelet()
 {
     interactive_marker_server_feedback_pub_ = nh.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback",5, false );
-    interactive_marker_server_add_sub_ = nh.subscribe<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, &InteractiveMarkerServerNodelet::addInteractiveMarker, this );
-    interactive_marker_server_remove_sub_ = nh.subscribe<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, &InteractiveMarkerServerNodelet::removeInteractiveMarker, this );
+    interactive_marker_server_add_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/add", 5, &InteractiveMarkerServerNodelet::addInteractiveMarker, this );
+    interactive_marker_server_remove_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/remove", 5, &InteractiveMarkerServerNodelet::removeInteractiveMarker, this );
     interactive_marker_server_update_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/update", 5, &InteractiveMarkerServerNodelet::updatePose, this);
-    interactive_marker_server_mode_sub_ = nh.subscribe<flor_ocs_msgs::OCSControlMode>( "/flor/ocs/control_modes", 5, &InteractiveMarkerServerNodelet::setMode, this );
-    interactive_marker_server_visibility_sub_ = nh.subscribe<flor_ocs_msgs::OCSMarkerVisibility>("/flor/ocs/interactive_marker_server/visibility",5, &InteractiveMarkerServerNodelet::processMarkerVisibility,this);
+    interactive_marker_server_mode_sub_ = nh.subscribe( "/flor/ocs/control_modes", 5, &InteractiveMarkerServerNodelet::setMode, this );
+    //interactive_marker_server_visibility_sub_ = nh.subscribe("/flor/ocs/interactive_marker_server/visibility",5, &InteractiveMarkerServerNodelet::processMarkerVisibility,this);
 
     // related to object selection
-    select_object_sub_ = nh.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &InteractiveMarkerServerNodelet::processObjectSelection, this );
+    select_object_sub_ = nh.subscribe( "/flor/ocs/object_selection", 5, &InteractiveMarkerServerNodelet::processObjectSelection, this );
     selected_object_update_pub_ = nh.advertise<flor_ocs_msgs::OCSSelectedObjectUpdate>( "/flor/ocs/interactive_marker_server/selected_object_update", 5, false);
 
     //marker_feedback_timer_ = boost::posix_time::microsec_clock::universal_time();
@@ -36,7 +36,7 @@ void InteractiveMarkerServerNodelet::publishSelectedObject()
     }
 }
 
-void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr &msg)
+void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr msg)
 {
     //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
@@ -44,13 +44,14 @@ void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::O
     if (marker_map_.find(msg->topic) == marker_map_.end())
     {
         //ROS_INFO("Adding marker %s", msg->topic.c_str());
-        marker_map_[msg->topic] = new InteractiveMarkerServerCustom(msg->name, msg->topic, msg->mode, msg->frame, msg->scale, msg->point);
+
+        marker_map_[msg->topic].reset(new InteractiveMarkerServerCustom(msg->name, msg->topic, msg->mode, msg->frame, msg->scale, msg->point));
         marker_map_[msg->topic]->onFeedback = boost::bind(&InteractiveMarkerServerNodelet::onMarkerFeedback, this, _1, _2, _3, _4);
     }
 
 }
 
-void InteractiveMarkerServerNodelet::removeInteractiveMarker( const std_msgs::String::ConstPtr& msg )
+void InteractiveMarkerServerNodelet::removeInteractiveMarker( const std_msgs::String::ConstPtr msg )
 {
     //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
@@ -59,7 +60,7 @@ void InteractiveMarkerServerNodelet::removeInteractiveMarker( const std_msgs::St
     {
         //marker_map_[msg->data];
         //ROS_INFO("Removing marker %s", msg->data.c_str());
-        delete marker_map_[msg->data];
+        //delete marker_map_[msg->data];
         marker_map_.erase(marker_map_.find(msg->data));
     }
 }
@@ -118,91 +119,107 @@ void InteractiveMarkerServerNodelet::onMarkerFeedback(unsigned char event_type, 
         publishSelectedObject();
 }
 
-void InteractiveMarkerServerNodelet::setMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
+void InteractiveMarkerServerNodelet::setMode(const flor_ocs_msgs::OCSControlMode::ConstPtr msg)
 {
     //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     //ROS_ERROR("CHANGING MODE");
-    std::map<std::string,InteractiveMarkerServerCustom*>::iterator iter;
+    std::map<std::string,boost::shared_ptr<InteractiveMarkerServerCustom> >::iterator iter;
     for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
         if(iter->second->getMode() != flor_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF)
             iter->second->setMode(msg->manipulationMode);
 }
 
-void InteractiveMarkerServerNodelet::processMarkerVisibility(const flor_ocs_msgs::OCSMarkerVisibility::ConstPtr &msg)
-{
-    //ROS_ERROR("marker visibiilty");
-    //set visibility of different interactive markers
-    if(msg->all_markers)
-    {
-        //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
-
-        std::map<std::string,InteractiveMarkerServerCustom*>::iterator iter;
-        for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
-        {
-            iter->second->setVisible(msg->all_markers_visibility);
-        }
-    }
-    //TODO:: change markers to have visibility set via changing markers, not enable/disable
-    //not worrying about selective visibility of markers for now
-//    else // just disable by type
+//void InteractiveMarkerServerNodelet::processMarkerVisibility(const flor_ocs_msgs::OCSMarkerVisibility::ConstPtr msg)
+//{
+//    //ROS_ERROR("marker visibiilty");
+//    //set visibility of different interactive markers
+//    if(msg->all_markers)
 //    {
+//        //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
+
 //        std::map<std::string,InteractiveMarkerServerCustom*>::iterator iter;
 //        for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
 //        {
-//            //string comparison on the marker's topic to determine type
-//            std::string topic_name = iter->first;
-//            ROS_ERROR("marker topic %s",topic_name.c_str());
-//            //templates
-//            if(topic_name.find("/template"))
-//            {
-//                iter->second->setVisible(msg->template_visibility);
-//            }
-//            else if(topic_name.find("/footstep_"))
-//            {
-//                iter->second->setVisible(msg->template_visibility);
-//            }
-//            else if(topic_name.find("/footstep_goal_"))
-//            {
-//                iter->second->setVisible(msg->template_visibility);
-//            }
+//            iter->second->setVisible(msg->all_markers_visibility);
 //        }
 //    }
-}
+//    //TODO:: change markers to have visibility set via changing markers, not enable/disable
+//    //not worrying about selective visibility of markers for now
+////    else // just disable by type
+////    {
+////        std::map<std::string,InteractiveMarkerServerCustom*>::iterator iter;
+////        for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
+////        {
+////            //string comparison on the marker's topic to determine type
+////            std::string topic_name = iter->first;
+////            ROS_ERROR("marker topic %s",topic_name.c_str());
+////            //templates
+////            if(topic_name.find("/template"))
+////            {
+////                iter->second->setVisible(msg->template_visibility);
+////            }
+////            else if(topic_name.find("/footstep_"))
+////            {
+////                iter->second->setVisible(msg->template_visibility);
+////            }
+////            else if(topic_name.find("/footstep_goal_"))
+////            {
+////                iter->second->setVisible(msg->template_visibility);
+////            }
+////        }
+////    }
+//}
 
-void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &msg)
+void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg)
 {
     //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
-    // save the interactive marker topic
-    std::string selected_object_topic = "";
-
-    //Get id of object that is selected
-    switch(msg->type)
+    try
     {
-        case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
-            selected_object_topic = "/template_"+boost::lexical_cast<std::string>(msg->id)+"_marker";
-            break;
-        case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
-            selected_object_topic = "/footstep_"+boost::lexical_cast<std::string>(msg->id/2)+"_marker";
-            break;
-        case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL:
-            selected_object_topic = "/footstep_goal_"+boost::lexical_cast<std::string>(msg->id/2 ? "right" : "left")+"_marker";
-            break;
-        case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
-            selected_object_topic = (msg->id == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM ? "/l_arm_pose_marker" : "/r_arm_pose_marker");
-            break;
-        default:
-            break;
+        // save the interactive marker topic
+        std::string selected_object_topic = "";
+
+        //Get id of object that is selected
+        switch(msg->type)
+        {
+            case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
+                selected_object_topic = "/template_"+boost::lexical_cast<std::string>(msg->id)+"_marker";
+                break;
+            case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
+                selected_object_topic = "/footstep_"+boost::lexical_cast<std::string>(msg->id/2)+"_marker";
+                break;
+            case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL:
+                selected_object_topic = "/footstep_goal_"+boost::lexical_cast<std::string>(msg->id/2 ? "right" : "left")+"_marker";
+                break;
+            case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
+                selected_object_topic = (msg->id == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM ? "/l_arm_pose_marker" : "/r_arm_pose_marker");
+                break;
+            default:
+                break;
+        }
+
+        ROS_INFO("SELECTED OBJECT: %s", selected_object_topic.c_str());
+    }
+    catch(...)
+    {
+        ROS_ERROR("Error parsing selected object name...");
     }
 
-    ROS_INFO("SELECTED OBJECT: %s", selected_object_topic.c_str());
+    try
+    {
+        if(marker_map_.find(selected_object_topic) != marker_map_.end())
+        {
+            host_selected_object_topic_map_[msg->host] = selected_object_topic;
+            pose_map_[host_selected_object_topic_map_[msg->host]] = marker_map_[selected_object_topic]->getPose();
 
-    host_selected_object_topic_map_[msg->host] = selected_object_topic;
-    pose_map_[host_selected_object_topic_map_[msg->host]] = marker_map_[selected_object_topic]->getPose();
-
-    publishSelectedObject();
-
+            publishSelectedObject();
+        }
+    }
+    catch(...)
+    {
+        ROS_ERROR("Something went wrong with object selection...");
+    }
 }
 
 }
