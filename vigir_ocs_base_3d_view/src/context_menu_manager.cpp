@@ -246,7 +246,7 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
         setItemVisibility("Lock Right Arm to Template",false);
     }
 
-    if(base_3d_view_->getGhostLeftHandLocked() || base_3d_view_->getGhostLeftHandLocked())
+    if(base_3d_view_->getGhostLeftHandLocked() || base_3d_view_->getGhostRightHandLocked())
     {
         //show only unlock        
         setItemVisibility("Lock Left Arm to Template",false);
