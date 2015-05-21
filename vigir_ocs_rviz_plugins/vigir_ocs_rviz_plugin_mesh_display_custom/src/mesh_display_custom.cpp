@@ -156,7 +156,7 @@ void MeshDisplayCustom::addDecalToMaterial(const Ogre::String& matName)
 
     pass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
     pass->setDepthBias(1);
-    pass->setLightingEnabled(true);
+    //pass->setLightingEnabled(true);
 
     // need the decal_filter to avoid back projection
     Ogre::String resource_group_name = "decal_textures_folder";
@@ -175,6 +175,7 @@ void MeshDisplayCustom::addDecalToMaterial(const Ogre::String& matName)
     tex_state->setProjectiveTexturing(true, decal_frustum_);
     tex_state->setTextureAddressingMode(Ogre::TextureUnitState::TAM_CLAMP);
     tex_state->setTextureFiltering(Ogre::FO_POINT, Ogre::FO_LINEAR, Ogre::FO_NONE);
+    tex_state->setColourOperation(Ogre::LBO_REPLACE); //don't accept additional effects
 
     for(int i = 0; i < filter_frustum_.size(); i++)
     {
