@@ -3033,6 +3033,11 @@ void Base3DView::publishGhostPoses(bool local_feedback)
     }
 }
 
+void Base3DView::snapGhostHotkeyCB()
+{
+      snap_ghost_to_robot_ = true;
+}
+
 //----- Callbacks to receive Ghost State data -------------------//
 
 void Base3DView::stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr& msg)
@@ -3969,6 +3974,8 @@ void Base3DView::addHotkeys()
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+alt",boost::bind(&Base3DView::showEStopHotkey,this));    
 
     HotkeyManager::Instance()->addHotkeyFunction("shift",boost::bind(&Base3DView::lockTranslationHotkey,this));
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+s",boost::bind(&Base3DView::snapGhostHotkeyCB,this));
+
 }
 
 ///Callbacks for Hotkeys//////////////

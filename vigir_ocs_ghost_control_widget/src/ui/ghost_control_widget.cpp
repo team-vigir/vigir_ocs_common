@@ -418,7 +418,7 @@ void GhostControlWidget::addHotkeys()
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+e",boost::bind(&GhostControlWidget::on_send_left_configuration_button__clicked,this));
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+r",boost::bind(&GhostControlWidget::on_send_right_configuration_button__clicked,this));
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+f",boost::bind(&GhostControlWidget::on_send_upper_body_button__clicked,this));
-    HotkeyManager::Instance()->addHotkeyFunction("ctrl+s",boost::bind(&GhostControlWidget::snapClicked,this));
+   // HotkeyManager::Instance()->addHotkeyFunction("ctrl+s",boost::bind(&GhostControlWidget::snapClicked,this));
 }
 
 void GhostControlWidget::on_send_left_cartesian_button__clicked()
