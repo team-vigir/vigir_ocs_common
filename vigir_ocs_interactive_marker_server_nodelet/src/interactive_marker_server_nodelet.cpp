@@ -175,10 +175,11 @@ void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs:
 {
     //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
+    // save the interactive marker topic
+    std::string selected_object_topic = "";
+
     try
     {
-        // save the interactive marker topic
-        std::string selected_object_topic = "";
 
         //Get id of object that is selected
         switch(msg->type)
