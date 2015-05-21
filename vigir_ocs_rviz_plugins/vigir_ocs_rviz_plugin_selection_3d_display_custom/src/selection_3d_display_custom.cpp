@@ -562,7 +562,7 @@ void Selection3DDisplayCustom::queryPosition( int x, int y, Ogre::Vector3& world
     transform(pt,ot,"/world",fixed_frame_.toUtf8().constData());
     int type = -1;
     std::string name;
-    if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type,name))
+    if(raycast_utils_->RayCastFromPoint(mouseRay,pt,ot,position,type,name,false))
     {
         Ogre::Quaternion orientation(1,0,0,0);
         transform(position,orientation,fixed_frame_.toUtf8().constData(),"/world");
