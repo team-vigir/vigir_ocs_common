@@ -6,9 +6,9 @@ namespace ocs_interactive_marker_server
 InteractiveMarkerServerNodelet::InteractiveMarkerServerNodelet()
 {
     interactive_marker_server_feedback_pub_ = nh.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback",5, false );
-    interactive_marker_server_add_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/add", 5, &InteractiveMarkerServerNodelet::addInteractiveMarker, this );
-    interactive_marker_server_remove_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/remove", 5, &InteractiveMarkerServerNodelet::removeInteractiveMarker, this );
-    interactive_marker_server_update_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/update", 5, &InteractiveMarkerServerNodelet::updatePose, this);
+    interactive_marker_server_add_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/add", 100, &InteractiveMarkerServerNodelet::addInteractiveMarker, this );
+    interactive_marker_server_remove_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/remove", 100, &InteractiveMarkerServerNodelet::removeInteractiveMarker, this );
+    interactive_marker_server_update_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/update", 100, &InteractiveMarkerServerNodelet::updatePose, this);
     interactive_marker_server_mode_sub_ = nh.subscribe( "/flor/ocs/control_modes", 5, &InteractiveMarkerServerNodelet::setMode, this );
     //interactive_marker_server_visibility_sub_ = nh.subscribe("/flor/ocs/interactive_marker_server/visibility",5, &InteractiveMarkerServerNodelet::processMarkerVisibility,this);
 
@@ -43,7 +43,7 @@ void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::O
     // name, topic, frame, scale, point
     if (marker_map_.find(msg->topic) == marker_map_.end())
     {
-        //ROS_INFO("Adding marker %s", msg->topic.c_str());
+        ROS_INFO("Adding marker %s", msg->topic.c_str());
 
         marker_map_[msg->topic].reset(new InteractiveMarkerServerCustom(msg->name, msg->topic, msg->mode, msg->frame, msg->scale, msg->point));
         marker_map_[msg->topic]->onFeedback = boost::bind(&InteractiveMarkerServerNodelet::onMarkerFeedback, this, _1, _2, _3, _4);
@@ -207,20 +207,13 @@ void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs:
         ROS_ERROR("Error parsing selected object name...");
     }
 
-    try
+    if(marker_map_.find(selected_object_topic) != marker_map_.end())
     {
-        if(marker_map_.find(selected_object_topic) != marker_map_.end())
-        {
-            host_selected_object_topic_map_[msg->host] = selected_object_topic;
-            pose_map_[host_selected_object_topic_map_[msg->host]] = marker_map_[selected_object_topic]->getPose();
+        host_selected_object_topic_map_[msg->host] = selected_object_topic;
+        pose_map_[host_selected_object_topic_map_[msg->host]] = marker_map_[selected_object_topic]->getPose();
+    }
 
-            publishSelectedObject();
-        }
-    }
-    catch(...)
-    {
-        ROS_ERROR("Something went wrong with object selection...");
-    }
+    publishSelectedObject();
 }
 
 }
