@@ -33,19 +33,19 @@ RayCastUtils::~RayCastUtils()
     scene_manager_->destroyQuery(ray_scene_query_);
 }
 
-bool RayCastUtils::RayCastFromPoint(const Ogre::Vector3 &point, const Ogre::Vector3 &direction, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result, int &object_type, std::string &object_name)
+bool RayCastUtils::RayCastFromPoint(const Ogre::Vector3 &point, const Ogre::Vector3 &direction, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result, int &object_type, std::string &object_name, bool prioritize)
 {
     // create the ray to test
     Ogre::Ray ray(Ogre::Vector3(point.x, point.y, point.z),
                   Ogre::Vector3(direction.x, direction.y, direction.z));
 
-    return RayCastFromPoint(ray,frame_pos,frame_quat,result,object_type,object_name);
+    return RayCastFromPoint(ray,frame_pos,frame_quat,result,object_type,object_name,prioritize);
 }
 
 // Raycast from a point in to the scene.
 // returns success or failure.
 // on success the point is returned in the result.
-bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result, int &object_type, std::string &object_name)
+bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos, Ogre::Quaternion frame_quat, Ogre::Vector3 &result, int &object_type, std::string &object_name, bool prioritize)
 {
     // check we are initialised
     if (ray_scene_query_ != NULL)
@@ -233,147 +233,150 @@ bool RayCastUtils::RayCastFromPoint(const Ogre::Ray ray, Ogre::Vector3 frame_pos
             user_data = movable->getName();
         }
 
-        // check if there is a need to iterate
-        // ignore ground and footstep body bounding boxes
-        while((boost::algorithm::starts_with(user_data,"ground plane") || boost::algorithm::starts_with(user_data,"body_bb")) && closest_object != entity_closest_distance_map_.end())
+        if(prioritize)
         {
-            //ROS_INFO("ignore ground and footstep body bounding boxes (%s)",user_data.c_str());
-
-            ++closest_object;
-
-            index = closest_object->first;
-            movable = query_result[index].movable;
-            distance = closest_object->second;
-            // get user-defined data (in this case, usually identifier
-            user_data = "";
-            try
+            // check if there is a need to iterate
+            // ignore ground and footstep body bounding boxes
+            while((boost::algorithm::starts_with(user_data,"ground plane") || boost::algorithm::starts_with(user_data,"body_bb")) && closest_object != entity_closest_distance_map_.end())
             {
-               Ogre::Any any = movable->getUserAny();
-               user_data = Ogre::any_cast<std::string>(any);
-            }
-            catch(...)
-            {
-               user_data = movable->getName();
-            }
-        }
+                //ROS_INFO("ignore ground and footstep body bounding boxes (%s)",user_data.c_str());
 
-        // if we're intersecting a bounding object, need to prioritize template if template is there
-        if(boost::algorithm::starts_with(movable->getName(),"BoundingObject"))
-        {
-            //ROS_INFO("we're intersecting a bounding object, prioritize template if template is there");
-            for (std::map<size_t,Ogre::Real>::iterator it = closest_object; it != entity_closest_distance_map_.end(); ++it)
-            {
-                size_t new_index = it->first;
-                Ogre::MovableObject* new_movable = query_result[new_index].movable;
-                Ogre::Real new_distance = it->second;
-                std::string new_user_data = "";
+                ++closest_object;
+
+                index = closest_object->first;
+                movable = query_result[index].movable;
+                distance = closest_object->second;
+                // get user-defined data (in this case, usually identifier
+                user_data = "";
                 try
                 {
-                   Ogre::Any any = new_movable->getUserAny();
-                   new_user_data = Ogre::any_cast<std::string>(any);
+                   Ogre::Any any = movable->getUserAny();
+                   user_data = Ogre::any_cast<std::string>(any);
                 }
                 catch(...)
                 {
-                   new_user_data = new_movable->getName();
-                }
-
-                //ROS_INFO("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
-
-                if(boost::algorithm::starts_with(user_data,"ground plane") || boost::algorithm::starts_with(new_user_data,"body_bb"))
-                    continue;
-
-                // if outside the bounding sphere or collided with robot mesh
-                if(new_distance-distance > 0.2 || new_movable->getName().find("Robot") != std::string::npos)
-                    break;
-
-                if(boost::algorithm::starts_with(new_movable->getName(),"template"))
-                {
-                    //ROS_INFO("    found");
-
-                    index = new_index;
-                    movable = new_movable;
-                    distance = new_distance;
-                    user_data = new_user_data;
-                    closest_object = it;
-                    break;
+                   user_data = movable->getName();
                 }
             }
-        }
-        // prioritize footsteps over step plan markers
-        if(boost::algorithm::starts_with(user_data,"/step_plan_"))
-        {
-            //ROS_INFO("prioritize footsteps over step plan markers");
-            for (std::map<size_t,Ogre::Real>::iterator it = closest_object; it != entity_closest_distance_map_.end(); ++it)
+
+            // if we're intersecting a bounding object, need to prioritize template if template is there
+            if(boost::algorithm::starts_with(movable->getName(),"BoundingObject"))
             {
-                size_t new_index = it->first;
-                Ogre::MovableObject* new_movable = query_result[new_index].movable;
-                Ogre::Real new_distance = it->second;
-                std::string new_user_data = "";
-                try
+                //ROS_INFO("we're intersecting a bounding object, prioritize template if template is there");
+                for (std::map<size_t,Ogre::Real>::iterator it = closest_object; it != entity_closest_distance_map_.end(); ++it)
                 {
-                   Ogre::Any any = new_movable->getUserAny();
-                   new_user_data = Ogre::any_cast<std::string>(any);
-                }
-                catch(...)
-                {
-                   new_user_data = new_movable->getName();
-                }
+                    size_t new_index = it->first;
+                    Ogre::MovableObject* new_movable = query_result[new_index].movable;
+                    Ogre::Real new_distance = it->second;
+                    std::string new_user_data = "";
+                    try
+                    {
+                       Ogre::Any any = new_movable->getUserAny();
+                       new_user_data = Ogre::any_cast<std::string>(any);
+                    }
+                    catch(...)
+                    {
+                       new_user_data = new_movable->getName();
+                    }
 
-                //ROS_INFO("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
+                    //ROS_INFO("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
 
-                if(boost::algorithm::starts_with(user_data,"ground plane") || boost::algorithm::starts_with(new_user_data,"body_bb"))
-                    continue;
+                    if(boost::algorithm::starts_with(user_data,"ground plane") || boost::algorithm::starts_with(new_user_data,"body_bb"))
+                        continue;
 
-                // if there is a footstep
-                if(boost::algorithm::starts_with(new_user_data,"footstep"))
-                {
-                    //ROS_INFO("    found");
+                    // if outside the bounding sphere or collided with robot mesh
+                    if(new_distance-distance > 0.2 || new_movable->getName().find("Robot") != std::string::npos)
+                        break;
 
-                    index = new_index;
-                    movable = new_movable;
-                    distance = new_distance;
-                    user_data = new_user_data;
-                    closest_object = it;
-                    break;
+                    if(boost::algorithm::starts_with(new_movable->getName(),"template"))
+                    {
+                        //ROS_INFO("    found");
+
+                        index = new_index;
+                        movable = new_movable;
+                        distance = new_distance;
+                        user_data = new_user_data;
+                        closest_object = it;
+                        break;
+                    }
                 }
             }
-        }
-        // prioritize footstep goal steps over regular footsteps
-        if(boost::algorithm::starts_with(user_data,"footstep") && !boost::algorithm::starts_with(user_data,"footstep goal"))
-        {
-            //ROS_INFO("prioritize footstep goal steps over regular footsteps");
-            for (std::map<size_t,Ogre::Real>::iterator it = closest_object; it != entity_closest_distance_map_.end(); ++it)
+            // prioritize footsteps over step plan markers
+            if(boost::algorithm::starts_with(user_data,"/step_plan_"))
             {
-                size_t new_index = it->first;
-                Ogre::MovableObject* new_movable = query_result[new_index].movable;
-                Ogre::Real new_distance = it->second;
-                std::string new_user_data = "";
-                try
+                //ROS_INFO("prioritize footsteps over step plan markers");
+                for (std::map<size_t,Ogre::Real>::iterator it = closest_object; it != entity_closest_distance_map_.end(); ++it)
                 {
-                   Ogre::Any any = new_movable->getUserAny();
-                   new_user_data = Ogre::any_cast<std::string>(any);
+                    size_t new_index = it->first;
+                    Ogre::MovableObject* new_movable = query_result[new_index].movable;
+                    Ogre::Real new_distance = it->second;
+                    std::string new_user_data = "";
+                    try
+                    {
+                       Ogre::Any any = new_movable->getUserAny();
+                       new_user_data = Ogre::any_cast<std::string>(any);
+                    }
+                    catch(...)
+                    {
+                       new_user_data = new_movable->getName();
+                    }
+
+                    //ROS_INFO("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
+
+                    if(boost::algorithm::starts_with(user_data,"ground plane") || boost::algorithm::starts_with(new_user_data,"body_bb"))
+                        continue;
+
+                    // if there is a footstep
+                    if(boost::algorithm::starts_with(new_user_data,"footstep"))
+                    {
+                        //ROS_INFO("    found");
+
+                        index = new_index;
+                        movable = new_movable;
+                        distance = new_distance;
+                        user_data = new_user_data;
+                        closest_object = it;
+                        break;
+                    }
                 }
-                catch(...)
+            }
+            // prioritize footstep goal steps over regular footsteps
+            if(boost::algorithm::starts_with(user_data,"footstep") && !boost::algorithm::starts_with(user_data,"footstep goal"))
+            {
+                //ROS_INFO("prioritize footstep goal steps over regular footsteps");
+                for (std::map<size_t,Ogre::Real>::iterator it = closest_object; it != entity_closest_distance_map_.end(); ++it)
                 {
-                   new_user_data = new_movable->getName();
-                }
+                    size_t new_index = it->first;
+                    Ogre::MovableObject* new_movable = query_result[new_index].movable;
+                    Ogre::Real new_distance = it->second;
+                    std::string new_user_data = "";
+                    try
+                    {
+                       Ogre::Any any = new_movable->getUserAny();
+                       new_user_data = Ogre::any_cast<std::string>(any);
+                    }
+                    catch(...)
+                    {
+                       new_user_data = new_movable->getName();
+                    }
 
-                //ROS_INFO("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
+                    //ROS_INFO("    [%d].%f: %s::%s",new_index,new_distance,new_movable->getName().c_str(),new_user_data.c_str());
 
-                if(boost::algorithm::starts_with(user_data,"ground plane") || boost::algorithm::starts_with(new_user_data,"body_bb"))
-                    continue;
+                    if(boost::algorithm::starts_with(user_data,"ground plane") || boost::algorithm::starts_with(new_user_data,"body_bb"))
+                        continue;
 
-                // if there is a footstep
-                if(boost::algorithm::starts_with(new_user_data,"footstep goal"))
-                {
-                    //ROS_INFO("    found");
+                    // if there is a footstep
+                    if(boost::algorithm::starts_with(new_user_data,"footstep goal"))
+                    {
+                        //ROS_INFO("    found");
 
-                    index = new_index;
-                    movable = new_movable;
-                    distance = new_distance;
-                    user_data = new_user_data;
-                    closest_object = it;
-                    break;
+                        index = new_index;
+                        movable = new_movable;
+                        distance = new_distance;
+                        user_data = new_user_data;
+                        closest_object = it;
+                        break;
+                    }
                 }
             }
         }
