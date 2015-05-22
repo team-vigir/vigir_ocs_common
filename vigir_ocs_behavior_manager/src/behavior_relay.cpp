@@ -3,67 +3,82 @@
 
 BehaviorRelay::BehaviorRelay(QWidget* parent)
 {    
-    behavior_server_ = new BehaviorServer(nh_,"/vigir/ocs/behavior_relay_ui",boost::bind(&BehaviorRelay::processBehaviorGoalCB,this,_1,_2),false);
-    behavior_server_->start();
+    behavior_goal_sub_ = nh_.subscribe<flor_ocs_msgs::OCSBehaviorGoal>( "/vigir/ocs/behavior/send_goal", 5, &BehaviorRelay::receiveBehaviorGoalCB, this );
+    behavior_confirm_sub_ = nh_.subscribe<flor_ocs_msgs::OCSBehaviorGoal>( "/vigir/ocs/behavior/confirm_goal", 5, &BehaviorRelay::receiveBehaviorResult, this );
+    behavior_confirm_pub_  = nh_.advertise<flor_ocs_msgs::OCSBehaviorGoal>("/vigir/ocs/behavior/confirm_goal",1,false);
 
     parent_ = parent;
-    max_notifications_shown_ = 3;
+    max_notifications_shown_ = 5;
 
     qRegisterMetaType<BehaviorServer::GoalHandle>("GoalHandle");
-    //connect execute thread to gui thread
-    connect(this,SIGNAL(signalCreateNotification(QString,BehaviorServer::GoalHandle)),this,SLOT(createNotification(QString,BehaviorServer::GoalHandle)));
-
 }
 
-//this is being run on a seperate thread by the complex behavior server
-void BehaviorRelay::processBehaviorGoalCB(vigir_be_msgs::BehaviorInputGoalConstPtr goal, BehaviorServer::GoalHandle goal_handle)
+
+//callback to receive goal and create notification
+void BehaviorRelay::receiveBehaviorGoalCB(const flor_ocs_msgs::OCSBehaviorGoalConstPtr& msg)
 {    
     //build appropriate string for ui
-    QString action_text = QString::fromStdString(goal->msg);
+    QString action_text = QString::fromStdString(msg->action_text);
 
-    //ui is shared among all threads, must protect
-    boost::recursive_mutex::scoped_lock lock(lock_);
-
-    //notify gui thread to build stuff, cant build in this thread
-    Q_EMIT signalCreateNotification(action_text , goal_handle);
+    //notify gui to build stuff
+    createNotification(action_text, msg->id, msg->goal_type);
 
     if(behavior_notifications_.size() <= max_notifications_shown_)
         Q_EMIT updateUI();
-
 }
 
-//create notification and add to vector to be represented in main view
-void BehaviorRelay::createNotification(QString action_text, const BehaviorServer::GoalHandle goal_handle)
+//callback to receive confirmation of other goals on other instances of OCS, will redundantly notify itself
+void BehaviorRelay::receiveBehaviorResult(const flor_ocs_msgs::OCSBehaviorGoalConstPtr& msg)
 {
-    BehaviorNotification* notification = new BehaviorNotification();
-    connect(notification,SIGNAL(sendConfirmation(QString,BehaviorServer::GoalHandle)),this,SLOT(reportConfirmation(QString,BehaviorServer::GoalHandle)));
-    connect(notification,SIGNAL(sendAbort(QString,BehaviorServer::GoalHandle)),this,SLOT(reportAbort(QString,BehaviorServer::GoalHandle)));
-    notification->setActionText(action_text);
-    notification->setGoal(goal_handle);
+    for(int i =0;i<behavior_notifications_.size();i++)
+    {
+        BehaviorNotification * notification = behavior_notifications_[i];
+        //goal matches any of our given goals?
+        if(notification->getGoalId() == msg->id)
+        {
+            //delete goal, as it has been confirmed
+            notification->deleteNotification();
+        }
+    }
+    cleanNotifications(); //remove notification to be deleted
+}
 
+
+//create notification and add to vector to be represented in main view
+void BehaviorRelay::createNotification(QString action_text, int goal_id, int goal_type)
+{
+    BehaviorNotification* notification = new BehaviorNotification(NULL,action_text, goal_id, goal_type);
+    connect(notification,SIGNAL(sendConfirmation(QString,int)),this,SLOT(reportConfirmation(QString,int)));
+    connect(notification,SIGNAL(sendAbort(QString,int)),this,SLOT(reportAbort(QString,int)));    
     behavior_notifications_.push_back(notification);
 }
 
-void BehaviorRelay::reportConfirmation(QString action_text,BehaviorServer::GoalHandle goal_handle)
+void BehaviorRelay::reportConfirmation(QString action_text, int id)//, BehaviorServer::GoalHandle goal_handle)
 {    
-    //build result
-    vigir_be_msgs::BehaviorInputActionResult result;
-    result.result.result_code = vigir_be_msgs::BehaviorInputResult::RESULT_OK;
-    //notify server to set goal to succeed
-    behavior_server_->setSucceeded(result.result, qPrintable(action_text), goal_handle);
-
     cleanNotifications();    
     Q_EMIT updateUI(); //remove and enqueue new notification    
+
+    //publish to tell other views that this goal is obselete
+    flor_ocs_msgs::OCSBehaviorGoal msg;
+    msg.action_text = qPrintable(action_text); // convert to c_str
+    msg.id = id;
+    msg.result = true;
+    msg.host = boost::asio::ip::host_name();
+    behavior_confirm_pub_.publish(msg);
 }
 
-void BehaviorRelay::reportAbort(QString action_text, BehaviorServer::GoalHandle goal_handle)
+void BehaviorRelay::reportAbort(QString action_text, int id)//, BehaviorServer::GoalHandle goal_handle)
 {
-    vigir_be_msgs::BehaviorInputActionResult result;
-    result.result.result_code = vigir_be_msgs::BehaviorInputResult::RESULT_ABORTED;
-    behavior_server_->setAborted(result.result, qPrintable(action_text),goal_handle);
-
     cleanNotifications();
     Q_EMIT updateUI(); //remove and enqueue new notification
+
+    //publish to tell other views that this goal is obselete
+    flor_ocs_msgs::OCSBehaviorGoal msg;
+    msg.action_text = qPrintable(action_text); // convert to c_str
+    msg.id = id;
+    msg.result = false;
+    msg.host = boost::asio::ip::host_name();
+    behavior_confirm_pub_.publish(msg);
 }
 
 

@@ -11,8 +11,13 @@
 #include <QBasicTimer>
 #include <QPropertyAnimation>
 #include <vigir_be_msgs/BehaviorInputAction.h>
+#include <vigir_be_msgs/BehaviorInputActionGoal.h>
+
+#include "flor_ocs_msgs/OCSObjectSelection.h"
 #include <QFrame>
 #include "complex_action_server.h"
+#include <boost/asio/ip/host_name.hpp>
+
 
 //typedef typename ActionServer<ActionSpec>::GoalHandlePtr GoalHandlePtr;
 
@@ -29,23 +34,29 @@ class BehaviorNotification : public QWidget
 
 public:
     ~BehaviorNotification();
-    explicit BehaviorNotification(QWidget *parent = 0);
-    bool getConfirmed() { return confirmed_; }
-    void setActionText(QString);
-    void setGoal(BehaviorServer::GoalHandle );
-    void setPoint(QPoint point){main_view_point_ = point;}
+    explicit BehaviorNotification(QWidget *parent = 0, QString action_text="", int goal_id=-1, int goal_type=-1);
+    bool getConfirmed();
+    void setActionText(QString);    
+    void setPoint(QPoint point);
+    void deleteNotification();   
+    int getGoalId();
 
 private:
     bool eventFilter(QObject* object,QEvent* event);
     void timerEvent(QTimerEvent *event);
     void setButtonStyle(QPushButton* btn);
+    void objectSelectCB(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg);
 
     Ui::BehaviorNotification *ui;
-    bool confirmed_;
-    BehaviorServer::GoalHandle goal_;
+    bool confirmed_;    
+    int goal_id_;
+    int goal_type_;
     QPropertyAnimation* confirm_fadein_;
     QBasicTimer timer;
     QPoint main_view_point_;
+    ros::NodeHandle nh_;
+    ros::Subscriber object_sub_;
+
 
 
 public Q_SLOTS:
@@ -57,8 +68,8 @@ private Q_SLOTS:
 
 
 Q_SIGNALS:
-    void sendConfirmation(QString,const BehaviorServer::GoalHandle);
-    void sendAbort(QString,const BehaviorServer::GoalHandle);
+    void sendConfirmation(QString,int);
+    void sendAbort(QString,int);
 };
 
 

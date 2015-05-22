@@ -13,8 +13,9 @@
 #include <boost/bind.hpp>
 #include <vector>
 #include <stdlib.h>
-#include "QMenu"
-#include "QAction"
+#include <QMenu>
+#include <QAction>
+#include <QToolTip>
 
 
 /**
@@ -56,6 +57,7 @@ public:
     void addSeparatorItem();
     void setGlobalPos(QPoint globalPos);    
     void addCustomItem(contextMenuItem* item);
+    void setToolTip(QString name, QString tooltip);
 
 protected:
     ContextMenuManager(vigir_ocs::Base3DView* base_view);  // Only called by base3dview
@@ -64,6 +66,7 @@ private:
     ContextMenuManager(ContextMenuManager const&){};             // copy constructor is private
     ContextMenuManager& operator=(ContextMenuManager const&){};  // assignment operator is private    
 
+   // bool event(QEvent * evt);
     void buildContextMenuHierarchy();
     void resetMenu();
 

@@ -1948,7 +1948,15 @@ void Base3DView::selectOnDoubleClick(int x, int y)
     else if(active_context_name_.find("footstep goal") != std::string::npos)
         selectFootstepGoal();
     else if(active_context_name_.find("footstep") != std::string::npos)
-        selectFootstep();        
+        selectFootstep();
+    else //ensure current state of selection is updated even when nothing is selected
+    {
+        flor_ocs_msgs::OCSObjectSelection cmd;
+        cmd.type = flor_ocs_msgs::OCSObjectSelection::NOTHING;
+        cmd.id = -1;
+        cmd.host = boost::asio::ip::host_name();
+        select_object_pub_.publish(cmd);
+    }
 }
 
 //callback functions for context Menu

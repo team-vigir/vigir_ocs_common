@@ -10,10 +10,11 @@ int main(int argc, char *argv[])
 
     ocs_interactive_marker_server::InteractiveMarkerServerNodelet w;
 
-    while(ros::ok())
-    {
-        ros::spinOnce();
-        usleep(1000);
-    }
+//    while(ros::ok())
+//    {
+//        ros::spinOnce();
+//        usleep(1000);
+//    }
+    ros::spin();
 
 }

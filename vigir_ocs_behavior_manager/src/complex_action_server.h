@@ -55,7 +55,6 @@ public:
     //generates typedefs that we'll use to make our lives easier
     ACTION_DEFINITION(ActionSpec);
     typedef typename ActionServer<ActionSpec>::GoalHandle GoalHandle;
-    //typedef boost::shared_ptr<typename ActionServer<ActionSpec>::GoalHandle> GoalHandlePtr;
     typedef boost::function<void (GoalConstPtr, GoalHandle)> ExecuteCallback;
     /**
     * @brief Constructor for a ComplexActionServer

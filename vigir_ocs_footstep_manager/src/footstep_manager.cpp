@@ -804,11 +804,9 @@ void FootstepManager::processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFo
     updated_goal = goal_;
     }
 
-    // then update feet pose using the footstep planner
+    // then update feet pose using the footstep planner if 3d planning is enabled
     if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::UPDATE)
-    {
         sendUpdateFeetGoal(updated_goal);
-    }
 }
 
 void FootstepManager::calculateGoal()
@@ -1039,9 +1037,15 @@ void FootstepManager::publishSyncStatus()
 
     // sync status
     if(getStepPlanList().size() == 0)
+    {
         synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::EMPTY_PLAN_LIST;
+        synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::GOAL;
+    }
     else if(getStepPlan().steps.size() == 0)
+    {
         synced.status = flor_ocs_msgs::OCSFootstepSyncStatus::EMPTY_PLAN;
+        synced.validate_mode = flor_ocs_msgs::OCSFootstepSyncStatus::GOAL;
+    }
     else
     {
         // there is a step plan, so safe to access it
@@ -1145,7 +1149,10 @@ void FootstepManager::sendUpdateFeetGoal(vigir_footstep_planning_msgs::Feet feet
     // Fill in goal here
     vigir_footstep_planning_msgs::UpdateFeetGoal action_goal;
     action_goal.feet = feet;
-    action_goal.update_mode.mode = vigir_footstep_planning_msgs::UpdateMode::UPDATE_MODE_3D;
+    if(planner_config_.use_3d_planning)
+        action_goal.update_mode.mode = vigir_footstep_planning_msgs::UpdateMode::UPDATE_MODE_3D;
+    else
+        action_goal.update_mode.mode = 0;
 
     // and send it to the server
     if(update_feet_client_->isServerConnected())
@@ -1204,17 +1211,17 @@ void FootstepManager::sendStepPlanRequestGoal(vigir_footstep_planning_msgs::Feet
     request.header.frame_id = "/world";
     request.header.stamp = goal.header.stamp;
 
-    request.start = start;
-    request.goal = goal;
-    request.start_step_index = start_step_index;
-
-    request.start_foot_selection = start_foot;
-
     // default planning mode is 2D, but will get that from the OCS
     if(planner_config_.use_3d_planning)
         request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_3D;
     else
         request.planning_mode = vigir_footstep_planning_msgs::StepPlanRequest::PLANNING_MODE_2D;
+
+    request.start = start;
+    request.goal = goal;
+    request.start_step_index = start_step_index;
+
+    request.start_foot_selection = start_foot;
 
     // need to get the following from the OCS as well
     request.max_planning_time = planner_config_.max_time;
@@ -1712,7 +1719,7 @@ void FootstepManager::processNewStepPlanGoal(vigir_footstep_planning_msgs::Feet&
 
     plan_goal_array_pub_.publish(footstep_goal_array_);
 
-    // update goal pose - should I be doing this?
+    // update goal pose - should I be doing this?    
     goal_pose_.pose.position.x = (goal_.left.pose.position.x+goal_.right.pose.position.x)/2.0;
     goal_pose_.pose.position.y = (goal_.left.pose.position.y+goal_.right.pose.position.y)/2.0;
     goal_pose_.pose.position.z = (goal_.left.pose.position.z+goal_.right.pose.position.z)/2.0;

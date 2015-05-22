@@ -146,57 +146,66 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     //}
 
     //set validate visibility based on mode
-    if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::EDITED_STEPS)
+    if(!base_3d_view_->getFootstepVisManager()->hasGoal())
     {
-        setItemVisibility("Validate Step Plan (goal)",false);
-        setItemVisibility("Validate Step Plan (goal feet)",false);
-        //setItemVisibility("Validate Step Plan (edited steps)",true);
-        setItemVisibility("Validate Step Plan (current plan)",false);
-    }
-    else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::CURRENT_PLAN)
-    {
-        setItemVisibility("Validate Step Plan (goal)",false);
-        setItemVisibility("Validate Step Plan (goal feet)",false);
-        setItemVisibility("Validate Step Plan (edited steps)",false);
-        //setItemVisibility("Validate Step Plan (current plan)",true);
-    }
-    else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::GOAL_FEET)
-    {
-        setItemVisibility("Validate Step Plan (goal)",false);
-        //setItemVisibility("Validate Step Plan (goal feet)",true);
-        setItemVisibility("Validate Step Plan (edited steps)",false);
-        setItemVisibility("Validate Step Plan (current plan)",false);
-    }
-    else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::GOAL)
-    {
-        //setItemVisibility("Validate Step Plan (goal)",true);
-        setItemVisibility("Validate Step Plan (goal feet)",false);
-        setItemVisibility("Validate Step Plan (edited steps)",false);
-        setItemVisibility("Validate Step Plan (current plan)",false);
-    }
+        setItemVisibility("Send Step Plan Goal to Onboard",false);
+        setItemVisibility("Send Step Plan Goal Feet to Onboard",false);
+        setItemVisibility("Send Edited Steps to Onboard",false);
+        setItemVisibility("Send OCS Step Plan to Onboard",false);
 
-    //cannot validate empty/invalid plan
-    if(base_3d_view_->getFootstepVisManager()->hasValidStepPlan() || base_3d_view_->getFootstepVisManager()->numStepPlans() != 1)
-    {
-        setItemVisibility("Validate Step Plan (goal)",false);
-        setItemVisibility("Validate Step Plan (goal feet)",false);
-        setItemVisibility("Validate Step Plan (edited steps)",false);
-        setItemVisibility("Validate Step Plan (current plan)",false);
-    }
-    else if(!base_3d_view_->getFootstepVisManager()->canValidate())
-    {
-        setItemEnabled("Validate Step Plan (goal)",false);
-        setItemEnabled("Validate Step Plan (goal feet)",false);
-        setItemEnabled("Validate Step Plan (edited steps)",false);
-        setItemEnabled("Validate Step Plan (current plan)",false);
+        setItemVisibility("Send Step Plan Goal to OCS Planner", false);
     }
     else
-    {
-        setItemEnabled("Validate Step Plan (goal)",true);
-        setItemEnabled("Validate Step Plan (goal feet)",true);
-        setItemEnabled("Validate Step Plan (edited steps)",true);
-        setItemEnabled("Validate Step Plan (current plan)",true);
-    }
+    {                
+        if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::EDITED_STEPS)
+        {
+            setItemVisibility("Send Step Plan Goal to Onboard",false);
+            setItemVisibility("Send Step Plan Goal Feet to Onboard",false);
+            //setItemVisibility("Send Edited Steps to Onboard",true);
+            setItemVisibility("Send OCS Step Plan to Onboard",false);
+        }
+        else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::CURRENT_PLAN)
+        {
+            setItemVisibility("Send Step Plan Goal to Onboard",false);
+            setItemVisibility("Send Step Plan Goal Feet to Onboard",false);
+            setItemVisibility("Send Edited Steps to Onboard",false);
+            //setItemVisibility("Send OCS Step Plan to Onboard",true);
+        }
+        else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::GOAL_FEET)
+        {
+            setItemVisibility("Send Step Plan Goal to Onboard",false);
+            //setItemVisibility("Send Step Plan Goal Feet to Onboard",true);
+            setItemVisibility("Send Edited Steps to Onboard",false);
+            setItemVisibility("Send OCS Step Plan to Onboard",false);
+        }
+        else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::GOAL)
+        {
+            //setItemVisibility("Send Step Plan Goal to Onboard",true);
+            setItemVisibility("Send Step Plan Goal Feet to Onboard",false);
+            setItemVisibility("Send Edited Steps to Onboard",false);
+            setItemVisibility("Send OCS Step Plan to Onboard",false);
+        }
+
+     }
+
+//    if(/*base_3d_view_->getFootstepVisManager()->hasValidStepPlan() || */base_3d_view_->getFootstepVisManager()->numStepPlans() != 1)
+//    {
+//        //setItemEnabled("Send Step Plan Goal to Onboard",false);
+
+//        setItemEnabled("Send Step Plan Goal Feet to Onboard",false);
+//        //setToolTip("Send Step Plan Goal Feet to Onboard","more than one active plan, stitch plans first");
+//        setItemEnabled("Send Edited Steps to Onboard",false);
+//        //setToolTip("Send Edited Steps to Onboard","more than one active plan, stitch plans first");
+//        setItemEnabled("Send OCS Step Plan to Onboard",false);
+//        //setToolTip("Send OCS Step Plan to Onboard","more than one active plan, stitch plans first");
+//    }
+//    else
+//    {
+//        //setItemEnabled("Send Step Plan Goal to Onboard",true);
+//        setItemEnabled("Send Step Plan Goal Feet to Onboard",true);
+//        setItemEnabled("Send Edited Steps to Onboard",true);
+//        setItemEnabled("Send OCS Step Plan to Onboard",true);
+//    }
 
     if(base_3d_view_->getFootstepVisManager()->numStepPlans() != 1)
     {
@@ -334,6 +343,40 @@ void ContextMenuManager::setItemEnabled(QString name, bool enabled)
         item->action->setEnabled(enabled);
 }
 
+
+//NOTE::Tooltip does not automatically show, must do something to catch the event and show
+void ContextMenuManager::setToolTip(QString name, QString tooltip)
+{
+    contextMenuItem* item = NULL;
+    //find context menu item in vector
+    for(int i=0;i<context_menu_items_.size();i++)
+    {
+        if(context_menu_items_[i]->name == name)
+            item = context_menu_items_[i];
+    }
+    //can only remove actions?
+    if(item != NULL )
+        item->action->setToolTip(tooltip);
+
+}
+
+//bool ContextMenuManager::event(QEvent * evt)
+//{
+//    const QHelpEvent *helpEvent = static_cast<QHelpEvent *>(evt);
+
+//    if(evt->type() == QEvent::ToolTip)
+//    {
+//        //show tooltip
+//        QToolTip::showText(helpEvent->globalPos(), context_menu_.activeAction()->toolTip());
+//    }
+//    else
+//    {
+//        //propogate
+//        return QObject::event(evt);
+//    }
+//    return true;
+
+//}
 
 void ContextMenuManager::processContextMenuVector(QAction* context_menu_selected_item)
 {

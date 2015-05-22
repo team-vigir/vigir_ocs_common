@@ -4,11 +4,13 @@
 #include <stdlib.h>
 #include <ros/ros.h>
 #include "flor_ocs_msgs/OCSOverlayText.h"
+#include "flor_ocs_msgs/OCSBehaviorGoal.h"
 #include "behavior_notification.h"
+#include <boost/asio/ip/host_name.hpp>
 
-#include <actionlib/server/simple_action_server.h>
+//#include <actionlib/server/simple_action_server.h>
 #include <vigir_be_msgs/BehaviorInputAction.h>
-#include "complex_action_server.h"
+//#include "complex_action_server.h"
 
 /**
  * Subscribe to different topics in order to process whether a required action has been processed.
@@ -37,7 +39,8 @@ class BehaviorRelay: public QWidget
    private:
        BehaviorRelay(BehaviorRelay const&){};             // copy constructor is private
        BehaviorRelay& operator=(BehaviorRelay const&){};  // assignment operator is private
-       void processBehaviorGoalCB(vigir_be_msgs::BehaviorInputGoalConstPtr goal, BehaviorServer::GoalHandle goal_handle);
+       void receiveBehaviorGoalCB(const flor_ocs_msgs::OCSBehaviorGoalConstPtr& msg);
+       void receiveBehaviorResult(const flor_ocs_msgs::OCSBehaviorGoalConstPtr& msg);
        void cleanNotifications();
 
        boost::recursive_mutex lock_;
@@ -51,14 +54,18 @@ class BehaviorRelay: public QWidget
 
        std::vector<BehaviorServer::GoalHandle> all_goals_;
 
+       ros::Subscriber behavior_goal_sub_;
+       ros::Subscriber behavior_confirm_sub_;
+       ros::Publisher  behavior_confirm_pub_;
+
 Q_SIGNALS:
        void updateUI();
-       void signalCreateNotification(QString,BehaviorServer::GoalHandle);
+       void signalCreateNotification(QString);
 
 public Q_SLOTS:
-    void reportConfirmation(QString, BehaviorServer::GoalHandle goal_handle);
-    void reportAbort(QString action_text, BehaviorServer::GoalHandle goal_handle);
-    void createNotification(QString, BehaviorServer::GoalHandle goal_handle);
+    void reportConfirmation(QString, int id);
+    void reportAbort(QString action_text, int id);
+    void createNotification(QString action_text, int id, int goal_type);
 };
 
 

@@ -72,10 +72,10 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     footstep_plan_update_pub_        = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanUpdate>( "/flor/ocs/footstep/plan_update", 1, false );
 
     // publishers and subscribers for the interactive markers
-    interactive_marker_add_pub_      = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, false );
+    interactive_marker_add_pub_      = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 100, false );
     interactive_marker_update_pub_   = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 100, false );
     interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 100, &FootstepVisManager::onMarkerFeedback, this );
-    interactive_marker_remove_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
+    interactive_marker_remove_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 100, false );
 
     // sync status between ocs manager and onboard manager
     sync_status_sub_                 = nh_.subscribe<flor_ocs_msgs::OCSFootstepSyncStatus>( "/flor/ocs/footstep/sync_status", 5, &FootstepVisManager::processSyncStatus, this );
@@ -89,7 +89,7 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     use_3d_planning_ = false;
 
     start_step_index_ = -1;
-    need_plan_update_ = false;
+    //need_plan_update_ = false;
     has_valid_step_plan_ = false;
     has_undo_ = 0;
     has_redo_ = 0;
@@ -117,8 +117,9 @@ void FootstepVisManager::timerEvent(QTimerEvent *event)
     //ROS_INFO("Need plan update? %s", need_plan_update_ ? "yes" : "no");
     boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
     boost::posix_time::time_duration diff = now - double_click_timer_;
-    if(need_plan_update_ && !button_down_ && static_cast<float>(diff.total_milliseconds()) > 100.0f)
-        requestStepPlan();
+    //B: why would we request step here
+    //if(/*need_plan_update_ &&*/ !button_down_ && static_cast<float>(diff.total_milliseconds()) > 100.0f)
+    //    requestStepPlan();
 }
 
 
@@ -285,7 +286,7 @@ void FootstepVisManager::requestSendOCSStepPlan()
 
 void FootstepVisManager::requestStepPlan()
 {
-    need_plan_update_ = false;
+    //need_plan_update_ = false;
 
     std_msgs::Int8 cmd;
     cmd.data = 1;
@@ -318,7 +319,7 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
 
     // enable update of footstep plan
     double_click_timer_ = boost::posix_time::microsec_clock::universal_time();
-    need_plan_update_ = true;
+    //need_plan_update_ = true;
 
     flor_ocs_msgs::OCSFootstepPlanGoal cmd;
     cmd.goal_pose = *pose;
@@ -581,7 +582,7 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
                 footstep_goal_pose_fb_pub_.publish(cmd);
 
                 double_click_timer_ = boost::posix_time::microsec_clock::universal_time();
-                need_plan_update_ = true;
+               // need_plan_update_ = true;
                 button_down_ = false;
             }
         }
