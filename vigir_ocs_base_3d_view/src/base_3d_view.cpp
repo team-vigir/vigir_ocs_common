@@ -706,6 +706,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ocs_sync_sub_ = nh_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &Base3DView::synchronizeViews, this );
         ocs_sync_pub_ = nh_.advertise<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
 
+        //grasp sync
+        grasp_sync_sub_ = nh_.subscribe("/flor/ocs/grasp_sync", 1, &Base3DView::processGraspSyncCB, this);
+        grasp_sync_pub_ = nh_.advertise<flor_ocs_msgs::OCSGraspSync>("/flor/ocs/grasp_sync", 1, false);
+
         //create joint position error displays
         joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
         ROS_ASSERT( joint_arrows_ != NULL );
@@ -2098,27 +2102,43 @@ void Base3DView::snapHandGhost()
 // this function will toggle the template grasp lock
 void Base3DView::setTemplateGraspLock(int arm)
 {    
-    int id = findObjectContext("template");
-    if (arm == -1) // unlocks both arms
-    {
-        selectTemplate(); 
-        ghost_left_hand_lock_ = false;
-        ghost_right_hand_lock_ = false;        
-    }
-    else if(id != -1) //locks arm
-    {
-        selectTemplate();
+    flor_ocs_msgs::OCSGraspSync msg;
+    msg.hand_lock = arm;
+    msg.sync_mode = flor_ocs_msgs::OCSGraspSync::HAND_LOCKS;
+    msg.host = boost::asio::ip::host_name();
+    grasp_sync_pub_.publish(msg);
 
-        if(arm == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
+    //grasp locks are set in callback processGraspSyncCB
+}
+
+//helps to synchronize grasp lock between views and operators
+void Base3DView::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg)
+{
+    if(msg->sync_mode == flor_ocs_msgs::OCSGraspSync::HAND_LOCKS)
+    {
+        //set Template grasp lock
+        int arm = msg->hand_lock;
+        int id = findObjectContext("template");
+        if (arm == -1) // unlocks both arms
         {
-            ghost_left_hand_lock_ = true;
+            selectTemplate();
+            ghost_left_hand_lock_ = false;
+            ghost_right_hand_lock_ = false;
         }
-        else if(arm == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
+        else if(id != -1) //locks arm
         {
-            ghost_right_hand_lock_ = true;
+            selectTemplate();
+
+            if(arm == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
+            {
+                ghost_left_hand_lock_ = true;
+            }
+            else if(arm == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
+            {
+                ghost_right_hand_lock_ = true;
+            }
         }
     }
-
 }
 
 void Base3DView::deselectAll()

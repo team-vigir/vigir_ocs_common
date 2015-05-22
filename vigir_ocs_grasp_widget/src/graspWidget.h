@@ -40,6 +40,7 @@
 #include <flor_ocs_msgs/OCSLinkColor.h>
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSObjectSelection.h>
+#include <flor_ocs_msgs/OCSGraspSync.h>
 #include <flor_grasp_msgs/GraspState.h>
 #include <flor_grasp_msgs/GraspSelection.h>
 #include <flor_grasp_msgs/TemplateSelection.h>
@@ -100,6 +101,7 @@ private:
     void graspSelectedReceived (const flor_grasp_msgs::GraspSelection::ConstPtr& graspMsg);
     void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list);
     void templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr& feedback);
+    void processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg);
 
     int calcWristTarget( const geometry_msgs::Pose& wrist_pose,const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose );
     void calcPlanningTarget(const geometry_msgs::Pose& palm_pose, const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& planning_hand_pose);
@@ -128,6 +130,7 @@ private:
     ros::Subscriber template_select_sub;
     ros::Subscriber template_list_sub_;
     ros::Subscriber template_match_feedback_sub_;
+    ros::Subscriber grasp_sync_sub_;
     ros::Publisher grasp_selection_pub_;
     ros::Publisher template_remove_pub_;
     ros::Publisher grasp_command_pub_;
@@ -139,6 +142,7 @@ private:
     ros::Publisher affordance_selection_pub_;
     ros::Publisher snap_template_pub_;
     ros::Publisher hand_marker_pub_;
+    ros::Publisher grasp_sync_pub_;
 
     ros::Publisher planning_hand_target_pub_;
 

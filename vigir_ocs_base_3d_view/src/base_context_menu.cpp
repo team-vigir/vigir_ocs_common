@@ -97,14 +97,14 @@ void BaseContextMenu::createContextMenuItems()
     context_menu_manager_->addSeparatorItem();
 
     insertTemplateMenu_ = context_menu_manager_->addMenuItem("Insert Template");
-    context_menu_manager_->addActionItem("Remove Template",boost::bind(&BaseContextMenu::removeTemplateContextMenu,this),NULL);
+    context_menu_manager_->addActionItem("Remove Template", boost::bind(&BaseContextMenu::removeTemplateContextMenu, this), NULL);
 
     context_menu_manager_->addSeparatorItem();
 
-    context_menu_manager_->addActionItem("Snap Hand to Ghost",boost::bind(&Base3DView::snapHandGhost,base_3d_view_),NULL);
-    context_menu_manager_->addActionItem("Lock Left Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,base_3d_view_,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM),NULL);
-    context_menu_manager_->addActionItem("Lock Right Arm to Template",boost::bind(&Base3DView::setTemplateGraspLock,base_3d_view_,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM),NULL);
-    context_menu_manager_->addActionItem("Unlock Arms",boost::bind(&Base3DView::setTemplateGraspLock,base_3d_view_,-1),NULL);
+    context_menu_manager_->addActionItem("Snap Hand to Ghost", boost::bind(&Base3DView::snapHandGhost, base_3d_view_), NULL);
+    context_menu_manager_->addActionItem("Lock Left Arm to Template", boost::bind(&Base3DView::setTemplateGraspLock, base_3d_view_,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM), NULL);
+    context_menu_manager_->addActionItem("Lock Right Arm to Template", boost::bind(&Base3DView::setTemplateGraspLock, base_3d_view_,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM), NULL);
+    context_menu_manager_->addActionItem("Unlock Arms", boost::bind(&Base3DView::setTemplateGraspLock, base_3d_view_, -1),NULL);
 
     context_menu_manager_->addSeparatorItem();
 

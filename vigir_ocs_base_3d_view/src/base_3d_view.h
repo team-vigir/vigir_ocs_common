@@ -58,6 +58,7 @@
 #include <flor_ocs_msgs/OCSControlMode.h>
 #include "flor_ocs_msgs/OCSSynchronize.h"
 #include <flor_ocs_msgs/OCSMarkerVisibility.h>
+#include <flor_ocs_msgs/OCSGraspSync.h>
 #include <flor_perception_msgs/RaycastRequest.h>
 #include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
@@ -232,6 +233,8 @@ public:
       * ROS Callback: receives new key event from global hotkey process
       */
     virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event);
+
+    void processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg);
 
     /**
       * ROS Callback: receives interactive marker pose updates
@@ -509,58 +512,61 @@ protected:
     // list of gridmaps to be displayed
     std::vector<rviz::Display*> ground_map_;
 
-    rviz::Display* left_ft_sensor_;
-    rviz::Display* right_ft_sensor_;
+    rviz::Display*  left_ft_sensor_;
+    rviz::Display*  right_ft_sensor_;
 
-    rviz::Tool* interactive_markers_tool_;
+    rviz::Tool*     interactive_markers_tool_;
     //rviz::Tool* selection_tool_;
     //rviz::Tool* move_camera_tool_;
-    rviz::Tool* set_goal_tool_;
+    rviz::Tool*     set_goal_tool_;
 
-    Ogre::Vector3 selection_position_;
+    Ogre::Vector3   selection_position_;
 
     ros::NodeHandle nh_;
 
-    ros::Publisher template_add_pub_;
-    ros::Publisher waypoint_add_pub_;
+    ros::Publisher  template_add_pub_;
+    ros::Publisher  waypoint_add_pub_;
 
-    ros::Publisher octomap_roi_pub_;
+    ros::Publisher  octomap_roi_pub_;
 
-    ros::Publisher global_selection_pos_pub_;
+    ros::Publisher  global_selection_pos_pub_;
     ros::Subscriber global_selection_pos_sub_;
 
     ros::Subscriber ground_map_sub_;
     ros::Subscriber point_cloud_result_sub_;
 
-    ros::Publisher pointcloud_request_world_pub_;
+    ros::Publisher  pointcloud_request_world_pub_;
 
-    ros::Publisher send_footstep_goal_pub_;
+    ros::Publisher  send_footstep_goal_pub_;
     ros::Subscriber send_footstep_goal_sub_;
 
-    ros::Publisher set_goal_pub_;
+    ros::Publisher  set_goal_pub_;
     ros::Subscriber set_goal_sub_;
 
-    ros::Publisher interactive_marker_add_pub_;
-    ros::Publisher interactive_marker_update_pub_;
+    ros::Publisher  interactive_marker_add_pub_;
+    ros::Publisher  interactive_marker_update_pub_;
     ros::Subscriber interactive_marker_feedback_sub_;
-    ros::Publisher interactive_marker_remove_pub_;
-    ros::Publisher interactive_marker_server_mode_pub_;
+    ros::Publisher  interactive_marker_remove_pub_;
+    ros::Publisher  interactive_marker_server_mode_pub_;
     ros::Subscriber interactive_marker_server_mode_sub_;
 
-    ros::Publisher flor_mode_command_pub_;
+    ros::Publisher  flor_mode_command_pub_;
     ros::Subscriber flor_mode_sub_;
     ros::Subscriber robot_joint_state_sub_;
 
-    ros::Publisher select_object_pub_;
+    ros::Publisher  select_object_pub_;
     ros::Subscriber select_object_sub_;
 
-    ros::Publisher camera_transform_pub_;
+    ros::Publisher  camera_transform_pub_;
     ros::Subscriber camera_transform_sub_;
 
     ros::Subscriber ocs_sync_sub_;
-    ros::Publisher ocs_sync_pub_;
+    ros::Publisher  ocs_sync_pub_;
 
-    ros::Publisher interactive_marker_visibility_pub_;
+    ros::Subscriber grasp_sync_sub_;
+    ros::Publisher  grasp_sync_pub_;
+
+    ros::Publisher  interactive_marker_visibility_pub_;
 
     //subscribers to grab ghost state data
     ros::Subscriber state_use_torso_sub_;
@@ -579,7 +585,7 @@ protected:
     std::string base_frame_;
     std::string widget_name_;
 
-    bool selected_;
+    bool    selected_;
     QString selected_template_path_;
 
     int active_context_;
@@ -590,19 +596,20 @@ protected:
 
     int stored_maps_;// THIS VALUE DETERMINES HOW MANY WE STORE
 
-    bool visualize_grid_map_;
-    QWidget* position_widget_;
+    bool       visualize_grid_map_;
+    QWidget*   position_widget_;
     QLineEdit* position_label_;
 
     QPushButton* reset_view_button_;
     QPushButton* stop_button_;
 
     QBasicTimer timer_;
-    int ghost_opacity_update_counter_;
-    int ghost_opacity_update_frequency_;
+
+    int  ghost_opacity_update_counter_;
+    int  ghost_opacity_update_frequency_;
     bool ghost_opacity_update_;
 
-    int view_id_;
+    int  view_id_;
 
     ros::Publisher template_remove_pub_;
 

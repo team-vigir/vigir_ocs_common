@@ -57,6 +57,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     template_list_sub_           = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",                    5, &graspWidget::processTemplateList, this );
     template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>("/grasp_control/template_selection", 1, &graspWidget::templateMatchFeedback, this );
     grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(      grasp_control_prefix+"/active_state", 1, &graspWidget::graspStateReceived,  this );
+    grasp_sync_sub_              = nh_.subscribe("/flor/ocs/grasp_sync", 1, &graspWidget::processGraspSyncCB,  this );
 
     grasp_selection_pub_         = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/grasp_selection",                            1, false);
     grasp_release_pub_           = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/release_grasp" ,                             1, false);
@@ -64,6 +65,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     affordance_selection_pub_    = nh_.advertise<vigir_object_template_msgs::Affordance>( "/manipulation_control/" + hand_name_ + "/affordance_command",  1, false);
     snap_template_pub_           = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/template/snap",                                                   1, false);
     hand_marker_pub_             = nh_.advertise<std_msgs::Int8>(                     "/manipulation_control/" + hand_name_ + "/hand_marker",             1, false);
+    grasp_sync_pub_              = nh_.advertise<flor_ocs_msgs::OCSGraspSync>(                     "/flor/ocs/grasp_sync",             1, false);
 
     grasp_info_client_           = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
     template_info_client_        = nh_.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
@@ -966,37 +968,33 @@ int graspWidget::hideHand()
 
 void graspWidget::on_show_grasp_toggled(bool checked)
 {
-    show_grasp_ = checked;
-    ui->show_grasp_radio->setEnabled(show_grasp_);
-    ui->show_pre_grasp_radio->setEnabled(show_grasp_);
-    ui->moveToPoseButton->setEnabled(show_grasp_);
-
-    robot_state::robotStateToRobotStateMsg(*hand_robot_state_, display_state_msg_.state);
-    robot_state_vis_pub_.publish(display_state_msg_);
-
     //publish to sync with other operators
-    //flor_ocs_msgs::OCSGraspSync msg
-    //msg.show_grasp = true;
-    //msg.hand = hand_side_;
-    //msg.host = boost::asio::ip::host_name();
-    //grasp_sync_pub_.publish(msg);
+    //hand would jump between 2 positions otherwise if one operator is on show and other is not
+    flor_ocs_msgs::OCSGraspSync msg;
+    msg.show_grasp = checked;
+    msg.hand = hand_side_;
+    msg.host = boost::asio::ip::host_name();
+    msg.sync_mode = flor_ocs_msgs::OCSGraspSync::SHOW_GRASP;
+    grasp_sync_pub_.publish(msg);
 }
 
-//void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg)
-//{
-//    if(msg.show_grasp)
-//    {
-//        show_grasp_ = checked;
-//        ui->show_grasp_radio->setEnabled(show_grasp_);
-//        ui->show_pre_grasp_radio->setEnabled(show_grasp_);
-//        ui->moveToPoseButton->setEnabled(show_grasp_);
+void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg)
+{
+    if(msg->sync_mode == flor_ocs_msgs::OCSGraspSync::SHOW_GRASP)
+    {
+        if(msg->show_grasp)
+        {
+            //show the grasp
+            show_grasp_ = msg->show_grasp;
+            ui->show_grasp_radio->setEnabled(show_grasp_);
+            ui->show_pre_grasp_radio->setEnabled(show_grasp_);
+            ui->moveToPoseButton->setEnabled(show_grasp_);
 
-//        robot_state::robotStateToRobotStateMsg(*hand_robot_state_, display_state_msg_.state);
-//        robot_state_vis_pub_.publish(display_state_msg_);
-
-//    }
-
-//}
+            robot_state::robotStateToRobotStateMsg(*hand_robot_state_, display_state_msg_.state);
+            robot_state_vis_pub_.publish(display_state_msg_);
+        }
+    }
+}
 
 void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
 {
