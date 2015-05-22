@@ -225,11 +225,15 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "LIDAR Point Cloud", true );
         ROS_ASSERT( lidar_point_cloud_viewer_ != NULL );
         lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Flat Squares" );
-        lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/cloud_result" );
+        lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/worldmodel_main/pointcloud_vis" );
         lidar_point_cloud_viewer_->subProp( "Size (m)" )->setValue( 0.01 );
-        lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-        lidar_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
+        lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
+        lidar_point_cloud_viewer_->subProp( "Channel Name" )->setValue("intensity");
+        lidar_point_cloud_viewer_->subProp( "Use rainbow" )->setValue(false);
+        lidar_point_cloud_viewer_->subProp( "Autocompute Intensity Bounds" )->setValue(false);
         lidar_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
+        lidar_point_cloud_viewer_->subProp( "Min Intensity" )->setValue( 0 );
+        lidar_point_cloud_viewer_->subProp( "Max Intensity" )->setValue( 5000 );
         lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
         // Create the mesh displays
