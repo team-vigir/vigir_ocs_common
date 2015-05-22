@@ -19,6 +19,7 @@ BehaviorNotification::BehaviorNotification(QWidget *parent, QString action_text,
 
     ui->label_widget_->installEventFilter(this);
 
+
     ui->confirmation_widget_->setParent(NULL);
 
 
@@ -39,8 +40,9 @@ BehaviorNotification::BehaviorNotification(QWidget *parent, QString action_text,
     Qt::WindowFlags flags = ui->confirmation_widget_->windowFlags();
     flags |= Qt::FramelessWindowHint;
     flags |= Qt::WindowStaysOnTopHint;
-    flags |= Qt::Dialog;
+    //flags |= Qt::Dialog;
     ui->confirmation_widget_->setWindowFlags(flags);
+
 
     timer.start(100, this);
 
@@ -102,8 +104,7 @@ BehaviorNotification::~BehaviorNotification()
 }
 
 void BehaviorNotification::objectSelectCB(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg)
-{
-    ROS_ERROR("goal_type_ %d  msg: %d ",goal_type_, msg->type);
+{    
     //don't want to be affected by selection by another operator
     if(msg->host == boost::asio::ip::host_name())
     {

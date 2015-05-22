@@ -46,6 +46,8 @@
 #include <rviz/properties/int_property.h>
 #include <rviz/properties/float_property.h>
 #include <rviz/properties/color_property.h>
+#include <string>
+#include <boost/exception/to_string.hpp>
 
 namespace jsk_rviz_plugin
 {
@@ -91,6 +93,8 @@ namespace jsk_rviz_plugin
     float fade_in_timer_;
     float up_timer_;
     float fade_out_timer_;    
+
+    float overlay_age_;
 
     ros::Subscriber sub_;
 

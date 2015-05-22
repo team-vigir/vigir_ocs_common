@@ -114,6 +114,8 @@ OverlayTextDisplay::OverlayTextDisplay() : Display(),
                 "font", "DejaVu Sans Mono",
                 "font", this,
                 SLOT(updateFont()));
+
+    overlay_age_ = 0.0f;
 }
 
 OverlayTextDisplay::~OverlayTextDisplay()
@@ -185,6 +187,7 @@ void OverlayTextDisplay::onInitialize()
 
 void OverlayTextDisplay::update(float wall_dt, float ros_dt)
 {
+    //ignore update if notification is not being used
     if (!isEnabled()) {
         return;
     }
@@ -192,8 +195,15 @@ void OverlayTextDisplay::update(float wall_dt, float ros_dt)
         return;
     }
 
+    //accumulate age, age is reset by publishing
+    overlay_age_ += wall_dt;
+
+    //round to nearest integer to just display seconds
+    int display_age = int (overlay_age_ + 0.5);
+    std::string notification_text = text_ + " | " +boost::to_string(display_age)+"s";
+
     if (text_.length() > 0)
-        overlay_text_->setText((text_).c_str());
+        overlay_text_->setText((notification_text).c_str());
 
     //set colors based on fade timers
     if(fade_in_timer_ > 0)
@@ -203,8 +213,8 @@ void OverlayTextDisplay::update(float wall_dt, float ros_dt)
         float a = 1.0 - (fade_in_timer_ / fade_in_);
         //set a to 0 if negative
         a = a>=0 ? a : 0;
-        fg_color_.setAlpha(a  *230.0); // want max at 90%
-        bg_color_.setAlpha(a  *127.0); // want max at 50%        
+        fg_color_.setAlpha(a * 230.0); // want max at 90%
+        bg_color_.setAlpha(a * 127.0); // want max at 50%
 
         //update text with new color values
         overlay_text_->setTextColor(fg_color_.redF(),fg_color_.greenF(),fg_color_.blueF(),fg_color_.alphaF());
@@ -285,6 +295,8 @@ void OverlayTextDisplay::processMessage(const flor_ocs_msgs::OCSOverlayText::Con
 
     // store message for update method
     text_ = msg->text;
+
+    overlay_age_ = 0.0f;
 
     if (!overtake_properties_)
     {
