@@ -973,7 +973,30 @@ void graspWidget::on_show_grasp_toggled(bool checked)
 
     robot_state::robotStateToRobotStateMsg(*hand_robot_state_, display_state_msg_.state);
     robot_state_vis_pub_.publish(display_state_msg_);
+
+    //publish to sync with other operators
+    //flor_ocs_msgs::OCSGraspSync msg
+    //msg.show_grasp = true;
+    //msg.hand = hand_side_;
+    //msg.host = boost::asio::ip::host_name();
+    //grasp_sync_pub_.publish(msg);
 }
+
+//void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg)
+//{
+//    if(msg.show_grasp)
+//    {
+//        show_grasp_ = checked;
+//        ui->show_grasp_radio->setEnabled(show_grasp_);
+//        ui->show_pre_grasp_radio->setEnabled(show_grasp_);
+//        ui->moveToPoseButton->setEnabled(show_grasp_);
+
+//        robot_state::robotStateToRobotStateMsg(*hand_robot_state_, display_state_msg_.state);
+//        robot_state_vis_pub_.publish(display_state_msg_);
+
+//    }
+
+//}
 
 void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
 {
