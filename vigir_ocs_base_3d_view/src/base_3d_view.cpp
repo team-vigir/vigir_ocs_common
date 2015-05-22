@@ -702,6 +702,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ocs_sync_sub_ = nh_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &Base3DView::synchronizeViews, this );
         ocs_sync_pub_ = nh_.advertise<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
 
+        //synchronize Template servers in onboard and OCS by clearing collison objects in the planning scene
+        clear_planning_objects_pub_ = nh_.advertise<std_msgs::Empty>( "/template/clear", 5, false);
+
         //create joint position error displays
         joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
         ROS_ASSERT( joint_arrows_ != NULL );
@@ -1582,6 +1585,12 @@ void Base3DView::clearMapRequests()
     msg.reset.push_back(true);
     msg.visible.push_back(false);
     ocs_sync_pub_.publish(msg);
+}
+
+void Base3DView::clearPlanningObjects()
+{
+    std_msgs::Empty msg;
+    clear_planning_objects_pub_.publish(msg);
 }
 
 //when reset is pressed, reset all,
