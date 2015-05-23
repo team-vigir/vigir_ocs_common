@@ -528,6 +528,7 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
         ui->affordanceButton->setEnabled(true);
         ui->keepOrientationBox->setEnabled(true);
         ui->displacementBox->setEnabled(true);
+        ui->pitchSpinBox->setEnabled(true);
         ui->usabilityBox->setEnabled(true);
     }
 
@@ -539,6 +540,7 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
             ui->displacementBox->setValue(current_affordance_.displacement / 0.0174532925); // UI in deg, msg in rad);
         else
             ui->displacementBox->setValue(current_affordance_.displacement);
+        ui->pitchSpinBox->setValue(current_affordance_.pitch);
     }
 
     if(ui->templateBox->count() > 0){
@@ -565,6 +567,7 @@ void graspWidget::on_affordanceBox_activated(const int &arg1)
         ui->displacementBox->setValue(current_affordance_.displacement / 0.0174532925); // UI in deg, msg in rad);
     else
         ui->displacementBox->setValue(current_affordance_.displacement);
+    ui->pitchSpinBox->setValue(current_affordance_.pitch);
 }
 
 void graspWidget::on_usabilityBox_activated(const int &arg1)
@@ -1049,6 +1052,7 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             ui->affordanceButton->setEnabled(false);
             ui->keepOrientationBox->setEnabled(false);
             ui->displacementBox->setEnabled(false);
+            ui->pitchSpinBox->setEnabled(false);
             ui->snapTemplateButton->setEnabled(false);
             }
             break;
@@ -1095,6 +1099,11 @@ void graspWidget::on_displacementBox_valueChanged(double value){
         current_affordance_.displacement = value * 0.0174532925; // UI in deg, msg in rad;
     else
         current_affordance_.displacement = value;
+}
+
+void graspWidget::on_pitchSpinBox_valueChanged(double value){
+    //Set displacement value on afordance msg
+    current_affordance_.pitch = value;
 }
 
 void graspWidget::on_keepOrientationBox_toggled(bool checked){

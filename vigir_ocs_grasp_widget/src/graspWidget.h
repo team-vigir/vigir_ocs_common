@@ -81,6 +81,7 @@ public Q_SLOTS:
     void on_detachButton_clicked();
     void on_affordanceButton_clicked();
     void on_displacementBox_valueChanged(double value);
+    void on_pitchSpinBox_valueChanged(double value);
     void on_keepOrientationBox_toggled(bool checked);
     void on_snapTemplateButton_clicked();
     void on_graspPose_clicked();
