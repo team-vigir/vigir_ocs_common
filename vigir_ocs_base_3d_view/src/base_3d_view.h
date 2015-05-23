@@ -364,6 +364,10 @@ public Q_SLOTS:
       * Resets area maps
       */
     void clearMapRequests();
+    /**
+      * Removes collsioin objects from the planning scene
+      */
+    void clearPlanningObjects();
 
     /**
       * send pose to moveit and requests cartesian plan for left arm
@@ -559,6 +563,8 @@ protected:
 
     ros::Subscriber ocs_sync_sub_;
     ros::Publisher ocs_sync_pub_;
+
+    ros::Publisher clear_planning_objects_pub_;
 
     ros::Publisher interactive_marker_visibility_pub_;
 

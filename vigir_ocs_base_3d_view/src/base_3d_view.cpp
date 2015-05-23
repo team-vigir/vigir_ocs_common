@@ -225,15 +225,11 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         lidar_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "LIDAR Point Cloud", true );
         ROS_ASSERT( lidar_point_cloud_viewer_ != NULL );
         lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Flat Squares" );
-        lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/worldmodel_main/pointcloud_vis" );
+        lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/cloud_result" );
         lidar_point_cloud_viewer_->subProp( "Size (m)" )->setValue( 0.01 );
-        lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
-        lidar_point_cloud_viewer_->subProp( "Channel Name" )->setValue("intensity");
-        lidar_point_cloud_viewer_->subProp( "Use rainbow" )->setValue(false);
-        lidar_point_cloud_viewer_->subProp( "Autocompute Intensity Bounds" )->setValue(false);
+        lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
+        lidar_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
         lidar_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
-        lidar_point_cloud_viewer_->subProp( "Min Intensity" )->setValue( 0 );
-        lidar_point_cloud_viewer_->subProp( "Max Intensity" )->setValue( 5000 );
         lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
 
         // Create the mesh displays
@@ -705,6 +701,9 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         //synchronize 3d views
         ocs_sync_sub_ = nh_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &Base3DView::synchronizeViews, this );
         ocs_sync_pub_ = nh_.advertise<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
+
+        //synchronize Template servers in onboard and OCS by clearing collison objects in the planning scene
+        clear_planning_objects_pub_ = nh_.advertise<std_msgs::Empty>( "/template/clear", 5, false);
 
         //create joint position error displays
         joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
@@ -1586,6 +1585,12 @@ void Base3DView::clearMapRequests()
     msg.reset.push_back(true);
     msg.visible.push_back(false);
     ocs_sync_pub_.publish(msg);
+}
+
+void Base3DView::clearPlanningObjects()
+{
+    std_msgs::Empty msg;
+    clear_planning_objects_pub_.publish(msg);
 }
 
 //when reset is pressed, reset all,
