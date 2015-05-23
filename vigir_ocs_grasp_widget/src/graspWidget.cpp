@@ -982,7 +982,8 @@ void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr
 {
     if(msg->sync_mode == flor_ocs_msgs::OCSGraspSync::SHOW_GRASP)
     {
-        if(msg->show_grasp)
+        //only affect this hand
+        if(msg->hand == hand_side_)
         {
             //show the grasp
             show_grasp_ = msg->show_grasp;
