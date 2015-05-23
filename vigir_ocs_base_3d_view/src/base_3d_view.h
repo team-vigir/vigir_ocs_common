@@ -157,11 +157,11 @@ public:
     /**
       * ROS Callback: receives left arm end effector position from moveit
       */
-    void processLeftArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    void processLeftArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr pose );
     /**
       * ROS Callback: receives right armend effector position from moveit
       */
-    void processRightArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    void processRightArmEndEffector( const geometry_msgs::PoseStamped::ConstPtr pose );
     /**
       * ROS Callback: receives pelvis end effector position from moveit
       */

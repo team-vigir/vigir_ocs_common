@@ -493,8 +493,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         interactive_marker_server_mode_sub_ = nh_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1, &Base3DView::processInteractiveMarkerMode, this);
 
         // subscribe to the moveit pose topics
-        end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
-        end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
+        end_effector_sub_.push_back(nh_.subscribe( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
+        end_effector_sub_.push_back(nh_.subscribe( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
         end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/robot", 5, &Base3DView::processPelvisEndEffector, this ));
 
         end_effector_pub_ = nh_.advertise<flor_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 5, false );
@@ -705,8 +705,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 		 //synchronize Template servers in onboard and OCS by clearing collison objects in the planning scene
         clear_planning_objects_pub_ = nh_.advertise<std_msgs::Empty>( "/template/clear", 5, false);
         //grasp sync
-        grasp_sync_sub_ = nh_.subscribe("/flor/ocs/grasp_sync", 1, &Base3DView::processGraspSyncCB, this);
-        grasp_sync_pub_ = nh_.advertise<flor_ocs_msgs::OCSGraspSync>("/flor/ocs/grasp_sync", 1, false);
+        grasp_sync_sub_ = nh_.subscribe("/flor/ocs/grasp_sync", 5, &Base3DView::processGraspSyncCB, this);
+        grasp_sync_pub_ = nh_.advertise<flor_ocs_msgs::OCSGraspSync>("/flor/ocs/grasp_sync", 5, false);
 
         //create joint position error displays
         joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
@@ -2122,6 +2122,7 @@ void Base3DView::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr 
     {
         //set Template grasp lock
         int arm = msg->hand_lock;
+        ROS_ERROR("arm %d %d", arm, msg->hand_lock);
         int id = findObjectContext("template");
         if (arm == flor_ocs_msgs::OCSObjectSelection::UNLOCK_ARMS) // unlocks both arms
         {
@@ -2142,6 +2143,7 @@ void Base3DView::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr 
                 ghost_right_hand_lock_ = true;
             }
         }
+        ROS_ERROR("left %d right %d",ghost_left_hand_lock_,ghost_right_hand_lock_);
     }   
 }
 
@@ -2417,7 +2419,7 @@ void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
 }
 
 // Moveit callback for left arm end effector
-void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
+void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr pose)
 {
     // calculate pose of the marker based on interactive marker transform
     geometry_msgs::PoseStamped wrist_pose;
@@ -2435,23 +2437,23 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
 
         // update interactive marker pose
         //if(wrist_pose.header.stamp.toSec() != l_arm_marker_update.pose.header.stamp.toSec())
-        {
-            // publishes the grasp hands pose
-            publishHandPose("left",*pose);
-            l_arm_marker_update.client_id = ros::this_node::getName();
-            l_arm_marker_update.topic = "/l_arm_pose_marker";
-            l_arm_marker_update.pose = wrist_pose;
-            interactive_marker_update_pub_.publish(l_arm_marker_update);
 
-            l_arm_marker_pose_pub_.publish(wrist_pose);
-        }
+        // publishes the grasp hands pose
+        publishHandPose("left",*pose);
+        l_arm_marker_update.client_id = ros::this_node::getName();
+        l_arm_marker_update.topic = "/l_arm_pose_marker";
+        l_arm_marker_update.pose = wrist_pose;
+        interactive_marker_update_pub_.publish(l_arm_marker_update);
+
+        l_arm_marker_pose_pub_.publish(wrist_pose);
+
 
 //        ROS_ERROR("PROCESS LEFT ARM END EFFECTOR:");
 //        ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
 //        ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
 
         // doesn't happen if in template lock mode
-        if(!moving_pelvis_ && ghost_left_hand_lock_ )//ghost_pose_source_[0] == 0)
+        if(!moving_pelvis_ && !ghost_left_hand_lock_ )//ghost_pose_source_[0] == 0)
             end_effector_pose_list_[l_arm_marker_update.topic] = l_arm_marker_update.pose;
     }
 
@@ -2463,7 +2465,7 @@ void Base3DView::processLeftArmEndEffector(const geometry_msgs::PoseStamped::Con
 }
 
 // Moveit callback for right arm end effector
-void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
+void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::ConstPtr pose)
 {
     // calculate pose of the marker based on interactive marker transform
     geometry_msgs::PoseStamped wrist_pose;
@@ -2481,22 +2483,22 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
 
         // update interactive marker pose
         //if(wrist_pose.header.stamp.toSec() != r_arm_marker_update.pose.header.stamp.toSec())
-        {
-            publishHandPose("right",*pose);
-            r_arm_marker_update.client_id = ros::this_node::getName();
-            r_arm_marker_update.topic = "/r_arm_pose_marker";
-            r_arm_marker_update.pose = wrist_pose;
-            interactive_marker_update_pub_.publish(r_arm_marker_update);
 
-            r_arm_marker_pose_pub_.publish(wrist_pose);
-        }
+        publishHandPose("right",*pose);
+        r_arm_marker_update.client_id = ros::this_node::getName();
+        r_arm_marker_update.topic = "/r_arm_pose_marker";
+        r_arm_marker_update.pose = wrist_pose;
+        interactive_marker_update_pub_.publish(r_arm_marker_update);
+
+        r_arm_marker_pose_pub_.publish(wrist_pose);
+
 
         //ROS_ERROR("RIGHT ARM POSE:");
         //ROS_ERROR("  position: %.2f %.2f %.2f",cmd.pose.pose.position.x,cmd.pose.pose.position.y,cmd.pose.pose.position.z);
         //ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",cmd.pose.pose.orientation.w,cmd.pose.pose.orientation.x,cmd.pose.pose.orientation.y,cmd.pose.pose.orientation.z);
 
         // doesn't happen if in template lock mode
-        if(!moving_pelvis_ && ghost_right_hand_lock_ )//ghost_pose_source_[1] == 0)
+        if(!moving_pelvis_ && !ghost_right_hand_lock_ )//ghost_pose_source_[1] == 0)
             end_effector_pose_list_[r_arm_marker_update.topic] = r_arm_marker_update.pose;
     }
 

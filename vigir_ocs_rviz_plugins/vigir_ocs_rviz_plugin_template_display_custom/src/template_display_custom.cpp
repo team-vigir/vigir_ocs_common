@@ -332,14 +332,14 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
     lEntity->setUserAny(Ogre::Any(std::string("template ")+convert.str()));
     Ogre::SceneNode* lNode = this->scene_node_->createChildSceneNode();
 
+
     //Save the the size of the template
     //template_size_ = 0.2;
 
     lNode->attachObject(lEntity);
     // change position and scale (from mm to m)
     lNode->setPosition(pos);
-    lNode->setOrientation(quat);
-
+    lNode->setOrientation(quat);    
     //Save the the size of the template
     template_size_ = lEntity->getBoundingBox().getSize().length() + pos.distance(lEntity->getWorldBoundingBox(true).getCenter());
 
