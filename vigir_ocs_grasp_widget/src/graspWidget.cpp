@@ -985,7 +985,7 @@ void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr
         //only affect this hand
         if(msg->hand == hand_side_)
         {
-            //show the grasp
+            //show/hide the grasp
             show_grasp_ = msg->show_grasp;
             ui->show_grasp_radio->setEnabled(show_grasp_);
             ui->show_pre_grasp_radio->setEnabled(show_grasp_);
