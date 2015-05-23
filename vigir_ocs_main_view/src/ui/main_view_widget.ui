@@ -1238,7 +1238,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>0</y>
+           <y>-498</y>
            <width>212</width>
            <height>1622</height>
           </rect>
@@ -1593,13 +1593,48 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="templates">
-               <property name="text">
-                <string>Templates</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
+              <widget class="QWidget" name="widget_14" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_18">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QCheckBox" name="templates">
+                  <property name="text">
+                   <string>Templates</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="clear_planning_objects">
+                  <property name="maximumSize">
+                   <size>
+                    <width>80</width>
+                    <height>18</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
+color: rgb(255, 26, 26);</string>
+                  </property>
+                  <property name="text">
+                   <string>clear collisions</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </widget>
              </item>
              <item>
