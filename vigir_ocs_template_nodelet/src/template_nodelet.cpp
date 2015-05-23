@@ -1016,6 +1016,13 @@ void TemplateNodelet::loadObjectTemplateDatabaseXML(std::string& file_name)
                     affordance.axis = "no_axis";
                 }
 
+                if(pAffordance->Attribute("pitch"))
+                    affordance.pitch = std::atof(pAffordance->Attribute("pitch"));
+                else{
+                    ROS_WARN("Affordance ID: %d has no pitch attribute, setting to 0", affordance.id);
+                    affordance.pitch = 0.0;
+                }
+
                 if(pAffordance->Attribute("displacement")){
                     if(affordance.type == "circular")
                         affordance.displacement = (std::atof(pAffordance->Attribute("displacement"))) * 0.0174532925; // Template library in deg, msg in rad;
