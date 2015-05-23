@@ -2142,10 +2142,7 @@ void Base3DView::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr 
                 ghost_right_hand_lock_ = true;
             }
         }
-    }
-
-    ROS_ERROR("Locks left %d right %d",ghost_left_hand_lock_, ghost_right_hand_lock_);
-
+    }   
 }
 
 void Base3DView::deselectAll()
