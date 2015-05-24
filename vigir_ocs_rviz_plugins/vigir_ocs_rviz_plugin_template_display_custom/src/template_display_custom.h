@@ -51,6 +51,7 @@
 #include "OGRE/OgreWindowEventUtilities.h"
 #include "OGRE/OgreManualObject.h"
 #include "OGRE/OgreEntity.h"
+#include "OGRE/OgreSubEntity.h"
 #include <OGRE/OgreSceneNode.h>
 
 #include <map>

@@ -332,6 +332,26 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
     lEntity->setUserAny(Ogre::Any(std::string("template ")+convert.str()));
     Ogre::SceneNode* lNode = this->scene_node_->createChildSceneNode();
 
+    //change template color to purple
+    float r = 0.439f;
+    float g = 0.153f;
+    float b = 0.765f;
+    float a = 1.0f;
+
+    for(int i=0;i<lEntity->getNumSubEntities();i++)
+    {
+        Ogre::MaterialPtr  mat = lEntity->getSubEntity(i)->getMaterial();
+
+        Ogre::ColourValue diffuse_color(r, g, b, a);
+        mat->setDiffuse(diffuse_color);
+
+        Ogre::ColourValue ambient_color(r/2, g/2, b/2, a);
+        mat->setAmbient(ambient_color);
+
+        Ogre::ColourValue specular_color(r*1.3, g*1.3, b*1.3, a);
+        mat->setSpecular(specular_color);
+    }
+
     //Save the the size of the template
     //template_size_ = 0.2;
 
