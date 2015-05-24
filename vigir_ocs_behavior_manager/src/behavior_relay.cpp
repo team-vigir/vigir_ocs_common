@@ -25,6 +25,7 @@ void BehaviorRelay::receiveBehaviorGoalCB(const flor_ocs_msgs::OCSBehaviorGoalCo
         Q_EMIT updateUI();
 }
 
+
 //callback to receive confirmation of other goals on other instances of OCS, will redundantly notify itself
 void BehaviorRelay::receiveBehaviorResult(const flor_ocs_msgs::OCSBehaviorGoalConstPtr msg)
 {
@@ -39,6 +40,7 @@ void BehaviorRelay::receiveBehaviorResult(const flor_ocs_msgs::OCSBehaviorGoalCo
         }
     }
     cleanNotifications(); //remove notification to be deleted
+    Q_EMIT updateUI();
 }
 
 
@@ -51,12 +53,10 @@ void BehaviorRelay::createNotification(QString action_text, int goal_id, int goa
     behavior_notifications_.push_back(notification);
 }
 
+
 void BehaviorRelay::reportConfirmation(QString action_text, int id)
 {    
-    cleanNotifications();    
-    Q_EMIT updateUI(); //remove and enqueue new notification    
-
-    //publish to tell other views that this goal is obselete
+    //publish to tell views that this goal is obselete, tells manager to confirm and grab data
     flor_ocs_msgs::OCSBehaviorGoal msg;
     msg.action_text = qPrintable(action_text); // convert to c_str
     msg.id = id;
@@ -65,12 +65,10 @@ void BehaviorRelay::reportConfirmation(QString action_text, int id)
     behavior_confirm_pub_.publish(msg);
 }
 
+
 void BehaviorRelay::reportAbort(QString action_text, int id)
 {
-    cleanNotifications();
-    Q_EMIT updateUI(); //remove and enqueue new notification
-
-    //publish to tell other views that this goal is obselete
+    //publish to tell views that this goal is obselete, tells manager to abort
     flor_ocs_msgs::OCSBehaviorGoal msg;
     msg.action_text = qPrintable(action_text); // convert to c_str
     msg.id = id;
@@ -106,6 +104,7 @@ void BehaviorRelay::cleanNotifications()
         behavior_notifications_.push_back(tmp[i]);
 
 }
+
 
 std::vector<BehaviorNotification*> BehaviorRelay::getNotifications()
 {

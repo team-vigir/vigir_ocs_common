@@ -19,9 +19,7 @@ BehaviorNotification::BehaviorNotification(QWidget *parent, QString action_text,
 
     ui->label_widget_->installEventFilter(this);
 
-
     ui->confirmation_widget_->setParent(NULL);
-
 
     ui->confirmation_widget_->show();
     ui->confirmation_widget_->setVisible(false);
@@ -78,13 +76,11 @@ bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
         if(mouseEvent->button() == 1 && mouseEvent->type() == QEvent::MouseButtonPress)
         {
             if(ui->confirm_button_->isVisible())
-            {
-                //ui->confirmation_widget_->hide();
+            {             
                 ui->confirmation_widget_->setVisible(false);
             }
             else
-            {
-                //ui->confirmation_widget_->show();
+            {                
                 ui->confirmation_widget_->setVisible(true);
             }
             return true;

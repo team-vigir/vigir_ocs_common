@@ -7,10 +7,8 @@
 #include "flor_ocs_msgs/OCSBehaviorGoal.h"
 #include "behavior_notification.h"
 #include <boost/asio/ip/host_name.hpp>
-
-//#include <actionlib/server/simple_action_server.h>
 #include <vigir_be_msgs/BehaviorInputAction.h>
-//#include "complex_action_server.h"
+
 
 /**
  * Subscribe to different topics in order to process whether a required action has been processed.
