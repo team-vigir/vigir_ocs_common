@@ -765,8 +765,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     context_menu_manager_ = new ContextMenuManager(this);
 
     // Connect the 3D selection tool to
-    QObject::connect(this, SIGNAL(queryContext(int,int)), selection_3d_display_, SLOT(queryContext(int,int)));
-    QObject::connect(selection_3d_display_, SIGNAL(setContext(int,std::string)), this, SLOT(setContext(int,std::string)));
+    QObject::connect(this, SIGNAL(queryContext(int, int)), selection_3d_display_, SLOT(queryContext(int, int)));
+    QObject::connect(selection_3d_display_, SIGNAL(setContext(int, std::string)), this, SLOT(setContext(int, std::string)));
 
     // connect the 3d selection tool to its display
     QObject::connect(this, SIGNAL(setRenderPanel(rviz::RenderPanel*)), selection_3d_display_, SLOT(setRenderPanel(rviz::RenderPanel*)));
@@ -774,18 +774,18 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     QObject::connect(selection_3d_display_, SIGNAL(newSelection(Ogre::Vector3)), this, SLOT(newSelection(Ogre::Vector3)));
     QObject::connect(selection_3d_display_, SIGNAL(setSelectionRay(Ogre::Ray)), this, SLOT(setSelectionRay(Ogre::Ray)));
     QObject::connect(this, SIGNAL(resetSelection()), selection_3d_display_, SLOT(resetSelection()));
-    QObject::connect(this, SIGNAL(setMarkerPosition(float,float,float)), selection_3d_display_, SLOT(setMarkerPosition(float,float,float)));
+    QObject::connect(this, SIGNAL(setMarkerPosition(float, float, float)), selection_3d_display_, SLOT(setMarkerPosition(float, float, float)));
 
     // handles mouse events without rviz::tool
     mouse_event_handler_ = new vigir_ocs::MouseEventHandler();
     QObject::connect(render_panel_, SIGNAL(signalMousePressEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mousePressEvent(QMouseEvent*)));
     QObject::connect(render_panel_, SIGNAL(signalMouseReleaseEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseReleaseEvent(QMouseEvent*)));
     QObject::connect(render_panel_, SIGNAL(signalMouseDoubleClickEvent(QMouseEvent*)), mouse_event_handler_, SLOT(mouseDoubleClick(QMouseEvent*)));
-    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool,int,int)), selection_3d_display_, SLOT(raycastRequest(bool,int,int)));
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonCtrl(bool, int, int)), selection_3d_display_, SLOT(raycastRequest(bool, int, int)));
     //QObject::connect(mouse_event_handler_, SIGNAL(mouseLeftButtonShift(bool,int,int)), selection_3d_display_, SLOT(raycastRequestROI(bool,int,int)));
     //initializes overall context menu
-    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool,int,int)),context_menu_manager_, SLOT(createContextMenu(bool,int,int)));
-    QObject::connect(mouse_event_handler_, SIGNAL(signalMouseLeftDoubleClick(int,int)), this, SLOT(selectOnDoubleClick(int,int)));
+    QObject::connect(mouse_event_handler_, SIGNAL(mouseRightButton(bool, int, int)),context_menu_manager_, SLOT(createContextMenu(bool, int, int)));
+    QObject::connect(mouse_event_handler_, SIGNAL(signalMouseLeftDoubleClick(int, int)), this, SLOT(selectOnDoubleClick(int, int)));
 
     Q_FOREACH( QWidget* sp, findChildren<QWidget*>() ) {
         sp->installEventFilter( this );
@@ -799,8 +799,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
    // reset_view_button_->move(0,300);
     QObject::connect(reset_view_button_, SIGNAL(clicked()), this, SLOT(resetView()));
 
-    stop_button_ = new QPushButton("STOP",this);    
-    stop_button_->setStyleSheet("font: 100pt \"MS Shell Dlg 2\";background-color: red;color: white;border-color: red;");
+    stop_button_ = new QPushButton("FREEZE",this);
+    stop_button_->setStyleSheet("font: 78pt \"MS Shell Dlg 2\";background-color: red;color: white;border-color: red;");
     stop_button_->setMaximumSize(400,300);
     stop_button_->adjustSize();
     QObject::connect(stop_button_, SIGNAL(clicked()), this, SIGNAL(emergencyStop()));
@@ -926,7 +926,7 @@ void Base3DView::initializeFrustums(std::string prefix)
     {
         std::string topic = static_cast<std::string>(camera_topic_prefix[i]);
         //ROS_ERROR("topic %s",topic.c_str());
-        rviz::Display* frustum_display = manager_->createDisplay("rviz/CameraFrustumDisplayCustom","Frustum Display", true);
+        rviz::Display* frustum_display = manager_->createDisplay("rviz/CameraFrustumDisplayCustom", "Frustum Display", true);
         frustum_display->subProp("Topic")->setValue(topic.c_str());
         frustum_display->subProp("alpha")->setValue("0.05");
         frustum_display->setEnabled(false);
