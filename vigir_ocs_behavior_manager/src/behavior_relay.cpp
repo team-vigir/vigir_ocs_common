@@ -3,19 +3,17 @@
 
 BehaviorRelay::BehaviorRelay(QWidget* parent)
 {    
-    behavior_goal_sub_ = nh_.subscribe<flor_ocs_msgs::OCSBehaviorGoal>( "/vigir/ocs/behavior/send_goal", 5, &BehaviorRelay::receiveBehaviorGoalCB, this );
-    behavior_confirm_sub_ = nh_.subscribe<flor_ocs_msgs::OCSBehaviorGoal>( "/vigir/ocs/behavior/confirm_goal", 5, &BehaviorRelay::receiveBehaviorResult, this );
+    behavior_goal_sub_ = nh_.subscribe( "/vigir/ocs/behavior/send_goal", 5, &BehaviorRelay::receiveBehaviorGoalCB, this );
+    behavior_confirm_sub_ = nh_.subscribe( "/vigir/ocs/behavior/confirm_goal", 5, &BehaviorRelay::receiveBehaviorResult, this );
     behavior_confirm_pub_  = nh_.advertise<flor_ocs_msgs::OCSBehaviorGoal>("/vigir/ocs/behavior/confirm_goal",1,false);
 
     parent_ = parent;
-    max_notifications_shown_ = 5;
-
-    qRegisterMetaType<BehaviorServer::GoalHandle>("GoalHandle");
+    max_notifications_shown_ = 5;    
 }
 
 
 //callback to receive goal and create notification
-void BehaviorRelay::receiveBehaviorGoalCB(const flor_ocs_msgs::OCSBehaviorGoalConstPtr& msg)
+void BehaviorRelay::receiveBehaviorGoalCB(const flor_ocs_msgs::OCSBehaviorGoalConstPtr msg)
 {    
     //build appropriate string for ui
     QString action_text = QString::fromStdString(msg->action_text);
@@ -28,15 +26,15 @@ void BehaviorRelay::receiveBehaviorGoalCB(const flor_ocs_msgs::OCSBehaviorGoalCo
 }
 
 //callback to receive confirmation of other goals on other instances of OCS, will redundantly notify itself
-void BehaviorRelay::receiveBehaviorResult(const flor_ocs_msgs::OCSBehaviorGoalConstPtr& msg)
+void BehaviorRelay::receiveBehaviorResult(const flor_ocs_msgs::OCSBehaviorGoalConstPtr msg)
 {
-    for(int i =0;i<behavior_notifications_.size();i++)
+    for(int i = 0;i<behavior_notifications_.size();i++)
     {
         BehaviorNotification * notification = behavior_notifications_[i];
         //goal matches any of our given goals?
         if(notification->getGoalId() == msg->id)
         {
-            //delete goal, as it has been confirmed
+            //set goal to be deleted, as it has been confirmed
             notification->deleteNotification();
         }
     }
@@ -53,7 +51,7 @@ void BehaviorRelay::createNotification(QString action_text, int goal_id, int goa
     behavior_notifications_.push_back(notification);
 }
 
-void BehaviorRelay::reportConfirmation(QString action_text, int id)//, BehaviorServer::GoalHandle goal_handle)
+void BehaviorRelay::reportConfirmation(QString action_text, int id)
 {    
     cleanNotifications();    
     Q_EMIT updateUI(); //remove and enqueue new notification    
@@ -67,7 +65,7 @@ void BehaviorRelay::reportConfirmation(QString action_text, int id)//, BehaviorS
     behavior_confirm_pub_.publish(msg);
 }
 
-void BehaviorRelay::reportAbort(QString action_text, int id)//, BehaviorServer::GoalHandle goal_handle)
+void BehaviorRelay::reportAbort(QString action_text, int id)
 {
     cleanNotifications();
     Q_EMIT updateUI(); //remove and enqueue new notification

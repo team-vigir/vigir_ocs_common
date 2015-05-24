@@ -19,14 +19,10 @@
 #include <boost/asio/ip/host_name.hpp>
 
 
-//typedef typename ActionServer<ActionSpec>::GoalHandlePtr GoalHandlePtr;
-
 namespace Ui
 {
     class BehaviorNotification; //window name
 }
-
-typedef actionlib::ComplexActionServer<vigir_be_msgs::BehaviorInputAction> BehaviorServer;
 
 class BehaviorNotification : public QWidget
 {

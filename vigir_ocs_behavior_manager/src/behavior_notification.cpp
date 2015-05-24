@@ -23,7 +23,6 @@ BehaviorNotification::BehaviorNotification(QWidget *parent, QString action_text,
     ui->confirmation_widget_->setParent(NULL);
 
 
-
     ui->confirmation_widget_->show();
     ui->confirmation_widget_->setVisible(false);
     ui->confirmation_widget_->setStyleSheet("QWidget{background-color:rgba(60,60,60,200);}");
