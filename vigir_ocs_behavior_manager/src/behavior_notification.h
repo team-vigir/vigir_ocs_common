@@ -34,7 +34,7 @@ public:
     bool getConfirmed();
     void setActionText(QString);    
     void setPoint(QPoint point);
-    void deleteNotification();   
+    void queueDeleteNotification();
     int getGoalId();
 
 private:

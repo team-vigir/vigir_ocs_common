@@ -9,13 +9,13 @@ BehaviorNotification::BehaviorNotification(QWidget *parent, QString action_text,
 
     this->hide();
 
-    object_sub_ = nh_.subscribe("/flor/ocs/object_selection", 5 ,&BehaviorNotification::objectSelectCB,this);
+    object_sub_ = nh_.subscribe("/flor/ocs/object_selection", 5 , &BehaviorNotification::objectSelectCB, this);
 
     connect(ui->confirm_button_,SIGNAL(clicked()), this, SLOT(confirm()));
     connect(ui->abort_button_,SIGNAL(clicked()), this, SLOT(abort()));
 
     confirmed_ = false;
-    ui->label_widget_->setMouseTracking( true );
+    ui->label_widget_->setMouseTracking(true);
 
     ui->label_widget_->installEventFilter(this);
 
@@ -63,12 +63,12 @@ void BehaviorNotification::timerEvent(QTimerEvent *event)
     {
         QPoint p = QWidget::mapToGlobal(this->geometry().topRight());
                                                     //x works fine from global, but y is messed up, unless grabbed elsewhere
-        ui->confirmation_widget_->setGeometry(this->mapToGlobal(this->geometry().topRight()).x(),main_view_point_.y() + 45,//plus height of toolbar, yes this is awkward and shouldn't be getting position from main view
-                                              ui->confirmation_widget_->geometry().width(),ui->confirmation_widget_->geometry().height());
+        ui->confirmation_widget_->setGeometry(this->mapToGlobal(this->geometry().topRight()).x(), main_view_point_.y() + 45,//plus height of toolbar, yes this is awkward and shouldn't be getting position from main view
+                                              ui->confirmation_widget_->geometry().width(), ui->confirmation_widget_->geometry().height());
     }
 }
 
-bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
+bool BehaviorNotification::eventFilter(QObject* object, QEvent* event)
 {
     if (object == ui->label_widget_)
     {     
@@ -88,7 +88,7 @@ bool BehaviorNotification::eventFilter(QObject* object,QEvent* event)
 
     }           
     //propagate
-    return QWidget::eventFilter(object,event);
+    return QWidget::eventFilter(object, event);
 }
 
 
@@ -163,9 +163,7 @@ void BehaviorNotification::setButtonStyle(QPushButton* btn)
 
 
 void BehaviorNotification::confirm()
-{
-    confirmed_ = true; // notification is now obselete, can be deleted    
-
+{    
     //set confirmation to be parented to this so it is deleted with rest of notification
     ui->confirmation_widget_->setParent(this);
 
@@ -173,10 +171,7 @@ void BehaviorNotification::confirm()
 }
 
 void BehaviorNotification::abort()
-{
-    //this action isn't confirmed, but it still needs to be deleted
-    confirmed_ = true;
-
+{   
     //set confirmation to be parented to this so it is deleted with rest of notification
     ui->confirmation_widget_->setParent(this);
 
@@ -184,8 +179,9 @@ void BehaviorNotification::abort()
 }
 
 //delete from ui without confirming or aborting action
-void BehaviorNotification::deleteNotification()
+void BehaviorNotification::queueDeleteNotification()
 {
+    ROS_ERROR("delete queued");
     //will be cleaned up on next cleanNotification call from relay
     confirmed_ = true;
 }

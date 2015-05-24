@@ -5,7 +5,7 @@ BehaviorRelay::BehaviorRelay(QWidget* parent)
 {    
     behavior_goal_sub_ = nh_.subscribe( "/vigir/ocs/behavior/send_goal", 5, &BehaviorRelay::receiveBehaviorGoalCB, this );
     behavior_confirm_sub_ = nh_.subscribe( "/vigir/ocs/behavior/confirm_goal", 5, &BehaviorRelay::receiveBehaviorResult, this );
-    behavior_confirm_pub_  = nh_.advertise<flor_ocs_msgs::OCSBehaviorGoal>("/vigir/ocs/behavior/confirm_goal",1,false);
+    behavior_confirm_pub_  = nh_.advertise<flor_ocs_msgs::OCSBehaviorGoal>("/vigir/ocs/behavior/confirm_goal", 5, false);
 
     parent_ = parent;
     max_notifications_shown_ = 5;    
@@ -35,21 +35,24 @@ void BehaviorRelay::receiveBehaviorResult(const flor_ocs_msgs::OCSBehaviorGoalCo
         //goal matches any of our given goals?
         if(notification->getGoalId() == msg->id)
         {
+            ROS_ERROR("queing deletion %s" , boost::asio::ip::host_name());
             //set goal to be deleted, as it has been confirmed
-            notification->deleteNotification();
+            notification->queueDeleteNotification();
+            cleanNotifications(); //remove notification to be deleted
+            Q_EMIT updateUI();
+            return;
         }
     }
-    cleanNotifications(); //remove notification to be deleted
-    Q_EMIT updateUI();
 }
 
 
 //create notification and add to vector to be represented in main view
 void BehaviorRelay::createNotification(QString action_text, int goal_id, int goal_type)
 {
-    BehaviorNotification* notification = new BehaviorNotification(NULL,action_text, goal_id, goal_type);
-    connect(notification,SIGNAL(sendConfirmation(QString,int)),this,SLOT(reportConfirmation(QString,int)));
-    connect(notification,SIGNAL(sendAbort(QString,int)),this,SLOT(reportAbort(QString,int)));    
+    BehaviorNotification* notification = new BehaviorNotification(NULL, action_text, goal_id, goal_type);
+    //setup button on notification
+    connect(notification, SIGNAL(sendConfirmation(QString, int)), this, SLOT(reportConfirmation(QString, int)));
+    connect(notification, SIGNAL(sendAbort(QString, int)), this, SLOT(reportAbort(QString, int)));
     behavior_notifications_.push_back(notification);
 }
 
@@ -93,8 +96,10 @@ void BehaviorRelay::cleanNotifications()
         }
         else
         {
+            ROS_ERROR("deleting before");
             //free notification
             delete behavior_notifications_[i];
+            ROS_ERROR("deleting after");
         }
     }
     //calls only destructor of pointers

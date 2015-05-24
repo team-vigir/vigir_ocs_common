@@ -32,9 +32,7 @@ class BehaviorRelay: public QWidget
        BehaviorRelay& operator=(BehaviorRelay const&){};  // assignment operator is private
        void receiveBehaviorGoalCB(const flor_ocs_msgs::OCSBehaviorGoalConstPtr msg);
        void receiveBehaviorResult(const flor_ocs_msgs::OCSBehaviorGoalConstPtr msg);
-       void cleanNotifications();
-
-       boost::recursive_mutex lock_;
+       void cleanNotifications();      
 
        QWidget* parent_;
        ros::NodeHandle nh_;
