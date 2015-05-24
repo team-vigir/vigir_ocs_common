@@ -35,7 +35,7 @@ void BehaviorRelay::receiveBehaviorResult(const flor_ocs_msgs::OCSBehaviorGoalCo
         //goal matches any of our given goals?
         if(notification->getGoalId() == msg->id)
         {
-            ROS_ERROR("queing deletion %s" , boost::asio::ip::host_name());
+            ROS_ERROR("queing deletion %s" , boost::asio::ip::host_name().c_str());
             //set goal to be deleted, as it has been confirmed
             notification->queueDeleteNotification();
             cleanNotifications(); //remove notification to be deleted
