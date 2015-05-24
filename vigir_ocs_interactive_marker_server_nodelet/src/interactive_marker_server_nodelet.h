@@ -52,7 +52,7 @@ namespace ocs_interactive_marker_server
         ros::Subscriber interactive_marker_server_remove_sub_;
         ros::Subscriber interactive_marker_server_update_sub_;
         ros::Subscriber interactive_marker_server_mode_sub_;
-        ros::Subscriber interactive_marker_server_visibility_sub_;
+        //ros::Subscriber interactive_marker_server_visibility_sub_;
         ros::Subscriber select_object_sub_;
         ros::Publisher selected_object_update_pub_;
 

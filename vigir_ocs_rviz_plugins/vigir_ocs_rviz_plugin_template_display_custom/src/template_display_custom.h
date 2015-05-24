@@ -96,14 +96,14 @@ public:
 
     void clear();
 
-    void processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose);
-    void processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg);
+    void processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr pose);
+    void processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr msg);
     void publishTemplateUpdate(const unsigned char& id, const geometry_msgs::PoseStamped& pose,const unsigned char &event_type);
     void processTemplateRemove(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
 
     void setVisualizationManager(rviz::VisualizationManager* manager) { vis_manager_ = manager; };
 
-    void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
+    void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
 public Q_SLOTS:
     void enableTemplateMarker( int i, bool enable );

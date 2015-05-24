@@ -688,7 +688,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // create publisher and subscriber for object selection
         // PUBLISHER WILL BE USED BY THE RIGHT/DOUBLE CLICK TO INFORM WHICH TEMPLATE/HAND/OBJECT HAS BEEN selected
         // SUBSCRIBER WILL BE USED TO CHANGE VISIBILITY OF THE OBJECT THAT IS BEING USED (E.G., TALK TO TEMPLATE DISPLAY AND SET VISIBILITY OF MARKERS)
-        select_object_pub_ = nh_.advertise<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 1, false );
+        select_object_pub_ = nh_.advertise<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, false );
         select_object_sub_ = nh_.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &Base3DView::processObjectSelection, this );
 
         // finally the key events
@@ -3050,11 +3050,6 @@ void Base3DView::publishGhostPoses(bool local_feedback)
     }
 }
 
-void Base3DView::snapGhostHotkeyCB()
-{
-      snap_ghost_to_robot_ = true;
-}
-
 //----- Callbacks to receive Ghost State data -------------------//
 
 void Base3DView::stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr& msg)
@@ -4044,6 +4039,14 @@ void Base3DView::lockTranslationHotkey()
     interactive_marker_server_mode_pub_.publish(msgMode);
     shift_pressed_ = true;
 }
+
+void Base3DView::snapGhostHotkeyCB()
+{
+    ROS_ERROR("snap ghost called");
+    snap_ghost_to_robot_ = true;
+}
+/////////////End Hotkey Callbacks///////////////////////////////////
+
 
 void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 {
