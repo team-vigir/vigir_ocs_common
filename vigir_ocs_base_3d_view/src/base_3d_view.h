@@ -128,17 +128,17 @@ public:
     /**
       * ROS Callback: Receives occupancy map from onboard based on the slice of octomap
       */
-    void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr& pose);
+    void processNewMap(const nav_msgs::OccupancyGrid::ConstPtr pose);
 
     /**
       * ROS Callback: Processes a new selection pose from the ui (done with ctrl click)
       */
-    void processNewSelection( const geometry_msgs::Point::ConstPtr& pose );
+    void processNewSelection( const geometry_msgs::Point::ConstPtr pose );
 
     /**
       * ROS Callback: Sets selection pose based on point cloud received from onboard
       */
-    void processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc );
+    void processPointCloud( const sensor_msgs::PointCloud2::ConstPtr pc );
 
 
     BaseContextMenu * getBaseContextMenu(){return base_context_menu_;}
@@ -165,74 +165,74 @@ public:
     /**
       * ROS Callback: receives pelvis end effector position from moveit
       */
-    void processPelvisEndEffector( const geometry_msgs::PoseStamped::ConstPtr &pose );
+    void processPelvisEndEffector( const geometry_msgs::PoseStamped::ConstPtr pose );
 
     /**
       * ROS Callback: receives left hand position to show grasps
       */
-    void processLeftGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    void processLeftGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr pose );
     /**
       * ROS Callback: receives right hand position to show grasps
       */
-    void processRightGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    void processRightGhostHandPose( const geometry_msgs::PoseStamped::ConstPtr pose );
 
     /**
       * ROS Callback: receives joint states from the robot
       * calculates joint effort and position limits proceeds to call updateJointIcons()
       * TODO Create helper function for calculating joint efforts
       */
-    void processJointStates( const sensor_msgs::JointState::ConstPtr& states );
+    void processJointStates( const sensor_msgs::JointState::ConstPtr states );
 
     /**
       * ROS Callback: receives joint states from the ghost robot
       * calculates joint effort and position limits proceeds to call updateJointIcons()
       * TODO Create helper function for calculating joint efforts
       */
-    void processGhostJointStates(const sensor_msgs::JointState::ConstPtr& states);
+    void processGhostJointStates(const sensor_msgs::JointState::ConstPtr states);
 
     /**
       * ROS Callback: receives request to reset ghost robot pose to robot pose
       */
-    void processPelvisResetRequest( const std_msgs::Bool::ConstPtr& msg );
+    void processPelvisResetRequest( const std_msgs::Bool::ConstPtr msg );
 
     /**
       * ROS Callback: trigger to send footstep planner request based on ghost
       */
-    void processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg );
+    void processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr msg );
 
     /**
       * ROS Callback: receives the current control mode from onboard
       */
-    void processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr& msg );
+    void processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr msg );
 
     /**
       * ROS Callback: receives configuration message for ghost robot
       */
-    void processSendCartesian( const std_msgs::Bool::ConstPtr& msg );
+    void processSendCartesian( const std_msgs::Bool::ConstPtr msg );
 
     /**
       * ROS Callback: receives a new pose for the ghost robot
       */
-    void processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    void processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr msg);
 
     /**
       * ROS Callback: receives a new selected object and enables interactive marker if possible
       */
-    void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg);
+    void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg);
 
     /**
       * ROS Callback: receives hotkey from secondary OCS
       */
-    virtual void processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr& msg);
+    virtual void processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr msg);
     /**
       * ROS Callback: receives new goal pose for footstep planner
       */
-    virtual void processOwnGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose);
-    virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr& pose );
+    virtual void processOwnGoalPose(const geometry_msgs::PoseStamped::ConstPtr pose);
+    virtual void processGoalPose( const geometry_msgs::PoseStamped::ConstPtr pose );
     /**
       * ROS Callback: receives new key event from global hotkey process
       */
-    virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event);
+    virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event);
 
     void processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg);
 
@@ -266,14 +266,14 @@ public:
     /**
       * ROS Callback:synchronize 3d views on reset requests/toggles
       */
-    void synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
+    void synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr msg);
 
     //callbacks to receive ghost state  data
-    void stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr& msg);
-    void stateUseTorsoCB(const std_msgs::Bool::ConstPtr &msg);
-    void stateLockPelvisCB(const std_msgs::Bool::ConstPtr& msg);
-    void statePositionOnlyIkCB(const std_msgs::Bool::ConstPtr& msg);
-    void stateUseDrakeIkCB(const std_msgs::Bool::ConstPtr& msg);
+    void stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr msg);
+    void stateUseTorsoCB(const std_msgs::Bool::ConstPtr msg);
+    void stateLockPelvisCB(const std_msgs::Bool::ConstPtr msg);
+    void statePositionOnlyIkCB(const std_msgs::Bool::ConstPtr msg);
+    void stateUseDrakeIkCB(const std_msgs::Bool::ConstPtr msg);
 
     // public hotkey callbacks - for hotkeys that shouldn't be defined for every window
     void executeStepPlanHotkey();
@@ -893,7 +893,7 @@ protected:
     /**
       * Callback for setting im mode
       */
-    void processInteractiveMarkerMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
+    void processInteractiveMarkerMode(const flor_ocs_msgs::OCSControlMode::ConstPtr msg);
 
     /**
       * Updates color of the hands based on moveit

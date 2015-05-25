@@ -10,6 +10,10 @@ int main(int argc, char *argv[])
     }
 
     QApplication a(argc, argv);
+    QPixmap pixmap(1,1);
+    pixmap.fill(QColor(230, 126, 34));
+    QIcon icon(pixmap);
+    a.setWindowIcon(icon);
     MainCameraViewWidget w;
     if(argc >= 5)
     {

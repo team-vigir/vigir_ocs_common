@@ -490,12 +490,12 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         //Publisher/Subscriber to the IM mode
         interactive_marker_server_mode_pub_ = nh_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1,false);
-        interactive_marker_server_mode_sub_ = nh_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1, &Base3DView::processInteractiveMarkerMode, this);
+        interactive_marker_server_mode_sub_ = nh_.subscribe("/flor/ocs/control_modes",1, &Base3DView::processInteractiveMarkerMode, this);
 
         // subscribe to the moveit pose topics
         end_effector_sub_.push_back(nh_.subscribe( "/flor/ghost/pose/left_hand", 5, &Base3DView::processLeftArmEndEffector, this ));
         end_effector_sub_.push_back(nh_.subscribe( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
-        end_effector_sub_.push_back(nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ghost/pose/robot", 5, &Base3DView::processPelvisEndEffector, this ));
+        end_effector_sub_.push_back(nh_.subscribe( "/flor/ghost/pose/robot", 5, &Base3DView::processPelvisEndEffector, this ));
 
         end_effector_pub_ = nh_.advertise<flor_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 5, false );
 
@@ -503,8 +503,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>( "/flor/ghost/set_joint_states", 1, false );
 
         // subscribe to the grasp ghost hands pose
-        ghost_hand_left_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_left_hand_pose", 5, &Base3DView::processLeftGhostHandPose, this );
-        ghost_hand_right_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/ghost_right_hand_pose", 5, &Base3DView::processRightGhostHandPose, this );
+        ghost_hand_left_sub_ = nh_.subscribe( "/ghost_left_hand_pose", 5, &Base3DView::processLeftGhostHandPose, this );
+        ghost_hand_right_sub_ = nh_.subscribe( "/ghost_right_hand_pose", 5, &Base3DView::processRightGhostHandPose, this );
 
 
         // check if whole-body movements are to be used
@@ -520,27 +520,27 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_lock_pelvis_ = true;
 
         //locks must be shared across all views
-        state_use_torso_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_use_torso", 5, &Base3DView::stateUseTorsoCB, this );
-        state_lock_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_lock_pelvis", 5, &Base3DView::stateLockPelvisCB, this );
-        state_position_only_ik_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_position_only_ik", 5, &Base3DView::statePositionOnlyIkCB, this );
-        state_use_drake_ik_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_use_drake_ik", 5, &Base3DView::stateUseDrakeIkCB, this );
+        state_use_torso_sub_ = nh_.subscribe( "/flor/ocs/ghost/state_use_torso", 5, &Base3DView::stateUseTorsoCB, this );
+        state_lock_pelvis_sub_ = nh_.subscribe( "/flor/ocs/ghost/state_lock_pelvis", 5, &Base3DView::stateLockPelvisCB, this );
+        state_position_only_ik_sub_ = nh_.subscribe( "/flor/ocs/ghost/state_position_only_ik", 5, &Base3DView::statePositionOnlyIkCB, this );
+        state_use_drake_ik_sub_ = nh_.subscribe( "/flor/ocs/ghost/state_use_drake_ik", 5, &Base3DView::stateUseDrakeIkCB, this );
 
         // ghost state
         if(widget_name_ == "MainView") // hack, we don't have a ghost manager yet and should only do this once
         {
-            //ghost_control_state_sub_ = nh_.subscribe<flor_ocs_msgs::OCSGhostControl>( "/flor/ocs/ghost/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
+            //ghost_control_state_sub_ = nh_.subscribe( "/flor/ocs/ghost/ghost_ui_state", 5, &Base3DView::processGhostControlState, this );
 
-            state_snap_ghost_to_robot_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/state_snap_ghost_to_robot", 5, &Base3DView::stateSnapGhostToRobot, this );
+            state_snap_ghost_to_robot_sub_ = nh_.subscribe( "/flor/ocs/ghost/state_snap_ghost_to_robot", 5, &Base3DView::stateSnapGhostToRobot, this );
 
-            reset_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
-            send_pelvis_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
+            reset_pelvis_sub_ = nh_.subscribe( "/flor/ocs/ghost/reset_pelvis", 5, &Base3DView::processPelvisResetRequest, this );
+            send_pelvis_sub_ = nh_.subscribe( "/flor/ocs/ghost/send_pelvis_to_footstep", 5, &Base3DView::processSendPelvisToFootstepRequest, this );
         }
         send_footstep_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 1, false );
-        send_footstep_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 5, &Base3DView::processOwnGoalPose, this );
+        send_footstep_goal_sub_ = nh_.subscribe( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 5, &Base3DView::processOwnGoalPose, this );
 
         // publish/subscribe to goal pose
         set_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 1, false );
-        set_goal_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/goal_pose", 5, &Base3DView::processGoalPose, this );
+        set_goal_sub_ = nh_.subscribe( "/flor/ocs/footstep/goal_pose", 5, &Base3DView::processGoalPose, this );
 
         // Create a RobotModel display.
         robot_model_ = manager_->createDisplay( "rviz/RobotDisplayCustom", "Robot model", true );
@@ -549,15 +549,15 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         robot_model_->subProp( "Alpha" )->setValue( 1.0f );
 
         // ground map middle man
-        //ground_map_sub_ = n_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
-        ground_map_sub_ = nh_.subscribe<nav_msgs::OccupancyGrid>( "/flor/worldmodel/ocs/gridmap_result", 5, &Base3DView::processNewMap, this );
+        //ground_map_sub_ = n_.subscribe( "/flor/worldmodel/grid_map_near_robot", 5, &Base3DView::processNewMap, this );
+        ground_map_sub_ = nh_.subscribe( "/flor/worldmodel/ocs/gridmap_result", 5, &Base3DView::processNewMap, this );
 
         // point cloud request/selection publisher
-        point_cloud_result_sub_ =  nh_.subscribe<sensor_msgs::PointCloud2>( "/flor/worldmodel/ocs/dist_query_pointcloud_result", 5, &Base3DView::processPointCloud, this );
+        point_cloud_result_sub_ =  nh_.subscribe( "/flor/worldmodel/ocs/dist_query_pointcloud_result", 5, &Base3DView::processPointCloud, this );
         global_selection_pos_pub_ = nh_.advertise<geometry_msgs::Point>( "/new_point_cloud_request", 1, false );
-        global_selection_pos_sub_ = nh_.subscribe<geometry_msgs::Point>( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
+        global_selection_pos_sub_ = nh_.subscribe( "/new_point_cloud_request", 5, &Base3DView::processNewSelection, this );
 
-        joint_states_sub_ = nh_.subscribe<sensor_msgs::JointState>("joint_states", 2, &Base3DView::processJointStates, this );
+        joint_states_sub_ = nh_.subscribe("joint_states", 2, &Base3DView::processJointStates, this );
 
         // advertise pointcloud request
         pointcloud_request_world_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
@@ -572,7 +572,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // flor mode publisher and subscriber
         flor_mode_command_pub_ = nh_.advertise<flor_control_msgs::FlorControlModeCommand>( "/flor/controller/mode_command", 1, false );
-        flor_mode_sub_ = nh_.subscribe<flor_control_msgs::FlorControlMode>( "/flor/controller/mode", 5, &Base3DView::processControlMode, this );
+        flor_mode_sub_ = nh_.subscribe( "/flor/controller/mode", 5, &Base3DView::processControlMode, this );
 
         // Connect to the template markers
         QObject::connect(this, SIGNAL(enableTemplateMarker(int, bool)), template_display_, SLOT(enableTemplateMarker(int, bool)));
@@ -682,24 +682,24 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         circular_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request", 1, false );
 
         // subscribe to the topic sent by the ghost widget
-        send_cartesian_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/ghost/send_cartesian", 5, &Base3DView::processSendCartesian, this );
-        send_ghost_pelvis_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/set_pose", 5, &Base3DView::processGhostPelvisPose, this );
+        send_cartesian_sub_ = nh_.subscribe( "/flor/ocs/ghost/send_cartesian", 5, &Base3DView::processSendCartesian, this );
+        send_ghost_pelvis_pose_sub_ = nh_.subscribe( "/flor/ocs/ghost/set_pose", 5, &Base3DView::processGhostPelvisPose, this );
 
         // create publisher and subscriber for object selection
         // PUBLISHER WILL BE USED BY THE RIGHT/DOUBLE CLICK TO INFORM WHICH TEMPLATE/HAND/OBJECT HAS BEEN selected
         // SUBSCRIBER WILL BE USED TO CHANGE VISIBILITY OF THE OBJECT THAT IS BEING USED (E.G., TALK TO TEMPLATE DISPLAY AND SET VISIBILITY OF MARKERS)
         select_object_pub_ = nh_.advertise<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, false );
-        select_object_sub_ = nh_.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &Base3DView::processObjectSelection, this );
+        select_object_sub_ = nh_.subscribe( "/flor/ocs/object_selection", 5, &Base3DView::processObjectSelection, this );
 
         // finally the key events
-        key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
-        hotkey_relay_sub_ = nh_.subscribe<flor_ocs_msgs::OCSHotkeyRelay>( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );
+        key_event_sub_ = nh_.subscribe( "/flor/ocs/key_event", 5, &Base3DView::processNewKeyEvent, this );
+        hotkey_relay_sub_ = nh_.subscribe( "/flor/ocs/hotkey_relay", 5, &Base3DView::processHotkeyRelayMessage, this );
 
         //sub to ghost joint states
-        ghost_joint_state_sub_ = nh_.subscribe<sensor_msgs::JointState>( "/flor/ghost/get_joint_states", 5, &Base3DView::processGhostJointStates, this );
+        ghost_joint_state_sub_ = nh_.subscribe( "/flor/ghost/get_joint_states", 5, &Base3DView::processGhostJointStates, this );
 
         //synchronize 3d views
-        ocs_sync_sub_ = nh_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &Base3DView::synchronizeViews, this );
+        ocs_sync_sub_ = nh_.subscribe( "/flor/ocs/synchronize", 5, &Base3DView::synchronizeViews, this );
         ocs_sync_pub_ = nh_.advertise<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
 	
 		 //synchronize Template servers in onboard and OCS by clearing collison objects in the planning scene
@@ -1194,8 +1194,8 @@ void Base3DView::timerEvent(QTimerEvent *event)
 //            }
 //        }
 //    }
-
-
+    //ROS_ERROR("%s locks  left %d  right %d", widget_name_.c_str(), ghost_left_hand_lock_, ghost_right_hand_lock_ );
+    //ROS_ERROR("%s moving pelvis %d  left %d right %d",widget_name_.c_str(),moving_pelvis_,moving_l_arm_,moving_r_arm_);
 }
 
 
@@ -1598,7 +1598,7 @@ void Base3DView::clearPlanningObjects()
 
 //when reset is pressed, reset all,
 //when toggle is pressed , and sync is enabled, toggle all,
-void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg)
+void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr msg)
 {
     //check this msg contents across every rviz display
     for(int i=0;i<msg->properties.size();i++)
@@ -1738,18 +1738,18 @@ void Base3DView::defineFootstepGoal()
     manager_->getToolManager()->setCurrentTool( set_goal_tool_ );
 }
 
-void Base3DView::processOwnGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+void Base3DView::processOwnGoalPose(const geometry_msgs::PoseStamped::ConstPtr pose)
 {
     set_goal_pub_.publish(pose);
 }
 
-void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+void Base3DView::processGoalPose(const geometry_msgs::PoseStamped::ConstPtr pose)
 {
     // If a goal is set, need to go back to interactive marker tool
     manager_->getToolManager()->setCurrentTool( interactive_markers_tool_ );
 }
 
-void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc )
+void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr pc )
 {
     //std::cout << "point cloud received" << std::endl;
     pcl::PointCloud<pcl::PointXYZ> pclCloud;
@@ -1766,12 +1766,12 @@ void Base3DView::processPointCloud( const sensor_msgs::PointCloud2::ConstPtr& pc
     }
 }
 
-void Base3DView::processNewSelection( const geometry_msgs::Point::ConstPtr& pose )
+void Base3DView::processNewSelection( const geometry_msgs::Point::ConstPtr pose )
 {
     Q_EMIT setMarkerPosition(pose->x,pose->y,pose->z);
 }
 
-void Base3DView::processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr& msg )
+void Base3DView::processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr msg )
 {
     flor_atlas_current_mode_ = msg->control_mode;
 }
@@ -2107,7 +2107,21 @@ void Base3DView::snapHandGhost()
 void Base3DView::setTemplateGraspLock(int arm)
 {    
     flor_ocs_msgs::OCSGraspSync msg;
-    msg.hand_lock = arm;
+    if(arm == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
+    {
+        msg.left_hand_lock = true;
+        msg.right_hand_lock = false;
+    }
+    else if(arm == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
+    {
+        msg.left_hand_lock = false;
+        msg.right_hand_lock = true;
+    }
+    else if(arm == flor_ocs_msgs::OCSObjectSelection::UNLOCK_ARMS)
+    {
+        msg.left_hand_lock = false;
+        msg.right_hand_lock = false;
+    }
     msg.sync_mode = flor_ocs_msgs::OCSGraspSync::HAND_LOCKS;
     msg.host = boost::asio::ip::host_name();
     grasp_sync_pub_.publish(msg);
@@ -2118,33 +2132,18 @@ void Base3DView::setTemplateGraspLock(int arm)
 //helps to synchronize grasp lock between views and operators
 void Base3DView::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg)
 {
+    //ROS_ERROR("%s RECEIVED SYNC  %d",widget_name_.c_str(),msg->sync_mode);
     if(msg->sync_mode == flor_ocs_msgs::OCSGraspSync::HAND_LOCKS)
     {
         //set Template grasp lock
-        int arm = msg->hand_lock;
-        ROS_ERROR("arm %d %d", arm, msg->hand_lock);
         int id = findObjectContext("template");
-        if (arm == flor_ocs_msgs::OCSObjectSelection::UNLOCK_ARMS) // unlocks both arms
-        {
-            selectTemplate();
-            ghost_left_hand_lock_ = false;
-            ghost_right_hand_lock_ = false;
-        }
-        else if(id != -1) //locks arm
-        {
+        if(!msg->left_hand_lock && !msg->right_hand_lock) // unlocks both arms
             selectTemplate();
 
-            if(arm == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
-            {
-                ghost_left_hand_lock_ = true;
-            }
-            else if(arm == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
-            {
-                ghost_right_hand_lock_ = true;
-            }
-        }
-        ROS_ERROR("left %d right %d",ghost_left_hand_lock_,ghost_right_hand_lock_);
-    }   
+        ghost_left_hand_lock_ = msg->left_hand_lock;
+        ghost_right_hand_lock_ = msg->right_hand_lock;
+        //ROS_ERROR("left %d right %d",ghost_left_hand_lock_,ghost_right_hand_lock_);
+    }
 }
 
 void Base3DView::deselectAll()
@@ -2176,7 +2175,7 @@ void Base3DView::deselectAll()
     footstep_vis_manager_->enableStepPlanMarkers( true );
 }
 
-void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
+void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg)
 {
     // only process object selection if I'm the sender
     if(msg->host != boost::asio::ip::host_name())
@@ -2399,7 +2398,7 @@ void Base3DView::publishPointCloudWorldRequest()
     pointcloud_request_world_pub_.publish(request);
 }
 
-void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
+void Base3DView::processNewMap(const nav_msgs::OccupancyGrid::ConstPtr map)
 {
     static int counter = 0;
     std::stringstream map_topic;
@@ -2509,7 +2508,7 @@ void Base3DView::processRightArmEndEffector(const geometry_msgs::PoseStamped::Co
     updateHandColors();
 }
 
-void Base3DView::processPelvisEndEffector(const geometry_msgs::PoseStamped::ConstPtr &pose)
+void Base3DView::processPelvisEndEffector(const geometry_msgs::PoseStamped::ConstPtr pose)
 {    
     ghost_root_pose_ = pose->pose;
 }
@@ -2658,7 +2657,7 @@ int Base3DView::calcWristTarget(const geometry_msgs::PoseStamped& end_effector_p
 }
 
 // callback for the grasp widget left hand pose
-void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr pose)
 {
     // will only process this if in template lock
     if(!moving_pelvis_ && ghost_left_hand_lock_)
@@ -2674,7 +2673,7 @@ void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::Cons
 }
 
 // callback for the grasp widget right hand pose
-void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr &pose)
+void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::ConstPtr pose)
 {
     //ROS_INFO("RIGHT GHOST HAND POSE:");
     //ROS_INFO("  position: %.2f %.2f %.2f",pose->pose.position.x,pose->pose.position.y,pose->pose.position.z);
@@ -2690,7 +2689,7 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
     }
 }
 
-void Base3DView::processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr& msg)
+void Base3DView::processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr msg)
 {    
     flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
     cmd.client_id = ros::this_node::getName();
@@ -3073,27 +3072,27 @@ void Base3DView::publishGhostPoses(bool local_feedback)
 
 //----- Callbacks to receive Ghost State data -------------------//
 
-void Base3DView::stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr& msg)
+void Base3DView::stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr msg)
 {
     snap_ghost_to_robot_ = msg->data;
 }
 
-void Base3DView::stateUseTorsoCB(const std_msgs::Bool::ConstPtr& msg)
+void Base3DView::stateUseTorsoCB(const std_msgs::Bool::ConstPtr msg)
 {
     ghost_use_torso_ = msg->data;
 }
 
-void Base3DView::stateLockPelvisCB(const std_msgs::Bool::ConstPtr& msg)
+void Base3DView::stateLockPelvisCB(const std_msgs::Bool::ConstPtr msg)
 {
     ghost_lock_pelvis_ = msg->data;    
 }
 
-void Base3DView::statePositionOnlyIkCB(const std_msgs::Bool::ConstPtr& msg)
+void Base3DView::statePositionOnlyIkCB(const std_msgs::Bool::ConstPtr msg)
 {
     position_only_ik_ = msg->data;
 }
 
-void Base3DView::stateUseDrakeIkCB(const std_msgs::Bool::ConstPtr& msg)
+void Base3DView::stateUseDrakeIkCB(const std_msgs::Bool::ConstPtr msg)
 {
     use_drake_ik_ = msg->data;
 }
@@ -3222,7 +3221,7 @@ void Base3DView::updateJointIcons(const std::string& name, const geometry_msgs::
 
 }
 
-void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr &states)
+void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr states)
 {
     // get pelvis pose
     Ogre::Vector3 position(0,0,0);
@@ -3609,7 +3608,7 @@ void Base3DView::disableRobotOccludedRender()
    }
 }*/
 
-void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr& states)
+void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr states)
 {
     //store latest state for toggle updates
     latest_ghost_joint_state_ = states;
@@ -3701,7 +3700,7 @@ void Base3DView::processGhostJointStates(const sensor_msgs::JointState::ConstPtr
     }
 }
 
-void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg )
+void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr msg )
 {
     if(end_effector_pose_list_.find( "/pelvis_pose_marker") != end_effector_pose_list_.end())
     {
@@ -3741,7 +3740,7 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr &msg 
     }
 }
 
-void Base3DView::processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr& msg )
+void Base3DView::processSendPelvisToFootstepRequest( const std_msgs::Bool::ConstPtr msg )
 {
     send_footstep_goal_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 }
@@ -3796,7 +3795,7 @@ rviz::ViewController* Base3DView::getCurrentViewController()
      return manager_->getViewManager()->getCurrent();
 }
 
-void Base3DView::processSendCartesian(const std_msgs::Bool::ConstPtr &msg)
+void Base3DView::processSendCartesian(const std_msgs::Bool::ConstPtr msg)
 {
     std::vector<geometry_msgs::Pose> waypoints;
     // send the marker position
@@ -4069,7 +4068,7 @@ void Base3DView::snapGhostHotkeyCB()
 /////////////End Hotkey Callbacks///////////////////////////////////
 
 
-void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
 {
     // store key state
     if(key_event->state)
@@ -4099,13 +4098,13 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &
 
 }
 
-void Base3DView::processInteractiveMarkerMode(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
+void Base3DView::processInteractiveMarkerMode(const flor_ocs_msgs::OCSControlMode::ConstPtr msg)
 {
     //Update the im to current
     interactive_marker_mode_ = msg->manipulationMode;
 }
 
-void Base3DView::processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr &msg)
+void Base3DView::processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr msg)
 {
     if(msg->relay_code == flor_ocs_msgs::OCSHotkeyRelay::CLEAR_CLOUD_DATA)
     {

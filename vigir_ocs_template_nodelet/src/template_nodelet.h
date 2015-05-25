@@ -83,14 +83,14 @@ namespace ocs_template
         virtual void onInit();
 
         void clearTemplateCb(const std_msgs::Empty);
-        void addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr& msg);
-        void removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg);
-        void updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& msg);
-        void stitchTemplateFwdCb(const vigir_object_template_msgs::TemplateStateInfo::ConstPtr& msg);
-        void detachTemplateFwdCb(const vigir_object_template_msgs::TemplateStateInfo::ConstPtr& msg);
-        void snapTemplateCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
-        void graspStateFeedbackCb(const flor_grasp_msgs::GraspState::ConstPtr& msg);
-        void templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr& msg);
+        void addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr msg);
+        void removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr msg);
+        void updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr msg);
+        void stitchTemplateFwdCb(const vigir_object_template_msgs::TemplateStateInfo::ConstPtr msg);
+        void detachTemplateFwdCb(const vigir_object_template_msgs::TemplateStateInfo::ConstPtr msg);
+        void snapTemplateCb(const flor_grasp_msgs::TemplateSelection::ConstPtr msg);
+        void graspStateFeedbackCb(const flor_grasp_msgs::GraspState::ConstPtr msg);
+        void templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr msg);
         void publishTemplateList();
         void loadObjectTemplateDatabaseXML(std::string& file_name);
         void loadGraspDatabaseXML(std::string& file_name, std::string hand_side);
