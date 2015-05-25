@@ -2131,8 +2131,7 @@ void Base3DView::setTemplateGraspLock(int arm)
 
 //helps to synchronize grasp lock between views and operators
 void Base3DView::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg)
-{
-    ROS_ERROR("%s RECEIVED SYNC  %d",widget_name_.c_str(),msg->sync_mode);
+{    
     if(msg->sync_mode == flor_ocs_msgs::OCSGraspSync::HAND_LOCKS)
     {
         //set Template grasp lock
@@ -2141,8 +2140,7 @@ void Base3DView::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr 
             selectTemplate();
 
         ghost_left_hand_lock_ = msg->left_hand_lock;
-        ghost_right_hand_lock_ = msg->right_hand_lock;
-        ROS_ERROR("left %d right %d",ghost_left_hand_lock_,ghost_right_hand_lock_);
+        ghost_right_hand_lock_ = msg->right_hand_lock;        
     }
 }
 
@@ -2665,7 +2663,7 @@ void Base3DView::processLeftGhostHandPose(const geometry_msgs::PoseStamped::Cons
         geometry_msgs::Pose transformed_pose = pose->pose;
         staticTransform(transformed_pose, l_hand_T_palm_);
         end_effector_pose_list_["/l_arm_pose_marker"].pose = transformed_pose;
-        ROS_ERROR("PROCESS LEFT GHOST HAND ");
+        //ROS_ERROR("PROCESS LEFT GHOST HAND ");
 //        ROS_ERROR("  position: %.2f %.2f %.2f",end_effector_pose_list_["/l_arm_pose_marker"].pose.position.x,end_effector_pose_list_["/l_arm_pose_marker"].pose.position.y,end_effector_pose_list_["/l_arm_pose_marker"].pose.position.z);
 //        ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.w,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.x,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.y,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.z);
         publishGhostPoses();
@@ -2682,7 +2680,7 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
     // will only process this if in template lock
     if(!moving_pelvis_ && ghost_right_hand_lock_)
     {
-        ROS_ERROR("Process Right GHost Hand");
+        //ROS_ERROR("Process Right GHost Hand");
         geometry_msgs::Pose transformed_pose = pose->pose;
         staticTransform(transformed_pose, r_hand_T_palm_);
         end_effector_pose_list_["/r_arm_pose_marker"].pose = transformed_pose;
@@ -2783,6 +2781,11 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
 {
     geometry_msgs::PoseStamped joint_pose;
     joint_pose = msg.pose;
+
+    //default non moving
+    moving_pelvis_ = false;
+    moving_l_arm_ = false;
+    moving_r_arm_ = false;
 
     if(msg.topic == "/l_arm_pose_marker")
     {
@@ -2889,7 +2892,7 @@ void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdat
 // sends marker poses and so on to moveit
 // if local feedback is true, it will NOT publish messages to other nodes and will only update local (this node) structures
 void Base3DView::publishGhostPoses(bool local_feedback)
-{
+{    
     bool left = ghost_planning_group_[0];
     bool right = ghost_planning_group_[1];
     bool torso = ghost_use_torso_;
@@ -2924,9 +2927,10 @@ void Base3DView::publishGhostPoses(bool local_feedback)
             left = false;
             right = true;
             torso = false;
-            moving_l_arm_ = false;
+            //moving_l_arm_ = false; // ?
+            moving_r_arm_ = false;
         }
-    }
+    }   
 
     if(local_feedback)
         return;
