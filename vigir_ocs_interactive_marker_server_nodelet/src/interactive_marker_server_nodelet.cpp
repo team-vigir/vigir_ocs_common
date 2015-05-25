@@ -46,7 +46,7 @@ void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::O
         ROS_INFO("Adding marker %s", msg->topic.c_str());
 
         marker_map_[msg->topic].reset(new InteractiveMarkerServerCustom(msg->name, msg->topic, msg->mode, msg->frame, msg->scale, msg->point));
-        marker_map_[msg->topic]->onFeedback = boost::bind(&InteractiveMarkerServerNodelet::onMarkerFeedback, this, _1, _2, _3, _4);
+        marker_map_[msg->topic]->onFeedback = boost::bind(&InteractiveMarkerServerNodelet::onMarkerFeedback, this, _1, _2, _3, _4);        
     }
 
 }
@@ -103,20 +103,27 @@ void InteractiveMarkerServerNodelet::onMarkerFeedback(unsigned char event_type, 
 
 //    marker_feedback_timer_ = boost::posix_time::microsec_clock::universal_time();
 
-    //ROS_INFO("update_pose: %s -> %s",client_id.c_str(),topic_name.c_str());
+    
     flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
     cmd.client_id = client_id;
     cmd.topic = topic_name;
     cmd.pose = pose;
     cmd.pose.header.stamp = ros::Time::now();
     cmd.event_type = event_type;
-    {
+    //{
     //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_publisher_mutex_ );
     interactive_marker_server_feedback_pub_.publish(cmd);
-    }
+    //}
 
     if(event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP)
+    {
+        //changing mode sets up marker for responsiveness, "fix"
+        std::map<std::string,boost::shared_ptr<InteractiveMarkerServerCustom> >::iterator iter;
+        for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
+            iter->second->setMode(iter->second->getMode());
+
         publishSelectedObject();
+    }
 }
 
 void InteractiveMarkerServerNodelet::setMode(const flor_ocs_msgs::OCSControlMode::ConstPtr msg)
@@ -180,7 +187,6 @@ void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs:
 
     try
     {
-
         //Get id of object that is selected
         switch(msg->type)
         {
@@ -207,13 +213,20 @@ void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs:
         ROS_ERROR("Error parsing selected object name...");
     }
 
-    if(marker_map_.find(selected_object_topic) != marker_map_.end())
+    try
     {
-        host_selected_object_topic_map_[msg->host] = selected_object_topic;
-        pose_map_[host_selected_object_topic_map_[msg->host]] = marker_map_[selected_object_topic]->getPose();
-    }
+        if(marker_map_.find(selected_object_topic) != marker_map_.end())
+        {
+            host_selected_object_topic_map_[msg->host] = selected_object_topic;
+            pose_map_[host_selected_object_topic_map_[msg->host]] = marker_map_[selected_object_topic]->getPose();
 
-    publishSelectedObject();
+            publishSelectedObject();
+        }
+    }
+    catch(...)
+    {
+        ROS_ERROR("Something went wrong with object selection...");
+    }
 }
 
 }

@@ -202,7 +202,7 @@ void TemplateDisplayCustom::load()
     // The loaded mesh will be white. This is normal.*/
 
     // subscribe to the topic to load all templates
-    template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>( "/template/list", 5, &TemplateDisplayCustom::processTemplateList, this );
+    template_list_sub_ = nh_.subscribe( "/template/list", 5, &TemplateDisplayCustom::processTemplateList, this );
 
     // subscribe to the topic to load all templates
     template_remove_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 5, &TemplateDisplayCustom::processTemplateRemove, this );
@@ -213,7 +213,7 @@ void TemplateDisplayCustom::load()
     // advertise/subscribe to the interactive marker topics
     interactive_marker_add_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, false );
     interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 5, false );
-    interactive_marker_feedback_sub_ = nh_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback", 5, &TemplateDisplayCustom::onMarkerFeedback, this );;
+    interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 5, &TemplateDisplayCustom::onMarkerFeedback, this );;
     interactive_marker_remove_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
 
 }
@@ -297,7 +297,7 @@ void TemplateDisplayCustom::enableTemplateMarkers( bool enable )
     }
 }
 
-void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr& pose)
+void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr pose)
 {
     //std::cout << "Processing pose change" << std::endl;
     //    printf(" Template pose change (%f, %f, %f) quat(%f, %f, %f, %f)\n",
@@ -332,6 +332,25 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
     lEntity->setUserAny(Ogre::Any(std::string("template ")+convert.str()));
     Ogre::SceneNode* lNode = this->scene_node_->createChildSceneNode();
 
+    //change template color to purple
+    float r = 0.439f;
+    float g = 0.153f;
+    float b = 0.765f;
+    float a = 1.0f;
+
+    for(int i=0;i<lEntity->getNumSubEntities();i++)
+    {
+        Ogre::MaterialPtr  mat = lEntity->getSubEntity(i)->getMaterial();
+
+        Ogre::ColourValue diffuse_color(r, g, b, a);
+        mat->setDiffuse(diffuse_color);
+
+        Ogre::ColourValue ambient_color(r/2, g/2, b/2, a);
+        mat->setAmbient(ambient_color);
+
+        Ogre::ColourValue specular_color(r*1.3, g*1.3, b*1.3, a);
+        mat->setSpecular(specular_color);
+    }
 
     //Save the the size of the template
     //template_size_ = 0.2;
@@ -339,7 +358,8 @@ void TemplateDisplayCustom::addTemplate(int index, std::string path, Ogre::Vecto
     lNode->attachObject(lEntity);
     // change position and scale (from mm to m)
     lNode->setPosition(pos);
-    lNode->setOrientation(quat);    
+    lNode->setOrientation(quat);
+
     //Save the the size of the template
     template_size_ = lEntity->getBoundingBox().getSize().length() + pos.distance(lEntity->getWorldBoundingBox(true).getCenter());
 
@@ -407,12 +427,12 @@ void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char i
     template_pose_pub_list_.push_back( nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 5, false) );
 
     // and subscribe to the template marker feedback loop
-    ros::Subscriber template_pose_sub = nh_.subscribe<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
+    ros::Subscriber template_pose_sub = nh_.subscribe( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
     template_pose_sub_list_.push_back(template_pose_sub);
     //std::cout << "subscribed to topic" << std::endl;
 }
 
-void TemplateDisplayCustom::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
+void TemplateDisplayCustom::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
 {
     if(msg->client_id == ros::this_node::getName())
     {
@@ -428,7 +448,7 @@ void TemplateDisplayCustom::onMarkerFeedback(const flor_ocs_msgs::OCSInteractive
     }
 }
 
-void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg)
+void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr msg)
 {
     //std::cout << "Processing template list" << std::endl;
     for(int i = 0; i < msg->template_list.size(); i++)
@@ -459,14 +479,18 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
         }
         else // just update position
         {
-            template_node_list_[i]->setPosition(pos);
-            template_node_list_[i]->setOrientation(quat);
-            //template_marker_list_[i]->setPose(pose);
-            flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-            cmd.client_id = ros::this_node::getName();
-            cmd.topic = template_pose_pub_list_[i].getTopic();
-            cmd.pose = pose;
-            interactive_marker_update_pub_.publish(cmd);
+            if(template_node_list_[i]->getPosition() != pos || template_node_list_[i]->getOrientation() != quat)
+            {
+                template_node_list_[i]->setPosition(pos);
+                template_node_list_[i]->setOrientation(quat);
+                //template_marker_list_[i]->setPose(pose);
+                flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+                cmd.event_type = flor_ocs_msgs::OCSInteractiveMarkerUpdate::FEEDBACK;
+                cmd.client_id = ros::this_node::getName();
+                cmd.topic = template_pose_pub_list_[i].getTopic();
+                cmd.pose = pose;
+                interactive_marker_update_pub_.publish(cmd);
+            }
         }
     }
     //template_list_

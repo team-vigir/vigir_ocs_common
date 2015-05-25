@@ -7,10 +7,8 @@
 #include "flor_ocs_msgs/OCSBehaviorGoal.h"
 #include "behavior_notification.h"
 #include <boost/asio/ip/host_name.hpp>
-
-//#include <actionlib/server/simple_action_server.h>
 #include <vigir_be_msgs/BehaviorInputAction.h>
-//#include "complex_action_server.h"
+
 
 /**
  * Subscribe to different topics in order to process whether a required action has been processed.
@@ -19,13 +17,6 @@
  *
  */
 
-
-/**
- server is defined in the behavior notification to circumvent circular dependency
- typedef actionlib::SimpleActionServer<vigir_be_msgs::BehaviorInputAction> BehaviorServer;
-**/
-
-Q_DECLARE_METATYPE(BehaviorServer::GoalHandle);
 
 class BehaviorRelay: public QWidget
 {
@@ -39,20 +30,15 @@ class BehaviorRelay: public QWidget
    private:
        BehaviorRelay(BehaviorRelay const&){};             // copy constructor is private
        BehaviorRelay& operator=(BehaviorRelay const&){};  // assignment operator is private
-       void receiveBehaviorGoalCB(const flor_ocs_msgs::OCSBehaviorGoalConstPtr& msg);
-       void receiveBehaviorResult(const flor_ocs_msgs::OCSBehaviorGoalConstPtr& msg);
-       void cleanNotifications();
-
-       boost::recursive_mutex lock_;
+       void receiveBehaviorGoalCB(const flor_ocs_msgs::OCSBehaviorGoalConstPtr msg);
+       void receiveBehaviorResult(const flor_ocs_msgs::OCSBehaviorGoalConstPtr msg);
+       void cleanNotifications();      
 
        QWidget* parent_;
        ros::NodeHandle nh_;
        std::vector<BehaviorNotification*> behavior_notifications_;
-       int max_notifications_shown_;
-       BehaviorServer* behavior_server_;
-       QString latest_behavior_action_text_;
-
-       std::vector<BehaviorServer::GoalHandle> all_goals_;
+       int max_notifications_shown_;       
+       QString latest_behavior_action_text_;       
 
        ros::Subscriber behavior_goal_sub_;
        ros::Subscriber behavior_confirm_sub_;
