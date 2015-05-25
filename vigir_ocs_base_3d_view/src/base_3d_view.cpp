@@ -2926,8 +2926,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
         {
             left = false;
             right = true;
-            torso = false;
-            //moving_l_arm_ = false; // ?
+            torso = false;            
             moving_r_arm_ = false;
         }
     }   
