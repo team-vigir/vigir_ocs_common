@@ -802,8 +802,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
    // reset_view_button_->move(0,300);
     QObject::connect(reset_view_button_, SIGNAL(clicked()), this, SLOT(resetView()));
 
-    stop_button_ = new QPushButton("FREEZE",this);
-    stop_button_->setStyleSheet("font: 78pt \"MS Shell Dlg 2\";background-color: red;color: white;border-color: red;");
+    stop_button_ = new QPushButton("HALT",this);
+    stop_button_->setStyleSheet("font: 100pt \"MS Shell Dlg 2\";background-color: red;color: white;border-color: red;");
     stop_button_->setMaximumSize(400,300);
     stop_button_->adjustSize();
     QObject::connect(stop_button_, SIGNAL(clicked()), this, SIGNAL(emergencyStop()));
