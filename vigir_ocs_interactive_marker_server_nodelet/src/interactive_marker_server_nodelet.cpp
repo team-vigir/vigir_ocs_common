@@ -103,8 +103,7 @@ void InteractiveMarkerServerNodelet::onMarkerFeedback(unsigned char event_type, 
 
 //    marker_feedback_timer_ = boost::posix_time::microsec_clock::universal_time();
 
-    //ROS_INFO("update_pose: %s -> %s",client_id.c_str(),topic_name.c_str());    
-
+    
     flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
     cmd.client_id = client_id;
     cmd.topic = topic_name;
@@ -117,7 +116,12 @@ void InteractiveMarkerServerNodelet::onMarkerFeedback(unsigned char event_type, 
     //}
 
     if(event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP)
+    {
+        std::map<std::string,boost::shared_ptr<InteractiveMarkerServerCustom> >::iterator iter;
+        for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
+            iter->second->setMode(iter->second->getMode());
         publishSelectedObject();
+    }
 }
 
 void InteractiveMarkerServerNodelet::setMode(const flor_ocs_msgs::OCSControlMode::ConstPtr msg)

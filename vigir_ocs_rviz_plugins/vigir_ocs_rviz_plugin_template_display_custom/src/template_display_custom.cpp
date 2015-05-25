@@ -479,14 +479,18 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
         }
         else // just update position
         {
-            template_node_list_[i]->setPosition(pos);
-            template_node_list_[i]->setOrientation(quat);
-            //template_marker_list_[i]->setPose(pose);
-            flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-            cmd.client_id = ros::this_node::getName();
-            cmd.topic = template_pose_pub_list_[i].getTopic();
-            cmd.pose = pose;
-            interactive_marker_update_pub_.publish(cmd);
+            if(template_node_list_[i]->getPosition() != pos || template_node_list_[i]->getOrientation() != quat)
+            {
+                template_node_list_[i]->setPosition(pos);
+                template_node_list_[i]->setOrientation(quat);
+                //template_marker_list_[i]->setPose(pose);
+                flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+                cmd.event_type = flor_ocs_msgs::OCSInteractiveMarkerUpdate::FEEDBACK;
+                cmd.client_id = ros::this_node::getName();
+                cmd.topic = template_pose_pub_list_[i].getTopic();
+                cmd.pose = pose;
+                interactive_marker_update_pub_.publish(cmd);
+            }
         }
     }
     //template_list_
