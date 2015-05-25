@@ -47,10 +47,10 @@ public:
     explicit ImageManagerWidget(QWidget *parent = 0);
     ~ImageManagerWidget();
 
-    void processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr& msg);
-    void processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg);
-    void processSelectedImage(const sensor_msgs::Image::ConstPtr& msg);
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    void processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg);
+    void processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr msg);
+    void processSelectedImage(const sensor_msgs::Image::ConstPtr msg);
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr pose);
     /*void removeImage(int id);
 
     void initImageIdMap();*/

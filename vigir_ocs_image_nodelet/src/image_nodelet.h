@@ -29,8 +29,8 @@ namespace ocs_image
 
         void processImage( const ros::MessageEvent<sensor_msgs::Image const>& event, const std::string& topic );
         void processCameraInfo( const ros::MessageEvent<sensor_msgs::CameraInfo const>& event, const std::string& topic );
-        void processImageListRequest( const std_msgs::Bool::ConstPtr& msg );
-        void processImageSelected( const std_msgs::UInt64::ConstPtr& msg );
+        void processImageListRequest( const std_msgs::Bool::ConstPtr msg );
+        void processImageSelected( const std_msgs::UInt64::ConstPtr msg );
 
         void publishImageList();
         void publishImageAdded( const unsigned long& id );

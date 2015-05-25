@@ -5,7 +5,7 @@ HotkeyManager* HotkeyManager::instance_ = 0;
 
 HotkeyManager::HotkeyManager()
 {
-    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &HotkeyManager::processNewKeyEvent, this );
+    key_event_sub_ = nh_.subscribe( "/flor/ocs/key_event", 5, &HotkeyManager::processNewKeyEvent, this );
 }
 
 HotkeyManager * HotkeyManager::Instance()
@@ -16,7 +16,7 @@ HotkeyManager * HotkeyManager::Instance()
     return instance_;
 }
 
-void HotkeyManager::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+void HotkeyManager::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
 {
     // store key state
     if(key_event->state) //add if pressed

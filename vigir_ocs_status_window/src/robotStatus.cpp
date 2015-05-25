@@ -62,10 +62,10 @@ robotStatus::robotStatus(QWidget *parent) :
     std::cout << "Reading messages from <" << messagesPath << ">" << std::endl;
     loadFile();
 
-    rosSubscriber = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/flor_robot_status", 100, &robotStatus::receivedMessage, this );
-    clearCalled   = nh_.subscribe<std_msgs::Bool>("/flor_robot_status/clear", 1, &robotStatus::clearCalledMsg, this);
+    rosSubscriber = nh_.subscribe( "/flor_robot_status", 100, &robotStatus::receivedMessage, this );
+    clearCalled   = nh_.subscribe("/flor_robot_status/clear", 1, &robotStatus::clearCalledMsg, this);
     callClear_pub = nh_.advertise<std_msgs::Bool>("/flor_robot_status/clear",1,false);
-    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &robotStatus::processNewKeyEvent, this );
+    key_event_sub_ = nh_.subscribe( "/flor/ocs/key_event", 5, &robotStatus::processNewKeyEvent, this );
     std::cout << "Done setting up waiting for messages." << std::endl;
     ros::spinOnce();
     clearButton->connect(clearButton,SIGNAL(clicked()),this,SLOT(on_clearButton_clicked()));
@@ -147,7 +147,7 @@ QString robotStatus::timeFromMsg(ros::Time stamp)
     return QString::fromStdString(stream.str());
 }
 
-void robotStatus::receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
+void robotStatus::receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg)
 {
 
     //extract information from msg
@@ -285,7 +285,7 @@ void robotStatus::loadFile()
         }
     }
 }
-void robotStatus::clearCalledMsg(const std_msgs::Bool::ConstPtr& msg)
+void robotStatus::clearCalledMsg(const std_msgs::Bool::ConstPtr msg)
 {
     std::cout << "Clear called by another status window. Now clearing my window." << std::endl;
     clearTable();
@@ -343,7 +343,7 @@ int robotStatus::getNumWarn()
     return numWarn;
 }
 
-void robotStatus::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+void robotStatus::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
 {
     // store key state
     if(key_event->state)

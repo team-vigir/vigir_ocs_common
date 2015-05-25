@@ -185,7 +185,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ft_zero_pub_ = n_.advertise<std_msgs::Int8>("/flor/controller/zero_hand_wrench",1,false);
 
     //publisher and subscriber for window visibility control
-    window_control_sub_ = n_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &MainViewWidget::processWindowControl, this );
+    window_control_sub_ = n_.subscribe( "/flor/ocs/window_control", 5, &MainViewWidget::processWindowControl, this );
     window_control_pub_ = n_.advertise<std_msgs::Int8>( "/flor/ocs/window_control", 1, false);
 
     //initialize footstep configuration widget
@@ -376,7 +376,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     // create docks, toolbars, etc...
     //this->restoreState(settings.value("mainWindowState").toByteArray());
 
-    ocs_sync_sub_ = n_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &MainViewWidget::synchronizeToggleButtons, this );
+    ocs_sync_sub_ = n_.subscribe( "/flor/ocs/synchronize", 5, &MainViewWidget::synchronizeToggleButtons, this );
 
     //useful to getting access to callbacks for context menu
     primary_view_ = (vigir_ocs::Base3DView*) views_list_["Top Left"];
@@ -447,7 +447,7 @@ void MainViewWidget::changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState sta
     checkBox->blockSignals(false);
 }
 
-void MainViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg)
+void MainViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr msg)
 {
     for(int i=0;i<msg->properties.size();i++)
     {
@@ -534,7 +534,7 @@ void MainViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchroniz
     }
 }
 
-void MainViewWidget::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
+void MainViewWidget::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr msg)
 {
     if(msg->manipulationMode != 0 || msg->manipulationMode != 1 || msg->manipulationMode != 2)
         return;
@@ -884,7 +884,7 @@ void MainViewWidget::setupToolbar()
     //publisher for joystick modes
     mode_pub_ = n_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1,false);
     //need to subscribe to stay in sync with modes
-    mode_sub_ = n_.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1, &MainViewWidget::modeCB,this);
+    mode_sub_ = n_.subscribe("/flor/ocs/control_modes",1, &MainViewWidget::modeCB,this);
 
     connect(ui->footstepParamSetBox,SIGNAL(currentIndexChanged(QString)),((vigir_ocs::Base3DView*)views_list_["Top Left"])->getFootstepVisManager(),SLOT(setFootstepParameterSet(QString)));
     connect(((vigir_ocs::Base3DView*)views_list_["Top Left"])->getFootstepVisManager(),SIGNAL(populateFootstepParameterSetBox(std::vector<std::string>)),this,SLOT(populateFootstepParameterSetBox(std::vector<std::string>)));
@@ -1033,7 +1033,7 @@ void MainViewWidget::zero_rightPressed(){
 //ADD THIS FUNCTION TO THE INDIVIDUAL WINDOWS
 //SETUP PUBLISHER FOR TOGGLE
 
-void MainViewWidget::processWindowControl(const std_msgs::Int8::ConstPtr &visible)
+void MainViewWidget::processWindowControl(const std_msgs::Int8::ConstPtr visible)
 {
     char visibility = visible->data;
 

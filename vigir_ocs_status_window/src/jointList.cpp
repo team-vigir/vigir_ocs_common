@@ -29,11 +29,9 @@ jointList::jointList(QWidget *parent) :
    jointTable->setHeaderLabels(columns);
    jointTable->setColumnWidth(0,150);
 
-   setUpTable();
+   setUpTable();  
 
-   joint_states = nh_.subscribe<sensor_msgs::JointState>( "/atlas/joint_states", 2, &jointList::updateList, this );
-
-   key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &jointList::processNewKeyEvent, this );   
+   key_event_sub_ = nh_.subscribe( "/flor/ocs/key_event", 5, &jointList::processNewKeyEvent, this );
 
 }
 void jointList::setUpTable()
@@ -150,91 +148,9 @@ int jointList::getNumWarn()
    return warnCount;
 }
 
-void jointList::updateList(const sensor_msgs::JointState::ConstPtr& states )
-{
-    /*
-    //joint states are updated in base3dview only
-    MoveItOcsModel* robot_state = RobotStateManager::Instance()->getRobotStateSingleton();
-
-    // clear joint status messages and send Okay state
-    Q_EMIT sendJointData(0,"");
-
-    for(int i = 0; i < states->name.size(); i++)
-    {
-
-        if (! (i < joints_.size())){
-          ROS_ERROR_THROTTLE(10,"Attempt to insert joint index larger than tree widget, aborting! This error is throttled.");
-          return;
-        }
-
-        //Update the table
-        joints_[i]->setText(1,QString::number(states->position.size() > i ? states->position[i] : 0.0));
-        joints_[i]->setText(2,QString::number(states->velocity.size() > i ? states->velocity[i] : 0.0));
-        joints_[i]->setText(3,QString::number(states->effort.size() > i ? states->effort[i] : 0.0));
-        joints_[i]->setBackgroundColor(0,Qt::white);
-        joints_[i]->setBackgroundColor(1,Qt::white);
-        joints_[i]->setBackgroundColor(3,Qt::white);
-
-        const moveit::core::JointModel* joint =  robot_state->getJointModel(states->name[i]);
-
-        if (!joint){
-            ROS_WARN("Searching for joint %s in model returns null pointer! [#2443]", states->name[i].c_str());
-            continue;
-        }
-
-        //ignore unnecessary joints
-        if (joint->getType() == moveit::core::JointModel::PLANAR || joint->getType() == moveit::core::JointModel::FLOATING)
-          continue;
-        if (joint->getType() == moveit::core::JointModel::REVOLUTE)
-          if (static_cast<const moveit::core::RevoluteJointModel*>(joint)->isContinuous())
-            continue;
-        //calculate joint position percentage relative to max/min limit
-        const moveit::core::JointModel::Bounds& bounds = joint->getVariableBounds();
-        double distance = bounds[0].max_position_ - bounds[0].min_position_;
-        double boundPercent = robot_state->getMinDistanceToPositionBounds(joint) / distance;
-
-        double jointEffortPercent = ((robot_state->getJointEffortLimit(states->name[i]) != 0 && states->effort.size() > i) ?
-                                    std::abs(states->effort[i]) / robot_state->getJointEffortLimit(states->name[i]) :
-                                    0.0);
-        if(jointEffortPercent >=.9 ) //effort error
-        {
-            Q_EMIT sendJointData(2,QString(joint->getName().c_str()));
-            joints_[i]->setBackgroundColor(0,Qt::darkRed);
-            joints_[i]->setBackgroundColor(1,Qt::darkRed);
-            joints_[i]->parent()->setBackgroundColor(0,Qt::darkRed);
-            errorCount++;
-        }
-        else if(jointEffortPercent >=.75) //effort warn
-        {
-            Q_EMIT sendJointData(1,QString(joint->getName().c_str()));
-            joints_[i]->setBackgroundColor(0,Qt::darkYellow);
-            joints_[i]->setBackgroundColor(1,Qt::darkYellow);
-            joints_[i]->parent()->setBackgroundColor(0,Qt::darkYellow);
-            warnCount++;
-        }
-        else if(boundPercent <=.03) //position error
-        {
-            Q_EMIT sendJointData(2,QString(joint->getName().c_str()));
-            joints_[i]->setBackgroundColor(0,Qt::red);
-            joints_[i]->setBackgroundColor(1,Qt::red);
-            joints_[i]->parent()->setBackgroundColor(0,Qt::red);
-            errorCount++;
-        }
-        else if(boundPercent <=.1) //position warn
-        {
-            Q_EMIT sendJointData(1,QString(joint->getName().c_str()));
-            joints_[i]->setBackgroundColor(0,Qt::yellow);
-            joints_[i]->setBackgroundColor(1,Qt::yellow);
-            joints_[i]->parent()->setBackgroundColor(0,Qt::yellow);
-            warnCount++;
-        }
-    }
-    */
-}
-
 
 //?
-void jointList::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+void jointList::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
 {
    // store key state
    if(key_event->state)

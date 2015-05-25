@@ -50,12 +50,12 @@ PerspectiveView::~PerspectiveView()
 void PerspectiveView::init()
 {
     //subscribe to process camera transform
-    camera_transform_sub_ = nh_.subscribe<geometry_msgs::Pose>( "/flor/ocs/set_camera_transform", 5, &PerspectiveView::processCameraTransform, this );
+    camera_transform_sub_ = nh_.subscribe( "/flor/ocs/set_camera_transform", 5, &PerspectiveView::processCameraTransform, this );
 
     view_change_timer_.start();
 }
 
-void PerspectiveView::processCameraTransform(const geometry_msgs::Pose::ConstPtr& msg)
+void PerspectiveView::processCameraTransform(const geometry_msgs::Pose::ConstPtr msg)
 {
     if(render_panel_->getCamera()->getPosition().x != 0 && render_panel_->getCamera()->getPosition().y != 0 && render_panel_->getCamera()->getPosition().z != 0
             && render_panel_->getCamera()->getOrientation().x != 0 && render_panel_->getCamera()->getOrientation().y != 0 && render_panel_->getCamera()->getOrientation().z != 0 && render_panel_->getCamera()->getOrientation().w != 1

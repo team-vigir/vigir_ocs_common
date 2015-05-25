@@ -54,9 +54,9 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
 
     std::string grasp_control_prefix = "/grasp_control/" + hand_name_;
     // initialize template subscribers and publishers
-    template_list_sub_           = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",                    5, &graspWidget::processTemplateList, this );
-    template_match_feedback_sub_ = nh_.subscribe<flor_grasp_msgs::TemplateSelection>("/grasp_control/template_selection", 1, &graspWidget::templateMatchFeedback, this );
-    grasp_state_sub_             = nh_.subscribe<flor_grasp_msgs::GraspState>(      grasp_control_prefix+"/active_state", 1, &graspWidget::graspStateReceived,  this );
+    template_list_sub_           = nh_.subscribe(    "/template/list",                    5, &graspWidget::processTemplateList, this );
+    template_match_feedback_sub_ = nh_.subscribe("/grasp_control/template_selection", 1, &graspWidget::templateMatchFeedback, this );
+    grasp_state_sub_             = nh_.subscribe(      grasp_control_prefix+"/active_state", 1, &graspWidget::graspStateReceived,  this );
     grasp_sync_sub_              = nh_.subscribe("/flor/ocs/grasp_sync", 1, &graspWidget::processGraspSyncCB,  this );
 
     grasp_selection_pub_         = nh_.advertise<flor_grasp_msgs::GraspSelection>(    grasp_control_prefix+"/grasp_selection",                            1, false);
@@ -123,7 +123,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     move_request_pub_  = nh_.advertise<flor_grasp_msgs::GraspSelection>(    "/manipulation_control/" + hand_name_ + "/move_to_pose",  1, false );
     detach_object_pub_ = nh_.advertise<flor_grasp_msgs::TemplateSelection>( "/manipulation_control/" + hand_name_ + "/detach_object", 1, false );
 
-    robot_status_sub_           = nh_.subscribe<flor_ocs_msgs::OCSRobotStatus>( "/grasp_control/" + hand_name_ + "/grasp_status",1, &graspWidget::robotStatusCB,  this );
+    robot_status_sub_           = nh_.subscribe( "/grasp_control/" + hand_name_ + "/grasp_status",1, &graspWidget::robotStatusCB,  this );
     ghost_hand_pub_             = nh_.advertise<geometry_msgs::PoseStamped>(     "/ghost_" + hand_side_ + "_hand_pose",             1, false);
     //ghost_hand_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(        "/ghost_" + hand_ + "_hand/joint_states",     1, false); // /ghost_" + hand_ + "_hand/joint_states
 
@@ -203,9 +203,9 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/template_" + hand_side_ + "_hand",1, true);
 
     // We first subscribe to the JointState messages
-    link_states_sub_ = nh_.subscribe<flor_grasp_msgs::LinkState>( "/grasp_control/" + hand_name_ + "/tactile_feedback", 2, &graspWidget::linkStatesCB, this );
+    link_states_sub_ = nh_.subscribe( "/grasp_control/" + hand_name_ + "/tactile_feedback", 2, &graspWidget::linkStatesCB, this );
 
-    template_stitch_pose_sub_    = nh_.subscribe<geometry_msgs::PoseStamped>( "/manipulation_control/" + hand_name_ + "/template_stitch_pose",1, &graspWidget::templateStitchPoseCallback,  this );
+    template_stitch_pose_sub_    = nh_.subscribe( "/manipulation_control/" + hand_name_ + "/template_stitch_pose",1, &graspWidget::templateStitchPoseCallback,  this );
     template_stitch_request_pub_ = nh_.advertise<flor_grasp_msgs::GraspSelection>( "/manipulation_control/" + hand_name_ + "/template_stitch_request", 1, false );
 
     XmlRpc::XmlRpcValue   gp_T_palm;
@@ -249,9 +249,9 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     // PUBLISHER WILL BE USED BY THE RIGHT/DOUBLE CLICK TO INFORM WHICH TEMPLATE/HAND/OBJECT HAS BEEN selected
     // SUBSCRIBER WILL BE USED TO CHANGE VISIBILITY OF THE OBJECT THAT IS BEING USED (E.G., TALK TO TEMPLATE DISPLAY AND SET VISIBILITY OF MARKERS)
     select_object_pub_ = nh_.advertise<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 1, false );
-    select_object_sub_ = nh_.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &graspWidget::processObjectSelection, this );
+    select_object_sub_ = nh_.subscribe( "/flor/ocs/object_selection", 5, &graspWidget::processObjectSelection, this );
 
-    //key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &graspWidget::processNewKeyEvent, this );
+    //key_event_sub_ = nh_.subscribe( "/flor/ocs/key_event", 5, &graspWidget::processNewKeyEvent, this );
     timer.start(33, this);
 }
 //SetStylesheet to change on the fly
@@ -322,20 +322,20 @@ void graspWidget::setUpButtons()
     ui->usabilityBox->setStyleSheet(styleSheet);
 }
 
-void graspWidget::templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr& feedback)
+void graspWidget::templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr feedback)
 {
     // provide feedback about template grasp confidence by changing the color of the move to template button
     templateMatchDone = true; // is this still being used?
 }
 
-void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPtr& graspState)
+void graspWidget::graspStateReceived (const flor_grasp_msgs::GraspState::ConstPtr graspState)
 {
     ui->userSlider->setValue(graspState->grip.data);
 
 }
 
 
-void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list)
+void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr list)
 {
     //std::cout << "Template list received containing " << list->template_id_list.size() << " elements" << std::cout;
     // save last template list
@@ -582,7 +582,7 @@ void graspWidget::on_usabilityBox_activated(const int &arg1)
     hand_marker_pub_.publish(usability);
 }
 
-void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg)
+void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg)
 {
     uint16_t code;
     uint8_t  severity;
@@ -590,13 +590,13 @@ void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& m
     ui->robot_status_->setText(robot_status_codes_.str(code).c_str());
 }
 
-void graspWidget::templateStitchPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
+void graspWidget::templateStitchPoseCallback(const geometry_msgs::PoseStamped::ConstPtr msg)
 {
     this->stitch_template_pose_.setRotation(tf::Quaternion(msg->pose.orientation.x,msg->pose.orientation.y,msg->pose.orientation.z,msg->pose.orientation.w));
     this->stitch_template_pose_.setOrigin(tf::Vector3(msg->pose.position.x,msg->pose.position.y,msg->pose.position.z) );
 }
 
-void graspWidget::linkStatesCB( const flor_grasp_msgs::LinkState::ConstPtr& link_states )
+void graspWidget::linkStatesCB( const flor_grasp_msgs::LinkState::ConstPtr link_states )
 {
     double min_feedback = 0, max_feedback = 1.0;
     for(int i = 0; i < link_states->name.size(); i++)
@@ -1000,7 +1000,7 @@ void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr
     }
 }
 
-void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg)
+void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg)
 {
     // only process object selection if I'm the sender
     if(msg->host != boost::asio::ip::host_name())

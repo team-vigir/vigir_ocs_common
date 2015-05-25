@@ -58,7 +58,7 @@ public:
    // void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
     // process window control messages to update toggle buttons
-    void processWindowControl(const std_msgs::Int8::ConstPtr& visible);
+    void processWindowControl(const std_msgs::Int8::ConstPtr visible);
 
     virtual void timerEvent(QTimerEvent *event);
 
@@ -100,9 +100,9 @@ protected:
     void setupToolbar();
     void systemCommandContext(std::string command);
     void loadButtonIconAndStyle(QPushButton* btn, QString image_name);
-    void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
+    void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr msg);
     void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
-    void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
+    void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr msg);
     void closeEvent(QCloseEvent *event);
     void resizeEvent(QResizeEvent * event);
     void moveEvent(QMoveEvent * event);

@@ -34,11 +34,10 @@ class jointList : public QWidget
 
 public:
    explicit jointList(QWidget *parent = 0);
-   ~jointList();
-   void updateList( const sensor_msgs::JointState::ConstPtr& joint_states );
+   ~jointList();   
    int getNumWarn();
    int getNumError();
-   void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+   void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr pose);
 
 
 private:

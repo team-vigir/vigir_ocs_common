@@ -33,7 +33,7 @@ public:
 
     virtual bool eventFilter( QObject * o, QEvent * e );
 
-    virtual void updatePitch( const std_msgs::Float32::ConstPtr &pitch);
+    virtual void updatePitch( const std_msgs::Float32::ConstPtr pitch);
     std::map<std::string,QWidget*> getViewsList(){return views_list_;}
 
 public Q_SLOTS:
@@ -76,7 +76,7 @@ private:
 
     ros::Subscriber ocs_sync_sub_;
     void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
-    void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
+    void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr msg);
 
 
     bool lock_pitch_slider_;

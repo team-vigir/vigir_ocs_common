@@ -46,10 +46,10 @@ public:
     int getNumError();
     int getNumWarn();
     QString timeFromMsg(const ros::Time msg);
-    void receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
-    void clearCalledMsg(const std_msgs::Bool::ConstPtr& msg);
+    void receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg);
+    void clearCalledMsg(const std_msgs::Bool::ConstPtr msg);
     void clearTable();
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr pose);
 private Q_SLOTS:
     void on_clearButton_clicked();
     void on_msgTable_cellClicked(int row, int column);

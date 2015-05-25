@@ -46,7 +46,7 @@ protected:
     /**
       * ROS Callback: receives current camera pose
       */
-    void processCameraTransform(const geometry_msgs::Pose::ConstPtr& msg);
+    void processCameraTransform(const geometry_msgs::Pose::ConstPtr msg);
 
 private:
     void init();

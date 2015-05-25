@@ -191,7 +191,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     }
 
     //key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
-    neck_pos_sub_ = nh_.subscribe<std_msgs::Float32> ( "/trajectory_controllers/neck_traj_controller/current_position" , 2, &MainCameraViewWidget::updatePitch, this );
+    neck_pos_sub_ = nh_.subscribe ( "/trajectory_controllers/neck_traj_controller/current_position" , 2, &MainCameraViewWidget::updatePitch, this );
 
     //send template list to views for context menu
     ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
@@ -240,7 +240,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));
 
     //synchronize toggles
-    ocs_sync_sub_ = nh_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &MainCameraViewWidget::synchronizeToggleButtons, this );
+    ocs_sync_sub_ = nh_.subscribe( "/flor/ocs/synchronize", 5, &MainCameraViewWidget::synchronizeToggleButtons, this );
 
     //disable joint markers by default
     ui->robot_joint_markers->setCheckState(Qt::Unchecked);
@@ -271,7 +271,7 @@ void MainCameraViewWidget::changeCheckBoxState(QCheckBox* checkBox, Qt::CheckSta
     checkBox->blockSignals(false);
 }
 
-void MainCameraViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg)
+void MainCameraViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr msg)
 {
     for(int i=0;i<msg->properties.size();i++)
     {
@@ -410,7 +410,7 @@ void MainCameraViewWidget::sendPitch()
 
 }
 
-void MainCameraViewWidget::updatePitch( const std_msgs::Float32::ConstPtr &pitch)
+void MainCameraViewWidget::updatePitch( const std_msgs::Float32::ConstPtr pitch)
 {
     if(!lock_pitch_slider_)
     {

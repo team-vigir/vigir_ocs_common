@@ -24,9 +24,9 @@ ImageManagerWidget::ImageManagerWidget(QWidget *parent) :
     image_list_request_pub_ = nh_.advertise<std_msgs::Bool>(   "/flor/ocs/image_history/list_request", 1, true );
     image_selected_pub_     = nh_.advertise<std_msgs::UInt64>( "/flor/ocs/image_history/select_image", 1, false );
 
-    image_added_sub_    = nh_.subscribe<flor_ocs_msgs::OCSImageAdd>(  "/flor/ocs/image_history/add",  5, &ImageManagerWidget::processImageAdd,  this );
-    image_list_sub_     = nh_.subscribe<flor_ocs_msgs::OCSImageList>( "/flor/ocs/image_history/list", 100, &ImageManagerWidget::processImageList, this );
-    image_selected_sub_ = nh_.subscribe<sensor_msgs::Image>( "/flor/ocs/history/image_raw", 5, &ImageManagerWidget::processSelectedImage, this );   
+    image_added_sub_    = nh_.subscribe(  "/flor/ocs/image_history/add",  5, &ImageManagerWidget::processImageAdd,  this );
+    image_list_sub_     = nh_.subscribe( "/flor/ocs/image_history/list", 100, &ImageManagerWidget::processImageList, this );
+    image_selected_sub_ = nh_.subscribe( "/flor/ocs/history/image_raw", 5, &ImageManagerWidget::processSelectedImage, this );
 
     //connect(ui->tableWidget, SIGNAL(cellClicked(int,int)), this, SLOT(editSlot(int, int)));
     std_msgs::Bool list_request;
@@ -132,13 +132,13 @@ void ImageManagerWidget::addImage(const unsigned long& id, const std::string& to
     ui->tableWidget->setItem(row,4,item);
 }
 
-void ImageManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+void ImageManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
     //ROS_ERROR("process image add");
     addImage(msg->id,msg->topic,msg->image,msg->camera_info);
 }
 
-void ImageManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg)
+void ImageManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr msg)
 {
     // reset table
     //ROS_ERROR("process image list");
@@ -150,7 +150,7 @@ void ImageManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::Con
     image_list_sub_.shutdown();
 }
 
-void ImageManagerWidget::processSelectedImage(const sensor_msgs::Image::ConstPtr &msg)
+void ImageManagerWidget::processSelectedImage(const sensor_msgs::Image::ConstPtr msg)
 {
     // image
     //ROS_ERROR("Encoding: %s", msg->encoding.c_str());

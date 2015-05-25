@@ -21,8 +21,8 @@ void ImageNodelet::onInit()
     image_added_pub_ = nh_.advertise<flor_ocs_msgs::OCSImageAdd>( "/flor/ocs/image_history/add", 1, false );
 
     // initialize subscribers for image manager topics
-    image_list_request_sub_ = nh_.subscribe<std_msgs::Bool>( "/flor/ocs/image_history/list_request", 5, &ImageNodelet::processImageListRequest, this );
-    image_selected_sub_ = nh_.subscribe<std_msgs::UInt64>( "/flor/ocs/image_history/select_image", 5, &ImageNodelet::processImageSelected, this );
+    image_list_request_sub_ = nh_.subscribe( "/flor/ocs/image_history/list_request", 5, &ImageNodelet::processImageListRequest, this );
+    image_selected_sub_ = nh_.subscribe( "/flor/ocs/image_history/select_image", 5, &ImageNodelet::processImageSelected, this );
     image_transport::ImageTransport it(nh_);
     // should probably read this from file, but vrc hacking mode now
     std::vector<std::string> topics;
@@ -288,14 +288,14 @@ void ImageNodelet::processCameraInfo( const ros::MessageEvent<sensor_msgs::Camer
     }
 }
 
-void ImageNodelet::processImageListRequest(const std_msgs::Bool::ConstPtr &msg)
+void ImageNodelet::processImageListRequest(const std_msgs::Bool::ConstPtr msg)
 {
     //ROS_ERROR("Received image list request");
 
     publishImageList();
 }
 
-void ImageNodelet::processImageSelected(const std_msgs::UInt64::ConstPtr &msg)
+void ImageNodelet::processImageSelected(const std_msgs::UInt64::ConstPtr msg)
 {
     //ROS_ERROR("Received image selected");
 

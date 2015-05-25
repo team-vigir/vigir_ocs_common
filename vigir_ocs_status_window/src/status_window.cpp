@@ -14,8 +14,8 @@ status_window::status_window(QWidget *parent) :
 {
     ui->setupUi(this);
     this->setWindowTitle("Robot_Status");
-    mode_subscriber = nh_.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode",1,&status_window::controlModeMsgReceived, this);
-    stability_subscriber = nh_.subscribe<flor_ocs_msgs::OCSRobotStability>("/flor/controller/stability",1,&status_window::stabilityMsgReceived, this);
+    mode_subscriber = nh_.subscribe("/flor/controller/mode",1,&status_window::controlModeMsgReceived, this);
+    stability_subscriber = nh_.subscribe("/flor/controller/stability",1,&status_window::stabilityMsgReceived, this);
 
     // load control modes into dropdown box from parameters
     nh_.getParam("/atlas_controller/allowed_control_modes", allowed_control_modes_);
@@ -28,12 +28,12 @@ status_window::status_window(QWidget *parent) :
     oldJointStyleSheet = ui->showJointButton->styleSheet();
     oldRobotStyleSheet = ui->showRobotStatus->styleSheet();
 
-    key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &status_window::processNewKeyEvent, this );
+    key_event_sub_ = nh_.subscribe( "/flor/ocs/key_event", 5, &status_window::processNewKeyEvent, this );
 
     timer.start(33, this);
 }
 
-void status_window::controlModeMsgReceived(const flor_control_msgs::FlorControlMode::ConstPtr& modeMsg)
+void status_window::controlModeMsgReceived(const flor_control_msgs::FlorControlMode::ConstPtr modeMsg)
 {
     rbtStatus->show();
     //flor_control_msgs::FlorControlMode::LEFT_SIDE_DOWN
@@ -111,7 +111,7 @@ QString status_window::getControllerStatus(uint8_t flag)
     }
 }
 
-void status_window::stabilityMsgReceived(const flor_ocs_msgs::OCSRobotStability::ConstPtr& stabilityMsg)
+void status_window::stabilityMsgReceived(const flor_ocs_msgs::OCSRobotStability::ConstPtr stabilityMsg)
 {
     ui->stabilityLabel->setText(QString::number(stabilityMsg->stability));
     if(stabilityMsg->stability >= 193)
@@ -227,7 +227,7 @@ void status_window::on_showRobotStatus_clicked()
     }
 }
 
-void status_window::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+void status_window::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
 {
     // store key state
     if(key_event->state)

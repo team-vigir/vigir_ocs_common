@@ -9,7 +9,7 @@ HotkeyRelay::HotkeyRelay()
     // create publishers for visualization
     key_event_pub_  = nh_out.advertise<flor_ocs_msgs::OCSHotkeyRelay>( "hotkey_relay", 1, false );
 
-    key_event_sub_ = nh_out.subscribe<flor_ocs_msgs::OCSKeyEvent>( "secondary/key_event", 5, &HotkeyRelay::processKeyEvent, this );
+    key_event_sub_ = nh_out.subscribe( "secondary/key_event", 5, &HotkeyRelay::processKeyEvent, this );
 	
     memset(old_keys_,false,4096*sizeof(bool));
 }
@@ -18,7 +18,7 @@ HotkeyRelay::~HotkeyRelay()
 {
 }
 
-void HotkeyRelay::processKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+void HotkeyRelay::processKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
 {
     // store key state
     if(key_event->state)

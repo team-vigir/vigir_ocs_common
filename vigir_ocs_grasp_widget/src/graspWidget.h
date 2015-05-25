@@ -63,7 +63,7 @@ public:
     explicit graspWidget(QWidget *parent = 0, std::string hand = "left", std::string hand_name = "l_hand");
     ~graspWidget();
 
-    void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr& msg);
+    void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg);
     //void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
     Ui::graspWidget * getUi();
@@ -98,10 +98,10 @@ private:
     Ui::graspWidget *ui;
     handOffsetWidget *ui2;
 
-    void graspStateReceived (const flor_grasp_msgs::GraspState::ConstPtr& graspState);
-    void graspSelectedReceived (const flor_grasp_msgs::GraspSelection::ConstPtr& graspMsg);
-    void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list);
-    void templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr& feedback);
+    void graspStateReceived (const flor_grasp_msgs::GraspState::ConstPtr graspState);
+    void graspSelectedReceived (const flor_grasp_msgs::GraspSelection::ConstPtr graspMsg);
+    void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr list);
+    void templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr feedback);
     void processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg);
 
     int calcWristTarget( const geometry_msgs::Pose& wrist_pose,const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose );
@@ -170,8 +170,8 @@ private:
     ros::Subscriber template_stitch_pose_sub_;
     RobotStatusCodes robot_status_codes_;
 
-    void robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
-    void templateStitchPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    void robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg);
+    void templateStitchPoseCallback(const geometry_msgs::PoseStamped::ConstPtr msg);
 
     // publisher to color fingers/hand
     ros::Publisher hand_link_color_pub_;
@@ -195,7 +195,7 @@ private:
     // get joint states
     ros::Subscriber link_states_sub_;
 
-    void linkStatesCB(const flor_grasp_msgs::LinkState::ConstPtr& link_states);
+    void linkStatesCB(const flor_grasp_msgs::LinkState::ConstPtr link_states);
 
     bool show_grasp_;
 

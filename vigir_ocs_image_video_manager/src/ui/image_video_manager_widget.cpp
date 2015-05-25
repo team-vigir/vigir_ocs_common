@@ -39,27 +39,27 @@ ImageVideoManagerWidget::ImageVideoManagerWidget(QWidget *parent) :
     image_list_request_pub_ = nh_.advertise<std_msgs::Bool>(   "/flor/ocs/image_history/list_request", 1, true );
     image_selected_pub_     = nh_.advertise<std_msgs::UInt64>( "/flor/ocs/image_history/select_image", 1, false );
 
-    image_added_sub_    = nh_.subscribe<flor_ocs_msgs::OCSImageAdd>(  "/flor/ocs/image_history/add",  5, &ImageVideoManagerWidget::processImageAdd,  this );
-    image_list_sub_     = nh_.subscribe<flor_ocs_msgs::OCSImageList>( "/flor/ocs/image_history/list", 100, &ImageVideoManagerWidget::processImageList, this );
+    image_added_sub_    = nh_.subscribe(  "/flor/ocs/image_history/add",  5, &ImageVideoManagerWidget::processImageAdd,  this );
+    image_list_sub_     = nh_.subscribe( "/flor/ocs/image_history/list", 100, &ImageVideoManagerWidget::processImageList, this );
 
     // uncomment later
-     image_selected_sub_ = nh_.subscribe<sensor_msgs::Image>( "/flor/ocs/history/image_raw", 5, &ImageVideoManagerWidget::processSelectedImage, this );
+     image_selected_sub_ = nh_.subscribe( "/flor/ocs/history/image_raw", 5, &ImageVideoManagerWidget::processSelectedImage, this );
 
     // sunscribers for video stream
 
-    img_req_sub_full_l_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_l, this );
-    img_req_sub_full_r_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/r_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_r, this );
-    img_req_sub_full_lhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhl_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_lhl, this );
-    img_req_sub_full_lhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhr_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_lhr, this );
-    img_req_sub_full_rhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhl_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhl, this );
-    img_req_sub_full_rhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhr_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhr, this );
+    img_req_sub_full_l_ = nh_.subscribe( "/l_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_l, this );
+    img_req_sub_full_r_ = nh_.subscribe( "/r_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_r, this );
+    img_req_sub_full_lhl_ = nh_.subscribe( "/lhl_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_lhl, this );
+    img_req_sub_full_lhr_ = nh_.subscribe( "/lhr_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_lhr, this );
+    img_req_sub_full_rhl_ = nh_.subscribe( "/rhl_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhl, this );
+    img_req_sub_full_rhr_ = nh_.subscribe( "/rhr_image_full/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhr, this );
 
-    img_req_sub_crop_l_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_l, this );
-    img_req_sub_crop_r_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/r_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_r, this );
-    img_req_sub_crop_lhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhl_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_lhl, this );
-    img_req_sub_crop_lhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhr_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_lhr, this );
-    img_req_sub_crop_rhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhl_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhl, this );
-    img_req_sub_crop_rhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhr_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhr, this );
+    img_req_sub_crop_l_ = nh_.subscribe( "/l_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_l, this );
+    img_req_sub_crop_r_ = nh_.subscribe( "/r_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_r, this );
+    img_req_sub_crop_lhl_ = nh_.subscribe( "/lhl_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_lhl, this );
+    img_req_sub_crop_lhr_ = nh_.subscribe( "/lhr_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_lhr, this );
+    img_req_sub_crop_rhl_ = nh_.subscribe( "/rhl_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhl, this );
+    img_req_sub_crop_rhr_ = nh_.subscribe( "/rhr_image_cropped/image_request", 1, &ImageVideoManagerWidget::processvideoimage_rhr, this );
 
     std_msgs::Bool list_request;
     list_request.data = true;
@@ -354,7 +354,7 @@ QTreeWidgetItem* ImageVideoManagerWidget::add_time_child(QTreeWidgetItem *pitem,
     return iteml;
 }
 
-void ImageVideoManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+void ImageVideoManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
 
     //ROS_ERROR(msg->topic.c_str());
@@ -375,7 +375,7 @@ void ImageVideoManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::
 
 
  }
-void ImageVideoManagerWidget:: imageaddfunction_l(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+void ImageVideoManagerWidget:: imageaddfunction_l(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
 
 
@@ -437,7 +437,7 @@ void ImageVideoManagerWidget:: imageaddfunction_l(const flor_ocs_msgs::OCSImageA
 
 }
 
-void ImageVideoManagerWidget:: imageaddfunction_r(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+void ImageVideoManagerWidget:: imageaddfunction_r(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
 
     if(feed_rate_r==0.0f)
@@ -496,7 +496,7 @@ void ImageVideoManagerWidget:: imageaddfunction_r(const flor_ocs_msgs::OCSImageA
        feed_rate_prev_r = feed_rate_r;
 
 }
-void ImageVideoManagerWidget:: imageaddfunction_lhl(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+void ImageVideoManagerWidget:: imageaddfunction_lhl(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
     ROS_ERROR("in lhl image");
     if(feed_rate_lhl==0.0f)
@@ -552,7 +552,7 @@ void ImageVideoManagerWidget:: imageaddfunction_lhl(const flor_ocs_msgs::OCSImag
        feed_rate_prev_lhl = feed_rate_lhl;
 
 }
-void ImageVideoManagerWidget:: imageaddfunction_lhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+void ImageVideoManagerWidget:: imageaddfunction_lhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
     ROS_ERROR("in lhr image");
     if(feed_rate_lhr==0.0f)
@@ -611,7 +611,7 @@ void ImageVideoManagerWidget:: imageaddfunction_lhr(const flor_ocs_msgs::OCSImag
        feed_rate_prev_lhr = feed_rate_lhr;
 
 }
-void ImageVideoManagerWidget:: imageaddfunction_rhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+void ImageVideoManagerWidget:: imageaddfunction_rhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
     ROS_ERROR("in rhr image");
     if(feed_rate_rhr==0.0f)
@@ -670,7 +670,7 @@ void ImageVideoManagerWidget:: imageaddfunction_rhr(const flor_ocs_msgs::OCSImag
        feed_rate_prev_rhr = feed_rate_rhr;
 
 }
-void ImageVideoManagerWidget:: imageaddfunction_rhl(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+void ImageVideoManagerWidget:: imageaddfunction_rhl(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
    ROS_ERROR("in rhl image");
     if(feed_rate_rhl==0.0f)
@@ -730,7 +730,7 @@ void ImageVideoManagerWidget:: imageaddfunction_rhl(const flor_ocs_msgs::OCSImag
 
 }
 
-void ImageVideoManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg)
+void ImageVideoManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr msg)
 {
     // reset table
     //treeWidget->clear();
@@ -741,7 +741,7 @@ void ImageVideoManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList
 
 }
 
-void ImageVideoManagerWidget::processSelectedImage(const sensor_msgs::Image::ConstPtr &msg)
+void ImageVideoManagerWidget::processSelectedImage(const sensor_msgs::Image::ConstPtr msg)
 {
     // image
     ROS_ERROR("Encoding: %s", msg->encoding.c_str());
@@ -799,42 +799,42 @@ QString ImageVideoManagerWidget::timeFromMsg(const ros::Time& stamp)
     stream << std::setw(3) << std::setfill('0') << nano;
     return QString::fromStdString(stream.str());
 }
-void ImageVideoManagerWidget::processvideoimage_l (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+void ImageVideoManagerWidget::processvideoimage_l (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
     //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate_l = msg->publish_frequency;
     ROS_ERROR("in process video imagel.feed rate = %f", feed_rate_l);
 
 }
-void ImageVideoManagerWidget::processvideoimage_r (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+void ImageVideoManagerWidget::processvideoimage_r (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
     //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate_r = msg->publish_frequency;
     ROS_ERROR("in process video imager.feed rate = %f", feed_rate_r);
 
 }
-void ImageVideoManagerWidget::processvideoimage_lhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+void ImageVideoManagerWidget::processvideoimage_lhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
     //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate_lhl = msg->publish_frequency;
     ROS_ERROR("in process video imagelhl.feed rate = %f", feed_rate_lhl);
 
 }
-void ImageVideoManagerWidget::processvideoimage_lhr (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+void ImageVideoManagerWidget::processvideoimage_lhr (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
     //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate_lhr = msg->publish_frequency;
     ROS_ERROR("in process video imagelhr.feed rate = %f", feed_rate_lhr);
 
 }
-void ImageVideoManagerWidget::processvideoimage_rhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+void ImageVideoManagerWidget::processvideoimage_rhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
     //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate_rhl = msg->publish_frequency;
     ROS_ERROR("in process video imagerhl.feed rate = %f", feed_rate_rhl);
 
 }
-void ImageVideoManagerWidget::processvideoimage_rhr (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+void ImageVideoManagerWidget::processvideoimage_rhr (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
     //if(msinsertTopLevelItemg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate_rhr = msg->publish_frequency;

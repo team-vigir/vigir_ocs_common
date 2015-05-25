@@ -39,27 +39,27 @@ VideoEditorWidget::VideoEditorWidget(QWidget *parent) :
     image_list_request_pub_ = nh_.advertise<std_msgs::Bool>(   "/flor/ocs/image_history/list_request", 1, true );
     image_selected_pub_     = nh_.advertise<std_msgs::UInt64>( "/flor/ocs/image_history/select_image", 1, false );
 
-    image_added_sub_    = nh_.subscribe<flor_ocs_msgs::OCSImageAdd>(  "/flor/ocs/image_history/add",  5, &VideoEditorWidget::processImageAdd,  this );
-    image_list_sub_     = nh_.subscribe<flor_ocs_msgs::OCSImageList>( "/flor/ocs/image_history/list", 100, &VideoEditorWidget::processImageList, this );
+    image_added_sub_    = nh_.subscribe(  "/flor/ocs/image_history/add",  5, &VideoEditorWidget::processImageAdd,  this );
+    image_list_sub_     = nh_.subscribe( "/flor/ocs/image_history/list", 100, &VideoEditorWidget::processImageList, this );
 
     // uncomment later
-     image_selected_sub_ = nh_.subscribe<sensor_msgs::Image>( "/flor/ocs/history/image_raw", 5, &VideoEditorWidget::processSelectedImage, this );
+     image_selected_sub_ = nh_.subscribe( "/flor/ocs/history/image_raw", 5, &VideoEditorWidget::processSelectedImage, this );
 
     // sunscribers for video stream
 
-    img_req_sub_full_l_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
-    img_req_sub_full_r_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/r_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
-    img_req_sub_full_lhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhl_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
-    img_req_sub_full_lhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhr_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
-    img_req_sub_full_rhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhl_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
-    img_req_sub_full_rhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhr_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
+    img_req_sub_full_l_ = nh_.subscribe( "/l_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
+    img_req_sub_full_r_ = nh_.subscribe( "/r_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
+    img_req_sub_full_lhl_ = nh_.subscribe( "/lhl_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
+    img_req_sub_full_lhr_ = nh_.subscribe( "/lhr_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
+    img_req_sub_full_rhl_ = nh_.subscribe( "/rhl_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
+    img_req_sub_full_rhr_ = nh_.subscribe( "/rhr_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
 
-    img_req_sub_crop_l_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
-    img_req_sub_crop_r_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/r_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
-    img_req_sub_crop_lhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhl_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
-    img_req_sub_crop_lhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/lhr_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
-    img_req_sub_crop_rhl_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhl_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
-    img_req_sub_crop_rhr_ = nh_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/rhr_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
+    img_req_sub_crop_l_ = nh_.subscribe( "/l_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
+    img_req_sub_crop_r_ = nh_.subscribe( "/r_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
+    img_req_sub_crop_lhl_ = nh_.subscribe( "/lhl_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
+    img_req_sub_crop_lhr_ = nh_.subscribe( "/lhr_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
+    img_req_sub_crop_rhl_ = nh_.subscribe( "/rhl_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
+    img_req_sub_crop_rhr_ = nh_.subscribe( "/rhr_image_full/image_request", 1, &VideoEditorWidget::processvideoimage, this );
     //connect(ui->treeWidget, SIGNAL(cellClicked(int,int)), this, SLOT(editSlot(int, int)));
     std_msgs::Bool list_request;
     list_request.data = true;
@@ -262,7 +262,7 @@ QTreeWidgetItem* VideoEditorWidget::addimageitem(int imagecount,const sensor_msg
     ui->treeWidget->insertTopLevelItem(0,item);
     return item;
 }
-void VideoEditorWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr &msg)
+void VideoEditorWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
 
 
@@ -305,7 +305,7 @@ void VideoEditorWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstP
        feed_rate_prev = feed_rate;
 
 }
-void VideoEditorWidget::processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg)
+void VideoEditorWidget::processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr msg)
 {
     // reset table
     //ui->treeWidget->clear();
@@ -316,7 +316,7 @@ void VideoEditorWidget::processImageList(const flor_ocs_msgs::OCSImageList::Cons
 
 }
 
-void VideoEditorWidget::processSelectedImage(const sensor_msgs::Image::ConstPtr &msg)
+void VideoEditorWidget::processSelectedImage(const sensor_msgs::Image::ConstPtr msg)
 {
     // image
     //ROS_ERROR("Encoding: %s", msg->encoding.c_str());
@@ -374,7 +374,7 @@ QString VideoEditorWidget::timeFromMsg(const ros::Time& stamp)
     stream << std::setw(3) << std::setfill('0') << nano;
     return QString::fromStdString(stream.str());
 }
-void VideoEditorWidget::processvideoimage (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+void VideoEditorWidget::processvideoimage (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
     //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate = msg->publish_frequency;

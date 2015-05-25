@@ -39,7 +39,7 @@ private:
     HotkeyManager& operator=(HotkeyManager const&){};  // assignment operator is private
     static HotkeyManager* instance_;
 
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event);
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event);
     void callHotkeyFunction(std::string keyCombo);
     void printallHotkeyCombinations();
 

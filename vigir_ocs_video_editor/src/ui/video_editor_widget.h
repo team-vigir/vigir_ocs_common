@@ -42,10 +42,10 @@ public:
     explicit VideoEditorWidget(QWidget *parent = 0);
     ~VideoEditorWidget();
 
-    void processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr& msg);
-    void processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr& msg);
-    void processSelectedImage(const sensor_msgs::Image::ConstPtr& msg);
-    void processvideoimage (const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
+    void processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg);
+    void processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr msg);
+    void processSelectedImage(const sensor_msgs::Image::ConstPtr msg);
+    void processvideoimage (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg);
     void addImageChild(QTreeWidgetItem *parent, const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info);
     QTreeWidgetItem* addvideoitem(int videocount,const sensor_msgs::Image& image);
     QTreeWidgetItem* addimageitem(int imagecount,const sensor_msgs::Image& image);

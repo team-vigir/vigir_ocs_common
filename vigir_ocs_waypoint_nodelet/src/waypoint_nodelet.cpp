@@ -12,21 +12,21 @@ void WaypointNodelet::onInit()
     waypoint_achieved_list_pub_ = nh_out.advertise<nav_msgs::Path>( "achieved_list", 1, false );
     navigation_list_pub_        = nh_out.advertise<nav_msgs::Path>( "navigation_list", 1, false );
     // subscribe to be able to manipulate waypoints lists
-    waypoint_add_sub_       = nh_out.subscribe<flor_ocs_msgs::OCSWaypointAdd>( "add", 1, &WaypointNodelet::addWaypointCb, this );
-    waypoint_remove_sub_    = nh_out.subscribe<flor_ocs_msgs::OCSWaypointRemove>( "remove", 1, &WaypointNodelet::removeWaypointCb, this );
-    waypoint_update_sub_    = nh_out.subscribe<flor_ocs_msgs::OCSWaypointUpdate>( "update", 1, &WaypointNodelet::updateWaypointCb, this );
-    waypoint_achieved_sub_  = nh_out.subscribe<flor_ocs_msgs::OCSWaypointRemove>( "achieved", 1, &WaypointNodelet::waypointAchievedCb, this );
-    confirm_navigation_sub_ = nh_out.subscribe<flor_ocs_msgs::OCSWaypointUpdate>( "confirm", 1, &WaypointNodelet::confirmNavigationCb, this );
+    waypoint_add_sub_       = nh_out.subscribe( "add", 1, &WaypointNodelet::addWaypointCb, this );
+    waypoint_remove_sub_    = nh_out.subscribe( "remove", 1, &WaypointNodelet::removeWaypointCb, this );
+    waypoint_update_sub_    = nh_out.subscribe( "update", 1, &WaypointNodelet::updateWaypointCb, this );
+    waypoint_achieved_sub_  = nh_out.subscribe( "achieved", 1, &WaypointNodelet::waypointAchievedCb, this );
+    confirm_navigation_sub_ = nh_out.subscribe( "confirm", 1, &WaypointNodelet::confirmNavigationCb, this );
 }
 
-void WaypointNodelet::addWaypointCb(const flor_ocs_msgs::OCSWaypointAdd::ConstPtr& msg)
+void WaypointNodelet::addWaypointCb(const flor_ocs_msgs::OCSWaypointAdd::ConstPtr msg)
 {
     std::cout << "Adding waypoint to list" << std::endl;
     waypoint_list_.poses.push_back(msg->pose);
     this->publishWaypointList();
 }
 
-void WaypointNodelet::removeWaypointCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr& msg)
+void WaypointNodelet::removeWaypointCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr msg)
 {
     std::cout << "Removing waypoint from list" << std::endl;
     if(msg->waypoint_id >= 0 && msg->waypoint_id < waypoint_list_.poses.size())
@@ -34,7 +34,7 @@ void WaypointNodelet::removeWaypointCb(const flor_ocs_msgs::OCSWaypointRemove::C
     this->publishWaypointList();
 }
 
-void WaypointNodelet::updateWaypointCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr& msg)
+void WaypointNodelet::updateWaypointCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr msg)
 {
     std::cout << "Updating waypoint" << std::endl;
     if(msg->waypoint_id >= 0 && msg->waypoint_id < waypoint_list_.poses.size())
@@ -42,7 +42,7 @@ void WaypointNodelet::updateWaypointCb(const flor_ocs_msgs::OCSWaypointUpdate::C
     this->publishWaypointList();
 }
 
-void WaypointNodelet::waypointAchievedCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr& msg)
+void WaypointNodelet::waypointAchievedCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr msg)
 {
     std::cout << "Waypoint achieved from list" << std::endl;
     if(msg->waypoint_id >= 0 && msg->waypoint_id < waypoint_list_.poses.size())
@@ -54,7 +54,7 @@ void WaypointNodelet::waypointAchievedCb(const flor_ocs_msgs::OCSWaypointRemove:
     this->publishWaypointAchievedList();
 }
 
-void WaypointNodelet::confirmNavigationCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr& msg)
+void WaypointNodelet::confirmNavigationCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr msg)
 {
     waypoint_list_.header.frame_id = "/world";
     waypoint_list_.header.stamp = ros::Time::now();

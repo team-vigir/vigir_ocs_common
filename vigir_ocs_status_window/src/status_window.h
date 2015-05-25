@@ -30,12 +30,12 @@ public:
     explicit status_window(QWidget *parent = 0);
     ~status_window();
 
-    void controlModeMsgReceived(const flor_control_msgs::FlorControlMode::ConstPtr& modeMsg);
-    void stabilityMsgReceived(const flor_ocs_msgs::OCSRobotStability::ConstPtr& stabilityMsg);
+    void controlModeMsgReceived(const flor_control_msgs::FlorControlMode::ConstPtr modeMsg);
+    void stabilityMsgReceived(const flor_ocs_msgs::OCSRobotStability::ConstPtr stabilityMsg);
     void updateButtonColor();
     QString getControllerStatus(uint8_t flag);
 
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr pose);
 
 private Q_SLOTS:
     void on_showJointButton_clicked();

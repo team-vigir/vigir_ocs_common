@@ -21,11 +21,11 @@ namespace ocs_waypoint
       public:
         virtual void onInit();
 
-        void addWaypointCb(const flor_ocs_msgs::OCSWaypointAdd::ConstPtr& msg);
-        void removeWaypointCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr& msg);
-        void updateWaypointCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr& msg);
-        void waypointAchievedCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr& msg);
-        void confirmNavigationCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr& msg);
+        void addWaypointCb(const flor_ocs_msgs::OCSWaypointAdd::ConstPtr msg);
+        void removeWaypointCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr msg);
+        void updateWaypointCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr msg);
+        void waypointAchievedCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr msg);
+        void confirmNavigationCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr msg);
         void publishWaypointList();
         void publishWaypointAchievedList();
 

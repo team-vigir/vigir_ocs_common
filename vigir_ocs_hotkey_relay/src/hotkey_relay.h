@@ -17,7 +17,7 @@ namespace vigir_ocs
         HotkeyRelay();
         ~HotkeyRelay();
 
-        void processKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& msg);
+        void processKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr msg);
 
       private:
         ros::NodeHandle n_;
