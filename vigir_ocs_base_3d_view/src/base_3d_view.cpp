@@ -4017,6 +4017,12 @@ void Base3DView::addHotkeys()
     HotkeyManager::Instance()->addHotkeyFunction("shift+e",boost::bind(&Base3DView::selectLeftArm,this));
     //select right arm end effector
     HotkeyManager::Instance()->addHotkeyFunction("shift+r",boost::bind(&Base3DView::selectRightArm,this));
+    //Lock left arm to template
+    HotkeyManager::Instance()->addHotkeyFunction("shift+w+e",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM));
+    //Lock right arm to template
+    HotkeyManager::Instance()->addHotkeyFunction("shift+w+r",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM));
+    //Unlock arms from template
+    HotkeyManager::Instance()->addHotkeyFunction("shift+d",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::UNLOCK_ARMS));
 
 }
 
