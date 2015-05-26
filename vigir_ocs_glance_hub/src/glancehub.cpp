@@ -16,11 +16,11 @@ glancehub::glancehub(QWidget *parent) :
 {
     ui->setupUi(this);
     ros::NodeHandle nh;
-    control_mode_sub_ = nh.subscribe<flor_control_msgs::FlorControlMode>("/flor/controller/mode",5,&glancehub::controlModeMsgRcv, this);
-    moveit_status_sub_ = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/planning/upper_body/status",2,&glancehub::robotStatusMoveit,this);
-    footstep_status_simple_sub_ = nh.subscribe<flor_ocs_msgs::OCSRobotStatus>("/flor/ocs/footstep/status_simple",2,&glancehub::robotStatusFootstep,this); // onboard status
-    footstep_status_sub_ = nh.subscribe<flor_ocs_msgs::OCSFootstepStatus>("/flor/ocs/footstep/status",2,&glancehub::robotStatusFootstepComplete,this);
-    obfsm_footstep_status_sub_ = nh.subscribe<flor_ocs_msgs::OCSFootstepStatus>( "/vigir/footstep_manager/step_planner_status", 1, &glancehub::robotStatusFootstepComplete, this );
+    control_mode_sub_ = nh.subscribe("/flor/controller/mode",5,&glancehub::controlModeMsgRcv, this);
+    moveit_status_sub_ = nh.subscribe("/flor/planning/upper_body/status",2,&glancehub::robotStatusMoveit,this);
+    footstep_status_simple_sub_ = nh.subscribe("/flor/ocs/footstep/status_simple",2,&glancehub::robotStatusFootstep,this); // onboard status
+    footstep_status_sub_ = nh.subscribe("/flor/ocs/footstep/status",2,&glancehub::robotStatusFootstepComplete,this);
+    obfsm_footstep_status_sub_ = nh.subscribe( "/vigir/footstep_manager/step_planner_status", 1, &glancehub::robotStatusFootstepComplete, this );
 
 
     // load control modes into dropdown box from parameters
@@ -57,7 +57,7 @@ QString glancehub::getFootstepStat()
     return ui->footstepstat->text();
 }
 
-void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr &msg)
+void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg)
 {
     if(msg->status != RobotStatusCodes::PLANNER_MOVEIT_PLAN_ACTIVE)
         ui->plannerLight->setStyleSheet("QLabel { background-color: red; }");
@@ -137,7 +137,7 @@ void glancehub::loadFile()
     }
 }
 
-void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr &msg)
+void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg)
 {
     switch(msg->status)
     {
@@ -201,7 +201,7 @@ void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPt
     Q_EMIT sendFootstepStatus(msg->status);
 }
 
-void glancehub::robotStatusFootstepComplete(const flor_ocs_msgs::OCSFootstepStatus::ConstPtr& msg)
+void glancehub::robotStatusFootstepComplete(const flor_ocs_msgs::OCSFootstepStatus::ConstPtr msg)
 {
     QString msgType;
     switch(msg->status)
@@ -226,7 +226,7 @@ void glancehub::robotStatusFootstepComplete(const flor_ocs_msgs::OCSFootstepStat
     Q_EMIT sendFootstepStatus(msg->status);
 }
 
-void glancehub::controlModeMsgRcv(const flor_control_msgs::FlorControlMode::ConstPtr& msg)
+void glancehub::controlModeMsgRcv(const flor_control_msgs::FlorControlMode::ConstPtr msg)
 {
     QString newText;
     if (msg->control_mode >= 0 && msg->control_mode <  allowed_control_modes_.size())

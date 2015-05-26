@@ -760,6 +760,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         ghost_opacity_update_ = false; // dont update ghost robot opacity by default
 
+        snap_ghost_to_robot_pub_ = nh_.advertise<std_msgs::Bool>("/flor/ocs/snap_ghost_to_robot",1, true);
+
         //initialize hotkeys
         addHotkeys();
     }
@@ -3078,7 +3080,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
 
 void Base3DView::stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr msg)
 {
-    snap_ghost_to_robot_ = msg->data;
+    snapGhostHotkeyCB();
 }
 
 void Base3DView::stateUseTorsoCB(const std_msgs::Bool::ConstPtr msg)
@@ -3321,25 +3323,25 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr stat
         updateJointIcons(states->name[i], pose, jointEffortPercent,boundPercent,false,direction);
     }
 
-    if(snap_ghost_to_robot_)
-    {
-        ghost_joint_state_pub_.publish(states);
-        ghost_root_pose_pub_.publish(root_pose);
+//    if(snap_ghost_to_robot_)
+//    {
+//        ghost_joint_state_pub_.publish(states);
+//        ghost_root_pose_pub_.publish(root_pose);
 
-        //update pose of pelvis marker to be root
-        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-        cmd.client_id = ros::this_node::getName();
-        cmd.topic = "/pelvis_pose_marker";
-        cmd.pose = root_pose;
-        interactive_marker_update_pub_.publish(cmd);
-        pelvis_marker_pose_pub_.publish(root_pose);
+//        //update pose of pelvis marker to be root
+//        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+//        cmd.client_id = ros::this_node::getName();
+//        cmd.topic = "/pelvis_pose_marker";
+//        cmd.pose = root_pose;
+//        interactive_marker_update_pub_.publish(cmd);
+//        pelvis_marker_pose_pub_.publish(root_pose);
 
-        //update pose markers of left and right hand to be back on start with robot hands
-        snap_left_hand_to_ghost_ = true; // will be reset in processLeftArmEndEffector
-        snap_right_hand_to_ghost_ = true;
+//        //update pose markers of left and right hand to be back on start with robot hands
+//        snap_left_hand_to_ghost_ = true; // will be reset in processLeftArmEndEffector
+//        snap_right_hand_to_ghost_ = true;
 
-        snap_ghost_to_robot_ = false;
-    }
+//        snap_ghost_to_robot_ = false;
+//    }
 }
 
 //goes through all scene nodes and sets position in render queue based on object type
@@ -4066,7 +4068,14 @@ void Base3DView::lockTranslationHotkey()
 
 void Base3DView::snapGhostHotkeyCB()
 {    
-    snap_ghost_to_robot_ = true;
+    //snap_ghost_to_robot_ = true;
+    snap_left_hand_to_ghost_ = true; // will be reset in processLeftArmEndEffector
+    snap_right_hand_to_ghost_ = true;
+
+    std_msgs::Bool msg;
+    msg.data = true;
+    snap_ghost_to_robot_pub_.publish(msg);
+
 }
 /////////////End Hotkey Callbacks///////////////////////////////////
 

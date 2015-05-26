@@ -574,6 +574,8 @@ protected:
 
     ros::Publisher  interactive_marker_visibility_pub_;
 
+    ros::Publisher snap_ghost_to_robot_pub_;
+
     //subscribers to grab ghost state data
     ros::Subscriber state_use_torso_sub_;
     ros::Subscriber state_snap_ghost_to_robot_sub_;

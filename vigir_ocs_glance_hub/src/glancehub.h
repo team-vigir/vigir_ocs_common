@@ -25,10 +25,10 @@ class glancehub : public QMainWindow
 public:
     explicit glancehub(QWidget *parent = 0);
     ~glancehub();
-    void controlModeMsgRcv(const flor_control_msgs::FlorControlMode::ConstPtr& msg);
-    void robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
-    void robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr& msg);
-    void robotStatusFootstepComplete(const flor_ocs_msgs::OCSFootstepStatus::ConstPtr& msg);
+    void controlModeMsgRcv(const flor_control_msgs::FlorControlMode::ConstPtr msg);
+    void robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg);
+    void robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg);
+    void robotStatusFootstepComplete(const flor_ocs_msgs::OCSFootstepStatus::ConstPtr msg);
     void loadFile();
     QString timeFromMsg(ros::Time stamp);
     QString getMoveitStat();
