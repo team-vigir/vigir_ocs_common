@@ -204,7 +204,7 @@ void glancehubSbar::receiveFootstepStatus(int status)
 void glancehubSbar::receiveFlorStatus(int status)
 {
     // do not set status if it didn't change
-    if(ui->modeBox->currentIndex() != status)
+    if(ui->modeBox->currentIndex() != status && mode >= 0 && mode <  allowed_control_modes_.size())
     {
         ignore_events_ = true;
 
