@@ -59,7 +59,7 @@ class App(object):
         def startLogging(self):
                 print "Starting desktop recorder in "+self.folder
                 bashCommand = ["/bin/bash", "--norc", "-c"]
-                bagCommand = "record_desktop -p "+ self.folder + "> /dev/null 2> /dev/null"
+                bagCommand = "record_desktop -p "+ self.folder #+ "> /dev/null 2> /dev/null"
                 print bagCommand
                 self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE, preexec_fn=os.setsid)
                 self.logging = True
