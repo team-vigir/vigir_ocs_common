@@ -165,7 +165,9 @@ void glancehubSbar::receiveMoveitStatus(bool status)
     {
         //moveit success
        flash_color_moveit_ = "QLabel { background-color: green; border:2px solid grey; }";
-       //NotificationSystem::Instance()->notifyPassive("Moveit Success");
+
+       // notify ui on success
+       NotificationSystem::Instance()->notifyPassive("Moveit Success");
     }
     ui->plannerLight->setToolTip(ghub_->getMoveitStat());
     ui->moveitLabel->setToolTip(ghub_->getMoveitStat());
@@ -177,19 +179,22 @@ void glancehubSbar::receiveFootstepStatus(int status)
 {
     switch(status)
     {
-    case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE:
-        flash_color_footstep_ = "QLabel { background-color: yellow; border:2px solid grey;}";
+    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_EXECUTION_ACTIVE:
+        NotificationSystem::Instance()->notifyPassive("Footstep Planner Active");
+        flash_color_footstep_ = "QLabel { background-color: yellow; border:2px solid grey; }";
         break;
-    case RobotStatusCodes::FOOTSTEP_PLANNER_FAILED: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED:
+    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_SUCCESS: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_VALID_GOAL: //case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_EXECUTION_SUCCESS: //same as FOOTSTEP_PLANNER_SUCCESS
+        NotificationSystem::Instance()->notifyPassive("Footstep Planner Succeded");
+        flash_color_footstep_ = "QLabel { background-color: green; border:2px solid grey; }";
+        break;
+    default: // all the error codes go here
+        NotificationSystem::Instance()->notifyError("Footstep Planner Failed");
         flash_color_footstep_ = "QLabel { background-color: red; border:2px solid grey; }";
-
-        //notify ui on failure
-        NotificationSystem::Instance()->notifyWarning("Footstep Planner Failed");
-        break;
-    case RobotStatusCodes::FOOTSTEP_PLANNER_SUCCESS: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_SUCCESS:
-        flash_color_footstep_ = "QLabel { background-color: green; border:2px solid grey;}";
         break;
     }
+    //notify ui on failure
+
+
     ui->footstepLight->setToolTip(ghub_->getFootstepStat());
     ui->footstepLabel->setToolTip(ghub_->getFootstepStat());
     flashing_footstep_ = true;
