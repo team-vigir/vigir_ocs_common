@@ -18,7 +18,7 @@ glancehub::glancehub(QWidget *parent) :
     ros::NodeHandle nh;
     control_mode_sub_ = nh.subscribe("/flor/controller/mode",5,&glancehub::controlModeMsgRcv, this);
     moveit_status_sub_ = nh.subscribe("/flor/planning/upper_body/status",2,&glancehub::robotStatusMoveit,this);
-    footstep_status_simple_sub_ = nh.subscribe("/flor/ocs/footstep/status_simple",2,&glancehub::robotStatusFootstep,this); // onboard status
+    //footstep_status_simple_sub_ = nh.subscribe("/flor/ocs/footstep/status_simple",2,&glancehub::robotStatusFootstep,this); // onboard status
     footstep_status_sub_ = nh.subscribe("/flor/ocs/footstep/status",2,&glancehub::robotStatusFootstepComplete,this);
     obfsm_footstep_status_sub_ = nh.subscribe( "/vigir/footstep_manager/step_planner_status", 1, &glancehub::robotStatusFootstepComplete, this );
 
@@ -137,69 +137,69 @@ void glancehub::loadFile()
     }
 }
 
-void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg)
-{
-    switch(msg->status)
-    {
-    case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE:
-        ui->footLight->setStyleSheet("QLabel { background-color: yellow; }");
-        break;
-    case RobotStatusCodes::FOOTSTEP_PLANNER_FAILED:
-        ui->footLight->setStyleSheet("QLabel { background-color: red; }");
-        break;
-    case RobotStatusCodes::FOOTSTEP_PLANNER_SUCCESS:
-        ui->footLight->setStyleSheet("QLabel { background-color: green; }");
-        break;
-    }
+//void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg)
+//{
+//    switch(msg->status)
+//    {
+//    case RobotStatusCodes::FOOTSTEP_PLANNER_ACTIVE:
+//        ui->footLight->setStyleSheet("QLabel { background-color: yellow; }");
+//        break;
+//    case RobotStatusCodes::FOOTSTEP_PLANNER_FAILED:
+//        ui->footLight->setStyleSheet("QLabel { background-color: red; }");
+//        break;
+//    case RobotStatusCodes::FOOTSTEP_PLANNER_SUCCESS:
+//        ui->footLight->setStyleSheet("QLabel { background-color: green; }");
+//        break;
+//    }
 
-    uint8_t  level;
-    uint16_t code;
-    RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
-    std::cout << "Received message. level = " << (int)level << " code = " << (int)code << std::endl;
+//    uint8_t  level;
+//    uint16_t code;
+//    RobotStatusCodes::codes(msg->status, code,level); //const uint8_t& error, uint8_t& code, uint8_t& severity)
+//    std::cout << "Received message. level = " << (int)level << " code = " << (int)code << std::endl;
 
-    QString text ;
-    QString msgType ;
-    switch(level)
-    {
-    case 0:
-        msgType="(Success) ";
-        break;
-    case 1:
-        msgType="(Debug) ";
-        break;
-    case 2:
-        msgType="(Active) ";
-        break;
-    case 3:
-        msgType="(Error) ";
-        break;
-    }
+//    QString text ;
+//    QString msgType ;
+//    switch(level)
+//    {
+//    case 0:
+//        msgType="(Success) ";
+//        break;
+//    case 1:
+//        msgType="(Debug) ";
+//        break;
+//    case 2:
+//        msgType="(Active) ";
+//        break;
+//    case 3:
+//        msgType="(Error) ";
+//        break;
+//    }
 
-    if(code >= errors.size() && errors.size() != 0)
-    {
-        std::cout << "Received message (Default Message). level = " << (int)level << " code = " << (int)code << std::endl;
-        QString tempMessage = QString::fromStdString("Default Message");
-        tempMessage+=QString::number(code);
-        text=(tempMessage);
-    }
-    else if(errors.size() > 0)
-    {
-        text=QString::fromStdString(errors[code]);
-    }
-    else
-    {
-        std::cout << "Cannot find data file but Received msg level = " << (int)level << " code = " << (int)code << std::endl;
+//    if(code >= errors.size() && errors.size() != 0)
+//    {
+//        std::cout << "Received message (Default Message). level = " << (int)level << " code = " << (int)code << std::endl;
+//        QString tempMessage = QString::fromStdString("Default Message");
+//        tempMessage+=QString::number(code);
+//        text=(tempMessage);
+//    }
+//    else if(errors.size() > 0)
+//    {
+//        text=QString::fromStdString(errors[code]);
+//    }
+//    else
+//    {
+//        std::cout << "Cannot find data file but Received msg level = " << (int)level << " code = " << (int)code << std::endl;
 
-        QString tempMessage = "Cannot find data file but Received msg  num";
-        tempMessage+= QString::number(code);
-        text=tempMessage;
-    }
+//        QString tempMessage = "Cannot find data file but Received msg  num";
+//        tempMessage+= QString::number(code);
+//        text=tempMessage;
+//    }
 
-    ui->footstepstat->setText(msgType+text);
+//    ui->footstepstat->setText(msgType+text);
 
-    //notify status bar
-    Q_EMIT sendFootstepStatus(msg->status);
-}
+//    //notify status bar
+//    Q_EMIT sendFootstepStatus(msg->status);
+//}
 
 void glancehub::robotStatusFootstepComplete(const flor_ocs_msgs::OCSFootstepStatus::ConstPtr msg)
 {
