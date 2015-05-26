@@ -4013,6 +4013,10 @@ void Base3DView::addHotkeys()
 
     HotkeyManager::Instance()->addHotkeyFunction("shift",boost::bind(&Base3DView::lockTranslationHotkey,this));
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+s",boost::bind(&Base3DView::snapGhostHotkeyCB,this));
+    //select left arm end effector
+    HotkeyManager::Instance()->addHotkeyFunction("shift+e",boost::bind(&Base3DView::selectLeftArm,this));
+    //select right arm end effector
+    HotkeyManager::Instance()->addHotkeyFunction("shift+r",boost::bind(&Base3DView::selectRightArm,this));
 
 }
 
