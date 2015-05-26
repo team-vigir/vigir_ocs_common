@@ -20,6 +20,9 @@ void TemplateNodelet::onInit()
     template_snap_sub_           = nh_out.subscribe( "snap", 5, &TemplateNodelet::snapTemplateCb, this );
     template_match_feedback_sub_ = nh_out.subscribe( "template_match_feedback", 5, &TemplateNodelet::templateMatchFeedbackCb, this );
     grasp_state_feedback_sub_    = nh_out.subscribe( "grasp_state_feedback", 5, &TemplateNodelet::graspStateFeedbackCb, this );
+    stand_update_sub_ = nh_out.subscribe("stand_update", 5, &TemplateNodelet::updateStandPose, this);
+    affordance_update_sub_ = nh_out.subscribe("affordance_update", 5, &TemplateNodelet::updateAffordance, this);
+    grasp_update_sub_ = nh_out.subscribe("grasp_update", 5, &TemplateNodelet::updateGrasp, this);
 
     // Which mode are we using
     this->master_mode_ = true;
@@ -1118,7 +1121,7 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
             break;
 		}
     }
-	
+
     if (index >= template_id_list_.size()){
         ROS_ERROR("Service requested template ID %d when no such template has been instantiated. Callback returning false.",req.template_id);
 		return false;
@@ -1138,7 +1141,7 @@ bool TemplateNodelet::templateInfoSrv(vigir_object_template_msgs::GetTemplateSta
     res.template_type_information.center_of_mass = object_template_map_[template_type].com;
     res.template_type_information.b_max          = object_template_map_[template_type].b_max;
     res.template_type_information.b_min          = object_template_map_[template_type].b_min;
-	
+
 	//Transfer all known grasps to response
     res.template_type_information.grasps.clear();
     for (std::map<unsigned int,moveit_msgs::Grasp>::iterator it =  object_template_map_[template_type].grasps.begin();
@@ -1888,6 +1891,61 @@ void TemplateNodelet::removeCollisionObject(int template_id){
         co_pub_.publish(collision_object);
     }
 }
+
+void TemplateNodelet::updateStandPose(vigir_object_template_msgs::TemplateStandPoseUpdate::ConstPtr msg)
+{
+    boost::recursive_mutex::scoped_lock lock_object_template_map(object_template_map_mutex_);
+    VigirObjectTemplateMapIter iter = object_template_map_.find(msg->template_type);
+    if(iter == object_template_map_.end())
+    {
+        return;
+    }
+    std::map<unsigned int, vigir_object_template_msgs::StandPose>::iterator g_iter = iter->second.stand_poses.find(msg->pose.id);
+    if(g_iter == iter->second.stand_poses.end())
+    {
+        return;
+    }
+
+    g_iter->second = msg->pose;
+
+}
+
+void TemplateNodelet::updateAffordance(vigir_object_template_msgs::TemplateAffordanceUpdate::ConstPtr msg)
+{
+    boost::recursive_mutex::scoped_lock lock_object_template_map(object_template_map_mutex_);
+    VigirObjectTemplateMapIter iter = object_template_map_.find(msg->template_type);
+    if(iter == object_template_map_.end())
+    {
+        return;
+    }
+    std::map<unsigned int, vigir_object_template_msgs::Affordance>::iterator g_iter = iter->second.affordances.find(msg->affordance.id);
+    if(g_iter == iter->second.affordances.end())
+    {
+        return;
+    }
+
+    g_iter->second = msg->affordance;
+
+}
+
+void TemplateNodelet::updateGrasp(vigir_object_template_msgs::TemplateGraspUpdate::ConstPtr msg)
+{
+    boost::recursive_mutex::scoped_lock lock_object_template_map(object_template_map_mutex_);
+    VigirObjectTemplateMapIter iter = object_template_map_.find(msg->template_type);
+    if(iter == object_template_map_.end())
+    {
+        return;
+    }
+    std::map<unsigned int, moveit_msgs::Grasp>::iterator g_iter = iter->second.grasps.find(std::atoi(msg->grasp.id.c_str()));
+    if(g_iter == iter->second.grasps.end())
+    {
+        return;
+    }
+
+    g_iter->second = msg->grasp;
+
+}
+
 }
 
 PLUGINLIB_DECLARE_CLASS (vigir_ocs_template_nodelet, TemplateNodelet, ocs_template::TemplateNodelet, nodelet::Nodelet);
