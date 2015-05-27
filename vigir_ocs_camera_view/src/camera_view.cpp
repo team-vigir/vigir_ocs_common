@@ -233,7 +233,7 @@ void CameraView::loadCameraTopics(std::string prefix)
   }
   catch(...)
   {
-    ROS_ERROR("Exception during loading of camera topics!");
+    ROS_WARN("Could not load camera topics for prefix %s ! This means the params have not been set.", prefix.c_str());
   }
 
 }
