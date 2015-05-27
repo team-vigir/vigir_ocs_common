@@ -109,6 +109,8 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
     window_control_pub_ = n_.advertise<std_msgs::Int8>( "/flor/ocs/window_control", 1, false);
 
     timer.start(100, this);
+
+    addHotkeys();
 }
 
 MapViewWidget::~MapViewWidget()
@@ -417,9 +419,9 @@ void MapViewWidget::requestOctomap()
 }
 
 void MapViewWidget::requestPointCloud()
-{      
+{          
     if(ui->map_view_->hasValidSelection())
-    {
+    {        
         //still need to sync checkbox, but based on pointcloud type
         if(ui->point_cloud_type->currentIndex() <= 1 && ui->lidar_point_cloud_2->checkState() == Qt::Unchecked) //lidar
         {
