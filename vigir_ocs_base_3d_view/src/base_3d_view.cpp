@@ -230,7 +230,11 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
         lidar_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
         lidar_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
-        lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );
+        lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );        
+        lidar_point_cloud_viewer_->subProp( "Use rainbow" )->setValue(false);
+        lidar_point_cloud_viewer_->subProp( "Autocompute Intensity Bounds" )->setValue(false);
+        lidar_point_cloud_viewer_->subProp( "Min Intensity" )->setValue( 0 );
+        lidar_point_cloud_viewer_->subProp( "Max Intensity" )->setValue( 5000 );
 
         // Create the mesh displays
         stereo_mesh_viewer_ = manager_->createDisplay( "rviz/MeshDisplayCustom", "Stereo Mesh", false );
