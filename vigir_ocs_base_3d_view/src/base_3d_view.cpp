@@ -239,8 +239,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // Create the mesh displays
         stereo_mesh_viewer_ = manager_->createDisplay( "rviz/MeshDisplayCustom", "Stereo Mesh", false );
         ROS_ASSERT( stereo_mesh_viewer_ != NULL );
-        stereo_mesh_viewer_->subProp( "Image Topic" )->setValue( "/flor/ocs/mesh/camera" );
-        stereo_mesh_viewer_->subProp( "Mesh Topic" )->setValue( "/flor/ocs/mesh/stereo_mesh" );
+        stereo_mesh_viewer_->subProp( "Image Topic" )->setValue( "/multisense/left/image_rect_color" );
+        stereo_mesh_viewer_->subProp( "Mesh Topic" )->setValue( "/depth_image_to_mesh_node/mesh_shape" );
 
         lidar_mesh_viewer_ = manager_->createDisplay( "rviz/MeshDisplayCustom", "LIDAR Mesh", false );
         ROS_ASSERT( lidar_mesh_viewer_ != NULL );
