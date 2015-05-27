@@ -751,6 +751,13 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ROS_ASSERT( notification_overlay_display_ != NULL );
         notification_overlay_display_->subProp("Topic")->setValue("flor/ocs/overlay_text");
 
+        comms_status_overlay_display_ = manager_->createDisplay( "jsk_rviz_plugin/OverlayTextDisplay", "Comms status notification System", true );
+        ROS_ASSERT( comms_status_overlay_display_ != NULL );
+        comms_status_overlay_display_->subProp("Topic")->setValue("flor/ocs/comms_status_overlay_text");
+
+        //battery status around 5hz through comms
+        comms_status_sub_ = nh_.subscribe("/link_two_status", 1, &Base3DView::processCommsStatus, this);
+
         //ghost_robot_state_vis_pub_ = nh_.advertise<moveit_msgs::DisplayRobotState>("/flor/ghost/robot_state_vis",1, true);
 
         //kinda hacky, would like to only update on transform change on ghost robot
@@ -761,6 +768,8 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ghost_opacity_update_ = false; // dont update ghost robot opacity by default
 
         snap_ghost_to_robot_pub_ = nh_.advertise<std_msgs::Bool>("/flor/ocs/snap_ghost_to_robot",1, true);
+
+        last_selected_template_id_ = -1;
 
         //initialize hotkeys
         addHotkeys();
@@ -1954,7 +1963,7 @@ void Base3DView::selectOnDoubleClick(int x, int y)
     else if(active_context_name_.find("Pelvis") != std::string::npos)
         selectPelvis();
     else if(active_context_name_.find("template") != std::string::npos)
-        selectTemplate();
+        selectTemplate(findObjectContext("template"));
     else if(active_context_name_.find("footstep goal") != std::string::npos)
         selectFootstepGoal();
     else if(active_context_name_.find("footstep") != std::string::npos)
@@ -2027,10 +2036,14 @@ void Base3DView::removeFootstep()
         footstep_vis_manager_->removeFootstep(id/2); // divide by two since markers come in pairs of cube+text
 }
 
-void Base3DView::selectTemplate()
+void Base3DView::selectTemplate(int id)
 {
-    int id;
-    if((id = findObjectContext("template")) != -1)
+    ROS_ERROR("selecting %d ", id);
+    //selecting from context menu, TODO: switch to enums
+    if(id == -2)
+        id = findObjectContext("template");
+    //could still be unselected
+    if(id != -1)
     {
         deselectAll();
 
@@ -2111,13 +2124,20 @@ void Base3DView::setTemplateGraspLock(int arm)
     flor_ocs_msgs::OCSGraspSync msg;
     if(arm == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
     {
-        msg.left_hand_lock = true;
-        msg.right_hand_lock = false;
+        //dont't lock if template is not selected
+        if(last_selected_template_id_ != -1)
+        {
+            msg.left_hand_lock = true;
+            msg.right_hand_lock = false;
+        }
     }
     else if(arm == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
     {
-        msg.left_hand_lock = false;
-        msg.right_hand_lock = true;
+        if(last_selected_template_id_ != -1)
+        {
+            msg.left_hand_lock = false;
+            msg.right_hand_lock = true;
+        }
     }
     else if(arm == flor_ocs_msgs::OCSObjectSelection::UNLOCK_ARMS)
     {
@@ -2126,6 +2146,8 @@ void Base3DView::setTemplateGraspLock(int arm)
     }
     msg.sync_mode = flor_ocs_msgs::OCSGraspSync::HAND_LOCKS;
     msg.host = boost::asio::ip::host_name();
+    msg.template_id = last_selected_template_id_;
+    ROS_ERROR("lock to %d",last_selected_template_id_);
     grasp_sync_pub_.publish(msg);
 
     //grasp locks are set in callback processGraspSyncCB
@@ -2137,10 +2159,13 @@ void Base3DView::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr 
     if(msg->sync_mode == flor_ocs_msgs::OCSGraspSync::HAND_LOCKS)
     {
         //set Template grasp lock
-        int id = findObjectContext("template");
-        if(!msg->left_hand_lock && !msg->right_hand_lock) // unlocks both arms
-            selectTemplate();
+       // int id = findObjectContext("template");
 
+        //if were locking go ahead and select the template
+       // if(msg->left_hand_lock || msg->right_hand_lock)
+            //selectTemplate(msg->template_id);
+
+        //selectTemplate(msg->template_id);
         ghost_left_hand_lock_ = msg->left_hand_lock;
         ghost_right_hand_lock_ = msg->right_hand_lock;        
     }
@@ -2200,10 +2225,12 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
                 right_marker_moveit_loopback_ = false;
             im_ghost_robot_[msg->id]->setEnabled( true );
             footstep_vis_manager_->enableStepPlanMarkers( false );
+            last_selected_template_id_ = -1;
             break;
         case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
             // disable step plan markers
             footstep_vis_manager_->enableStepPlanMarkers( false );
+            last_selected_template_id_ = msg->id;
             // enable template marker
             Q_EMIT enableTemplateMarker( msg->id, true );
             break;
@@ -2212,12 +2239,17 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
             footstep_vis_manager_->enableStepPlanMarkers( false );
             // id takes into account text marker as well, so we do this to find the real marker id
             footstep_vis_manager_->enableFootstepMarker( msg->id/2, true );
+            last_selected_template_id_ = -1;
             break;
         case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL:
             // disable step plan markers
             footstep_vis_manager_->enableStepPlanMarkers( false );
             // id takes into account text marker as well, so we do this to find the real marker id
             footstep_vis_manager_->enableFootstepGoalMarker( msg->id/2, true );
+            last_selected_template_id_ = -1;
+            break;
+        case flor_ocs_msgs::OCSObjectSelection::NOTHING:
+            last_selected_template_id_ = -1;
             break;
         default:
             break;
@@ -4018,11 +4050,11 @@ void Base3DView::addHotkeys()
     //select right arm end effector
     HotkeyManager::Instance()->addHotkeyFunction("shift+r",boost::bind(&Base3DView::selectRightArm,this));
     //Lock left arm to template
-    HotkeyManager::Instance()->addHotkeyFunction("shift+w+e",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM));
+    HotkeyManager::Instance()->addHotkeyFunction("shift+d",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM));
     //Lock right arm to template
-    HotkeyManager::Instance()->addHotkeyFunction("shift+w+r",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM));
+    HotkeyManager::Instance()->addHotkeyFunction("shift+f",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM));
     //Unlock arms from template
-    HotkeyManager::Instance()->addHotkeyFunction("shift+d",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::UNLOCK_ARMS));
+    HotkeyManager::Instance()->addHotkeyFunction("shift+w",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::UNLOCK_ARMS));
 
 }
 
@@ -4143,5 +4175,18 @@ void Base3DView::processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::
         lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
     }
 }
+
+
+void Base3DView::processCommsStatus(const std_msgs::Int8ConstPtr msg)
+{
+    //1 if data is coming in
+    if(msg->data)
+    {
+        //update time on notification
+        CommsNotificationSystem::Instance()->notifyPassive("Time Since Last Data");
+    }
+    //otherwise don't update notification and time will tick on
+}
+
 
 }

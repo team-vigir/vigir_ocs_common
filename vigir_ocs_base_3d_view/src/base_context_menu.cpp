@@ -61,7 +61,7 @@ void BaseContextMenu::createContextMenuItems()
 {
     //creates all menu items for context menu in a base view, visibility is set on create
 
-    context_menu_manager_->addActionItem("Select Template",boost::bind(&Base3DView::selectTemplate,base_3d_view_),NULL);
+    context_menu_manager_->addActionItem("Select Template",boost::bind(&Base3DView::selectTemplate,base_3d_view_, -2),NULL);
 
     context_menu_manager_->addActionItem("Select Left Arm",boost::bind(&Base3DView::selectLeftArm,base_3d_view_),NULL);
     context_menu_manager_->addActionItem("Select Right Arm",boost::bind(&Base3DView::selectRightArm,base_3d_view_),NULL);

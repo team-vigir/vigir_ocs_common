@@ -75,6 +75,7 @@
 
 #include "robot_state_manager.h"
 #include "notification_system.h"
+#include "comms_notification_system.h"
 #include "context_menu_manager.h"
 #include "hotkey_manager.h"
 
@@ -235,6 +236,8 @@ public:
     virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event);
 
     void processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg);
+
+    void processCommsStatus(const std_msgs::Int8ConstPtr msg);
 
     /**
       * ROS Callback: receives interactive marker pose updates
@@ -404,6 +407,8 @@ public Q_SLOTS:
     //void setRenderOrder();
     //void resetRenderOrder();
 
+    int getSelectedTemplate(){return last_selected_template_id_;}
+
 
 
 Q_SIGNALS:
@@ -502,7 +507,8 @@ protected:
     rviz::Display* lidar_mesh_viewer_;
     rviz::Display* stereo_mesh_viewer_;
     rviz::Display* selection_3d_display_;
-    rviz::Display * notification_overlay_display_;    
+    rviz::Display * notification_overlay_display_;
+    rviz::Display * comms_status_overlay_display_;
     rviz::Display* template_display_;
     rviz::Display* waypoints_display_;
     rviz::Display* achieved_waypoints_display_;
@@ -574,6 +580,8 @@ protected:
 
     ros::Publisher  interactive_marker_visibility_pub_;
 
+    ros::Subscriber comms_status_sub_;
+
     ros::Publisher snap_ghost_to_robot_pub_;
 
     //subscribers to grab ghost state data
@@ -630,6 +638,8 @@ protected:
 
     bool is_primary_view_;
 
+    int last_selected_template_id_;
+
 
 
 
@@ -669,7 +679,8 @@ protected:
     /**
       * Select a template
       */
-    void selectTemplate();
+    void selectTemplate(int id=-1);
+
     /**
       * Select a footstep
       */

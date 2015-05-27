@@ -251,6 +251,13 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
         //remove context items as not needed
         setItemVisibility("Remove Template",false);
         setItemVisibility("Select Template",false);
+        //setItemVisibility("Lock Left Arm to Template",false);
+        //setItemVisibility("Lock Right Arm to Template",false);
+    }
+
+    //dont' show unless a template is selected as well
+    if(base_3d_view_->getSelectedTemplate() == -1)
+    {
         setItemVisibility("Lock Left Arm to Template",false);
         setItemVisibility("Lock Right Arm to Template",false);
     }
