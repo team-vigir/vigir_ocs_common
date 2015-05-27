@@ -153,7 +153,7 @@ public:
     //rviz::Tool* getMoveCameraTool(){return move_camera_tool_;}
     rviz::Tool* getSetGoalTool(){return set_goal_tool_;}
 
-    void snapGhostHotkeyCB();
+
 
     /**
       * ROS Callback: receives left arm end effector position from moveit
@@ -752,6 +752,9 @@ protected:
     void pointcloudIntensityHotkey();
     //void requestStepPlanHotkey();
     void lockTranslationHotkey();
+    void snapGhostHotkey();
+    void stereoMeshHotkey();
+    void lidarMeshHotkey();
 
 
     ////////////////////

@@ -1614,7 +1614,7 @@ void Base3DView::clearPlanningObjects()
 //when reset is pressed, reset all,
 //when toggle is pressed , and sync is enabled, toggle all,
 void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr msg)
-{
+{    
     //check this msg contents across every rviz display
     for(int i=0;i<msg->properties.size();i++)
     {        
@@ -1633,8 +1633,7 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
             else
             {
                 ghost_robot_model_->subProp( "Robot State Topic" )->setValue( "/flor/ghost/robot_state_vis" );
-            }
-                //showAllGhost();
+            }                
         }
 
         for(int j = 0; j < num_displays; j++)
@@ -1731,7 +1730,17 @@ void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr 
                         frustum_display->setEnabled(msg->visible[i]);
                     }
                     frustum_display_->setEnabled(msg->visible[i]);
-                }                
+                }
+                else if(display_name.compare("LIDAR Mesh") == 0)
+                {
+                    //only toggle notification visibility
+                    lidar_mesh_viewer_->setEnabled(msg->visible[i]);
+                }
+                else if(display_name.compare("Stereo Mesh") == 0)
+                {
+                    //only toggle notification visibility
+                    stereo_mesh_viewer_->setEnabled(msg->visible[i]);
+                }
             }
         }
         if(groundMapReset)
@@ -3114,7 +3123,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
 
 void Base3DView::stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr msg)
 {
-    snapGhostHotkeyCB();
+    snapGhostHotkey();
 }
 
 void Base3DView::stateUseTorsoCB(const std_msgs::Bool::ConstPtr msg)
@@ -4037,7 +4046,9 @@ void Base3DView::addHotkeys()
     //Intensity
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+0",boost::bind(&Base3DView::pointcloudIntensityHotkey,this));    
     //define step goal
-    HotkeyManager::Instance()->addHotkeyFunction("ctrl+g",boost::bind(&Base3DView::defineFootstepGoal,this));   
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+g",boost::bind(&Base3DView::defineFootstepGoal,this));
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+k",boost::bind(&Base3DView::stereoMeshHotkey,this));
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+l",boost::bind(&Base3DView::lidarMeshHotkey,this));
     //request footstep plan
     //HotkeyManager::Instance()->addHotkeyFunction("ctrl+h",boost::bind(&Base3DView::requestStepPlanHotkey,this));
     //execute footstep plan -> moved to main view
@@ -4046,7 +4057,8 @@ void Base3DView::addHotkeys()
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+alt",boost::bind(&Base3DView::showEStopHotkey,this));    
 
     HotkeyManager::Instance()->addHotkeyFunction("shift",boost::bind(&Base3DView::lockTranslationHotkey,this));
-    HotkeyManager::Instance()->addHotkeyFunction("ctrl+s",boost::bind(&Base3DView::snapGhostHotkeyCB,this));
+
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+s",boost::bind(&Base3DView::snapGhostHotkey,this));
     //select left arm end effector
     HotkeyManager::Instance()->addHotkeyFunction("shift+e",boost::bind(&Base3DView::selectLeftArm,this));
     //select right arm end effector
@@ -4057,7 +4069,6 @@ void Base3DView::addHotkeys()
     HotkeyManager::Instance()->addHotkeyFunction("shift+f",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM));
     //Unlock arms from template
     HotkeyManager::Instance()->addHotkeyFunction("shift+w",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::UNLOCK_ARMS));
-
 }
 
 ///Callbacks for Hotkeys//////////////
@@ -4110,7 +4121,7 @@ void Base3DView::lockTranslationHotkey()
     shift_pressed_ = true;
 }
 
-void Base3DView::snapGhostHotkeyCB()
+void Base3DView::snapGhostHotkey()
 {    
     //snap_ghost_to_robot_ = true;
     snap_left_hand_to_ghost_ = true; // will be reset in processLeftArmEndEffector
@@ -4120,6 +4131,24 @@ void Base3DView::snapGhostHotkeyCB()
     msg.data = true;
     snap_ghost_to_robot_pub_.publish(msg);
 
+}
+
+void Base3DView::stereoMeshHotkey()
+{
+    //toggle stereo mesh viewer
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("Stereo Mesh");
+    msg.visible.push_back(!stereo_mesh_viewer_->isEnabled());
+    ocs_sync_pub_.publish(msg);
+}
+
+void Base3DView::lidarMeshHotkey()
+{
+    //toggle lidar mesh viewer
+    flor_ocs_msgs::OCSSynchronize msg;
+    msg.properties.push_back("LIDAR Mesh");
+    msg.visible.push_back(!lidar_mesh_viewer_->isEnabled());
+    ocs_sync_pub_.publish(msg);
 }
 /////////////End Hotkey Callbacks///////////////////////////////////
 
