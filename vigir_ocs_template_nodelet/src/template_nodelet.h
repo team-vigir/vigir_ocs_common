@@ -30,6 +30,9 @@
 #include <vigir_object_template_msgs/GetUsabilityInWristFrame.h>
 #include <vigir_object_template_msgs/Affordance.h>
 #include <vigir_object_template_msgs/Usability.h>
+#include <vigir_object_template_msgs/TemplateGraspUpdate.h>
+#include <vigir_object_template_msgs/TemplateAffordanceUpdate.h>
+#include <vigir_object_template_msgs/TemplateStandPoseUpdate.h>
 
 
 #include <geometry_msgs/PoseStamped.h>
@@ -122,6 +125,9 @@ namespace ocs_template
         void addCollisionObject(int type, int index, std::string mesh_name, geometry_msgs::Pose pose);
         void moveCollisionObject(int template_id, geometry_msgs::Pose pose);
         void removeCollisionObject(int template_id);
+        void updateStandPose(vigir_object_template_msgs::TemplateStandPoseUpdate::ConstPtr msg);
+        void updateAffordance(vigir_object_template_msgs::TemplateAffordanceUpdate::ConstPtr msg);
+        void updateGrasp(vigir_object_template_msgs::TemplateGraspUpdate::ConstPtr msg);
 
       protected:
         ros::Subscriber template_update_sub_;
@@ -146,6 +152,9 @@ namespace ocs_template
         ros::Subscriber stitch_template_sub_;
         ros::Publisher  detach_template_pub_;
         ros::Subscriber detach_template_sub_;
+        ros::Subscriber stand_update_sub_;
+        ros::Subscriber affordance_update_sub_;
+        ros::Subscriber grasp_update_sub_;
 
         ros::ServiceServer template_info_server_;
         ros::ServiceServer grasp_info_server_;
@@ -184,7 +193,10 @@ namespace ocs_template
 
         tf::Transform                              palm_T_lhand_;
         tf::Transform                              palm_T_rhand_;
-        std::map<unsigned int,VigirObjectTemplate> object_template_map_;
+        typedef std::map<unsigned int,VigirObjectTemplate> VigirObjectTemplateMap;
+        typedef VigirObjectTemplateMap::iterator VigirObjectTemplateMapIter;
+        typedef VigirObjectTemplateMap::const_iterator VigirObjectTemplateMapCIter;
+        VigirObjectTemplateMap object_template_map_;
 
         robot_model_loader::RobotModelLoaderPtr    robot_model_loader_;
         robot_model::RobotModelPtr                 robot_model_;
