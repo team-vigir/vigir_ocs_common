@@ -1107,6 +1107,11 @@ void CameraDisplayCustom::setAlpha(float newAlpha)
     updateAlpha();
 }
 
+void CameraDisplayCustom::applyAlphaDelta(float alpha_delta)
+{
+    alpha_property_->add(alpha_delta);
+    updateAlpha();
+}
 
 void CameraDisplayCustom::setZoom(float newZoom)
 {

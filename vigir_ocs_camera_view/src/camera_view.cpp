@@ -431,6 +431,11 @@ void CameraView::changeAlpha(int newAlpha)
     ((rviz::CameraDisplayCustom*)camera_viewer_)->setAlpha(1.0f-(newAlpha/100.0f));
 }
 
+void CameraView::applyAlphaDelta(float alpha_delta)
+{
+    ((rviz::CameraDisplayCustom*)camera_viewer_)->applyAlphaDelta(alpha_delta);
+}
+
 void CameraView::mouseMoved(int newX, int newY)
 {
     if(((newX<last_selected_area_[0] && newX>last_selected_area_[2]) ||

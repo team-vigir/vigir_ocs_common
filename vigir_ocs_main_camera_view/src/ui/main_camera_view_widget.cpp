@@ -497,6 +497,9 @@ void MainCameraViewWidget::addHotkeys()
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+4",boost::bind(&MainCameraViewWidget::getSingleImageMainViewHotkey,this));
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+5",boost::bind(&MainCameraViewWidget::setMainView5FPSHotkey,this));
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+6",boost::bind(&MainCameraViewWidget::closeSelectedHotkey,this));
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+8",boost::bind(&MainCameraViewWidget::increaseAlphaHotkey,this));
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+7",boost::bind(&MainCameraViewWidget::decreaseAlphaHotkey,this));
+
 }
 
 void MainCameraViewWidget::getSingleImageMainViewHotkey()
@@ -515,3 +518,12 @@ void MainCameraViewWidget::closeSelectedHotkey()
     ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->closeSelectedArea();
 }
 
+void MainCameraViewWidget::increaseAlphaHotkey()
+{
+    ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->applyAlphaDelta(+0.1f);
+}
+
+void MainCameraViewWidget::decreaseAlphaHotkey()
+{
+    ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->applyAlphaDelta(-0.1f);
+}

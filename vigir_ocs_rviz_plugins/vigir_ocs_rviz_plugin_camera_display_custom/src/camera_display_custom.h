@@ -107,6 +107,8 @@ public:
     void setup();
 
     void setAlpha(float newAlpha);
+    void applyAlphaDelta(float alpha_delta);
+    void changeAlpha(float alpha_delta);
     void updateSelectedAlpha(float newSelectedAlpha);
     void setZoom(float newZoom);
     void closeFull();

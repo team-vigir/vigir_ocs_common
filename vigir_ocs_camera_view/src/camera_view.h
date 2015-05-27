@@ -80,6 +80,7 @@ public Q_SLOTS:
     void requestSingleAreaImage();
     void disableSelection( );
     void changeAlpha(int);
+    void applyAlphaDelta(float alpha_delta);
     void closeSelectedArea();
     void mouseMoved(int,int);
     void requestPointCloudROI();

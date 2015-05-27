@@ -92,7 +92,8 @@ private:
     void getSingleImageMainViewHotkey();
     void setMainView5FPSHotkey();
     void closeSelectedHotkey();
-
+    void increaseAlphaHotkey();
+    void decreaseAlphaHotkey();
 
 };
 
