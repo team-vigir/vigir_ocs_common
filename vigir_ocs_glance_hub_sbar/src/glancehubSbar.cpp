@@ -43,9 +43,6 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     connect(ghub_,SIGNAL(sendFlorStatus(int)),this,SLOT(receiveFlorStatus(int)));
     connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(modeChanged(int)));
 
-    //set popup width larger
-    //ui->modeBox->view()->setFixedWidth(30);
-
     //setup publisher to change modes
     mode_pub_ = nh_.advertise<flor_control_msgs::FlorControlModeCommand>("/flor/controller/mode_command", 5, false);
 
