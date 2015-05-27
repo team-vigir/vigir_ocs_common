@@ -431,8 +431,8 @@ void FootstepManager::processFootstepPlanParameters(const flor_ocs_msgs::OCSFoot
 void FootstepManager::processExecuteStepPlanResult(vigir_footstep_planning_msgs::ExecuteStepPlanResult result)
 {
     flor_ocs_msgs::OCSFootstepStatus planner_status;
-    planner_status.status = result.status.status;
-    planner_status.status_msg = "Footstep execution status: "+boost::lexical_cast<std::string>(result.status.status);
+    planner_status.status = result.status.status;  
+    planner_status.status_msg = "Footstep execution status: "+vigir_footstep_planning::toString(result.status);//boost::lexical_cast<std::string>(result.status.status);
     planner_status_pub_.publish(planner_status);
 //  cleanStacks();
 //  publishFootsteps();

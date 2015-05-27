@@ -220,6 +220,7 @@ void glancehub::robotStatusFootstepComplete(const flor_ocs_msgs::OCSFootstepStat
         break;
     }
 
+    //update status label
     ui->footstepstat->setText(msgType+msg->status_msg.c_str());
 
     //notify status bar

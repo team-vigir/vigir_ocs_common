@@ -8,6 +8,8 @@
 
 #include <ros/subscriber.h>
 
+#include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
+
 #include <QMainWindow>
 #include <QBasicTimer>
 #include <QTableWidgetItem>

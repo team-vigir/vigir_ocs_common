@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>474</width>
+    <width>600</width>
     <height>20</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>500</width>
+    <width>600</width>
     <height>20</height>
    </size>
   </property>
@@ -34,7 +34,7 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>500</width>
+     <width>600</width>
      <height>20</height>
     </size>
    </property>
@@ -58,7 +58,7 @@
      <widget class="QWidget" name="widget" native="true">
       <property name="maximumSize">
        <size>
-        <width>500</width>
+        <width>600</width>
         <height>20</height>
        </size>
       </property>
@@ -118,7 +118,7 @@
         <widget class="QComboBox" name="modeBox">
          <property name="maximumSize">
           <size>
-           <width>130</width>
+           <width>200</width>
            <height>16777215</height>
           </size>
          </property>
@@ -135,6 +135,9 @@
          </property>
          <property name="maxCount">
           <number>100</number>
+         </property>
+         <property name="frame">
+          <bool>true</bool>
          </property>
         </widget>
        </item>

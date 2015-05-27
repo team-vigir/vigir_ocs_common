@@ -254,19 +254,15 @@ void MapViewWidget::setupToolbar()
     //set menu to popup a config widget
     QWidgetAction *wa2 = new QWidgetAction(0);
     wa2->setDefaultWidget(mapRegionConfig);
-    mapMenu.addAction(wa2);
-    //associate button with menu
-    ui->mapConfig->setMenu(&mapMenu);
-    //need to install event filter for widget positioning
+    mapMenu.addAction(wa2);    
+    ui->mapConfig->setMenu(&mapMenu);    
     mapMenu.installEventFilter(this);
 
     //set menu to popup a config widget for footstep Params
     QWidgetAction *wa3 = new QWidgetAction(0);
-    wa->setDefaultWidget(footstep_configure_widget_);
-    footstep_menu_.addAction(wa3);
-    //associate button with menu
-    ui->footstepConfigBtn->setMenu(&footstep_menu_);
-    //need to install event filter for widget positioning
+    wa3->setDefaultWidget(footstep_configure_widget_);
+    footstep_menu_.addAction(wa3);    
+    ui->footstepConfigBtn->setMenu(&footstep_menu_);    
     footstep_menu_.installEventFilter(this);
 
     //connect buttons to bringup config widgets
@@ -470,22 +466,22 @@ bool MapViewWidget::eventFilter( QObject * o, QEvent * e )
             p.setX(0);
             p.setY(ui->mapConfig->geometry().height());
             p = ui->mapConfig->mapToGlobal(p);
-        }/*
+        }
         else if(((QMenu*)o) == ui->footstepConfigBtn->menu())
         {
             p.setX(0);
             p.setY(ui->footstepConfigBtn->geometry().height());
             p = ui->footstepConfigBtn->mapToGlobal(p);
-        }*/
+        }
 
         ((QMenu*)o)->move(p); // move widget to position
         return true;
     }
-    if( qobject_cast<QComboBox*>( o ) && qobject_cast<QComboBox*>( o ) == ui->footstepParamSetBox)
-    {
-        e->ignore();
-        return true;
-    }
+//    if( qobject_cast<QComboBox*>( o ) && qobject_cast<QComboBox*>( o ) == ui->footstepParamSetBox)
+//    {
+//        e->ignore();
+//        return true;
+//    }
     if( qobject_cast<QCheckBox*>( o ) && qobject_cast<QCheckBox*>( o ) == ui->use3dPlanning)
     {
         e->ignore();

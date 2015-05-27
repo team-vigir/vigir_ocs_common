@@ -2037,8 +2037,7 @@ void Base3DView::removeFootstep()
 }
 
 void Base3DView::selectTemplate(int id)
-{
-    ROS_ERROR("selecting %d ", id);
+{    
     //selecting from context menu, TODO: switch to enums
     if(id == -2)
         id = findObjectContext("template");
@@ -2146,8 +2145,7 @@ void Base3DView::setTemplateGraspLock(int arm)
     }
     msg.sync_mode = flor_ocs_msgs::OCSGraspSync::HAND_LOCKS;
     msg.host = boost::asio::ip::host_name();
-    msg.template_id = last_selected_template_id_;
-    ROS_ERROR("lock to %d",last_selected_template_id_);
+    msg.template_id = last_selected_template_id_;    
     grasp_sync_pub_.publish(msg);
 
     //grasp locks are set in callback processGraspSyncCB

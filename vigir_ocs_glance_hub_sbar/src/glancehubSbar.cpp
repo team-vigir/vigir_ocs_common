@@ -51,7 +51,7 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
 
     ui->plannerLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
     ui->footstepLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
-    ui->modeBox->setStyleSheet("QComboBox {selection-color: grey;}");
+   // ui->modeBox->setStyleSheet("QComboBox {selection-color: grey;}");
 
     ui->plannerLight->setToolTip("waiting for status update");
     ui->moveitLabel->setToolTip("waiting for status update");
@@ -173,6 +173,9 @@ void glancehubSbar::receiveMoveitStatus(bool status)
     ui->moveitLabel->setToolTip(ghub_->getMoveitStat());
     flashing_move_it_ = true;
     flash_moveit_counter_ = 0; // reset counter here because we want to flash latest color 10 times (this function may be called multiple times in short span)
+
+    //set combo box to fit largest element
+    //ui->modeBox->setMinimumWidth(ui->modeBox->minimumSizeHint().width());
 }
 
 void glancehubSbar::receiveFootstepStatus(int status)
