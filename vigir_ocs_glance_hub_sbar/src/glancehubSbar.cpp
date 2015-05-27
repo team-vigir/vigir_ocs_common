@@ -44,14 +44,24 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(modeChanged(int)));
 
     //set popup width larger
-    ui->modeBox->view()->setFixedWidth(130);
+    //ui->modeBox->view()->setFixedWidth(30);
 
     //setup publisher to change modes
     mode_pub_ = nh_.advertise<flor_control_msgs::FlorControlModeCommand>("/flor/controller/mode_command", 5, false);
 
     ui->plannerLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
     ui->footstepLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
-    ui->modeBox->setStyleSheet("QComboBox {selection-color: grey;}");
+
+    //using down arrow from map view TODO: move icons to seperate directory
+    std::string ip = ros::package::getPath("vigir_ocs_map_view")+"/icons/";
+    QString icon_path = QString(ip.c_str());
+    // workaround to be able to use images from stylesheet without knowing the path in advance
+    QString stylesheet = ui->modeBox->styleSheet() + "\n" +
+            "QComboBox::down-arrow {\n" +
+            " image: url(" + icon_path + "down_arrow.png" + ");\n" +
+            "}";
+    ui->modeBox->setStyleSheet(stylesheet);
+
 
     ui->plannerLight->setToolTip("waiting for status update");
     ui->moveitLabel->setToolTip("waiting for status update");
@@ -173,6 +183,7 @@ void glancehubSbar::receiveMoveitStatus(bool status)
     ui->moveitLabel->setToolTip(ghub_->getMoveitStat());
     flashing_move_it_ = true;
     flash_moveit_counter_ = 0; // reset counter here because we want to flash latest color 10 times (this function may be called multiple times in short span)
+
 }
 
 void glancehubSbar::receiveFootstepStatus(int status)

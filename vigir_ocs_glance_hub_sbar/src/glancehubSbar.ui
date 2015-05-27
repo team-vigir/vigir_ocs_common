@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>474</width>
+    <width>600</width>
     <height>20</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>500</width>
+    <width>600</width>
     <height>20</height>
    </size>
   </property>
@@ -34,7 +34,7 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>500</width>
+     <width>600</width>
      <height>20</height>
     </size>
    </property>
@@ -58,7 +58,7 @@
      <widget class="QWidget" name="widget" native="true">
       <property name="maximumSize">
        <size>
-        <width>500</width>
+        <width>600</width>
         <height>20</height>
        </size>
       </property>
@@ -95,7 +95,7 @@
          <property name="maximumSize">
           <size>
            <width>210</width>
-           <height>18</height>
+           <height>20</height>
           </size>
          </property>
          <property name="font">
@@ -118,14 +118,71 @@
         <widget class="QComboBox" name="modeBox">
          <property name="maximumSize">
           <size>
-           <width>130</width>
-           <height>16777215</height>
+           <width>185</width>
+           <height>20</height>
           </size>
          </property>
          <property name="font">
           <font>
-           <pointsize>8</pointsize>
+           <pointsize>-1</pointsize>
+           <weight>50</weight>
+           <italic>false</italic>
+           <bold>false</bold>
           </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"> QComboBox {
+     border: 1px solid gray;
+     border-radius: 1px;
+     padding: 3px 18px 3px 0px;
+     font: &quot;Ubuntu&quot;;
+     font-size: 12px;
+ }
+
+ QComboBox:editable {
+     background: white;
+ }
+
+ QComboBox:!editable, QComboBox::drop-down:editable {
+      background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(240, 240, 240, 255), stop:1 rgba(222, 222, 222, 255));
+ }
+
+ /* QComboBox gets the &quot;on&quot; state when the popup is open */
+ QComboBox:!editable:on, QComboBox::drop-down:editable:on {
+     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                 stop: 0 #D3D3D3, stop: 0.4 #D8D8D8,
+                                 stop: 0.5 #DDDDDD, stop: 1.0 #E1E1E1);
+ }
+
+ QComboBox:on { /* shift the text when the popup opens */
+     padding-top: 3px;
+     padding-left: 4px;
+ }
+
+ QComboBox::drop-down {
+     subcontrol-origin: padding;
+     subcontrol-position: top right;
+     width: 15px;
+
+     border-left-width: 1px;
+     border-left-color: darkgray;
+     border-left-style: solid; /* just a single line */
+     border-top-right-radius: 3px; /* same radius as the QComboBox */
+     border-bottom-right-radius: 3px;
+     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                  stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
+                                  stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
+ }
+
+ QComboBox::down-arrow:on { /* shift the arrow when popup is open */
+     top: 1px;
+     left: 1px;
+ }
+
+ QComboBox QAbstractItemView {
+     border: 2px solid darkgray;
+     selection-background-color: lightgray;
+ }</string>
          </property>
          <property name="editable">
           <bool>false</bool>
@@ -135,6 +192,21 @@
          </property>
          <property name="maxCount">
           <number>100</number>
+         </property>
+         <property name="sizeAdjustPolicy">
+          <enum>QComboBox::AdjustToMinimumContentsLengthWithIcon</enum>
+         </property>
+         <property name="minimumContentsLength">
+          <number>180</number>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="frame">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
