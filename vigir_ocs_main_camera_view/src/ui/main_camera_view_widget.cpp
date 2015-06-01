@@ -163,8 +163,8 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     displays_layout->addWidget(displays_panel);
     ui->rviz_options->setLayout(displays_layout);
 
-    connect(ui->pitch, SIGNAL(sliderPressed()), this, SLOT(lockPitchUpdates()));
-    connect(ui->pitch, SIGNAL(sliderReleased()), this, SLOT(sendPitch()));
+    connect(ui->head_pitch, SIGNAL(sliderPressed()), this, SLOT(lockHeadUpdates()));
+    connect(ui->head_pitch, SIGNAL(sliderReleased()), this, SLOT(sendHeadConfig()));
 
     views_initialized_ = 0;
 
@@ -177,7 +177,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
         std::stringstream ss;
         ss << min_degrees;
         ui->label->setText(QString::fromStdString(ss.str()));
-        ui->pitch->setMinimum(min_degrees);
+        ui->head_pitch->setMinimum(min_degrees);
     }
 
     int max_degrees;
@@ -187,11 +187,12 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
         std::stringstream ss;
         ss << max_degrees;
         ui->label_3->setText(QString::fromStdString(ss.str()));
-        ui->pitch->setMaximum(max_degrees);
+        ui->head_pitch->setMaximum(max_degrees);
     }
 
     //key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
-    neck_pos_sub_ = nh_.subscribe ( "/trajectory_controllers/neck_traj_controller/current_position" , 2, &MainCameraViewWidget::updatePitch, this );
+    neck_pos_sub_ = nh_.subscribe ( "/thor_mang/joint_states" , 2, &MainCameraViewWidget::updateHeadConfig, this );
+    head_control_pub_ = nh_.advertise<vigir_planning_msgs::HeadControlCommand>("/thor_mang/head_control_mode", 10, true);
 
     //send template list to views for context menu
     ((CameraViewWidget*)views_list_["Top Left"])->getCameraView()->getBaseContextMenu()->setTemplateTree(ui->template_widget->getTreeRoot());
@@ -384,38 +385,52 @@ void MainCameraViewWidget::moveEvent(QMoveEvent * event)
     settings.setValue("mainWindowGeometry", this->saveGeometry());
 }
 
-void MainCameraViewWidget::lockPitchUpdates()
+void MainCameraViewWidget::lockHeadUpdates()
 {
-    lock_pitch_slider_ = true;
+    lock_head_sliders_ = true;
 }
 
-void MainCameraViewWidget::sendPitch()
+void MainCameraViewWidget::sendHeadConfig()
 {
-    lock_pitch_slider_ = false;
+    lock_head_sliders_ = false;
 
-    int value = ui->pitch->sliderPosition();
+    int value_tilt = float(ui->head_tilt->value()) /360.0 * 2* M_PI;
+    int value_pan = float(ui->head_pan->value()) * 360.0 *2 * M_PI;
 
-    if(value != 0 && value > -10 && value < 10)
-        ui->pitch->setValue(0);
-    else
-    {
-        std::stringstream ss;//create a stringstream for int to string conversion
-        ss << value;
-        std::string string = ss.str();
-        QString label = QString::fromStdString(string);
-        ui->pitch_label->setText(label);
+//    if(value != 0 && value > -10 && value < 10)
+//        ui->head_pitch->setValue(0);
+//    else
+//    {
+//        ((CameraViewWidget*)views_list_["Top Left"])->updateHeadConfig(value);
+//    }
+    vigir_planning_msgs::HeadControlCommand command;
+    command.motion_type = vigir_planning_msgs::HeadControlCommand.USE_PROVIDED_JOINTS ;
+    command.provided_joints.push_back(value_pan);
+    command.provided_joints.push_back(value_tilt);
 
-        ((CameraViewWidget*)views_list_["Top Left"])->updatePitch(value);
-    }
+    head_control_pub_.publish(command);
+
 
 }
 
-void MainCameraViewWidget::updatePitch( const std_msgs::Float32::ConstPtr pitch)
+void MainCameraViewWidget::updateHeadConfig( const sensor_msgs::JointStateConstPtr joint_state)
 {
-    if(!lock_pitch_slider_)
+    if(!lock_head_sliders_)
     {
-        ((CameraViewWidget*)views_list_["Top Left"])->updateCurrentPitch((int)(pitch->data/0.0174532925));
-        ui->pitch->setValue((int)(pitch->data/0.0174532925));
+        float pan, tilt;
+        for (int i=0; i<joint_state.get()->name.size(); i++) {
+            std::string name = joint_state.get()->name.at(i);
+            if (name == "head_pan") {
+                pan = joint_state.get()->position.at(i);
+            }
+            if (name == "head_tilt") {
+                tilt = joint_state.get()->position.at(i);
+            }
+        }
+
+        ((CameraViewWidget*)views_list_["Top Left"])->updateCurrentHeadConfig((int)(pitch->data/0.0174532925));
+
+        ui->head_tilt->setValue((int)(tilt->data/0.0174532925));
     }
 }
 

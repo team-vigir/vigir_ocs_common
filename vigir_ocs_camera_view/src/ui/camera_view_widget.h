@@ -42,8 +42,8 @@ Q_SIGNALS:
     void pitchChanged(int);
 
 public Q_SLOTS:
-    void updatePitch(int);
-    void updateCurrentPitch(int);
+    void updateHeadConfig(int);
+    void updateCurrentHeadConfig(int);
     void updateFeedFPS(int);
     void updateSelectedFPS(int);
     void scan();

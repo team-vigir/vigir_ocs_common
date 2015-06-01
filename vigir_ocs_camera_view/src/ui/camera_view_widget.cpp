@@ -215,7 +215,7 @@ void CameraViewWidget::sliderValues(int lockedValue)
   * and updates the label so that the value is clearly
   * shown.
   **/
-void CameraViewWidget::updatePitch(int value)
+void CameraViewWidget::updateHeadConfig(int value)
 {
     camera_view_->setCameraPitch(value);
 }
@@ -223,7 +223,7 @@ void CameraViewWidget::updatePitch(int value)
 /**
   * This method sets the current pitch value used for creating a trajectory
   **/
-void CameraViewWidget::updateCurrentPitch(int value)
+void CameraViewWidget::updateCurrentHeadConfig(int value)
 {
     camera_view_->setCurrentCameraPitch(value);
 }
