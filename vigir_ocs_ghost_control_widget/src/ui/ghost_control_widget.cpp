@@ -394,7 +394,7 @@ void GhostControlWidget::on_send_left_leg_button__clicked()
 {
     std_msgs::String cmd;
 
-    cmd.data = "left_leg_group";
+    cmd.data = "l_leg_group";
 
     set_to_target_config_pub_.publish(cmd);
 }
@@ -403,7 +403,7 @@ void GhostControlWidget::on_send_right_leg_button__clicked()
 {
     std_msgs::String cmd;
 
-    cmd.data = "right_leg_group";
+    cmd.data = "r_leg_group";
 
     set_to_target_config_pub_.publish(cmd);
 }
