@@ -163,32 +163,16 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     displays_layout->addWidget(displays_panel);
     ui->rviz_options->setLayout(displays_layout);
 
-    connect(ui->head_pitch, SIGNAL(sliderPressed()), this, SLOT(lockHeadUpdates()));
-    connect(ui->head_pitch, SIGNAL(sliderReleased()), this, SLOT(sendHeadConfig()));
+    connect(ui->head_tilt, SIGNAL(sliderPressed()), this, SLOT(lockHeadUpdates()));
+    connect(ui->head_tilt, SIGNAL(sliderReleased()), this, SLOT(sendHeadConfig()));
+    connect(ui->head_pan, SIGNAL(sliderPressed()), this, SLOT(lockHeadUpdates()));
+    connect(ui->head_pan, SIGNAL(sliderReleased()), this, SLOT(sendHeadConfig()));
+    //connect(ui->frame_select, SIGNAL(currentIndexChanged(int)), this, SLOT(changeTrackedFrame(int)));
+    connect(ui->center_head, SIGNAL(clicked()), this, SLOT(centerHead()));
 
     views_initialized_ = 0;
 
     fourViewToggle();
-
-    int min_degrees;
-
-    if(ros::param::get("~min_degrees", min_degrees))
-    {
-        std::stringstream ss;
-        ss << min_degrees;
-        ui->label->setText(QString::fromStdString(ss.str()));
-        ui->head_pitch->setMinimum(min_degrees);
-    }
-
-    int max_degrees;
-
-    if(ros::param::get("~max_degrees", max_degrees))
-    {
-        std::stringstream ss;
-        ss << max_degrees;
-        ui->label_3->setText(QString::fromStdString(ss.str()));
-        ui->head_pitch->setMaximum(max_degrees);
-    }
 
     //key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
     neck_pos_sub_ = nh_.subscribe ( "/thor_mang/joint_states" , 2, &MainCameraViewWidget::updateHeadConfig, this );
@@ -394,23 +378,16 @@ void MainCameraViewWidget::sendHeadConfig()
 {
     lock_head_sliders_ = false;
 
-    int value_tilt = float(ui->head_tilt->value()) /360.0 * 2* M_PI;
-    int value_pan = float(ui->head_pan->value()) * 360.0 *2 * M_PI;
+    float value_tilt = float(ui->head_tilt->sliderPosition()) / 180.0 * M_PI;
+    float value_pan = float(ui->head_pan->value()) / 180.0 * M_PI;
 
-//    if(value != 0 && value > -10 && value < 10)
-//        ui->head_pitch->setValue(0);
-//    else
-//    {
-//        ((CameraViewWidget*)views_list_["Top Left"])->updateHeadConfig(value);
-//    }
     vigir_planning_msgs::HeadControlCommand command;
-    command.motion_type = vigir_planning_msgs::HeadControlCommand.USE_PROVIDED_JOINTS ;
+    command.motion_type = command.USE_PROVIDED_JOINTS;
     command.provided_joints.push_back(value_pan);
     command.provided_joints.push_back(value_tilt);
 
     head_control_pub_.publish(command);
-
-
+    ui->frame_select->setCurrentIndex(0);
 }
 
 void MainCameraViewWidget::updateHeadConfig( const sensor_msgs::JointStateConstPtr joint_state)
@@ -428,10 +405,31 @@ void MainCameraViewWidget::updateHeadConfig( const sensor_msgs::JointStateConstP
             }
         }
 
-        ((CameraViewWidget*)views_list_["Top Left"])->updateCurrentHeadConfig((int)(pitch->data/0.0174532925));
-
-        ui->head_tilt->setValue((int)(tilt->data/0.0174532925));
+        ui->head_tilt->setValue((int)(tilt / M_PI * 180.0));
+        ui->head_pan->setValue((int)(- pan / M_PI * 180.0));
     }
+}
+
+void MainCameraViewWidget::changeTrackedFrame(int frame_index)
+{
+    std::string selected_frame = ui->frame_select->currentText().toStdString();
+
+    vigir_planning_msgs::HeadControlCommand command;
+    command.motion_type = command.TRACK_FRAME;
+    command.tracking_frame = selected_frame;
+
+    head_control_pub_.publish(command);
+}
+
+void MainCameraViewWidget::centerHead()
+{
+    vigir_planning_msgs::HeadControlCommand command;
+    command.motion_type = command.USE_PROVIDED_JOINTS;
+    command.provided_joints.push_back(0.0);
+    command.provided_joints.push_back(0.0);
+
+    head_control_pub_.publish(command);
+    ui->frame_select->setCurrentIndex(0);
 }
 
 bool MainCameraViewWidget::eventFilter( QObject * o, QEvent * e )

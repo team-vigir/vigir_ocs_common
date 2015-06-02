@@ -237,9 +237,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-264</y>
+        <y>-340</y>
         <width>207</width>
-        <height>1771</height>
+        <height>1770</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -512,22 +512,25 @@
                    </size>
                   </property>
                   <property name="minimum">
-                   <number>-40</number>
+                   <number>-75</number>
                   </property>
                   <property name="maximum">
-                   <number>65</number>
+                   <number>75</number>
+                  </property>
+                  <property name="pageStep">
+                   <number>15</number>
                   </property>
                   <property name="value">
                    <number>0</number>
                   </property>
                   <property name="tracking">
-                   <bool>true</bool>
+                   <bool>false</bool>
                   </property>
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
                   </property>
                   <property name="invertedAppearance">
-                   <bool>false</bool>
+                   <bool>true</bool>
                   </property>
                   <property name="invertedControls">
                    <bool>false</bool>
@@ -536,7 +539,7 @@
                    <enum>QSlider::TicksBelow</enum>
                   </property>
                   <property name="tickInterval">
-                   <number>22</number>
+                   <number>25</number>
                   </property>
                  </widget>
                 </item>
@@ -569,11 +572,14 @@
                      <property name="tracking">
                       <bool>false</bool>
                      </property>
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
                      <property name="notchTarget">
-                      <double>50.000000000000000</double>
+                      <double>90.000000000000000</double>
                      </property>
                      <property name="notchesVisible">
-                      <bool>false</bool>
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -584,15 +590,34 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="unlock_head">
-               <property name="styleSheet">
-                <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
+              <layout class="QHBoxLayout" name="horizontalLayout_12">
+               <item>
+                <widget class="QComboBox" name="frame_select">
+                 <item>
+                  <property name="text">
+                   <string>&lt;manual control&gt;</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="center_head">
+                 <property name="maximumSize">
+                  <size>
+                   <width>45</width>
+                   <height>18</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">font: 75 8pt &quot;Ubuntu&quot;;
 color: rgb(255, 26, 26);</string>
-               </property>
-               <property name="text">
-                <string>unlock head</string>
-               </property>
-              </widget>
+                 </property>
+                 <property name="text">
+                  <string>center</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
             </layout>
            </widget>

@@ -42,6 +42,8 @@ public Q_SLOTS:
     void fourViewToggle();
     void lockHeadUpdates();
     void sendHeadConfig();
+    void changeTrackedFrame(int frame_index);
+    void centerHead();
     void cameraInitialized();
 
 private Q_SLOTS:
