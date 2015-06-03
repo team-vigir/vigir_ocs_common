@@ -923,6 +923,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     //Initialize shift_pressed_ to false and set interactive_marker_mode_ to default
     lock_rotation_ = false;
     interactive_marker_mode_ = 0;
+    lock_world_ = false;
 
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer_.start(33, this);
@@ -4116,7 +4117,8 @@ void Base3DView::lockWorldHotkey()
     flor_ocs_msgs::OCSControlMode msgMode;
     msgMode.manipulationMode = visualization_msgs::InteractiveMarkerControl::FIXED;
     interactive_marker_server_mode_pub_.publish(msgMode);
-    lock_world_ = true;
+    lock_world_ = true; //!lock_world_;
+    lock_rotation_ = false;
 }
 
 void Base3DView::lockTranslationHotkey()
@@ -4178,7 +4180,7 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr k
 
     //Unlock translation during rotation
     if(lock_rotation_)
-    {
+    {        
         flor_ocs_msgs::OCSControlMode msgMode;
         if(interactive_marker_mode_ < IM_MODE_OFFSET)//Check if mode is 0, 1 or 2
             msgMode.manipulationMode = interactive_marker_mode_;

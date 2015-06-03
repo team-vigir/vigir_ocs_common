@@ -117,10 +117,13 @@ void InteractiveMarkerServerNodelet::onMarkerFeedback(unsigned char event_type, 
 
     if(event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP)
     {
+
         //changing mode sets up marker for responsiveness, "fix"
         std::map<std::string,boost::shared_ptr<InteractiveMarkerServerCustom> >::iterator iter;
         for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
+        {
             iter->second->setMode(iter->second->getMode());
+        }
 
         publishSelectedObject();
     }
