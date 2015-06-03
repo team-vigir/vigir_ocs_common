@@ -244,6 +244,10 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     std::cout << code_path_ << std::endl;
     robot_status_codes_.loadErrorMessages(code_path_);
 
+    //accessing ros param to tell if we're main operator or not
+    ros::NodeHandle nh("~");
+    if(nh.hasParam("operator_type"))
+        nh.getParam("operator_type",operator_type_);
 
     // create publisher and subscriber for object selection
     // PUBLISHER WILL BE USED BY THE RIGHT/DOUBLE CLICK TO INFORM WHICH TEMPLATE/HAND/OBJECT HAS BEEN selected
@@ -253,6 +257,8 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
 
     //key_event_sub_ = nh_.subscribe( "/flor/ocs/key_event", 5, &graspWidget::processNewKeyEvent, this );
     timer.start(33, this);
+
+
 }
 //SetStylesheet to change on the fly
 
@@ -1003,7 +1009,11 @@ void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr
 void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg)
 {
     // only process object selection if I'm the sender
-    if(msg->host != boost::asio::ip::host_name())
+    //if(msg->host != boost::asio::ip::host_name())
+    //    return;
+
+    //only update template selection if the main operator has selected
+    if(operator_type_ != "main")
         return;
 
     switch(msg->type)

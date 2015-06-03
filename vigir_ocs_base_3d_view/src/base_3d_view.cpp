@@ -288,6 +288,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // footstep visualization manager initialization
         footstep_vis_manager_ = new FootstepVisManager(manager_);
 
+
         // F/T sensor displays
         left_ft_sensor_ = manager_->createDisplay("rviz/WrenchStamped", "Left F/T sensor", false);
         ROS_ASSERT( left_ft_sensor_ != NULL );
