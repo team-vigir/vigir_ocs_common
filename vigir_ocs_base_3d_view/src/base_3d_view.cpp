@@ -921,7 +921,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     base_context_menu_ = new BaseContextMenu(this);
 
     //Initialize shift_pressed_ to false and set interactive_marker_mode_ to default
-    shift_pressed_ = false;
+    lock_rotation_ = false;
     interactive_marker_mode_ = 0;
 
     // this is only used to make sure we close window if ros::shutdown has already been called
@@ -4057,6 +4057,7 @@ void Base3DView::addHotkeys()
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+alt",boost::bind(&Base3DView::showEStopHotkey,this));    
 
     HotkeyManager::Instance()->addHotkeyFunction("shift",boost::bind(&Base3DView::lockTranslationHotkey,this));
+    HotkeyManager::Instance()->addHotkeyFunction("ctrl+shift",boost::bind(&Base3DView::lockWorldHotkey,this));
 
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+s",boost::bind(&Base3DView::snapGhostHotkey,this));
     //select left arm end effector
@@ -4109,16 +4110,23 @@ void Base3DView::executeStepPlanHotkey()
        footstep_vis_manager_->requestExecuteStepPlan();
 }
 
+void Base3DView::lockWorldHotkey()
+{
+    //Lock translation during rotation
+    flor_ocs_msgs::OCSControlMode msgMode;
+    msgMode.manipulationMode = visualization_msgs::InteractiveMarkerControl::FIXED;
+    interactive_marker_server_mode_pub_.publish(msgMode);
+    lock_world_ = true;
+}
+
 void Base3DView::lockTranslationHotkey()
 {
     //Lock translation during rotation
     flor_ocs_msgs::OCSControlMode msgMode;
     if(interactive_marker_mode_ < IM_MODE_OFFSET)
         msgMode.manipulationMode = interactive_marker_mode_ + IM_MODE_OFFSET;
-    else
-        msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
     interactive_marker_server_mode_pub_.publish(msgMode);
-    shift_pressed_ = true;
+    lock_rotation_ = true;
 }
 
 void Base3DView::snapGhostHotkey()
@@ -4157,20 +4165,19 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr k
 {
     // store key state
     if(key_event->state)
+    {
         keys_pressed_list_.push_back(key_event->keystr);
+    }
     else
+    {
         keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keystr), keys_pressed_list_.end());
-
-    // process hotkeys
-    bool ctrl_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Control_") != keys_pressed_list_.end());
-    bool shift_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Shift_") != keys_pressed_list_.end());
-    bool alt_is_pressed = (std::find(keys_pressed_list_.begin(), keys_pressed_list_.end(), "Alt_") != keys_pressed_list_.end());
+    }
 
     //Default actions that occur when hotkeys aren't pressed(such as restoring non hotkey state)
     stop_button_->setVisible(false);
 
     //Unlock translation during rotation
-    if(shift_pressed_)
+    if(lock_rotation_)
     {
         flor_ocs_msgs::OCSControlMode msgMode;
         if(interactive_marker_mode_ < IM_MODE_OFFSET)//Check if mode is 0, 1 or 2
@@ -4178,7 +4185,14 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr k
         else//means that shift is pressed
             msgMode.manipulationMode = interactive_marker_mode_ - IM_MODE_OFFSET;
         interactive_marker_server_mode_pub_.publish(msgMode);
-        shift_pressed_ = false;
+        lock_rotation_ = false;
+    }
+    if(lock_world_)
+    {
+        flor_ocs_msgs::OCSControlMode msgMode;
+        msgMode.manipulationMode = visualization_msgs::InteractiveMarkerControl::INHERIT;
+        interactive_marker_server_mode_pub_.publish(msgMode);
+        lock_world_ = false;
     }
 
 }
