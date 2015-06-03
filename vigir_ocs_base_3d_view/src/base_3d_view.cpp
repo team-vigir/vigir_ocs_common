@@ -227,8 +227,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         lidar_point_cloud_viewer_->subProp( "Style" )->setValue( "Flat Squares" );
         lidar_point_cloud_viewer_->subProp( "Topic" )->setValue( "/flor/worldmodel/ocs/cloud_result" );
         lidar_point_cloud_viewer_->subProp( "Size (m)" )->setValue( 0.01 );
-        lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
-        lidar_point_cloud_viewer_->subProp( "Axis" )->setValue( "Z" );
+        lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
         lidar_point_cloud_viewer_->subProp( "Decay Time" )->setValue( 0 );
         lidar_point_cloud_viewer_->subProp( "Selectable" )->setValue( false );        
         lidar_point_cloud_viewer_->subProp( "Use rainbow" )->setValue(false);
@@ -237,15 +236,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         lidar_point_cloud_viewer_->subProp( "Max Intensity" )->setValue( 5000 );
 
         // Create the mesh displays
-        stereo_mesh_viewer_ = manager_->createDisplay( "rviz/MeshDisplayCustom", "Stereo Mesh", false );
+        stereo_mesh_viewer_ = manager_->createDisplay( "rviz/MeshDisplayCustom", "Mesh", true );
         ROS_ASSERT( stereo_mesh_viewer_ != NULL );
-        stereo_mesh_viewer_->subProp( "Image Topic" )->setValue( "/multisense/left/image_rect_color" );
-        stereo_mesh_viewer_->subProp( "Mesh Topic" )->setValue( "/depth_image_to_mesh_node/mesh_shape" );
-
-        lidar_mesh_viewer_ = manager_->createDisplay( "rviz/MeshDisplayCustom", "LIDAR Mesh", false );
-        ROS_ASSERT( lidar_mesh_viewer_ != NULL );
-        lidar_mesh_viewer_->subProp( "Image Topic" )->setValue( "/multisense/left/image_rect_color" );
-        lidar_mesh_viewer_->subProp( "Mesh Topic" )->setValue( "/worldmodel_cloud_to_mesh_node/mesh_shape" );
+        stereo_mesh_viewer_->subProp( "Image Topic" )->setValue( "/camera/image_raw" );
+        stereo_mesh_viewer_->subProp( "Mesh Topic" )->setValue( "/worldmodel_cloud_to_mesh_node/mesh_shape" );
 
         // point cloud request
         raycast_point_cloud_viewer_ = manager_->createDisplay( "rviz/PointCloud2", "Raycast Point Cloud", true );
