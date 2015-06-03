@@ -5,7 +5,10 @@
 MainViewWidget::MainViewWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainViewWidget)
-{       
+{
+    ROS_INFO("Main view constructor start");
+    ros::WallTime main_view_widget_constructor_start_time = ros::WallTime::now();
+
     ui->setupUi(this);
     //will not call destructor immediately without setting attribute
     this->setAttribute(Qt::WA_DeleteOnClose);
@@ -41,10 +44,13 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     QHBoxLayout* aux_layout;
 
     // setup default views
+    ros::WallTime view_setup_start_time = ros::WallTime::now();
+    ROS_INFO("Setting up default views");
     views_list_["Top Left"] = new vigir_ocs::PerspectiveView(NULL, "/world", "MainView");
     views_list_["Top Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list_["Top Left"]),"/pelvis", "MainView"); //views_list_["Top Right"] = new vigir_ocs::OrthoView();
     views_list_["Bottom Left"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list_["Top Left"]),"/pelvis", "MainView"); //views_list_["Bottom Left"] = new vigir_ocs::OrthoView();
     views_list_["Bottom Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list_["Top Left"]),"/pelvis", "MainView"); //views_list_["Bottom Right"] = new vigir_ocs::OrthoView();
+    ROS_INFO("Setup of default views took %f seconds", (ros::WallTime::now() - view_setup_start_time).toSec());
 
     aux_layout = new QHBoxLayout();
     aux_layout->setMargin(0);
@@ -385,7 +391,9 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     HotkeyManager::Instance()->addHotkeyFunction("ctrl+j",boost::bind(&vigir_ocs::Base3DView::executeStepPlanHotkey,primary_view_));
 
     //create context menu and add to base3dview
-    main_view_context_menu_ = new MainViewContextMenu(this);
+    main_view_context_menu_ = new MainViewContextMenu(this);    
+
+    ROS_INFO("Main view constructor took a total time of %f seconds", (ros::WallTime::now() - main_view_widget_constructor_start_time).toSec());
 }
 
 
