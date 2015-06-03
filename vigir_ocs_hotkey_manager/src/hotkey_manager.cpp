@@ -32,6 +32,26 @@ void HotkeyManager::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPt
             keys_pressed_list_.push_back("esc");
         else
             keys_pressed_list_.push_back(key_event->keystr);
+
+        //process hotkeys in a generic manner
+        //sort keys pressed, make sure combinations will always be in same order regardless of how they were hard coded
+        std::sort (keys_pressed_list_.begin(), keys_pressed_list_.end());
+
+        std::string keyCombo;
+        //build expression to determine which keys are pressed.
+        for(int i=0;i<keys_pressed_list_.size();i++)
+        {
+            std::string key = keys_pressed_list_[i];
+
+            if(i == keys_pressed_list_.size()-1) // dont add plus on the end
+                keyCombo = keyCombo + key;
+            else
+                keyCombo = keyCombo + key + "+";
+        }
+
+        //ROS_ERROR("Keys pressed: %s", keyCombo.c_str());
+
+        callHotkeyFunction(keyCombo);
     }
     else // remove if released
     {
@@ -47,26 +67,6 @@ void HotkeyManager::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPt
         else
             keys_pressed_list_.erase(std::remove(keys_pressed_list_.begin(), keys_pressed_list_.end(), key_event->keystr), keys_pressed_list_.end());
     }
-
-    //process hotkeys in a generic manner
-    //sort keys pressed, make sure combinations will always be in same order regardless of how they were hard coded
-    std::sort (keys_pressed_list_.begin(), keys_pressed_list_.end());
-
-    std::string keyCombo;
-    //build expression to determine which keys are pressed.
-    for(int i=0;i<keys_pressed_list_.size();i++)
-    {
-        std::string key = keys_pressed_list_[i];
-
-        if(i == keys_pressed_list_.size()-1) // dont add plus on the end
-            keyCombo = keyCombo + key;
-        else
-            keyCombo = keyCombo + key + "+";
-    }    
-
-    //ROS_ERROR("Keys pressed: %s", keyCombo.c_str());
-
-    callHotkeyFunction(keyCombo);
 }
 
 void HotkeyManager::callHotkeyFunction(std::string keyCombo)

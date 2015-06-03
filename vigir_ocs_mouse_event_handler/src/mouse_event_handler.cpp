@@ -22,16 +22,16 @@ void MouseEventHandler::mousePressEvent( QMouseEvent* event )
         bool shift = keyMod.testFlag(Qt::ShiftModifier);
         bool ctrl = keyMod.testFlag(Qt::ControlModifier);
 
-        if( shift ) // as long as shift is pressed
+        if( shift && !ctrl ) // as long as shift is pressed
         {
             Q_EMIT mouseLeftButtonShift( true, event->x(), event->y() );
         }
-        if( ctrl ) // if only ctrl is pressed
+        if( ctrl && !shift ) // if only ctrl is pressed
         {
             Q_EMIT mouseLeftButtonCtrl( true, event->x(), event->y() );
         }
 
-        if(!ctrl && !shift)
+        if( !ctrl && !shift )
         {
             Q_EMIT mouseLeftButton( true, event->x(), event->y() );
         }
