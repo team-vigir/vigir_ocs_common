@@ -284,7 +284,7 @@
     </widget>
    </item>
    <item row="5" column="1">
-    <widget class="QPushButton" name="send_left_leg_button_1">
+    <widget class="QPushButton" name="send_right_leg_button_">
      <property name="text">
       <string>Right Leg</string>
      </property>
