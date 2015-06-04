@@ -117,14 +117,14 @@ void OrthoViewControllerCustom::reset()
 
 void OrthoViewControllerCustom::handleMouseEvent(ViewportMouseEvent& event)
 {
-  if ( event.shift() )
-  {
+//  if ( event.shift() )
+//  {
     setStatus( "<b>Left-Click:</b> Move X/Y." );
-  }
-  else
-  {
-    setStatus( "<b>Left-Click:</b> Rotate.  <b>Middle-Click:</b> Move X/Y.  <b>Right-Click:</b>: Zoom.  <b>Shift</b>: More options." );
-  }
+//  }
+//  else
+//  {
+//    setStatus( "<b>Left-Click:</b> Rotate.  <b>Middle-Click:</b> Move X/Y.  <b>Right-Click:</b>: Zoom.  <b>Shift</b>: More options." );
+//  }
 
   bool moved = false;
 
@@ -146,26 +146,34 @@ void OrthoViewControllerCustom::handleMouseEvent(ViewportMouseEvent& event)
     moved = true;
   }
 
-  if( event.left() && !event.shift() )
+//  if( event.left() && !event.shift() )
+//  {
+//    setCursor( Rotate2D );
+//    angle_property_->add( diff_x * 0.005 );
+//    orientCamera();
+//  }
+//  else if( event.middle() || ( event.shift() && event.left() ))
+//  {
+//    setCursor( MoveXY );
+//    float scale = scale_property_->getFloat();
+//    move( -diff_x / scale, diff_y / scale );
+//  }
+//  else if( event.right() )
+//  {
+//    setCursor( Zoom );
+//    scale_property_->multiply( 1.0 - diff_y * 0.01 );
+//  }
+//  else
+//  {
+//    setCursor( event.shift() ? MoveXY : Rotate2D );
+//  }
+  // can only do XY panning
+  setCursor( MoveXY );
+
+  if( event.middle() )
   {
-    setCursor( Rotate2D );
-    angle_property_->add( diff_x * 0.005 );
-    orientCamera();
-  }
-  else if( event.middle() || ( event.shift() && event.left() ))
-  {
-    setCursor( MoveXY );
-    float scale = scale_property_->getFloat();
-    move( -diff_x / scale, diff_y / scale );
-  }
-  else if( event.right() )
-  {
-    setCursor( Zoom );
-    scale_property_->multiply( 1.0 - diff_y * 0.01 );
-  }
-  else
-  {
-    setCursor( event.shift() ? MoveXY : Rotate2D );
+      float scale = scale_property_->getFloat();
+      move( -diff_x / scale, diff_y / scale );
   }
 
   if ( event.wheel_delta != 0 )
@@ -247,19 +255,19 @@ void OrthoViewControllerCustom::updateCamera()
   // depth can see equal distances above and below the Z=0 plane.
   if(view_plane_property_->getString() == "XY")
   {
-  	camera_->setPosition( x_property_->getFloat(), y_property_->getFloat(), 500 );
+    camera_->setPosition( x_property_->getFloat(), y_property_->getFloat(), 500 );
   	camera_->lookAt(x_property_->getFloat(), y_property_->getFloat(), 0);
   }
   else if(view_plane_property_->getString() == "XZ")
   {
     camera_->setFixedYawAxis( true, Ogre::Vector3::UNIT_Z );
-	camera_->setPosition( x_property_->getFloat(), -500, y_property_->getFloat());
+    camera_->setPosition( x_property_->getFloat(), -500, y_property_->getFloat());
 	camera_->lookAt(x_property_->getFloat(), 0, y_property_->getFloat());
   }
   else if(view_plane_property_->getString() == "YZ")
   {
     camera_->setFixedYawAxis( true, Ogre::Vector3::UNIT_Z );
-	camera_->setPosition( 500, x_property_->getFloat(), y_property_->getFloat());
+    camera_->setPosition( 500, x_property_->getFloat(), y_property_->getFloat());
 	camera_->lookAt(0, x_property_->getFloat(), y_property_->getFloat());
   }
 

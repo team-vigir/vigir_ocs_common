@@ -486,7 +486,8 @@ protected:
       */
     void publishCameraTransform();
 
-    bool shift_pressed_;
+    bool lock_rotation_;
+    bool lock_world_;
     int interactive_marker_mode_;
 
 
@@ -751,6 +752,7 @@ protected:
     void rainbowColorHotkey();
     void pointcloudIntensityHotkey();
     //void requestStepPlanHotkey();
+    void lockWorldHotkey();
     void lockTranslationHotkey();
     void snapGhostHotkey();
     void stereoMeshHotkey();

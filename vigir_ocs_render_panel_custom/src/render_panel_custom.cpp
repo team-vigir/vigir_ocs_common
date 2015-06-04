@@ -20,7 +20,7 @@ void RenderPanelCustom::setEventFilters(int function, bool block, Qt::KeyboardMo
 {
     BlockConfig config;
     config.block = block;
-    config.block_key_modifiers = block_key_mod;
+    //config.block_key_modifiers = block_key_mod;
     config.block_mouse_buttons = block_mouse_buttons;
     block_config_[function] = config;
 }
@@ -31,7 +31,7 @@ void RenderPanelCustom::mouseMoveEvent( QMouseEvent* event )
     if(block_config_.find(MOUSE_MOVE_EVENT) != block_config_.end())
     {
         if(!block_config_[MOUSE_MOVE_EVENT].block &&
-           !(event->modifiers() & block_config_[MOUSE_MOVE_EVENT].block_key_modifiers) &&
+           //(!(event->modifiers() & block_config_[MOUSE_MOVE_EVENT].block_key_modifiers) || block_config_[MOUSE_MOVE_EVENT].block_key_modifiers == Qt::NoModifier) &&
            !(event->buttons() & block_config_[MOUSE_MOVE_EVENT].block_mouse_buttons))
         {
             RenderPanel::mouseMoveEvent( event );
@@ -48,7 +48,7 @@ void RenderPanelCustom::mousePressEvent( QMouseEvent* event )
     if(block_config_.find(MOUSE_PRESS_EVENT) != block_config_.end())
     {
         if(!block_config_[MOUSE_PRESS_EVENT].block &&
-           !(event->modifiers() & block_config_[MOUSE_PRESS_EVENT].block_key_modifiers) &&
+           //(!(event->modifiers() & block_config_[MOUSE_PRESS_EVENT].block_key_modifiers) || block_config_[MOUSE_MOVE_EVENT].block_key_modifiers == Qt::NoModifier) &&
            !(event->buttons() & block_config_[MOUSE_PRESS_EVENT].block_mouse_buttons))
         {
             RenderPanel::mousePressEvent( event );
@@ -65,7 +65,7 @@ void RenderPanelCustom::mouseReleaseEvent( QMouseEvent* event )
     if(block_config_.find(MOUSE_RELEASE_EVENT) != block_config_.end())
     {
         if(!block_config_[MOUSE_RELEASE_EVENT].block &&
-           !(event->modifiers() & block_config_[MOUSE_RELEASE_EVENT].block_key_modifiers) &&
+           //(!(event->modifiers() & block_config_[MOUSE_RELEASE_EVENT].block_key_modifiers) || block_config_[MOUSE_MOVE_EVENT].block_key_modifiers == Qt::NoModifier) &&
            !(event->buttons() & block_config_[MOUSE_RELEASE_EVENT].block_mouse_buttons))
         {
             RenderPanel::mouseReleaseEvent( event );
@@ -82,7 +82,7 @@ void RenderPanelCustom::mouseDoubleClickEvent( QMouseEvent* event )
     if(block_config_.find(MOUSE_DOUBLE_CLICK_EVENT) != block_config_.end())
     {
         if(!block_config_[MOUSE_DOUBLE_CLICK_EVENT].block &&
-           !(event->modifiers() & block_config_[MOUSE_DOUBLE_CLICK_EVENT].block_key_modifiers) &&
+           //(!(event->modifiers() & block_config_[MOUSE_DOUBLE_CLICK_EVENT].block_key_modifiers) || block_config_[MOUSE_MOVE_EVENT].block_key_modifiers == Qt::NoModifier) &&
            !(event->buttons() & block_config_[MOUSE_DOUBLE_CLICK_EVENT].block_mouse_buttons))
         {
             RenderPanel::mouseDoubleClickEvent( event );
@@ -120,7 +120,7 @@ void RenderPanelCustom::wheelEvent( QWheelEvent* event )
     if(block_config_.find(MOUSE_WHEEL_EVENT) != block_config_.end())
     {
         if(!block_config_[MOUSE_WHEEL_EVENT].block &&
-           !(event->modifiers() & block_config_[MOUSE_WHEEL_EVENT].block_key_modifiers) &&
+           //(!(event->modifiers() & block_config_[MOUSE_WHEEL_EVENT].block_key_modifiers) || block_config_[MOUSE_MOVE_EVENT].block_key_modifiers == Qt::NoModifier) &&
            !(event->buttons() & block_config_[MOUSE_WHEEL_EVENT].block_mouse_buttons))
         {
             RenderPanel::wheelEvent( event );

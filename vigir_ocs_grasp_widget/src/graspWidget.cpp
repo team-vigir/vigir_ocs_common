@@ -244,6 +244,10 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     std::cout << code_path_ << std::endl;
     robot_status_codes_.loadErrorMessages(code_path_);
 
+    //accessing ros param to tell if we're main operator or not
+    ros::NodeHandle nh("~");
+    if(nh.hasParam("operator_type"))
+        nh.getParam("operator_type",operator_type_);
 
     // create publisher and subscriber for object selection
     // PUBLISHER WILL BE USED BY THE RIGHT/DOUBLE CLICK TO INFORM WHICH TEMPLATE/HAND/OBJECT HAS BEEN selected
@@ -253,6 +257,8 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
 
     //key_event_sub_ = nh_.subscribe( "/flor/ocs/key_event", 5, &graspWidget::processNewKeyEvent, this );
     timer.start(33, this);
+
+
 }
 //SetStylesheet to change on the fly
 
@@ -553,8 +559,15 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
 
 void graspWidget::on_graspBox_activated(const QString &arg1)
 {
-        selected_grasp_id_ = arg1.toInt();
-        publishHandPose(arg1.toUInt());
+    //publish to update grasp id for all operators, provided that were the main operator
+    if(operator_type_ != "main")
+        return;
+
+    flor_ocs_msgs::OCSGraspSync msg;
+    msg.grasp_id = arg1.toInt();
+    msg.sync_mode = flor_ocs_msgs::OCSGraspSync::GRASP_ID;
+    grasp_sync_pub_.publish(msg);
+
 }
 
 void graspWidget::on_affordanceBox_activated(const int &arg1)
@@ -983,6 +996,7 @@ void graspWidget::on_show_grasp_toggled(bool checked)
 
 void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg)
 {
+    //accept changes from all operators
     if(msg->sync_mode == flor_ocs_msgs::OCSGraspSync::SHOW_GRASP)
     {
         //only affect this hand
@@ -998,12 +1012,23 @@ void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr
             robot_state_vis_pub_.publish(display_state_msg_);
         }
     }
+
+    if(msg->sync_mode == flor_ocs_msgs::OCSGraspSync::GRASP_ID)
+    {
+        //set new grasp with new id
+        selected_grasp_id_ = msg->grasp_id;
+        publishHandPose(msg->grasp_id);
+    }
 }
 
 void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg)
 {
     // only process object selection if I'm the sender
-    if(msg->host != boost::asio::ip::host_name())
+    //if(msg->host != boost::asio::ip::host_name())
+    //    return;
+
+    //only update template selection if the main operator has selected
+    if(operator_type_ != "main")
         return;
 
     switch(msg->type)
