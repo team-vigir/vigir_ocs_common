@@ -348,6 +348,10 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
             marker.point.x = plan_goal->goal_pose.pose.position.x;
             marker.point.y = plan_goal->goal_pose.pose.position.y;
             marker.point.z = plan_goal->goal_pose.pose.position.z;
+            marker.orientation.w = plan_goal->goal_pose.pose.orientation.w;
+            marker.orientation.x = plan_goal->goal_pose.pose.orientation.x;
+            marker.orientation.y = plan_goal->goal_pose.pose.orientation.y;
+            marker.orientation.z = plan_goal->goal_pose.pose.orientation.z;
             marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF;
             interactive_marker_add_pub_.publish(marker);
 
@@ -381,6 +385,10 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
                 marker.point.x = i ? plan_goal->right_foot.pose.position.x : plan_goal->left_foot.pose.position.x;
                 marker.point.y = i ? plan_goal->right_foot.pose.position.y : plan_goal->left_foot.pose.position.y;
                 marker.point.z = i ? plan_goal->right_foot.pose.position.z : plan_goal->left_foot.pose.position.z;
+                marker.orientation.w = plan_goal->right_foot.pose.orientation.w;
+                marker.orientation.x = plan_goal->right_foot.pose.orientation.x;
+                marker.orientation.y = plan_goal->right_foot.pose.orientation.y;
+                marker.orientation.z = plan_goal->right_foot.pose.orientation.z;
                 marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::OBJECT_6DOF;
                 interactive_marker_add_pub_.publish(marker);
 
@@ -460,6 +468,13 @@ void FootstepVisManager::updateInteractiveMarkers()
                 marker.point.x = (footstep_list_.pose[i].pose.position.x+footstep_list_.pose[i-1].pose.position.x)/2.0;
                 marker.point.y = (footstep_list_.pose[i].pose.position.y+footstep_list_.pose[i-1].pose.position.y)/2.0;
                 marker.point.z = (footstep_list_.pose[i].pose.position.z+footstep_list_.pose[i-1].pose.position.z)/2.0;
+                Ogre::Quaternion q1(footstep_list_.pose[i-1].pose.orientation.w,footstep_list_.pose[i-1].pose.orientation.x,footstep_list_.pose[i-1].pose.orientation.y,footstep_list_.pose[i-1].pose.orientation.z);
+                Ogre::Quaternion q2(footstep_list_.pose[i].pose.orientation.w,footstep_list_.pose[i].pose.orientation.x,footstep_list_.pose[i].pose.orientation.y,footstep_list_.pose[i].pose.orientation.z);
+                Ogre::Quaternion qr = Ogre::Quaternion::Slerp(0.5,q1,q2);
+                marker.orientation.w = qr.w;
+                marker.orientation.x = qr.x;
+                marker.orientation.y = qr.y;
+                marker.orientation.z = qr.z;
                 marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF;
                 interactive_marker_add_pub_.publish(marker);
 
@@ -514,6 +529,10 @@ void FootstepVisManager::updateInteractiveMarkers()
             marker.point.x = footstep_list_.pose[i].pose.position.x;
             marker.point.y = footstep_list_.pose[i].pose.position.y;
             marker.point.z = footstep_list_.pose[i].pose.position.z;
+            marker.orientation.w = footstep_list_.pose[i].pose.orientation.w;
+            marker.orientation.x = footstep_list_.pose[i].pose.orientation.x;
+            marker.orientation.y = footstep_list_.pose[i].pose.orientation.y;
+            marker.orientation.z = footstep_list_.pose[i].pose.orientation.z;
             marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::OBJECT_6DOF;
             interactive_marker_add_pub_.publish(marker);
 

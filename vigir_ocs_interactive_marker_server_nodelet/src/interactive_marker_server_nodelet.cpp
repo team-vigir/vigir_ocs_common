@@ -46,7 +46,18 @@ void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::O
         ROS_INFO("Adding marker %s", msg->topic.c_str());
 
         marker_map_[msg->topic].reset(new InteractiveMarkerServerCustom(msg->name, msg->topic, msg->mode, msg->frame, msg->scale, msg->point));
-        marker_map_[msg->topic]->onFeedback = boost::bind(&InteractiveMarkerServerNodelet::onMarkerFeedback, this, _1, _2, _3, _4);        
+        marker_map_[msg->topic]->onFeedback = boost::bind(&InteractiveMarkerServerNodelet::onMarkerFeedback, this, _1, _2, _3, _4);
+        geometry_msgs::PoseStamped pose;
+        pose.header.frame_id = "/world";
+        pose.header.stamp = ros::Time::now();
+        pose.pose.position.x = msg->point.x;
+        pose.pose.position.y = msg->point.y;
+        pose.pose.position.z = msg->point.z;
+        pose.pose.orientation.w = msg->orientation.w;
+        pose.pose.orientation.x = msg->orientation.x;
+        pose.pose.orientation.y = msg->orientation.y;
+        pose.pose.orientation.z = msg->orientation.z;
+        marker_map_[msg->topic]->setPose(pose);
     }
 
 }
