@@ -167,7 +167,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
     connect(ui->head_tilt, SIGNAL(sliderReleased()), this, SLOT(sendHeadConfig()));
     connect(ui->head_pan, SIGNAL(sliderPressed()), this, SLOT(lockHeadUpdates()));
     connect(ui->head_pan, SIGNAL(sliderReleased()), this, SLOT(sendHeadConfig()));
-    //connect(ui->frame_select, SIGNAL(currentIndexChanged(int)), this, SLOT(changeTrackedFrame(int)));
+    connect(ui->frame_select, SIGNAL(currentIndexChanged(int)), this, SLOT(changeTrackedFrame(int)));
     connect(ui->center_head, SIGNAL(clicked()), this, SLOT(centerHead()));
 
     views_initialized_ = 0;
@@ -412,13 +412,22 @@ void MainCameraViewWidget::updateHeadConfig( const sensor_msgs::JointStateConstP
 
 void MainCameraViewWidget::changeTrackedFrame(int frame_index)
 {
-    std::string selected_frame = ui->frame_select->currentText().toStdString();
+    if (frame_index > 0){
+        std::string selected_frame = ui->frame_select->currentText().toStdString();
 
-    vigir_planning_msgs::HeadControlCommand command;
-    command.motion_type = command.TRACK_FRAME;
-    command.tracking_frame = selected_frame;
+        vigir_planning_msgs::HeadControlCommand command;
+        command.motion_type = command.TRACK_FRAME;
+        command.tracking_frame = selected_frame;
 
-    head_control_pub_.publish(command);
+        head_control_pub_.publish(command);
+    }
+    else{
+        vigir_planning_msgs::HeadControlCommand command;
+        command.motion_type = command.USE_PROVIDED_JOINTS;
+        command.tracking_frame = "";
+
+        head_control_pub_.publish(command);
+    }
 }
 
 void MainCameraViewWidget::centerHead()
