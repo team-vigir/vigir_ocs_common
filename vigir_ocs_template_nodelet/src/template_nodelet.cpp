@@ -1430,7 +1430,7 @@ bool TemplateNodelet::stitchObjectTemplateSrv(vigir_object_template_msgs::SetAtt
     tmp_attached_object.object.id = boost::to_string(req.template_id);
     tmp_attached_object.object.operation = tmp_attached_object.object.REMOVE;
 
-    ROS_INFO("Dettaching the object %s",tmp_attached_object.object.id.c_str());
+    ROS_INFO("Detaching the object %s",tmp_attached_object.object.id.c_str());
     aco_pub_.publish(tmp_attached_object);
 
 
