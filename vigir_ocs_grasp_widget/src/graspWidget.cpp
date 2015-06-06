@@ -245,6 +245,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     robot_status_codes_.loadErrorMessages(code_path_);
 
     //accessing ros param to tell if we're main operator or not
+    operator_type_ = "";
     ros::NodeHandle nh("~");
     if(nh.hasParam("operator_type"))
         nh.getParam("operator_type",operator_type_);
@@ -1030,7 +1031,7 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
     //    return;
 
     //only update template selection if the main operator has selected
-    if(msg->operator_type != "main")
+    if(operator_type_ != "main")
         return;
 
     switch(msg->type)

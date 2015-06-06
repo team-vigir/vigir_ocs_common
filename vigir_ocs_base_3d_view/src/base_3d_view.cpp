@@ -930,6 +930,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     timer_.start(33, this);
 
     //accessing ros param to tell if we're main operator or not
+    operator_type_ = "";
     ros::NodeHandle nh("~");
     if(nh.hasParam("operator_type"))
         nh.getParam("operator_type",operator_type_);
