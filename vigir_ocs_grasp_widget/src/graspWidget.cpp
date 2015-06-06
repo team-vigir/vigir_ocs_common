@@ -502,6 +502,7 @@ void graspWidget::on_templateBox_activated(const QString &arg1)
     ui->affordanceBox->clear();
     ui->usabilityBox->clear();
     ui->usabilityBox->addItem("Palm");
+    ui->usabilityBox->addItem("Poke");
     selected_grasp_id_      = -1;
     selected_affordance_id_ = -1;
     selected_usability_id_  = -1;
@@ -589,7 +590,7 @@ void graspWidget::on_affordanceBox_activated(const int &arg1)
 
 void graspWidget::on_usabilityBox_activated(const int &arg1)
 {
-    selected_usability_id_ = arg1-1;
+    selected_usability_id_ = arg1-2;
     ROS_INFO(" usability selection = %d",selected_usability_id_);
     std_msgs::Int8 usability;
     usability.data = selected_usability_id_;
