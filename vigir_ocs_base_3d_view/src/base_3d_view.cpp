@@ -928,6 +928,11 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
     // this is only used to make sure we close window if ros::shutdown has already been called
     timer_.start(33, this);
+
+    //accessing ros param to tell if we're main operator or not
+    ros::NodeHandle nh("~");
+    if(nh.hasParam("operator_type"))
+        nh.getParam("operator_type",operator_type_);
 }
 
 // Destructor.
@@ -1989,6 +1994,7 @@ void Base3DView::selectOnDoubleClick(int x, int y)
         cmd.type = flor_ocs_msgs::OCSObjectSelection::NOTHING;
         cmd.id = -1;
         cmd.host = boost::asio::ip::host_name();
+        cmd.operator_type = operator_type_;
         select_object_pub_.publish(cmd);
     }
 }
@@ -2065,6 +2071,7 @@ void Base3DView::selectTemplate(int id)
         cmd.type = flor_ocs_msgs::OCSObjectSelection::TEMPLATE;
         cmd.id = id;
         cmd.host = boost::asio::ip::host_name();
+        cmd.operator_type = operator_type_;
         select_object_pub_.publish(cmd);
     }
 }
@@ -2080,6 +2087,7 @@ void Base3DView::selectFootstep()
         cmd.type = flor_ocs_msgs::OCSObjectSelection::FOOTSTEP;
         cmd.id = id;
         cmd.host = boost::asio::ip::host_name();
+        cmd.operator_type = operator_type_;
         select_object_pub_.publish(cmd);
     }
 }
@@ -2095,6 +2103,7 @@ void Base3DView::selectFootstepGoal()
         cmd.type = flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL;
         cmd.id = id;
         cmd.host = boost::asio::ip::host_name();
+        cmd.operator_type = operator_type_;
         select_object_pub_.publish(cmd);
     }
 }
@@ -2105,6 +2114,7 @@ void Base3DView::selectLeftArm()
     cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
     cmd.id = flor_ocs_msgs::OCSObjectSelection::LEFT_ARM;
     cmd.host = boost::asio::ip::host_name();
+    cmd.operator_type = operator_type_;
     select_object_pub_.publish(cmd);
 }
 
@@ -2114,6 +2124,7 @@ void Base3DView::selectRightArm()
     cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
     cmd.id = flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM;
     cmd.host = boost::asio::ip::host_name();
+    cmd.operator_type = operator_type_;
     select_object_pub_.publish(cmd);
 }
 
@@ -2123,6 +2134,7 @@ void Base3DView::selectPelvis()
     cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
     cmd.id = flor_ocs_msgs::OCSObjectSelection::PELVIS;
     cmd.host = boost::asio::ip::host_name();
+    cmd.operator_type = operator_type_;
     select_object_pub_.publish(cmd);
 }
 
@@ -2160,7 +2172,7 @@ void Base3DView::setTemplateGraspLock(int arm)
     }
     msg.sync_mode = flor_ocs_msgs::OCSGraspSync::HAND_LOCKS;
     msg.host = boost::asio::ip::host_name();
-    msg.template_id = last_selected_template_id_;    
+    msg.template_id = last_selected_template_id_;
     grasp_sync_pub_.publish(msg);
 
     //grasp locks are set in callback processGraspSyncCB

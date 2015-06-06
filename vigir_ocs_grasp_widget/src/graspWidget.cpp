@@ -1005,6 +1005,7 @@ void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr
         {
             //show/hide the grasp
             show_grasp_ = msg->show_grasp;
+            ui->show_grasp->setEnabled(show_grasp_);
             ui->show_grasp_radio->setEnabled(show_grasp_);
             ui->show_pre_grasp_radio->setEnabled(show_grasp_);
             ui->moveToPoseButton->setEnabled(show_grasp_);
@@ -1029,7 +1030,7 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
     //    return;
 
     //only update template selection if the main operator has selected
-    if(operator_type_ != "main")
+    if(msg->operator_type != "main")
         return;
 
     switch(msg->type)
