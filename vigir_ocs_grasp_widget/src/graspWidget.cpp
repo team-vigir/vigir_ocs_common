@@ -271,10 +271,10 @@ graspWidget::~graspWidget()
 
 void graspWidget::timerEvent(QTimerEvent *event)
 {
-	// check if ros is still running; if not, just kill the application
+    // check if ros is still running; if not, just kill the application
     if(!ros::ok())
         qApp->quit();
-    
+
     // make sure that we don't show the grasp hands if the user doesn't want to see them
     if(!ui->graspBox->isEnabled() || !show_grasp_)
         hideHand();
@@ -565,9 +565,7 @@ void graspWidget::on_graspBox_activated(const QString &arg1)
         return;
 
     flor_ocs_msgs::OCSGraspSync msg;
-    msg.template_id = selected_template_id_;
     msg.grasp_id = arg1.toInt();
-    msg.host = boost::asio::ip::host_name();
     msg.sync_mode = flor_ocs_msgs::OCSGraspSync::GRASP_ID;
     grasp_sync_pub_.publish(msg);
 
@@ -684,7 +682,7 @@ void graspWidget::publishHandPose(unsigned int id)
             staticTransform(template_T_palm);
 
             if(!ui->show_grasp_radio->isChecked())  //Pre-Grasp pose
-                gripperTranslationToPreGraspPose(template_T_palm,trans);            
+                gripperTranslationToPreGraspPose(template_T_palm,trans);
 
             unsigned int template_index;
             for(template_index = 0; template_index < last_template_list_.template_id_list.size(); template_index++)
@@ -738,7 +736,7 @@ void graspWidget::publishHandPose(unsigned int id)
         }
 
     }
-    
+
 }
 
 void graspWidget::publishHandJointStates(std::vector<float>& finger_joints, std::vector<std::string>& finger_joint_names)
@@ -990,8 +988,6 @@ void graspWidget::on_show_grasp_toggled(bool checked)
     //publish to sync with other operators
     //hand would jump between 2 positions otherwise if one operator is on show and other is not
     flor_ocs_msgs::OCSGraspSync msg;
-    msg.template_id = selected_template_id_;
-    msg.grasp_id = selected_grasp_id_;
     msg.show_grasp = checked;
     msg.hand = hand_side_;
     msg.host = boost::asio::ip::host_name();
@@ -1022,43 +1018,7 @@ void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr
     {
         //set new grasp with new id
         selected_grasp_id_ = msg->grasp_id;
-        std::vector<unsigned char>::iterator it;
-        it = std::find(last_template_list_.template_id_list.begin(), last_template_list_.template_id_list.end(), msg->template_id);
-        if(it != last_template_list_.template_id_list.end())
-        {
-            int tmp = std::distance(last_template_list_.template_id_list.begin(),it);
-            ui->templateBox->setCurrentIndex(tmp);
-            on_templateBox_activated(ui->templateBox->itemText(tmp));
-            selected_template_id_ = tmp;
-
-            if(last_template_list_.template_status_list[ui->templateBox->currentIndex()] == 1) {//is attached
-                ui->attachButton->setEnabled(false);
-                ui->snapTemplateButton->setEnabled(true);
-                ui->detachButton->setEnabled(true);
-            }else{
-                ui->attachButton->setEnabled(true);
-                ui->detachButton->setEnabled(false);
-                ui->snapTemplateButton->setEnabled(false);
-            }
-
-
-            //CALL TEMPLATE SERVER ONCE, INSTEAD OF CALLING ON EACH CASE
-            last_grasp_srv_.request.template_type = last_template_list_.template_type_list[ui->templateBox->currentIndex()];
-            if (!grasp_info_client_.call(last_grasp_srv_))
-            {
-                ROS_ERROR("Failed to call service request grasp info");
-            }
-            last_template_srv_.request.template_id = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
-            last_template_srv_.request.hand_side = last_template_srv_.request.BOTH_HANDS;
-            if (!template_info_client_.call(last_template_srv_))
-            {
-                ROS_ERROR("Failed to call service request template info");
-            }
-            on_templateBox_activated(ui->templateBox->itemText(tmp));
-
-            if(selected_grasp_id_ != -1 && show_grasp_)
-                publishHandPose(selected_grasp_id_);
-        }
+        publishHandPose(msg->grasp_id);
     }
 }
 
@@ -1124,7 +1084,7 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
             selected_template_id_ = -1;
             ui->templateBox->setCurrentIndex(-1);
             ui->graspBox->setCurrentIndex(-1);
-            ui->affordanceBox->setCurrentIndex(-1);            
+            ui->affordanceBox->setCurrentIndex(-1);
             ui->usabilityBox->setCurrentIndex(-1);
             ui->graspBox->setDisabled(true);
             ui->affordanceBox->setDisabled(true);
