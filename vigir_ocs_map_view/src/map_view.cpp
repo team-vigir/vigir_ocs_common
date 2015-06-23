@@ -18,7 +18,7 @@
 #include "rviz/display.h"
 #include <render_panel_custom.h>
 
-#include <flor_perception_msgs/EnvironmentRegionRequest.h>
+#include <vigir_perception_msgs/EnvironmentRegionRequest.h>
 #include <flor_ocs_msgs/TwoPoint.h>
 #include <flor_ocs_msgs/OCSAugmentRegions.h>
 
@@ -46,16 +46,16 @@ MapView::MapView( QWidget* parent )
     Q_EMIT unHighlight();
 
     // create publisher for for the gridmap request
-    grid_map_request_pub_ = nh_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/gridmap_request", 1, false );
+    grid_map_request_pub_ = nh_.advertise<vigir_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/gridmap_request", 1, false );
 
     // create publisher for augmentations on the grid map
     augment_grid_map_pub_ = nh_.advertise<flor_ocs_msgs::OCSAugmentRegions>( "/flor/worldmodel/ocs_augmented_regions", 1, false );
 
     // create publisher for the octomap request
-    octomap_request_pub_ = nh_.advertise<flor_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/octomap_request", 1, false );
+    octomap_request_pub_ = nh_.advertise<vigir_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/octomap_request", 1, false );
 
     // create publisher for point cloud
-    point_cloud_request_pub_ = nh_.advertise<flor_perception_msgs::PointCloudTypeRegionRequest>( "/flor/worldmodel/ocs/cloud_request", 1, false );
+    point_cloud_request_pub_ = nh_.advertise<vigir_perception_msgs::PointCloudTypeRegionRequest>( "/flor/worldmodel/ocs/cloud_request", 1, false );
 
     // connect to selection display to query position/raycast
     QObject::connect(this, SIGNAL(queryPosition(int,int,Ogre::Vector3&)), selection_3d_display_, SLOT(queryPosition(int,int,Ogre::Vector3&)));
@@ -157,7 +157,7 @@ void MapView::requestMap(double min_z, double max_z, double resolution)
     Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
     Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
 
-    flor_perception_msgs::EnvironmentRegionRequest cmd;
+    vigir_perception_msgs::EnvironmentRegionRequest cmd;
 
     cmd.bounding_box_min.x = min.x;
     cmd.bounding_box_min.y = min.y;
@@ -188,7 +188,7 @@ void MapView::requestOctomap(double min_z, double max_z, double resolution)
     Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
     Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
 
-    flor_perception_msgs::EnvironmentRegionRequest cmd;
+    vigir_perception_msgs::EnvironmentRegionRequest cmd;
 
     cmd.bounding_box_min.x = min.x;
     cmd.bounding_box_min.y = min.y;
@@ -228,7 +228,7 @@ bool MapView::hasValidSelection()
 
 void MapView::requestPointCloud(int type)
 {
-    flor_perception_msgs::PointCloudTypeRegionRequest cmd;
+    vigir_perception_msgs::PointCloudTypeRegionRequest cmd;
     cmd.environment_region_request = last_request_.environment_region_request;
     cmd.data_source = type;
     point_cloud_request_pub_.publish(cmd);
@@ -240,9 +240,9 @@ void MapView::requestPointCloud(int type)
 void MapView::requestPointCloud(double min_z, double max_z, double resolution, int type, int aggregation_size)
 {
 	// first we update the size of the points in the point cloud based on resolution
-//	if(type == flor_perception_msgs::PointCloudTypeRegionRequest::STEREO) // hard coded for now
+//	if(type == vigir_perception_msgs::PointCloudTypeRegionRequest::STEREO) // hard coded for now
 //	    stereo_point_cloud_viewer_->subProp( "Size (m)" )->setValue( resolution );
-//	else if(type == flor_perception_msgs::PointCloudTypeRegionRequest::LIDAR_FILTERED || type == flor_perception_msgs::PointCloudTypeRegionRequest::LIDAR_UNFILTERED)
+//	else if(type == vigir_perception_msgs::PointCloudTypeRegionRequest::LIDAR_FILTERED || type == vigir_perception_msgs::PointCloudTypeRegionRequest::LIDAR_UNFILTERED)
 //        region_point_cloud_viewer_->subProp( "Size (m)" )->setValue( resolution );
 
 	// then we create the point cloud request message.
@@ -253,9 +253,9 @@ void MapView::requestPointCloud(double min_z, double max_z, double resolution, i
     Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
     Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
 
-    flor_perception_msgs::PointCloudTypeRegionRequest cmd;
+    vigir_perception_msgs::PointCloudTypeRegionRequest cmd;
 
-    flor_perception_msgs::EnvironmentRegionRequest& env = cmd.environment_region_request;
+    vigir_perception_msgs::EnvironmentRegionRequest& env = cmd.environment_region_request;
 
     env.bounding_box_min.x = min.x;
     env.bounding_box_min.y = min.y;

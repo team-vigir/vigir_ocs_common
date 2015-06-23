@@ -22,7 +22,7 @@
 #include "ortho_view_controller_custom.h"
 #include <render_panel_custom.h>
 
-#include <flor_perception_msgs/EnvironmentRegionRequest.h>
+#include <vigir_perception_msgs/EnvironmentRegionRequest.h>
 
 #include "ortho_view.h"
 

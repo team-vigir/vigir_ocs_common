@@ -59,8 +59,8 @@
 #include "flor_ocs_msgs/OCSSynchronize.h"
 #include <flor_ocs_msgs/OCSMarkerVisibility.h>
 #include <flor_ocs_msgs/OCSGraspSync.h>
-#include <flor_perception_msgs/RaycastRequest.h>
-#include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
+#include <vigir_perception_msgs/RaycastRequest.h>
+#include <vigir_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
 #include <flor_control_msgs/FlorControlMode.h>
 

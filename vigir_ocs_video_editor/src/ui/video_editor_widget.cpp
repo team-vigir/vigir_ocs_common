@@ -374,9 +374,9 @@ QString VideoEditorWidget::timeFromMsg(const ros::Time& stamp)
     stream << std::setw(3) << std::setfill('0') << nano;
     return QString::fromStdString(stream.str());
 }
-void VideoEditorWidget::processvideoimage (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
+void VideoEditorWidget::processvideoimage (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
-    //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
+    //if(msg->mode==vigir_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate = msg->publish_frequency;
     //ROS_ERROR("in process video image.feed rate = %f", feed_rate);
 

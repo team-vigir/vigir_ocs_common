@@ -73,7 +73,7 @@
 #include "camera_display_custom.h"
 #include "rviz/load_resource.h"
 
-#include <flor_perception_msgs/DownSampledImageRequest.h>
+#include <vigir_perception_msgs/DownSampledImageRequest.h>
 
 
 namespace rviz
@@ -333,19 +333,19 @@ void CameraDisplayCustom::onInitialize()
     }
 
     // first create a publisher to set the parameters of the full image
-    //img_req_pub_full_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, true );
+    //img_req_pub_full_ = n_.advertise<vigir_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, true );
 
     // publish image request for full image - TO DO: MAKE THESE CONFIGURABLE WITH A SLOT FOR UI INTEGRATION
     ////publishFullImageRequest();
 
     // also create a publisher to set parameters of cropped image
-    //img_req_pub_crop_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, false );
+    //img_req_pub_crop_ = n_.advertise<vigir_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, false );
     // then, subscribe to the resulting cropped image
     //cropped_image_ = n_.subscribe<sensor_msgs::Image>( "/l_image_cropped/image_raw", 5, &CameraDisplayCustom::processCroppedImage, this );
 
     // finally, we need to subscribe to requests so that multiple clients have everything updated
-    //img_req_sub_crop_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, &CameraDisplayCustom::processCropImageRequest, this );
-    //img_req_sub_full_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &CameraDisplayCustom::processFullImageRequest, this );
+    //img_req_sub_crop_ = n_.subscribe<vigir_perception_msgs::DownSampledImageRequest>( "/l_image_cropped/image_request", 1, &CameraDisplayCustom::processCropImageRequest, this );
+    //img_req_sub_full_ = n_.subscribe<vigir_perception_msgs::DownSampledImageRequest>( "/l_image_full/image_request", 1, &CameraDisplayCustom::processFullImageRequest, this );
 
     caminfo_tf_filter_->connectInput(caminfo_sub_);
     caminfo_tf_filter_->registerCallback(boost::bind(&CameraDisplayCustom::caminfoCallback, this, _1));
@@ -809,7 +809,7 @@ void CameraDisplayCustom::processCroppedImage(const sensor_msgs::Image::ConstPtr
     texture_selection_.addMessage(msg);
 }
 
-void CameraDisplayCustom::processFullImageRequest(const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+void CameraDisplayCustom::processFullImageRequest(const vigir_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
 {
     full_image_binning_ = msg->binning_x;
     full_image_width_ = msg->roi.width;
@@ -817,7 +817,7 @@ void CameraDisplayCustom::processFullImageRequest(const flor_perception_msgs::Do
     publish_frequency_ = msg->publish_frequency;
 }
 
-void CameraDisplayCustom::processCropImageRequest(const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
+void CameraDisplayCustom::processCropImageRequest(const vigir_perception_msgs::DownSampledImageRequest::ConstPtr& msg)
 {
     crop_binning_ = msg->binning_x;
     crop_width_ = msg->roi.width;
@@ -972,7 +972,7 @@ void CameraDisplayCustom::changeCropCameraSpeed( int t )
 
 void CameraDisplayCustom::publishCropImageRequest()
 {
-    flor_perception_msgs::DownSampledImageRequest cmd;
+    vigir_perception_msgs::DownSampledImageRequest cmd;
 
     cmd.binning_x = crop_binning_;
     cmd.binning_y = crop_binning_;
@@ -992,7 +992,7 @@ void CameraDisplayCustom::publishCropImageRequest()
 
 void CameraDisplayCustom::publishFullImageRequest()
 {
-    flor_perception_msgs::DownSampledImageRequest cmd;
+    vigir_perception_msgs::DownSampledImageRequest cmd;
 
     cmd.binning_x = full_image_binning_;
     cmd.binning_y = full_image_binning_;
@@ -1160,14 +1160,14 @@ void CameraDisplayCustom::updateImgReqTopic()
     if(!img_req_full_topic_property_->getTopicStd().empty())
     {
         img_req_pub_full_.shutdown();
-        img_req_pub_full_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( img_req_full_topic_property_->getTopicStd(), 1, true );
+        img_req_pub_full_ = n_.advertise<vigir_perception_msgs::DownSampledImageRequest>( img_req_full_topic_property_->getTopicStd(), 1, true );
 
         // publish image request for full image - TO DO: MAKE THESE CONFIGURABLE WITH A SLOT FOR UI INTEGRATION
         //publishFullImageRequest();
 
         img_req_sub_full_.shutdown();
         // finally, we need to subscribe to requests so that multiple clients have everything updated
-        img_req_sub_full_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( img_req_full_topic_property_->getTopicStd(), 1, &CameraDisplayCustom::processFullImageRequest, this );
+        img_req_sub_full_ = n_.subscribe<vigir_perception_msgs::DownSampledImageRequest>( img_req_full_topic_property_->getTopicStd(), 1, &CameraDisplayCustom::processFullImageRequest, this );
     }
 }
 
@@ -1179,11 +1179,11 @@ void CameraDisplayCustom::updateImgReqCroppedTopic()
     {
         img_req_pub_crop_.shutdown();
         // also create a publisher to set parameters of cropped image
-        img_req_pub_crop_ = n_.advertise<flor_perception_msgs::DownSampledImageRequest>( img_req_cropped_topic_property_->getTopicStd(), 1, false );
+        img_req_pub_crop_ = n_.advertise<vigir_perception_msgs::DownSampledImageRequest>( img_req_cropped_topic_property_->getTopicStd(), 1, false );
 
         img_req_sub_crop_.shutdown();
         // finally, we need to subscribe to requests so that multiple clients have everything updated
-        img_req_sub_crop_ = n_.subscribe<flor_perception_msgs::DownSampledImageRequest>( img_req_cropped_topic_property_->getTopicStd(), 1, &CameraDisplayCustom::processCropImageRequest, this );
+        img_req_sub_crop_ = n_.subscribe<vigir_perception_msgs::DownSampledImageRequest>( img_req_cropped_topic_property_->getTopicStd(), 1, &CameraDisplayCustom::processCropImageRequest, this );
     }
 }
 

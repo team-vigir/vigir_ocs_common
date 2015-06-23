@@ -54,7 +54,7 @@
 #include <ros/ros.h>
 
 #include <image_transport/image_transport.h>
-#include <flor_perception_msgs/DownSampledImageRequest.h>
+#include <vigir_perception_msgs/DownSampledImageRequest.h>
 
 class QMouseEvent;
 
@@ -99,8 +99,8 @@ protected:
     virtual void processCroppedImage(const sensor_msgs::Image::ConstPtr& msg);
 
     // The two functions that update our local variables for
-    void processFullImageRequest(const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
-    void processCropImageRequest(const flor_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
+    void processFullImageRequest(const vigir_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
+    void processCropImageRequest(const vigir_perception_msgs::DownSampledImageRequest::ConstPtr& msg);
 
 private:
     enum

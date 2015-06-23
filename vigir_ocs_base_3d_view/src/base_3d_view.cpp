@@ -53,7 +53,7 @@
 #include "flor_ocs_msgs/OCSTemplateRemove.h"
 #include "flor_ocs_msgs/OCSWaypointAdd.h"
 #include "flor_ocs_msgs/OCSControlMode.h"
-#include "flor_perception_msgs/EnvironmentRegionRequest.h"
+#include "vigir_perception_msgs/EnvironmentRegionRequest.h"
 #include "flor_planning_msgs/TargetConfigIkRequest.h"
 #include "flor_planning_msgs/CartesianMotionRequest.h"
 #include "flor_planning_msgs/CircularMotionRequest.h"
@@ -565,7 +565,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         joint_states_sub_ = nh_.subscribe("joint_states", 2, &Base3DView::processJointStates, this );
 
         // advertise pointcloud request
-        pointcloud_request_world_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
+        pointcloud_request_world_pub_ = nh_.advertise<vigir_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
 
         // Create a display for 3D selection
         selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
@@ -2443,7 +2443,7 @@ void Base3DView::setSelectionRay( Ogre::Ray ray )
 
 void Base3DView::publishPointCloudWorldRequest()
 {
-    flor_perception_msgs::RaycastRequest request;
+    vigir_perception_msgs::RaycastRequest request;
 
     request.origin.x = last_selection_ray_.getOrigin().x;
     request.origin.y = last_selection_ray_.getOrigin().y;

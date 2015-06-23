@@ -1,6 +1,6 @@
 # Convert the Qt Signals and Slots for QWidget events
 qt4_wrap_cpp(MOC_SOURCES src/image_display_custom.h)
-find_package(catkin REQUIRED COMPONENTS flor_perception_msgs)
+find_package(catkin REQUIRED COMPONENTS vigir_perception_msgs)
 
 include_directories(${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} )
 

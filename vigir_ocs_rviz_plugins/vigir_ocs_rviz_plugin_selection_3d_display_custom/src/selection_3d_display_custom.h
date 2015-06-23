@@ -46,7 +46,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <std_msgs/Float64.h>
 
-#include <flor_perception_msgs/RaycastRequest.h>
+#include <vigir_perception_msgs/RaycastRequest.h>
 #include <flor_ocs_msgs/OCSRaycastRequest.h>
 
 #include <tf/transform_listener.h>

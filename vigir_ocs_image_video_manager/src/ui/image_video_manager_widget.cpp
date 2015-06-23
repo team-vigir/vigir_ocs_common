@@ -799,44 +799,44 @@ QString ImageVideoManagerWidget::timeFromMsg(const ros::Time& stamp)
     stream << std::setw(3) << std::setfill('0') << nano;
     return QString::fromStdString(stream.str());
 }
-void ImageVideoManagerWidget::processvideoimage_l (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
+void ImageVideoManagerWidget::processvideoimage_l (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
-    //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
+    //if(msg->mode==vigir_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate_l = msg->publish_frequency;
     ROS_ERROR("in process video imagel.feed rate = %f", feed_rate_l);
 
 }
-void ImageVideoManagerWidget::processvideoimage_r (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
+void ImageVideoManagerWidget::processvideoimage_r (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
-    //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
+    //if(msg->mode==vigir_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate_r = msg->publish_frequency;
     ROS_ERROR("in process video imager.feed rate = %f", feed_rate_r);
 
 }
-void ImageVideoManagerWidget::processvideoimage_lhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
+void ImageVideoManagerWidget::processvideoimage_lhl (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
-    //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
+    //if(msg->mode==vigir_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate_lhl = msg->publish_frequency;
     ROS_ERROR("in process video imagelhl.feed rate = %f", feed_rate_lhl);
 
 }
-void ImageVideoManagerWidget::processvideoimage_lhr (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
+void ImageVideoManagerWidget::processvideoimage_lhr (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
-    //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
+    //if(msg->mode==vigir_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate_lhr = msg->publish_frequency;
     ROS_ERROR("in process video imagelhr.feed rate = %f", feed_rate_lhr);
 
 }
-void ImageVideoManagerWidget::processvideoimage_rhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
+void ImageVideoManagerWidget::processvideoimage_rhl (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
-    //if(msg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
+    //if(msg->mode==vigir_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate_rhl = msg->publish_frequency;
     ROS_ERROR("in process video imagerhl.feed rate = %f", feed_rate_rhl);
 
 }
-void ImageVideoManagerWidget::processvideoimage_rhr (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg)
+void ImageVideoManagerWidget::processvideoimage_rhr (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg)
 {
-    //if(msinsertTopLevelItemg->mode==flor_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
+    //if(msinsertTopLevelItemg->mode==vigir_perception_msgs::DownSampledImageRequest::PUBLISH_FREQ)
         feed_rate_rhr = msg->publish_frequency;
     ROS_ERROR("in process video imagerhr.feed rate = %f", feed_rate_rhr);
 

@@ -90,7 +90,7 @@ void Selection3DDisplayCustom::onInitialize()
 {
     context_->getSceneManager()->addRenderQueueListener(this);
 
-    raycast_query_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_distance_request_world", 1, false );
+    raycast_query_pub_ = nh_.advertise<vigir_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_distance_request_world", 1, false );
     raycast_query_sub_ = nh_.subscribe<std_msgs::Float64>( "/flor/worldmodel/ocs/dist_query_distance_result", 5, &Selection3DDisplayCustom::processDistQuery, this );
     ocs_raycast_query_pub_ = nh_.advertise<flor_ocs_msgs::OCSRaycastRequest>( "/flor/ocs/dist_query_request", 1, false );
     ocs_raycast_query_sub_ = nh_.subscribe<flor_ocs_msgs::OCSRaycastRequest>( "/flor/ocs/dist_query_request", 5, &Selection3DDisplayCustom::processOCSDistQuery, this );
@@ -703,7 +703,7 @@ void Selection3DDisplayCustom::processDistQuery( const std_msgs::Float64::ConstP
 
 void Selection3DDisplayCustom::publishRayRequest(Ogre::Vector3 origin, Ogre::Vector3 direction)
 {
-    flor_perception_msgs::RaycastRequest request;
+    vigir_perception_msgs::RaycastRequest request;
 
     request.origin.x = origin.x;
     request.origin.y = origin.y;

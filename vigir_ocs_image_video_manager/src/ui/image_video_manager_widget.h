@@ -21,7 +21,7 @@
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
-#include <flor_perception_msgs/DownSampledImageRequest.h>
+#include <vigir_perception_msgs/DownSampledImageRequest.h>
 #include <ros/ros.h>
 
 namespace rviz
@@ -45,12 +45,12 @@ public:
     void processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg);
     void processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr msg);
     void processSelectedImage(const sensor_msgs::Image::ConstPtr msg);
-    void processvideoimage_l (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg);
-    void processvideoimage_r (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg);
-    void processvideoimage_lhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg);
-    void processvideoimage_lhr (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg);
-    void processvideoimage_rhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg);
-    void processvideoimage_rhr(const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg);
+    void processvideoimage_l (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg);
+    void processvideoimage_r (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg);
+    void processvideoimage_lhl (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg);
+    void processvideoimage_lhr (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg);
+    void processvideoimage_rhl (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg);
+    void processvideoimage_rhr(const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg);
 
     void addImageChild(QTreeWidgetItem *parent, const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info,int flag);
     QTreeWidgetItem* addvideoitem(int videocount,const sensor_msgs::Image& image);
