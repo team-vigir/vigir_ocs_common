@@ -20,9 +20,9 @@
 #include <flor_ocs_msgs/OCSTemplateRemove.h>
 #include <flor_ocs_msgs/OCSTemplateList.h>
 #include <flor_ocs_msgs/OCSTemplateUpdate.h>
-#include <flor_grasp_msgs/GraspSelection.h>
-#include <flor_grasp_msgs/GraspState.h>
-#include <flor_grasp_msgs/TemplateSelection.h>
+#include <vigir_grasp_msgs/GraspSelection.h>
+#include <vigir_grasp_msgs/GraspState.h>
+#include <vigir_grasp_msgs/TemplateSelection.h>
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/GetInstantiatedGraspInfo.h>
@@ -91,9 +91,9 @@ namespace ocs_template
         void updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr msg);
         void stitchTemplateFwdCb(const vigir_object_template_msgs::TemplateStateInfo::ConstPtr msg);
         void detachTemplateFwdCb(const vigir_object_template_msgs::TemplateStateInfo::ConstPtr msg);
-        void snapTemplateCb(const flor_grasp_msgs::TemplateSelection::ConstPtr msg);
-        void graspStateFeedbackCb(const flor_grasp_msgs::GraspState::ConstPtr msg);
-        void templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr msg);
+        void snapTemplateCb(const vigir_grasp_msgs::TemplateSelection::ConstPtr msg);
+        void graspStateFeedbackCb(const vigir_grasp_msgs::GraspState::ConstPtr msg);
+        void templateMatchFeedbackCb(const vigir_grasp_msgs::TemplateSelection::ConstPtr msg);
         void publishTemplateList();
         void loadObjectTemplateDatabaseXML(std::string& file_name);
         void loadGraspDatabaseXML(std::string& file_name, std::string hand_side);

@@ -41,10 +41,10 @@
 #include <flor_ocs_msgs/OCSKeyEvent.h>
 #include <flor_ocs_msgs/OCSObjectSelection.h>
 #include <flor_ocs_msgs/OCSGraspSync.h>
-#include <flor_grasp_msgs/GraspState.h>
-#include <flor_grasp_msgs/GraspSelection.h>
-#include <flor_grasp_msgs/TemplateSelection.h>
-#include <flor_grasp_msgs/LinkState.h>
+#include <vigir_grasp_msgs/GraspState.h>
+#include <vigir_grasp_msgs/GraspSelection.h>
+#include <vigir_grasp_msgs/TemplateSelection.h>
+#include <vigir_grasp_msgs/LinkState.h>
 
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
@@ -98,10 +98,10 @@ private:
     Ui::graspWidget *ui;
     handOffsetWidget *ui2;
 
-    void graspStateReceived (const flor_grasp_msgs::GraspState::ConstPtr graspState);
-    void graspSelectedReceived (const flor_grasp_msgs::GraspSelection::ConstPtr graspMsg);
+    void graspStateReceived (const vigir_grasp_msgs::GraspState::ConstPtr graspState);
+    void graspSelectedReceived (const vigir_grasp_msgs::GraspSelection::ConstPtr graspMsg);
     void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr list);
-    void templateMatchFeedback (const flor_grasp_msgs::TemplateSelection::ConstPtr feedback);
+    void templateMatchFeedback (const vigir_grasp_msgs::TemplateSelection::ConstPtr feedback);
     void processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg);
 
     int calcWristTarget( const geometry_msgs::Pose& wrist_pose,const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose );
@@ -197,7 +197,7 @@ private:
     // get joint states
     ros::Subscriber link_states_sub_;
 
-    void linkStatesCB(const flor_grasp_msgs::LinkState::ConstPtr link_states);
+    void linkStatesCB(const vigir_grasp_msgs::LinkState::ConstPtr link_states);
 
     bool show_grasp_;
 

@@ -10,7 +10,7 @@
 
 #include <boost/exception/to_string.hpp>
 
-#include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
+#include <vigir_grasp_msgs/InverseReachabilityForGraspRequest.h>
 #include <flor_ocs_msgs/OCSInverseReachability.h>
 #include <flor_ocs_msgs/WindowCodes.h>
 
@@ -410,8 +410,8 @@ void GhostControlWidget::on_send_right_leg_button__clicked()
 
 void GhostControlWidget::on_send_left_ghost_hand_button__clicked()
 {
-    flor_grasp_msgs::InverseReachabilityForGraspRequest inv_grasp_req;
-    inv_grasp_req.hand_side = flor_grasp_msgs::InverseReachabilityForGraspRequest::HAND_LEFT;
+    vigir_grasp_msgs::InverseReachabilityForGraspRequest inv_grasp_req;
+    inv_grasp_req.hand_side = vigir_grasp_msgs::InverseReachabilityForGraspRequest::HAND_LEFT;
     flor_ocs_msgs::OCSInverseReachability cmd;
     cmd.request = inv_grasp_req;
     cmd.use_pose = flor_ocs_msgs::OCSInverseReachability::GHOST_HAND;
@@ -420,8 +420,8 @@ void GhostControlWidget::on_send_left_ghost_hand_button__clicked()
 
 void GhostControlWidget::on_send_right_ghost_hand_button__clicked()
 {
-    flor_grasp_msgs::InverseReachabilityForGraspRequest inv_grasp_req;
-    inv_grasp_req.hand_side = flor_grasp_msgs::InverseReachabilityForGraspRequest::HAND_RIGHT;
+    vigir_grasp_msgs::InverseReachabilityForGraspRequest inv_grasp_req;
+    inv_grasp_req.hand_side = vigir_grasp_msgs::InverseReachabilityForGraspRequest::HAND_RIGHT;
     flor_ocs_msgs::OCSInverseReachability cmd;
     cmd.request = inv_grasp_req;
     cmd.use_pose = flor_ocs_msgs::OCSInverseReachability::GHOST_HAND;

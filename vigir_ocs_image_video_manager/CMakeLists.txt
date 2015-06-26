@@ -3,13 +3,13 @@ project(vigir_ocs_image_video_manager)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib std_msgs rviz cv_bridge flor_ocs_msgs flor_grasp_msgs vigir_perception_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib std_msgs rviz cv_bridge flor_ocs_msgs vigir_grasp_msgs vigir_perception_msgs)
 
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-    CATKIN_DEPENDS roscpp rospy roslib std_msgs rviz cv_bridge flor_ocs_msgs flor_grasp_msgs vigir_perception_msgs
+    CATKIN_DEPENDS roscpp rospy roslib std_msgs rviz cv_bridge flor_ocs_msgs vigir_grasp_msgs vigir_perception_msgs
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:

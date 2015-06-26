@@ -10,8 +10,8 @@ void TemplateNodelet::onInit()
 
     // also create a publisher to set parameters of cropped image
     template_list_pub_         = nh_out.advertise<flor_ocs_msgs::OCSTemplateList>( "list", 5, false );
-    grasp_selected_pub_        = nh_out.advertise<flor_grasp_msgs::GraspSelection>( "grasp_selected", 5, false );
-    grasp_selected_state_pub_  = nh_out.advertise<flor_grasp_msgs::GraspState>( "grasp_selected_state", 5, false );
+    grasp_selected_pub_        = nh_out.advertise<vigir_grasp_msgs::GraspSelection>( "grasp_selected", 5, false );
+    grasp_selected_state_pub_  = nh_out.advertise<vigir_grasp_msgs::GraspState>( "grasp_selected_state", 5, false );
 
     // then, subscribe to the resulting cropped image
     template_add_sub_            = nh_out.subscribe( "add", 5, &TemplateNodelet::addTemplateCb, this );
@@ -264,7 +264,7 @@ void TemplateNodelet::updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::C
     this->publishTemplateList();
 }
 
-void TemplateNodelet::snapTemplateCb(const flor_grasp_msgs::TemplateSelection::ConstPtr msg)
+void TemplateNodelet::snapTemplateCb(const vigir_grasp_msgs::TemplateSelection::ConstPtr msg)
 {
     boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
 
@@ -302,14 +302,14 @@ void TemplateNodelet::detachTemplateFwdCb(const vigir_object_template_msgs::Temp
     }
 }
 
-void TemplateNodelet::graspStateFeedbackCb(const flor_grasp_msgs::GraspState::ConstPtr msg)
+void TemplateNodelet::graspStateFeedbackCb(const vigir_grasp_msgs::GraspState::ConstPtr msg)
 {
     std::cout << "Grasp feedback" << std::endl;
     std::cout << "Grasp control mode" << ((msg->grasp_state.data & 0xf0) >> 4) << std::endl;
     std::cout << "Grasp control state" << (msg->grasp_state.data & 0x0f) << std::endl;
 }
 
-void TemplateNodelet::templateMatchFeedbackCb(const flor_grasp_msgs::TemplateSelection::ConstPtr msg)
+void TemplateNodelet::templateMatchFeedbackCb(const vigir_grasp_msgs::TemplateSelection::ConstPtr msg)
 {
     boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
 
