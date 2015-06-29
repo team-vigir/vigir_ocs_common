@@ -57,7 +57,7 @@
 #include <flor_ocs_msgs/OCSCameraTransform.h>
 #include <flor_ocs_msgs/OCSControlMode.h>
 #include "flor_ocs_msgs/OCSSynchronize.h"
-#include <flor_ocs_msgs/OCSMarkerVisibility.h>
+//#include <flor_ocs_msgs/OCSMarkerVisibility.h>
 #include <flor_ocs_msgs/OCSGraspSync.h>
 #include <vigir_perception_msgs/RaycastRequest.h>
 #include <vigir_perception_msgs/PointCloudTypeRegionRequest.h>
