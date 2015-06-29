@@ -18,7 +18,7 @@
 #include <flor_ocs_msgs/OCSControlMode.h>
 #include <flor_ocs_msgs/OCSObjectSelection.h>
 #include <flor_ocs_msgs/OCSSelectedObjectUpdate.h>
-#include <flor_ocs_msgs/OCSMarkerVisibility.h>
+//#include <flor_ocs_msgs/OCSMarkerVisibility.h>
 
 #include <std_msgs/String.h>
 #include <std_msgs/Int8.h>
