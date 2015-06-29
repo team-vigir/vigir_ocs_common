@@ -8,9 +8,9 @@
 #include <QFile>
 #include <QDir>
 #include "ui/main_view_widget.h"
-#include "flor_ocs_msgs/OCSTemplateAdd.h"
-#include "flor_ocs_msgs/OCSTemplateRemove.h"
-#include "flor_ocs_msgs/OCSTemplateList.h"
+#include "vigir_ocs_msgs/OCSTemplateAdd.h"
+#include "vigir_ocs_msgs/OCSTemplateRemove.h"
+#include "vigir_ocs_msgs/OCSTemplateList.h"
 #include <ros/ros.h>
 #include <QQuaternion>
 #include <QVector3D>
@@ -30,11 +30,11 @@ public Q_SLOTS:
     void newChallenge();
 
 private:
-    void addInteractiveMarker( const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr& msg );
+    void addInteractiveMarker( const vigir_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr& msg );
     void insertTemplate(QVector3D*  position, QQuaternion* rotation, QString);
     void defineTransforms();
 
-    void templateListCb(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg);
+    void templateListCb(const vigir_ocs_msgs::OCSTemplateList::ConstPtr& msg);
 
     std::vector<QVector3D *> templatePositions;
     std::vector<QQuaternion *> templateRotations;
@@ -56,7 +56,7 @@ private:
 
     ros::Subscriber interactive_marker_sub;
 
-    flor_ocs_msgs::OCSTemplateList temList;
+    vigir_ocs_msgs::OCSTemplateList temList;
 
     ros::NodeHandle n_;    
 

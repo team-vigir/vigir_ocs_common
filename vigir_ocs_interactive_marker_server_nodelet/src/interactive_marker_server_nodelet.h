@@ -13,12 +13,12 @@
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
 
-#include <flor_ocs_msgs/OCSInteractiveMarkerAdd.h>
-#include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
-#include <flor_ocs_msgs/OCSControlMode.h>
-#include <flor_ocs_msgs/OCSObjectSelection.h>
-#include <flor_ocs_msgs/OCSSelectedObjectUpdate.h>
-//#include <flor_ocs_msgs/OCSMarkerVisibility.h>
+#include <vigir_ocs_msgs/OCSInteractiveMarkerAdd.h>
+#include <vigir_ocs_msgs/OCSInteractiveMarkerUpdate.h>
+#include <vigir_ocs_msgs/OCSControlMode.h>
+#include <vigir_ocs_msgs/OCSObjectSelection.h>
+#include <vigir_ocs_msgs/OCSSelectedObjectUpdate.h>
+//#include <vigir_ocs_msgs/OCSMarkerVisibility.h>
 
 #include <std_msgs/String.h>
 #include <std_msgs/Int8.h>
@@ -34,13 +34,13 @@ namespace ocs_interactive_marker_server
         //virtual void onInit();
         InteractiveMarkerServerNodelet();
 
-        void addInteractiveMarker( const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr msg );
+        void addInteractiveMarker( const vigir_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr msg );
         void removeInteractiveMarker( const std_msgs::String::ConstPtr msg );
-        void updatePose(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr msg );
+        void updatePose(const vigir_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr msg );
         void onMarkerFeedback(unsigned char event_type, std::string topic_name, geometry_msgs::PoseStamped pose, std::string client_id );
-        void setMode(const flor_ocs_msgs::OCSControlMode::ConstPtr msg);
-        void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr obj);
-        //void processMarkerVisibility(const flor_ocs_msgs::OCSMarkerVisibility::ConstPtr msg);
+        void setMode(const vigir_ocs_msgs::OCSControlMode::ConstPtr msg);
+        void processObjectSelection(const vigir_ocs_msgs::OCSObjectSelection::ConstPtr obj);
+        //void processMarkerVisibility(const vigir_ocs_msgs::OCSMarkerVisibility::ConstPtr msg);
 
       private:
         ros::NodeHandle nh;

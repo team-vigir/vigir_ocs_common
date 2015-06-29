@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 
-#include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <vigir_ocs_msgs/OCSKeyEvent.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>

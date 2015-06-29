@@ -3,7 +3,7 @@ project(vigir_ocs_template_nodelet)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy tf tf_conversions pluginlib std_msgs geometry_msgs moveit_core moveit_ros_planning shape_msgs visualization_msgs flor_ocs_msgs vigir_grasp_msgs vigir_object_template_msgs nodelet cmake_modules)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy tf tf_conversions pluginlib std_msgs geometry_msgs moveit_core moveit_ros_planning shape_msgs visualization_msgs vigir_ocs_msgs vigir_grasp_msgs vigir_object_template_msgs nodelet cmake_modules)
 
 find_package(TinyXML REQUIRED)
 
@@ -11,7 +11,7 @@ find_package(TinyXML REQUIRED)
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-        CATKIN_DEPENDS roscpp rospy tf tf_conversions pluginlib std_msgs geometry_msgs moveit_core moveit_ros_planning shape_msgs visualization_msgs flor_ocs_msgs vigir_grasp_msgs vigir_object_template_msgs nodelet
+        CATKIN_DEPENDS roscpp rospy tf tf_conversions pluginlib std_msgs geometry_msgs moveit_core moveit_ros_planning shape_msgs visualization_msgs vigir_ocs_msgs vigir_grasp_msgs vigir_object_template_msgs nodelet
         DEPENDS TinyXML
 )
 

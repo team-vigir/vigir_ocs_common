@@ -20,8 +20,8 @@
 #include <ros/time.h>
 
 #include <std_msgs/Bool.h>
-#include <flor_ocs_msgs/OCSRobotStatus.h>
-#include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <vigir_ocs_msgs/OCSRobotStatus.h>
+#include <vigir_ocs_msgs/OCSKeyEvent.h>
 
 class completeRow
 {
@@ -46,10 +46,10 @@ public:
     int getNumError();
     int getNumWarn();
     QString timeFromMsg(const ros::Time msg);
-    void receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg);
+    void receivedMessage(const vigir_ocs_msgs::OCSRobotStatus::ConstPtr msg);
     void clearCalledMsg(const std_msgs::Bool::ConstPtr msg);
     void clearTable();
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr pose);
+    void processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr pose);
 private Q_SLOTS:
     void on_clearButton_clicked();
     void on_msgTable_cellClicked(int row, int column);

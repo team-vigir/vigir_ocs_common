@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QBasicTimer>
 #include <ros/ros.h>
-#include <flor_ocs_msgs/OCSLogging.h>
+#include <vigir_ocs_msgs/OCSLogging.h>
 #include <std_msgs/String.h>
 #include "boost/filesystem.hpp"
 

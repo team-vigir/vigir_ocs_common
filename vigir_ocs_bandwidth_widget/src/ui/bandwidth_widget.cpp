@@ -17,10 +17,10 @@ BandwidthWidget::BandwidthWidget(QWidget *parent) :
     ui->setupUi(this);
     bytes_remaining_initialized = false;
     // subscribe to the topic to monitor bandwidth usage
-    drc_data_pub_ = nh_.advertise<flor_ocs_msgs::DRCdata>("/drc_data_sumary",false);
-    ocs_bandwidth_sub_ = nh_.subscribe<flor_ocs_msgs::OCSBandwidth>( "/flor_ocs_bandwidth", 5, &BandwidthWidget::processBandwidthMessage, this );
+    drc_data_pub_ = nh_.advertise<vigir_ocs_msgs::DRCdata>("/drc_data_sumary",false);
+    ocs_bandwidth_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSBandwidth>( "/flor_ocs_bandwidth", 5, &BandwidthWidget::processBandwidthMessage, this );
     // subscribe to the topic to load all waypoints
-    vrc_data_sub_ = nh_.subscribe<flor_ocs_msgs::DRCdata>( "/vrc_data", 5, &BandwidthWidget::processDRCData, this );
+    vrc_data_sub_ = nh_.subscribe<vigir_ocs_msgs::DRCdata>( "/vrc_data", 5, &BandwidthWidget::processDRCData, this );
     timer.start(33, this);
     updateTimer.start(SECONDS_BETWEEN_UPDATES*1000,this);
     lowBWMode = false;
@@ -103,7 +103,7 @@ void BandwidthWidget::updateRateValues()
     double total_up = (last_max_bytes_up - ui->upTotalLabel->text().toInt())/SECONDS_BETWEEN_UPDATES;
     ui->downTotalLabel->setText(QString::number(total_down));
     ui->upTotalLabel->setText(QString::number(total_up));
-    flor_ocs_msgs::DRCdata msg;
+    vigir_ocs_msgs::DRCdata msg;
     if(latencyNums.size() > 0)
     {
         int total=0;
@@ -119,7 +119,7 @@ void BandwidthWidget::updateRateValues()
     drc_data_pub_.publish(msg);
 }
 
-void BandwidthWidget::processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth::ConstPtr& msg)
+void BandwidthWidget::processBandwidthMessage(const vigir_ocs_msgs::OCSBandwidth::ConstPtr& msg)
 {
     int starting_row_count = ui->tableWidget->rowCount();
     QTableWidgetItem* item;
@@ -251,7 +251,7 @@ void BandwidthWidget::resizeLatencyVector()
         latencyNums[i-1] = latencyNums[i];
 }
 
-void BandwidthWidget::processDRCData(const flor_ocs_msgs::DRCdata::ConstPtr& msg)
+void BandwidthWidget::processDRCData(const vigir_ocs_msgs::DRCdata::ConstPtr& msg)
 {
     //ui->competition_score->setText(QString::number(msg->competition_score));
     ui->latency->setText(QString::number(0));

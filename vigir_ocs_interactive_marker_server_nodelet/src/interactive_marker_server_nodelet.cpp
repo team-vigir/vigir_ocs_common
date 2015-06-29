@@ -5,7 +5,7 @@ namespace ocs_interactive_marker_server
 //void InteractiveMarkerServerNodelet::onInit()
 InteractiveMarkerServerNodelet::InteractiveMarkerServerNodelet()
 {
-    interactive_marker_server_feedback_pub_ = nh.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback",5, false );
+    interactive_marker_server_feedback_pub_ = nh.advertise<vigir_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/feedback",5, false );
     interactive_marker_server_add_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/add", 100, &InteractiveMarkerServerNodelet::addInteractiveMarker, this );
     interactive_marker_server_remove_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/remove", 100, &InteractiveMarkerServerNodelet::removeInteractiveMarker, this );
     interactive_marker_server_update_sub_ = nh.subscribe( "/flor/ocs/interactive_marker_server/update", 100, &InteractiveMarkerServerNodelet::updatePose, this);
@@ -14,7 +14,7 @@ InteractiveMarkerServerNodelet::InteractiveMarkerServerNodelet()
 
     // related to object selection
     select_object_sub_ = nh.subscribe( "/flor/ocs/object_selection", 5, &InteractiveMarkerServerNodelet::processObjectSelection, this );
-    selected_object_update_pub_ = nh.advertise<flor_ocs_msgs::OCSSelectedObjectUpdate>( "/flor/ocs/interactive_marker_server/selected_object_update", 5, false);
+    selected_object_update_pub_ = nh.advertise<vigir_ocs_msgs::OCSSelectedObjectUpdate>( "/flor/ocs/interactive_marker_server/selected_object_update", 5, false);
 
     //marker_feedback_timer_ = boost::posix_time::microsec_clock::universal_time();
 }
@@ -28,7 +28,7 @@ void InteractiveMarkerServerNodelet::publishSelectedObject()
         std::string host = it->first;
         std::string selected_object_topic = it->second;
 
-        flor_ocs_msgs::OCSSelectedObjectUpdate cmd;
+        vigir_ocs_msgs::OCSSelectedObjectUpdate cmd;
         cmd.topic = selected_object_topic;
         cmd.pose = pose_map_[selected_object_topic];
         cmd.host = host;
@@ -36,7 +36,7 @@ void InteractiveMarkerServerNodelet::publishSelectedObject()
     }
 }
 
-void InteractiveMarkerServerNodelet::addInteractiveMarker(const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr msg)
+void InteractiveMarkerServerNodelet::addInteractiveMarker(const vigir_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr msg)
 {
     //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
@@ -76,7 +76,7 @@ void InteractiveMarkerServerNodelet::removeInteractiveMarker( const std_msgs::St
     }
 }
 
-void InteractiveMarkerServerNodelet::updatePose( const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr msg )
+void InteractiveMarkerServerNodelet::updatePose( const vigir_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr msg )
 {
     //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
@@ -90,7 +90,7 @@ void InteractiveMarkerServerNodelet::updatePose( const flor_ocs_msgs::OCSInterac
         marker_map_[msg->topic]->setPose(msg->pose);
 
         // close the loop by sending feedback IF needed
-        if(msg->update_mode == flor_ocs_msgs::OCSInteractiveMarkerUpdate::SET_POSE)
+        if(msg->update_mode == vigir_ocs_msgs::OCSInteractiveMarkerUpdate::SET_POSE)
         {
             marker_map_[msg->topic]->onFeedback(msg->event_type,msg->topic,msg->pose,msg->client_id);
             pose_map_[msg->topic] = msg->pose;
@@ -115,7 +115,7 @@ void InteractiveMarkerServerNodelet::onMarkerFeedback(unsigned char event_type, 
 //    marker_feedback_timer_ = boost::posix_time::microsec_clock::universal_time();
 
     
-    flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+    vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
     cmd.client_id = client_id;
     cmd.topic = topic_name;
     cmd.pose = pose;
@@ -140,18 +140,18 @@ void InteractiveMarkerServerNodelet::onMarkerFeedback(unsigned char event_type, 
     }
 }
 
-void InteractiveMarkerServerNodelet::setMode(const flor_ocs_msgs::OCSControlMode::ConstPtr msg)
+void InteractiveMarkerServerNodelet::setMode(const vigir_ocs_msgs::OCSControlMode::ConstPtr msg)
 {
     //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
     //ROS_ERROR("CHANGING MODE");
     std::map<std::string,boost::shared_ptr<InteractiveMarkerServerCustom> >::iterator iter;
     for (iter = marker_map_.begin(); iter != marker_map_.end(); ++iter)
-        if(iter->second->getMode() != flor_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF)
+        if(iter->second->getMode() != vigir_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF)
             iter->second->setMode(msg->manipulationMode);
 }
 
-//void InteractiveMarkerServerNodelet::processMarkerVisibility(const flor_ocs_msgs::OCSMarkerVisibility::ConstPtr msg)
+//void InteractiveMarkerServerNodelet::processMarkerVisibility(const vigir_ocs_msgs::OCSMarkerVisibility::ConstPtr msg)
 //{
 //    //ROS_ERROR("marker visibiilty");
 //    //set visibility of different interactive markers
@@ -192,7 +192,7 @@ void InteractiveMarkerServerNodelet::setMode(const flor_ocs_msgs::OCSControlMode
 ////    }
 //}
 
-void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg)
+void InteractiveMarkerServerNodelet::processObjectSelection(const vigir_ocs_msgs::OCSObjectSelection::ConstPtr msg)
 {
     //boost::recursive_mutex::scoped_lock lock( interactive_marker_server_change_mutex_ );
 
@@ -204,17 +204,17 @@ void InteractiveMarkerServerNodelet::processObjectSelection(const flor_ocs_msgs:
         //Get id of object that is selected
         switch(msg->type)
         {
-            case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
+            case vigir_ocs_msgs::OCSObjectSelection::TEMPLATE:
                 selected_object_topic = "/template_"+boost::lexical_cast<std::string>(msg->id)+"_marker";
                 break;
-            case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
+            case vigir_ocs_msgs::OCSObjectSelection::FOOTSTEP:
                 selected_object_topic = "/footstep_"+boost::lexical_cast<std::string>(msg->id/2)+"_marker";
                 break;
-            case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL:
+            case vigir_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL:
                 selected_object_topic = "/footstep_goal_"+boost::lexical_cast<std::string>(msg->id/2 ? "right" : "left")+"_marker";
                 break;
-            case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
-                selected_object_topic = (msg->id == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM ? "/l_arm_pose_marker" : "/r_arm_pose_marker");
+            case vigir_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
+                selected_object_topic = (msg->id == vigir_ocs_msgs::OCSObjectSelection::LEFT_ARM ? "/l_arm_pose_marker" : "/r_arm_pose_marker");
                 break;
             default:
                 break;

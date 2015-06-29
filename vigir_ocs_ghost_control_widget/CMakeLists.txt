@@ -3,13 +3,13 @@ project(vigir_ocs_ghost_control_widget)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib std_msgs rviz flor_ocs_msgs vigir_grasp_msgs vigir_ocs_hotkey_manager vigir_object_template_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib std_msgs rviz vigir_ocs_msgs vigir_grasp_msgs vigir_ocs_hotkey_manager vigir_object_template_msgs)
 
 ## Declare things to be passed to other projects
 catkin_package(
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS roscpp rospy roslib std_msgs rviz flor_ocs_msgs vigir_grasp_msgs vigir_ocs_hotkey_manager vigir_object_template_msgs
+    CATKIN_DEPENDS roscpp rospy roslib std_msgs rviz vigir_ocs_msgs vigir_grasp_msgs vigir_ocs_hotkey_manager vigir_object_template_msgs
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:

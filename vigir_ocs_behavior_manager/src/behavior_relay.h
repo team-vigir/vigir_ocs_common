@@ -3,8 +3,8 @@
 
 #include <stdlib.h>
 #include <ros/ros.h>
-#include "flor_ocs_msgs/OCSOverlayText.h"
-#include "flor_ocs_msgs/OCSBehaviorGoal.h"
+#include "vigir_ocs_msgs/OCSOverlayText.h"
+#include "vigir_ocs_msgs/OCSBehaviorGoal.h"
 #include "behavior_notification.h"
 #include <boost/asio/ip/host_name.hpp>
 #include <vigir_be_msgs/BehaviorInputAction.h>
@@ -30,8 +30,8 @@ class BehaviorRelay: public QWidget
    private:
        BehaviorRelay(BehaviorRelay const&){};             // copy constructor is private
        BehaviorRelay& operator=(BehaviorRelay const&){};  // assignment operator is private
-       void receiveBehaviorGoalCB(const flor_ocs_msgs::OCSBehaviorGoalConstPtr msg);
-       void receiveBehaviorResult(const flor_ocs_msgs::OCSBehaviorGoalConstPtr msg);
+       void receiveBehaviorGoalCB(const vigir_ocs_msgs::OCSBehaviorGoalConstPtr msg);
+       void receiveBehaviorResult(const vigir_ocs_msgs::OCSBehaviorGoalConstPtr msg);
        void cleanNotifications();      
 
        QWidget* parent_;

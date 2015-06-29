@@ -5,7 +5,7 @@ BehaviorRelay::BehaviorRelay(QWidget* parent)
 {    
     behavior_goal_sub_ = nh_.subscribe( "/vigir/ocs/behavior/send_goal", 5, &BehaviorRelay::receiveBehaviorGoalCB, this );
     behavior_confirm_sub_ = nh_.subscribe( "/vigir/ocs/behavior/confirm_goal", 5, &BehaviorRelay::receiveBehaviorResult, this );
-    behavior_confirm_pub_  = nh_.advertise<flor_ocs_msgs::OCSBehaviorGoal>("/vigir/ocs/behavior/confirm_goal", 5, false);
+    behavior_confirm_pub_  = nh_.advertise<vigir_ocs_msgs::OCSBehaviorGoal>("/vigir/ocs/behavior/confirm_goal", 5, false);
 
     parent_ = parent;
     max_notifications_shown_ = 5;    
@@ -13,7 +13,7 @@ BehaviorRelay::BehaviorRelay(QWidget* parent)
 
 
 //callback to receive goal and create notification
-void BehaviorRelay::receiveBehaviorGoalCB(const flor_ocs_msgs::OCSBehaviorGoalConstPtr msg)
+void BehaviorRelay::receiveBehaviorGoalCB(const vigir_ocs_msgs::OCSBehaviorGoalConstPtr msg)
 {    
     //build appropriate string for ui
     QString action_text = QString::fromStdString(msg->action_text);
@@ -27,7 +27,7 @@ void BehaviorRelay::receiveBehaviorGoalCB(const flor_ocs_msgs::OCSBehaviorGoalCo
 
 
 //callback to receive confirmation of other goals on other instances of OCS, will redundantly notify itself
-void BehaviorRelay::receiveBehaviorResult(const flor_ocs_msgs::OCSBehaviorGoalConstPtr msg)
+void BehaviorRelay::receiveBehaviorResult(const vigir_ocs_msgs::OCSBehaviorGoalConstPtr msg)
 {
     for(int i = 0;i<behavior_notifications_.size();i++)
     {
@@ -60,7 +60,7 @@ void BehaviorRelay::createNotification(QString action_text, int goal_id, int goa
 void BehaviorRelay::reportConfirmation(QString action_text, int id)
 {    
     //publish to tell views that this goal is obselete, tells manager to confirm and grab data
-    flor_ocs_msgs::OCSBehaviorGoal msg;
+    vigir_ocs_msgs::OCSBehaviorGoal msg;
     msg.action_text = qPrintable(action_text); // convert to c_str
     msg.id = id;
     msg.result = true;
@@ -72,7 +72,7 @@ void BehaviorRelay::reportConfirmation(QString action_text, int id)
 void BehaviorRelay::reportAbort(QString action_text, int id)
 {
     //publish to tell views that this goal is obselete, tells manager to abort
-    flor_ocs_msgs::OCSBehaviorGoal msg;
+    vigir_ocs_msgs::OCSBehaviorGoal msg;
     msg.action_text = qPrintable(action_text); // convert to c_str
     msg.id = id;
     msg.result = false;

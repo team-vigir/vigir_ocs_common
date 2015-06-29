@@ -33,14 +33,14 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/conversions.h>
 
-#include <flor_ocs_msgs/OCSTemplateList.h>
-#include <flor_ocs_msgs/OCSTemplateRemove.h>
-#include <flor_ocs_msgs/OCSRobotStatus.h>
-#include <flor_ocs_msgs/RobotStatusCodes.h>
-#include <flor_ocs_msgs/OCSLinkColor.h>
-#include <flor_ocs_msgs/OCSKeyEvent.h>
-#include <flor_ocs_msgs/OCSObjectSelection.h>
-#include <flor_ocs_msgs/OCSGraspSync.h>
+#include <vigir_ocs_msgs/OCSTemplateList.h>
+#include <vigir_ocs_msgs/OCSTemplateRemove.h>
+#include <vigir_ocs_msgs/OCSRobotStatus.h>
+#include <vigir_ocs_msgs/RobotStatusCodes.h>
+#include <vigir_ocs_msgs/OCSLinkColor.h>
+#include <vigir_ocs_msgs/OCSKeyEvent.h>
+#include <vigir_ocs_msgs/OCSObjectSelection.h>
+#include <vigir_ocs_msgs/OCSGraspSync.h>
 #include <vigir_grasp_msgs/GraspState.h>
 #include <vigir_grasp_msgs/GraspSelection.h>
 #include <vigir_grasp_msgs/TemplateSelection.h>
@@ -63,8 +63,8 @@ public:
     explicit graspWidget(QWidget *parent = 0, std::string hand = "left", std::string hand_name = "l_hand");
     ~graspWidget();
 
-    void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg);
-    //void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    void processObjectSelection(const vigir_ocs_msgs::OCSObjectSelection::ConstPtr msg);
+    //void processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
     Ui::graspWidget * getUi();
     QLayout * getMainLayout();
@@ -100,9 +100,9 @@ private:
 
     void graspStateReceived (const vigir_grasp_msgs::GraspState::ConstPtr graspState);
     void graspSelectedReceived (const vigir_grasp_msgs::GraspSelection::ConstPtr graspMsg);
-    void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr list);
+    void processTemplateList( const vigir_ocs_msgs::OCSTemplateList::ConstPtr list);
     void templateMatchFeedback (const vigir_grasp_msgs::TemplateSelection::ConstPtr feedback);
-    void processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg);
+    void processGraspSyncCB(const vigir_ocs_msgs::OCSGraspSync::ConstPtr msg);
 
     int calcWristTarget( const geometry_msgs::Pose& wrist_pose,const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& final_pose );
     void calcPlanningTarget(const geometry_msgs::Pose& palm_pose, const geometry_msgs::PoseStamped& template_pose, geometry_msgs::PoseStamped& planning_hand_pose);
@@ -117,7 +117,7 @@ private:
     vigir_object_template_msgs::GetGraspInfo                last_grasp_srv_;
     vigir_object_template_msgs::GetTemplateStateAndTypeInfo last_template_srv_;
 
-    flor_ocs_msgs::OCSTemplateList         last_template_list_;
+    vigir_ocs_msgs::OCSTemplateList         last_template_list_;
     geometry_msgs::PoseStamped             frameid_T_template_;
     vigir_object_template_msgs::Affordance current_affordance_;
     int selected_template_id_;
@@ -172,7 +172,7 @@ private:
     ros::Subscriber template_stitch_pose_sub_;
     RobotStatusCodes robot_status_codes_;
 
-    void robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg);
+    void robotStatusCB(const vigir_ocs_msgs::OCSRobotStatus::ConstPtr msg);
     void templateStitchPoseCallback(const geometry_msgs::PoseStamped::ConstPtr msg);
 
     // publisher to color fingers/hand

@@ -11,7 +11,7 @@ CommsNotificationSystem* CommsNotificationSystem::instance = 0;
 CommsNotificationSystem::CommsNotificationSystem()
 {    
     //create publisher for notifications
-    notification_pub_ = nh.advertise<flor_ocs_msgs::OCSOverlayText>("flor/ocs/comms_status_overlay_text",5,false);
+    notification_pub_ = nh.advertise<vigir_ocs_msgs::OCSOverlayText>("flor/ocs/comms_status_overlay_text",5,false);
 }
 
 /** This function is called to create an instance of the class.
@@ -29,7 +29,7 @@ CommsNotificationSystem* CommsNotificationSystem::Instance()
 //publishes to show white text in top center
 void CommsNotificationSystem::notifyPassive(std::string text)
 {
-    flor_ocs_msgs::OCSOverlayText msg;
+    vigir_ocs_msgs::OCSOverlayText msg;
     msg.text = text;
     //messages probably shouldn't be multiple lines?
     msg.height = 18;
@@ -42,12 +42,12 @@ void CommsNotificationSystem::notifyPassive(std::string text)
     msg.fg_color.b = .8f;
     msg.fg_color.a = .9f;
     msg.bg_color.a = .5f;
-    msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
+    msg.action = vigir_ocs_msgs::OCSOverlayText::ADD;
     msg.fadeIn = 1.0f;
     //msg.fadeOut = 1.0f;
     msg.upTime = 2.0f;
-    msg.row = flor_ocs_msgs::OCSOverlayText::TOPROW;
-    msg.column = flor_ocs_msgs::OCSOverlayText::LEFTCOLUMN;
+    msg.row = vigir_ocs_msgs::OCSOverlayText::TOPROW;
+    msg.column = vigir_ocs_msgs::OCSOverlayText::LEFTCOLUMN;
     notification_pub_.publish(msg);
 
 }

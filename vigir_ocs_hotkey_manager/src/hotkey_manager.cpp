@@ -16,7 +16,7 @@ HotkeyManager * HotkeyManager::Instance()
     return instance_;
 }
 
-void HotkeyManager::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
+void HotkeyManager::processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
 {
     // store key state
     if(key_event->state) //add if pressed

@@ -20,7 +20,7 @@
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>shape_msgs</build_depend>
   <build_depend>visualization_msgs</build_depend>
-  <build_depend>flor_ocs_msgs</build_depend>
+  <build_depend>vigir_ocs_msgs</build_depend>
   <build_depend>vigir_grasp_msgs</build_depend>
   <build_depend>vigir_object_template_msgs</build_depend>
   <build_depend>nodelet</build_depend>
@@ -39,7 +39,7 @@
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>shape_msgs</run_depend>
   <run_depend>visualization_msgs</run_depend>
-  <run_depend>flor_ocs_msgs</run_depend>
+  <run_depend>vigir_ocs_msgs</run_depend>
   <run_depend>vigir_grasp_msgs</run_depend>
   <run_depend>vigir_object_template_msgs</run_depend>
   <run_depend>nodelet</run_depend>

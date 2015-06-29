@@ -262,7 +262,7 @@ QTreeWidgetItem* VideoEditorWidget::addimageitem(int imagecount,const sensor_msg
     ui->treeWidget->insertTopLevelItem(0,item);
     return item;
 }
-void VideoEditorWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
+void VideoEditorWidget::processImageAdd(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
 
 
@@ -305,7 +305,7 @@ void VideoEditorWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstP
        feed_rate_prev = feed_rate;
 
 }
-void VideoEditorWidget::processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr msg)
+void VideoEditorWidget::processImageList(const vigir_ocs_msgs::OCSImageList::ConstPtr msg)
 {
     // reset table
     //ui->treeWidget->clear();

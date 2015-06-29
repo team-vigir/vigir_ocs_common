@@ -354,7 +354,7 @@ QTreeWidgetItem* ImageVideoManagerWidget::add_time_child(QTreeWidgetItem *pitem,
     return iteml;
 }
 
-void ImageVideoManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
+void ImageVideoManagerWidget::processImageAdd(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
 
     //ROS_ERROR(msg->topic.c_str());
@@ -375,7 +375,7 @@ void ImageVideoManagerWidget::processImageAdd(const flor_ocs_msgs::OCSImageAdd::
 
 
  }
-void ImageVideoManagerWidget:: imageaddfunction_l(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
+void ImageVideoManagerWidget:: imageaddfunction_l(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
 
 
@@ -437,7 +437,7 @@ void ImageVideoManagerWidget:: imageaddfunction_l(const flor_ocs_msgs::OCSImageA
 
 }
 
-void ImageVideoManagerWidget:: imageaddfunction_r(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
+void ImageVideoManagerWidget:: imageaddfunction_r(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
 
     if(feed_rate_r==0.0f)
@@ -496,7 +496,7 @@ void ImageVideoManagerWidget:: imageaddfunction_r(const flor_ocs_msgs::OCSImageA
        feed_rate_prev_r = feed_rate_r;
 
 }
-void ImageVideoManagerWidget:: imageaddfunction_lhl(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
+void ImageVideoManagerWidget:: imageaddfunction_lhl(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
     ROS_ERROR("in lhl image");
     if(feed_rate_lhl==0.0f)
@@ -552,7 +552,7 @@ void ImageVideoManagerWidget:: imageaddfunction_lhl(const flor_ocs_msgs::OCSImag
        feed_rate_prev_lhl = feed_rate_lhl;
 
 }
-void ImageVideoManagerWidget:: imageaddfunction_lhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
+void ImageVideoManagerWidget:: imageaddfunction_lhr(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
     ROS_ERROR("in lhr image");
     if(feed_rate_lhr==0.0f)
@@ -611,7 +611,7 @@ void ImageVideoManagerWidget:: imageaddfunction_lhr(const flor_ocs_msgs::OCSImag
        feed_rate_prev_lhr = feed_rate_lhr;
 
 }
-void ImageVideoManagerWidget:: imageaddfunction_rhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
+void ImageVideoManagerWidget:: imageaddfunction_rhr(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
     ROS_ERROR("in rhr image");
     if(feed_rate_rhr==0.0f)
@@ -670,7 +670,7 @@ void ImageVideoManagerWidget:: imageaddfunction_rhr(const flor_ocs_msgs::OCSImag
        feed_rate_prev_rhr = feed_rate_rhr;
 
 }
-void ImageVideoManagerWidget:: imageaddfunction_rhl(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg)
+void ImageVideoManagerWidget:: imageaddfunction_rhl(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg)
 {
    ROS_ERROR("in rhl image");
     if(feed_rate_rhl==0.0f)
@@ -730,7 +730,7 @@ void ImageVideoManagerWidget:: imageaddfunction_rhl(const flor_ocs_msgs::OCSImag
 
 }
 
-void ImageVideoManagerWidget::processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr msg)
+void ImageVideoManagerWidget::processImageList(const vigir_ocs_msgs::OCSImageList::ConstPtr msg)
 {
     // reset table
     //treeWidget->clear();

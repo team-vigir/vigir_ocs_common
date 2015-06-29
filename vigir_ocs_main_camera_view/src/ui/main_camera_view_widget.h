@@ -10,7 +10,7 @@
 #include <statusBar.h>
 #include <ros/ros.h>
 #include "base_3d_view.h"
-#include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <vigir_ocs_msgs/OCSKeyEvent.h>
 #include <std_msgs/Float32.h>
 #include "notification_system.h"
 #include "hotkey_manager.h"
@@ -76,7 +76,7 @@ private:
 
     ros::Subscriber ocs_sync_sub_;
     void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
-    void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr msg);
+    void synchronizeToggleButtons(const vigir_ocs_msgs::OCSSynchronize::ConstPtr msg);
 
 
     bool lock_pitch_slider_;

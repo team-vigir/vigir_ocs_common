@@ -11,7 +11,7 @@ NotificationSystem* NotificationSystem::instance = 0;
 NotificationSystem::NotificationSystem()
 {    
     //create publisher for notifications
-    notification_pub_ = nh.advertise<flor_ocs_msgs::OCSOverlayText>("/flor/ocs/overlay_text",5,false);    
+    notification_pub_ = nh.advertise<vigir_ocs_msgs::OCSOverlayText>("/flor/ocs/overlay_text",5,false);    
 }
 
 /** This function is called to create an instance of the class.
@@ -29,7 +29,7 @@ NotificationSystem* NotificationSystem::Instance()
 //publishes to show white text in top center
 void NotificationSystem::notifyPassive(std::string text)
 {
-    flor_ocs_msgs::OCSOverlayText msg;
+    vigir_ocs_msgs::OCSOverlayText msg;
     msg.text = text;
     //messages probably shouldn't be multiple lines?
     msg.height = 18;
@@ -42,12 +42,12 @@ void NotificationSystem::notifyPassive(std::string text)
     msg.fg_color.b = .8f;
     msg.fg_color.a = .9f;
     msg.bg_color.a = .5f;
-    msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
+    msg.action = vigir_ocs_msgs::OCSOverlayText::ADD;
     msg.fadeIn = 1.0f;
     //msg.fadeOut = 1.0f;
     msg.upTime = 2.0f;
-    msg.row = flor_ocs_msgs::OCSOverlayText::TOPROW;
-    msg.column = flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
+    msg.row = vigir_ocs_msgs::OCSOverlayText::TOPROW;
+    msg.column = vigir_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
     notification_pub_.publish(msg);
 
 }
@@ -55,7 +55,7 @@ void NotificationSystem::notifyPassive(std::string text)
 //publishes to show yellow text in center
 void NotificationSystem::notifyWarning(std::string text)
 {
-    flor_ocs_msgs::OCSOverlayText msg;
+    vigir_ocs_msgs::OCSOverlayText msg;
     msg.text = text;
     //messages probably shouldn't be multiple lines?
     msg.height = 18;
@@ -68,12 +68,12 @@ void NotificationSystem::notifyWarning(std::string text)
     msg.fg_color.b = 0.0f;
     msg.fg_color.a = .9f;
     msg.bg_color.a = .5f;
-    msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
+    msg.action = vigir_ocs_msgs::OCSOverlayText::ADD;
     msg.fadeIn = 1.0f;
     msg.fadeOut = 1.0f;
     msg.upTime = 5.0f;
-    msg.row = flor_ocs_msgs::OCSOverlayText::CENTERROW;
-    msg.column = flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
+    msg.row = vigir_ocs_msgs::OCSOverlayText::CENTERROW;
+    msg.column = vigir_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
     notification_pub_.publish(msg);
 
     boost::thread thread = boost::thread(&NotificationSystem::sendDelayedNotification, this, 5, text);
@@ -82,7 +82,7 @@ void NotificationSystem::notifyWarning(std::string text)
 //publishes to show red text in center
 void NotificationSystem::notifyError(std::string text)
 {
-    flor_ocs_msgs::OCSOverlayText msg;
+    vigir_ocs_msgs::OCSOverlayText msg;
     msg.text = text;
     //messages probably shouldn't be multiple lines?
     msg.height = 18;
@@ -95,12 +95,12 @@ void NotificationSystem::notifyError(std::string text)
     msg.fg_color.b = 0.0f;
     msg.fg_color.a = .9f;
     msg.bg_color.a = .5f;
-    msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
+    msg.action = vigir_ocs_msgs::OCSOverlayText::ADD;
     msg.fadeIn = 1.0f;
     msg.fadeOut = 1.0f;
     msg.upTime = 5.0f;
-    msg.row = flor_ocs_msgs::OCSOverlayText::CENTERROW;
-    msg.column = flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
+    msg.row = vigir_ocs_msgs::OCSOverlayText::CENTERROW;
+    msg.column = vigir_ocs_msgs::OCSOverlayText::CENTERCOLUMN;
     notification_pub_.publish(msg);
 
     boost::thread thread = boost::thread(&NotificationSystem::sendDelayedNotification, this, 5, text);
@@ -109,7 +109,7 @@ void NotificationSystem::notifyError(std::string text)
 //publishes a custom message to have a notification appear and fade out in 3d view
 void NotificationSystem::notifyCustom(std::string text, int row, int column, float r, float g, float b)
 {
-    flor_ocs_msgs::OCSOverlayText msg;
+    vigir_ocs_msgs::OCSOverlayText msg;
     msg.text = text;
     //messages probably shouldn't be multiple lines?
     msg.height = 18;
@@ -122,7 +122,7 @@ void NotificationSystem::notifyCustom(std::string text, int row, int column, flo
     msg.fg_color.b = b;
     msg.fg_color.a = .9f;
     msg.bg_color.a = .5f;
-    msg.action = flor_ocs_msgs::OCSOverlayText::ADD;
+    msg.action = vigir_ocs_msgs::OCSOverlayText::ADD;
     msg.fadeIn = 1.0f;
     msg.fadeOut = 1.0f;
     msg.upTime = 2.0f;

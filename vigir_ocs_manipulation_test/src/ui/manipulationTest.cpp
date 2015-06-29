@@ -8,7 +8,7 @@ ManipulationTest::ManipulationTest(QWidget *parent) :
     MainViewWidget(parent)
 {    
     // create a publisher to add templates
-    template_add_pub_   = n_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 5, false );
+    template_add_pub_   = n_.advertise<vigir_ocs_msgs::OCSTemplateAdd>( "/template/add", 5, false );
     startingPosition = new QVector3D(1,1,1);
     startingRotation = new QQuaternion();
 
@@ -33,20 +33,20 @@ ManipulationTest::ManipulationTest(QWidget *parent) :
     if(!results->open(QIODevice::WriteOnly | QIODevice::Text))
         ROS_ERROR("Could not open file: %s",qPrintable(QString(QDir::homePath()+"/ManipulationResults_" + str)));
 
-    template_list_sub = n_.subscribe<flor_ocs_msgs::OCSTemplateList>( "/template/list", 5, &ManipulationTest::templateListCb ,this );
-    template_remove_pub_ = n_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 5, false );
+    template_list_sub = n_.subscribe<vigir_ocs_msgs::OCSTemplateList>( "/template/list", 5, &ManipulationTest::templateListCb ,this );
+    template_remove_pub_ = n_.advertise<vigir_ocs_msgs::OCSTemplateRemove>( "/template/remove", 5, false );
 
-    interactive_marker_sub = n_.subscribe<flor_ocs_msgs::OCSInteractiveMarkerAdd>("/flor/ocs/interactive_marker_server/add",5,&ManipulationTest::addInteractiveMarker,this);
+    interactive_marker_sub = n_.subscribe<vigir_ocs_msgs::OCSInteractiveMarkerAdd>("/flor/ocs/interactive_marker_server/add",5,&ManipulationTest::addInteractiveMarker,this);
 
     startChallenge = new QPushButton("Start New Challenge",this);
     this->layout()->addWidget(startChallenge);
     connect(startChallenge,SIGNAL(pressed()),this,SLOT(newChallenge()));
 
-    template_update_pub = n_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "/template/update", 5, false );
+    template_update_pub = n_.advertise<vigir_ocs_msgs::OCSTemplateUpdate>( "/template/update", 5, false );
 
 }
 
-void ManipulationTest::addInteractiveMarker( const flor_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr& msg )
+void ManipulationTest::addInteractiveMarker( const vigir_ocs_msgs::OCSInteractiveMarkerAdd::ConstPtr& msg )
 {
     static int markerCounter = 0;
     if(msg->topic.find("/template_") != std::string::npos)
@@ -62,7 +62,7 @@ void ManipulationTest::addInteractiveMarker( const flor_ocs_msgs::OCSInteractive
     }
 }
 
-void ManipulationTest::templateListCb(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg)
+void ManipulationTest::templateListCb(const vigir_ocs_msgs::OCSTemplateList::ConstPtr& msg)
 {    
     temList = *msg;    
 }
@@ -181,7 +181,7 @@ void ManipulationTest::newChallenge()
         if(challengeCount > 0)
         {            
             //cant reliably remove templates so move them farrrrrr awwwayy
-            flor_ocs_msgs::OCSTemplateUpdate msg;
+            vigir_ocs_msgs::OCSTemplateUpdate msg;
             msg.template_id = temList.template_id_list[challengeCount*2-2];
 
             //copy rotation first
@@ -198,7 +198,7 @@ void ManipulationTest::newChallenge()
             template_update_pub.publish(msg);
 
             usleep(1000000);
-            flor_ocs_msgs::OCSTemplateUpdate msg2;
+            vigir_ocs_msgs::OCSTemplateUpdate msg2;
             msg2.template_id = temList.template_id_list[challengeCount*2-1];
 
             //copy rotation first
@@ -227,7 +227,7 @@ void ManipulationTest::newChallenge()
             results->close();
 
         //remove last templates
-        flor_ocs_msgs::OCSTemplateUpdate msg;
+        vigir_ocs_msgs::OCSTemplateUpdate msg;
         msg.template_id = temList.template_id_list[challengeCount*2-2];
 
         //copy rotation first
@@ -244,7 +244,7 @@ void ManipulationTest::newChallenge()
         template_update_pub.publish(msg);
 
         usleep(1000000);
-        flor_ocs_msgs::OCSTemplateUpdate msg2;
+        vigir_ocs_msgs::OCSTemplateUpdate msg2;
         msg2.template_id = temList.template_id_list[challengeCount*2-1];
 
         //copy rotation first
@@ -268,7 +268,7 @@ void ManipulationTest::newChallenge()
 
 void ManipulationTest::insertTemplate(QVector3D * position, QQuaternion * rotation, QString path)
 {
-    flor_ocs_msgs::OCSTemplateAdd cmd;
+    vigir_ocs_msgs::OCSTemplateAdd cmd;
     geometry_msgs::PoseStamped pose;
 
     cmd.template_path = path.toStdString();

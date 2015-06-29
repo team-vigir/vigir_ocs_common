@@ -9,7 +9,7 @@ void TemplateNodelet::onInit()
     ros::NodeHandle nhp("~");
 
     // also create a publisher to set parameters of cropped image
-    template_list_pub_         = nh_out.advertise<flor_ocs_msgs::OCSTemplateList>( "list", 5, false );
+    template_list_pub_         = nh_out.advertise<vigir_ocs_msgs::OCSTemplateList>( "list", 5, false );
     grasp_selected_pub_        = nh_out.advertise<vigir_grasp_msgs::GraspSelection>( "grasp_selected", 5, false );
     grasp_selected_state_pub_  = nh_out.advertise<vigir_grasp_msgs::GraspState>( "grasp_selected_state", 5, false );
 
@@ -33,9 +33,9 @@ void TemplateNodelet::onInit()
 
     if(master_mode_){
         //MASTER Forward topics through comms
-        template_add_pub_            = nh_out.advertise<flor_ocs_msgs::OCSTemplateAdd>(    "add_fwd",    1, false );
-        template_remove_pub_         = nh_out.advertise<flor_ocs_msgs::OCSTemplateRemove>( "remove_fwd", 1, false );
-        template_update_pub_         = nh_out.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "update_fwd", 1, false );
+        template_add_pub_            = nh_out.advertise<vigir_ocs_msgs::OCSTemplateAdd>(    "add_fwd",    1, false );
+        template_remove_pub_         = nh_out.advertise<vigir_ocs_msgs::OCSTemplateRemove>( "remove_fwd", 1, false );
+        template_update_pub_         = nh_out.advertise<vigir_ocs_msgs::OCSTemplateUpdate>( "update_fwd", 1, false );
 
         //MASTER Retrieve topics from comms
         stitch_template_sub_         = nh_out.subscribe( "/stitch_template_srv_fwd",5, &TemplateNodelet::stitchTemplateFwdCb, this );
@@ -163,7 +163,7 @@ void TemplateNodelet::clearTemplateCb(const std_msgs::Empty)
 }
 
 
-void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr msg)
+void TemplateNodelet::addTemplateCb(const vigir_ocs_msgs::OCSTemplateAdd::ConstPtr msg)
 {
     boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
 
@@ -198,7 +198,7 @@ void TemplateNodelet::addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPt
     this->publishTemplateList();
 }
 
-void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr msg)
+void TemplateNodelet::removeTemplateCb(const vigir_ocs_msgs::OCSTemplateRemove::ConstPtr msg)
 {
     boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
 
@@ -240,7 +240,7 @@ void TemplateNodelet::removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::C
     }
 }
 
-void TemplateNodelet::updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr msg)
+void TemplateNodelet::updateTemplateCb(const vigir_ocs_msgs::OCSTemplateUpdate::ConstPtr msg)
 {
     boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
 
@@ -327,7 +327,7 @@ void TemplateNodelet::publishTemplateList()
     boost::recursive_mutex::scoped_lock lock(template_list_mutex_);
 
     //std::cout << "timer" << std::endl;
-    flor_ocs_msgs::OCSTemplateList cmd;
+    vigir_ocs_msgs::OCSTemplateList cmd;
 
     cmd.template_id_list     = template_id_list_;
     cmd.template_list        = template_name_list_;

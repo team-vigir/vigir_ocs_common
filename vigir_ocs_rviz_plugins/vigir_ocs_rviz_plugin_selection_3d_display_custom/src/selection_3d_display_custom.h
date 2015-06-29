@@ -47,7 +47,7 @@
 #include <std_msgs/Float64.h>
 
 #include <vigir_perception_msgs/RaycastRequest.h>
-#include <flor_ocs_msgs/OCSRaycastRequest.h>
+#include <vigir_ocs_msgs/OCSRaycastRequest.h>
 
 #include <tf/transform_listener.h>
 
@@ -102,7 +102,7 @@ public:
   void clear();
 
   void processDistQuery( const std_msgs::Float64::ConstPtr& distance );
-  void processOCSDistQuery( const flor_ocs_msgs::OCSRaycastRequest::ConstPtr& request );
+  void processOCSDistQuery( const vigir_ocs_msgs::OCSRaycastRequest::ConstPtr& request );
 
   virtual void preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
   virtual void postRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );

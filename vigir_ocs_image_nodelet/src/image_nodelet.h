@@ -10,8 +10,8 @@
 
 #include <tf/transform_broadcaster.h>
 
-#include <flor_ocs_msgs/OCSImageAdd.h>
-#include <flor_ocs_msgs/OCSImageList.h>
+#include <vigir_ocs_msgs/OCSImageAdd.h>
+#include <vigir_ocs_msgs/OCSImageList.h>
 
 #include <std_msgs/Bool.h>
 #include <std_msgs/UInt64.h>

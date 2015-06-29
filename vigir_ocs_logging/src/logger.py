@@ -8,7 +8,7 @@ import rospy
 import datetime
 import time
 from std_msgs.msg import String
-from flor_ocs_msgs.msg import OCSLogging
+from vigir_ocs_msgs.msg import OCSLogging
 
 class App(object):
 	def main(self):

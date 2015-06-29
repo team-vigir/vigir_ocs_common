@@ -16,10 +16,10 @@
 #include <tf_conversions/tf_eigen.h>
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
-#include <flor_ocs_msgs/OCSTemplateAdd.h>
-#include <flor_ocs_msgs/OCSTemplateRemove.h>
-#include <flor_ocs_msgs/OCSTemplateList.h>
-#include <flor_ocs_msgs/OCSTemplateUpdate.h>
+#include <vigir_ocs_msgs/OCSTemplateAdd.h>
+#include <vigir_ocs_msgs/OCSTemplateRemove.h>
+#include <vigir_ocs_msgs/OCSTemplateList.h>
+#include <vigir_ocs_msgs/OCSTemplateUpdate.h>
 #include <vigir_grasp_msgs/GraspSelection.h>
 #include <vigir_grasp_msgs/GraspState.h>
 #include <vigir_grasp_msgs/TemplateSelection.h>
@@ -86,9 +86,9 @@ namespace ocs_template
         virtual void onInit();
 
         void clearTemplateCb(const std_msgs::Empty);
-        void addTemplateCb(const flor_ocs_msgs::OCSTemplateAdd::ConstPtr msg);
-        void removeTemplateCb(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr msg);
-        void updateTemplateCb(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr msg);
+        void addTemplateCb(const vigir_ocs_msgs::OCSTemplateAdd::ConstPtr msg);
+        void removeTemplateCb(const vigir_ocs_msgs::OCSTemplateRemove::ConstPtr msg);
+        void updateTemplateCb(const vigir_ocs_msgs::OCSTemplateUpdate::ConstPtr msg);
         void stitchTemplateFwdCb(const vigir_object_template_msgs::TemplateStateInfo::ConstPtr msg);
         void detachTemplateFwdCb(const vigir_object_template_msgs::TemplateStateInfo::ConstPtr msg);
         void snapTemplateCb(const vigir_grasp_msgs::TemplateSelection::ConstPtr msg);

@@ -23,7 +23,7 @@ motion_selector::motion_selector(QWidget *parent) :
 
     message_pub_ = nh_.advertise<flor_control_msgs::FlorExecuteMotionRequest>( "/flor/motion_service/motion_command",1,false);
 
-    //key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &motion_selector::processNewKeyEvent, this );
+    //key_event_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &motion_selector::processNewKeyEvent, this );
 
     timer.start(33, this);
 }

@@ -3,7 +3,7 @@
 #include <ros/package.h>
 #include <vigir_planning_msgs/PlannerConfiguration.h>
 
-#include <flor_ocs_msgs/WindowCodes.h>
+#include <vigir_ocs_msgs/WindowCodes.h>
 
 joint_limit::joint_limit(QWidget *parent) :
     QWidget(parent),
@@ -18,7 +18,7 @@ joint_limit::joint_limit(QWidget *parent) :
 
     constraints_pub_ = nh_.advertise<vigir_planning_msgs::PlannerConfiguration>( "/flor/planning/upper_body/configuration",1,false);
 
-    //key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &joint_limit::processNewKeyEvent, this );
+    //key_event_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &joint_limit::processNewKeyEvent, this );
 
     std::vector<std::string> joints;
     std::vector<std::string> joint_descriptions;
@@ -206,7 +206,7 @@ void joint_limit::timerEvent(QTimerEvent *event)
 
 }*/
 
-//void joint_limit::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+//void joint_limit::processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 //{
 //    // store key state
 //    if(key_event->state)

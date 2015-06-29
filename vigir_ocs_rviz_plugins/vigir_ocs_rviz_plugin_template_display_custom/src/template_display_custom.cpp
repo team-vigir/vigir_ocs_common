@@ -205,14 +205,14 @@ void TemplateDisplayCustom::load()
     template_list_sub_ = nh_.subscribe( "/template/list", 5, &TemplateDisplayCustom::processTemplateList, this );
 
     // subscribe to the topic to load all templates
-    template_remove_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 5, &TemplateDisplayCustom::processTemplateRemove, this );
+    template_remove_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSTemplateRemove>( "/template/remove", 5, &TemplateDisplayCustom::processTemplateRemove, this );
 
     // and advertise the template update to update the manipulator
-    template_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "/template/update", 5, false );
+    template_update_pub_ = nh_.advertise<vigir_ocs_msgs::OCSTemplateUpdate>( "/template/update", 5, false );
 
     // advertise/subscribe to the interactive marker topics
-    interactive_marker_add_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, false );
-    interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 5, false );
+    interactive_marker_add_pub_ = nh_.advertise<vigir_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, false );
+    interactive_marker_update_pub_ = nh_.advertise<vigir_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 5, false );
     interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 5, &TemplateDisplayCustom::onMarkerFeedback, this );;
     interactive_marker_remove_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
 
@@ -297,7 +297,7 @@ void TemplateDisplayCustom::enableTemplateMarkers( bool enable )
     }
 }
 
-void TemplateDisplayCustom::processPoseChange(const flor_ocs_msgs::OCSTemplateUpdate::ConstPtr pose)
+void TemplateDisplayCustom::processPoseChange(const vigir_ocs_msgs::OCSTemplateUpdate::ConstPtr pose)
 {
     //std::cout << "Processing pose change" << std::endl;
     //    printf(" Template pose change (%f, %f, %f) quat(%f, %f, %f, %f)\n",
@@ -403,7 +403,7 @@ void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char i
     //        point.z = pos.z;
     //        InteractiveMarkerServerCustom* template_marker_ = new InteractiveMarkerServerCustom(template_pose_string, template_pose_string, fixed_frame_.toUtf8().constData(), 0.2, point);
     //        template_marker_->onFeedback = boost::bind(&TemplateDisplayCustom::onMarkerFeedback, this, _1, _2);
-    //        template_pose_pub_list_.push_back(nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>(template_pose_string, 1, false));
+    //        template_pose_pub_list_.push_back(nh_.advertise<vigir_ocs_msgs::OCSTemplateUpdate>(template_pose_string, 1, false));
     //        template_marker_list_.push_back(template_marker_);
     //    }
 
@@ -411,7 +411,7 @@ void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char i
     point.x = pos.x;
     point.y = pos.y;
     point.z = pos.z;
-    flor_ocs_msgs::OCSInteractiveMarkerAdd marker_server_template;
+    vigir_ocs_msgs::OCSInteractiveMarkerAdd marker_server_template;
     std::string template_name = label;
     if(template_name.size() > 5 && template_name.substr(template_name.size()-5,5) == ".mesh")
         template_name = template_name.substr(0,template_name.size()-5);
@@ -424,7 +424,7 @@ void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char i
     interactive_marker_add_pub_.publish(marker_server_template);
 
     // add the template pose publisher
-    template_pose_pub_list_.push_back( nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 5, false) );
+    template_pose_pub_list_.push_back( nh_.advertise<vigir_ocs_msgs::OCSTemplateUpdate>( template_pose_string, 5, false) );
 
     // and subscribe to the template marker feedback loop
     ros::Subscriber template_pose_sub = nh_.subscribe( template_pose_string, 5, &TemplateDisplayCustom::processPoseChange, this );
@@ -432,7 +432,7 @@ void TemplateDisplayCustom::addTemplateMarker(std::string label, unsigned char i
     //std::cout << "subscribed to topic" << std::endl;
 }
 
-void TemplateDisplayCustom::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
+void TemplateDisplayCustom::onMarkerFeedback(const vigir_ocs_msgs::OCSInteractiveMarkerUpdate::ConstPtr msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
 {
     if(msg->client_id == ros::this_node::getName())
     {
@@ -448,7 +448,7 @@ void TemplateDisplayCustom::onMarkerFeedback(const flor_ocs_msgs::OCSInteractive
     }
 }
 
-void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr msg)
+void TemplateDisplayCustom::processTemplateList(const vigir_ocs_msgs::OCSTemplateList::ConstPtr msg)
 {
     //std::cout << "Processing template list" << std::endl;
     for(int i = 0; i < msg->template_list.size(); i++)
@@ -484,8 +484,8 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
                 template_node_list_[i]->setPosition(pos);
                 template_node_list_[i]->setOrientation(quat);
                 //template_marker_list_[i]->setPose(pose);
-                flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-                cmd.event_type = flor_ocs_msgs::OCSInteractiveMarkerUpdate::FEEDBACK;
+                vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+                cmd.event_type = vigir_ocs_msgs::OCSInteractiveMarkerUpdate::FEEDBACK;
                 cmd.client_id = ros::this_node::getName();
                 cmd.topic = template_pose_pub_list_[i].getTopic();
                 cmd.pose = pose;
@@ -499,7 +499,7 @@ void TemplateDisplayCustom::processTemplateList(const flor_ocs_msgs::OCSTemplate
 
 void TemplateDisplayCustom::publishTemplateUpdate(const unsigned char& id, const geometry_msgs::PoseStamped& pose, const unsigned char &event_type)
 {
-    flor_ocs_msgs::OCSTemplateUpdate cmd;
+    vigir_ocs_msgs::OCSTemplateUpdate cmd;
 
     cmd.template_id = id;
     cmd.pose        = pose;
@@ -510,7 +510,7 @@ void TemplateDisplayCustom::publishTemplateUpdate(const unsigned char& id, const
     template_update_pub_.publish( cmd );
 }
 
-void TemplateDisplayCustom::processTemplateRemove(const flor_ocs_msgs::OCSTemplateRemove::ConstPtr& msg)
+void TemplateDisplayCustom::processTemplateRemove(const vigir_ocs_msgs::OCSTemplateRemove::ConstPtr& msg)
 {
     //std::cout << "Processing template remove" << std::endl;
     int index = 0;

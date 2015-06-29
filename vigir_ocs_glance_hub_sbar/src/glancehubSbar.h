@@ -5,9 +5,9 @@
 #include <ros/subscriber.h>
 
 #include <flor_control_msgs/FlorControlModeCommand.h>
-#include <flor_ocs_msgs/OCSRobotStatus.h>
-#include <flor_ocs_msgs/RobotStatusCodes.h>
-#include <flor_ocs_msgs/OCSFootstepStatus.h>
+#include <vigir_ocs_msgs/OCSRobotStatus.h>
+#include <vigir_ocs_msgs/RobotStatusCodes.h>
+#include <vigir_ocs_msgs/OCSFootstepStatus.h>
 #include "glancehub.h"
 #include "notification_system.h"
 

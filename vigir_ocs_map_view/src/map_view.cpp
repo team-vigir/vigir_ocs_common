@@ -19,8 +19,8 @@
 #include <render_panel_custom.h>
 
 #include <vigir_perception_msgs/EnvironmentRegionRequest.h>
-#include <flor_ocs_msgs/TwoPoint.h>
-#include <flor_ocs_msgs/OCSAugmentRegions.h>
+#include <vigir_ocs_msgs/TwoPoint.h>
+#include <vigir_ocs_msgs/OCSAugmentRegions.h>
 
 #include "map_view.h"
 #include "map_context_menu.h"
@@ -49,7 +49,7 @@ MapView::MapView( QWidget* parent )
     grid_map_request_pub_ = nh_.advertise<vigir_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/gridmap_request", 1, false );
 
     // create publisher for augmentations on the grid map
-    augment_grid_map_pub_ = nh_.advertise<flor_ocs_msgs::OCSAugmentRegions>( "/flor/worldmodel/ocs_augmented_regions", 1, false );
+    augment_grid_map_pub_ = nh_.advertise<vigir_ocs_msgs::OCSAugmentRegions>( "/flor/worldmodel/ocs_augmented_regions", 1, false );
 
     // create publisher for the octomap request
     octomap_request_pub_ = nh_.advertise<vigir_perception_msgs::EnvironmentRegionRequest>( "/flor/worldmodel/ocs/octomap_request", 1, false );
@@ -287,13 +287,13 @@ void MapView::requestPointCloud(double min_z, double max_z, double resolution, i
 
 void MapView::blockRegionContext(int boxType)
 {
-    flor_ocs_msgs::OCSAugmentRegions augmentation;
+    vigir_ocs_msgs::OCSAugmentRegions augmentation;
     augmentation.header.frame_id = base_frame_;
     augmentation.map_selection = 2;
     Ogre::Vector3 min, max;
     Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
     Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
-    flor_ocs_msgs::TwoPoint box;
+    vigir_ocs_msgs::TwoPoint box;
     box.min[0] = min.x;
     box.min[1] = min.y;
     box.max[0] = max.x;
@@ -305,13 +305,13 @@ void MapView::blockRegionContext(int boxType)
 
 void MapView::clearRegionContext(int boxType)
 {
-    flor_ocs_msgs::OCSAugmentRegions augmentation;
+    vigir_ocs_msgs::OCSAugmentRegions augmentation;
     augmentation.header.frame_id = base_frame_;
     augmentation.map_selection = 2;
     Ogre::Vector3 min, max;
     Q_EMIT queryPosition(selected_area_[0],selected_area_[1],min);
     Q_EMIT queryPosition(selected_area_[2],selected_area_[3],max);
-    flor_ocs_msgs::TwoPoint box;
+    vigir_ocs_msgs::TwoPoint box;
     box.min[0] = min.x;
     box.min[1] = min.y;
     box.max[0] = max.x;

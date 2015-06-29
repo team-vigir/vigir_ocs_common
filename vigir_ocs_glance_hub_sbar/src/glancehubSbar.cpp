@@ -187,11 +187,11 @@ void glancehubSbar::receiveFootstepStatus(int status)
 {
     switch(status)
     {
-    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_EXECUTION_ACTIVE:
+    case vigir_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE: case vigir_ocs_msgs::OCSFootstepStatus::FOOTSTEP_EXECUTION_ACTIVE:
         NotificationSystem::Instance()->notifyPassive("Footstep Planner Active");
         flash_color_footstep_ = "QLabel { background-color: yellow; border:2px solid grey; }";
         break;
-    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_SUCCESS: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_VALID_GOAL: //case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_EXECUTION_SUCCESS: //same as FOOTSTEP_PLANNER_SUCCESS
+    case vigir_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_SUCCESS: case vigir_ocs_msgs::OCSFootstepStatus::FOOTSTEP_VALID_GOAL: //case vigir_ocs_msgs::OCSFootstepStatus::FOOTSTEP_EXECUTION_SUCCESS: //same as FOOTSTEP_PLANNER_SUCCESS
         NotificationSystem::Instance()->notifyPassive("Footstep Planner Succeded");
         flash_color_footstep_ = "QLabel { background-color: green; border:2px solid grey; }";
         break;

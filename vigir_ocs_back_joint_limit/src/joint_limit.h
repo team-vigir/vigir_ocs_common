@@ -20,7 +20,7 @@
 
 #include <std_msgs/Int8.h>
 
-#include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <vigir_ocs_msgs/OCSKeyEvent.h>
 
 #include "hotkey_manager.h"
 
@@ -218,7 +218,7 @@ public:
 
     void processWindowControl(const std_msgs::Int8::ConstPtr& msg);
 
-    //void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    //void processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
 private:
     ros::Subscriber window_control_sub;

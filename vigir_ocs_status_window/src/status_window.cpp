@@ -111,7 +111,7 @@ QString status_window::getControllerStatus(uint8_t flag)
     }
 }
 
-void status_window::stabilityMsgReceived(const flor_ocs_msgs::OCSRobotStability::ConstPtr stabilityMsg)
+void status_window::stabilityMsgReceived(const vigir_ocs_msgs::OCSRobotStability::ConstPtr stabilityMsg)
 {
     ui->stabilityLabel->setText(QString::number(stabilityMsg->stability));
     if(stabilityMsg->stability >= 193)
@@ -227,7 +227,7 @@ void status_window::on_showRobotStatus_clicked()
     }
 }
 
-void status_window::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
+void status_window::processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
 {
     // store key state
     if(key_event->state)

@@ -46,8 +46,8 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     planner_plan_request_feedback_cloud_->subProp( "Topic" )->setValue( "/flor/ocs/footstep/plan_request_feedback" );
 
     // creates publishers and subscribers for the interaction loop
-    footstep_update_pub_             = nh_.advertise<flor_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/step_update", 1, false );
-    footstep_list_sub_               = nh_.subscribe<flor_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 5, &FootstepVisManager::processFootstepList, this );
+    footstep_update_pub_             = nh_.advertise<vigir_ocs_msgs::OCSFootstepUpdate>( "/flor/ocs/footstep/step_update", 1, false );
+    footstep_list_sub_               = nh_.subscribe<vigir_ocs_msgs::OCSFootstepList>( "/flor/ocs/footstep/list", 5, &FootstepVisManager::processFootstepList, this );
     footstep_undo_req_pub_           = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/undo", 1, false );
     footstep_has_undo_sub_           = nh_.subscribe<std_msgs::UInt8>( "/flor/ocs/footstep/undos_available", 5, &FootstepVisManager::processUndosAvailable, this );
     footstep_redo_req_pub_           = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/redo", 1, false );
@@ -57,28 +57,28 @@ FootstepVisManager::FootstepVisManager(rviz::VisualizationManager *manager) :
     footstep_execute_req_pub_        = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/execute", 1, false );
     footstep_send_ocs_plan_req_pub_  = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/send_ocs_plan", 1, false );
     footstep_stitch_req_pub_         = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/stitch", 1, false );
-    footstep_plan_parameters_pub_    = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters", 1, false );
-    footstep_plan_parameters_sub_    = nh_.subscribe<flor_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters_feedback", 5, &FootstepVisManager::processFootstepPlanParameters, this );
-    footstep_param_set_list_sub_     = nh_.subscribe<flor_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 5, &FootstepVisManager::processFootstepParamSetList, this );
+    footstep_plan_parameters_pub_    = nh_.advertise<vigir_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters", 1, false );
+    footstep_plan_parameters_sub_    = nh_.subscribe<vigir_ocs_msgs::OCSFootstepPlanParameters>( "/flor/ocs/footstep/plan_parameters_feedback", 5, &FootstepVisManager::processFootstepPlanParameters, this );
+    footstep_param_set_list_sub_     = nh_.subscribe<vigir_ocs_msgs::OCSFootstepParamSetList>( "/flor/ocs/footstep/parameter_set_list", 5, &FootstepVisManager::processFootstepParamSetList, this );
     footstep_param_set_selected_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected", 1, false );
     footstep_param_set_selected_sub_ = nh_.subscribe<std_msgs::String>( "/flor/ocs/footstep/parameter_set_selected_feedback", 5, &FootstepVisManager::processFootstepParamSet, this );
 
     // publishers and subscribers for the plan request
     footstep_goal_sub_               = nh_.subscribe<geometry_msgs::PoseStamped>( "/flor/ocs/footstep/"+ros::this_node::getName()+"/goal_pose", 5, &FootstepVisManager::processGoalPose, this );
-    footstep_plan_goal_pub_          = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, false );
-    footstep_goal_pose_fb_pub_       = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update", 1, false );
-    footstep_goal_pose_fb_sub_       = nh_.subscribe<flor_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update_feedback", 5, &FootstepVisManager::processGoalPoseFeedback, this );
+    footstep_plan_goal_pub_          = nh_.advertise<vigir_ocs_msgs::OCSFootstepPlanGoal>( "/flor/ocs/footstep/plan_goal", 1, false );
+    footstep_goal_pose_fb_pub_       = nh_.advertise<vigir_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update", 1, false );
+    footstep_goal_pose_fb_sub_       = nh_.subscribe<vigir_ocs_msgs::OCSFootstepPlanGoalUpdate>( "/flor/ocs/footstep/goal_pose_update_feedback", 5, &FootstepVisManager::processGoalPoseFeedback, this );
     footstep_plan_request_pub_       = nh_.advertise<std_msgs::Int8>( "/flor/ocs/footstep/plan_request", 1, false );
-    footstep_plan_update_pub_        = nh_.advertise<flor_ocs_msgs::OCSFootstepPlanUpdate>( "/flor/ocs/footstep/plan_update", 1, false );
+    footstep_plan_update_pub_        = nh_.advertise<vigir_ocs_msgs::OCSFootstepPlanUpdate>( "/flor/ocs/footstep/plan_update", 1, false );
 
     // publishers and subscribers for the interactive markers
-    interactive_marker_add_pub_      = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 100, false );
-    interactive_marker_update_pub_   = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 100, false );
+    interactive_marker_add_pub_      = nh_.advertise<vigir_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 100, false );
+    interactive_marker_update_pub_   = nh_.advertise<vigir_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 100, false );
     interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 100, &FootstepVisManager::onMarkerFeedback, this );
     interactive_marker_remove_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 100, false );
 
     // sync status between ocs manager and onboard manager
-    sync_status_sub_                 = nh_.subscribe<flor_ocs_msgs::OCSFootstepSyncStatus>( "/flor/ocs/footstep/sync_status", 5, &FootstepVisManager::processSyncStatus, this );
+    sync_status_sub_                 = nh_.subscribe<vigir_ocs_msgs::OCSFootstepSyncStatus>( "/flor/ocs/footstep/sync_status", 5, &FootstepVisManager::processSyncStatus, this );
 
     //initialize to default values in case requesting a plan before updating any values
     // NOTE: tried to emit signal from footstep_config on init, but was unable to be received as something else was not initialized in time
@@ -295,15 +295,15 @@ void FootstepVisManager::requestStepPlan()
     NotificationSystem::Instance()->notifyPassive("Planning Footsteps");
 }
 
-void FootstepVisManager::processSyncStatus(const flor_ocs_msgs::OCSFootstepSyncStatus::ConstPtr& msg)
+void FootstepVisManager::processSyncStatus(const vigir_ocs_msgs::OCSFootstepSyncStatus::ConstPtr& msg)
 {
     // check if it is possible to execute footstep plan without specifying a plan and if the managers are synced
-    if(num_step_plans_ == 1 && msg->status == flor_ocs_msgs::OCSFootstepSyncStatus::SYNCED)
+    if(num_step_plans_ == 1 && msg->status == vigir_ocs_msgs::OCSFootstepSyncStatus::SYNCED)
         has_valid_step_plan_ = true;
     else
         has_valid_step_plan_ = false; // this should be set based on validation as well
     // check if we can validate or if there's something else causing them to be out of sync
-    if(msg->status == flor_ocs_msgs::OCSFootstepSyncStatus::NEED_PLAN_VALIDATION)
+    if(msg->status == vigir_ocs_msgs::OCSFootstepSyncStatus::NEED_PLAN_VALIDATION)
         can_validate_ = true;
     else
         can_validate_ = false;
@@ -321,16 +321,16 @@ void FootstepVisManager::processGoalPose(const geometry_msgs::PoseStamped::Const
     double_click_timer_ = boost::posix_time::microsec_clock::universal_time();
     //need_plan_update_ = true;
 
-    flor_ocs_msgs::OCSFootstepPlanGoal cmd;
+    vigir_ocs_msgs::OCSFootstepPlanGoal cmd;
     cmd.goal_pose = *pose;
     cmd.goal_pose.header.stamp = ros::Time::now();
     footstep_plan_goal_pub_.publish(cmd);
 }
 
-void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalUpdate::ConstPtr &plan_goal)
+void FootstepVisManager::processGoalPoseFeedback(const vigir_ocs_msgs::OCSFootstepPlanGoalUpdate::ConstPtr &plan_goal)
 {
     // only do something if we're getting feedback
-    if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::FEEDBACK)
+    if(plan_goal->mode == vigir_ocs_msgs::OCSFootstepPlanGoalUpdate::FEEDBACK)
     {
         // create/update step plan goal marker
         {
@@ -340,7 +340,7 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
         if(!display_goal_marker_)
         {
             // create a marker server for this footstep
-            flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+            vigir_ocs_msgs::OCSInteractiveMarkerAdd marker;
             marker.name  = std::string("Step Plan Goal");
             marker.topic = step_pose_string;
             marker.frame = manager_->getFixedFrame().toStdString();
@@ -352,7 +352,7 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
             marker.orientation.x = plan_goal->goal_pose.pose.orientation.x;
             marker.orientation.y = plan_goal->goal_pose.pose.orientation.y;
             marker.orientation.z = plan_goal->goal_pose.pose.orientation.z;
-            marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF;
+            marker.mode = vigir_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF;
             interactive_marker_add_pub_.publish(marker);
 
             display_goal_marker_ = manager_->createDisplay( "rviz/InteractiveMarkers", "Interactive marker - Step Plan Goal", true );
@@ -362,7 +362,7 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
         }
 
         // update interactive marker pose
-        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.client_id = ros::this_node::getName();
         cmd.topic = step_pose_string;
         cmd.pose = plan_goal->goal_pose;
@@ -377,7 +377,7 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
             if(!display_goal_footstep_marker_[i])
             {
                 // create a marker server for this footstep
-                flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+                vigir_ocs_msgs::OCSInteractiveMarkerAdd marker;
                 marker.name  = std::string("Footstep Goal ")+(i ? "Right" : "Left");
                 marker.topic = pose_string;
                 marker.frame = manager_->getFixedFrame().toStdString();
@@ -389,7 +389,7 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
                 marker.orientation.x = plan_goal->right_foot.pose.orientation.x;
                 marker.orientation.y = plan_goal->right_foot.pose.orientation.y;
                 marker.orientation.z = plan_goal->right_foot.pose.orientation.z;
-                marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::OBJECT_6DOF;
+                marker.mode = vigir_ocs_msgs::OCSInteractiveMarkerAdd::OBJECT_6DOF;
                 interactive_marker_add_pub_.publish(marker);
 
                 rviz::Display* im = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker - Footstep  Goal ")+(i ? "Right" : "Left")).c_str(), false );
@@ -400,14 +400,14 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
             }
 
             // update interactive marker pose
-            flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+            vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
             cmd.client_id = ros::this_node::getName();
             cmd.topic = pose_string;
             cmd.pose.pose = i ? plan_goal->right_foot.pose : plan_goal->left_foot.pose;
             interactive_marker_update_pub_.publish(cmd);
         }
     }
-    else if(plan_goal->mode == flor_ocs_msgs::OCSFootstepPlanGoalUpdate::CLEAR)
+    else if(plan_goal->mode == vigir_ocs_msgs::OCSFootstepPlanGoalUpdate::CLEAR)
     {
         has_goal_ = false;
 
@@ -415,14 +415,14 @@ void FootstepVisManager::processGoalPoseFeedback(const flor_ocs_msgs::OCSFootste
     }
 }
 
-void FootstepVisManager::processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg)
+void FootstepVisManager::processFootstepList(const vigir_ocs_msgs::OCSFootstepList::ConstPtr& msg)
 {
     footstep_list_ = *msg;
 
     updateInteractiveMarkers();
 }
 
-void FootstepVisManager::processFootstepParamSetList(const flor_ocs_msgs::OCSFootstepParamSetList::ConstPtr& msg)
+void FootstepVisManager::processFootstepParamSetList(const vigir_ocs_msgs::OCSFootstepParamSetList::ConstPtr& msg)
 {
     Q_EMIT populateFootstepParameterSetBox(msg->param_set);
 }
@@ -460,7 +460,7 @@ void FootstepVisManager::updateInteractiveMarkers()
             if(footstep_list_.step_plan_id_list[i] >= display_step_plan_marker_list_.size())
             {
                 // create a marker server for this footstep
-                flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+                vigir_ocs_msgs::OCSInteractiveMarkerAdd marker;
                 marker.name  = std::string("Step Plan ")+boost::lexical_cast<std::string>(i);
                 marker.topic = step_pose_string;
                 marker.frame = manager_->getFixedFrame().toStdString();
@@ -475,7 +475,7 @@ void FootstepVisManager::updateInteractiveMarkers()
                 marker.orientation.x = qr.x;
                 marker.orientation.y = qr.y;
                 marker.orientation.z = qr.z;
-                marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF;
+                marker.mode = vigir_ocs_msgs::OCSInteractiveMarkerAdd::WAYPOINT_3DOF;
                 interactive_marker_add_pub_.publish(marker);
 
                 rviz::Display* im = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker - Step Plan ")+boost::lexical_cast<std::string>(i)).c_str(), true );
@@ -488,7 +488,7 @@ void FootstepVisManager::updateInteractiveMarkers()
             display_step_plan_marker_list_[num_step_plans_-1]->setEnabled( true );
 
             // update interactive marker pose
-            flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+            vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
             cmd.client_id = ros::this_node::getName();
             cmd.topic = step_pose_string;
             cmd.pose.pose.position.x = (footstep_list_.pose[i].pose.position.x+footstep_list_.pose[i-1].pose.position.x)/2.0;
@@ -521,7 +521,7 @@ void FootstepVisManager::updateInteractiveMarkers()
         if(i >= display_footstep_marker_list_.size())
         {
             // create a marker server for this footstep
-            flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+            vigir_ocs_msgs::OCSInteractiveMarkerAdd marker;
             marker.name  = std::string("Footstep ")+boost::lexical_cast<std::string>(i);
             marker.topic = pose_string;
             marker.frame = manager_->getFixedFrame().toStdString();
@@ -533,7 +533,7 @@ void FootstepVisManager::updateInteractiveMarkers()
             marker.orientation.x = footstep_list_.pose[i].pose.orientation.x;
             marker.orientation.y = footstep_list_.pose[i].pose.orientation.y;
             marker.orientation.z = footstep_list_.pose[i].pose.orientation.z;
-            marker.mode = flor_ocs_msgs::OCSInteractiveMarkerAdd::OBJECT_6DOF;
+            marker.mode = vigir_ocs_msgs::OCSInteractiveMarkerAdd::OBJECT_6DOF;
             interactive_marker_add_pub_.publish(marker);
 
             rviz::Display* im = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Interactive marker - Footstep ")+boost::lexical_cast<std::string>(i)).c_str(), false );
@@ -546,7 +546,7 @@ void FootstepVisManager::updateInteractiveMarkers()
         //display_footstep_marker_list_[i]->setEnabled( true );
 
         // update interactive marker pose
-        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.client_id = ros::this_node::getName();
         cmd.topic = pose_string;
         cmd.pose = footstep_list_.pose[i];
@@ -560,25 +560,25 @@ void FootstepVisManager::updateInteractiveMarkers()
     }
 }
 
-void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg)
+void FootstepVisManager::onMarkerFeedback(const vigir_ocs_msgs::OCSInteractiveMarkerUpdate& msg)
 {
     // goal feedback
     if(boost::starts_with(msg.topic,"/step_plan_goal") || boost::starts_with(msg.topic,"/footstep_goal"))
     {
-        flor_ocs_msgs::OCSFootstepPlanGoalUpdate cmd;
+        vigir_ocs_msgs::OCSFootstepPlanGoalUpdate cmd;
         if(boost::starts_with(msg.topic,"/step_plan_goal"))
         {
-            cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::GOAL;
+            cmd.mode = vigir_ocs_msgs::OCSFootstepPlanGoalUpdate::GOAL;
             cmd.goal_pose = msg.pose;
         }
         else if(boost::starts_with(msg.topic,"/footstep_goal_left"))
         {
-            cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::LEFT;
+            cmd.mode = vigir_ocs_msgs::OCSFootstepPlanGoalUpdate::LEFT;
             cmd.left_foot = msg.pose;
         }
         else if(boost::starts_with(msg.topic,"/footstep_goal_right"))
         {
-            cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::RIGHT;
+            cmd.mode = vigir_ocs_msgs::OCSFootstepPlanGoalUpdate::RIGHT;
             cmd.right_foot = msg.pose;
         }
         footstep_goal_pose_fb_pub_.publish(cmd);
@@ -597,7 +597,7 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
                 ROS_INFO("%s: button up",ros::this_node::getName().c_str());
 
                 // on mouse release, update feet
-                cmd.mode = flor_ocs_msgs::OCSFootstepPlanGoalUpdate::UPDATE;
+                cmd.mode = vigir_ocs_msgs::OCSFootstepPlanGoalUpdate::UPDATE;
                 footstep_goal_pose_fb_pub_.publish(cmd);
 
                 double_click_timer_ = boost::posix_time::microsec_clock::universal_time();
@@ -610,7 +610,7 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
     {
         try
         {
-            flor_ocs_msgs::OCSFootstepPlanUpdate cmd;
+            vigir_ocs_msgs::OCSFootstepPlanUpdate cmd;
             int start_idx = strlen("/step_plan_");
             int end_idx = msg.topic.substr(start_idx, msg.topic.size()-start_idx).find("_marker");
             cmd.step_plan_id = boost::lexical_cast<int>(msg.topic.substr(start_idx,end_idx).c_str());
@@ -628,7 +628,7 @@ void FootstepVisManager::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMar
     {
         try
         {
-            flor_ocs_msgs::OCSFootstepUpdate cmd;
+            vigir_ocs_msgs::OCSFootstepUpdate cmd;
             int start_idx = strlen("/footstep_");
             int end_idx = msg.topic.substr(start_idx, msg.topic.size()-start_idx).find("_marker");
             cmd.footstep_id = boost::lexical_cast<int>(msg.topic.substr(start_idx,end_idx).c_str());
@@ -665,7 +665,7 @@ void FootstepVisManager::update3dPlanning(bool use_3d_planning)
 
 void FootstepVisManager::sendFootstepPlanParameters()
 {
-    flor_ocs_msgs::OCSFootstepPlanParameters cmd;
+    vigir_ocs_msgs::OCSFootstepPlanParameters cmd;
     cmd.max_time = max_time_;
     cmd.max_steps = max_steps_;
     cmd.path_length_ratio = path_length_ratio_;
@@ -674,7 +674,7 @@ void FootstepVisManager::sendFootstepPlanParameters()
     footstep_plan_parameters_pub_.publish(cmd);
 }
 
-void FootstepVisManager::processFootstepPlanParameters(const flor_ocs_msgs::OCSFootstepPlanParameters::ConstPtr& msg)
+void FootstepVisManager::processFootstepPlanParameters(const vigir_ocs_msgs::OCSFootstepPlanParameters::ConstPtr& msg)
 {
     Q_EMIT set3dPlanning(msg->use_3d_planning);
     Q_EMIT setFootstepParamaters(msg->max_time, msg->max_steps, msg->path_length_ratio, msg->edit_mode);

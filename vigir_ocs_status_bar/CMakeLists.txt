@@ -3,13 +3,13 @@ project(vigir_ocs_status_bar)
 
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
-find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib tf std_msgs sensor_msgs flor_ocs_msgs vigir_ocs_glance_hub_sbar vigir_ocs_log_sbar)# vigir_perception_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib tf std_msgs sensor_msgs vigir_ocs_msgs vigir_ocs_glance_hub_sbar vigir_ocs_log_sbar)# vigir_perception_msgs)
 
 ## Declare things to be passed to other projects
 catkin_package(
     INCLUDE_DIRS src
     LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS roscpp rospy roslib tf std_msgs sensor_msgs flor_ocs_msgs vigir_ocs_glance_hub_sbar vigir_ocs_log_sbar
+    CATKIN_DEPENDS roscpp rospy roslib tf std_msgs sensor_msgs vigir_ocs_msgs vigir_ocs_glance_hub_sbar vigir_ocs_log_sbar
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:

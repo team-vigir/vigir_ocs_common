@@ -65,7 +65,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     affordance_selection_pub_    = nh_.advertise<vigir_object_template_msgs::Affordance>( "/manipulation_control/" + hand_name_ + "/affordance_command",  1, false);
     snap_template_pub_           = nh_.advertise<vigir_grasp_msgs::TemplateSelection>( "/template/snap",                                                   1, false);
     hand_marker_pub_             = nh_.advertise<std_msgs::Int8>(                     "/manipulation_control/" + hand_name_ + "/hand_marker",             1, false);
-    grasp_sync_pub_              = nh_.advertise<flor_ocs_msgs::OCSGraspSync>(                     "/flor/ocs/grasp_sync",             1, false);
+    grasp_sync_pub_              = nh_.advertise<vigir_ocs_msgs::OCSGraspSync>(                     "/flor/ocs/grasp_sync",             1, false);
 
     grasp_info_client_           = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
     template_info_client_        = nh_.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
@@ -237,10 +237,10 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     virtual_link_joint_states_.position.resize(7);
 
     // publisher to color the hand links
-    hand_link_color_pub_        = nh_.advertise<flor_ocs_msgs::OCSLinkColor>("/link_color", 1, false);
+    hand_link_color_pub_        = nh_.advertise<vigir_ocs_msgs::OCSLinkColor>("/link_color", 1, false);
 
     // find robot status message code csv file
-    std::string code_path_ = (ros::package::getPath("flor_ocs_msgs"))+"/include/flor_ocs_msgs/messages.csv";
+    std::string code_path_ = (ros::package::getPath("vigir_ocs_msgs"))+"/include/vigir_ocs_msgs/messages.csv";
     std::cout << code_path_ << std::endl;
     robot_status_codes_.loadErrorMessages(code_path_);
 
@@ -253,7 +253,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     // create publisher and subscriber for object selection
     // PUBLISHER WILL BE USED BY THE RIGHT/DOUBLE CLICK TO INFORM WHICH TEMPLATE/HAND/OBJECT HAS BEEN selected
     // SUBSCRIBER WILL BE USED TO CHANGE VISIBILITY OF THE OBJECT THAT IS BEING USED (E.G., TALK TO TEMPLATE DISPLAY AND SET VISIBILITY OF MARKERS)
-    select_object_pub_ = nh_.advertise<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 1, false );
+    select_object_pub_ = nh_.advertise<vigir_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 1, false );
     select_object_sub_ = nh_.subscribe( "/flor/ocs/object_selection", 5, &graspWidget::processObjectSelection, this );
 
     //key_event_sub_ = nh_.subscribe( "/flor/ocs/key_event", 5, &graspWidget::processNewKeyEvent, this );
@@ -342,7 +342,7 @@ void graspWidget::graspStateReceived (const vigir_grasp_msgs::GraspState::ConstP
 }
 
 
-void graspWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr list)
+void graspWidget::processTemplateList( const vigir_ocs_msgs::OCSTemplateList::ConstPtr list)
 {
     //std::cout << "Template list received containing " << list->template_id_list.size() << " elements" << std::cout;
     // save last template list
@@ -565,9 +565,9 @@ void graspWidget::on_graspBox_activated(const QString &arg1)
     if(operator_type_ != "main")
         return;
 
-    flor_ocs_msgs::OCSGraspSync msg;
+    vigir_ocs_msgs::OCSGraspSync msg;
     msg.grasp_id = arg1.toInt();
-    msg.sync_mode = flor_ocs_msgs::OCSGraspSync::GRASP_ID;
+    msg.sync_mode = vigir_ocs_msgs::OCSGraspSync::GRASP_ID;
     grasp_sync_pub_.publish(msg);
 
 }
@@ -597,7 +597,7 @@ void graspWidget::on_usabilityBox_activated(const int &arg1)
     hand_marker_pub_.publish(usability);
 }
 
-void graspWidget::robotStatusCB(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg)
+void graspWidget::robotStatusCB(const vigir_ocs_msgs::OCSRobotStatus::ConstPtr msg)
 {
     uint16_t code;
     uint8_t  severity;
@@ -631,7 +631,7 @@ void graspWidget::linkStatesCB( const vigir_grasp_msgs::LinkState::ConstPtr link
 
 void graspWidget::publishLinkColor(std::string link_name, unsigned char r, unsigned char g, unsigned char b)
 {
-    flor_ocs_msgs::OCSLinkColor cmd;
+    vigir_ocs_msgs::OCSLinkColor cmd;
 
     cmd.link = link_name;
     cmd.r = r;
@@ -988,18 +988,18 @@ void graspWidget::on_show_grasp_toggled(bool checked)
 {
     //publish to sync with other operators
     //hand would jump between 2 positions otherwise if one operator is on show and other is not
-    flor_ocs_msgs::OCSGraspSync msg;
+    vigir_ocs_msgs::OCSGraspSync msg;
     msg.show_grasp = checked;
     msg.hand = hand_side_;
     msg.host = boost::asio::ip::host_name();
-    msg.sync_mode = flor_ocs_msgs::OCSGraspSync::SHOW_GRASP;
+    msg.sync_mode = vigir_ocs_msgs::OCSGraspSync::SHOW_GRASP;
     grasp_sync_pub_.publish(msg);
 }
 
-void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg)
+void graspWidget::processGraspSyncCB(const vigir_ocs_msgs::OCSGraspSync::ConstPtr msg)
 {
     //accept changes from all operators
-    if(msg->sync_mode == flor_ocs_msgs::OCSGraspSync::SHOW_GRASP)
+    if(msg->sync_mode == vigir_ocs_msgs::OCSGraspSync::SHOW_GRASP)
     {
         //only affect this hand
         if(msg->hand == hand_side_)
@@ -1016,7 +1016,7 @@ void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr
         }
     }
 
-    if(msg->sync_mode == flor_ocs_msgs::OCSGraspSync::GRASP_ID)
+    if(msg->sync_mode == vigir_ocs_msgs::OCSGraspSync::GRASP_ID)
     {
         //set new grasp with new id
         selected_grasp_id_ = msg->grasp_id;
@@ -1024,7 +1024,7 @@ void graspWidget::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr
     }
 }
 
-void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg)
+void graspWidget::processObjectSelection(const vigir_ocs_msgs::OCSObjectSelection::ConstPtr msg)
 {
     // only process object selection if I'm the sender
     //if(msg->host != boost::asio::ip::host_name())
@@ -1036,7 +1036,7 @@ void graspWidget::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection
 
     switch(msg->type)
     {
-        case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
+        case vigir_ocs_msgs::OCSObjectSelection::TEMPLATE:
             {
             // enable template marker
             //ui->templateBox->setDisabled(false);

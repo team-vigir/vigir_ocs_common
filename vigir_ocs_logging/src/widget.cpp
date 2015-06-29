@@ -22,7 +22,7 @@ Widget::Widget(QWidget *parent) :
     ui->setupUi(this);
     ros::NodeHandle nh("~");
     timer.start(33, this);
-    ocs_logging_pub_ = nh.advertise<flor_ocs_msgs::OCSLogging>("/vigir_logging",        1, false);
+    ocs_logging_pub_ = nh.advertise<vigir_ocs_msgs::OCSLogging>("/vigir_logging",        1, false);
     ocs_responce_sub_ = nh.subscribe<std_msgs::String>("/vigir_logging_responce", 5, &Widget::on_responce_recieved, this);
     ocs_responce_pub_ = nh.advertise<std_msgs::String>("/vigir_logging_query", 1, false);
     experiment_directory_ = "/home/vigir/Experiments/";
@@ -139,7 +139,7 @@ void Widget::on_robotLogsButton_clicked()
     if(ui->spinBox->value() > 0)
     {
         std::cout << "Sending grab log command for " << ui->spinBox->value() << "seconds" << std::endl;
-        flor_ocs_msgs::OCSLogging msg;
+        vigir_ocs_msgs::OCSLogging msg;
         msg.bdiLogTime = ui->spinBox->value();
         ocs_logging_pub_.publish(msg);
     }
@@ -178,7 +178,7 @@ void Widget::on_robotLogsButton_clicked()
 
 void Widget::sendMsg(bool run)
 {
-    flor_ocs_msgs::OCSLogging msg;
+    vigir_ocs_msgs::OCSLogging msg;
     msg.run = run;
     msg.experiment_name = ui->experimentName->text().toStdString();
     msg.description = ui->descriptionBox->document()->toPlainText().toStdString();

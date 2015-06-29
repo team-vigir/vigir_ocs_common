@@ -17,8 +17,8 @@ namespace ocs_image
 void ImageNodelet::onInit()
 {
     // initialize publishers for the image manager
-    image_list_pub_ = nh_.advertise<flor_ocs_msgs::OCSImageList>( "/flor/ocs/image_history/list", 1, false );
-    image_added_pub_ = nh_.advertise<flor_ocs_msgs::OCSImageAdd>( "/flor/ocs/image_history/add", 1, false );
+    image_list_pub_ = nh_.advertise<vigir_ocs_msgs::OCSImageList>( "/flor/ocs/image_history/list", 1, false );
+    image_added_pub_ = nh_.advertise<vigir_ocs_msgs::OCSImageAdd>( "/flor/ocs/image_history/add", 1, false );
 
     // initialize subscribers for image manager topics
     image_list_request_sub_ = nh_.subscribe( "/flor/ocs/image_history/list_request", 5, &ImageNodelet::processImageListRequest, this );
@@ -61,7 +61,7 @@ void ImageNodelet::onInit()
 
 void ImageNodelet::publishImageAdded(const unsigned long &id)
 {
-    flor_ocs_msgs::OCSImageAdd msg;
+    vigir_ocs_msgs::OCSImageAdd msg;
     std::stringstream stream;
 
     msg.id = image_history_[id].id;
@@ -131,7 +131,7 @@ void ImageNodelet::publishImageAdded(const unsigned long &id)
 
 void ImageNodelet::publishImageList()
 {
-    flor_ocs_msgs::OCSImageList msg;
+    vigir_ocs_msgs::OCSImageList msg;
 
     for(int i = 0; i < image_history_.size(); i++)
     {

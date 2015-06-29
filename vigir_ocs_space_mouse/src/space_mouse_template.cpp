@@ -14,22 +14,22 @@ SpaceMouseTemplate::SpaceMouseTemplate()//QObject* parent = 0)
     // create publishers for visualization
 
     // get list of all templates and their poses
-    //template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>("/template/list", 5, &SpaceMouseTemplate::processTemplateList, this);
+    //template_list_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSTemplateList>("/template/list", 5, &SpaceMouseTemplate::processTemplateList, this);
 
     // get object that is selected
-    //select_object_sub_ = nh_.subscribe<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &SpaceMouseTemplate::processObjectSelection, this );
+    //select_object_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, &SpaceMouseTemplate::processObjectSelection, this );
 
     //Initialize the the subscriber for the joy topic
     joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("/spacenav/joy", 10, &SpaceMouseTemplate::joyCallback, this);
 
     // update template position
-    template_update_pub_  = nh_.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "/template/update", 1, false );
+    template_update_pub_  = nh_.advertise<vigir_ocs_msgs::OCSTemplateUpdate>( "/template/update", 1, false );
 
     //ONLY TEMPORARY
     recieved_pose = true;
     //cout << "SpaceMouse created";
 
-    //camera_sub_ = nh_.subscribe<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform",5,&SpaceMouseTemplate::cameraCb,this);
+    //camera_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform",5,&SpaceMouseTemplate::cameraCb,this);
 
     camera_pub_ = nh_.advertise<geometry_msgs::Pose>("/flor/ocs/set_camera_transform", 1, false);
     //ROS_ERROR("PRINT TEST");
@@ -41,7 +41,7 @@ SpaceMouseTemplate::~SpaceMouseTemplate()
 }
 
 //copy camera information and store
-void SpaceMouseTemplate::cameraCb(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
+void SpaceMouseTemplate::cameraCb(const vigir_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
 {
     //ROS_ERROR("In camera cb");
     if(msg->widget_name == "MainView" && msg->view_id == 0)
@@ -63,7 +63,7 @@ void SpaceMouseTemplate::cameraCb(const flor_ocs_msgs::OCSCameraTransform::Const
     }
 }
 
-void SpaceMouseTemplate::processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr &list)
+void SpaceMouseTemplate::processTemplateList(const vigir_ocs_msgs::OCSTemplateList::ConstPtr &list)
 {
     //template_id_list = list->template_id_list;
 
@@ -81,7 +81,7 @@ void SpaceMouseTemplate::processTemplateList(const flor_ocs_msgs::OCSTemplateLis
     }
 }
 
-void SpaceMouseTemplate::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &obj)
+void SpaceMouseTemplate::processObjectSelection(const vigir_ocs_msgs::OCSObjectSelection::ConstPtr &obj)
 {
     //Get id of object that is selected
 
@@ -95,9 +95,9 @@ void SpaceMouseTemplate::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
     if(recieved_pose)//Check if a template is selected
     {
-        //flor_ocs_msgs::OCSTemplateUpdate template_update;
+        //vigir_ocs_msgs::OCSTemplateUpdate template_update;
 
-        flor_ocs_msgs::OCSCameraTransform update = cameraUpdate;
+        vigir_ocs_msgs::OCSCameraTransform update = cameraUpdate;
 
         //This is the pose that we will work with
         geometry_msgs::PoseStamped p = pose_;

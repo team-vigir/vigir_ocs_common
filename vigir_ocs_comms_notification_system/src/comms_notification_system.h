@@ -2,10 +2,10 @@
 #define COMMS_NOTIFICATION_SYSTEM_H
 
 #include <ros/ros.h>
-#include "flor_ocs_msgs/OCSOverlayText.h"
+#include "vigir_ocs_msgs/OCSOverlayText.h"
 
 //example use
-//CommsNotificationSystem::Instance()->notifyCustom("your text",flor_ocs_msgs::OCSOverlayText::TOPROW,flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN,.8f,.8f,.8f);
+//CommsNotificationSystem::Instance()->notifyCustom("your text",vigir_ocs_msgs::OCSOverlayText::TOPROW,vigir_ocs_msgs::OCSOverlayText::CENTERCOLUMN,.8f,.8f,.8f);
 
 /**
   Places notification in top,center and center,center(errors)

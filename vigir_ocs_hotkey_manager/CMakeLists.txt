@@ -5,14 +5,14 @@ project(vigir_ocs_hotkey_manager)
 ## this package depends at build time
 find_package(PCL REQUIRED QUIET COMPONENTS common)
 
-find_package(catkin REQUIRED COMPONENTS roslib roscpp flor_ocs_msgs)
+find_package(catkin REQUIRED COMPONENTS roslib roscpp vigir_ocs_msgs)
 
 
 ## Declare things to be passed to other projects
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-    CATKIN_DEPENDS roslib roscpp flor_ocs_msgs
+    CATKIN_DEPENDS roslib roscpp vigir_ocs_msgs
 
 )
 

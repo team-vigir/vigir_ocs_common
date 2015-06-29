@@ -4,7 +4,7 @@
 #include <ros/ros.h>
 #include <ros/package.h>
 
-#include "flor_ocs_msgs/RobotStatusCodes.h"
+#include "vigir_ocs_msgs/RobotStatusCodes.h"
 
 #include<QFile>
 #include<QTextStream>
@@ -31,7 +31,7 @@ glancehub::glancehub(QWidget *parent) :
     if(nh.getParam("robotErrorFileLocation",fileName))
         messagesPath = fileName;
     else
-        messagesPath = (ros::package::getPath("flor_ocs_msgs"))+"/include/flor_ocs_msgs/messages.csv";
+        messagesPath = (ros::package::getPath("vigir_ocs_msgs"))+"/include/vigir_ocs_msgs/messages.csv";
     std::cout << "Reading messages from <" << messagesPath << ">" << std::endl;
     loadFile();
 
@@ -57,7 +57,7 @@ QString glancehub::getFootstepStat()
     return ui->footstepstat->text();
 }
 
-void glancehub::robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg)
+void glancehub::robotStatusMoveit(const vigir_ocs_msgs::OCSRobotStatus::ConstPtr msg)
 {
     if(msg->status != RobotStatusCodes::PLANNER_MOVEIT_PLAN_ACTIVE)
         ui->plannerLight->setStyleSheet("QLabel { background-color: red; }");
@@ -137,7 +137,7 @@ void glancehub::loadFile()
     }
 }
 
-//void glancehub::robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg)
+//void glancehub::robotStatusFootstep(const vigir_ocs_msgs::OCSRobotStatus::ConstPtr msg)
 //{
 //    switch(msg->status)
 //    {
@@ -201,16 +201,16 @@ void glancehub::loadFile()
 //    Q_EMIT sendFootstepStatus(msg->status);
 //}
 
-void glancehub::robotStatusFootstepComplete(const flor_ocs_msgs::OCSFootstepStatus::ConstPtr msg)
+void glancehub::robotStatusFootstepComplete(const vigir_ocs_msgs::OCSFootstepStatus::ConstPtr msg)
 {
     QString msgType;
     switch(msg->status)
     {
-    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_EXECUTION_ACTIVE:
+    case vigir_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_ACTIVE: case vigir_ocs_msgs::OCSFootstepStatus::FOOTSTEP_EXECUTION_ACTIVE:
         ui->footLight->setStyleSheet("QLabel { background-color: yellow; }");
         msgType="(Warning) ";
         break;
-    case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_SUCCESS: case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_VALID_GOAL: //case flor_ocs_msgs::OCSFootstepStatus::FOOTSTEP_EXECUTION_SUCCESS: //same as FOOTSTEP_PLANNER_SUCCESS
+    case vigir_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_SUCCESS: case vigir_ocs_msgs::OCSFootstepStatus::FOOTSTEP_VALID_GOAL: //case vigir_ocs_msgs::OCSFootstepStatus::FOOTSTEP_EXECUTION_SUCCESS: //same as FOOTSTEP_PLANNER_SUCCESS
         ui->footLight->setStyleSheet("QLabel { background-color: green; }");
         msgType="(Success) ";
         break;

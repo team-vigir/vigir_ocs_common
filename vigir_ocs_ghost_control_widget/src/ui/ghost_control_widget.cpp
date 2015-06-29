@@ -11,8 +11,8 @@
 #include <boost/exception/to_string.hpp>
 
 #include <vigir_grasp_msgs/InverseReachabilityForGraspRequest.h>
-#include <flor_ocs_msgs/OCSInverseReachability.h>
-#include <flor_ocs_msgs/WindowCodes.h>
+#include <vigir_ocs_msgs/OCSInverseReachability.h>
+#include <vigir_ocs_msgs/WindowCodes.h>
 
 std::vector<unsigned char> GhostControlWidget::saved_state_planning_group_;
 unsigned char GhostControlWidget::saved_state_use_torso_;
@@ -41,7 +41,7 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     state_snap_ghost_to_robot_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/state_snap_ghost_to_robot", 1, false );
 
     //subscribe to template list
-    template_list_sub_ = nh_.subscribe<flor_ocs_msgs::OCSTemplateList>(    "/template/list",5, &GhostControlWidget::processTemplateList, this );
+    template_list_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSTemplateList>(    "/template/list",5, &GhostControlWidget::processTemplateList, this );
 
     // advertise the topic to publish state configurations    
     reset_pelvis_pub_ = nh_.advertise<std_msgs::Bool>( "/flor/ocs/ghost/reset_pelvis", 1, false );
@@ -52,7 +52,7 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
     set_to_target_pose_pub_   = nh_.advertise<std_msgs::String>( "/flor/ocs/planning/plan_to_pose_state", 1, false );
     set_to_target_config_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/planning/plan_to_joint_state", 1, false );
 
-    send_inverse_rechability_req_pub_ = nh_.advertise<flor_ocs_msgs::OCSInverseReachability>( "/flor/ocs/ghost/inverse_rechability", 1, false );
+    send_inverse_rechability_req_pub_ = nh_.advertise<vigir_ocs_msgs::OCSInverseReachability>( "/flor/ocs/ghost/inverse_rechability", 1, false );
 
     send_ghost_to_template_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/set_pose", 1, false );
     send_template_to_behavior_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ocs/ghost/behavior_pose", 1, false );;   
@@ -122,7 +122,7 @@ void GhostControlWidget::timerEvent(QTimerEvent *event)
     ros::spinOnce();
 }
 
-void GhostControlWidget::processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list)
+void GhostControlWidget::processTemplateList( const vigir_ocs_msgs::OCSTemplateList::ConstPtr& list)
 {
     //std::cout << "Template list received containing " << list->template_id_list.size() << " elements" << std::cout;
     // save last template list
@@ -412,9 +412,9 @@ void GhostControlWidget::on_send_left_ghost_hand_button__clicked()
 {
     vigir_grasp_msgs::InverseReachabilityForGraspRequest inv_grasp_req;
     inv_grasp_req.hand_side = vigir_grasp_msgs::InverseReachabilityForGraspRequest::HAND_LEFT;
-    flor_ocs_msgs::OCSInverseReachability cmd;
+    vigir_ocs_msgs::OCSInverseReachability cmd;
     cmd.request = inv_grasp_req;
-    cmd.use_pose = flor_ocs_msgs::OCSInverseReachability::GHOST_HAND;
+    cmd.use_pose = vigir_ocs_msgs::OCSInverseReachability::GHOST_HAND;
     send_inverse_rechability_req_pub_.publish(cmd);
 }
 
@@ -422,9 +422,9 @@ void GhostControlWidget::on_send_right_ghost_hand_button__clicked()
 {
     vigir_grasp_msgs::InverseReachabilityForGraspRequest inv_grasp_req;
     inv_grasp_req.hand_side = vigir_grasp_msgs::InverseReachabilityForGraspRequest::HAND_RIGHT;
-    flor_ocs_msgs::OCSInverseReachability cmd;
+    vigir_ocs_msgs::OCSInverseReachability cmd;
     cmd.request = inv_grasp_req;
-    cmd.use_pose = flor_ocs_msgs::OCSInverseReachability::GHOST_HAND;
+    cmd.use_pose = vigir_ocs_msgs::OCSInverseReachability::GHOST_HAND;
     send_inverse_rechability_req_pub_.publish(cmd);
 }
 

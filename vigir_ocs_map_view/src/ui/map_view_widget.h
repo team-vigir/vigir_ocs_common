@@ -9,9 +9,9 @@
 #include <ros/ros.h>
 #include "map_region_configure_widget.h"
 #include "region_3d_configure_widget.h"
-#include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <vigir_ocs_msgs/OCSKeyEvent.h>
 #include <QPropertyAnimation>
-#include "flor_ocs_msgs/OCSSynchronize.h"
+#include "vigir_ocs_msgs/OCSSynchronize.h"
 #include "notification_system.h"
 #include "hotkey_manager.h"
 #include <ui/footstep_config.h>
@@ -59,7 +59,7 @@ private:
     QBasicTimer timer;
     ros::NodeHandle n_;   
 
-    void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg);
+    void synchronizeToggleButtons(const vigir_ocs_msgs::OCSSynchronize::ConstPtr &msg);
     void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
     ros::Subscriber ocs_sync_sub_;
     ros::Publisher  ocs_sync_pub_;
