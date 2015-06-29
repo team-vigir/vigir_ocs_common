@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib std_msgs nav_msgs rv
 catkin_package(	
 	INCLUDE_DIRS src
 	LIBRARIES ${PROJECT_NAME} 
-    CATKIN_DEPENDS roscpp rospy roslib std_msgs nav_msgs rviz flor_ocs_msgs
+    CATKIN_DEPENDS roscpp rospy roslib std_msgs nav_msgs rviz comms_bridge_helpers
 )
 
 ## This plugin includes Qt widgets, so we must include Qt like so:
