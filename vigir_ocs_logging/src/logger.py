@@ -23,9 +23,8 @@ class App(object):
 		self.enableBDILogging = False
 		self.name = ''
 		self.logLocation = '/home/vigir/Experiments'
-		self.onboard = True
+                self.logger_name = 'ocs_'
 		self.pub = ''
-		self.query = ""
 
 	def __del__(self):
 		print "Destroying logging node."
@@ -62,17 +61,17 @@ class App(object):
 			temp ="start"
 		else:
 			temp = "stop"
-		self.pub.publish(self.query + temp)
+                self.pub.publish(self.logger_name + temp)
 
 	def startLogging(self):
 		print "Starting logs"
 		bashCommand = ["/bin/bash", "--norc", "-c"]
-		bagCommand = "rosbag record --split --duration=70m -O /"+ self.folder + "/log.bag " + self.combined()
+                bagCommand = "rosbag record --split --duration=5m -O /"+ self.folder + "/log.bag " + self.combined()
 		print bagCommand
 		self.bagProcess = subprocess.Popen(bashCommand + [bagCommand], stdout=subprocess.PIPE, preexec_fn=os.setsid)
 		self.logging = True
-		print self.query + "start"
-		self.pub.publish(self.query + "start")
+                print self.logger_name + "start"
+                self.pub.publish(self.logger_name + "start")
 		
 	def killLogging(self, results):
 		print "Killing logs"
@@ -89,8 +88,8 @@ class App(object):
 		f.write('</Experiment>')
 		f.close()
 		self.folder = ''
-		print self.query + "stop"
-		self.pub.publish(self.query + "stop")
+                print self.logger_name + "stop"
+                self.pub.publish(self.logger_name + "stop")
 			
 	def listener(self):
 		# setup call back for lgging
@@ -100,6 +99,10 @@ class App(object):
 		print "Looking for ros params..."
 		print rospy.search_param('logging_location')
 		print rospy.search_param('to_log')		
+                if rospy.has_param('~logger_name'):
+                        print("This logger is named")
+                        self.logger_name = rospy.get_param('~logger_name')
+                        print self.logger_name
 		if rospy.has_param('~to_log'):
 			print "logging the following topics..."
 			self.toLog = rospy.get_param('~to_log')
@@ -116,17 +119,9 @@ class App(object):
 			print self.logLocation
 		else:
 			print "Using default logging location"
-		if rospy.has_param("~onboard"):
-			print "logging instance is onboard?"
-			self.onboard = rospy.get_param("~onboard")
-			print self.onboard
 		rospy.Subscriber('/vigir_logging', OCSLogging, self.callback)
 		rospy.Subscriber('/vigir_logging_query', String, self.state)
 		self.pub = rospy.Publisher('/vigir_logging_responce', String, queue_size=1)
-		if self.onboard:
-			self.query = "onboard_"
-		else:
-			self.query = "ocs_"
 		rospy.spin()
 		
 	def grabLogs(self, time):
