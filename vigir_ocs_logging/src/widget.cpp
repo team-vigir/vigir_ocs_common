@@ -11,8 +11,6 @@
 #include "QSpinBox"
 #include "QLabel"
 
-#define ROBOT_IP "192.168.130.103"
-
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
@@ -133,49 +131,6 @@ void Widget::on_stopButton_clicked()
     sendMsg(false);
 }
 
-
-void Widget::on_robotLogsButton_clicked()
-{
-    if(ui->spinBox->value() > 0)
-    {
-        std::cout << "Sending grab log command for " << ui->spinBox->value() << "seconds" << std::endl;
-        vigir_ocs_msgs::OCSLogging msg;
-        msg.bdiLogTime = ui->spinBox->value();
-        ocs_logging_pub_.publish(msg);
-    }
-    else
-       std::cout << "Ignoring grab command since time requested is invalid" << std::endl;
-    /*QRegExp rx("(\s\\\\)");
-    std::string expName = (ui->experimentName->text().replace(rx,tr("_"))).toStdString();
-    std::cout << "Exp name is " << expName << std::endl;
-    boost::filesystem::path folder (std::string("/home/vigir/Experiments/"+expName));
-    if(boost::filesystem::exists(folder))
-        getRobotLogs(folder);
-    else if(expName != "")
-    {
-        if(boost::filesystem::create_directory(folder))
-            std::cout<< "Created new folder at " << folder.c_str() << std::endl;
-        getRobotLogs(folder);
-    }
-    else
-    {
-        struct tm * timeinfo;
-        time_t exptime;
-        time(&exptime);
-        timeinfo = localtime( &exptime);
-        //std::string timeName = "/home/vigir/Experiments/"+boost::lexical_cast<std::string>(timeinfo->tm_mon)+"-"+boost::lexical_cast<std::string>(timeinfo->tm_mday)+"-"+boost::lexical_cast<std::string>(timeinfo->tm_year+1900);
-        boost::filesystem::path folder ("/home/vigir/Experiments/"+boost::lexical_cast<std::string>(timeinfo->tm_mon)+"-"+boost::lexical_cast<std::string>(timeinfo->tm_mday)+"-"+boost::lexical_cast<std::string>(timeinfo->tm_year+1900));
-        if(boost::filesystem::exists(folder))
-            getRobotLogs(folder);
-        else
-        {
-            if(boost::filesystem::create_directory(folder))
-                std::cout<< "Created new folder at " << folder.c_str() << std::endl;
-            getRobotLogs(folder);
-        }
-    }*/
-}
-
 void Widget::sendMsg(bool run)
 {
     vigir_ocs_msgs::OCSLogging msg;
@@ -194,11 +149,4 @@ void Widget::on_experimentName_textChanged(const QString &arg1)
         ui->startButton->setEnabled(true);
 }
 
-/*void Widget::getRobotLogs(boost::filesystem::path folder)
-{
-    std::cout << "Getting robot logs....\nFirst making sure on the right network." << std::endl;
-    std::string systemCall = "python /home/vigir/vigir_repo/catkin_ws/src/vigir_ocs_common/vigir_ocs_logging/src/atlas_log_downloader.py 192.168.130.103 "+folder.string()+" "+boost::lexical_cast<std::string>(ui->spinBox->value());
-    std::cout << "calling the following... " << systemCall << std::endl;
-    system(systemCall.c_str());
-    std::cout << "Done Grabbing logs!" << std::endl;
-}*/
+

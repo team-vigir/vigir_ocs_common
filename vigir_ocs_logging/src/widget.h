@@ -34,9 +34,7 @@ public Q_SLOTS:
     void on_startButton_clicked();
 
     void on_stopButton_clicked();
-    
 
-    void on_robotLogsButton_clicked();
     void on_experimentName_textChanged(const QString &arg1);
 
 
