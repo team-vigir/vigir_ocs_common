@@ -54,9 +54,9 @@
 #include "vigir_ocs_msgs/OCSWaypointAdd.h"
 #include "vigir_ocs_msgs/OCSControlMode.h"
 #include "vigir_perception_msgs/EnvironmentRegionRequest.h"
-#include "flor_planning_msgs/TargetConfigIkRequest.h"
-#include "flor_planning_msgs/CartesianMotionRequest.h"
-#include "flor_planning_msgs/CircularMotionRequest.h"
+#include "vigir_teleop_planning_msgs/TargetConfigIkRequest.h"
+#include "vigir_teleop_planning_msgs/CartesianMotionRequest.h"
+#include "vigir_teleop_planning_msgs/CircularMotionRequest.h"
 
 #include <OgreHardwarePixelBuffer.h>
 #include <OgreMaterialManager.h>
@@ -502,7 +502,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         end_effector_sub_.push_back(nh_.subscribe( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
         end_effector_sub_.push_back(nh_.subscribe( "/flor/ghost/pose/robot", 5, &Base3DView::processPelvisEndEffector, this ));
 
-        end_effector_pub_ = nh_.advertise<flor_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 5, false );
+        end_effector_pub_ = nh_.advertise<vigir_teleop_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 5, false );
 
         ghost_root_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/set_root_pose", 1, false );
         ghost_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>( "/flor/ghost/set_joint_states", 1, false );
@@ -638,7 +638,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         cartesian_config_widget_->hide();
 
         // and necessary publisher
-        cartesian_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CartesianMotionRequest>( "/flor/planning/upper_body/plan_cartesian_request", 1, false );
+        cartesian_plan_request_pub_ = nh_.advertise<vigir_teleop_planning_msgs::CartesianMotionRequest>( "/flor/planning/upper_body/plan_cartesian_request", 1, false );
 
         // create the window for circular motion
         circular_config_widget_ = new QWidget();
@@ -684,7 +684,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         circular_config_widget_->hide();
 
         // and necessary publisher
-        circular_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request", 1, false );
+        circular_plan_request_pub_ = nh_.advertise<vigir_teleop_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request", 1, false );
 
         // subscribe to the topic sent by the ghost widget
         send_cartesian_sub_ = nh_.subscribe( "/flor/ocs/ghost/send_cartesian", 5, &Base3DView::processSendCartesian, this );
@@ -2996,7 +2996,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
 
     //ROS_ERROR("Left: %s Right:%s Pelvis: %s",left?"yes":"no",right?"yes":"no",torso?"yes":"no");
 
-    flor_planning_msgs::TargetConfigIkRequest cmd;
+    vigir_teleop_planning_msgs::TargetConfigIkRequest cmd;
 
     if(left && end_effector_pose_list_.find( "/l_arm_pose_marker") != end_effector_pose_list_.end())
     {
@@ -3877,7 +3877,7 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
 {
     std::string prefix = (right_hand ? "r" : "l");
 
-    flor_planning_msgs::CartesianMotionRequest cmd;
+    vigir_teleop_planning_msgs::CartesianMotionRequest cmd;
 
     cmd.header.frame_id = "/world";
     cmd.header.stamp = ros::Time::now();
@@ -3962,7 +3962,7 @@ void Base3DView::sendCartesianRight()
 void Base3DView::sendCircularTarget(bool right_hand)
 {
     std::string prefix = (right_hand ? "r" : "l");
-    flor_planning_msgs::CircularMotionRequest cmd;
+    vigir_teleop_planning_msgs::CircularMotionRequest cmd;
 
     geometry_msgs::PoseStamped pose;
     pose.header.frame_id = "/world";
