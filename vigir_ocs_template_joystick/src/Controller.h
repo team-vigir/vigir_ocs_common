@@ -23,7 +23,7 @@
 #include <string>
 #include <QBasicTimer>
 #include <geometry_msgs/PoseStamped.h>
-#include <flor_planning_msgs/TargetConfigIkRequest.h>
+#include <vigir_teleop_planning_msgs/TargetConfigIkRequest.h>
 
 #include <QLabel>
 #include <QVBoxLayout>
