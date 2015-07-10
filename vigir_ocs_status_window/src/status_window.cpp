@@ -33,32 +33,32 @@ status_window::status_window(QWidget *parent) :
     timer.start(33, this);
 }
 
-void status_window::controlModeMsgReceived(const flor_control_msgs::FlorControlMode::ConstPtr modeMsg)
+void status_window::controlModeMsgReceived(const vigir_atlas_control_msgs::VigirAtlasControlMode::ConstPtr modeMsg)
 {
     rbtStatus->show();
-    //flor_control_msgs::FlorControlMode::LEFT_SIDE_DOWN
+    //vigir_atlas_control_msgs::VigirAtlasControlMode::LEFT_SIDE_DOWN
     switch(modeMsg->posture & 0x7F)
     {
-    case flor_control_msgs::FlorControlMode::LEFT_SIDE_DOWN:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::LEFT_SIDE_DOWN:
         ui->postureLabel->setText(QString::fromStdString("Left Side Down"));
         break;
-    case flor_control_msgs::FlorControlMode::RIGHT_SIDE_DOWN:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::RIGHT_SIDE_DOWN:
         ui->postureLabel->setText(QString::fromStdString("Right Side Down"));
         break;
-    case flor_control_msgs::FlorControlMode::FRONT_SIDE_DOWN:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::FRONT_SIDE_DOWN:
         ui->postureLabel->setText(QString::fromStdString("Front Side Down"));
         break;
-    case flor_control_msgs::FlorControlMode::BACK_SIDE_DOWN:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::BACK_SIDE_DOWN:
         ui->postureLabel->setText(QString::fromStdString("Back Side Down"));
         break;
-    case flor_control_msgs::FlorControlMode::UPRIGHT:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::UPRIGHT:
         ui->postureLabel->setText(QString::fromStdString("Upright"));
         break;
-    case flor_control_msgs::FlorControlMode::VERTICAL: // posture can be Upright and Vertical
-    case (flor_control_msgs::FlorControlMode::VERTICAL + flor_control_msgs::FlorControlMode::UPRIGHT):
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::VERTICAL: // posture can be Upright and Vertical
+    case (vigir_atlas_control_msgs::VigirAtlasControlMode::VERTICAL + vigir_atlas_control_msgs::VigirAtlasControlMode::UPRIGHT):
         ui->postureLabel->setText(QString::fromStdString("Vertical"));
         break;
-    case flor_control_msgs::FlorControlMode::HEAD_STAND:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::HEAD_STAND:
         ui->postureLabel->setText(QString::fromStdString("Head Stand"));
         break;
     default:
@@ -86,25 +86,25 @@ QString status_window::getControllerStatus(uint8_t flag)
 {
     switch(flag)
     {
-    case flor_control_msgs::FlorControlMode::IDLE:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::IDLE:
         return QString::fromStdString("Idle");
-    case flor_control_msgs::FlorControlMode::TRAJECTORY_ACTIVE:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::TRAJECTORY_ACTIVE:
         return QString::fromStdString("Trajectory Active");
-    case flor_control_msgs::FlorControlMode::TRAJECTORY_HOLD:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::TRAJECTORY_HOLD:
         return QString::fromStdString("Trajectory Hold");
-    case flor_control_msgs::FlorControlMode::TRAJECTORY_WAIT:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::TRAJECTORY_WAIT:
         return QString::fromStdString("Trajectory Wait");
-    case flor_control_msgs::FlorControlMode::TRAJECTORY_INVALID:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::TRAJECTORY_INVALID:
         return QString::fromStdString("Trajectory Invalid");
-    case flor_control_msgs::FlorControlMode::TRAJECTORY_EMPTY:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::TRAJECTORY_EMPTY:
         return QString::fromStdString("Trajectory Empty");
-    case flor_control_msgs::FlorControlMode::POSITION:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::POSITION:
         return QString::fromStdString("Position");
-    case flor_control_msgs::FlorControlMode::TRACK:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::TRACK:
         return QString::fromStdString("Track");
-    case flor_control_msgs::FlorControlMode::HOLD_PRIOR:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::HOLD_PRIOR:
         return QString::fromStdString("Hold");
-    case flor_control_msgs::FlorControlMode::FORCE:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::FORCE:
         return QString::fromStdString("Force");
     default:
         return QString::fromStdString("Unknown Controller Status");

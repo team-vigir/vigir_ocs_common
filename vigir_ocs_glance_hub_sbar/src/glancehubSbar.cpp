@@ -2,6 +2,7 @@
 #include <ros/ros.h>
 #include "ui_glancehubSbar.h"
 #include <ros/package.h>
+#include <QComboBox>
 #include <QStandardItemModel>
 
 glancehubSbar::glancehubSbar(QWidget *parent) :
@@ -153,7 +154,7 @@ void glancehubSbar::modeChanged(int mode)
     // only publish the mode selection command if this slot is called from UI or if publish is not set to false
     flor_control_msgs::FlorControlModeCommand msg;
     msg.header.stamp = ros::Time::now();
-    msg.requested_control_mode = mode;
+    msg.requested_control_mode = ui->modeBox->itemText(mode).toStdString().c_str();
     previous_selection_ = newText;
     mode_pub_.publish(msg);
 }
