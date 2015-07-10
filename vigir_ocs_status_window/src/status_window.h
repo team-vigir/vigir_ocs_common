@@ -11,7 +11,7 @@
 #include <ros/ros.h>
 #include <ros/subscriber.h>
 
-#include <flor_control_msgs/FlorControlMode.h>
+#include <vigir_atlas_control_msgs/VigirAtlasControlMode.h>
 #include <vigir_ocs_msgs/OCSRobotStability.h>
 #include <vigir_ocs_msgs/OCSKeyEvent.h>
 
@@ -30,7 +30,7 @@ public:
     explicit status_window(QWidget *parent = 0);
     ~status_window();
 
-    void controlModeMsgReceived(const flor_control_msgs::FlorControlMode::ConstPtr modeMsg);
+    void controlModeMsgReceived(const vigir_atlas_control_msgs::VigirAtlasControlMode::ConstPtr modeMsg);
     void stabilityMsgReceived(const vigir_ocs_msgs::OCSRobotStability::ConstPtr stabilityMsg);
     void updateButtonColor();
     QString getControllerStatus(uint8_t flag);

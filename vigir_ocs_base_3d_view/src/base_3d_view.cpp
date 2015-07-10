@@ -1803,7 +1803,7 @@ void Base3DView::processNewSelection( const geometry_msgs::Point::ConstPtr pose 
     Q_EMIT setMarkerPosition(pose->x,pose->y,pose->z);
 }
 
-void Base3DView::processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr msg )
+void Base3DView::processControlMode( const vigir_atlas_control_msgs::VigirAtlasControlMode::ConstPtr msg )
 {
     flor_atlas_current_mode_ = msg->control_mode;
 }

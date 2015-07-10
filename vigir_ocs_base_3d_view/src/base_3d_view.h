@@ -62,7 +62,7 @@
 #include <vigir_perception_msgs/RaycastRequest.h>
 #include <vigir_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
-#include <flor_control_msgs/FlorControlMode.h>
+#include <vigir_atlas_control_msgs/VigirAtlasControlMode.h>
 
 #include "robot_custom.h"
 #include "robot_link_custom.h"
@@ -204,7 +204,7 @@ public:
     /**
       * ROS Callback: receives the current control mode from onboard
       */
-    void processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr msg );
+    void processControlMode( const vigir_atlas_control_msgs::VigirAtlasControlMode::ConstPtr msg );
 
     /**
       * ROS Callback: receives configuration message for ghost robot

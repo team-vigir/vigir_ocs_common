@@ -227,7 +227,7 @@ void glancehub::robotStatusFootstepComplete(const vigir_ocs_msgs::OCSFootstepSta
     Q_EMIT sendFootstepStatus(msg->status);
 }
 
-void glancehub::controlModeMsgRcv(const flor_control_msgs::FlorControlMode::ConstPtr msg)
+void glancehub::controlModeMsgRcv(const vigir_atlas_control_msgs::VigirAtlasControlMode::ConstPtr msg)
 {
     QString newText;
     if (msg->control_mode >= 0 && msg->control_mode <  allowed_control_modes_.size())
