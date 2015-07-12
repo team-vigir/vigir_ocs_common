@@ -35,7 +35,7 @@
 
 #include <OGRE/OgreVector3.h>
 
-#include <flor_ocs_msgs/OCSLinkColor.h>
+#include <vigir_ocs_msgs/OCSLinkColor.h>
 
 #include <map>
 
@@ -87,7 +87,7 @@ public:
 
     void setModelPrefix(std::string prefix, urdf::ModelInterface &descr);
 
-    void processLinkColorChange(const flor_ocs_msgs::OCSLinkColor::ConstPtr& color);
+    void processLinkColorChange(const vigir_ocs_msgs::OCSLinkColor::ConstPtr& color);
 
     std::string getChildLinkName(std::string joint);
 

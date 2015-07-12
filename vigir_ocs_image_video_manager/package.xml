@@ -14,9 +14,9 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>rviz</build_depend>
   <build_depend>cv_bridge</build_depend>
-  <build_depend>flor_ocs_msgs</build_depend>
-  <build_depend>flor_grasp_msgs</build_depend>
-  <build_depend>flor_perception_msgs</build_depend>
+  <build_depend>vigir_ocs_msgs</build_depend>
+  <build_depend>vigir_grasp_msgs</build_depend>
+  <build_depend>vigir_perception_msgs</build_depend>
   
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
@@ -24,9 +24,9 @@
   <run_depend>std_msgs</run_depend>
   <run_depend>rviz</run_depend>
   <run_depend>cv_bridge</run_depend>
-  <run_depend>flor_ocs_msgs</run_depend>
-  <run_depend>flor_grasp_msgs</run_depend>
-  <run_depend>flor_perception_msgs</run_depend>
+  <run_depend>vigir_ocs_msgs</run_depend>
+  <run_depend>vigir_grasp_msgs</run_depend>
+  <run_depend>vigir_perception_msgs</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

@@ -13,7 +13,7 @@
 #include <vigir_be_msgs/BehaviorInputAction.h>
 #include <vigir_be_msgs/BehaviorInputActionGoal.h>
 
-#include "flor_ocs_msgs/OCSObjectSelection.h"
+#include "vigir_ocs_msgs/OCSObjectSelection.h"
 #include <QFrame>
 #include "complex_action_server.h"
 #include <boost/asio/ip/host_name.hpp>
@@ -41,7 +41,7 @@ private:
     bool eventFilter(QObject* object,QEvent* event);
     void timerEvent(QTimerEvent *event);
     void setButtonStyle(QPushButton* btn);
-    void objectSelectCB(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg);
+    void objectSelectCB(const vigir_ocs_msgs::OCSObjectSelection::ConstPtr msg);
 
     Ui::BehaviorNotification *ui;
     bool confirmed_;    

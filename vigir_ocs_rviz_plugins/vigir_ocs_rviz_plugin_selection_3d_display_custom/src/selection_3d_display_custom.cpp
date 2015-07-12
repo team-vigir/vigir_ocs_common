@@ -90,10 +90,10 @@ void Selection3DDisplayCustom::onInitialize()
 {
     context_->getSceneManager()->addRenderQueueListener(this);
 
-    raycast_query_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_distance_request_world", 1, false );
+    raycast_query_pub_ = nh_.advertise<vigir_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_distance_request_world", 1, false );
     raycast_query_sub_ = nh_.subscribe<std_msgs::Float64>( "/flor/worldmodel/ocs/dist_query_distance_result", 5, &Selection3DDisplayCustom::processDistQuery, this );
-    ocs_raycast_query_pub_ = nh_.advertise<flor_ocs_msgs::OCSRaycastRequest>( "/flor/ocs/dist_query_request", 1, false );
-    ocs_raycast_query_sub_ = nh_.subscribe<flor_ocs_msgs::OCSRaycastRequest>( "/flor/ocs/dist_query_request", 5, &Selection3DDisplayCustom::processOCSDistQuery, this );
+    ocs_raycast_query_pub_ = nh_.advertise<vigir_ocs_msgs::OCSRaycastRequest>( "/flor/ocs/dist_query_request", 1, false );
+    ocs_raycast_query_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSRaycastRequest>( "/flor/ocs/dist_query_request", 5, &Selection3DDisplayCustom::processOCSDistQuery, this );
 }
 
 void Selection3DDisplayCustom::updateRobotDescription()
@@ -627,7 +627,7 @@ Ogre::Vector3 Selection3DDisplayCustom::calculateRaycastPosition(double distance
     return origin+(direction*distance);
 }
 
-void Selection3DDisplayCustom::processOCSDistQuery( const flor_ocs_msgs::OCSRaycastRequest::ConstPtr &request )
+void Selection3DDisplayCustom::processOCSDistQuery( const vigir_ocs_msgs::OCSRaycastRequest::ConstPtr &request )
 {
     Ogre::Vector3 origin(request->origin.x,request->origin.y,request->origin.z);
     Ogre::Vector3 direction(request->direction.x,request->direction.y,request->direction.z);
@@ -703,7 +703,7 @@ void Selection3DDisplayCustom::processDistQuery( const std_msgs::Float64::ConstP
 
 void Selection3DDisplayCustom::publishRayRequest(Ogre::Vector3 origin, Ogre::Vector3 direction)
 {
-    flor_perception_msgs::RaycastRequest request;
+    vigir_perception_msgs::RaycastRequest request;
 
     request.origin.x = origin.x;
     request.origin.y = origin.y;
@@ -718,7 +718,7 @@ void Selection3DDisplayCustom::publishRayRequest(Ogre::Vector3 origin, Ogre::Vec
 
 void Selection3DDisplayCustom::publishOCSRayRequest(int mode, Ogre::Vector3 origin, Ogre::Vector3 direction)
 {
-    flor_ocs_msgs::OCSRaycastRequest request;
+    vigir_ocs_msgs::OCSRaycastRequest request;
 
     request.origin.x = origin.x;
     request.origin.y = origin.y;

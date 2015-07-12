@@ -55,8 +55,8 @@ OverlayTextDisplay::OverlayTextDisplay() : Display(),
 {
     update_topic_property_ = new rviz::RosTopicProperty(
                 "Topic", "",
-                ros::message_traits::datatype<flor_ocs_msgs::OCSOverlayText>(),
-                "flor_ocs_msgs::OCSOverlayText topic to subscribe to.",
+                ros::message_traits::datatype<vigir_ocs_msgs::OCSOverlayText>(),
+                "vigir_ocs_msgs::OCSOverlayText topic to subscribe to.",
                 this, SLOT( updateTopic() ));
     overtake_properties_property_ = new rviz::BoolProperty(
                 "Overtake Properties", false,
@@ -256,33 +256,33 @@ void OverlayTextDisplay::setPositionFromAlignment()
 {
     switch(column_)
     {
-    case flor_ocs_msgs::OCSOverlayText::LEFTCOLUMN:
+    case vigir_ocs_msgs::OCSOverlayText::LEFTCOLUMN:
         left_ = (viewport_width_ / 4); //1/4 of view port to the right
         break;
-    case flor_ocs_msgs::OCSOverlayText::CENTERCOLUMN:
+    case vigir_ocs_msgs::OCSOverlayText::CENTERCOLUMN:
         left_ = (viewport_width_ /2);
         break;
-    case flor_ocs_msgs::OCSOverlayText::RIGHTCOLUMN:
+    case vigir_ocs_msgs::OCSOverlayText::RIGHTCOLUMN:
         left_ = (viewport_width_ / 4) * 3;
         break;
     }
 
     switch(row_)
     {
-    case flor_ocs_msgs::OCSOverlayText::TOPROW:
+    case vigir_ocs_msgs::OCSOverlayText::TOPROW:
         top_ = 5;
         break;
-    case flor_ocs_msgs::OCSOverlayText::CENTERROW:
+    case vigir_ocs_msgs::OCSOverlayText::CENTERROW:
         top_ = (viewport_height_/2);
         break;
-    case flor_ocs_msgs::OCSOverlayText::BOTTOMROW:
+    case vigir_ocs_msgs::OCSOverlayText::BOTTOMROW:
         top_ = viewport_height_ - texture_height_ -5;
         break;
     }
 
 }
 
-void OverlayTextDisplay::processMessage(const flor_ocs_msgs::OCSOverlayText::ConstPtr& msg)
+void OverlayTextDisplay::processMessage(const vigir_ocs_msgs::OCSOverlayText::ConstPtr& msg)
 {
     if (!isEnabled())
     {

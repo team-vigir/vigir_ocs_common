@@ -150,7 +150,7 @@ int jointList::getNumWarn()
 
 
 //?
-void jointList::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
+void jointList::processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
 {
    // store key state
    if(key_event->state)

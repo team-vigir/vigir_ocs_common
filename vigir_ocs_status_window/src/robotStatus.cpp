@@ -1,7 +1,7 @@
 #include "robotStatus.h"
 #include <QVBoxLayout>
 #include <ros/ros.h>
-#include <flor_ocs_msgs/RobotStatusCodes.h>
+#include <vigir_ocs_msgs/RobotStatusCodes.h>
 #include <ros/package.h>
 
 robotStatus::robotStatus(QWidget *parent) :
@@ -44,7 +44,7 @@ robotStatus::robotStatus(QWidget *parent) :
     msgTable->setColumnWidth(0,140);
     msgTable->setColumnWidth(1,50);
     msgTable->setColumnWidth(2,315);
-    //labels = new QStringList();opt/vigir/catkin_ws/src/flor_common/flor_ocs_msgs/include/flor_ocs_msgs/
+    //labels = new QStringList();opt/vigir/catkin_ws/src/flor_common/vigir_ocs_msgs/include/vigir_ocs_msgs/
     labels.push_back("Sim Time");
     labels.push_back("Type");
     labels.push_back("Message Contents");
@@ -57,7 +57,7 @@ robotStatus::robotStatus(QWidget *parent) :
     if(nh.getParam("robotErrorFileLocation",fileName))
         messagesPath = fileName;
     else
-        messagesPath = (ros::package::getPath("flor_ocs_msgs"))+"/include/flor_ocs_msgs/messages.csv";
+        messagesPath = (ros::package::getPath("vigir_ocs_msgs"))+"/include/vigir_ocs_msgs/messages.csv";
 
     std::cout << "Reading messages from <" << messagesPath << ">" << std::endl;
     loadFile();
@@ -147,7 +147,7 @@ QString robotStatus::timeFromMsg(ros::Time stamp)
     return QString::fromStdString(stream.str());
 }
 
-void robotStatus::receivedMessage(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg)
+void robotStatus::receivedMessage(const vigir_ocs_msgs::OCSRobotStatus::ConstPtr msg)
 {
 
     //extract information from msg
@@ -343,7 +343,7 @@ int robotStatus::getNumWarn()
     return numWarn;
 }
 
-void robotStatus::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
+void robotStatus::processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
 {
     // store key state
     if(key_event->state)

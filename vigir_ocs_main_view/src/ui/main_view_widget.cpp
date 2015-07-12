@@ -35,7 +35,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ui->insert_waypoint->hide();
 
     //subscribe to the global hotkey message
-   // key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainViewWidget::processNewKeyEvent, this );
+   // key_event_sub_ = n_.subscribe<vigir_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainViewWidget::processNewKeyEvent, this );
 
     //setup lidar spin
     lidar_spin_rate_pub_ = n_.advertise<std_msgs::Float64>("/multisense/set_spindle_speed",10,false);
@@ -455,7 +455,7 @@ void MainViewWidget::changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState sta
     checkBox->blockSignals(false);
 }
 
-void MainViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr msg)
+void MainViewWidget::synchronizeToggleButtons(const vigir_ocs_msgs::OCSSynchronize::ConstPtr msg)
 {
     for(int i=0;i<msg->properties.size();i++)
     {
@@ -542,7 +542,7 @@ void MainViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchroniz
     }
 }
 
-void MainViewWidget::modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr msg)
+void MainViewWidget::modeCB(const vigir_ocs_msgs::OCSControlMode::ConstPtr msg)
 {
     if(msg->manipulationMode != 0 || msg->manipulationMode != 1 || msg->manipulationMode != 2)
         return;
@@ -721,7 +721,7 @@ void MainViewWidget::snapGhostContextMenu()
 void MainViewWidget::setManipulationMode(int mode)
 {
     // update template joystick
-    flor_ocs_msgs::OCSControlMode msg;
+    vigir_ocs_msgs::OCSControlMode msg;
     msg.manipulationMode =  mode;
     mode_pub_.publish(msg);
 
@@ -731,7 +731,7 @@ void MainViewWidget::setManipulationMode(int mode)
 
 void MainViewWidget::setObjectMode(int mode)
 {
-    flor_ocs_msgs::OCSControlMode msg;
+    vigir_ocs_msgs::OCSControlMode msg;
     msg.objectMode =  mode;
     msg.manipulationMode = ui->modeBox->currentIndex();
     mode_pub_.publish(msg);
@@ -890,7 +890,7 @@ void MainViewWidget::setupToolbar()
     connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(setManipulationMode(int)));
 
     //publisher for joystick modes
-    mode_pub_ = n_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1,false);
+    mode_pub_ = n_.advertise<vigir_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1,false);
     //need to subscribe to stay in sync with modes
     mode_sub_ = n_.subscribe("/flor/ocs/control_modes",1, &MainViewWidget::modeCB,this);
 
@@ -1022,7 +1022,7 @@ void MainViewWidget::zero_rightPressed(){
     }
 }
 
-//void MainViewWidget::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
+//void MainViewWidget::processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr &key_event)
 //{
 //    // store key state
 //    if(key_event->state)

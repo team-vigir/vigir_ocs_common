@@ -36,11 +36,11 @@ void quatToEuler(QQuaternion q1, float& heading, float& attitude, float& bank)
 PSMoveTemplateController::PSMoveTemplateController()
 {
     // get the camera pose and properties
-    camera_sub_ = nh_.subscribe<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform",5,&PSMoveTemplateController::processCameraTransform,this);
+    camera_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform",5,&PSMoveTemplateController::processCameraTransform,this);
 
     // update the position of its interactive marker
-    interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 100, false );
-    selected_object_update_sub_ = nh_.subscribe<flor_ocs_msgs::OCSSelectedObjectUpdate>( "/flor/ocs/interactive_marker_server/selected_object_update", 100, &PSMoveTemplateController::processSelectedObjectUpdate,this);
+    interactive_marker_update_pub_ = nh_.advertise<vigir_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 100, false );
+    selected_object_update_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSSelectedObjectUpdate>( "/flor/ocs/interactive_marker_server/selected_object_update", 100, &PSMoveTemplateController::processSelectedObjectUpdate,this);
 }
 
 PSMoveTemplateController::~PSMoveTemplateController()
@@ -48,7 +48,7 @@ PSMoveTemplateController::~PSMoveTemplateController()
 }
 
 //store information about the selected object
-void PSMoveTemplateController::processSelectedObjectUpdate(const flor_ocs_msgs::OCSSelectedObjectUpdate::ConstPtr& msg)
+void PSMoveTemplateController::processSelectedObjectUpdate(const vigir_ocs_msgs::OCSSelectedObjectUpdate::ConstPtr& msg)
 {
     // only process object selection if I'm the sender
     if(msg->host != boost::asio::ip::host_name())
@@ -59,7 +59,7 @@ void PSMoveTemplateController::processSelectedObjectUpdate(const flor_ocs_msgs::
 }
 
 //copy camera information and store
-void PSMoveTemplateController::processCameraTransform(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
+void PSMoveTemplateController::processCameraTransform(const vigir_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
 {
     if(msg->widget_name == "MainView" && msg->view_id == 0)
     {
@@ -251,7 +251,7 @@ int PSMoveTemplateController::updateSuccess(MoveServerPacket *move_server_packet
             first_time_ = true;
 
         // create an interactive marker update message using that string
-        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
 
         //Update current pose
         geometry_msgs::PoseStamped p;
@@ -263,7 +263,7 @@ int PSMoveTemplateController::updateSuccess(MoveServerPacket *move_server_packet
         cmd.pose = p;
         cmd.pose.header.frame_id = "/world";
         cmd.pose.header.stamp = ros::Time::now();
-        cmd.update_mode = flor_ocs_msgs::OCSInteractiveMarkerUpdate::SET_POSE;
+        cmd.update_mode = vigir_ocs_msgs::OCSInteractiveMarkerUpdate::SET_POSE;
 
         //Publish the new pose
         interactive_marker_update_pub_.publish(cmd);

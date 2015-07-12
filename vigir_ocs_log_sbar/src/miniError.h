@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <ros/ros.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
-#include <flor_ocs_msgs/OCSRobotStatus.h>
+#include <vigir_ocs_msgs/OCSRobotStatus.h>
 #include <QTableWidgetItem>
 #include <QTableWidget>
 #include <QPropertyAnimation>

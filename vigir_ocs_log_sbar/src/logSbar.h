@@ -10,7 +10,7 @@
 #include <std_msgs/Int8.h>
 #include "miniError.h"
 #include "miniJoint.h"
-#include <flor_ocs_msgs/WindowCodes.h>
+#include <vigir_ocs_msgs/WindowCodes.h>
 
 namespace Ui {
 class LogSbar;

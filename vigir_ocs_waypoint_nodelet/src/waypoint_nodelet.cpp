@@ -19,14 +19,14 @@ void WaypointNodelet::onInit()
     confirm_navigation_sub_ = nh_out.subscribe( "confirm", 1, &WaypointNodelet::confirmNavigationCb, this );
 }
 
-void WaypointNodelet::addWaypointCb(const flor_ocs_msgs::OCSWaypointAdd::ConstPtr msg)
+void WaypointNodelet::addWaypointCb(const vigir_ocs_msgs::OCSWaypointAdd::ConstPtr msg)
 {
     std::cout << "Adding waypoint to list" << std::endl;
     waypoint_list_.poses.push_back(msg->pose);
     this->publishWaypointList();
 }
 
-void WaypointNodelet::removeWaypointCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr msg)
+void WaypointNodelet::removeWaypointCb(const vigir_ocs_msgs::OCSWaypointRemove::ConstPtr msg)
 {
     std::cout << "Removing waypoint from list" << std::endl;
     if(msg->waypoint_id >= 0 && msg->waypoint_id < waypoint_list_.poses.size())
@@ -34,7 +34,7 @@ void WaypointNodelet::removeWaypointCb(const flor_ocs_msgs::OCSWaypointRemove::C
     this->publishWaypointList();
 }
 
-void WaypointNodelet::updateWaypointCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr msg)
+void WaypointNodelet::updateWaypointCb(const vigir_ocs_msgs::OCSWaypointUpdate::ConstPtr msg)
 {
     std::cout << "Updating waypoint" << std::endl;
     if(msg->waypoint_id >= 0 && msg->waypoint_id < waypoint_list_.poses.size())
@@ -42,7 +42,7 @@ void WaypointNodelet::updateWaypointCb(const flor_ocs_msgs::OCSWaypointUpdate::C
     this->publishWaypointList();
 }
 
-void WaypointNodelet::waypointAchievedCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr msg)
+void WaypointNodelet::waypointAchievedCb(const vigir_ocs_msgs::OCSWaypointRemove::ConstPtr msg)
 {
     std::cout << "Waypoint achieved from list" << std::endl;
     if(msg->waypoint_id >= 0 && msg->waypoint_id < waypoint_list_.poses.size())
@@ -54,7 +54,7 @@ void WaypointNodelet::waypointAchievedCb(const flor_ocs_msgs::OCSWaypointRemove:
     this->publishWaypointAchievedList();
 }
 
-void WaypointNodelet::confirmNavigationCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr msg)
+void WaypointNodelet::confirmNavigationCb(const vigir_ocs_msgs::OCSWaypointUpdate::ConstPtr msg)
 {
     waypoint_list_.header.frame_id = "/world";
     waypoint_list_.header.stamp = ros::Time::now();

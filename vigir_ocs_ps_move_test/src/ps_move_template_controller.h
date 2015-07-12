@@ -9,10 +9,10 @@
 
 #include <sensor_msgs/Joy.h>
 
-#include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
-#include <flor_ocs_msgs/OCSCameraTransform.h>
-#include <flor_ocs_msgs/OCSObjectSelection.h>
-#include <flor_ocs_msgs/OCSSelectedObjectUpdate.h>
+#include <vigir_ocs_msgs/OCSInteractiveMarkerUpdate.h>
+#include <vigir_ocs_msgs/OCSCameraTransform.h>
+#include <vigir_ocs_msgs/OCSObjectSelection.h>
+#include <vigir_ocs_msgs/OCSSelectedObjectUpdate.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Point.h>
 
@@ -37,8 +37,8 @@ namespace vigir_ocs
         PSMoveTemplateController();
         ~PSMoveTemplateController();
 
-        void processCameraTransform(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg);
-        void processSelectedObjectUpdate(const flor_ocs_msgs::OCSSelectedObjectUpdate::ConstPtr& msg);
+        void processCameraTransform(const vigir_ocs_msgs::OCSCameraTransform::ConstPtr& msg);
+        void processSelectedObjectUpdate(const vigir_ocs_msgs::OCSSelectedObjectUpdate::ConstPtr& msg);
         geometry_msgs::PoseStamped updatePose(geometry_msgs::PoseStamped p, MoveServerPacket *move_server_packet, float normalized_scale);
 
         int updateSuccess(MoveServerPacket *move_server_packet);
@@ -59,7 +59,7 @@ namespace vigir_ocs
         geometry_msgs::PoseStamped object_pose_;
         geometry_msgs::PoseStamped camera_pose_;
 
-        flor_ocs_msgs::OCSCameraTransform camera_update_;
+        vigir_ocs_msgs::OCSCameraTransform camera_update_;
 
         bool received_pose_;
 

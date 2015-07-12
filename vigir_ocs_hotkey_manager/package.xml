@@ -9,11 +9,11 @@
   
   <build_depend>roscpp</build_depend>
   <build_depend>roslib</build_depend> 
-  <build_depend>flor_ocs_msgs</build_depend>
+  <build_depend>vigir_ocs_msgs</build_depend>
   
   <run_depend>roscpp</run_depend>
   <run_depend>roslib</run_depend>  
-  <run_depend>flor_ocs_msgs</run_depend>
+  <run_depend>vigir_ocs_msgs</run_depend>
   
   <export>
     <!-- You can specify that this package is a metapackage here: -->

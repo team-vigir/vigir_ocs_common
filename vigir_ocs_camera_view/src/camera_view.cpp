@@ -523,10 +523,10 @@ void CameraView::keyPressEvent( QKeyEvent* event )
     setting_pose_ = false;
 }
 
-void CameraView::processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr &msg)
+void CameraView::processHotkeyRelayMessage(const vigir_ocs_msgs::OCSHotkeyRelay::ConstPtr &msg)
 {
     Base3DView::processHotkeyRelayMessage(msg);
-    if(msg->relay_code == flor_ocs_msgs::OCSHotkeyRelay::CLEAR_IMAGE_SELECTED)
+    if(msg->relay_code == vigir_ocs_msgs::OCSHotkeyRelay::CLEAR_IMAGE_SELECTED)
     {
         closeSelectedArea();
     }

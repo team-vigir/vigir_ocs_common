@@ -12,8 +12,8 @@
 #include <QPainter>
 #include <QtGui>
 
-#include <flor_ocs_msgs/OCSBandwidth.h>
-#include <flor_ocs_msgs/DRCdata.h>
+#include <vigir_ocs_msgs/OCSBandwidth.h>
+#include <vigir_ocs_msgs/DRCdata.h>
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 
@@ -29,8 +29,8 @@ public:
     explicit BandwidthWidget(QWidget *parent = 0);
     ~BandwidthWidget();
 
-    void processBandwidthMessage(const flor_ocs_msgs::OCSBandwidth::ConstPtr& msg);
-    void processDRCData(const flor_ocs_msgs::DRCdata::ConstPtr& msg);
+    void processBandwidthMessage(const vigir_ocs_msgs::OCSBandwidth::ConstPtr& msg);
+    void processDRCData(const vigir_ocs_msgs::DRCdata::ConstPtr& msg);
     void heartbeatRecieved(const std_msgs::String::ConstPtr& msg);
     void updateRateValues();
     void resizeLatencyVector();

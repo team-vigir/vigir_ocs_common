@@ -49,18 +49,18 @@
 #include <moveit_msgs/DisplayRobotState.h>
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
-#include <flor_ocs_msgs/OCSInteractiveMarkerAdd.h>
-#include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
-#include <flor_ocs_msgs/OCSKeyEvent.h>
-#include <flor_ocs_msgs/OCSHotkeyRelay.h>
-#include <flor_ocs_msgs/OCSObjectSelection.h>
-#include <flor_ocs_msgs/OCSCameraTransform.h>
-#include <flor_ocs_msgs/OCSControlMode.h>
-#include "flor_ocs_msgs/OCSSynchronize.h"
-#include <flor_ocs_msgs/OCSMarkerVisibility.h>
-#include <flor_ocs_msgs/OCSGraspSync.h>
-#include <flor_perception_msgs/RaycastRequest.h>
-#include <flor_perception_msgs/PointCloudTypeRegionRequest.h>
+#include <vigir_ocs_msgs/OCSInteractiveMarkerAdd.h>
+#include <vigir_ocs_msgs/OCSInteractiveMarkerUpdate.h>
+#include <vigir_ocs_msgs/OCSKeyEvent.h>
+#include <vigir_ocs_msgs/OCSHotkeyRelay.h>
+#include <vigir_ocs_msgs/OCSObjectSelection.h>
+#include <vigir_ocs_msgs/OCSCameraTransform.h>
+#include <vigir_ocs_msgs/OCSControlMode.h>
+#include "vigir_ocs_msgs/OCSSynchronize.h"
+//#include <vigir_ocs_msgs/OCSMarkerVisibility.h>
+#include <vigir_ocs_msgs/OCSGraspSync.h>
+#include <vigir_perception_msgs/RaycastRequest.h>
+#include <vigir_perception_msgs/PointCloudTypeRegionRequest.h>
 #include <flor_control_msgs/FlorControlModeCommand.h>
 #include <flor_control_msgs/FlorControlMode.h>
 
@@ -219,12 +219,12 @@ public:
     /**
       * ROS Callback: receives a new selected object and enables interactive marker if possible
       */
-    void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg);
+    void processObjectSelection(const vigir_ocs_msgs::OCSObjectSelection::ConstPtr msg);
 
     /**
       * ROS Callback: receives hotkey from secondary OCS
       */
-    virtual void processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr msg);
+    virtual void processHotkeyRelayMessage(const vigir_ocs_msgs::OCSHotkeyRelay::ConstPtr msg);
     /**
       * ROS Callback: receives new goal pose for footstep planner
       */
@@ -233,16 +233,16 @@ public:
     /**
       * ROS Callback: receives new key event from global hotkey process
       */
-    virtual void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event);
+    virtual void processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr key_event);
 
-    void processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg);
+    void processGraspSyncCB(const vigir_ocs_msgs::OCSGraspSync::ConstPtr msg);
 
     void processCommsStatus(const std_msgs::Int8ConstPtr msg);
 
     /**
       * ROS Callback: receives interactive marker pose updates
       */
-    void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
+    void onMarkerFeedback( const vigir_ocs_msgs::OCSInteractiveMarkerUpdate& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
     // functions needed for shared contexts
     rviz::VisualizationManager* getVisualizationManager() { return manager_; }
@@ -269,7 +269,7 @@ public:
     /**
       * ROS Callback:synchronize 3d views on reset requests/toggles
       */
-    void synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr msg);
+    void synchronizeViews(const vigir_ocs_msgs::OCSSynchronize::ConstPtr msg);
 
     //callbacks to receive ghost state  data
     void stateSnapGhostToRobot(const std_msgs::Bool::ConstPtr msg);
@@ -828,8 +828,8 @@ protected:
     ros::Publisher r_arm_marker_pose_pub_;
     ros::Publisher pelvis_marker_pose_pub_;
 
-    flor_ocs_msgs::OCSInteractiveMarkerUpdate l_arm_marker_update;
-    flor_ocs_msgs::OCSInteractiveMarkerUpdate r_arm_marker_update;
+    vigir_ocs_msgs::OCSInteractiveMarkerUpdate l_arm_marker_update;
+    vigir_ocs_msgs::OCSInteractiveMarkerUpdate r_arm_marker_update;
 
     int marker_published_;
 
@@ -911,7 +911,7 @@ protected:
     /**
       * Callback for setting im mode
       */
-    void processInteractiveMarkerMode(const flor_ocs_msgs::OCSControlMode::ConstPtr msg);
+    void processInteractiveMarkerMode(const vigir_ocs_msgs::OCSControlMode::ConstPtr msg);
 
     /**
       * Updates color of the hands based on moveit

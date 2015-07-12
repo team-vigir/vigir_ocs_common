@@ -74,7 +74,7 @@ GlobalHotkey::GlobalHotkey() :
     ros::NodeHandle nh_out(n_, "/flor/ocs");
 
     // create publishers for visualization
-    key_event_pub_  = nh_out.advertise<flor_ocs_msgs::OCSKeyEvent>( "key_event", 1, false );
+    key_event_pub_  = nh_out.advertise<vigir_ocs_msgs::OCSKeyEvent>( "key_event", 1, false );
 
     display_name_ = XOpenDisplay(NULL);
 }
@@ -205,7 +205,7 @@ void GlobalHotkey::onUpdate()
 
 void GlobalHotkey::publishKeyPressed(int k, int x, int y)
 {
-    flor_ocs_msgs::OCSKeyEvent cmd;
+    vigir_ocs_msgs::OCSKeyEvent cmd;
 
     cmd.keycode = k;
     KeySym keysym = KeyCodeToKeySym(display_name_, k, 0);
@@ -221,7 +221,7 @@ void GlobalHotkey::publishKeyPressed(int k, int x, int y)
 
 void GlobalHotkey::publishKeyReleased(int k, int x, int y)
 {
-    flor_ocs_msgs::OCSKeyEvent cmd;
+    vigir_ocs_msgs::OCSKeyEvent cmd;
 
     cmd.keycode = k;
     KeySym keysym = KeyCodeToKeySym(display_name_, k, 0);

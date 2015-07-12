@@ -4,13 +4,13 @@ project(vigir_ocs_back_joint_limit)
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
 
-find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib tf std_msgs sensor_msgs flor_ocs_msgs vigir_planning_msgs vigir_ocs_hotkey_manager moveit_core moveit_ros_planning)# vigir_perception_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy roslib tf std_msgs sensor_msgs vigir_ocs_msgs vigir_planning_msgs vigir_ocs_hotkey_manager moveit_core moveit_ros_planning)# vigir_perception_msgs)
 
 ## Declare things to be passed to other projects
 catkin_package(
     INCLUDE_DIRS src
     LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS roscpp rospy roslib tf std_msgs sensor_msgs flor_ocs_msgs vigir_planning_msgs vigir_ocs_hotkey_manager moveit_core moveit_ros_planning
+    CATKIN_DEPENDS roscpp rospy roslib tf std_msgs sensor_msgs vigir_ocs_msgs vigir_planning_msgs vigir_ocs_hotkey_manager moveit_core moveit_ros_planning
 
 )
 

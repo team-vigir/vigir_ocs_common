@@ -9,10 +9,10 @@
 
 #include <sensor_msgs/Joy.h>
 
-#include <flor_ocs_msgs/OCSTemplateList.h>
-#include <flor_ocs_msgs/OCSObjectSelection.h>
-#include <flor_ocs_msgs/OCSTemplateUpdate.h>
-#include <flor_ocs_msgs/OCSCameraTransform.h>
+#include <vigir_ocs_msgs/OCSTemplateList.h>
+#include <vigir_ocs_msgs/OCSObjectSelection.h>
+#include <vigir_ocs_msgs/OCSTemplateUpdate.h>
+#include <vigir_ocs_msgs/OCSCameraTransform.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Point.h>
 
@@ -45,12 +45,12 @@ namespace vigir_ocs
             double x, y, z;
         };
 
-        //void processKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& msg);
+        //void processKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr& msg);
 
-        void processTemplateList(const flor_ocs_msgs::OCSTemplateList::ConstPtr &list);
-        void processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr &obj);
+        void processTemplateList(const vigir_ocs_msgs::OCSTemplateList::ConstPtr &list);
+        void processObjectSelection(const vigir_ocs_msgs::OCSObjectSelection::ConstPtr &obj);
         void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
-        void cameraCb(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg);
+        void cameraCb(const vigir_ocs_msgs::OCSCameraTransform::ConstPtr& msg);
         geometry_msgs::PoseStamped updatePose(geometry_msgs::PoseStamped p, const sensor_msgs::Joy::ConstPtr& joy);
 
 
@@ -84,8 +84,8 @@ namespace vigir_ocs
 
         QVector3D cameraPosition;
         QQuaternion cameraOrientation;
-        flor_ocs_msgs::OCSCameraTransform cameraUpdate;
-        flor_ocs_msgs::OCSCameraTransform update;
+        vigir_ocs_msgs::OCSCameraTransform cameraUpdate;
+        vigir_ocs_msgs::OCSCameraTransform update;
 
     };
 }

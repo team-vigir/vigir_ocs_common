@@ -35,7 +35,7 @@
 #ifndef JSK_RVIZ_PLUGIN_OVERLAY_TEXT_DISPLAY_H_
 #define JSK_RVIZ_PLUGIN_OVERLAY_TEXT_DISPLAY_H_
 
-#include "flor_ocs_msgs/OCSOverlayText.h"
+#include "vigir_ocs_msgs/OCSOverlayText.h"
 #include <rviz/display.h>
 #include "overlay_utils.h"
 #include <OGRE/OgreColourValue.h>
@@ -128,7 +128,7 @@ namespace jsk_rviz_plugin
     void updateLineWidth();
     void updateNotificationCount();
   private:
-    void processMessage(const flor_ocs_msgs::OCSOverlayText::ConstPtr& msg);
+    void processMessage(const vigir_ocs_msgs::OCSOverlayText::ConstPtr& msg);
     void setPositionFromAlignment();
   };
 }

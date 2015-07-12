@@ -12,8 +12,8 @@
 #include <ros/subscriber.h>
 
 #include <flor_control_msgs/FlorControlMode.h>
-#include <flor_ocs_msgs/OCSRobotStability.h>
-#include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <vigir_ocs_msgs/OCSRobotStability.h>
+#include <vigir_ocs_msgs/OCSKeyEvent.h>
 
 #include <jointList.h>
 #include <robotStatus.h>
@@ -31,11 +31,11 @@ public:
     ~status_window();
 
     void controlModeMsgReceived(const flor_control_msgs::FlorControlMode::ConstPtr modeMsg);
-    void stabilityMsgReceived(const flor_ocs_msgs::OCSRobotStability::ConstPtr stabilityMsg);
+    void stabilityMsgReceived(const vigir_ocs_msgs::OCSRobotStability::ConstPtr stabilityMsg);
     void updateButtonColor();
     QString getControllerStatus(uint8_t flag);
 
-    void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr pose);
+    void processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr pose);
 
 private Q_SLOTS:
     void on_showJointButton_clicked();

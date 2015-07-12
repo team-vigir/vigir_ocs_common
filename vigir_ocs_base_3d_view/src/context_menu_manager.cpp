@@ -157,28 +157,28 @@ void ContextMenuManager::createContextMenu(bool, int x, int y)
     }
     else
     {                
-        if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::EDITED_STEPS)
+        if(base_3d_view_->getFootstepVisManager()->getValidateMode() == vigir_ocs_msgs::OCSFootstepSyncStatus::EDITED_STEPS)
         {
             setItemVisibility("Send Step Plan Goal to Onboard",false);
             setItemVisibility("Send Step Plan Goal Feet to Onboard",false);
             //setItemVisibility("Send Edited Steps to Onboard",true);
             setItemVisibility("Send OCS Step Plan to Onboard",false);
         }
-        else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::CURRENT_PLAN)
+        else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == vigir_ocs_msgs::OCSFootstepSyncStatus::CURRENT_PLAN)
         {
             setItemVisibility("Send Step Plan Goal to Onboard",false);
             setItemVisibility("Send Step Plan Goal Feet to Onboard",false);
             setItemVisibility("Send Edited Steps to Onboard",false);
             //setItemVisibility("Send OCS Step Plan to Onboard",true);
         }
-        else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::GOAL_FEET)
+        else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == vigir_ocs_msgs::OCSFootstepSyncStatus::GOAL_FEET)
         {
             setItemVisibility("Send Step Plan Goal to Onboard",false);
             //setItemVisibility("Send Step Plan Goal Feet to Onboard",true);
             setItemVisibility("Send Edited Steps to Onboard",false);
             setItemVisibility("Send OCS Step Plan to Onboard",false);
         }
-        else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == flor_ocs_msgs::OCSFootstepSyncStatus::GOAL)
+        else if(base_3d_view_->getFootstepVisManager()->getValidateMode() == vigir_ocs_msgs::OCSFootstepSyncStatus::GOAL)
         {
             //setItemVisibility("Send Step Plan Goal to Onboard",true);
             setItemVisibility("Send Step Plan Goal Feet to Onboard",false);

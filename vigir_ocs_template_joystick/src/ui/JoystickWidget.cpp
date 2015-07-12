@@ -5,7 +5,7 @@
 #include <QDebug>
 #include <ros/package.h>
 
-#include <flor_ocs_msgs/WindowCodes.h>
+#include <vigir_ocs_msgs/WindowCodes.h>
 
 JoystickWidget::JoystickWidget(QWidget *parent) :
     QMainWindow(parent),

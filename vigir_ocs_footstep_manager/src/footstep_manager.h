@@ -21,16 +21,16 @@
 #include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
 #include <vigir_footstep_planning_msgs/visualization.h>
 
-#include <flor_ocs_msgs/OCSFootstepList.h>
-#include <flor_ocs_msgs/OCSFootstepUpdate.h>
-#include <flor_ocs_msgs/OCSFootstepPlanGoal.h>
-#include <flor_ocs_msgs/OCSFootstepPlanGoalUpdate.h>
-#include <flor_ocs_msgs/OCSFootstepPlanParameters.h>
-#include <flor_ocs_msgs/OCSFootstepPlanUpdate.h>
-#include <flor_ocs_msgs/OCSFootstepParamSetList.h>
-#include <flor_ocs_msgs/OCSFootstepStatus.h>
-#include <flor_ocs_msgs/OCSFootstepPlanRequest.h>
-#include <flor_ocs_msgs/OCSFootstepSyncStatus.h>
+#include <vigir_ocs_msgs/OCSFootstepList.h>
+#include <vigir_ocs_msgs/OCSFootstepUpdate.h>
+#include <vigir_ocs_msgs/OCSFootstepPlanGoal.h>
+#include <vigir_ocs_msgs/OCSFootstepPlanGoalUpdate.h>
+#include <vigir_ocs_msgs/OCSFootstepPlanParameters.h>
+#include <vigir_ocs_msgs/OCSFootstepPlanUpdate.h>
+#include <vigir_ocs_msgs/OCSFootstepParamSetList.h>
+#include <vigir_ocs_msgs/OCSFootstepStatus.h>
+#include <vigir_ocs_msgs/OCSFootstepPlanRequest.h>
+#include <vigir_ocs_msgs/OCSFootstepSyncStatus.h>
 
 #include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
 #include <vigir_footstep_planning_msgs/parameter_set.h>
@@ -56,14 +56,14 @@ namespace ocs_footstep
         virtual void onInit();
 
         // triggers footstep plan calls
-        void processFootstepPlanGoal(const flor_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal);
-        void processFootstepPlanGoalFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalUpdate::ConstPtr& plan_goal);
+        void processFootstepPlanGoal(const vigir_ocs_msgs::OCSFootstepPlanGoal::ConstPtr& plan_goal);
+        void processFootstepPlanGoalFeedback(const vigir_ocs_msgs::OCSFootstepPlanGoalUpdate::ConstPtr& plan_goal);
         void processFootstepPlanRequest(const std_msgs::Int8::ConstPtr& plan_request);
-        void processFootstepPlanUpdate(const flor_ocs_msgs::OCSFootstepPlanUpdate::ConstPtr& msg);
-        void processFootstepPlanParameters(const flor_ocs_msgs::OCSFootstepPlanParameters::ConstPtr& msg);
+        void processFootstepPlanUpdate(const vigir_ocs_msgs::OCSFootstepPlanUpdate::ConstPtr& msg);
+        void processFootstepPlanParameters(const vigir_ocs_msgs::OCSFootstepPlanParameters::ConstPtr& msg);
 
         // feedback look for interaction, should update stepplan and use actions to edit/update
-        void processFootstepPoseUpdate(const flor_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg);
+        void processFootstepPoseUpdate(const vigir_ocs_msgs::OCSFootstepUpdate::ConstPtr& msg);
         void processUndoRequest(const std_msgs::Int8::ConstPtr& msg);
         void processRedoRequest(const std_msgs::Int8::ConstPtr& msg);
         void processSetStartIndex(const std_msgs::Int32::ConstPtr& msg);
@@ -274,7 +274,7 @@ namespace ocs_footstep
         vigir_footstep_planning_msgs::Feet goal_;
 
         // last step plan request received, saved and used mostly for message parameters
-        flor_ocs_msgs::OCSFootstepPlanParameters planner_config_;
+        vigir_ocs_msgs::OCSFootstepPlanParameters planner_config_;
 
         // specifies which footstep will be used as starting point for the planner, -1 to start a new one
         int start_step_index_;

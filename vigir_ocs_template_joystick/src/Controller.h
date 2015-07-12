@@ -13,17 +13,17 @@
 #include <ros/ros.h>
 #include <QWidget>
 #include <QQuaternion>
-#include <flor_ocs_msgs/OCSTemplateList.h>
-#include <flor_ocs_msgs/OCSControlMode.h>
-#include <flor_ocs_msgs/OCSCameraTransform.h>
-#include <flor_ocs_msgs/OCSTemplateUpdate.h>
-#include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
+#include <vigir_ocs_msgs/OCSTemplateList.h>
+#include <vigir_ocs_msgs/OCSControlMode.h>
+#include <vigir_ocs_msgs/OCSCameraTransform.h>
+#include <vigir_ocs_msgs/OCSTemplateUpdate.h>
+#include <vigir_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <sensor_msgs/Joy.h>
 #include <sensor_msgs/JoyFeedbackArray.h>
 #include <string>
 #include <QBasicTimer>
 #include <geometry_msgs/PoseStamped.h>
-#include <flor_planning_msgs/TargetConfigIkRequest.h>
+#include <vigir_teleop_planning_msgs/TargetConfigIkRequest.h>
 
 #include <QLabel>
 #include <QVBoxLayout>
@@ -40,15 +40,15 @@ class Controller: public QWidget
 public:
     Controller( QWidget* parent = 0 );
     virtual ~Controller();
-    void templateListCb(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg);
+    void templateListCb(const vigir_ocs_msgs::OCSTemplateList::ConstPtr& msg);
     void buildmsg(float posX, float posZ , float rotY, float rotX);
     void joyCB(const sensor_msgs::Joy::ConstPtr& msg);
     void leftCB(const geometry_msgs::PoseStamped::ConstPtr& msg);
     void rightCB(const geometry_msgs::PoseStamped::ConstPtr& msg);
-    void modeCb(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg);
+    void modeCb(const vigir_ocs_msgs::OCSControlMode::ConstPtr& msg);
     void changeTemplate();
     std::vector<std::string> getTemplateNames();
-    void cameraCb(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg);
+    void cameraCb(const vigir_ocs_msgs::OCSCameraTransform::ConstPtr& msg);
     int getManipulation();
     int getObjectMode();
 
@@ -63,9 +63,9 @@ protected:
     ros::Subscriber left_sub;
     ros::Subscriber right_sub;
     ros::Publisher ghost_hand_pub;
-    flor_ocs_msgs::OCSTemplateList temList;
-    flor_ocs_msgs::OCSControlMode joyModes;
-    flor_ocs_msgs::OCSCameraTransform cameraUpdate;
+    vigir_ocs_msgs::OCSTemplateList temList;
+    vigir_ocs_msgs::OCSControlMode joyModes;
+    vigir_ocs_msgs::OCSCameraTransform cameraUpdate;
     sensor_msgs::Joy joy;
     sensor_msgs::Joy oldJoy;
     geometry_msgs::PoseStamped leftHand;

@@ -3,8 +3,8 @@
 
 #include <flor_control_msgs/FlorControlModeCommand.h>
 #include <flor_control_msgs/FlorControlMode.h>
-#include <flor_ocs_msgs/OCSRobotStatus.h>
-#include <flor_ocs_msgs/OCSFootstepStatus.h>
+#include <vigir_ocs_msgs/OCSRobotStatus.h>
+#include <vigir_ocs_msgs/OCSFootstepStatus.h>
 
 #include <ros/subscriber.h>
 
@@ -28,9 +28,9 @@ public:
     explicit glancehub(QWidget *parent = 0);
     ~glancehub();
     void controlModeMsgRcv(const flor_control_msgs::FlorControlMode::ConstPtr msg);
-    void robotStatusMoveit(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg);
-    //void robotStatusFootstep(const flor_ocs_msgs::OCSRobotStatus::ConstPtr msg);
-    void robotStatusFootstepComplete(const flor_ocs_msgs::OCSFootstepStatus::ConstPtr msg);
+    void robotStatusMoveit(const vigir_ocs_msgs::OCSRobotStatus::ConstPtr msg);
+    //void robotStatusFootstep(const vigir_ocs_msgs::OCSRobotStatus::ConstPtr msg);
+    void robotStatusFootstepComplete(const vigir_ocs_msgs::OCSFootstepStatus::ConstPtr msg);
     void loadFile();
     QString timeFromMsg(ros::Time stamp);
     QString getMoveitStat();

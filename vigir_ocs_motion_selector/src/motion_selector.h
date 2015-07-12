@@ -14,7 +14,7 @@
 #include <ros/publisher.h>
 #include <ros/ros.h>
 
-#include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <vigir_ocs_msgs/OCSKeyEvent.h>
 #include "hotkey_manager.h"
 
 namespace Ui {
@@ -29,7 +29,7 @@ public:
     explicit motion_selector(QWidget *parent = 0);
     ~motion_selector();
 
-    //void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    //void processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
 private:
     typedef struct

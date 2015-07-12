@@ -16,7 +16,7 @@
 
 #include <ros/ros.h>
 
-#include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <vigir_ocs_msgs/OCSKeyEvent.h>
 
 #include "camera_view.h"
 
@@ -34,7 +34,7 @@ public:
 
     virtual bool eventFilter( QObject * o, QEvent * e );
 
-    //void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+    //void processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
     vigir_ocs::CameraView* getCameraView() { return camera_view_; }
 

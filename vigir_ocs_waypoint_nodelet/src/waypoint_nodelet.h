@@ -7,9 +7,9 @@
 #include <vector>
 #include <string>
 
-#include <flor_ocs_msgs/OCSWaypointAdd.h>
-#include <flor_ocs_msgs/OCSWaypointRemove.h>
-#include <flor_ocs_msgs/OCSWaypointUpdate.h>
+#include <vigir_ocs_msgs/OCSWaypointAdd.h>
+#include <vigir_ocs_msgs/OCSWaypointRemove.h>
+#include <vigir_ocs_msgs/OCSWaypointUpdate.h>
 
 #include <geometry_msgs/PoseStamped.h>
 #include <nav_msgs/Path.h>
@@ -21,11 +21,11 @@ namespace ocs_waypoint
       public:
         virtual void onInit();
 
-        void addWaypointCb(const flor_ocs_msgs::OCSWaypointAdd::ConstPtr msg);
-        void removeWaypointCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr msg);
-        void updateWaypointCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr msg);
-        void waypointAchievedCb(const flor_ocs_msgs::OCSWaypointRemove::ConstPtr msg);
-        void confirmNavigationCb(const flor_ocs_msgs::OCSWaypointUpdate::ConstPtr msg);
+        void addWaypointCb(const vigir_ocs_msgs::OCSWaypointAdd::ConstPtr msg);
+        void removeWaypointCb(const vigir_ocs_msgs::OCSWaypointRemove::ConstPtr msg);
+        void updateWaypointCb(const vigir_ocs_msgs::OCSWaypointUpdate::ConstPtr msg);
+        void waypointAchievedCb(const vigir_ocs_msgs::OCSWaypointRemove::ConstPtr msg);
+        void confirmNavigationCb(const vigir_ocs_msgs::OCSWaypointUpdate::ConstPtr msg);
         void publishWaypointList();
         void publishWaypointAchievedList();
 

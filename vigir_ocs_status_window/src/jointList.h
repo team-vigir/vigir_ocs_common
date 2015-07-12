@@ -15,7 +15,7 @@
 
 #include <sensor_msgs/JointState.h>
 
-#include <flor_ocs_msgs/OCSKeyEvent.h>
+#include <vigir_ocs_msgs/OCSKeyEvent.h>
 
 #include "robot_state_manager.h"
 
@@ -37,7 +37,7 @@ public:
    ~jointList();   
    int getNumWarn();
    int getNumError();
-   void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr pose);
+   void processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr pose);
 
 
 private:

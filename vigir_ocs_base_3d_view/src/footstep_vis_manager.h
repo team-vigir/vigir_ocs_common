@@ -20,16 +20,16 @@
 #include <geometry_msgs/PoseStamped.h>
 
 #include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
-#include <flor_ocs_msgs/OCSInteractiveMarkerAdd.h>
-#include <flor_ocs_msgs/OCSInteractiveMarkerUpdate.h>
-#include <flor_ocs_msgs/OCSFootstepList.h>
-#include <flor_ocs_msgs/OCSFootstepUpdate.h>
-#include <flor_ocs_msgs/OCSFootstepPlanGoal.h>
-#include <flor_ocs_msgs/OCSFootstepPlanGoalUpdate.h>
-#include <flor_ocs_msgs/OCSFootstepPlanParameters.h>
-#include <flor_ocs_msgs/OCSFootstepPlanUpdate.h>
-#include <flor_ocs_msgs/OCSFootstepParamSetList.h>
-#include <flor_ocs_msgs/OCSFootstepSyncStatus.h>
+#include <vigir_ocs_msgs/OCSInteractiveMarkerAdd.h>
+#include <vigir_ocs_msgs/OCSInteractiveMarkerUpdate.h>
+#include <vigir_ocs_msgs/OCSFootstepList.h>
+#include <vigir_ocs_msgs/OCSFootstepUpdate.h>
+#include <vigir_ocs_msgs/OCSFootstepPlanGoal.h>
+#include <vigir_ocs_msgs/OCSFootstepPlanGoalUpdate.h>
+#include <vigir_ocs_msgs/OCSFootstepPlanParameters.h>
+#include <vigir_ocs_msgs/OCSFootstepPlanUpdate.h>
+#include <vigir_ocs_msgs/OCSFootstepParamSetList.h>
+#include <vigir_ocs_msgs/OCSFootstepSyncStatus.h>
 
 #include <string>
 #include <boost/bind.hpp>
@@ -63,32 +63,32 @@ public:
     void processGoalPose(const geometry_msgs::PoseStamped::ConstPtr &pose);
 
     // Update goal pose marker
-    void processGoalPoseFeedback(const flor_ocs_msgs::OCSFootstepPlanGoalUpdate::ConstPtr& plan_goal);
+    void processGoalPoseFeedback(const vigir_ocs_msgs::OCSFootstepPlanGoalUpdate::ConstPtr& plan_goal);
 
     // Receives list of footsteps and creates/removes interactive markers
-    void processFootstepList(const flor_ocs_msgs::OCSFootstepList::ConstPtr& msg);
+    void processFootstepList(const vigir_ocs_msgs::OCSFootstepList::ConstPtr& msg);
 
     // Receives a list of all the parameter sets
-    void processFootstepParamSetList(const flor_ocs_msgs::OCSFootstepParamSetList::ConstPtr& msg);
+    void processFootstepParamSetList(const vigir_ocs_msgs::OCSFootstepParamSetList::ConstPtr& msg);
 
     // Receives the latest selected parameter
     void processFootstepParamSet(const std_msgs::String::ConstPtr& msg);
 
     // Receives the latest parameters used for planning from the manager
-    void processFootstepPlanParameters(const flor_ocs_msgs::OCSFootstepPlanParameters::ConstPtr& msg);
+    void processFootstepPlanParameters(const vigir_ocs_msgs::OCSFootstepPlanParameters::ConstPtr& msg);
 
     // Receives the number of available undos and redos
     void processUndosAvailable(const std_msgs::UInt8::ConstPtr& msg);
     void processRedosAvailable(const std_msgs::UInt8::ConstPtr& msg);
 
     // Update sync status
-    void processSyncStatus(const flor_ocs_msgs::OCSFootstepSyncStatus::ConstPtr& msg);
+    void processSyncStatus(const vigir_ocs_msgs::OCSFootstepSyncStatus::ConstPtr& msg);
 
     // Sends the latest parameters selected in the OCS
     void sendFootstepPlanParameters();
 
     // ROS Callback: receives interactive marker pose updates
-    void onMarkerFeedback( const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
+    void onMarkerFeedback( const vigir_ocs_msgs::OCSInteractiveMarkerUpdate& msg );//std::string topic_name, geometry_msgs::PoseStamped pose);
 
     // Select footstep using the context menu
     void selectContextMenu();
@@ -204,7 +204,7 @@ private:
 
     ros::Subscriber sync_status_sub_;
 
-    flor_ocs_msgs::OCSFootstepList footstep_list_;
+    vigir_ocs_msgs::OCSFootstepList footstep_list_;
 
     rviz::VisualizationManager* manager_;
 

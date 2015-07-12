@@ -98,7 +98,7 @@ BehaviorNotification::~BehaviorNotification()
     //delete goal_;
 }
 
-void BehaviorNotification::objectSelectCB(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg)
+void BehaviorNotification::objectSelectCB(const vigir_ocs_msgs::OCSObjectSelection::ConstPtr msg)
 {    
     //don't want to be affected by selection by another operator
     if(msg->host == boost::asio::ip::host_name())
@@ -107,7 +107,7 @@ void BehaviorNotification::objectSelectCB(const flor_ocs_msgs::OCSObjectSelectio
         if(goal_type_ == vigir_be_msgs::BehaviorInputGoal::SELECTED_OBJECT_ID)
         {
             //must have template selected to confirm, other selections must turn of confirm for safety
-            if(msg->type == flor_ocs_msgs::OCSObjectSelection::TEMPLATE)
+            if(msg->type == vigir_ocs_msgs::OCSObjectSelection::TEMPLATE)
             {
                 ui->confirm_button_->setDisabled(false);
             }

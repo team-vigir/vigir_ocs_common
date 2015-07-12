@@ -174,7 +174,7 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     fourViewToggle();
 
-    //key_event_sub_ = nh_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
+    //key_event_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
     neck_pos_sub_ = nh_.subscribe ( "/thor_mang/joint_states" , 2, &MainCameraViewWidget::updateHeadConfig, this );
     head_control_pub_ = nh_.advertise<vigir_planning_msgs::HeadControlCommand>("/thor_mang/head_control_mode", 10, true);
 
@@ -256,7 +256,7 @@ void MainCameraViewWidget::changeCheckBoxState(QCheckBox* checkBox, Qt::CheckSta
     checkBox->blockSignals(false);
 }
 
-void MainCameraViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr msg)
+void MainCameraViewWidget::synchronizeToggleButtons(const vigir_ocs_msgs::OCSSynchronize::ConstPtr msg)
 {
     for(int i=0;i<msg->properties.size();i++)
     {

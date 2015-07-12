@@ -10,8 +10,8 @@
 
 //#include <ros/ros.h>
 
-#include <flor_ocs_msgs/OCSKeyEvent.h>
-#include <flor_ocs_msgs/OCSControlMode.h>
+#include <vigir_ocs_msgs/OCSKeyEvent.h>
+#include <vigir_ocs_msgs/OCSControlMode.h>
 #include <std_msgs/Int8.h>
 #include <std_msgs/Float64.h>
 
@@ -32,7 +32,7 @@
 #include <rviz/displays_panel.h>
 #include <rviz/views_panel.h>
 #include <QPropertyAnimation>
-#include <flor_ocs_msgs/WindowCodes.h>
+#include <vigir_ocs_msgs/WindowCodes.h>
 #include <ui/footstep_config.h>
 #include "notification_system.h"
 #include "main_context_menu.h"
@@ -55,7 +55,7 @@ public:
 
     virtual bool eventFilter( QObject * o, QEvent * e );
 
-   // void processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
+   // void processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr& pose);
 
     // process window control messages to update toggle buttons
     void processWindowControl(const std_msgs::Int8::ConstPtr visible);
@@ -100,14 +100,14 @@ protected:
     void setupToolbar();
     void systemCommandContext(std::string command);
     void loadButtonIconAndStyle(QPushButton* btn, QString image_name);
-    void modeCB(const flor_ocs_msgs::OCSControlMode::ConstPtr msg);
+    void modeCB(const vigir_ocs_msgs::OCSControlMode::ConstPtr msg);
     void changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState state);
-    void synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr msg);
+    void synchronizeToggleButtons(const vigir_ocs_msgs::OCSSynchronize::ConstPtr msg);
     void closeEvent(QCloseEvent *event);
     void resizeEvent(QResizeEvent * event);
     void moveEvent(QMoveEvent * event);
 
-    flor_ocs_msgs::OCSControlMode controlModes;
+    vigir_ocs_msgs::OCSControlMode controlModes;
 
     vigir_ocs::Base3DView* primary_view_;
 

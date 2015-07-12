@@ -49,14 +49,14 @@
 #include "map_display_custom.h"
 #include "joint_marker_display_custom.h"
 
-#include "flor_ocs_msgs/OCSTemplateAdd.h"
-#include "flor_ocs_msgs/OCSTemplateRemove.h"
-#include "flor_ocs_msgs/OCSWaypointAdd.h"
-#include "flor_ocs_msgs/OCSControlMode.h"
-#include "flor_perception_msgs/EnvironmentRegionRequest.h"
-#include "flor_planning_msgs/TargetConfigIkRequest.h"
-#include "flor_planning_msgs/CartesianMotionRequest.h"
-#include "flor_planning_msgs/CircularMotionRequest.h"
+#include "vigir_ocs_msgs/OCSTemplateAdd.h"
+#include "vigir_ocs_msgs/OCSTemplateRemove.h"
+#include "vigir_ocs_msgs/OCSWaypointAdd.h"
+#include "vigir_ocs_msgs/OCSControlMode.h"
+#include "vigir_perception_msgs/EnvironmentRegionRequest.h"
+#include "vigir_teleop_planning_msgs/TargetConfigIkRequest.h"
+#include "vigir_teleop_planning_msgs/CartesianMotionRequest.h"
+#include "vigir_teleop_planning_msgs/CircularMotionRequest.h"
 
 #include <OgreHardwarePixelBuffer.h>
 #include <OgreMaterialManager.h>
@@ -269,10 +269,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
 
         // create a publisher to add templates
-        template_add_pub_   = nh_.advertise<flor_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
+        template_add_pub_   = nh_.advertise<vigir_ocs_msgs::OCSTemplateAdd>( "/template/add", 1, false );
 
         // create a publisher to add waypoints
-        waypoint_add_pub_   = nh_.advertise<flor_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
+        waypoint_add_pub_   = nh_.advertise<vigir_ocs_msgs::OCSWaypointAdd>( "/waypoint/add", 1, false );
 
         selection_position_ = Ogre::Vector3(0,0,0);
 
@@ -481,14 +481,14 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         //im_pelvis->setEnabled(true);
         im_ghost_robot_.push_back(im_pelvis);
 
-        interactive_marker_add_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, false );
-        interactive_marker_update_pub_ = nh_.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
+        interactive_marker_add_pub_ = nh_.advertise<vigir_ocs_msgs::OCSInteractiveMarkerAdd>( "/flor/ocs/interactive_marker_server/add", 5, false );
+        interactive_marker_update_pub_ = nh_.advertise<vigir_ocs_msgs::OCSInteractiveMarkerUpdate>( "/flor/ocs/interactive_marker_server/update", 1, false );
         interactive_marker_feedback_sub_ = nh_.subscribe( "/flor/ocs/interactive_marker_server/feedback", 5, &Base3DView::onMarkerFeedback, this );
         interactive_marker_remove_pub_ = nh_.advertise<std_msgs::String>( "/flor/ocs/interactive_marker_server/remove", 5, false );
-        //interactive_marker_visibility_pub_ = nh_.advertise<flor_ocs_msgs::OCSMarkerVisibility>("/flor/ocs/interactive_marker_server/visibility",5,false);
+        //interactive_marker_visibility_pub_ = nh_.advertise<vigir_ocs_msgs::OCSMarkerVisibility>("/flor/ocs/interactive_marker_server/visibility",5,false);
 
         //Publisher/Subscriber to the IM mode
-        interactive_marker_server_mode_pub_ = nh_.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1,false);
+        interactive_marker_server_mode_pub_ = nh_.advertise<vigir_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",1,false);
         interactive_marker_server_mode_sub_ = nh_.subscribe("/flor/ocs/control_modes",1, &Base3DView::processInteractiveMarkerMode, this);
 
         // subscribe to the moveit pose topics
@@ -496,7 +496,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         end_effector_sub_.push_back(nh_.subscribe( "/flor/ghost/pose/right_hand", 5, &Base3DView::processRightArmEndEffector, this ));
         end_effector_sub_.push_back(nh_.subscribe( "/flor/ghost/pose/robot", 5, &Base3DView::processPelvisEndEffector, this ));
 
-        end_effector_pub_ = nh_.advertise<flor_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 5, false );
+        end_effector_pub_ = nh_.advertise<vigir_teleop_planning_msgs::TargetConfigIkRequest>( "/flor/ghost/set_appendage_poses", 5, false );
 
         ghost_root_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>( "/flor/ghost/set_root_pose", 1, false );
         ghost_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>( "/flor/ghost/set_joint_states", 1, false );
@@ -559,7 +559,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         joint_states_sub_ = nh_.subscribe("joint_states", 2, &Base3DView::processJointStates, this );
 
         // advertise pointcloud request
-        pointcloud_request_world_pub_ = nh_.advertise<flor_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
+        pointcloud_request_world_pub_ = nh_.advertise<vigir_perception_msgs::RaycastRequest>( "/flor/worldmodel/ocs/dist_query_pointcloud_request_world", 1, false );
 
         // Create a display for 3D selection
         selection_3d_display_ = manager_->createDisplay( "rviz/Selection3DDisplayCustom", "3D Selection Display", true );
@@ -567,7 +567,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         //}
 
         // and advertise the template remove option
-        template_remove_pub_ = nh_.advertise<flor_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
+        template_remove_pub_ = nh_.advertise<vigir_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
 
         // flor mode publisher and subscriber
         flor_mode_command_pub_ = nh_.advertise<flor_control_msgs::FlorControlModeCommand>( "/flor/controller/mode_command", 1, false );
@@ -632,7 +632,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         cartesian_config_widget_->hide();
 
         // and necessary publisher
-        cartesian_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CartesianMotionRequest>( "/flor/planning/upper_body/plan_cartesian_request", 1, false );
+        cartesian_plan_request_pub_ = nh_.advertise<vigir_teleop_planning_msgs::CartesianMotionRequest>( "/flor/planning/upper_body/plan_cartesian_request", 1, false );
 
         // create the window for circular motion
         circular_config_widget_ = new QWidget();
@@ -678,7 +678,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         circular_config_widget_->hide();
 
         // and necessary publisher
-        circular_plan_request_pub_ = nh_.advertise<flor_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request", 1, false );
+        circular_plan_request_pub_ = nh_.advertise<vigir_teleop_planning_msgs::CircularMotionRequest>( "/flor/planning/upper_body/plan_circular_request", 1, false );
 
         // subscribe to the topic sent by the ghost widget
         send_cartesian_sub_ = nh_.subscribe( "/flor/ocs/ghost/send_cartesian", 5, &Base3DView::processSendCartesian, this );
@@ -687,7 +687,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // create publisher and subscriber for object selection
         // PUBLISHER WILL BE USED BY THE RIGHT/DOUBLE CLICK TO INFORM WHICH TEMPLATE/HAND/OBJECT HAS BEEN selected
         // SUBSCRIBER WILL BE USED TO CHANGE VISIBILITY OF THE OBJECT THAT IS BEING USED (E.G., TALK TO TEMPLATE DISPLAY AND SET VISIBILITY OF MARKERS)
-        select_object_pub_ = nh_.advertise<flor_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, false );
+        select_object_pub_ = nh_.advertise<vigir_ocs_msgs::OCSObjectSelection>( "/flor/ocs/object_selection", 5, false );
         select_object_sub_ = nh_.subscribe( "/flor/ocs/object_selection", 5, &Base3DView::processObjectSelection, this );
 
         // finally the key events
@@ -699,13 +699,13 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         //synchronize 3d views
         ocs_sync_sub_ = nh_.subscribe( "/flor/ocs/synchronize", 5, &Base3DView::synchronizeViews, this );
-        ocs_sync_pub_ = nh_.advertise<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
+        ocs_sync_pub_ = nh_.advertise<vigir_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
 	
 		 //synchronize Template servers in onboard and OCS by clearing collison objects in the planning scene
         clear_planning_objects_pub_ = nh_.advertise<std_msgs::Empty>( "/template/clear", 5, false);
         //grasp sync
         grasp_sync_sub_ = nh_.subscribe("/flor/ocs/grasp_sync", 5, &Base3DView::processGraspSyncCB, this);
-        grasp_sync_pub_ = nh_.advertise<flor_ocs_msgs::OCSGraspSync>("/flor/ocs/grasp_sync", 5, false);
+        grasp_sync_pub_ = nh_.advertise<vigir_ocs_msgs::OCSGraspSync>("/flor/ocs/grasp_sync", 5, false);
 
         //create joint position error displays
         joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
@@ -910,7 +910,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
     render_panel_->getViewport()->setBackgroundColour(rviz::qtToOgre(QColor(48,48,48)));
 
     // advertise publisher for camera transform
-    camera_transform_pub_ = nh_.advertise<flor_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform", 5, false );
+    camera_transform_pub_ = nh_.advertise<vigir_ocs_msgs::OCSCameraTransform>( "/flor/ocs/camera_transform", 5, false );
 
     //initialize  base-specific context menu
     base_context_menu_ = new BaseContextMenu(this);
@@ -1325,7 +1325,7 @@ void Base3DView::publishCameraTransform()
             position.x = fabs(bottom)+fabs(top);
     }
 
-    flor_ocs_msgs::OCSCameraTransform cmd;
+    vigir_ocs_msgs::OCSCameraTransform cmd;
     cmd.widget_name = widget_name_;
     cmd.view_id = view_id_;
     cmd.pose.position.x = position.x;
@@ -1362,7 +1362,7 @@ void Base3DView::templatesToggled( bool selected )
 
 void Base3DView::requestedPointCloudToggled( bool selected )
 {
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("Raycast Point Cloud");
     msg.reset.push_back(false);
     msg.visible.push_back(selected);
@@ -1371,7 +1371,7 @@ void Base3DView::requestedPointCloudToggled( bool selected )
 
 void Base3DView::lidarPointCloudToggled( bool selected )
 {
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("LIDAR Point Cloud");
     msg.reset.push_back(false);
     msg.visible.push_back(selected);
@@ -1380,7 +1380,7 @@ void Base3DView::lidarPointCloudToggled( bool selected )
 
 void Base3DView::stereoPointCloudToggled( bool selected )
 {
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("Stereo Point Cloud");
     msg.reset.push_back(false);
     msg.visible.push_back(selected);
@@ -1400,7 +1400,7 @@ void Base3DView::ft_sensorToggled(bool selected )
 
 void Base3DView::markerArrayToggled( bool selected )
 {
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("Octomap");
     msg.reset.push_back(false);
     msg.visible.push_back(selected);
@@ -1409,7 +1409,7 @@ void Base3DView::markerArrayToggled( bool selected )
 
 void Base3DView::gridMapToggled( bool selected )
 {
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("Ground map");
     msg.reset.push_back(false);
     msg.visible.push_back(selected);
@@ -1418,7 +1418,7 @@ void Base3DView::gridMapToggled( bool selected )
 
 void Base3DView::notificationSystemToggled(bool selected)
 {
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("Notification System");
     msg.reset.push_back(false);
     msg.visible.push_back(selected);
@@ -1427,7 +1427,7 @@ void Base3DView::notificationSystemToggled(bool selected)
 
 void Base3DView::updateGhostRobotOpacityToggled(bool selected)
 {    
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("Update Ghost Opacity");
     msg.reset.push_back(false);
     msg.visible.push_back(selected);
@@ -1436,7 +1436,7 @@ void Base3DView::updateGhostRobotOpacityToggled(bool selected)
 
 void Base3DView::cameraFrustumToggled(bool selected)
 {
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("Frustum Display");
     msg.reset.push_back(false);
     msg.visible.push_back(selected);
@@ -1567,7 +1567,7 @@ void Base3DView::markerTemplateToggled( bool selected )
 
 void Base3DView::clearPointCloudRaycastRequests()
 {
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("Raycast Point Cloud");
     msg.reset.push_back(true);
     msg.visible.push_back(false);
@@ -1576,7 +1576,7 @@ void Base3DView::clearPointCloudRaycastRequests()
 
 void Base3DView::clearPointCloudStereoRequests()
 {
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("Stereo Point Cloud");
     msg.reset.push_back(true);
     msg.visible.push_back(false);
@@ -1585,7 +1585,7 @@ void Base3DView::clearPointCloudStereoRequests()
 
 void Base3DView::clearPointCloudRegionRequests()
 {
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("LIDAR Point Cloud");
     msg.reset.push_back(true);
     msg.visible.push_back(false);
@@ -1594,7 +1594,7 @@ void Base3DView::clearPointCloudRegionRequests()
 
 void Base3DView::clearMapRequests()
 {       
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("Ground map");
     msg.reset.push_back(true);
     msg.visible.push_back(false);
@@ -1609,7 +1609,7 @@ void Base3DView::clearPlanningObjects()
 
 //when reset is pressed, reset all,
 //when toggle is pressed , and sync is enabled, toggle all,
-void Base3DView::synchronizeViews(const flor_ocs_msgs::OCSSynchronize::ConstPtr msg)
+void Base3DView::synchronizeViews(const vigir_ocs_msgs::OCSSynchronize::ConstPtr msg)
 {    
     //check this msg contents across every rviz display
     for(int i=0;i<msg->properties.size();i++)
@@ -1880,7 +1880,7 @@ void Base3DView::insertTemplate( QString path )
     //std::cout << "adding template" << std::endl;    
     if(!selected_)
     {
-        flor_ocs_msgs::OCSTemplateAdd cmd;
+        vigir_ocs_msgs::OCSTemplateAdd cmd;
         geometry_msgs::PoseStamped pose;
 
         cmd.template_path = path.toStdString();
@@ -1902,7 +1902,7 @@ void Base3DView::insertTemplate( QString path )
     }
     else
     {
-        flor_ocs_msgs::OCSTemplateAdd cmd;
+        vigir_ocs_msgs::OCSTemplateAdd cmd;
         geometry_msgs::PoseStamped pose;
 
         cmd.template_path = path.toStdString();
@@ -1937,7 +1937,7 @@ void Base3DView::insertWaypoint()
     {
         //std::cout << "adding waypoint" << std::endl;
 
-        flor_ocs_msgs::OCSWaypointAdd cmd;
+        vigir_ocs_msgs::OCSWaypointAdd cmd;
         geometry_msgs::PoseStamped pose;
 
         pose.pose.position.x = selection_position_.x;
@@ -1979,8 +1979,8 @@ void Base3DView::selectOnDoubleClick(int x, int y)
         selectFootstep();
     else //ensure current state of selection is updated even when nothing is selected
     {
-        flor_ocs_msgs::OCSObjectSelection cmd;
-        cmd.type = flor_ocs_msgs::OCSObjectSelection::NOTHING;
+        vigir_ocs_msgs::OCSObjectSelection cmd;
+        cmd.type = vigir_ocs_msgs::OCSObjectSelection::NOTHING;
         cmd.id = -1;
         cmd.host = boost::asio::ip::host_name();
         select_object_pub_.publish(cmd);
@@ -2055,8 +2055,8 @@ void Base3DView::selectTemplate(int id)
     {
         deselectAll();
 
-        flor_ocs_msgs::OCSObjectSelection cmd;
-        cmd.type = flor_ocs_msgs::OCSObjectSelection::TEMPLATE;
+        vigir_ocs_msgs::OCSObjectSelection cmd;
+        cmd.type = vigir_ocs_msgs::OCSObjectSelection::TEMPLATE;
         cmd.id = id;
         cmd.host = boost::asio::ip::host_name();
         select_object_pub_.publish(cmd);
@@ -2070,8 +2070,8 @@ void Base3DView::selectFootstep()
     {
         deselectAll();
 
-        flor_ocs_msgs::OCSObjectSelection cmd;
-        cmd.type = flor_ocs_msgs::OCSObjectSelection::FOOTSTEP;
+        vigir_ocs_msgs::OCSObjectSelection cmd;
+        cmd.type = vigir_ocs_msgs::OCSObjectSelection::FOOTSTEP;
         cmd.id = id;
         cmd.host = boost::asio::ip::host_name();
         select_object_pub_.publish(cmd);
@@ -2085,8 +2085,8 @@ void Base3DView::selectFootstepGoal()
     {
         deselectAll();
 
-        flor_ocs_msgs::OCSObjectSelection cmd;
-        cmd.type = flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL;
+        vigir_ocs_msgs::OCSObjectSelection cmd;
+        cmd.type = vigir_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL;
         cmd.id = id;
         cmd.host = boost::asio::ip::host_name();
         select_object_pub_.publish(cmd);
@@ -2095,27 +2095,27 @@ void Base3DView::selectFootstepGoal()
 
 void Base3DView::selectLeftArm()
 {
-    flor_ocs_msgs::OCSObjectSelection cmd;
-    cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
-    cmd.id = flor_ocs_msgs::OCSObjectSelection::LEFT_ARM;
+    vigir_ocs_msgs::OCSObjectSelection cmd;
+    cmd.type = vigir_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
+    cmd.id = vigir_ocs_msgs::OCSObjectSelection::LEFT_ARM;
     cmd.host = boost::asio::ip::host_name();
     select_object_pub_.publish(cmd);
 }
 
 void Base3DView::selectRightArm()
 {
-    flor_ocs_msgs::OCSObjectSelection cmd;
-    cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
-    cmd.id = flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM;
+    vigir_ocs_msgs::OCSObjectSelection cmd;
+    cmd.type = vigir_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
+    cmd.id = vigir_ocs_msgs::OCSObjectSelection::RIGHT_ARM;
     cmd.host = boost::asio::ip::host_name();
     select_object_pub_.publish(cmd);
 }
 
 void Base3DView::selectPelvis()
 {
-    flor_ocs_msgs::OCSObjectSelection cmd;
-    cmd.type = flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
-    cmd.id = flor_ocs_msgs::OCSObjectSelection::PELVIS;
+    vigir_ocs_msgs::OCSObjectSelection cmd;
+    cmd.type = vigir_ocs_msgs::OCSObjectSelection::END_EFFECTOR;
+    cmd.id = vigir_ocs_msgs::OCSObjectSelection::PELVIS;
     cmd.host = boost::asio::ip::host_name();
     select_object_pub_.publish(cmd);
 }
@@ -2129,8 +2129,8 @@ void Base3DView::snapHandGhost()
 // this function will toggle the template grasp lock
 void Base3DView::setTemplateGraspLock(int arm)
 {    
-    flor_ocs_msgs::OCSGraspSync msg;
-    if(arm == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
+    vigir_ocs_msgs::OCSGraspSync msg;
+    if(arm == vigir_ocs_msgs::OCSObjectSelection::LEFT_ARM)
     {
         //dont't lock if template is not selected
         if(last_selected_template_id_ != -1)
@@ -2139,7 +2139,7 @@ void Base3DView::setTemplateGraspLock(int arm)
             msg.right_hand_lock = false;
         }
     }
-    else if(arm == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
+    else if(arm == vigir_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
     {
         if(last_selected_template_id_ != -1)
         {
@@ -2147,12 +2147,12 @@ void Base3DView::setTemplateGraspLock(int arm)
             msg.right_hand_lock = true;
         }
     }
-    else if(arm == flor_ocs_msgs::OCSObjectSelection::UNLOCK_ARMS)
+    else if(arm == vigir_ocs_msgs::OCSObjectSelection::UNLOCK_ARMS)
     {
         msg.left_hand_lock = false;
         msg.right_hand_lock = false;
     }
-    msg.sync_mode = flor_ocs_msgs::OCSGraspSync::HAND_LOCKS;
+    msg.sync_mode = vigir_ocs_msgs::OCSGraspSync::HAND_LOCKS;
     msg.host = boost::asio::ip::host_name();
     msg.template_id = last_selected_template_id_;    
     grasp_sync_pub_.publish(msg);
@@ -2161,9 +2161,9 @@ void Base3DView::setTemplateGraspLock(int arm)
 }
 
 //helps to synchronize grasp lock between views and operators
-void Base3DView::processGraspSyncCB(const flor_ocs_msgs::OCSGraspSync::ConstPtr msg)
+void Base3DView::processGraspSyncCB(const vigir_ocs_msgs::OCSGraspSync::ConstPtr msg)
 {    
-    if(msg->sync_mode == flor_ocs_msgs::OCSGraspSync::HAND_LOCKS)
+    if(msg->sync_mode == vigir_ocs_msgs::OCSGraspSync::HAND_LOCKS)
     {
         //set Template grasp lock
        // int id = findObjectContext("template");
@@ -2182,7 +2182,7 @@ void Base3DView::deselectAll()
 {   
 //    ROS_ERROR("deselect");
 //    //make all markers disappear
-//    flor_ocs_msgs::OCSMarkerVisibility msg;
+//    vigir_ocs_msgs::OCSMarkerVisibility msg;
 //    msg.all_markers = true;
 //    msg.all_markers_visibility = false;
 
@@ -2207,7 +2207,7 @@ void Base3DView::deselectAll()
     footstep_vis_manager_->enableStepPlanMarkers( true );
 }
 
-void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection::ConstPtr msg)
+void Base3DView::processObjectSelection(const vigir_ocs_msgs::OCSObjectSelection::ConstPtr msg)
 {
     // only process object selection if I'm the sender
     if(msg->host != boost::asio::ip::host_name())
@@ -2222,40 +2222,40 @@ void Base3DView::processObjectSelection(const flor_ocs_msgs::OCSObjectSelection:
 
     switch(msg->type)
     {
-        case flor_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
+        case vigir_ocs_msgs::OCSObjectSelection::END_EFFECTOR:
             // disable step plan markers
             footstep_vis_manager_->enableStepPlanMarkers( false );
             // enable template marker
-            if(msg->id == flor_ocs_msgs::OCSObjectSelection::LEFT_ARM)
+            if(msg->id == vigir_ocs_msgs::OCSObjectSelection::LEFT_ARM)
                 left_marker_moveit_loopback_ = false;
-            else if(msg->id == flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
+            else if(msg->id == vigir_ocs_msgs::OCSObjectSelection::RIGHT_ARM)
                 right_marker_moveit_loopback_ = false;
             im_ghost_robot_[msg->id]->setEnabled( true );
             footstep_vis_manager_->enableStepPlanMarkers( false );
             last_selected_template_id_ = -1;
             break;
-        case flor_ocs_msgs::OCSObjectSelection::TEMPLATE:
+        case vigir_ocs_msgs::OCSObjectSelection::TEMPLATE:
             // disable step plan markers
             footstep_vis_manager_->enableStepPlanMarkers( false );
             last_selected_template_id_ = msg->id;
             // enable template marker
             Q_EMIT enableTemplateMarker( msg->id, true );
             break;
-        case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP:
+        case vigir_ocs_msgs::OCSObjectSelection::FOOTSTEP:
             // disable step plan markers
             footstep_vis_manager_->enableStepPlanMarkers( false );
             // id takes into account text marker as well, so we do this to find the real marker id
             footstep_vis_manager_->enableFootstepMarker( msg->id/2, true );
             last_selected_template_id_ = -1;
             break;
-        case flor_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL:
+        case vigir_ocs_msgs::OCSObjectSelection::FOOTSTEP_GOAL:
             // disable step plan markers
             footstep_vis_manager_->enableStepPlanMarkers( false );
             // id takes into account text marker as well, so we do this to find the real marker id
             footstep_vis_manager_->enableFootstepGoalMarker( msg->id/2, true );
             last_selected_template_id_ = -1;
             break;
-        case flor_ocs_msgs::OCSObjectSelection::NOTHING:
+        case vigir_ocs_msgs::OCSObjectSelection::NOTHING:
             last_selected_template_id_ = -1;
             break;
         default:
@@ -2300,7 +2300,7 @@ void Base3DView::createCartesianContextMenu()
     pos.y = pose.pose.position.y;
     pos.z = pose.pose.position.z;
 
-    flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+    vigir_ocs_msgs::OCSInteractiveMarkerAdd marker;
     marker.name  = std::string("Cartesian Waypoint ")+boost::to_string((unsigned int)id);
     marker.topic = pose_string;
     marker.frame = base_frame_;
@@ -2365,7 +2365,7 @@ void Base3DView::createCircularContextMenu()
     pos.y = pose.pose.position.y;
     pos.z = pose.pose.position.z;
 
-    flor_ocs_msgs::OCSInteractiveMarkerAdd marker;
+    vigir_ocs_msgs::OCSInteractiveMarkerAdd marker;
     marker.name  = std::string("Center of Rotation");
     marker.topic = pose_string;
     marker.frame = base_frame_;
@@ -2394,7 +2394,7 @@ void Base3DView::removeCircularContextMenu()
 
 void Base3DView::removeTemplate(int id)
 {
-    flor_ocs_msgs::OCSTemplateRemove cmd;
+    vigir_ocs_msgs::OCSTemplateRemove cmd;
 
     cmd.template_id = id;
 
@@ -2424,7 +2424,7 @@ void Base3DView::setSelectionRay( Ogre::Ray ray )
 
 void Base3DView::publishPointCloudWorldRequest()
 {
-    flor_perception_msgs::RaycastRequest request;
+    vigir_perception_msgs::RaycastRequest request;
 
     request.origin.x = last_selection_ray_.getOrigin().x;
     request.origin.y = last_selection_ray_.getOrigin().y;
@@ -2731,7 +2731,7 @@ void Base3DView::processRightGhostHandPose(const geometry_msgs::PoseStamped::Con
 
 void Base3DView::processGhostPelvisPose(const geometry_msgs::PoseStamped::ConstPtr msg)
 {    
-    flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+    vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
     cmd.client_id = ros::this_node::getName();
     cmd.pose = *msg;
     cmd.topic = "/pelvis_pose_marker";
@@ -2818,7 +2818,7 @@ bool Base3DView::checkPoseMatch(const geometry_msgs::Pose& p1, const geometry_ms
     return true;
 }
 
-void Base3DView::onMarkerFeedback(const flor_ocs_msgs::OCSInteractiveMarkerUpdate& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
+void Base3DView::onMarkerFeedback(const vigir_ocs_msgs::OCSInteractiveMarkerUpdate& msg)//std::string topic_name, geometry_msgs::PoseStamped pose)
 {
     geometry_msgs::PoseStamped joint_pose;
     joint_pose = msg.pose;
@@ -2977,7 +2977,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
 
     //ROS_ERROR("Left: %s Right:%s Pelvis: %s",left?"yes":"no",right?"yes":"no",torso?"yes":"no");
 
-    flor_planning_msgs::TargetConfigIkRequest cmd;
+    vigir_teleop_planning_msgs::TargetConfigIkRequest cmd;
 
     if(left && end_effector_pose_list_.find( "/l_arm_pose_marker") != end_effector_pose_list_.end())
     {
@@ -3076,7 +3076,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
        // if(im_ghost_robot_[2]->isEnabled())
         //    im_ghost_robot_[2]->setEnabled(false);
 
-        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.client_id = ros::this_node::getName();
         cmd.topic = "/pelvis_pose_marker";
         cmd.pose = root_pose;
@@ -3106,7 +3106,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
 
         pelvis_marker_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
-        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.client_id = ros::this_node::getName();
         cmd.topic = "/pelvis_pose_marker";
         cmd.pose = end_effector_pose_list_["/pelvis_pose_marker"];
@@ -3368,7 +3368,7 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr stat
 //        ghost_root_pose_pub_.publish(root_pose);
 
 //        //update pose of pelvis marker to be root
-//        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+//        vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
 //        cmd.client_id = ros::this_node::getName();
 //        cmd.topic = "/pelvis_pose_marker";
 //        cmd.pose = root_pose;
@@ -3775,7 +3775,7 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr msg )
 
         ghost_root_pose_pub_.publish(pose);
 
-        flor_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
+        vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
         cmd.client_id = ros::this_node::getName();
         cmd.topic = "/pelvis_pose_marker";
         cmd.pose = pose;
@@ -3794,7 +3794,7 @@ void Base3DView::publishMarkers()
 {
     geometry_msgs::Point point;
 
-    flor_ocs_msgs::OCSInteractiveMarkerAdd marker_server_left_arm;
+    vigir_ocs_msgs::OCSInteractiveMarkerAdd marker_server_left_arm;
     marker_server_left_arm.name = "Ghost Left Arm";
     marker_server_left_arm.topic = "/l_arm_pose_marker";
     marker_server_left_arm.frame = manager_->getFixedFrame().toStdString();
@@ -3802,7 +3802,7 @@ void Base3DView::publishMarkers()
     marker_server_left_arm.point = point;
     interactive_marker_add_pub_.publish(marker_server_left_arm);
 
-    flor_ocs_msgs::OCSInteractiveMarkerAdd marker_server_right_arm;
+    vigir_ocs_msgs::OCSInteractiveMarkerAdd marker_server_right_arm;
     marker_server_right_arm.name = "Ghost Right Arm";
     marker_server_right_arm.topic = "/r_arm_pose_marker";
     marker_server_right_arm.frame = manager_->getFixedFrame().toStdString();
@@ -3810,7 +3810,7 @@ void Base3DView::publishMarkers()
     marker_server_right_arm.point = point;
     interactive_marker_add_pub_.publish(marker_server_right_arm);
 
-    flor_ocs_msgs::OCSInteractiveMarkerAdd marker_server_pelvis;
+    vigir_ocs_msgs::OCSInteractiveMarkerAdd marker_server_pelvis;
     marker_server_pelvis.name = "Ghost Pelvis";
     marker_server_pelvis.topic = "/pelvis_pose_marker";
     marker_server_pelvis.frame = manager_->getFixedFrame().toStdString();
@@ -3858,7 +3858,7 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
 {
     std::string prefix = (right_hand ? "r" : "l");
 
-    flor_planning_msgs::CartesianMotionRequest cmd;
+    vigir_teleop_planning_msgs::CartesianMotionRequest cmd;
 
     cmd.header.frame_id = "/world";
     cmd.header.stamp = ros::Time::now();
@@ -3943,7 +3943,7 @@ void Base3DView::sendCartesianRight()
 void Base3DView::sendCircularTarget(bool right_hand)
 {
     std::string prefix = (right_hand ? "r" : "l");
-    flor_planning_msgs::CircularMotionRequest cmd;
+    vigir_teleop_planning_msgs::CircularMotionRequest cmd;
 
     geometry_msgs::PoseStamped pose;
     pose.header.frame_id = "/world";
@@ -4061,11 +4061,11 @@ void Base3DView::addHotkeys()
     //select right arm end effector
     HotkeyManager::Instance()->addHotkeyFunction("shift+r",boost::bind(&Base3DView::selectRightArm,this));
     //Lock left arm to template
-    HotkeyManager::Instance()->addHotkeyFunction("shift+d",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::LEFT_ARM));
+    HotkeyManager::Instance()->addHotkeyFunction("shift+d",boost::bind(&Base3DView::setTemplateGraspLock,this,vigir_ocs_msgs::OCSObjectSelection::LEFT_ARM));
     //Lock right arm to template
-    HotkeyManager::Instance()->addHotkeyFunction("shift+f",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::RIGHT_ARM));
+    HotkeyManager::Instance()->addHotkeyFunction("shift+f",boost::bind(&Base3DView::setTemplateGraspLock,this,vigir_ocs_msgs::OCSObjectSelection::RIGHT_ARM));
     //Unlock arms from template
-    HotkeyManager::Instance()->addHotkeyFunction("shift+w",boost::bind(&Base3DView::setTemplateGraspLock,this,flor_ocs_msgs::OCSObjectSelection::UNLOCK_ARMS));
+    HotkeyManager::Instance()->addHotkeyFunction("shift+w",boost::bind(&Base3DView::setTemplateGraspLock,this,vigir_ocs_msgs::OCSObjectSelection::UNLOCK_ARMS));
 }
 
 ///Callbacks for Hotkeys//////////////
@@ -4109,7 +4109,7 @@ void Base3DView::executeStepPlanHotkey()
 void Base3DView::lockWorldHotkey()
 {
     //Lock translation during rotation
-    flor_ocs_msgs::OCSControlMode msgMode;
+    vigir_ocs_msgs::OCSControlMode msgMode;
     msgMode.manipulationMode = visualization_msgs::InteractiveMarkerControl::FIXED;
     interactive_marker_server_mode_pub_.publish(msgMode);
     lock_world_ = true; //!lock_world_;
@@ -4119,7 +4119,7 @@ void Base3DView::lockWorldHotkey()
 void Base3DView::lockTranslationHotkey()
 {
     //Lock translation during rotation
-    flor_ocs_msgs::OCSControlMode msgMode;
+    vigir_ocs_msgs::OCSControlMode msgMode;
     if(interactive_marker_mode_ < IM_MODE_OFFSET)
         msgMode.manipulationMode = interactive_marker_mode_ + IM_MODE_OFFSET;
     interactive_marker_server_mode_pub_.publish(msgMode);
@@ -4141,7 +4141,7 @@ void Base3DView::snapGhostHotkey()
 void Base3DView::stereoMeshHotkey()
 {
     //toggle stereo mesh viewer
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("Stereo Mesh");
     msg.visible.push_back(!stereo_mesh_viewer_->isEnabled());
     ocs_sync_pub_.publish(msg);
@@ -4150,7 +4150,7 @@ void Base3DView::stereoMeshHotkey()
 void Base3DView::lidarMeshHotkey()
 {
     //toggle lidar mesh viewer
-    flor_ocs_msgs::OCSSynchronize msg;
+    vigir_ocs_msgs::OCSSynchronize msg;
     msg.properties.push_back("LIDAR Mesh");
     msg.visible.push_back(!lidar_mesh_viewer_->isEnabled());
     ocs_sync_pub_.publish(msg);
@@ -4158,7 +4158,7 @@ void Base3DView::lidarMeshHotkey()
 /////////////End Hotkey Callbacks///////////////////////////////////
 
 
-void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
+void Base3DView::processNewKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
 {
     // store key state
     if(key_event->state)
@@ -4176,7 +4176,7 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr k
     //Unlock translation during rotation
     if(lock_rotation_)
     {        
-        flor_ocs_msgs::OCSControlMode msgMode;
+        vigir_ocs_msgs::OCSControlMode msgMode;
         if(interactive_marker_mode_ < IM_MODE_OFFSET)//Check if mode is 0, 1 or 2
             msgMode.manipulationMode = interactive_marker_mode_;
         else//means that shift is pressed
@@ -4186,7 +4186,7 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr k
     }
     if(lock_world_)
     {
-        flor_ocs_msgs::OCSControlMode msgMode;
+        vigir_ocs_msgs::OCSControlMode msgMode;
         msgMode.manipulationMode = visualization_msgs::InteractiveMarkerControl::INHERIT;
         interactive_marker_server_mode_pub_.publish(msgMode);
         lock_world_ = false;
@@ -4194,25 +4194,25 @@ void Base3DView::processNewKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr k
 
 }
 
-void Base3DView::processInteractiveMarkerMode(const flor_ocs_msgs::OCSControlMode::ConstPtr msg)
+void Base3DView::processInteractiveMarkerMode(const vigir_ocs_msgs::OCSControlMode::ConstPtr msg)
 {
     //Update the im to current
     interactive_marker_mode_ = msg->manipulationMode;
 }
 
-void Base3DView::processHotkeyRelayMessage(const flor_ocs_msgs::OCSHotkeyRelay::ConstPtr msg)
+void Base3DView::processHotkeyRelayMessage(const vigir_ocs_msgs::OCSHotkeyRelay::ConstPtr msg)
 {
-    if(msg->relay_code == flor_ocs_msgs::OCSHotkeyRelay::CLEAR_CLOUD_DATA)
+    if(msg->relay_code == vigir_ocs_msgs::OCSHotkeyRelay::CLEAR_CLOUD_DATA)
     {
         clearPointCloudRaycastRequests();
         clearPointCloudRegionRequests();
         clearPointCloudStereoRequests();
     }
-    if(msg->relay_code == flor_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_RAINBOW)
+    if(msg->relay_code == vigir_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_RAINBOW)
     {
         lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "AxisColor" );
     }
-    if(msg->relay_code == flor_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_INTENSITY)
+    if(msg->relay_code == vigir_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_INTENSITY)
     {
         lidar_point_cloud_viewer_->subProp( "Color Transformer" )->setValue( "Intensity" );
     }

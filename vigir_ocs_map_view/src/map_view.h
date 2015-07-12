@@ -71,7 +71,7 @@ private:
 
     int selected_area_[4];
 
-    flor_perception_msgs::PointCloudTypeRegionRequest last_request_;   
+    vigir_perception_msgs::PointCloudTypeRegionRequest last_request_;   
 
     MapViewContextMenu * map_view_context_menu_;
 

@@ -15,9 +15,9 @@
 #include <vector>
 #include <algorithm>
 
-#include <flor_ocs_msgs/OCSKeyEvent.h>
-#include <flor_ocs_msgs/OCSTemplateList.h>
-#include <flor_grasp_msgs/InverseReachabilityForGraspRequest.h>
+#include <vigir_ocs_msgs/OCSKeyEvent.h>
+#include <vigir_ocs_msgs/OCSTemplateList.h>
+#include <vigir_grasp_msgs/InverseReachabilityForGraspRequest.h>
 #include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
 #include <std_msgs/String.h>
@@ -47,7 +47,7 @@ public:
 
     void processWindowControl(const std_msgs::Int8::ConstPtr& msg);
 
-    void processTemplateList( const flor_ocs_msgs::OCSTemplateList::ConstPtr& list);        
+    void processTemplateList( const vigir_ocs_msgs::OCSTemplateList::ConstPtr& list);        
     int calcTargetPose(const geometry_msgs::Pose& pose_1, const geometry_msgs::Pose& pose_2, geometry_msgs::Pose& pose_result);
 
 
@@ -123,7 +123,7 @@ private:
     static unsigned char saved_state_position_only_ik_;
     static unsigned char saved_state_use_drake_ik_;
 
-    flor_ocs_msgs::OCSTemplateList last_template_list_;
+    vigir_ocs_msgs::OCSTemplateList last_template_list_;
     int selected_template_id_;
     int selected_pose_id_;
 

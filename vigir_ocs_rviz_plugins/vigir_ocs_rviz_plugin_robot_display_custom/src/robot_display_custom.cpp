@@ -111,7 +111,7 @@ void RobotDisplayCustom::onInitialize()
     updateColor();
 
     // subscribe to the topic to load all templates
-    link_color_sub_ = nh_.subscribe<flor_ocs_msgs::OCSLinkColor>( "/link_color", 5, &RobotDisplayCustom::processLinkColorChange, this );
+    link_color_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSLinkColor>( "/link_color", 5, &RobotDisplayCustom::processLinkColorChange, this );
 }
 
 void RobotDisplayCustom::updateAlpha()
@@ -316,7 +316,7 @@ void RobotDisplayCustom::setModelPrefix(std::string prefix, urdf::ModelInterface
     descr.joints_ = new_joints;
 }
 
-void RobotDisplayCustom::processLinkColorChange(const flor_ocs_msgs::OCSLinkColor::ConstPtr& color)
+void RobotDisplayCustom::processLinkColorChange(const vigir_ocs_msgs::OCSLinkColor::ConstPtr& color)
 {
     std::string link_name = color->link;
     //std::cout << "initial link name: " << link_name << std::endl;

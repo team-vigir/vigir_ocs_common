@@ -46,14 +46,14 @@ namespace vigir_ocs
     {
         ros::NodeHandle nh_out(nh, "/template");
 
-        joystick_modes_sub = nh.subscribe<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",5,&Controller::modeCb,this);
-        joystick_modes_pub = nh.advertise<flor_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",5,false);
+        joystick_modes_sub = nh.subscribe<vigir_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",5,&Controller::modeCb,this);
+        joystick_modes_pub = nh.advertise<vigir_ocs_msgs::OCSControlMode>("/flor/ocs/control_modes",5,false);
 
         //subscribe to list to grab movement data
-        template_list_sub = nh_out.subscribe<flor_ocs_msgs::OCSTemplateList>( "list", 5, &Controller::templateListCb ,this );
+        template_list_sub = nh_out.subscribe<vigir_ocs_msgs::OCSTemplateList>( "list", 5, &Controller::templateListCb ,this );
 
         //create publisher to update movement data
-        template_update_pub = nh_out.advertise<flor_ocs_msgs::OCSTemplateUpdate>( "update", 5, false );
+        template_update_pub = nh_out.advertise<vigir_ocs_msgs::OCSTemplateUpdate>( "update", 5, false );
 
         //subscribe to joystick
         joy_sub = nh.subscribe<sensor_msgs::Joy>( "/joy", 5, &Controller::joyCB ,this );
@@ -64,9 +64,9 @@ namespace vigir_ocs
         left_sub = nh.subscribe<geometry_msgs::PoseStamped>("/flor/ghost/pose/left_hand",5,&Controller::leftCB,this );
         right_sub = nh.subscribe<geometry_msgs::PoseStamped>("/flor/ghost/pose/right_hand",5,&Controller::rightCB,this );
 
-        ghost_hand_pub = nh.advertise<flor_ocs_msgs::OCSInteractiveMarkerUpdate>("/flor/ocs/interactive_marker_server/update", 5, false);
+        ghost_hand_pub = nh.advertise<vigir_ocs_msgs::OCSInteractiveMarkerUpdate>("/flor/ocs/interactive_marker_server/update", 5, false);
 
-        camera_sub = nh.subscribe<flor_ocs_msgs::OCSCameraTransform>( "flor/ocs/camera_transform",5,&Controller::cameraCb,this);
+        camera_sub = nh.subscribe<vigir_ocs_msgs::OCSCameraTransform>( "flor/ocs/camera_transform",5,&Controller::cameraCb,this);
 
         timer.start(33, this);
 
@@ -105,7 +105,7 @@ namespace vigir_ocs
             handleJoystick();
     }
 
-    void Controller::modeCb(const flor_ocs_msgs::OCSControlMode::ConstPtr& msg)
+    void Controller::modeCb(const vigir_ocs_msgs::OCSControlMode::ConstPtr& msg)
     {
         if(msg->manipulationMode != 0 || msg->manipulationMode != 1 || msg->manipulationMode != 2)
             return;
@@ -118,7 +118,7 @@ namespace vigir_ocs
     }
 
     //sends data to list and updates it
-    void Controller::templateListCb(const flor_ocs_msgs::OCSTemplateList::ConstPtr& msg)
+    void Controller::templateListCb(const vigir_ocs_msgs::OCSTemplateList::ConstPtr& msg)
     {
         //grab current template List
         temList = *msg;
@@ -131,7 +131,7 @@ namespace vigir_ocs
     }
 
     //copy camera information and store
-    void Controller::cameraCb(const flor_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
+    void Controller::cameraCb(const vigir_ocs_msgs::OCSCameraTransform::ConstPtr& msg)
     {
         cameraUpdate = *msg;
         if(cameraUpdate.widget_name == "MainView" && cameraUpdate.view_id == 0)
@@ -195,7 +195,7 @@ namespace vigir_ocs
             //update current mode
             currentObjectMode = mode;
             //publish mode change
-            flor_ocs_msgs::OCSControlMode msg;
+            vigir_ocs_msgs::OCSControlMode msg;
             msg.objectMode = mode;
             msg.manipulationMode = getManipulation();
             joystick_modes_pub.publish(msg);
@@ -230,7 +230,7 @@ namespace vigir_ocs
             //ensure controller updated
             currentManipulationController = mode;
             //publish mode change
-            flor_ocs_msgs::OCSControlMode msg;
+            vigir_ocs_msgs::OCSControlMode msg;
             msg.manipulationMode = mode;
             msg.objectMode = getObjectMode();
             joystick_modes_pub.publish(msg);
@@ -317,7 +317,7 @@ namespace vigir_ocs
         QQuaternion * rotation;
         QVector3D * position;
 
-        flor_ocs_msgs::OCSTemplateUpdate msg;
+        vigir_ocs_msgs::OCSTemplateUpdate msg;
 
         //don't publish if sending same data
         if(!compareJoyData())
@@ -496,7 +496,7 @@ namespace vigir_ocs
         if(leftMode)
         {
             //ROS_INFO("sending robot arm data");
-            flor_ocs_msgs::OCSInteractiveMarkerUpdate msg;
+            vigir_ocs_msgs::OCSInteractiveMarkerUpdate msg;
             msg.client_id = ros::this_node::getName();
             msg.topic = "/l_arm_pose_marker";
             msg.pose.header.frame_id = "/world";
@@ -519,7 +519,7 @@ namespace vigir_ocs
         else //template mode
         {
             //create msg to publish
-            flor_ocs_msgs::OCSTemplateUpdate msg;
+            vigir_ocs_msgs::OCSTemplateUpdate msg;
             msg.template_id = temList.template_id_list[templateIndex];
 
             //copy rotation first

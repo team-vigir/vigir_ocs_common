@@ -7,7 +7,7 @@ HotkeyRelay::HotkeyRelay()
     ros::NodeHandle nh_out(n_, "/flor/ocs");
 
     // create publishers for visualization
-    key_event_pub_  = nh_out.advertise<flor_ocs_msgs::OCSHotkeyRelay>( "hotkey_relay", 1, false );
+    key_event_pub_  = nh_out.advertise<vigir_ocs_msgs::OCSHotkeyRelay>( "hotkey_relay", 1, false );
 
     key_event_sub_ = nh_out.subscribe( "secondary/key_event", 5, &HotkeyRelay::processKeyEvent, this );
 	
@@ -18,7 +18,7 @@ HotkeyRelay::~HotkeyRelay()
 {
 }
 
-void HotkeyRelay::processKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
+void HotkeyRelay::processKeyEvent(const vigir_ocs_msgs::OCSKeyEvent::ConstPtr key_event)
 {
     // store key state
     if(key_event->state)
@@ -33,28 +33,28 @@ void HotkeyRelay::processKeyEvent(const flor_ocs_msgs::OCSKeyEvent::ConstPtr key
 
     if(key_event->keycode == 10 && key_event->state && ctrl_is_pressed) // ctrl+1
     {
-        flor_ocs_msgs::OCSHotkeyRelay cmd;
+        vigir_ocs_msgs::OCSHotkeyRelay cmd;
         cmd.relay_code = 1;
         key_event_pub_.publish(cmd);
     }
     else if(key_event->keycode == 15 && key_event->state && ctrl_is_pressed) // ctrl+6
     {
-        flor_ocs_msgs::OCSHotkeyRelay cmd;
-        cmd.relay_code = flor_ocs_msgs::OCSHotkeyRelay::CLEAR_IMAGE_SELECTED;
+        vigir_ocs_msgs::OCSHotkeyRelay cmd;
+        cmd.relay_code = vigir_ocs_msgs::OCSHotkeyRelay::CLEAR_IMAGE_SELECTED;
         key_event_pub_.publish(cmd);
     }
     else if(key_event->keycode == 18 && key_event->state && ctrl_is_pressed) // ctrl+9
     {
         // rainbow color
-        flor_ocs_msgs::OCSHotkeyRelay cmd;
-        cmd.relay_code = flor_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_RAINBOW;
+        vigir_ocs_msgs::OCSHotkeyRelay cmd;
+        cmd.relay_code = vigir_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_RAINBOW;
         key_event_pub_.publish(cmd);
     }
     else if(key_event->keycode == 19 && key_event->state && ctrl_is_pressed) // ctrl+0
     {
         // intensity
-        flor_ocs_msgs::OCSHotkeyRelay cmd;
-        cmd.relay_code = flor_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_INTENSITY;
+        vigir_ocs_msgs::OCSHotkeyRelay cmd;
+        cmd.relay_code = vigir_ocs_msgs::OCSHotkeyRelay::SET_LIDAR_INTENSITY;
         key_event_pub_.publish(cmd);
     }
 }

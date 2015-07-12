@@ -51,7 +51,7 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
     displays_layout->addWidget(displays_panel);
     ui->rviz_options->setLayout(displays_layout);
 
-    //key_event_sub_ = n_.subscribe<flor_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MapViewWidget::processNewKeyEvent, this );
+    //key_event_sub_ = n_.subscribe<vigir_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MapViewWidget::processNewKeyEvent, this );
 
     //hide sidebar elements that aren't necessary
     ui->Template->hide();
@@ -101,8 +101,8 @@ MapViewWidget::MapViewWidget(QWidget *parent) :
 
     connect(sidebar_toggle_,SIGNAL(clicked()),this,SLOT(toggleSidebarVisibility()));
 
-    ocs_sync_sub_ = n_.subscribe<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &MapViewWidget::synchronizeToggleButtons, this );
-    ocs_sync_pub_ = n_.advertise<flor_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
+    ocs_sync_sub_ = n_.subscribe<vigir_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, &MapViewWidget::synchronizeToggleButtons, this );
+    ocs_sync_pub_ = n_.advertise<vigir_ocs_msgs::OCSSynchronize>( "/flor/ocs/synchronize", 5, false);
 
     //publisher and subscriber for window visibility control
     window_control_sub_ = n_.subscribe<std_msgs::Int8>( "/flor/ocs/window_control", 5, &MapViewWidget::processWindowControl, this );
@@ -131,7 +131,7 @@ void MapViewWidget::changeCheckBoxState(QCheckBox* checkBox, Qt::CheckState stat
     checkBox->blockSignals(false);
 }
 
-void MapViewWidget::synchronizeToggleButtons(const flor_ocs_msgs::OCSSynchronize::ConstPtr &msg)
+void MapViewWidget::synchronizeToggleButtons(const vigir_ocs_msgs::OCSSynchronize::ConstPtr &msg)
 {
     for(int i=0;i<msg->properties.size();i++)
     {
@@ -389,7 +389,7 @@ void MapViewWidget::requestMap()
         if(ui->grid_map->checkState() == Qt::Unchecked)
         {            
             //set sidebar checkbox to be enabled and sync(handled through callback in views)
-            flor_ocs_msgs::OCSSynchronize msg;
+            vigir_ocs_msgs::OCSSynchronize msg;
             msg.properties.push_back("Ground map");
             msg.reset.push_back(false);
             msg.visible.push_back(true);
@@ -406,7 +406,7 @@ void MapViewWidget::requestOctomap()
     {
         if(ui->octomap_2->checkState() == Qt::Unchecked)
         {
-            flor_ocs_msgs::OCSSynchronize msg;
+            vigir_ocs_msgs::OCSSynchronize msg;
             msg.properties.push_back("Octomap");
             msg.reset.push_back(false);
             msg.visible.push_back(true);
@@ -425,7 +425,7 @@ void MapViewWidget::requestPointCloud()
         //still need to sync checkbox, but based on pointcloud type
         if(ui->point_cloud_type->currentIndex() <= 1 && ui->lidar_point_cloud_2->checkState() == Qt::Unchecked) //lidar
         {
-            flor_ocs_msgs::OCSSynchronize msg;
+            vigir_ocs_msgs::OCSSynchronize msg;
             msg.properties.push_back("LIDAR Point Cloud");
             msg.reset.push_back(false);
             msg.visible.push_back(true);
@@ -433,7 +433,7 @@ void MapViewWidget::requestPointCloud()
         }
         else if (ui->point_cloud_type->currentIndex() > 1 && ui->stereo_point_cloud_2->checkState() == Qt::Unchecked) // stereo cases
         {
-            flor_ocs_msgs::OCSSynchronize msg;
+            vigir_ocs_msgs::OCSSynchronize msg;
             msg.properties.push_back("Stereo Point Cloud");
             msg.reset.push_back(false);
             msg.visible.push_back(true);

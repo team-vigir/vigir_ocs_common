@@ -1,6 +1,6 @@
 
 #include "map_context_menu.h"
-#include <flor_ocs_msgs/OCSAugmentRegions.h>
+#include <vigir_ocs_msgs/OCSAugmentRegions.h>
 
 namespace vigir_ocs
 {
@@ -11,7 +11,7 @@ MapViewContextMenu::MapViewContextMenu(MapView* map_view)
     createContextMenu();
 
     // create publisher for augmentations on the grid map
-    augment_grid_map_pub_ = nh_.advertise<flor_ocs_msgs::OCSAugmentRegions>( "/flor/worldmodel/ocs_augmented_regions", 1, false );
+    augment_grid_map_pub_ = nh_.advertise<vigir_ocs_msgs::OCSAugmentRegions>( "/flor/worldmodel/ocs_augmented_regions", 1, false );
 }
 
 MapViewContextMenu::~MapViewContextMenu()

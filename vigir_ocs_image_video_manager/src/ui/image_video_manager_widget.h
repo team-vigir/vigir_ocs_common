@@ -13,15 +13,15 @@
 #include <QtGui>
 #include<QTreeWidgetItem>
 
-#include <flor_ocs_msgs/OCSImageList.h>
-#include <flor_ocs_msgs/OCSImageAdd.h>
+#include <vigir_ocs_msgs/OCSImageList.h>
+#include <vigir_ocs_msgs/OCSImageAdd.h>
 
 #include <std_msgs/Bool.h>
 #include <std_msgs/UInt64.h>
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
-#include <flor_perception_msgs/DownSampledImageRequest.h>
+#include <vigir_perception_msgs/DownSampledImageRequest.h>
 #include <ros/ros.h>
 
 namespace rviz
@@ -42,15 +42,15 @@ public:
     explicit ImageVideoManagerWidget(QWidget *parent = 0);
     ~ImageVideoManagerWidget();
 
-    void processImageAdd(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg);
-    void processImageList(const flor_ocs_msgs::OCSImageList::ConstPtr msg);
+    void processImageAdd(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg);
+    void processImageList(const vigir_ocs_msgs::OCSImageList::ConstPtr msg);
     void processSelectedImage(const sensor_msgs::Image::ConstPtr msg);
-    void processvideoimage_l (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg);
-    void processvideoimage_r (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg);
-    void processvideoimage_lhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg);
-    void processvideoimage_lhr (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg);
-    void processvideoimage_rhl (const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg);
-    void processvideoimage_rhr(const flor_perception_msgs::DownSampledImageRequest::ConstPtr msg);
+    void processvideoimage_l (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg);
+    void processvideoimage_r (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg);
+    void processvideoimage_lhl (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg);
+    void processvideoimage_lhr (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg);
+    void processvideoimage_rhl (const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg);
+    void processvideoimage_rhr(const vigir_perception_msgs::DownSampledImageRequest::ConstPtr msg);
 
     void addImageChild(QTreeWidgetItem *parent, const unsigned long& id, const std::string& topic, const sensor_msgs::Image& image, const sensor_msgs::CameraInfo& camera_info,int flag);
     QTreeWidgetItem* addvideoitem(int videocount,const sensor_msgs::Image& image);
@@ -59,12 +59,12 @@ public:
     void settree_show();
     QTreeWidgetItem* add_time_child(QTreeWidgetItem *pitem, int cnt);
     void thumbnail(const sensor_msgs::Image& image,QTreeWidgetItem *item);
-    void imageaddfunction_l(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg);
-    void imageaddfunction_r(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg);
-    void imageaddfunction_lhl(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg);
-    void imageaddfunction_lhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg);
-    void imageaddfunction_rhl(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg);
-    void imageaddfunction_rhr(const flor_ocs_msgs::OCSImageAdd::ConstPtr msg);
+    void imageaddfunction_l(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg);
+    void imageaddfunction_r(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg);
+    void imageaddfunction_lhl(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg);
+    void imageaddfunction_lhr(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg);
+    void imageaddfunction_rhl(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg);
+    void imageaddfunction_rhr(const vigir_ocs_msgs::OCSImageAdd::ConstPtr msg);
     void settree_hide();
     void search_child(int time,int flag, QTreeWidgetItem *item);
     void image_slider();
