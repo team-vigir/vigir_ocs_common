@@ -31,7 +31,7 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
-@TODO_ADD_AUTHOR_INFO
+//@TODO_ADD_AUTHOR_INFO
 #ifndef vigir_ocs_rqt__StatusViewCustom_H
 #define vigir_ocs_rqt__StatusViewCustom_H
 

@@ -31,7 +31,7 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
-@TODO_ADD_AUTHOR_INFO
+//@TODO_ADD_AUTHOR_INFO
 #ifndef MAIN_CAMERA_VIEW_WIDGET_H
 #define MAIN_CAMERA_VIEW_WIDGET_H
 
