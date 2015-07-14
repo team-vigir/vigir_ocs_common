@@ -31,7 +31,7 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
-@TODO_ADD_AUTHOR_INFO
+//@TODO_ADD_AUTHOR_INFO
 #include <class_loader/class_loader.h> 
 #include "template_display_custom.h"
 

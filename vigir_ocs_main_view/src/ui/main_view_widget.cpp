@@ -31,7 +31,7 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
-@TODO_ADD_AUTHOR_INFO
+//@TODO_ADD_AUTHOR_INFO
 #include "main_view_widget.h"
 #include "ui_main_view_widget.h"
 #include "base_context_menu.h"
