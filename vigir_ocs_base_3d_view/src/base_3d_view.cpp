@@ -2996,11 +2996,11 @@ void Base3DView::publishGhostPoses(bool local_feedback)
 
     //ROS_ERROR("Left: %s Right:%s Pelvis: %s",left?"yes":"no",right?"yes":"no",torso?"yes":"no");
 
-    vigir_teleop_planning_msgs::TargetConfigIkRequest cmd;
+    vigir_teleop_planning_msgs::TargetConfigIkRequest request_cmd;
 
     if(left && end_effector_pose_list_.find( "/l_arm_pose_marker") != end_effector_pose_list_.end())
     {
-        cmd.target_poses.push_back(end_effector_pose_list_["/l_arm_pose_marker"]);
+        request_cmd.target_poses.push_back(end_effector_pose_list_["/l_arm_pose_marker"]);
 //        ROS_ERROR("PUBLISHING LEFT GHOST ARM POSE:");
 //        ROS_ERROR("  position: %.2f %.2f %.2f",end_effector_pose_list_["/l_arm_pose_marker"].pose.position.x,end_effector_pose_list_["/l_arm_pose_marker"].pose.position.y,end_effector_pose_list_["/l_arm_pose_marker"].pose.position.z);
 //        ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.w,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.x,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.y,end_effector_pose_list_["/l_arm_pose_marker"].pose.orientation.z);
@@ -3008,42 +3008,42 @@ void Base3DView::publishGhostPoses(bool local_feedback)
 
     if(right && end_effector_pose_list_.find( "/r_arm_pose_marker") != end_effector_pose_list_.end())
     {
-        cmd.target_poses.push_back(end_effector_pose_list_["/r_arm_pose_marker"]);
+        request_cmd.target_poses.push_back(end_effector_pose_list_["/r_arm_pose_marker"]);
 //        ROS_ERROR("PUBLISHING RIGHT ARM POSE:");
 //        ROS_ERROR("  position: %.2f %.2f %.2f",end_effector_pose_list_["/r_arm_pose_marker"].pose.position.x,end_effector_pose_list_["/r_arm_pose_marker"].pose.position.y,end_effector_pose_list_["/r_arm_pose_marker"].pose.position.z);
 //        ROS_ERROR("  orientation: %.2f %.2f %.2f %.2f",end_effector_pose_list_["/r_arm_pose_marker"].pose.orientation.w,end_effector_pose_list_["/r_arm_pose_marker"].pose.orientation.x,end_effector_pose_list_["/r_arm_pose_marker"].pose.orientation.y,end_effector_pose_list_["/r_arm_pose_marker"].pose.orientation.z);
     }
 
-    cmd.lock_to_world.resize(cmd.target_poses.size());
-    for(int i = 0; i < cmd.target_poses.size(); i++)
-        cmd.lock_to_world[i].data = 0;//saved_state_world_lock_[i];
+    request_cmd.lock_to_world.resize(request_cmd.target_poses.size());
+    for(int i = 0; i < request_cmd.target_poses.size(); i++)
+        request_cmd.lock_to_world[i].data = 0;//saved_state_world_lock_[i];
 
     if(left && !right && !torso)
-        cmd.planning_group.data = "l_arm_group";
+        request_cmd.planning_group.data = "l_arm_group";
     else if(left && !right && torso)
-        cmd.planning_group.data = "l_arm_with_torso_group";
+        request_cmd.planning_group.data = "l_arm_with_torso_group";
     else if(!left && right && !torso)
-        cmd.planning_group.data = "r_arm_group";
+        request_cmd.planning_group.data = "r_arm_group";
     else if(!left && right && torso)
-        cmd.planning_group.data = "r_arm_with_torso_group";
+        request_cmd.planning_group.data = "r_arm_with_torso_group";
     else if(left && right && !torso)
-        cmd.planning_group.data = "both_arms_group";
+        request_cmd.planning_group.data = "both_arms_group";
     else if(left && right && torso)
-        cmd.planning_group.data = "both_arms_with_torso_group";
+        request_cmd.planning_group.data = "both_arms_with_torso_group";
 
     // IK not possible for multi appendage (non-chain) groups
     if(position_only_ik_ && !(left && right && torso) && !(left && right && !torso))
-        cmd.planning_group.data += "_position_only_ik";
+        request_cmd.planning_group.data += "_position_only_ik";
 
     if(use_drake_ik_)
     {
-        cmd.planning_group.data = "whole_body_group";
+        request_cmd.planning_group.data = "whole_body_group";
 
         if ( left )
         {
             std_msgs::String target_link_name;
             target_link_name.data = "l_hand";
-            cmd.target_link_names.push_back(target_link_name);
+            request_cmd.target_link_names.push_back(target_link_name);
         }
 
 
@@ -3051,20 +3051,9 @@ void Base3DView::publishGhostPoses(bool local_feedback)
         {
             std_msgs::String target_link_name;
             target_link_name.data = "r_hand";
-            cmd.target_link_names.push_back(target_link_name);
-        }
-
-        if ( ghost_lock_pelvis_ )
-        {
-            std_msgs::String target_link_name;
-            target_link_name.data = "pelvis";
-            cmd.target_link_names.push_back(target_link_name);
-            cmd.target_poses.push_back(end_effector_pose_list_["/pelvis_pose_marker"]);
-        }
+            request_cmd.target_link_names.push_back(target_link_name);
+        }        
     }
-
-    if(left || right)
-        end_effector_pub_.publish(cmd);
 
     if(ghost_lock_pelvis_)
     {
@@ -3087,7 +3076,16 @@ void Base3DView::publishGhostPoses(bool local_feedback)
 
         //ROS_ERROR("locked root pose");
 
+        // when using drake ik: add pelvis pose as fixed target pose
+        if ( use_drake_ik_ ) {
+            std_msgs::String target_link_name;
+            target_link_name.data = "pelvis";
+            request_cmd.target_link_names.push_back(target_link_name);
+            request_cmd.target_poses.push_back(root_pose);
+        }
 
+        if(left || right)
+            end_effector_pub_.publish(request_cmd);
 
         ghost_root_pose_pub_.publish(root_pose);
 
@@ -3095,18 +3093,22 @@ void Base3DView::publishGhostPoses(bool local_feedback)
        // if(im_ghost_robot_[2]->isEnabled())
         //    im_ghost_robot_[2]->setEnabled(false);
 
-        vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-        cmd.client_id = ros::this_node::getName();
-        cmd.topic = "/pelvis_pose_marker";
-        cmd.pose = root_pose;
-        interactive_marker_update_pub_.publish(cmd);
+        vigir_ocs_msgs::OCSInteractiveMarkerUpdate marker_update_cmd;
+        marker_update_cmd.client_id = ros::this_node::getName();
+        marker_update_cmd.topic = "/pelvis_pose_marker";
+        marker_update_cmd.pose = root_pose;
+        interactive_marker_update_pub_.publish(marker_update_cmd);
 
         pelvis_marker_pose_pub_.publish(root_pose);
     }
     else
     {
+        if(left || right)
+            end_effector_pub_.publish(request_cmd);
+
         //currently overpublishing data, 0,0,0  1,0,0,0 is used to initialize pose updates. should not be published but we must ignore for now...  TODO: don't publish 0,0,0 unnecessarily
-        if(end_effector_pose_list_["/pelvis_pose_marker"].pose.position.x == 0 &&
+        if(end_effector_pose_list_.find("/pelvis_pose_marker") != end_effector_pose_list_.end() &&
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.position.x == 0 &&
            end_effector_pose_list_["/pelvis_pose_marker"].pose.position.y == 0 &&
            end_effector_pose_list_["/pelvis_pose_marker"].pose.position.z == 0 &&
            end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.x == 0 &&
@@ -3125,13 +3127,15 @@ void Base3DView::publishGhostPoses(bool local_feedback)
 
         pelvis_marker_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
-        vigir_ocs_msgs::OCSInteractiveMarkerUpdate cmd;
-        cmd.client_id = ros::this_node::getName();
-        cmd.topic = "/pelvis_pose_marker";
-        cmd.pose = end_effector_pose_list_["/pelvis_pose_marker"];
-        interactive_marker_update_pub_.publish(cmd);
+        vigir_ocs_msgs::OCSInteractiveMarkerUpdate marker_update_cmd;
+        marker_update_cmd.client_id = ros::this_node::getName();
+        marker_update_cmd.topic = "/pelvis_pose_marker";
+        marker_update_cmd.pose = end_effector_pose_list_["/pelvis_pose_marker"];
+        interactive_marker_update_pub_.publish(marker_update_cmd);
 
-    }
+    }    
+
+
 }
 
 //----- Callbacks to receive Ghost State data -------------------//
