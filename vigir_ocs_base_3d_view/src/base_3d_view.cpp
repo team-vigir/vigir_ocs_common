@@ -3114,8 +3114,22 @@ void Base3DView::publishGhostPoses(bool local_feedback)
            end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.x == 0 &&
            end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.y == 0 &&
            end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.z == 0 &&
-           end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.w == 0 )
-            return;
+           end_effector_pose_list_["/pelvis_pose_marker"].pose.orientation.w == 0 ) {
+
+            Ogre::Vector3 position(0,0,0);
+            Ogre::Quaternion orientation(1,0,0,0);
+            transform(position, orientation, "/pelvis", "/world");
+
+            geometry_msgs::Pose root_pose;
+            root_pose.position.x = position.x;
+            root_pose.position.y = position.y;
+            root_pose.position.z = position.z;
+            root_pose.orientation.x = orientation.x;
+            root_pose.orientation.y = orientation.y;
+            root_pose.orientation.z = orientation.z;
+            root_pose.orientation.w = orientation.w;
+            end_effector_pose_list_["/pelvis_pose_marker"].pose = root_pose;
+        }
 
 
         //set pelvis interactive marker to always be shown
@@ -3123,7 +3137,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
         //    im_ghost_robot_[2]->setEnabled(true);
 
         // how do I set world lock for torso?
-        ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+        //ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
         pelvis_marker_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
