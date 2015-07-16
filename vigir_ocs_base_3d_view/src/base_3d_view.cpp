@@ -3964,6 +3964,9 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
     if(position_only_ik_)
         cmd.planning_group += prefix+"_position_only_ik";
 
+    if(use_drake_ik_)
+        cmd.planner_id = "drake";
+
     cartesian_plan_request_pub_.publish(cmd);
 }
 
@@ -4033,6 +4036,9 @@ void Base3DView::sendCircularTarget(bool right_hand)
 
     if(position_only_ik_)
         cmd.planning_group += "_position_only_ik";
+
+    if(use_drake_ik_)
+        cmd.planner_id = "drake";
 
     circular_plan_request_pub_.publish(cmd);
 }
