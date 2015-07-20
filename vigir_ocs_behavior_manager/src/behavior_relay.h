@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2013-2015, TORC Robotics, LLC ( Team ViGIR )
+ *  Copyright (c) 2013-2015, Team ViGIR ( TORC Robotics LLC, TU Darmstadt, Virginia Tech, Oregon State University, Cornell University, and Leibniz University Hanover )
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
 #include "vigir_ocs_msgs/OCSBehaviorGoal.h"
 #include "behavior_notification.h"
 #include <boost/asio/ip/host_name.hpp>
-#include <vigir_be_msgs/BehaviorInputAction.h>
+#include <flexbe_msgs/BehaviorInputAction.h>
 
 
 /**

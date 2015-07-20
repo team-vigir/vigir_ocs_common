@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2013-2015, TORC Robotics, LLC ( Team ViGIR )
+ *  Copyright (c) 2013-2015, Team ViGIR ( TORC Robotics LLC, TU Darmstadt, Virginia Tech, Oregon State University, Cornell University, and Leibniz University Hanover )
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,7 @@ BehaviorNotification::BehaviorNotification(QWidget *parent, QString action_text,
 
     //prevent sending bad data on start
     //only protecting selected object types for now
-    if(goal_type_ == vigir_be_msgs::BehaviorInputGoal::SELECTED_OBJECT_ID)
+    if(goal_type_ == flexbe_msgs::BehaviorInputGoal::SELECTED_OBJECT_ID)
         ui->confirm_button_->setDisabled(true);
 }
 
@@ -138,7 +138,7 @@ void BehaviorNotification::objectSelectCB(const vigir_ocs_msgs::OCSObjectSelecti
     if(msg->host == boost::asio::ip::host_name())
     {
         //ignore this message if our notification isn't meant for selected objects
-        if(goal_type_ == vigir_be_msgs::BehaviorInputGoal::SELECTED_OBJECT_ID)
+        if(goal_type_ == flexbe_msgs::BehaviorInputGoal::SELECTED_OBJECT_ID)
         {
             //must have template selected to confirm, other selections must turn of confirm for safety
             if(msg->type == vigir_ocs_msgs::OCSObjectSelection::TEMPLATE)
