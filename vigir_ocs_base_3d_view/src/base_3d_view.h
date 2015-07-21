@@ -104,6 +104,12 @@ class FPSViewController;
 
 namespace vigir_ocs
 {
+class CircularMotionWidget;
+struct CircularMotionSettings;
+
+class CartesianMotionWidget;
+struct CartesianMotionSettings;
+
 class BaseContextMenu;
 
 // Class "Main3DView" implements the RobotModel class with joint manipulation that can be added to any QT application.
@@ -780,11 +786,11 @@ protected:
     /**
       * Publishes the cartesial target
       */
-    void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints);
+    void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints, vigir_ocs::CartesianMotionSettings &motion_settings);
     /**
       * Publishes the circular target pose
       */
-    void sendCircularTarget(bool right_hand);
+    void sendCircularTarget(bool right_hand, vigir_ocs::CircularMotionSettings &motion_settings);
 
     std::vector<rviz::Display*> cartesian_marker_list_;
     rviz::Display* circular_marker_;
@@ -795,14 +801,8 @@ protected:
     ros::Publisher cartesian_plan_request_pub_;
     ros::Publisher circular_plan_request_pub_;
 
-    QWidget* cartesian_config_widget_;
-    QCheckBox* cartesian_use_collision_;
-    QCheckBox* cartesian_keep_orientation_;
-
-    QWidget* circular_config_widget_;
-    QCheckBox* circular_use_collision_;
-    QCheckBox* circular_keep_orientation_;
-    QDoubleSpinBox* circular_angle_;
+    CartesianMotionWidget* cartesian_config_widget_;
+    CircularMotionWidget* circular_config_widget_;
 
     ros::Subscriber send_cartesian_sub_;
 
