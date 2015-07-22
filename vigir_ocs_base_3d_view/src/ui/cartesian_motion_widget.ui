@@ -16,7 +16,7 @@
   <property name="styleSheet">
    <string notr="true">font: 8pt &quot;MS Shell Dlg 2&quot;</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="layout_MainLayout">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <property name="spacing">
@@ -150,6 +150,12 @@
         <layout class="QGridLayout" name="gridLayout_2">
          <item row="0" column="0">
           <widget class="QTreeWidget" name="treeWidget_DrakeOptions">
+           <property name="minimumSize">
+            <size>
+             <width>340</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="alternatingRowColors">
             <bool>true</bool>
            </property>
@@ -235,11 +241,44 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButton_SendToRightArm</sender>
+   <signal>clicked()</signal>
+   <receiver>CartesianMotionWidgetUI</receiver>
+   <slot>startPlanning()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>385</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>458</x>
+     <y>54</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_SendToLeftArm</sender>
+   <signal>clicked()</signal>
+   <receiver>CartesianMotionWidgetUI</receiver>
+   <slot>startPlanning()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>89</x>
+     <y>16</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1</x>
+     <y>54</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <signal>sendMotionToRightArm()</signal>
   <signal>sendMotionToLeftArm()</signal>
   <slot>showAdvancedOptions(bool)</slot>
   <slot>plannerSelected(int)</slot>
+  <slot>startPlanning()</slot>
  </slots>
 </ui>

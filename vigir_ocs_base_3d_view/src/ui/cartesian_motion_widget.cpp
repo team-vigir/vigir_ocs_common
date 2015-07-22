@@ -3,6 +3,10 @@
 #include <QDoubleSpinBox>
 #include <vigir_planning_msgs/ExtendedPlanningOptions.h>
 
+#include "robot_state_manager.h"
+#include <vigir_ocs_robot_model/moveit_ocs_model.h>
+#include <moveit/robot_model/robot_model.h>
+
 namespace vigir_ocs {
 
 CartesianMotionWidget::CartesianMotionWidget(QWidget *parent, Qt::WindowFlags flags) : QWidget(parent, flags) {
@@ -16,8 +20,7 @@ CartesianMotionWidget::~CartesianMotionWidget() {
     treeWidget_DrakeOptions->clear();
 }
 
-CartesianMotionSettings CartesianMotionWidget::getMotionSettings() {
-    CartesianMotionSettings settings;
+void CartesianMotionWidget::getMotionSettings(CartesianMotionSettings &settings) {
     settings.keep_eef_orientation = checkBox_KeepEndeffectorOrientation->isChecked();
     settings.use_collision_avoidance = checkBox_CollisionAvoidance->isChecked();
 
@@ -30,11 +33,12 @@ CartesianMotionSettings CartesianMotionWidget::getMotionSettings() {
         settings.target_link_axis.y = target_link_axis_y_spin_->value();
         settings.target_link_axis.z = target_link_axis_z_spin_->value();
 
-        settings.planning_group = planning_group_edit_->text().toStdString();
-        settings.target_link_name = target_link_name_edit_->text().toStdString();
+        settings.planning_group = planning_group_combobox_->currentText().toStdString();
+        settings.target_link_name = target_link_name_;
     }
-
-    return settings;
+    else if ( settings.planner_id == "default") {
+        settings.planner_id = "";
+    }
 }
 
 void CartesianMotionWidget::setPlannerId(std::string planner_id) {
@@ -87,6 +91,22 @@ void CartesianMotionWidget::updateTargetLinkAxisItemText() {
     target_link_axis_item_->setText(1, itemText);
 }
 
+void CartesianMotionWidget::startPlanning() {
+    QObject *sender_object = sender();
+    if ( sender_object == pushButton_SendToLeftArm)  {
+        target_link_name_ = "l_hand";
+        Q_EMIT sendMotionToArm();
+    }
+    else if ( sender_object == pushButton_SendToRightArm ) {
+        target_link_name_ = "r_hand";
+        Q_EMIT sendMotionToArm();
+    }
+}
+
+QVBoxLayout *CartesianMotionWidget::getMainLayout() {
+    return layout_MainLayout;
+}
+
 void CartesianMotionWidget::setupWidgets() {
     plannerSelected(0);         // select default planner
 
@@ -94,13 +114,17 @@ void CartesianMotionWidget::setupWidgets() {
 
     // setup Drake options widget
     treeWidget_DrakeOptions->clear();
-    target_link_name_item_ = new QTreeWidgetItem(treeWidget_DrakeOptions, QStringList() << "Target Link Name: " << "");
-    target_link_name_edit_ = new QLineEdit(this);
-    treeWidget_DrakeOptions->setItemWidget(target_link_name_item_, 1, target_link_name_edit_);
 
     planning_group_item_ = new QTreeWidgetItem(treeWidget_DrakeOptions, QStringList() << "Planning Group: " << "");
-    planning_group_edit_ = new QLineEdit(this);
-    treeWidget_DrakeOptions->setItemWidget(planning_group_item_, 1, planning_group_edit_);
+    planning_group_combobox_ = new QComboBox(this);
+    MoveItOcsModel *robot_model = RobotStateManager::Instance()->getGhostRobotStateSingleton();
+    std::vector<srdf::Model::Group> joint_groups = robot_model->getGroups();
+    for ( int i = 0; i < joint_groups.size(); i++) {
+        planning_group_combobox_->addItem( QString::fromStdString(joint_groups[i].name_));
+    }
+    int idx = planning_group_combobox_->findText("both_arms_with_torso_group");
+    planning_group_combobox_->setCurrentIndex(idx);
+    treeWidget_DrakeOptions->setItemWidget(planning_group_item_, 1, planning_group_combobox_);
 
     sample_rate_item_ = new QTreeWidgetItem(treeWidget_DrakeOptions, QStringList() << "Sample Rate:" << "");
     sample_rate_spin_ = new QDoubleSpinBox(this);
@@ -145,9 +169,6 @@ void CartesianMotionWidget::setupWidgets() {
 }
 
 void CartesianMotionWidget::setupConnections() {
-    connect(pushButton_SendToLeftArm,  SIGNAL(clicked()), this, SIGNAL(sendMotionToLeftArm()));
-    connect(pushButton_SendToRightArm, SIGNAL(clicked()), this, SIGNAL(sendMotionToRightArm()));
-
     connect(target_link_axis_x_spin_, SIGNAL(valueChanged(double)), this, SLOT(updateTargetLinkAxisItemText()));
     connect(target_link_axis_y_spin_, SIGNAL(valueChanged(double)), this, SLOT(updateTargetLinkAxisItemText()));
     connect(target_link_axis_z_spin_, SIGNAL(valueChanged(double)), this, SLOT(updateTargetLinkAxisItemText()));

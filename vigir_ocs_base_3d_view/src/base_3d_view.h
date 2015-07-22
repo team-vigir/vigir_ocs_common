@@ -382,21 +382,14 @@ public Q_SLOTS:
     void clearPlanningObjects();
 
     /**
-      * send pose to moveit and requests cartesian plan for left arm
+      * send pose to moveit and requests cartesian plan
       */
-    void sendCartesianLeft();
-    /**
-      * send pose to moveit and requests cartesian plan for right arm
+    void sendCartesianToArm();
+     /**
+      * send pose and radius to moveit and requests circular plan
       */
-    void sendCartesianRight();
-    /**
-      * send pose and radius to moveit and requests circular plan for left arm
-      */
-    void sendCircularLeft();
-    /**
-      * send pose and radius to moveit and requests circular plan for right arm
-      */
-    void sendCircularRight();
+    void sendCircularToArm();
+
 
     /**
       * Select object on double click

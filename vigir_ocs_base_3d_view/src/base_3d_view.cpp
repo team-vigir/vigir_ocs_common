@@ -604,8 +604,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // create the window for cartesian motion
         cartesian_config_widget_ = new CartesianMotionWidget(NULL, Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-        connect(cartesian_config_widget_, SIGNAL(sendMotionToLeftArm()),  this, SLOT(sendCartesianLeft()));
-        connect(cartesian_config_widget_, SIGNAL(sendMotionToRightArm()), this, SLOT(sendCartesianRight()));
+        connect(cartesian_config_widget_, SIGNAL(sendMotionToArm()),  this, SLOT(sendCartesianToArm()));
         cartesian_config_widget_->hide();
 
         // and necessary publisher
@@ -613,8 +612,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         // create the window for circular motion
         circular_config_widget_ = new CircularMotionWidget(NULL, Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-        connect(circular_config_widget_, SIGNAL(sendMotionToLeftArm()),  this, SLOT(sendCircularLeft()));
-        connect(circular_config_widget_, SIGNAL(sendMotionToRightArm()), this, SLOT(sendCircularRight()));
+        connect(circular_config_widget_, SIGNAL(sendMotionToArm()),  this, SLOT(sendCircularToArm()));
         circular_config_widget_->hide();
 
         // and necessary publisher
@@ -3815,7 +3813,8 @@ void Base3DView::processSendCartesian(const std_msgs::Bool::ConstPtr msg)
     else
         waypoints.push_back(last_l_arm_moveit_pose_);
 
-    CartesianMotionSettings settings = cartesian_config_widget_->getMotionSettings();
+    CartesianMotionSettings settings;
+    cartesian_config_widget_->getMotionSettings(settings);
     settings.keep_eef_orientation = false;
     sendCartesianTarget(msg->data, waypoints, settings);
 }
@@ -3908,16 +3907,15 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
     cartesian_plan_request_pub_.publish(cmd);
 }
 
-void Base3DView::sendCartesianLeft()
+void Base3DView::sendCartesianToArm()
 {
-    CartesianMotionSettings settings = cartesian_config_widget_->getMotionSettings();
-    sendCartesianTarget(0,cartesian_waypoint_list_, settings);
-}
+    CartesianMotionSettings settings;
+    cartesian_config_widget_->getMotionSettings(settings);
 
-void Base3DView::sendCartesianRight()
-{
-    CartesianMotionSettings settings = cartesian_config_widget_->getMotionSettings();
-    sendCartesianTarget(1,cartesian_waypoint_list_, settings);
+    if ( settings.target_link_name == "l_hand" )
+        sendCartesianTarget(false,cartesian_waypoint_list_, settings);
+    else if ( settings.target_link_name == "r_hand" )
+        sendCartesianTarget(true,cartesian_waypoint_list_, settings);
 }
 
 void Base3DView::sendCircularTarget(bool right_hand, CircularMotionSettings &motion_settings)
@@ -3993,16 +3991,15 @@ void Base3DView::sendCircularTarget(bool right_hand, CircularMotionSettings &mot
     circular_plan_request_pub_.publish(cmd);
 }
 
-void Base3DView::sendCircularLeft()
+void Base3DView::sendCircularToArm()
 {
-    CircularMotionSettings settings = circular_config_widget_->getMotionSettings();
-    sendCircularTarget(false, settings);
-}
+    CircularMotionSettings settings;
+    circular_config_widget_->getMotionSettings(settings);
 
-void Base3DView::sendCircularRight()
-{
-    CircularMotionSettings settings = circular_config_widget_->getMotionSettings();
-    sendCircularTarget(true, settings);
+    if ( settings.target_link_name == "l_hand" )
+        sendCircularTarget(false, settings);
+    else if ( settings.target_link_name == "r_hand" )
+        sendCircularTarget(true, settings);
 }
 
 bool Base3DView::eventFilter( QObject * o, QEvent * e )
