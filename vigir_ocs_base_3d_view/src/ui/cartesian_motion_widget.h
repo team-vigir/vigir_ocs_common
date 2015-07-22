@@ -27,20 +27,23 @@ class CartesianMotionWidget : public QWidget, Ui::CartesianMotionWidgetUI {
     Q_OBJECT
 
 public:
-    CartesianMotionWidget(QWidget *parent, Qt::WindowFlags flags);
+    CartesianMotionWidget(QWidget *parent = NULL, Qt::WindowFlags flags = 0);
     ~CartesianMotionWidget();
 
-    CartesianMotionSettings getMotionSettings();
+    void getMotionSettings(CartesianMotionSettings &settings);
     void setPlannerId(std::string planner_id);
 
 public Q_SLOTS:
     void plannerSelected(int planner_index);
     void showAdvancedOptions(bool show);
     void updateTargetLinkAxisItemText();
+    void startPlanning();
 
 Q_SIGNALS:
-    void sendMotionToLeftArm();
-    void sendMotionToRightArm();
+    void sendMotionToArm();
+
+protected:
+    QVBoxLayout *getMainLayout();
 
 private:
     void setupWidgets();
@@ -60,11 +63,10 @@ private:
     QTreeWidgetItem *target_link_axis_z_item_;
     QDoubleSpinBox *target_link_axis_z_spin_;
 
-    QTreeWidgetItem *target_link_name_item_;
-    QLineEdit *target_link_name_edit_;
-
     QTreeWidgetItem *planning_group_item_;
-    QLineEdit *planning_group_edit_;
+    QComboBox *planning_group_combobox_;
+
+    std::string target_link_name_;
 
 
 };

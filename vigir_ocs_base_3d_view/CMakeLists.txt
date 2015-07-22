@@ -35,8 +35,7 @@ qt4_wrap_cpp(MOC_FILES
   src/ui/circular_motion_widget.h
 )
 
-qt4_wrap_ui(UIC_FILES
-  src/ui/circular_motion_widget.ui
+qt4_wrap_ui(UIC_FILES  
   src/ui/cartesian_motion_widget.ui
 )
 
