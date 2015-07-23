@@ -25,6 +25,7 @@ void CartesianMotionWidget::getMotionSettings(CartesianMotionSettings &settings)
     settings.use_collision_avoidance = checkBox_CollisionAvoidance->isChecked();
 
     settings.planner_id = lineEdit_CustomPlanner->text().toStdString();
+    settings.target_link_name = target_link_name_;
 
     if ( settings.planner_id == "drake") {
         settings.sample_rate = sample_rate_spin_->value();
@@ -33,8 +34,7 @@ void CartesianMotionWidget::getMotionSettings(CartesianMotionSettings &settings)
         settings.target_link_axis.y = target_link_axis_y_spin_->value();
         settings.target_link_axis.z = target_link_axis_z_spin_->value();
 
-        settings.planning_group = planning_group_combobox_->currentText().toStdString();
-        settings.target_link_name = target_link_name_;
+        settings.planning_group = planning_group_combobox_->currentText().toStdString();        
     }
     else if ( settings.planner_id == "default") {
         settings.planner_id = "";
