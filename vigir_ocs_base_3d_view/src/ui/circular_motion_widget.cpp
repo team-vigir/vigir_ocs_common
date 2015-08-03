@@ -15,6 +15,9 @@ void CircularMotionWidget::getMotionSettings(CircularMotionSettings &settings) {
 }
 
 void CircularMotionWidget::setupWidgets() {
+    checkBox_FreeMotion->setChecked(false);
+    checkBox_FreeMotion->hide();
+
     QHBoxLayout *rotation_angle_layout = new QHBoxLayout();
     QLabel *rotation_angle_label_ = new QLabel(tr("Rotation: "), this);
 
@@ -26,7 +29,7 @@ void CircularMotionWidget::setupWidgets() {
 
     rotation_angle_layout->addWidget(rotation_angle_label_);
     rotation_angle_layout->addWidget(rotation_angle_spin_, 1);
-    getMainLayout()->insertLayout(3, rotation_angle_layout);
+    layout_MainLayout->insertLayout(3, rotation_angle_layout);
     adjustSize();
 }
 

@@ -3902,7 +3902,8 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
     }
 
     cmd.use_environment_obstacle_avoidance = motion_settings.use_collision_avoidance;
-    cmd.planner_id = motion_settings.planner_id;
+    cmd.free_motion = motion_settings.free_motion;
+    cmd.planner_id = motion_settings.planner_id;    
 
     cmd.target_link_axis = motion_settings.target_link_axis;
     cmd.orientation_type = motion_settings.orientation_type;
