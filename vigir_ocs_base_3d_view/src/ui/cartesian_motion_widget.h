@@ -12,6 +12,7 @@ namespace vigir_ocs {
 struct CartesianMotionSettings {
     bool keep_eef_orientation;
     bool use_collision_avoidance;
+    bool free_motion;
 
     std::string planner_id;
     double sample_rate;
@@ -23,7 +24,7 @@ struct CartesianMotionSettings {
 
 };
 
-class CartesianMotionWidget : public QWidget, Ui::CartesianMotionWidgetUI {
+class CartesianMotionWidget : public QWidget, protected Ui::CartesianMotionWidgetUI {
     Q_OBJECT
 
 public:

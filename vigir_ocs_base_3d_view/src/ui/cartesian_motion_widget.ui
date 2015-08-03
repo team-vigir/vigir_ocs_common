@@ -53,6 +53,13 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="checkBox_FreeMotion">
+     <property name="text">
+      <string>Free Motion</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="Line" name="line">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>

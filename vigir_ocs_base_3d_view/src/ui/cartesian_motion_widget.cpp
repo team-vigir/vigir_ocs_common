@@ -23,6 +23,7 @@ CartesianMotionWidget::~CartesianMotionWidget() {
 void CartesianMotionWidget::getMotionSettings(CartesianMotionSettings &settings) {
     settings.keep_eef_orientation = checkBox_KeepEndeffectorOrientation->isChecked();
     settings.use_collision_avoidance = checkBox_CollisionAvoidance->isChecked();
+    settings.free_motion = checkBox_FreeMotion->isChecked();
 
     settings.planner_id = lineEdit_CustomPlanner->text().toStdString();
     settings.target_link_name = target_link_name_;
