@@ -18,6 +18,7 @@ add_definitions(-DQT_NO_KEYWORDS)
 catkin_package(
   LIBRARIES
     vigir_ocs_rviz_plugin_camera_display_custom
+    vigir_ocs_rviz_plugin_camera_display_custom_core
     vigir_ocs_rviz_plugin_image_display_custom
     vigir_ocs_rviz_plugin_template_display_custom
     vigir_ocs_rviz_plugin_image_selection_tool_custom
@@ -35,6 +36,23 @@ catkin_package(
     vigir_ocs_rviz_plugin_joint_marker_display_custom
     vigir_ocs_rviz_plugin_overlay_display_custom 
     vigir_ocs_rviz_plugin_camera_frustum_display_custom
+    vigir_ocs_rviz_plugin_image_display_custom_core
+    vigir_ocs_rviz_plugin_template_display_custom_core
+    vigir_ocs_rviz_plugin_image_selection_tool_custom_core
+    vigir_ocs_rviz_plugin_selection_3d_tool_custom_core
+    vigir_ocs_rviz_plugin_selection_3d_display_custom_core
+    vigir_ocs_rviz_plugin_bounding_object_display_custom_core
+    vigir_ocs_rviz_plugin_mesh_display_custom_core
+    vigir_ocs_rviz_plugin_path_display_custom_core
+    vigir_ocs_rviz_plugin_octomap_display_custom_core
+    vigir_ocs_rviz_plugin_grasp_display_custom_core
+    vigir_ocs_rviz_plugin_robot_display_custom_core
+    vigir_ocs_rviz_plugin_map_display_custom_core
+    vigir_ocs_rviz_plugin_interaction_tool_custom_core
+    vigir_ocs_rviz_plugin_ortho_view_controller_custom_core
+    vigir_ocs_rviz_plugin_joint_marker_display_custom_core
+    vigir_ocs_rviz_plugin_overlay_display_custom_core
+    vigir_ocs_rviz_plugin_camera_frustum_display_custom_core
     ${OPENGL_LIBRARIES}
   INCLUDE_DIRS
     vigir_ocs_rviz_plugin_camera_display_custom/src
