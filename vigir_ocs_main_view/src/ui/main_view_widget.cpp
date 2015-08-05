@@ -405,7 +405,7 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     connect(stop_mapper_,SIGNAL(mapped(int)),statusBar->getGlanceSbar(),SLOT(modeChanged(int)));
 
     //map all toggles button to their identifiers                              @todo - verify
-    stop_mapper_->setMapping(((vigir_ocs::Base3DView*) views_list_["Top Left"]),flor_control_msgs::FlorControlModeCommand::EMERGENCY_STOP);//flor_control_msgs::FlorControlModeCommand::FLOR_STOP);
+    stop_mapper_->setMapping(((vigir_ocs::Base3DView*) views_list_["Top Left"]),vigir_control_msgs::VigirControlModeCommand::EMERGENCY_STOP);//vigir_control_msgs::VigirControlModeCommand::FLOR_STOP);
 
     //connect all buttons for mouse presses
     connect(((vigir_ocs::Base3DView*) views_list_["Top Left"]),SIGNAL(emergencyStop()),stop_mapper_,SLOT(map()));

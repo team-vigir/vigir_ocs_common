@@ -610,7 +610,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         template_remove_pub_ = nh_.advertise<vigir_ocs_msgs::OCSTemplateRemove>( "/template/remove", 1, false );
 
         // flor mode publisher and subscriber
-        flor_mode_command_pub_ = nh_.advertise<flor_control_msgs::FlorControlModeCommand>( "/flor/controller/mode_command", 1, false );
+        flor_mode_command_pub_ = nh_.advertise<vigir_control_msgs::VigirControlModeCommand>( "/flor/controller/mode_command", 1, false );
         flor_mode_sub_ = nh_.subscribe( "/flor/controller/mode", 5, &Base3DView::processControlMode, this );
 
         // Connect to the template markers
@@ -1837,9 +1837,9 @@ void Base3DView::processNewSelection( const geometry_msgs::Point::ConstPtr pose 
     Q_EMIT setMarkerPosition(pose->x,pose->y,pose->z);
 }
 
-void Base3DView::processControlMode( const vigir_atlas_control_msgs::VigirAtlasControlMode::ConstPtr msg )
+void Base3DView::processControlMode( const vigir_control_msgs::VigirControlModeCommand::ConstPtr msg )
 {
-    flor_atlas_current_mode_ = msg->control_mode;
+    flor_atlas_current_mode_ = msg->requested_control_mode;
 }
 
 void Base3DView::newSelection( Ogre::Vector3 position )

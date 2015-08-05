@@ -261,19 +261,20 @@ void glancehub::robotStatusFootstepComplete(const vigir_ocs_msgs::OCSFootstepSta
     Q_EMIT sendFootstepStatus(msg->status);
 }
 
-void glancehub::controlModeMsgRcv(const vigir_atlas_control_msgs::VigirAtlasControlMode::ConstPtr msg)
+void glancehub::controlModeMsgRcv(const vigir_control_msgs::VigirControlModeCommand::ConstPtr msg)
 {
     QString newText;
-    if (msg->control_mode >= 0 && msg->control_mode <  allowed_control_modes_.size())
+    /*if (msg->control_mode >= 0 && msg->control_mode <  allowed_control_modes_.size())
         newText = QString::fromStdString(allowed_control_modes_[msg->control_mode]);
     else
         newText = QString::fromStdString("Unknown");
-
+    */
+    newText = QString::fromStdString(msg->requested_control_mode);
     ui->controlModeLabel->setText(newText);
     std::cout << "Changing to "<< newText.toStdString() << " Mode" << std::endl;   
 
     //notify status bar
-    Q_EMIT sendFlorStatus(msg->control_mode);
+    //Q_EMIT sendFlorStatus(msg->control_mode);
 }
 QString glancehub::timeFromMsg(ros::Time stamp)
 {
