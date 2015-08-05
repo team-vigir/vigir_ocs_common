@@ -1,0 +1,152 @@
+#use '#' to indicate comments but NO COMMAS in comments except to indicate the comment is done
+ 0,Ok
+ 1,Robot Stability
+# Grasping warnings (2-19)
+ 2,Grasp Reach Timeout,
+ 3,Grasp Closure Failure
+ 4,Right Grasp Closure Failure
+ 5,Left Grasp Closure Failure
+ 6,Left Grasp No Object,
+ 7,Right Grasp No Object
+ 8,Left Grasp Object in Palm
+ 9,Right Grasp Object in Palm
+10,Right Grasp IK Failure
+11,Left  Grasp IK Failure
+12,No Appendage Control
+13,Left Grasp Idle
+14,Right Grasp Idle
+15,Grasp Control OK
+16,Left Grasp Object in Fingers
+17,Right Grasp Object in Fingers
+19,Comms Bridge Connection
+# Behavior messages (20-29)
+20,Behavior Failure
+21,Behavior Execution Failure
+22,Behavior Robot Fall
+23,Behavior Active
+24,Behavior Done
+29,Behavior Error
+# Miscelaneous statuses
+30,Controller Stand Prep Transition
+31,MoveIt - Goal Occupied
+32,MoveIt - Start Occupied
+33,MoveIt - Collision!
+34,Footstep Planner - Goal Occupied
+35,Footstep Planner - Start Occupied
+36,Footstep Planner - Collision!
+# Gravity Controller statuses (38-49)
+37,Controller Clear Existing Footstep Plan
+38,Controller dectected posture change
+39,Controller Status
+40,Controller Error
+41,Controller Invalid Trajectory Times
+42,Controller Transition Through Stand Mode
+43,Controller Transition k_effort
+44,Controller Invalid Trajectory
+45,Controller Invalid Control Mode
+46,Controller Max Time Exceeded
+47,No Footstep Plan for Walk
+48,Invalid Footstep Plan for Walk
+49,Controller Stop - clear footsteps
+# Planner messages (50-63)
+50,MoveIt Planner Error
+51,IK Failed
+52,Planning Failed
+53,MoveIt Exception
+54,MoveIt Unknown Failure
+55,Planner Octomap Warning
+56,MoveIt Plan Active
+57,Planner Invalid Request
+58,Planner Invalid Start
+59,Planner Invalid Goal
+60,Planner Invalid Plan
+61,Planner msg 61
+62,Planner msg 62
+63,Planner msg 63
+# Robot Interface Codes
+101,Robot Connection
+102,Robot Control Active
+103,Robot Starting
+104,Robot Stopping
+105,Robot Fault
+106,Robot Command Sequence
+107,Robot Data
+108,Robot Interface
+109,Robot Behavior
+110,Robot Control Loop
+111,IMU Alignment
+112,Robot Soft Freeze
+113,Robot CRITICAL FAULT INTAKE_PRESSURE_LOW
+114,Robot CRITICAL FAULT MOTOR_OVERTEMP
+115,Robot CRITICAL FAULT IMU_FAILED
+116,Robot CRITICAL FAULT COMMS_TIMEOUT
+117,Robot CRITICAL FAULT AIR_PSI_LOW
+118,Robot CRITICAL FAULT PUMP_RPM_NOT_TRACKING
+119,Robot IMU drift
+# Robot behavior statuses
+120,Robot behavior_transition_in_progress
+121,Robot behavior transition success!
+122,Robot behavior - illegal transition requested
+123,Robot behavior failed due to CoM position
+124,Robot behavior failed due to high CoM velocity
+125,Robot behavior failed due to high joint velocity
+126,Robot automatic behavior transition occurred!
+127,Robot is falling!
+128,Robot behavior: Stand
+129,Robot behavior: User
+130,Robot behavior: Freeze
+131,Robot behavior: Stand_prep
+132,Robot behavior: Walk
+133,Robot behavior: Step
+134,Robot behavior: Manipulate
+135,Robot behavior: walk_substate_catching
+136,Robot behavior: walk_error_inconsistent_steps
+137,Robot behavior: walk_warning_insufficient_step_data
+138,Robot behavior: walk_substate_swaying
+139,Robot behavior: walk_substate_stepping
+140,Robot behavior: Step swaying
+141,Robot behavior: Step stepping
+# iRobot hand status
+152,iRobot RIGHT_FINGER_1_TEMPERATURE
+153,iRobot RIGHT_FINGER_2_TEMPERATURE
+154,iRobot RIGHT_FINGER_3_TEMPERATURE
+155,iRobot LEFT_FINGER_1_TEMPERATURE
+156,iRobot LEFT_FINGER_2_TEMPERATURE
+157,iRobot LEFT_FINGER_3_TEMPERATURE
+158,iRobot RIGHT_FINGER_1_NO_DATA
+159,iRobot RIGHT_FINGER_2_NO_DATA
+160,iRobot RIGHT_FINGER_3_NO_DATA
+161,iRobot LEFT_FINGER_1_NO_DATA
+162,iRobot LEFT_FINGER_2_NO_DATA
+163,iRobot LEFT_FINGER_3_NO_DATA
+164,iRobot RIGHT_FINGER_1_OK
+165,iRobot RIGHT_FINGER_2_OK
+166,iRobot RIGHT_FINGER_3_OK
+167,iRobot LEFT_FINGER_1_OK
+168,iRobot LEFT_FINGER_2_OK
+169,iRobot LEFT_FINGER_3_OK
+# Walk monitor
+170,Walk monitor status
+171,Walk monitor health
+172,Walk monitor logger
+# Footstep planner
+180,Footstep Planner Active
+181,Footstep Planner Success
+182,Footstep Planner Failed
+183,Footstep Goal Pose Inaccessible
+184,Footstep Start Pose Inaccessible
+185,Footstep Body Level Grid Map
+186,Footstep Ground Level Grid Map
+187,Footstep Terrain Model
+188,Footstep Plan Optimality
+189,Footstep Misc Foobar
+195,Footstep Large Height Diff
+# Motion Service (60-63)
+190,Motion Service Unknown Motion
+191,Motion Service Motion Initiated
+192,Motion Service Error
+193,Motion Service Motion Complete
+# Robot Controller codes
+200,Comms Bridge Quality
+201,Controller - Invalid behavior transition requested
+301,Controller - Non-smooth trajectory
