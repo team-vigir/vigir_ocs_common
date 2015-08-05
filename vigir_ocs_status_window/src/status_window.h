@@ -45,12 +45,13 @@
 #include <ros/ros.h>
 #include <ros/subscriber.h>
 
-#include <vigir_atlas_control_msgs/VigirAtlasControlMode.h>
 #include <vigir_ocs_msgs/OCSRobotStability.h>
 #include <vigir_ocs_msgs/OCSKeyEvent.h>
 
 #include <jointList.h>
 #include <robotStatus.h>
+
+#include <vigir_control_msgs/VigirControlModeCommand.h>
 
 namespace Ui {
 class status_window;
@@ -64,7 +65,7 @@ public:
     explicit status_window(QWidget *parent = 0);
     ~status_window();
 
-    void controlModeMsgReceived(const vigir_atlas_control_msgs::VigirAtlasControlMode::ConstPtr modeMsg);
+    void controlModeMsgReceived(const vigir_control_msgs::VigirControlModeCommand::ConstPtr modeMsg);
     void stabilityMsgReceived(const vigir_ocs_msgs::OCSRobotStability::ConstPtr stabilityMsg);
     void updateButtonColor();
     QString getControllerStatus(uint8_t flag);

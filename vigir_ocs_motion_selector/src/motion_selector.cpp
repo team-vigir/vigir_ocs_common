@@ -34,7 +34,7 @@
 //@TODO_ADD_AUTHOR_INFO
 #include "motion_selector.h"
 #include "ui_motion_selector.h"
-#include <flor_control_msgs/FlorExecuteMotionRequest.h>
+#include <vigir_control_msgs/FlorExecuteMotionRequest.h>
 #include <qfile.h>
 #include <QTextStream>
 #include <QTreeWidget>
@@ -55,7 +55,7 @@ motion_selector::motion_selector(QWidget *parent) :
     std::cout << "File done processing now populatin the tree." << std::endl;
     populateTree();
 
-    message_pub_ = nh_.advertise<flor_control_msgs::FlorExecuteMotionRequest>( "/flor/motion_service/motion_command",1,false);
+    message_pub_ = nh_.advertise<vigir_control_msgs::FlorExecuteMotionRequest>( "/flor/motion_service/motion_command",1,false);
 
     //key_event_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &motion_selector::processNewKeyEvent, this );
 
@@ -165,7 +165,7 @@ void motion_selector::quickButtonClicked()
     {
         QPushButton *button = (QPushButton *)sender();
         std::cout << "Pressed button named " << button->text().toStdString() <<std::endl;
-        flor_control_msgs::FlorExecuteMotionRequest msg;
+        vigir_control_msgs::FlorExecuteMotionRequest msg;
         msg.motion_name = (button->text().toStdString());
         for(int i =0; i < quickButtonList.size();i++)
         {
@@ -268,7 +268,7 @@ void motion_selector::on_sendCommand_clicked()
         if(sliderVal != 0)
         {
             std::cout << "Currently selected = " << ui->treeWidget->selectedItems()[0]->text(0).toStdString() << std::endl;
-            flor_control_msgs::FlorExecuteMotionRequest msg;
+            vigir_control_msgs::FlorExecuteMotionRequest msg;
             msg.motion_name = (ui->treeWidget->selectedItems()[0])->text(0).toStdString();
             msg.time_factor = sliderVal;
             message_pub_.publish(msg);

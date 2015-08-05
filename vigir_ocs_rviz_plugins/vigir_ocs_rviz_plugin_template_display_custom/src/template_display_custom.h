@@ -42,7 +42,7 @@
 #include <vigir_ocs_msgs/OCSInteractiveMarkerAdd.h>
 #include <vigir_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 
-#include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
+#include <vigir_interactive_marker_server_custom/interactive_marker_server_custom.h>
 
 #include <OGRE/OgreVector3.h>
 #include "OGRE/OgreRoot.h"

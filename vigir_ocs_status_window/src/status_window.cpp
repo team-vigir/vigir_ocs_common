@@ -40,7 +40,6 @@
 #include <QPainter>
 #include <ros/ros.h>
 #include <QLabel>
-#include <flor_control_msgs/FlorControlModeCommand.h>
 
 status_window::status_window(QWidget *parent) :
      QWidget(parent),
@@ -67,8 +66,10 @@ status_window::status_window(QWidget *parent) :
     timer.start(33, this);
 }
 
-void status_window::controlModeMsgReceived(const vigir_atlas_control_msgs::VigirAtlasControlMode::ConstPtr modeMsg)
+void status_window::controlModeMsgReceived(const vigir_control_msgs::VigirControlModeCommand::ConstPtr modeMsg)
 {
+   /*
+
     rbtStatus->show();
     //vigir_atlas_control_msgs::VigirAtlasControlMode::LEFT_SIDE_DOWN
     switch(modeMsg->posture & 0x7F)
@@ -113,11 +114,12 @@ void status_window::controlModeMsgReceived(const vigir_atlas_control_msgs::Vigir
         newText = QString::fromStdString("Unknown");
 
     ui->behaviorLabel->setText(newText);
-
+*/
 }
 
 QString status_window::getControllerStatus(uint8_t flag)
 {
+    /*
     switch(flag)
     {
     case vigir_atlas_control_msgs::VigirAtlasControlMode::IDLE:
@@ -143,6 +145,7 @@ QString status_window::getControllerStatus(uint8_t flag)
     default:
         return QString::fromStdString("Unknown Controller Status");
     }
+    */
 }
 
 void status_window::stabilityMsgReceived(const vigir_ocs_msgs::OCSRobotStability::ConstPtr stabilityMsg)

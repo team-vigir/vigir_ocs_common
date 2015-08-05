@@ -79,7 +79,7 @@ glancehubSbar::glancehubSbar(QWidget *parent) :
     connect(ui->modeBox,SIGNAL(currentIndexChanged(int)),this,SLOT(modeChanged(int)));
 
     //setup publisher to change modes
-    mode_pub_ = nh_.advertise<flor_control_msgs::FlorControlModeCommand>("/flor/controller/mode_command", 5, false);
+    mode_pub_ = nh_.advertise<vigir_control_msgs::VigirControlModeCommand>("/flor/controller/mode_command", 5, false);
 
     ui->plannerLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
     ui->footstepLight->setStyleSheet("QLabel { background-color: white; border:2px solid grey; }");
@@ -186,7 +186,7 @@ void glancehubSbar::modeChanged(int mode)
     ui->modelabel->setText(previous_selection_+" -> "+newText);
 
     // only publish the mode selection command if this slot is called from UI or if publish is not set to false
-    flor_control_msgs::FlorControlModeCommand msg;
+    vigir_control_msgs::VigirControlModeCommand msg;
     msg.header.stamp = ros::Time::now();
     msg.requested_control_mode = ui->modeBox->itemText(mode).toStdString().c_str();
     previous_selection_ = newText;
