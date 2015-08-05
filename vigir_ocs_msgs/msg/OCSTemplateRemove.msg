@@ -1,0 +1,2 @@
+uint8 template_id
+geometry_msgs/PoseStamped pose
