@@ -83,6 +83,8 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
 
+#include <vigir_planning_msgs/PlannerConfiguration.h>
+
 // local includes
 #include "footstep_vis_manager.h"
 
@@ -244,6 +246,8 @@ public:
     void processGraspSyncCB(const vigir_ocs_msgs::OCSGraspSync::ConstPtr msg);
 
     void processCommsStatus(const std_msgs::Int8ConstPtr msg);
+
+    void processPlannerConfiguration(const vigir_planning_msgs::PlannerConfiguration::ConstPtr msg);
 
     /**
       * ROS Callback: receives interactive marker pose updates
@@ -839,6 +843,11 @@ protected:
     bool left_marker_moveit_loopback_;
     bool right_marker_moveit_loopback_;
     bool position_only_ik_;
+
+    vigir_planning_msgs::PlannerConfiguration planner_configuration_;
+    ros::Publisher planner_configuration_pub_;
+    ros::Subscriber planner_configuration_sub_;
+
 
     std::vector<ros::Subscriber> end_effector_sub_;
     ros::Publisher end_effector_pub_;
