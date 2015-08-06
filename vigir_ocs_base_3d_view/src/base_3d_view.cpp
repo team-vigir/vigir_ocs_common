@@ -710,6 +710,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         //initialize hotkeys
         addHotkeys();
+
+        // initialize planner configuration
+        planner_configuration_sub_ = nh_.subscribe("/flor/planning/upper_body/configuration", 1, &Base3DView::processPlannerConfiguration, this);
+        planner_configuration_pub_ = nh_.advertise<vigir_planning_msgs::PlannerConfiguration>("/flor/planning/upper_body/configuration", 1, false);
     }
 
     //initialize overall context menu
@@ -3887,12 +3891,16 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
 
     cmd.use_environment_obstacle_avoidance = motion_settings.use_collision_avoidance;
     cmd.free_motion = motion_settings.free_motion;
-    cmd.planner_id = motion_settings.planner_id;    
 
     cmd.target_link_axis = motion_settings.target_link_axis;
-    cmd.orientation_type = motion_settings.orientation_type;
-    cmd.trajectory_sample_rate = motion_settings.sample_rate;
+    cmd.orientation_type = motion_settings.orientation_type;    
     cmd.target_link_name = motion_settings.target_link_name;
+
+    if ( planner_configuration_.planner_id != motion_settings.planner_id || planner_configuration_.trajectory_sample_rate != motion_settings.sample_rate ) {
+        planner_configuration_.planner_id = motion_settings.planner_id;
+        planner_configuration_.trajectory_sample_rate = motion_settings.sample_rate;
+        planner_configuration_pub_.publish(planner_configuration_);
+    }
 
 
     if(!ghost_use_torso_) // torso not selected in the ghost widget?
@@ -3969,12 +3977,15 @@ void Base3DView::sendCircularTarget(bool right_hand, CircularMotionSettings &mot
 
     cmd.use_environment_obstacle_avoidance = motion_settings.use_collision_avoidance;
 
-    cmd.planner_id = motion_settings.planner_id;
-
     cmd.target_link_axis = motion_settings.target_link_axis;
-    cmd.orientation_type = motion_settings.orientation_type;
-    cmd.trajectory_sample_rate = motion_settings.sample_rate;
+    cmd.orientation_type = motion_settings.orientation_type;    
     cmd.target_link_name = motion_settings.target_link_name;
+
+    if ( planner_configuration_.planner_id != motion_settings.planner_id || planner_configuration_.trajectory_sample_rate != motion_settings.sample_rate ) {
+        planner_configuration_.planner_id = motion_settings.planner_id;
+        planner_configuration_.trajectory_sample_rate = motion_settings.sample_rate;
+        planner_configuration_pub_.publish(planner_configuration_);
+    }
 
     cmd.keep_endeffector_orientation = motion_settings.keep_eef_orientation;
 
@@ -4224,6 +4235,10 @@ void Base3DView::processCommsStatus(const std_msgs::Int8ConstPtr msg)
         CommsNotificationSystem::Instance()->notifyPassive("Time Since Last Data");
     }
     //otherwise don't update notification and time will tick on
+}
+
+void Base3DView::processPlannerConfiguration(const vigir_planning_msgs::PlannerConfiguration::ConstPtr msg) {
+    planner_configuration_ = *msg;
 }
 
 
