@@ -2872,6 +2872,8 @@ void Base3DView::onMarkerFeedback(const vigir_ocs_msgs::OCSInteractiveMarkerUpda
 // if local feedback is true, it will NOT publish messages to other nodes and will only update local (this node) structures
 void Base3DView::publishGhostPoses(bool local_feedback)
 {    
+    bool update_ghost_pelvis_pose = moving_pelvis_;
+
     bool left = ghost_planning_group_[0];
     bool right = ghost_planning_group_[1];
     bool torso = ghost_use_torso_;
@@ -3056,7 +3058,8 @@ void Base3DView::publishGhostPoses(bool local_feedback)
         //    im_ghost_robot_[2]->setEnabled(true);
 
         // how do I set world lock for torso?
-        //ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+        if ( update_ghost_pelvis_pose )
+          ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
         pelvis_marker_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
