@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vigir_ocs_base_3d_view)
 
+#set(CMAKE_BUILD_TYPE Debug)
+
 ## Find catkin and any catkin packages on which
 ## this package depends at build time
 find_package(PCL REQUIRED QUIET COMPONENTS common)
@@ -29,6 +31,12 @@ qt4_wrap_cpp(MOC_FILES
   src/base_3d_view.h
   src/base_context_menu.h
   src/context_menu_manager.h
+  src/ui/cartesian_motion_widget.h
+  src/ui/circular_motion_widget.h
+)
+
+qt4_wrap_ui(UIC_FILES  
+  src/ui/cartesian_motion_widget.ui
 )
 
 ## Here we specify the list of source files, including the output of
@@ -38,6 +46,8 @@ set(SOURCE_FILES
   src/base_3d_view.cpp
   src/base_context_menu.cpp
   src/context_menu_manager.cpp
+  src/ui/circular_motion_widget.cpp
+  src/ui/cartesian_motion_widget.cpp
   ${MOC_FILES}
 )
 

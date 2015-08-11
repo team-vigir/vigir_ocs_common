@@ -117,6 +117,8 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
 
+#include <vigir_planning_msgs/PlannerConfiguration.h>
+
 // local includes
 #include "footstep_vis_manager.h"
 
@@ -138,6 +140,12 @@ class FPSViewController;
 
 namespace vigir_ocs
 {
+class CircularMotionWidget;
+struct CircularMotionSettings;
+
+class CartesianMotionWidget;
+struct CartesianMotionSettings;
+
 class BaseContextMenu;
 
 // Class "Main3DView" implements the RobotModel class with joint manipulation that can be added to any QT application.
@@ -272,6 +280,8 @@ public:
     void processGraspSyncCB(const vigir_ocs_msgs::OCSGraspSync::ConstPtr msg);
 
     void processCommsStatus(const std_msgs::Int8ConstPtr msg);
+
+    void processPlannerConfiguration(const vigir_planning_msgs::PlannerConfiguration::ConstPtr msg);
 
     /**
       * ROS Callback: receives interactive marker pose updates
@@ -410,21 +420,14 @@ public Q_SLOTS:
     void clearPlanningObjects();
 
     /**
-      * send pose to moveit and requests cartesian plan for left arm
+      * send pose to moveit and requests cartesian plan
       */
-    void sendCartesianLeft();
-    /**
-      * send pose to moveit and requests cartesian plan for right arm
+    void sendCartesianToArm();
+     /**
+      * send pose and radius to moveit and requests circular plan
       */
-    void sendCartesianRight();
-    /**
-      * send pose and radius to moveit and requests circular plan for left arm
-      */
-    void sendCircularLeft();
-    /**
-      * send pose and radius to moveit and requests circular plan for right arm
-      */
-    void sendCircularRight();
+    void sendCircularToArm();
+
 
     /**
       * Select object on double click
@@ -814,11 +817,11 @@ protected:
     /**
       * Publishes the cartesial target
       */
-    void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints);
+    void sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints, vigir_ocs::CartesianMotionSettings &motion_settings);
     /**
       * Publishes the circular target pose
       */
-    void sendCircularTarget(bool right_hand);
+    void sendCircularTarget(bool right_hand, vigir_ocs::CircularMotionSettings &motion_settings);
 
     std::vector<rviz::Display*> cartesian_marker_list_;
     rviz::Display* circular_marker_;
@@ -829,14 +832,8 @@ protected:
     ros::Publisher cartesian_plan_request_pub_;
     ros::Publisher circular_plan_request_pub_;
 
-    QWidget* cartesian_config_widget_;
-    QCheckBox* cartesian_use_collision_;
-    QCheckBox* cartesian_keep_orientation_;
-
-    QWidget* circular_config_widget_;
-    QCheckBox* circular_use_collision_;
-    QCheckBox* circular_keep_orientation_;
-    QDoubleSpinBox* circular_angle_;
+    CartesianMotionWidget* cartesian_config_widget_;
+    CircularMotionWidget* circular_config_widget_;
 
     ros::Subscriber send_cartesian_sub_;
 
@@ -880,6 +877,11 @@ protected:
     bool left_marker_moveit_loopback_;
     bool right_marker_moveit_loopback_;
     bool position_only_ik_;
+
+    vigir_planning_msgs::PlannerConfiguration planner_configuration_;
+    ros::Publisher planner_configuration_pub_;
+    ros::Subscriber planner_configuration_sub_;
+
 
     std::vector<ros::Subscriber> end_effector_sub_;
     ros::Publisher end_effector_pub_;

@@ -98,6 +98,8 @@
 // local includes
 #include "base_3d_view.h"
 #include "base_context_menu.h"
+#include "ui/cartesian_motion_widget.h"
+#include "ui/circular_motion_widget.h"
 
 // define used to determine interactive marker mode
 #define IM_MODE_OFFSET 3
@@ -641,80 +643,16 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         ((rviz::VectorProperty*)pelvis_bounding_box_->subProp( "Scale" ))->setVector( Ogre::Vector3(0.005f,0.005f,0.005f) );
 
         // create the window for cartesian motion
-        cartesian_config_widget_ = new QWidget();
-        cartesian_config_widget_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
-
-        cartesian_use_collision_ = new QCheckBox("Use Collision Avoidance");
-
-        cartesian_keep_orientation_ = new QCheckBox("Keep Endeffector Orientation");
-
-        QPushButton* cartesian_send_left_ = new QPushButton("Send to left arm");
-        QObject::connect(cartesian_send_left_, SIGNAL(clicked()), this, SLOT(sendCartesianLeft()));
-        cartesian_send_left_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
-        QPushButton* cartesian_send_right_ = new QPushButton("Send to right arm");
-        QObject::connect(cartesian_send_right_, SIGNAL(clicked()), this, SLOT(sendCartesianRight()));
-        cartesian_send_right_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
-
-        QHBoxLayout* cartesian_button_layout_ = new QHBoxLayout();
-        cartesian_button_layout_->setMargin(0);
-        cartesian_button_layout_->addWidget(cartesian_send_left_);
-        cartesian_button_layout_->addWidget(cartesian_send_right_);
-
-        QVBoxLayout* cartesian_layout_ = new QVBoxLayout();
-        cartesian_layout_->setMargin(3);
-        cartesian_layout_->setSpacing(3);
-        cartesian_layout_->addWidget(cartesian_use_collision_);
-        cartesian_layout_->addWidget(cartesian_keep_orientation_);
-        cartesian_layout_->addLayout(cartesian_button_layout_);
-
-        cartesian_config_widget_->setLayout(cartesian_layout_);
-        cartesian_config_widget_->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+        cartesian_config_widget_ = new CartesianMotionWidget(NULL, Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+        connect(cartesian_config_widget_, SIGNAL(sendMotionToArm()),  this, SLOT(sendCartesianToArm()));
         cartesian_config_widget_->hide();
 
         // and necessary publisher
         cartesian_plan_request_pub_ = nh_.advertise<vigir_teleop_planning_msgs::CartesianMotionRequest>( "/flor/planning/upper_body/plan_cartesian_request", 1, false );
 
         // create the window for circular motion
-        circular_config_widget_ = new QWidget();
-        circular_config_widget_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
-
-        circular_use_collision_ = new QCheckBox("Use Collision Avoidance");
-
-        circular_keep_orientation_ = new QCheckBox("Keep Endeffector Orientation");
-
-        QLabel* circular_angle_label_ = new QLabel("Rotation");
-        circular_angle_ = new QDoubleSpinBox();
-        circular_angle_->setDecimals(2);
-        circular_angle_->setMaximum(1080);
-        circular_angle_->setMinimum(-1080);
-
-        QHBoxLayout* circular_angle_layout_ = new QHBoxLayout();
-        circular_angle_layout_->setMargin(0);
-        circular_angle_layout_->addWidget(circular_angle_label_);
-        circular_angle_layout_->addWidget(circular_angle_);
-
-        QPushButton* circular_send_left_ = new QPushButton("Send to left arm");
-        QObject::connect(circular_send_left_, SIGNAL(clicked()), this, SLOT(sendCircularLeft()));
-        circular_send_left_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
-        QPushButton* circular_send_right_ = new QPushButton("Send to right arm");
-        QObject::connect(circular_send_right_, SIGNAL(clicked()), this, SLOT(sendCircularRight()));
-        circular_send_right_->setStyleSheet("font: 8pt \"MS Shell Dlg 2\";");
-
-        QHBoxLayout* circular_button_layout_ = new QHBoxLayout();
-        circular_button_layout_->setMargin(0);
-        circular_button_layout_->addWidget(circular_send_left_);
-        circular_button_layout_->addWidget(circular_send_right_);
-
-        QVBoxLayout* circular_layout_ = new QVBoxLayout();
-        circular_layout_->setMargin(3);
-        circular_layout_->setSpacing(3);
-        circular_layout_->addWidget(circular_use_collision_);
-        circular_layout_->addWidget(circular_keep_orientation_);
-        circular_layout_->addLayout(circular_angle_layout_);
-        circular_layout_->addLayout(circular_button_layout_);
-
-        circular_config_widget_->setLayout(circular_layout_);
-        circular_config_widget_->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+        circular_config_widget_ = new CircularMotionWidget(NULL, Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+        connect(circular_config_widget_, SIGNAL(sendMotionToArm()),  this, SLOT(sendCircularToArm()));
         circular_config_widget_->hide();
 
         // and necessary publisher
@@ -812,6 +750,10 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
 
         //initialize hotkeys
         addHotkeys();
+
+        // initialize planner configuration
+        planner_configuration_sub_ = nh_.subscribe("/flor/planning/upper_body/configuration", 1, &Base3DView::processPlannerConfiguration, this);
+        planner_configuration_pub_ = nh_.advertise<vigir_planning_msgs::PlannerConfiguration>("/flor/planning/upper_body/configuration", 1, false);
     }
 
     //initialize overall context menu
@@ -2987,6 +2929,8 @@ void Base3DView::onMarkerFeedback(const vigir_ocs_msgs::OCSInteractiveMarkerUpda
 // if local feedback is true, it will NOT publish messages to other nodes and will only update local (this node) structures
 void Base3DView::publishGhostPoses(bool local_feedback)
 {    
+    bool update_ghost_pelvis_pose = moving_pelvis_;
+
     bool left = ghost_planning_group_[0];
     bool right = ghost_planning_group_[1];
     bool torso = ghost_use_torso_;
@@ -3171,7 +3115,8 @@ void Base3DView::publishGhostPoses(bool local_feedback)
         //    im_ghost_robot_[2]->setEnabled(true);
 
         // how do I set world lock for torso?
-        //ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+        if ( update_ghost_pelvis_pose )
+          ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
         pelvis_marker_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
@@ -3211,6 +3156,14 @@ void Base3DView::statePositionOnlyIkCB(const std_msgs::Bool::ConstPtr msg)
 void Base3DView::stateUseDrakeIkCB(const std_msgs::Bool::ConstPtr msg)
 {
     use_drake_ik_ = msg->data;
+    if ( use_drake_ik_ ) {
+        circular_config_widget_->setPlannerId("drake");
+        cartesian_config_widget_->setPlannerId("drake");
+    }
+    else {
+        circular_config_widget_->setPlannerId("default");
+        cartesian_config_widget_->setPlannerId("default");
+    }
 }
 
 //----- End Callbacks to receive Ghost State data -------------------//
@@ -3919,13 +3872,14 @@ void Base3DView::processSendCartesian(const std_msgs::Bool::ConstPtr msg)
         waypoints.push_back(last_r_arm_moveit_pose_);
     else
         waypoints.push_back(last_l_arm_moveit_pose_);
-    bool old_state = cartesian_keep_orientation_->isChecked();
-    cartesian_keep_orientation_->setChecked(false);
-    sendCartesianTarget(msg->data, waypoints);
-    cartesian_keep_orientation_->setChecked(old_state);
+
+    CartesianMotionSettings settings;
+    cartesian_config_widget_->getMotionSettings(settings);
+    settings.keep_eef_orientation = false;
+    sendCartesianTarget(msg->data, waypoints, settings);
 }
 
-void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints) // 0 left 1 right
+void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs::Pose> waypoints, CartesianMotionSettings &motion_settings) // 0 left 1 right
 {
     std::string prefix = (right_hand ? "r" : "l");
 
@@ -3961,7 +3915,7 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
     for(int i = 0; i < cmd.waypoints.size(); i++)
     {
         // apply the difference to each one of the waypoints
-        if(cartesian_keep_orientation_->isChecked())
+        if(motion_settings.keep_eef_orientation)
         {
             cmd.waypoints[i].position.x = cmd.waypoints[i].position.x + diff_vector.x;
             cmd.waypoints[i].position.y = cmd.waypoints[i].position.y + diff_vector.y;
@@ -3988,7 +3942,19 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
 
     }
 
-    cmd.use_environment_obstacle_avoidance = cartesian_use_collision_->isChecked();
+    cmd.use_environment_obstacle_avoidance = motion_settings.use_collision_avoidance;
+    cmd.free_motion = motion_settings.free_motion;
+
+    cmd.target_link_axis = motion_settings.target_link_axis;
+    cmd.orientation_type = motion_settings.orientation_type;    
+    cmd.target_link_name = motion_settings.target_link_name;
+
+    if ( planner_configuration_.planner_id != motion_settings.planner_id || planner_configuration_.trajectory_sample_rate != motion_settings.sample_rate ) {
+        planner_configuration_.planner_id = motion_settings.planner_id;
+        planner_configuration_.trajectory_sample_rate = motion_settings.sample_rate;
+        planner_configuration_pub_.publish(planner_configuration_);
+    }
+
 
     if(!ghost_use_torso_) // torso not selected in the ghost widget?
         cmd.planning_group = prefix+"_arm_group";
@@ -3998,23 +3964,26 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
     if(position_only_ik_)
         cmd.planning_group += prefix+"_position_only_ik";
 
-    if(use_drake_ik_)
-        cmd.planner_id = "drake";
+    // advanced options override default planning group
+    if ( !motion_settings.planning_group.empty() )
+        cmd.planning_group = motion_settings.planning_group;
+
 
     cartesian_plan_request_pub_.publish(cmd);
 }
 
-void Base3DView::sendCartesianLeft()
+void Base3DView::sendCartesianToArm()
 {
-    sendCartesianTarget(0,cartesian_waypoint_list_);
+    CartesianMotionSettings settings;
+    cartesian_config_widget_->getMotionSettings(settings);
+
+    if ( settings.target_link_name == "l_hand" )
+        sendCartesianTarget(false,cartesian_waypoint_list_, settings);
+    else if ( settings.target_link_name == "r_hand" )
+        sendCartesianTarget(true,cartesian_waypoint_list_, settings);
 }
 
-void Base3DView::sendCartesianRight()
-{
-    sendCartesianTarget(1,cartesian_waypoint_list_);
-}
-
-void Base3DView::sendCircularTarget(bool right_hand)
+void Base3DView::sendCircularTarget(bool right_hand, CircularMotionSettings &motion_settings)
 {
     std::string prefix = (right_hand ? "r" : "l");
     vigir_teleop_planning_msgs::CircularMotionRequest cmd;
@@ -4024,8 +3993,8 @@ void Base3DView::sendCircularTarget(bool right_hand)
     pose.header.stamp = ros::Time::now();
     pose.pose = circular_center_;
 
-    // calculating the rotation based on position of the markers
-    if(circular_keep_orientation_->isChecked())
+    // calculating the rotation based on position of the markers    
+    if(motion_settings.keep_eef_orientation)
     {
         // get position of the wrist in world coordinates
         Ogre::Vector3 wrist_position(0,0,0);
@@ -4057,11 +4026,21 @@ void Base3DView::sendCircularTarget(bool right_hand)
 
     cmd.rotation_center_pose = pose;
 
-    cmd.rotation_angle = circular_angle_->value()*0.0174532925; // UI in deg, msg in rad
+    cmd.rotation_angle = motion_settings.rotation_angle_rad;
 
-    cmd.use_environment_obstacle_avoidance = circular_use_collision_->isChecked();
+    cmd.use_environment_obstacle_avoidance = motion_settings.use_collision_avoidance;
 
-    cmd.keep_endeffector_orientation = circular_keep_orientation_->isChecked();
+    cmd.target_link_axis = motion_settings.target_link_axis;
+    cmd.orientation_type = motion_settings.orientation_type;    
+    cmd.target_link_name = motion_settings.target_link_name;
+
+    if ( planner_configuration_.planner_id != motion_settings.planner_id || planner_configuration_.trajectory_sample_rate != motion_settings.sample_rate ) {
+        planner_configuration_.planner_id = motion_settings.planner_id;
+        planner_configuration_.trajectory_sample_rate = motion_settings.sample_rate;
+        planner_configuration_pub_.publish(planner_configuration_);
+    }
+
+    cmd.keep_endeffector_orientation = motion_settings.keep_eef_orientation;
 
     if(!ghost_use_torso_) // torso selected in the ghost widget?
         cmd.planning_group = prefix+"_arm_group";
@@ -4071,20 +4050,24 @@ void Base3DView::sendCircularTarget(bool right_hand)
     if(position_only_ik_)
         cmd.planning_group += "_position_only_ik";
 
-    if(use_drake_ik_)
-        cmd.planner_id = "drake";
+    // advanced options override default planning group
+    if ( !motion_settings.planning_group.empty() )
+        cmd.planning_group = motion_settings.planning_group;
+
+
 
     circular_plan_request_pub_.publish(cmd);
 }
 
-void Base3DView::sendCircularLeft()
+void Base3DView::sendCircularToArm()
 {
-    sendCircularTarget(false);
-}
+    CircularMotionSettings settings;
+    circular_config_widget_->getMotionSettings(settings);
 
-void Base3DView::sendCircularRight()
-{
-    sendCircularTarget(true);
+    if ( settings.target_link_name == "l_hand" )
+        sendCircularTarget(false, settings);
+    else if ( settings.target_link_name == "r_hand" )
+        sendCircularTarget(true, settings);
 }
 
 bool Base3DView::eventFilter( QObject * o, QEvent * e )
@@ -4305,6 +4288,10 @@ void Base3DView::processCommsStatus(const std_msgs::Int8ConstPtr msg)
         CommsNotificationSystem::Instance()->notifyPassive("Time Since Last Data");
     }
     //otherwise don't update notification and time will tick on
+}
+
+void Base3DView::processPlannerConfiguration(const vigir_planning_msgs::PlannerConfiguration::ConstPtr msg) {
+    planner_configuration_ = *msg;
 }
 
 
