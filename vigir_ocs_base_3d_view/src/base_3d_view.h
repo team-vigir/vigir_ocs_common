@@ -769,6 +769,18 @@ protected:
       */
     void createCartesianContextMenu();
     /**
+      * Context menu action for creating a cartesian target point from ghost robot's left 
+      */
+    void createCartesianMarkerFromGhostLeftHand();
+    /**
+      * Context menu action for creating a cartesian target point from ghost robot's right
+      */
+    void createCartesianMarkerFromGhostRightHand();
+    /**
+      * Create cartesian motion marker at a given pose
+      */
+    void createCartesianMarkerForPose(geometry_msgs::Pose &pose);
+    /**
       * Context menu action for removing a cartesian target point
       */
     void removeCartesianContextMenu();

@@ -111,6 +111,9 @@ void BaseContextMenu::createContextMenuItems()
     contextMenuItem * cartesianMotionMenu = context_menu_manager_->addMenuItem("Cartesian Motion");
 
     context_menu_manager_->addActionItem("Create Cartesian Motion Marker",boost::bind(&Base3DView::createCartesianContextMenu,base_3d_view_),cartesianMotionMenu);
+    context_menu_manager_->addActionItem(" ... from Ghost Left Hand", boost::bind(&Base3DView::createCartesianMarkerFromGhostLeftHand,base_3d_view_), cartesianMotionMenu);
+    context_menu_manager_->addActionItem(" ... from Ghost Right Hand", boost::bind(&Base3DView::createCartesianMarkerFromGhostRightHand,base_3d_view_), cartesianMotionMenu);
+
     context_menu_manager_->addActionItem("Remove All Markers",boost::bind(&Base3DView::removeCartesianContextMenu,base_3d_view_),cartesianMotionMenu);
 
     contextMenuItem * circularMotionMenu = context_menu_manager_->addMenuItem("Circular Motion");

@@ -2206,25 +2206,7 @@ void Base3DView::processObjectSelection(const vigir_ocs_msgs::OCSObjectSelection
 }
 
 void Base3DView::createCartesianContextMenu()
-{
-    // if this is the first cartesian marker, create config window
-    if(!cartesian_config_widget_->isVisible())
-    {
-        cartesian_config_widget_->move(QPoint(QCursor::pos().x()+5, QCursor::pos().y()+5));
-        cartesian_config_widget_->show();
-    }
-
-    unsigned int id = cartesian_marker_list_.size();
-    std::string pose_string = std::string("/cartesian_pose_")+boost::to_string((unsigned int)id);
-
-    // Add cartesian marker
-    rviz::Display* cartesian_marker = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Cartesian Marker ")+boost::to_string((unsigned int)id)).c_str(), true );
-    cartesian_marker->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
-    cartesian_marker->subProp( "Show Axes" )->setValue( true );
-    cartesian_marker->subProp( "Show Visual Aids" )->setValue( true );
-    cartesian_marker->setEnabled( true );
-    cartesian_marker_list_.push_back(cartesian_marker);
-
+ {
     // Add it in front of the robot
     geometry_msgs::PoseStamped pose;
     pose.pose.position.x = 1;
@@ -2237,20 +2219,47 @@ void Base3DView::createCartesianContextMenu()
     pose.header.frame_id = "/pelvis";
     transform(base_frame_,pose);
 
-    geometry_msgs::Point pos;
-    pos.x = pose.pose.position.x;
-    pos.y = pose.pose.position.y;
-    pos.z = pose.pose.position.z;
+   createCartesianMarkerForPose(pose.pose);
+}
+
+void Base3DView::createCartesianMarkerFromGhostLeftHand() {
+    geometry_msgs::Pose pose = last_l_arm_marker_pose_;//end_effector_pose_list_["/l_arm_pose_marker"].pose;
+    createCartesianMarkerForPose(pose);
+}
+
+void Base3DView::createCartesianMarkerFromGhostRightHand() {
+    geometry_msgs::Pose pose = last_r_arm_marker_pose_;//end_effector_pose_list_["/r_arm_pose_marker"].pose;
+    createCartesianMarkerForPose(pose);
+}
+
+void Base3DView::createCartesianMarkerForPose(geometry_msgs::Pose &pose) {
+   // if this is the first cartesian marker, create config window
+   if(!cartesian_config_widget_->isVisible())
+   {
+       cartesian_config_widget_->move(QPoint(QCursor::pos().x()+5, QCursor::pos().y()+5));
+       cartesian_config_widget_->show();
+   }
+    unsigned int id = cartesian_marker_list_.size();
+    std::string pose_string = std::string("/cartesian_pose_")+boost::to_string((unsigned int)id);
+
+    // Add cartesian marker
+    rviz::Display* cartesian_marker = manager_->createDisplay( "rviz/InteractiveMarkers", (std::string("Cartesian Marker ")+boost::to_string((unsigned int)id)).c_str(), true );
+    cartesian_marker->subProp( "Update Topic" )->setValue( (pose_string+std::string("/pose_marker/update")).c_str() );
+    cartesian_marker->subProp( "Show Axes" )->setValue( true );
+    cartesian_marker->subProp( "Show Visual Aids" )->setValue( true );
+    cartesian_marker->setEnabled( true );
+    cartesian_marker_list_.push_back(cartesian_marker);
 
     vigir_ocs_msgs::OCSInteractiveMarkerAdd marker;
     marker.name  = std::string("Cartesian Waypoint ")+boost::to_string((unsigned int)id);
     marker.topic = pose_string;
     marker.frame = base_frame_;
     marker.scale = 0.2;
-    marker.point = pos;
+    marker.point = pose.position;
+    marker.orientation = pose.orientation;
     interactive_marker_add_pub_.publish(marker);
 
-    cartesian_waypoint_list_.push_back(pose.pose);
+    cartesian_waypoint_list_.push_back(pose);
 }
 
 void Base3DView::removeCartesianContextMenu()
