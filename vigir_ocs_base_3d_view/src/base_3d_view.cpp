@@ -3069,7 +3069,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
         //    im_ghost_robot_[2]->setEnabled(true);
 
         // how do I set world lock for torso?
-        //ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
+        ghost_root_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
         pelvis_marker_pose_pub_.publish(end_effector_pose_list_["/pelvis_pose_marker"]);
 
