@@ -53,17 +53,19 @@ set(SOURCE_FILES
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} src)
 
+add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+
 add_executable(perspective_view ${UIC_FILES} ${SOURCE_FILES})
 target_link_libraries(perspective_view ${catkin_LIBRARIES} ${QT_LIBRARIES})
 add_dependencies(perspective_view ${catkin_EXPORTED_TARGETS})
 
 add_executable(perspective_view_widget ${SOURCE_FILES_WIDGET})
-target_link_libraries(perspective_view_widget ${catkin_LIBRARIES} ${QT_LIBRARIES})
+target_link_libraries(perspective_view_widget ${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
 add_dependencies(perspective_view_widget ${catkin_EXPORTED_TARGETS})
 
-add_library(${PROJECT_NAME} ${UIC_FILES} ${SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES})
-add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+
 
 install( TARGETS ${PROJECT_NAME} perspective_view perspective_view_widget
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
