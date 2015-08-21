@@ -1,2 +1,0 @@
-uint8 step_plan_id
-geometry_msgs/PoseStamped pose

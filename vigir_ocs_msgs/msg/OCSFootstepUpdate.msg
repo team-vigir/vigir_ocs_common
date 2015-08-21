@@ -1,2 +1,0 @@
-uint8 footstep_id
-geometry_msgs/PoseStamped pose
