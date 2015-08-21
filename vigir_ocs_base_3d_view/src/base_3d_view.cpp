@@ -3857,55 +3857,34 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
     cmd.waypoints = waypoints;
 
     // get position of the wrist in world coordinates
-    Ogre::Vector3 wrist_position(0,0,0);
-    Ogre::Quaternion wrist_orientation(1,0,0,0);
-    transform(wrist_position, wrist_orientation, (std::string("/")+(right_hand ? right_wrist_link_ : left_wrist_link_)).c_str(), "/world");
+    Ogre::Vector3 hand_position(0,0,0);
+    Ogre::Quaternion hand_orientation(1,0,0,0);
+    transform(hand_position, hand_orientation, (std::string("/")+prefix+"_hand").c_str(), "/world");
+
+    geometry_msgs::PoseStamped ref_point, new_ref_point;
+    ref_point.pose.position.x = 0;
+    ref_point.pose.position.y = 0;
+    ref_point.pose.position.z = 0;
+    ref_point.pose.orientation.x = 0;
+    ref_point.pose.orientation.y = 0;
+    ref_point.pose.orientation.z = 0;
+    ref_point.pose.orientation.w = 1;
 
     // get position of the marker in world coordinates
-    geometry_msgs::PoseStamped hand, marker;
-    hand.pose.position.x = wrist_position.x;
-    hand.pose.position.y = wrist_position.y;
-    hand.pose.position.z = wrist_position.z;
-    hand.pose.orientation.x = wrist_orientation.x;
-    hand.pose.orientation.y = wrist_orientation.y;
-    hand.pose.orientation.z = wrist_orientation.z;
-    hand.pose.orientation.w = wrist_orientation.w;
-    calcWristTarget(hand,(right_hand ? r_hand_T_marker_ : l_hand_T_marker_),marker);
-
-    // calculate the difference between them
-    Ogre::Vector3 diff_vector;
-    diff_vector.x = wrist_position.x - marker.pose.position.x;
-    diff_vector.y = wrist_position.y - marker.pose.position.y;
-    diff_vector.z = wrist_position.z - marker.pose.position.z;
+    tf::Transform hand_T_marker = (right_hand ? r_hand_T_marker_ : l_hand_T_marker_);
+    calcWristTarget(ref_point,hand_T_marker.inverse(), new_ref_point);
+    cmd.reference_point = new_ref_point.pose;
 
     for(int i = 0; i < cmd.waypoints.size(); i++)
     {
         // apply the difference to each one of the waypoints
         if(motion_settings.keep_eef_orientation)
         {
-            cmd.waypoints[i].position.x = cmd.waypoints[i].position.x + diff_vector.x;
-            cmd.waypoints[i].position.y = cmd.waypoints[i].position.y + diff_vector.y;
-            cmd.waypoints[i].position.z = cmd.waypoints[i].position.z + diff_vector.z;
-            cmd.waypoints[i].orientation.x = wrist_orientation.x;
-            cmd.waypoints[i].orientation.y = wrist_orientation.y;
-            cmd.waypoints[i].orientation.z = wrist_orientation.z;
-            cmd.waypoints[i].orientation.w = wrist_orientation.w;
+            cmd.waypoints[i].orientation.x = hand_orientation.x;
+            cmd.waypoints[i].orientation.y = hand_orientation.y;
+            cmd.waypoints[i].orientation.z = hand_orientation.z;
+            cmd.waypoints[i].orientation.w = hand_orientation.w;
         }
-        else
-        {
-            geometry_msgs::PoseStamped waypoint, new_waypoint;
-            waypoint.pose.position.x = cmd.waypoints[i].position.x;
-            waypoint.pose.position.y = cmd.waypoints[i].position.y;
-            waypoint.pose.position.z = cmd.waypoints[i].position.z;
-            waypoint.pose.orientation.x = cmd.waypoints[i].orientation.x;
-            waypoint.pose.orientation.y = cmd.waypoints[i].orientation.y;
-            waypoint.pose.orientation.z = cmd.waypoints[i].orientation.z;
-            waypoint.pose.orientation.w = cmd.waypoints[i].orientation.w;
-            calcWristTarget(waypoint,(right_hand ? r_hand_T_marker_.inverse() : l_hand_T_marker_.inverse()),new_waypoint);
-
-            cmd.waypoints[i] = new_waypoint.pose;
-        }
-
     }
 
     cmd.use_environment_obstacle_avoidance = motion_settings.use_collision_avoidance;
@@ -3960,36 +3939,19 @@ void Base3DView::sendCircularTarget(bool right_hand, CircularMotionSettings &mot
     pose.pose = circular_center_;
 
     // calculating the rotation based on position of the markers    
-    if(motion_settings.keep_eef_orientation)
-    {
-        // get position of the wrist in world coordinates
-        Ogre::Vector3 wrist_position(0,0,0);
-        Ogre::Quaternion wrist_orientation(1,0,0,0);
-        transform(wrist_position, wrist_orientation, (std::string("/")+(right_hand ? right_wrist_link_ : left_wrist_link_)).c_str(), "/world");
+    geometry_msgs::PoseStamped ref_point, new_ref_point;
+    ref_point.pose.position.x = 0;
+    ref_point.pose.position.y = 0;
+    ref_point.pose.position.z = 0;
+    ref_point.pose.orientation.x = 0;
+    ref_point.pose.orientation.y = 0;
+    ref_point.pose.orientation.z = 0;
+    ref_point.pose.orientation.w = 1;
 
-        // get position of the marker in world coordinates
-        geometry_msgs::PoseStamped hand, marker;
-        hand.pose.position.x = wrist_position.x;
-        hand.pose.position.y = wrist_position.y;
-        hand.pose.position.z = wrist_position.z;
-        hand.pose.orientation.x = wrist_orientation.x;
-        hand.pose.orientation.y = wrist_orientation.y;
-        hand.pose.orientation.z = wrist_orientation.z;
-        hand.pose.orientation.w = wrist_orientation.w;
-        calcWristTarget(hand,(right_hand ? r_hand_T_marker_ : l_hand_T_marker_),marker);
-
-        // calculate the difference between them
-        Ogre::Vector3 diff_vector;
-        diff_vector.x = wrist_position.x - marker.pose.position.x;
-        diff_vector.y = wrist_position.y - marker.pose.position.y;
-        diff_vector.z = wrist_position.z - marker.pose.position.z;
-
-        // apply the difference to the circular center
-        pose.pose.position.x = circular_center_.position.x + diff_vector.x;
-        pose.pose.position.y = circular_center_.position.y + diff_vector.y;
-        pose.pose.position.z = circular_center_.position.z + diff_vector.z;
-    }
-
+    // get position of the marker in world coordinates
+    tf::Transform hand_T_marker = (right_hand ? r_hand_T_marker_ : l_hand_T_marker_);
+    calcWristTarget(ref_point,hand_T_marker.inverse(), new_ref_point);
+    cmd.reference_point = new_ref_point.pose;
     cmd.rotation_center_pose = pose;
 
     cmd.rotation_angle = motion_settings.rotation_angle_rad;
