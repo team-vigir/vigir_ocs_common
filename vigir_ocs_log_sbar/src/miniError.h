@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include <ros/ros.h>
-#include <flor_control_msgs/FlorControlModeCommand.h>
+#include <vigir_control_msgs/VigirControlModeCommand.h>
 #include <vigir_ocs_msgs/OCSRobotStatus.h>
 #include <QTableWidgetItem>
 #include <QTableWidget>
