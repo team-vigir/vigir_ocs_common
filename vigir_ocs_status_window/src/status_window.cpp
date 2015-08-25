@@ -1,3 +1,37 @@
+/*********************************************************************
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013-2015, Team ViGIR ( TORC Robotics LLC, TU Darmstadt, Virginia Tech, Oregon State University, Cornell University, and Leibniz University Hanover )
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Team ViGIR, TORC Robotics, nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
+//@TODO_ADD_AUTHOR_INFO
 
 #include "status_window.h"
 #include "ui_status_window.h"
@@ -6,7 +40,6 @@
 #include <QPainter>
 #include <ros/ros.h>
 #include <QLabel>
-#include <flor_control_msgs/FlorControlModeCommand.h>
 
 status_window::status_window(QWidget *parent) :
      QWidget(parent),
@@ -33,32 +66,34 @@ status_window::status_window(QWidget *parent) :
     timer.start(33, this);
 }
 
-void status_window::controlModeMsgReceived(const flor_control_msgs::FlorControlMode::ConstPtr modeMsg)
+void status_window::controlModeMsgReceived(const vigir_control_msgs::VigirControlModeCommand::ConstPtr modeMsg)
 {
+   /*
+
     rbtStatus->show();
-    //flor_control_msgs::FlorControlMode::LEFT_SIDE_DOWN
+    //vigir_atlas_control_msgs::VigirAtlasControlMode::LEFT_SIDE_DOWN
     switch(modeMsg->posture & 0x7F)
     {
-    case flor_control_msgs::FlorControlMode::LEFT_SIDE_DOWN:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::LEFT_SIDE_DOWN:
         ui->postureLabel->setText(QString::fromStdString("Left Side Down"));
         break;
-    case flor_control_msgs::FlorControlMode::RIGHT_SIDE_DOWN:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::RIGHT_SIDE_DOWN:
         ui->postureLabel->setText(QString::fromStdString("Right Side Down"));
         break;
-    case flor_control_msgs::FlorControlMode::FRONT_SIDE_DOWN:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::FRONT_SIDE_DOWN:
         ui->postureLabel->setText(QString::fromStdString("Front Side Down"));
         break;
-    case flor_control_msgs::FlorControlMode::BACK_SIDE_DOWN:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::BACK_SIDE_DOWN:
         ui->postureLabel->setText(QString::fromStdString("Back Side Down"));
         break;
-    case flor_control_msgs::FlorControlMode::UPRIGHT:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::UPRIGHT:
         ui->postureLabel->setText(QString::fromStdString("Upright"));
         break;
-    case flor_control_msgs::FlorControlMode::VERTICAL: // posture can be Upright and Vertical
-    case (flor_control_msgs::FlorControlMode::VERTICAL + flor_control_msgs::FlorControlMode::UPRIGHT):
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::VERTICAL: // posture can be Upright and Vertical
+    case (vigir_atlas_control_msgs::VigirAtlasControlMode::VERTICAL + vigir_atlas_control_msgs::VigirAtlasControlMode::UPRIGHT):
         ui->postureLabel->setText(QString::fromStdString("Vertical"));
         break;
-    case flor_control_msgs::FlorControlMode::HEAD_STAND:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::HEAD_STAND:
         ui->postureLabel->setText(QString::fromStdString("Head Stand"));
         break;
     default:
@@ -79,36 +114,38 @@ void status_window::controlModeMsgReceived(const flor_control_msgs::FlorControlM
         newText = QString::fromStdString("Unknown");
 
     ui->behaviorLabel->setText(newText);
-
+*/
 }
 
 QString status_window::getControllerStatus(uint8_t flag)
 {
+    /*
     switch(flag)
     {
-    case flor_control_msgs::FlorControlMode::IDLE:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::IDLE:
         return QString::fromStdString("Idle");
-    case flor_control_msgs::FlorControlMode::TRAJECTORY_ACTIVE:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::TRAJECTORY_ACTIVE:
         return QString::fromStdString("Trajectory Active");
-    case flor_control_msgs::FlorControlMode::TRAJECTORY_HOLD:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::TRAJECTORY_HOLD:
         return QString::fromStdString("Trajectory Hold");
-    case flor_control_msgs::FlorControlMode::TRAJECTORY_WAIT:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::TRAJECTORY_WAIT:
         return QString::fromStdString("Trajectory Wait");
-    case flor_control_msgs::FlorControlMode::TRAJECTORY_INVALID:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::TRAJECTORY_INVALID:
         return QString::fromStdString("Trajectory Invalid");
-    case flor_control_msgs::FlorControlMode::TRAJECTORY_EMPTY:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::TRAJECTORY_EMPTY:
         return QString::fromStdString("Trajectory Empty");
-    case flor_control_msgs::FlorControlMode::POSITION:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::POSITION:
         return QString::fromStdString("Position");
-    case flor_control_msgs::FlorControlMode::TRACK:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::TRACK:
         return QString::fromStdString("Track");
-    case flor_control_msgs::FlorControlMode::HOLD_PRIOR:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::HOLD_PRIOR:
         return QString::fromStdString("Hold");
-    case flor_control_msgs::FlorControlMode::FORCE:
+    case vigir_atlas_control_msgs::VigirAtlasControlMode::FORCE:
         return QString::fromStdString("Force");
     default:
         return QString::fromStdString("Unknown Controller Status");
     }
+    */
 }
 
 void status_window::stabilityMsgReceived(const vigir_ocs_msgs::OCSRobotStability::ConstPtr stabilityMsg)

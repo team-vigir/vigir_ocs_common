@@ -5,9 +5,9 @@ import rospy
 import pickle
 import actionlib
 
-from vigir_be_input.complex_action_server import ComplexActionServer
+from flexbe_input.complex_action_server import ComplexActionServer
 
-from vigir_be_msgs.msg import BehaviorInputAction , BehaviorInputFeedback, BehaviorInputResult, BehaviorInputGoal
+from flexbe_msgs.msg import BehaviorInputAction , BehaviorInputFeedback, BehaviorInputResult, BehaviorInputGoal
 from geometry_msgs.msg import Point, PoseStamped#, JointState
 from vigir_ocs_msgs.msg import OCSObjectSelection, OCSTemplateList, OCSBehaviorGoal
 from vigir_footstep_planning_msgs.msg import StepPlan

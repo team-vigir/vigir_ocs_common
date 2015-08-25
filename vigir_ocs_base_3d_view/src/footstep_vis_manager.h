@@ -19,7 +19,7 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 
-#include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
+#include <vigir_interactive_marker_server_custom/interactive_marker_server_custom.h>
 #include <vigir_ocs_msgs/OCSInteractiveMarkerAdd.h>
 #include <vigir_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <vigir_ocs_msgs/OCSFootstepList.h>

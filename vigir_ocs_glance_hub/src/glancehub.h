@@ -1,8 +1,8 @@
 #ifndef GLANCEHUB_H
 #define GLANCEHUB_H
 
-#include <flor_control_msgs/FlorControlModeCommand.h>
-#include <flor_control_msgs/FlorControlMode.h>
+#include <vigir_control_msgs/VigirControlModeCommand.h>
+#include <vigir_control_msgs/VigirControlMode.h>
 #include <vigir_ocs_msgs/OCSRobotStatus.h>
 #include <vigir_ocs_msgs/OCSFootstepStatus.h>
 
@@ -27,7 +27,7 @@ class glancehub : public QMainWindow
 public:
     explicit glancehub(QWidget *parent = 0);
     ~glancehub();
-    void controlModeMsgRcv(const flor_control_msgs::FlorControlMode::ConstPtr msg);
+    void controlModeMsgRcv(const vigir_control_msgs::VigirControlMode::ConstPtr msg);
     void robotStatusMoveit(const vigir_ocs_msgs::OCSRobotStatus::ConstPtr msg);
     //void robotStatusFootstep(const vigir_ocs_msgs::OCSRobotStatus::ConstPtr msg);
     void robotStatusFootstepComplete(const vigir_ocs_msgs::OCSFootstepStatus::ConstPtr msg);

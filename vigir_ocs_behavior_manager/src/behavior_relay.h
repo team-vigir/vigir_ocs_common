@@ -7,7 +7,7 @@
 #include "vigir_ocs_msgs/OCSBehaviorGoal.h"
 #include "behavior_notification.h"
 #include <boost/asio/ip/host_name.hpp>
-#include <vigir_be_msgs/BehaviorInputAction.h>
+#include <flexbe_msgs/BehaviorInputAction.h>
 
 
 /**

@@ -4,7 +4,7 @@
 #include <ros/ros.h>
 #include <ros/subscriber.h>
 
-#include <flor_control_msgs/FlorControlModeCommand.h>
+#include <vigir_control_msgs/VigirControlModeCommand.h>
 #include <vigir_ocs_msgs/OCSRobotStatus.h>
 #include <vigir_ocs_msgs/RobotStatusCodes.h>
 #include <vigir_ocs_msgs/OCSFootstepStatus.h>

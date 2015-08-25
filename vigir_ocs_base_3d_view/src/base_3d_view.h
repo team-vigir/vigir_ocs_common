@@ -48,7 +48,7 @@
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/DisplayRobotState.h>
 
-#include <flor_interactive_marker_server_custom/interactive_marker_server_custom.h>
+#include <vigir_interactive_marker_server_custom/interactive_marker_server_custom.h>
 #include <vigir_ocs_msgs/OCSInteractiveMarkerAdd.h>
 #include <vigir_ocs_msgs/OCSInteractiveMarkerUpdate.h>
 #include <vigir_ocs_msgs/OCSKeyEvent.h>
@@ -61,8 +61,8 @@
 #include <vigir_ocs_msgs/OCSGraspSync.h>
 #include <vigir_perception_msgs/RaycastRequest.h>
 #include <vigir_perception_msgs/PointCloudTypeRegionRequest.h>
-#include <flor_control_msgs/FlorControlModeCommand.h>
-#include <flor_control_msgs/FlorControlMode.h>
+#include <vigir_control_msgs/VigirControlModeCommand.h>
+#include <vigir_control_msgs/VigirControlMode.h>
 
 #include "robot_custom.h"
 #include "robot_link_custom.h"
@@ -212,7 +212,7 @@ public:
     /**
       * ROS Callback: receives the current control mode from onboard
       */
-    void processControlMode( const flor_control_msgs::FlorControlMode::ConstPtr msg );
+    void processControlMode( const vigir_control_msgs::VigirControlMode::ConstPtr msg );
 
     /**
       * ROS Callback: receives configuration message for ghost robot

@@ -10,8 +10,8 @@
 #include <QMouseEvent>
 #include <QBasicTimer>
 #include <QPropertyAnimation>
-#include <vigir_be_msgs/BehaviorInputAction.h>
-#include <vigir_be_msgs/BehaviorInputActionGoal.h>
+#include <flexbe_msgs/BehaviorInputAction.h>
+#include <flexbe_msgs/BehaviorInputActionGoal.h>
 
 #include "vigir_ocs_msgs/OCSObjectSelection.h"
 #include <QFrame>
