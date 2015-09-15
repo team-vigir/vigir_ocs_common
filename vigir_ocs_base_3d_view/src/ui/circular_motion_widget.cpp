@@ -15,6 +15,8 @@ void CircularMotionWidget::getMotionSettings(CircularMotionSettings &settings) {
 }
 
 void CircularMotionWidget::setupWidgets() {
+    this->setWindowTitle(tr("Circular Motion"));
+
     checkBox_FreeMotion->setChecked(false);
     checkBox_FreeMotion->hide();
 

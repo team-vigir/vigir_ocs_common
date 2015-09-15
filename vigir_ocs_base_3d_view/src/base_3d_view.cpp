@@ -3865,6 +3865,11 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
     calcWristTarget(ref_point,hand_T_marker.inverse(), new_ref_point);
     cmd.reference_point = new_ref_point.pose;
 
+    // add relative term to reference point
+    cmd.reference_point.position.x += motion_settings.reference_point.x;
+    cmd.reference_point.position.y += motion_settings.reference_point.y;
+    cmd.reference_point.position.z += motion_settings.reference_point.z;
+
     for(int i = 0; i < cmd.waypoints.size(); i++)
     {
         // apply the difference to each one of the waypoints
@@ -3943,6 +3948,11 @@ void Base3DView::sendCircularTarget(bool right_hand, CircularMotionSettings &mot
     calcWristTarget(ref_point,hand_T_marker.inverse(), new_ref_point);
     cmd.reference_point = new_ref_point.pose;
     cmd.rotation_center_pose = pose;
+
+    // add relative term to reference point
+    cmd.reference_point.position.x += motion_settings.reference_point.x;
+    cmd.reference_point.position.y += motion_settings.reference_point.y;
+    cmd.reference_point.position.z += motion_settings.reference_point.z;
 
     cmd.rotation_angle = motion_settings.rotation_angle_rad;
 

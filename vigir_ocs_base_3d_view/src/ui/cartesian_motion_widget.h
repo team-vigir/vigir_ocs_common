@@ -14,6 +14,8 @@ struct CartesianMotionSettings {
     bool use_collision_avoidance;
     bool free_motion;
 
+    geometry_msgs::Point reference_point;
+
     std::string planner_id;
     double sample_rate;
     unsigned int orientation_type;

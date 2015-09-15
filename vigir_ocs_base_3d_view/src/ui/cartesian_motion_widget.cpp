@@ -28,6 +28,10 @@ void CartesianMotionWidget::getMotionSettings(CartesianMotionSettings &settings)
     settings.planner_id = lineEdit_CustomPlanner->text().toStdString();
     settings.target_link_name = target_link_name_;
 
+    settings.reference_point.x = spinBox_ReferencePointX->value();
+    settings.reference_point.y = spinBox_ReferencePointY->value();
+    settings.reference_point.z = spinBox_ReferencePointZ->value();
+
     if ( settings.planner_id == "drake") {
         settings.sample_rate = sample_rate_spin_->value();
         settings.orientation_type = orientation_type_combobox_->itemData( orientation_type_combobox_->currentIndex()).toUInt();
