@@ -43,6 +43,13 @@ void CartesianMotionWidget::getMotionSettings(CartesianMotionSettings &settings)
     }
     else if ( settings.planner_id == "default") {
         settings.planner_id = "";
+        settings.sample_rate = 0.0;
+        settings.orientation_type = 0;
+        settings.target_link_axis.x = 0;
+        settings.target_link_axis.y = 0;
+        settings.target_link_axis.z = 0;
+
+        settings.planning_group = planning_group_combobox_->currentText().toStdString();
     }
 }
 
