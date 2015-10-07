@@ -3831,6 +3831,7 @@ void Base3DView::processSendCartesian(const std_msgs::Bool::ConstPtr msg)
 
     CartesianMotionSettings settings;
     cartesian_config_widget_->getMotionSettings(settings);
+	
     settings.keep_eef_orientation = false;
     sendCartesianTarget(msg->data, waypoints, settings);
 }
@@ -3885,16 +3886,12 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
     cmd.use_environment_obstacle_avoidance = motion_settings.use_collision_avoidance;
     cmd.free_motion = motion_settings.free_motion;
 
-    cmd.target_link_axis = motion_settings.target_link_axis;
-    cmd.orientation_type = motion_settings.orientation_type;    
-    cmd.target_link_name = motion_settings.target_link_name;
-
+    // set global planner id if necessary
     if ( planner_configuration_.planner_id != motion_settings.planner_id || planner_configuration_.trajectory_sample_rate != motion_settings.sample_rate ) {
         planner_configuration_.planner_id = motion_settings.planner_id;
         planner_configuration_.trajectory_sample_rate = motion_settings.sample_rate;
         planner_configuration_pub_.publish(planner_configuration_);
     }
-
 
     if(!ghost_use_torso_) // torso not selected in the ghost widget?
         cmd.planning_group = prefix+"_arm_group";
@@ -3904,10 +3901,20 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
     if(position_only_ik_)
         cmd.planning_group += prefix+"_position_only_ik";
 
-    // advanced options override default planning group
-    if ( !motion_settings.planning_group.empty() )
-        cmd.planning_group = motion_settings.planning_group;
+    // set Drake-specific options
+    if ( planner_configuration_.planner_id == "drake") {
+        // advanced options override default planning group
+        if ( !motion_settings.planning_group.empty() )
+            cmd.planning_group = motion_settings.planning_group;
 
+        if ( !motion_settings.target_link_name.empty() )
+            cmd.target_link_name = motion_settings.target_link_name;
+        else
+            cmd.target_link_name = prefix+"_hand";            
+
+        cmd.target_link_axis = motion_settings.target_link_axis;
+        cmd.orientation_type = motion_settings.orientation_type;
+    }
 
     cartesian_plan_request_pub_.publish(cmd);
 }

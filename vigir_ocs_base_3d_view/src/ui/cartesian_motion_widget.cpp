@@ -20,7 +20,7 @@ CartesianMotionWidget::~CartesianMotionWidget() {
     treeWidget_DrakeOptions->clear();
 }
 
-void CartesianMotionWidget::getMotionSettings(CartesianMotionSettings &settings) {
+void CartesianMotionWidget::getMotionSettings(CartesianMotionSettings &settings) {    
     settings.keep_eef_orientation = checkBox_KeepEndeffectorOrientation->isChecked();
     settings.use_collision_avoidance = checkBox_CollisionAvoidance->isChecked();
     settings.free_motion = checkBox_FreeMotion->isChecked();
@@ -113,6 +113,8 @@ void CartesianMotionWidget::startPlanning() {
         target_link_name_ = "r_hand";
         Q_EMIT sendMotionToArm();
     }
+
+    target_link_name_ = "";
 }
 
 QVBoxLayout *CartesianMotionWidget::getMainLayout() {
@@ -134,7 +136,7 @@ void CartesianMotionWidget::setupWidgets() {
     for ( int i = 0; i < joint_groups.size(); i++) {
         planning_group_combobox_->addItem( QString::fromStdString(joint_groups[i].name_));
     }
-    int idx = planning_group_combobox_->findText("both_arms_with_torso_group");
+    int idx = planning_group_combobox_->findText("whole_body_group");
     planning_group_combobox_->setCurrentIndex(idx);
     treeWidget_DrakeOptions->setItemWidget(planning_group_item_, 1, planning_group_combobox_);
 
