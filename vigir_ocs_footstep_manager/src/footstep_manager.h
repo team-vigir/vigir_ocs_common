@@ -33,7 +33,7 @@
 #include <vigir_ocs_msgs/OCSFootstepSyncStatus.h>
 
 #include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
-#include <vigir_footstep_planning_msgs/parameter_set.h>
+#include <vigir_generic_params/parameter_set.h>
 
 //#include <vigir_footstep_planning_lib/helper.h>
 #include <vigir_foot_pose_transformer/foot_pose_transformer.h>
@@ -48,7 +48,7 @@ namespace ocs_footstep
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::StitchStepPlanAction> StitchStepPlanClient;
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::UpdateStepPlanAction> UpdateStepPlanClient;
     typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::ExecuteStepPlanAction> ExecuteStepPlanClient;
-    typedef actionlib::SimpleActionClient<vigir_footstep_planning_msgs::GetAllParameterSetsAction> GetAllParameterSetsClient;
+    typedef actionlib::SimpleActionClient<vigir_generic_params::GetAllParameterSetsAction> GetAllParameterSetsClient;
 
     class FootstepManager : public nodelet::Nodelet
     {
@@ -119,8 +119,8 @@ namespace ocs_footstep
         void doneExecuteStepPlan(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::ExecuteStepPlanResultConstPtr& result);
         //getallparametersets
         void activeGetAllParameterSets();
-        void feedbackGetAllParameterSets(const vigir_footstep_planning_msgs::GetAllParameterSetsFeedbackConstPtr& feedback);
-        void doneGetAllParameterSets(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::GetAllParameterSetsResultConstPtr& result);
+        void feedbackGetAllParameterSets(const vigir_generic_params::GetAllParameterSetsFeedbackConstPtr& feedback);
+        void doneGetAllParameterSets(const actionlib::SimpleClientGoalState& state, const vigir_generic_params::GetAllParameterSetsResultConstPtr& result);
 
     private:
         // send action goals
@@ -260,7 +260,7 @@ namespace ocs_footstep
         nav_msgs::Path footstep_path_;
 
         // Footstep parameter sets
-        std::vector<vigir_footstep_planning_msgs::ParameterSet> footstep_parameter_set_list_;
+        std::vector<vigir_generic_params::ParameterSet> footstep_parameter_set_list_;
         std::string selected_footstep_parameter_set_;
 
         // Parameters
