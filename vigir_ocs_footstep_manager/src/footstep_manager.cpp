@@ -1132,7 +1132,7 @@ void FootstepManager::publishFootstepParameterSetList()
     vigir_ocs_msgs::OCSFootstepParamSetList cmd;
     for(int i = 0; i < footstep_parameter_set_list_.size(); i++)
     {
-        cmd.param_set.push_back(footstep_parameter_set_list_[i].name.data);
+        cmd.param_set.push_back(footstep_parameter_set_list_[i].getName());
     }
     footstep_param_set_list_pub_.publish(cmd);
 }
@@ -1652,7 +1652,7 @@ void FootstepManager::doneExecuteStepPlan(const actionlib::SimpleClientGoalState
 void FootstepManager::sendGetAllParameterSetsGoal()
 {
     // Fill in goal here
-    vigir_footstep_planning_msgs::GetAllParameterSetsGoal action_goal;
+    vigir_generic_params::GetAllParameterSetsGoal action_goal;
 
     // and send it to the server
     if(get_all_parameter_sets_client_->isServerConnected())
@@ -1673,35 +1673,22 @@ void FootstepManager::activeGetAllParameterSets()
     ROS_INFO("GetAllParameterSets: Status changed to active.");
 }
 
-void FootstepManager::feedbackGetAllParameterSets(const vigir_footstep_planning_msgs::GetAllParameterSetsFeedbackConstPtr& feedback)
+void FootstepManager::feedbackGetAllParameterSets(const vigir_generic_params::GetAllParameterSetsFeedbackConstPtr& feedback)
 {
     ROS_INFO("GetAllParameterSets: Feedback received.");
 }
 
-void FootstepManager::doneGetAllParameterSets(const actionlib::SimpleClientGoalState& state, const vigir_footstep_planning_msgs::GetAllParameterSetsResultConstPtr& result)
+void FootstepManager::doneGetAllParameterSets(const actionlib::SimpleClientGoalState& state, const vigir_generic_params::GetAllParameterSetsResultConstPtr& result)
 {
-    ROS_INFO("GetAllParameterSets: Got action response. %s", result->status.error_msg.c_str());
+    ROS_INFO("GetAllParameterSets: Got action response.");
 
-    if(vigir_footstep_planning::hasError(result->status))
-    {
-        ROS_ERROR("GetAllParameterSets: Error occured!\n%s", vigir_footstep_planning::toString(result->status).c_str());
+    boost::recursive_mutex::scoped_lock lock(param_mutex_);
 
-        // send updated status to ocs
-        vigir_ocs_msgs::OCSFootstepStatus planner_status;
-        planner_status.status = vigir_ocs_msgs::OCSFootstepStatus::FOOTSTEP_PLANNER_FAILED;
-        planner_status.status_msg = result->status.error_msg;
-        planner_status_pub_.publish(planner_status);
-    }
-    else
-    {
-        boost::recursive_mutex::scoped_lock lock(param_mutex_);
+    footstep_parameter_set_list_.clear();
+    for(int i = 0; i < result->param_sets.size(); i++)
+        footstep_parameter_set_list_.push_back(result->param_sets[i]);
 
-        footstep_parameter_set_list_.clear();
-        for(int i = 0; i < result->param_sets.size(); i++)
-            footstep_parameter_set_list_.push_back(result->param_sets[i]);
-
-        this->publishFootstepParameterSetList();
-    }
+    this->publishFootstepParameterSetList();
 }
 
 void FootstepManager::processNewStepPlanGoal(vigir_footstep_planning_msgs::Feet& goal)
