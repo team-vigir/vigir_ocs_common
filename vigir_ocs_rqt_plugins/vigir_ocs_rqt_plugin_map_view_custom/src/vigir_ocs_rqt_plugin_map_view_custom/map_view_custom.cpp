@@ -1,4 +1,4 @@
-#include <map_view_custom.h>
+#include <vigir_ocs_rqt_plugin_map_view_custom/map_view_custom.h>
 
 #include <pluginlib/class_list_macros.h>
 

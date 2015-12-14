@@ -1,4 +1,4 @@
-#include <status_view_custom.h>
+#include <vigir_ocs_rqt_plugin_status_view_custom/status_view_custom.h>
 
 #include <pluginlib/class_list_macros.h>
 
