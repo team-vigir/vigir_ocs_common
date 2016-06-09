@@ -68,7 +68,7 @@ graspWidget::graspWidget(QWidget *parent, std::string hand, std::string hand_nam
     grasp_sync_pub_              = nh_.advertise<vigir_ocs_msgs::OCSGraspSync>(                     "/flor/ocs/grasp_sync",             1, false);
 
     grasp_info_client_           = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
-    template_info_client_        = nh_.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
+    template_info_client_        = nh_.serviceClient<vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo>("/template_info");
 
     //Get hand parameters from server
     left_wrist_link_ = "l_hand";

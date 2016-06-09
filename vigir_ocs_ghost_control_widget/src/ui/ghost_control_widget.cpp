@@ -66,7 +66,7 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
 
     //TEMPLATE SERVER STUFF
     grasp_info_client_    = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
-    template_info_client_ = nh_.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
+    template_info_client_ = nh_.serviceClient<vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo>("/template_info");
 
 
     //Context menu fix
@@ -199,7 +199,7 @@ void GhostControlWidget::on_templateBox_activated(const QString &arg1)
     selected_pose_id_ = -1;
 
     //CALLING THE TEMPLATE SERVER
-    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
+    vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo srv;
     srv.request.template_id = selected_template_id_;
     srv.request.hand_side   = srv.request.BOTH_HANDS;
     if (!template_info_client_.call(srv))
@@ -495,7 +495,7 @@ void GhostControlWidget::on_send_ghost_to_template_button_clicked()
     geometry_msgs::PoseStamped stand_pose;
 
     //CALLING THE TEMPLATE SERVER
-    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
+    vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo srv;
     srv.request.template_id = last_template_list_.template_id_list[ui->templateBox->currentIndex()];
     srv.request.hand_side   = srv.request.BOTH_HANDS;
     if (!template_info_client_.call(srv))

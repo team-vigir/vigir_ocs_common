@@ -19,7 +19,7 @@
 #include <vigir_ocs_msgs/OCSTemplateList.h>
 #include <vigir_grasp_msgs/InverseReachabilityForGraspRequest.h>
 #include <vigir_object_template_msgs/GetGraspInfo.h>
-#include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
+#include <vigir_object_template_msgs/GetInstantiatedTemplateStateAndTypeInfo.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int8.h>

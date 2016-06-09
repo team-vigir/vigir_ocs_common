@@ -47,7 +47,7 @@
 #include <vigir_grasp_msgs/LinkState.h>
 
 #include <vigir_object_template_msgs/GetGraspInfo.h>
-#include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
+#include <vigir_object_template_msgs/GetInstantiatedTemplateStateAndTypeInfo.h>
 
 #define FINGER_EFFORTS 4
 
@@ -115,7 +115,7 @@ private:
 
     // need to store updated template list and selected template id to calculate final position of the hand
     vigir_object_template_msgs::GetGraspInfo                last_grasp_srv_;
-    vigir_object_template_msgs::GetTemplateStateAndTypeInfo last_template_srv_;
+    vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo last_template_srv_;
 
     vigir_ocs_msgs::OCSTemplateList         last_template_list_;
     geometry_msgs::PoseStamped             frameid_T_template_;
