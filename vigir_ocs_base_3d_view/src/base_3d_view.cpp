@@ -2976,7 +2976,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
         if ( left )
         {
             std_msgs::String target_link_name;
-            target_link_name.data = "l_hand";
+            target_link_name.data = left_wrist_link_;
             request_cmd.target_link_names.push_back(target_link_name);
         }
 
@@ -2984,7 +2984,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
         if ( right )
         {
             std_msgs::String target_link_name;
-            target_link_name.data = "r_hand";
+            target_link_name.data = right_wrist_link_;
             request_cmd.target_link_names.push_back(target_link_name);
         }        
     }
@@ -3924,9 +3924,9 @@ void Base3DView::sendCartesianToArm()
     CartesianMotionSettings settings;
     cartesian_config_widget_->getMotionSettings(settings);
 
-    if ( settings.target_link_name == "l_hand" )
+    if ( settings.target_link_name == left_wrist_link_ )
         sendCartesianTarget(false,cartesian_waypoint_list_, settings);
-    else if ( settings.target_link_name == "r_hand" )
+    else if ( settings.target_link_name == right_wrist_link_)
         sendCartesianTarget(true,cartesian_waypoint_list_, settings);
 }
 
@@ -3999,9 +3999,9 @@ void Base3DView::sendCircularToArm()
     CircularMotionSettings settings;
     circular_config_widget_->getMotionSettings(settings);
 
-    if ( settings.target_link_name == "l_hand" )
+    if ( settings.target_link_name == left_wrist_link_ )
         sendCircularTarget(false, settings);
-    else if ( settings.target_link_name == "r_hand" )
+    else if ( settings.target_link_name == right_wrist_link_ )
         sendCircularTarget(true, settings);
 }
 
