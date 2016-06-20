@@ -106,11 +106,11 @@ void CartesianMotionWidget::updateTargetLinkAxisItemText() {
 void CartesianMotionWidget::startPlanning() {
     QObject *sender_object = sender();
     if ( sender_object == pushButton_SendToLeftArm)  {
-        target_link_name_ = "l_hand";
+        target_link_name_ = "l_arm_wr_p";
         Q_EMIT sendMotionToArm();
     }
     else if ( sender_object == pushButton_SendToRightArm ) {
-        target_link_name_ = "r_hand";
+        target_link_name_ = "r_arm_wr_p";
         Q_EMIT sendMotionToArm();
     }
 
