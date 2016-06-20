@@ -47,9 +47,9 @@ MainViewWidget::MainViewWidget(QWidget *parent) :
     ros::WallTime view_setup_start_time = ros::WallTime::now();
     ROS_INFO("Setting up default views");
     views_list_["Top Left"] = new vigir_ocs::PerspectiveView(NULL, "/world", "MainView");
-    views_list_["Top Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list_["Top Left"]),"/pelvis", "MainView"); //views_list_["Top Right"] = new vigir_ocs::OrthoView();
-    views_list_["Bottom Left"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list_["Top Left"]),"/pelvis", "MainView"); //views_list_["Bottom Left"] = new vigir_ocs::OrthoView();
-    views_list_["Bottom Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list_["Top Left"]),"/pelvis", "MainView"); //views_list_["Bottom Right"] = new vigir_ocs::OrthoView();
+    views_list_["Top Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list_["Top Left"]),"/pelvis_link", "MainView"); //views_list_["Top Right"] = new vigir_ocs::OrthoView();
+    views_list_["Bottom Left"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list_["Top Left"]),"/pelvis_link", "MainView"); //views_list_["Bottom Left"] = new vigir_ocs::OrthoView();
+    views_list_["Bottom Right"] = new vigir_ocs::OrthoView(((vigir_ocs::PerspectiveView*)views_list_["Top Left"]),"/pelvis_link", "MainView"); //views_list_["Bottom Right"] = new vigir_ocs::OrthoView();
     ROS_INFO("Setup of default views took %f seconds", (ros::WallTime::now() - view_setup_start_time).toSec());
 
     aux_layout = new QHBoxLayout();
