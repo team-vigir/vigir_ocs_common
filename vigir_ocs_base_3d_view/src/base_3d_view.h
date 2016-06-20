@@ -131,7 +131,7 @@ public:
       * @param parent Parent widget of this window
       * Class "Main3DView" implements the RobotModel class with joint manipulation that can be added to any QT application.
       */
-    Base3DView( Base3DView* copy_from = NULL, std::string base_frame = "/pelvis", std::string widget_name = "", QWidget *parent = 0 );
+    Base3DView( Base3DView* copy_from = NULL, std::string base_frame = "/pelvis_link", std::string widget_name = "", QWidget *parent = 0 );
     virtual ~Base3DView();
 
     /**
