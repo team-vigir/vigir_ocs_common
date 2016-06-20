@@ -648,7 +648,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         //create joint position error displays
         joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
         ROS_ASSERT( joint_arrows_ != NULL );
-        joint_arrows_->subProp("Topic")->setValue("/atlas/joint_states");
+        joint_arrows_->subProp("Topic")->setValue("/johnny5/joints/joint_states");
         joint_arrows_->subProp("Width")->setValue("0.015");
         joint_arrows_->subProp("Scale")->setValue("1.2");        
         joint_arrows_->subProp("isGhost")->setValue(false);
@@ -1834,7 +1834,7 @@ void Base3DView::insertTemplate( QString path )
         pose.pose.orientation.y = 0;
         pose.pose.orientation.z = 0;
         pose.pose.orientation.w = 1;
-        pose.header.frame_id = "/pelvis";
+        pose.header.frame_id = "/pelvis_link";
         transform("/world",pose);
 
         cmd.pose = pose;
@@ -2216,7 +2216,7 @@ void Base3DView::createCartesianContextMenu()
     pose.pose.orientation.y = 0;
     pose.pose.orientation.z = 0;
     pose.pose.orientation.w = 1;
-    pose.header.frame_id = "/pelvis";
+    pose.header.frame_id = "/pelvis_link";
     transform(base_frame_,pose);
 
    createCartesianMarkerForPose(pose.pose);
@@ -2308,7 +2308,7 @@ void Base3DView::createCircularContextMenu()
     pose.pose.orientation.y = 0;
     pose.pose.orientation.z = 0;
     pose.pose.orientation.w = 1;
-    pose.header.frame_id = "/pelvis";
+    pose.header.frame_id = "/pelvis_link";
     transform(base_frame_,pose);
 
     geometry_msgs::Point pos;
@@ -2995,7 +2995,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
 
         Ogre::Vector3 position(0,0,0);
         Ogre::Quaternion orientation(1,0,0,0);
-        transform(position, orientation, "/pelvis", "/world");
+        transform(position, orientation, "/pelvis_link", "/world");
 
         geometry_msgs::PoseStamped root_pose;
         root_pose.pose.position.x = position.x;
@@ -3013,7 +3013,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
         // when using drake ik: add pelvis pose as fixed target pose
         if ( use_drake_ik_ ) {
             std_msgs::String target_link_name;
-            target_link_name.data = "pelvis";
+            target_link_name.data = "pelvis_link";
             request_cmd.target_link_names.push_back(target_link_name);
             request_cmd.target_poses.push_back(root_pose);
         }
@@ -3052,7 +3052,7 @@ void Base3DView::publishGhostPoses(bool local_feedback)
 
             Ogre::Vector3 position(0,0,0);
             Ogre::Quaternion orientation(1,0,0,0);
-            transform(position, orientation, "/pelvis", "/world");
+            transform(position, orientation, "/pelvis_link", "/world");
 
             geometry_msgs::Pose root_pose;
             root_pose.position.x = position.x;
@@ -3251,7 +3251,7 @@ void Base3DView::processJointStates(const sensor_msgs::JointState::ConstPtr stat
     // get pelvis pose
     Ogre::Vector3 position(0,0,0);
     Ogre::Quaternion orientation(1,0,0,0);
-    transform(position, orientation, "/pelvis", "/world");
+    transform(position, orientation, "/pelvis_link", "/world");
 
     geometry_msgs::PoseStamped root_pose;
     root_pose.pose.position.x = position.x;
@@ -3734,7 +3734,7 @@ void Base3DView::processPelvisResetRequest( const std_msgs::Bool::ConstPtr msg )
         Ogre::Quaternion original_orientation(marker_pose.pose.orientation.w,marker_pose.pose.orientation.x,marker_pose.pose.orientation.y,marker_pose.pose.orientation.z);
         Ogre::Vector3 position(0,0,0);
         Ogre::Quaternion orientation(1,0,0,0);
-        transform(position, orientation, "/pelvis", "/world");
+        transform(position, orientation, "/pelvis_link", "/world");
 
         //ROS_ERROR("ROTATION PELVIS: %f %f %f",orientation.getPitch().valueDegrees(),orientation.getYaw().valueDegrees(),orientation.getRoll().valueDegrees());
         //ROS_ERROR("ROTATION GHOST : %f %f %f",original_orientation.getPitch().valueDegrees(),original_orientation.getYaw().valueDegrees(),original_orientation.getRoll().valueDegrees());
@@ -3807,7 +3807,7 @@ void Base3DView::resetView()
     getCurrentViewController()->reset();
     Ogre::Vector3 position(0,0,0);
     Ogre::Quaternion orientation(1,0,0,0);
-    transform(position, orientation, "/pelvis", "/world");
+    transform(position, orientation, "/pelvis_link", "/world");
     getCurrentViewController()->lookAt(position);
     //if(dynamic_cast<rviz::OrbitViewController*>(manager_->getViewManager()->getCurrent()) == NULL)
     //    ((rviz::OrbitViewController*)manager_->getViewManager()->getCurrent())->lookAt(position);
@@ -3850,7 +3850,7 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
     // get position of the wrist in world coordinates
     Ogre::Vector3 hand_position(0,0,0);
     Ogre::Quaternion hand_orientation(1,0,0,0);
-    transform(hand_position, hand_orientation, (std::string("/")+prefix+"_hand").c_str(), "/world");
+    transform(hand_position, hand_orientation, (right_hand ? right_wrist_link_ : left_wrist_link_).c_str(), "/world");
 
     geometry_msgs::PoseStamped ref_point, new_ref_point;
     ref_point.pose.position.x = 0;
@@ -3910,7 +3910,7 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
         if ( !motion_settings.target_link_name.empty() )
             cmd.target_link_name = motion_settings.target_link_name;
         else
-            cmd.target_link_name = prefix+"_hand";            
+            cmd.target_link_name = right_hand ? right_wrist_link_ : left_wrist_link_;
 
         cmd.target_link_axis = motion_settings.target_link_axis;
         cmd.orientation_type = motion_settings.orientation_type;
