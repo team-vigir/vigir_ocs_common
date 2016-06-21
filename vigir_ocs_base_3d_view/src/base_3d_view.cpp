@@ -3863,7 +3863,7 @@ void Base3DView::sendCartesianTarget(bool right_hand, std::vector<geometry_msgs:
 
     // get position of the marker in world coordinates
     tf::Transform hand_T_marker = (right_hand ? r_hand_T_marker_ : l_hand_T_marker_);
-    calcWristTarget(ref_point,hand_T_marker.inverse(), new_ref_point);
+    calcWristTarget(ref_point,hand_T_marker, new_ref_point);
     cmd.reference_point = new_ref_point.pose;
 
     // add relative term to reference point
@@ -3952,7 +3952,7 @@ void Base3DView::sendCircularTarget(bool right_hand, CircularMotionSettings &mot
 
     // get position of the marker in world coordinates
     tf::Transform hand_T_marker = (right_hand ? r_hand_T_marker_ : l_hand_T_marker_);
-    calcWristTarget(ref_point,hand_T_marker.inverse(), new_ref_point);
+    calcWristTarget(ref_point,hand_T_marker, new_ref_point);
     cmd.reference_point = new_ref_point.pose;
     cmd.rotation_center_pose = pose;
 
