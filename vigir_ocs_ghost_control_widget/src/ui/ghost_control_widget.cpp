@@ -66,7 +66,7 @@ GhostControlWidget::GhostControlWidget(QWidget *parent) :
 
     //TEMPLATE SERVER STUFF
     grasp_info_client_    = nh_.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
-    template_info_client_ = nh_.serviceClient<vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo>("/template_info");
+    template_info_client_ = nh_.serviceClient<vigir_object_template_msgs::GetInstantiatedTemplateStateAndTypeInfo>("/instantiated_template_info");
 
 
     //Context menu fix
