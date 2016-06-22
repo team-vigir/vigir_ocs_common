@@ -174,8 +174,13 @@ MainCameraViewWidget::MainCameraViewWidget(QWidget *parent) :
 
     fourViewToggle();
 
+    ros::NodeHandle pnh("~");
+
+    std::string head_traj_namespace = "/thormang";
+    pnh.getParam("head_traj_namespace", head_traj_namespace);
+
     //key_event_sub_ = nh_.subscribe<vigir_ocs_msgs::OCSKeyEvent>( "/flor/ocs/key_event", 5, &MainCameraViewWidget::processNewKeyEvent, this );
-    neck_pos_sub_ = nh_.subscribe ( "/thor_mang/joint_states" , 2, &MainCameraViewWidget::updateHeadConfig, this );
+    neck_pos_sub_ = nh_.subscribe ( head_traj_namespace+"/joint_states" , 2, &MainCameraViewWidget::updateHeadConfig, this );
     head_control_pub_ = nh_.advertise<vigir_planning_msgs::HeadControlCommand>("/thor_mang/head_control_mode", 10, true);
 
     //send template list to views for context menu
@@ -397,10 +402,10 @@ void MainCameraViewWidget::updateHeadConfig( const sensor_msgs::JointStateConstP
         float pan, tilt;
         for (int i=0; i<joint_state.get()->name.size(); i++) {
             std::string name = joint_state.get()->name.at(i);
-            if (name == "head_pan") {
+            if (name == "head_y") {
                 pan = joint_state.get()->position.at(i);
             }
-            if (name == "head_tilt") {
+            if (name == "head_p") {
                 tilt = joint_state.get()->position.at(i);
             }
         }
