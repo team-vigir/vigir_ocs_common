@@ -240,7 +240,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // Create the mesh displays
         stereo_mesh_viewer_ = manager_->createDisplay( "rviz/MeshDisplayCustom", "Mesh", true );
         ROS_ASSERT( stereo_mesh_viewer_ != NULL );
-        stereo_mesh_viewer_->subProp( "Image Topic" )->setValue( "/camera/image_raw" );
+        stereo_mesh_viewer_->subProp( "Image Topic" )->setValue( "/head_cam/rgb/image_raw" );
         stereo_mesh_viewer_->subProp( "Mesh Topic" )->setValue( "/worldmodel_cloud_to_mesh_node/mesh_shape" );
 
         // point cloud request
@@ -646,7 +646,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         grasp_sync_pub_ = nh_.advertise<vigir_ocs_msgs::OCSGraspSync>("/flor/ocs/grasp_sync", 5, false);
 
         //create joint position error displays
-        joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", true );
+        joint_arrows_ = manager_->createDisplay( "rviz/JointMarkerDisplayCustom", "Joint Position Markers", false );
         ROS_ASSERT( joint_arrows_ != NULL );
         joint_arrows_->subProp("Topic")->setValue("/johnny5/joints/joint_states");
         joint_arrows_->subProp("Width")->setValue("0.015");
