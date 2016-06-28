@@ -240,7 +240,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         // Create the mesh displays
         stereo_mesh_viewer_ = manager_->createDisplay( "rviz/MeshDisplayCustom", "Mesh", true );
         ROS_ASSERT( stereo_mesh_viewer_ != NULL );
-        stereo_mesh_viewer_->subProp( "Image Topic" )->setValue( "/johnny5/sensors/asus/rgb/image_raw" );
+        stereo_mesh_viewer_->subProp( "Image Topic" )->setValue( "/johnny5/sensors/head_cam/rgb/image_raw" );
         stereo_mesh_viewer_->subProp( "Mesh Topic" )->setValue( "/worldmodel_cloud_to_mesh_node/mesh_shape" );
 
         // point cloud request
