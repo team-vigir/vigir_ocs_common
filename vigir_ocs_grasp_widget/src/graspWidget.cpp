@@ -653,7 +653,7 @@ void graspWidget::publishHandPose(unsigned int id)
     size_t size = last_grasp_srv_.response.grasp_information.grasps.size();
 
     if(size == 0)
-        ROS_ERROR_STREAM("No grasps found for this template");
+        ROS_ERROR_STREAM_THROTTLE(5,"No grasps found for this template, this message is throttled");
     else{
         size_t index = 0;
         for(; index < size; ++index)
