@@ -238,7 +238,7 @@ Base3DView::Base3DView( Base3DView* copy_from, std::string base_frame, std::stri
         lidar_point_cloud_viewer_->subProp( "Max Intensity" )->setValue( 5000 );
 
         // Create the mesh displays
-        stereo_mesh_viewer_ = manager_->createDisplay( "rviz/MeshDisplayCustom", "Mesh", true );
+        stereo_mesh_viewer_ = manager_->createDisplay( "rviz/MeshDisplayCustom", "Mesh", false );
         ROS_ASSERT( stereo_mesh_viewer_ != NULL );
         stereo_mesh_viewer_->subProp( "Image Topic" )->setValue( "/johnny5/sensor/head_cam/rgb/image_raw" );
         stereo_mesh_viewer_->subProp( "Mesh Topic" )->setValue( "/worldmodel_cloud_to_mesh_node/mesh_shape" );
